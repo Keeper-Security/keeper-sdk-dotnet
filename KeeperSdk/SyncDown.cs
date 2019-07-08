@@ -612,10 +612,10 @@ namespace KeeperSecurity.Sdk
                                         }
                                     }
                                 }
-                            }
-                            if (key != null)
-                            {
-                                break;
+                                if (key != null)
+                                {
+                                    break;
+                                }
                             }
                         }
                     }
