@@ -168,7 +168,7 @@ namespace KeeperSecurity.Sdk
             var authRequest = new AuthRequest()
             {
                 ClientVersion = ClientVersion,
-                Username = userName,
+                Username = userName.ToLowerInvariant(),
                 EncryptedDeviceToken = ByteString.CopyFrom(EncryptedDeviceToken)
             };
 
@@ -194,7 +194,7 @@ namespace KeeperSecurity.Sdk
                     AuthRequest = new AuthRequest
                     {
                         ClientVersion = ClientVersion,
-                        Username = username,
+                        Username = username.ToLowerInvariant(),
                         EncryptedDeviceToken = ByteString.CopyFrom(EncryptedDeviceToken)
                     },
                     LoginType = LoginType.Normal

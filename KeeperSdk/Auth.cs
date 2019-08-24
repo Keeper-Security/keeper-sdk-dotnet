@@ -17,6 +17,12 @@ using System.Diagnostics;
 using System.Text;
 using Authentication;
 using Org.BouncyCastle.Crypto.Parameters;
+using System.Collections.Generic;
+using System.Net.WebSockets;
+using System.Threading;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.IO;
 
 namespace KeeperSecurity.Sdk
 {
@@ -79,7 +85,7 @@ namespace KeeperSecurity.Sdk
         public async Task<R> ExecuteAuthCommand<C, R>(C command, bool throwOnError = true) where C : AuthorizedCommand where R : KeeperApiResponse
         {
             command.sessionToken = SessionToken;
-            command.username = Username;
+            command.username = Username.ToLowerInvariant();
             command.deviceId = KeeperEndpoint.DefaultDeviceName;
 
             R response = null;
@@ -119,6 +125,7 @@ namespace KeeperSecurity.Sdk
             }
             var token = user.TwoFactorToken;
             var tokenType = "device_token";
+            var tokenDuration = TwoFactorCodeDuration.Forever;
 
             string authHash = null;
             PreLoginResponse preLogin = null;
@@ -140,15 +147,32 @@ namespace KeeperSecurity.Sdk
                 }
 
                 var command = new LoginCommand();
-                command.username = username;
+                command.username = username.ToLowerInvariant();
                 command.authResponse = authHash;
                 command.include = new[] { "keys", "settings", "enforcements", "is_enterprise_admin" };
                 command.twoFactorToken = token;
                 command.twoFactorType = !string.IsNullOrEmpty(token) ? tokenType : null;
-                command.deviceTokenExpiresInDays = !string.IsNullOrEmpty(token) && tokenType != "device_token" ? 9999 : (int?)null;
+                if (!string.IsNullOrEmpty(token))
+                {
+                    switch (tokenDuration)
+                    {
+                        case TwoFactorCodeDuration.Every30Days:
+                            command.deviceTokenExpiresInDays = 30;
+                            break;
+                        case TwoFactorCodeDuration.Forever:
+                            command.deviceTokenExpiresInDays = 9999;
+                            break;
+                        default:
+                            command.deviceTokenExpiresInDays = null;
+                            break;
+                    }
+                }
+                else
+                {
+                    command.deviceTokenExpiresInDays = null;
+                }
 
                 var loginRs = await Api.ExecuteV2Command<LoginCommand, LoginResponse>(command);
-
                 if (!loginRs.IsSuccess && loginRs.resultCode == "auth_failed") // invalid password
                 {
                     throw new Exception("Invalid user name or password");
@@ -202,10 +226,37 @@ namespace KeeperSecurity.Sdk
                         case "need_totp":
                         case "invalid_device_token":
                         case "invalid_totp":
-                            token = await Ui.GetTwoFactorCode();
-                            if (!string.IsNullOrEmpty(token))
+                            var channel = TwoFactorCodeChannel.Other;
+                            switch (loginRs.channel)
                             {
+                                case "two_factor_channel_sms":
+                                    channel = TwoFactorCodeChannel.TextMessage;
+                                    break;
+                                case "two_factor_channel_google":
+                                    channel = TwoFactorCodeChannel.Authenticator;
+                                    break;
+                                case "two_factor_channel_duo":
+                                    channel = TwoFactorCodeChannel.DuoSecurity;
+                                    break;
+                                default:
+                                    break;
+
+                            }
+
+                            TwoFactorCode tfaCode = null;
+                            if (channel == TwoFactorCodeChannel.DuoSecurity)
+                            {
+                                tfaCode = await GetDuoTwoFactorCode(command, loginRs);
+                            }
+                            else
+                            {
+                                tfaCode = await Ui.GetTwoFactorCode(channel);
+                            }
+                            if (tfaCode != null)
+                            {
+                                token = tfaCode.Code;
                                 tokenType = "one_time";
+                                tokenDuration = tfaCode.Duration;
                                 continue;
                             }
                             break;
@@ -231,6 +282,114 @@ namespace KeeperSecurity.Sdk
                     }
                     throw new KeeperApiException(loginRs.resultCode, loginRs.message);
                 }
+            }
+        }
+
+        private async Task<TwoFactorCode> GetDuoTwoFactorCode(LoginCommand loginCommand, LoginResponse loginResponse)
+        {
+            if (Ui is IDuoTwoFactorUI duoUi)
+            {
+                var account = new DuoAccount
+                {
+                    Phone = loginResponse.phone,
+                    EnrollmentUrl = loginResponse.enroll_url
+                };
+                if (loginResponse.capabilities != null)
+                {
+                    account.Capabilities = loginResponse.capabilities
+                        .Select<string, DuoAction?>(x =>
+                        {
+                            if (DuoActionExtensions.TryParseDuoAction(x, out DuoAction action))
+                            {
+                                return action;
+                            }
+                            return null;
+                        })
+                        .Where(x => x != null)
+                        .Select(x => x.Value)
+                        .ToArray();
+                }
+                string code = null;
+                ClientWebSocket ws = null;
+                var tokenSource = new CancellationTokenSource();
+                var result = await duoUi.GetDuoTwoFactorResult(account, async (duoAction) =>
+                {
+                    try
+                    {
+                        if (duoAction == DuoAction.DuoPush)
+                        {
+                            ws = new ClientWebSocket();
+                            await ws.ConnectAsync(new Uri(loginResponse.url), tokenSource.Token);
+                        }
+                        loginCommand.twoFactorMode = duoAction.GetDuoActionText();
+                        loginCommand.twoFactorType = "one_time";
+                        var actionRs = await Api.ExecuteV2Command<LoginCommand, LoginResponse>(loginCommand);
+                        if (actionRs.resultCode == "need_totp" && ws != null)
+                        {
+                            if (ws != null)
+                            {
+                                tokenSource.CancelAfter(TimeSpan.FromSeconds(60));
+                                byte[] buffer = new byte[1024];
+                                var segment = new ArraySegment<byte>(buffer);
+                                var rs = await ws.ReceiveAsync(segment, tokenSource.Token);
+                                if (rs != null)
+                                {
+                                    var serializer = new DataContractJsonSerializer(typeof(DuoPushNotification));
+                                    using (var rss = new MemoryStream(buffer, 0, rs.Count))
+                                    {
+                                        var notification = serializer.ReadObject(rss) as DuoPushNotification;
+                                        code = notification.passcode_;
+                                    }
+                                }
+                                await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", tokenSource.Token);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        loginCommand.twoFactorMode = null;
+                        loginCommand.twoFactorType = null;
+                        tokenSource.Cancel();
+                        if (ws != null)
+                        {
+                            lock (tokenSource)
+                            {
+                                ws?.Dispose();
+                                ws = null;
+                            }
+                        }
+                    }
+                });
+
+                if (!tokenSource.IsCancellationRequested)
+                {
+                    var shouldWait = false;
+                    lock (tokenSource)
+                    {
+                        shouldWait = ws != null;
+                    }
+                    if (shouldWait)
+                    {
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(60), tokenSource.Token);
+                        }
+                        catch (TaskCanceledException e)
+                        {
+                            Debug.WriteLine("DUO push tash is canceled.");
+                        }
+                    }
+                }
+
+                if (result != null && !string.IsNullOrEmpty(code))
+                {
+                    result = new TwoFactorCode(code, result.Duration);
+                }
+                return result;
+            }
+            else
+            {
+                return await Ui.GetTwoFactorCode(TwoFactorCodeChannel.DuoSecurity);
             }
         }
 
@@ -335,5 +494,14 @@ namespace KeeperSecurity.Sdk
 
         public KeeperEndpoint Api { get; }
         public IAuthUI Ui { get; }
+    }
+
+    [DataContract]
+    internal class DuoPushNotification
+    {
+        [DataMember(Name = "event")]
+        public string event_;
+        [DataMember(Name = "passcode")]
+        public string passcode_;
     }
 }

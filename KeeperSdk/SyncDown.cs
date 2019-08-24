@@ -616,6 +616,7 @@ namespace KeeperSecurity.Sdk
                                 {
                                     break;
                                 }
+
                             }
                         }
                     }
@@ -757,8 +758,10 @@ namespace KeeperSecurity.Sdk
             uids.ExceptWith(vault.keeperSharedFolders.Keys);
             if (uids.Count > 0)
             {
-                foreach (var uid in uids) {
-                    if (vault.sharedFolders.TryGetValue(uid, out SyncDownSharedFolder sdsf)) {
+                foreach (var uid in uids)
+                {
+                    if (vault.sharedFolders.TryGetValue(uid, out SyncDownSharedFolder sdsf))
+                    {
                         vault.keeperSharedFolders.Add(uid, new SharedFolder(sdsf));
                     }
                 }

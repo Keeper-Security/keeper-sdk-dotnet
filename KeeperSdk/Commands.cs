@@ -88,6 +88,8 @@ namespace KeeperSecurity.Sdk
         public string twoFactorType;
         [DataMember(Name = "2fa_token", EmitDefaultValue = false)]
         public string twoFactorToken;
+        [DataMember(Name = "2fa_mode", EmitDefaultValue = false)]
+        public string twoFactorMode;
         [DataMember(Name = "device_token_expire_days", EmitDefaultValue = false)]
         public int? deviceTokenExpiresInDays;
     }
@@ -181,10 +183,26 @@ namespace KeeperSecurity.Sdk
         "two_factor_channel_google" - Users look up TOTP codes on their Google Authenticator app.
         "two_factor_channel_rsa" - Users authenticate against an RSA server, using either a generated passcode or a pin.
         "two_factor_channel_duo" - Users authenticate through Duo Security.
+        "two_factor_channel_push" - Users authenticate through Keeper DNA.
         "two_factor_channel_u2f" - Users authenticate with a U2F Security Key, using challenge-response.
         */
         [DataMember(Name = "channel")]
         public string channel;
+        [DataMember(Name = "capabilities")]
+        public string[] capabilities;
+        /*  DUO account capabilities
+         *  "push"    
+         *  "sms"
+         *  "phone"
+         *  "mobile_otp"   ????
+         */
+        [DataMember(Name = "phone")]
+        public string phone;    // Phone number associated with Two Factor Method
+        [DataMember(Name = "url")]
+        public string url;      // websocket URL associated with Two Factor Method
+        [DataMember(Name = "enroll_url")]
+        public string enroll_url;      // requires 2FA enrollment
+        
         [DataMember(Name = "client_key")]
         public string clientKey;
         [DataMember(Name = "is_enterprise_admin")]

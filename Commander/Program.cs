@@ -5,6 +5,7 @@ using System.Linq;
 using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Commander
 {
@@ -110,7 +111,7 @@ namespace Commander
             Console.WriteLine();
         }
 
-        class Ui : IAuthUI
+        class Ui : IAuthUI, IDuoTwoFactorUI
         {
 
             public Task<bool> DisplayDialog(DialogType dialog, string information)
@@ -165,10 +166,44 @@ namespace Commander
                 return Task.FromResult(password1);
             }
 
-            public Task<string> GetTwoFactorCode()
+            public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel channel)
             {
                 Console.Write("Enter Code: ");
-                return Task.FromResult(Console.ReadLine());
+                var code = Console.ReadLine();
+                if (!string.IsNullOrEmpty(code))
+                {
+                    return Task.FromResult(new TwoFactorCode(code, TwoFactorCodeDuration.Forever));
+                }
+                return Task.FromResult((TwoFactorCode)null);
+            }
+            
+            public async Task<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, Func<DuoAction, Task> onAction)
+            {
+                Console.WriteLine("Type:\n\"push\" for DUO push\n\"sms\" for DUO text message\nDUO app code\nKeeper backup code\n<Enter> to Cancel");
+                Console.Write("> ");
+                var input = Console.ReadLine();
+                if (string.IsNullOrEmpty(input))
+                {
+                    return null;
+                }
+                switch (input.ToLowerInvariant()) {
+                    case "push":
+                    case "sms":
+                        var action = string.Compare(input, "push", true) == 0 ? DuoAction.DuoPush : DuoAction.TextMessage;
+                        await onAction(action);
+                        if (action != DuoAction.DuoPush)
+                        {
+                            Console.Write("Type the code you receieved from DUO > ");
+                            input = Console.ReadLine();
+                        }
+                        else
+                        {
+                            input = "passcode";
+                        }
+                        break;
+                }
+
+                return new DuoCodeResult(input, TwoFactorCodeDuration.Forever);
             }
 
             public Task<IUserCredentials> GetUserCredentials(IUserCredentials credentials)
