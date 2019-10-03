@@ -11,7 +11,6 @@
 
 using System;
 using System.Runtime.Serialization;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace KeeperSecurity.Sdk
 {
@@ -54,6 +53,9 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "teams")]
         public SyncDownTeam[] teams;
+
+        [DataMember(Name = "non_shared_data")]
+        public SyncDownNonSharedData[] nonSharedData;
 
         [DataMember(Name = "record_meta_data")]
         public SyncDownRecordMetaData[] recordMetaData;
@@ -105,81 +107,75 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownRecordUData : IExtensibleDataObject
-    {
-        [DataMember(Name = "file_ids")]
-        public string[] fileIds;
-        public ExtensionDataObject ExtensionData { get; set; }
-    }
-
-    [DataContract]
-    internal class SyncDownRecord
+    internal class SyncDownRecord : IPasswordRecord
     {
         [DataMember(Name = "record_uid")]
-        public string recordUid;
+        public string RecordUid { get; set; }
 
         [DataMember(Name = "revision")]
-        public long revision;
+        public long Revision { get; set; }
 
         [DataMember(Name = "version")]
-        public long version;
+        public long Version { get; set; }
 
         [DataMember(Name = "shared")]
-        public bool shared;
+        public bool Shared { get; set; }
 
         [DataMember(Name = "client_modified_time")]
-        public long clientModifiedTime;
+        public long ClientModifiedTime { get; set; }
 
         [DataMember(Name = "data")]
-        public string data;
+        public string Data { get; set; }
 
         [DataMember(Name = "extra")]
-        public string extra;
+        public string Extra { get; set; }
 
         [DataMember(Name = "udata")]
         public SyncDownRecordUData udata;
 
-        internal byte[] unencryptedRecordKey;
+        public string Udata { get; set; }
+
+        public bool Owner { get; set; }
     }
 
     [DataContract]
-    internal class SyncDownSharedFolder
+    internal class SyncDownSharedFolder : ISharedFolder
     {
         [DataMember(Name = "shared_folder_uid")]
-        public string sharedFolderUid;
+        public string SharedFolderUid { get; set; }
 
         [DataMember(Name = "revision")]
-        public long revision;
+        public long Revision { get; set; }
 
         [DataMember(Name = "shared_folder_key")]
-        public string sharedFolderKey;
+        public string SharedFolderKey { get; set; }
 
         [DataMember(Name = "key_type")]
-        public int? keyType;
+        public int? KeyType { get; set; }
 
         [DataMember(Name = "name")]
-        public string name;
+        public string Name { get; set; }
 
         [DataMember(Name = "full_sync")]
         public bool? fullSync;
 
         [DataMember(Name = "manage_records")]
-        public bool? manageRecords;
+        public bool? ManageRecords { get; set; }
 
         [DataMember(Name = "manage_users")]
-        public bool? manageUsers;
+        public bool? ManageUsers { get; set; }
 
         [DataMember(Name = "default_manage_records")]
-        public bool defaultManageRecords;
+        public bool DefaultManageRecords { get; set; }
 
         [DataMember(Name = "default_manage_users")]
-        public bool defaultManageUsers;
+        public bool DefaultManageUsers { get; set; }
 
         [DataMember(Name = "default_can_edit")]
-        public bool defaultCanEdit;
+        public bool DefaultCanEdit { get; set; }
 
         [DataMember(Name = "default_can_share")]
-        public bool defaultCanShare;
+        public bool DefaultCanShare { get; set; }
 
         [DataMember(Name = "records")]
         public SyncDownSharedFolderRecord[] records;
@@ -198,158 +194,144 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "teams_removed")]
         public string[] teamsRemoved;
-
-        internal byte[] unencryptedSharedFolderKey;
     }
 
     [DataContract]
-    internal class SyncDownTeam
+    internal class SyncDownTeam : IEnterpriseTeam
     {
         [DataMember(Name = "team_uid")]
-        public string teamUid;
+        public string TeamUid { get; set; }
 
         [DataMember(Name = "name")]
-        public string name;
+        public string Name { get; set; }
 
         [DataMember(Name = "team_key")]
-        public string teamKey;
+        public string TeamKey { get; set; }
 
         [DataMember(Name = "team_key_type")]
-        public int teamKeyType;
+        public int KeyType { get; set; }
 
         [DataMember(Name = "team_private_key")]
-        public string teamPrivateKey;
+        public string TeamPrivateKey { get; set; }
 
         [DataMember(Name = "restrict_edit")]
-        public bool restrictEdit;
+        public bool RestrictEdit { get; set; }
 
         [DataMember(Name = "restrict_share")]
-        public bool restrictShare;
+        public bool RestrictShare { get; set; }
 
         [DataMember(Name = "restrict_view")]
-        public bool restrictView;
+        public bool RestrictView { get; set; }
 
         [DataMember(Name = "removed_shared_folders")]
         public string[] removedSharedFolders;
 
         [DataMember(Name = "shared_folder_keys")]
-        public SharedFolderKey[] sharedFolderKeys;
-
-        internal byte[] unencryptedTeamKey;
-        internal RsaPrivateCrtKeyParameters privateKey;
-        internal RsaPrivateCrtKeyParameters PrivateKey
-        {
-            get
-            {
-                if (privateKey == null && unencryptedTeamKey != null)
-                {
-                    var unencryptedPrivateKey = CryptoUtils.DecryptAesV1(teamPrivateKey.Base64UrlDecode(), unencryptedTeamKey);
-                    privateKey = unencryptedPrivateKey.LoadPrivateKey();
-                }
-                return privateKey;
-            }
-        }
+        public SyncDownSharedFolderKey[] sharedFolderKeys;
     }
 
     [DataContract]
     internal class SyncDownSharedFolderRecord
     {
         [DataMember(Name = "record_uid")]
-        public string recordUid;
+        public string RecordUid { get; set; }
 
         [DataMember(Name = "record_key")]
-        public string recordKey;
+        public string RecordKey { get; set; }
 
         [DataMember(Name = "can_share")]
-        public bool canShare;
+        public bool CanShare { get; set; }
 
         [DataMember(Name = "can_edit")]
-        public bool canEdit;
+        public bool CanEdit { get; set; }
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderTeam
+    internal class SyncDownSharedFolderTeam: ISharedFolderPermission
     {
         [DataMember(Name = "team_uid")]
-        public string teamUid;
+        public string TeamUid { get; set; }
 
         [DataMember(Name = "name")]
-        public string name;
+        public string Name { get; set; }
 
         [DataMember(Name = "manage_records")]
-        public bool manageRecords;
+        public bool ManageRecords { get; set; }
 
         [DataMember(Name = "manage_users")]
-        public bool manageUsers;
+        public bool ManageUsers { get; set; }
+
+        public string SharedFolderUid { get; set; }
+
+        string ISharedFolderPermission.UserId => TeamUid;
+        int ISharedFolderPermission.UserType => (int)UserType.Team;
+        string IUidLink.SubjectUid => SharedFolderUid;
+        string IUidLink.ObjectUid => TeamUid;
     }
 
     [DataContract]
-    internal class SharedFolderKey
+    internal class SyncDownSharedFolderKey : ISharedFolderKey
     {
         [DataMember(Name = "shared_folder_uid")]
-        public string sharedFolderUid;
+        public string SharedFolderUid { get; set; }
 
         [DataMember(Name = "shared_folder_key")]
-        public string sharedFolderKey;
+        public string SharedFolderKey { get; set; }
 
         [DataMember(Name = "key_type")]
-        public int keyType;
+        public int KeyType { get; set; }
+
+        public string TeamUid { get; set; }
+
+        string IUidLink.SubjectUid => SharedFolderUid;
+        string IUidLink.ObjectUid => TeamUid;
     }
 
 
     [DataContract]
-    internal class SyncDownSharedFolderUser
+    internal class SyncDownSharedFolderUser : ISharedFolderPermission
     {
         [DataMember(Name = "username")]
-        public string username;
+        public string Username { get; set; }
 
         [DataMember(Name = "manage_records")]
-        public bool manageRecords;
+        public bool ManageRecords { get; set; }
 
         [DataMember(Name = "manage_users")]
-        public bool manageUsers;
+        public bool ManageUsers { get; set; }
+
+        public string SharedFolderUid { get; set; }
+
+        string IUidLink.SubjectUid => SharedFolderUid;
+        string IUidLink.ObjectUid => Username;
+        string ISharedFolderPermission.UserId => Username;
+        int ISharedFolderPermission.UserType => (int)UserType.User;
     }
 
     [DataContract]
-    internal class SyncDownRecordMetaData
+    internal class SyncDownRecordMetaData : IRecordMetadata
     {
         [DataMember(Name = "record_uid")]
-        public string recordUid;
+        public string RecordUid { get; set; }
 
         [DataMember(Name = "owner")]
-        public bool owner;
+        public bool Owner { get; set; }
 
         [DataMember(Name = "record_key")]
-        public string recordKey;
+        public string RecordKey { get; set; }
 
         [DataMember(Name = "record_key_type")]
-        public int recordKeyType;
+        public int RecordKeyType { get; set; }
 
         [DataMember(Name = "can_share")]
-        public bool canShare;
+        public bool CanShare { get; set; }
 
         [DataMember(Name = "can_edit")]
-        public bool canEdit;
-    }
+        public bool CanEdit { get; set; }
 
-    public enum FolderType { UserFolder, SharedFolder, SharedFolderForder }
-
-    public interface IFolderNode
-    {
-        string ParentUid { get; }
-        string FolderUid { get; }
-        FolderType Type { get; }
-    }
-
-    public interface ISharedFolderNode
-    {
-        string SharedFolderUid { get; }
-    }
-
-    public interface IRecordNode
-    {
-        string FolderUid { get; }
-        string RecordUid { get; }
+        public string SharedFolderUid { get; set; }
+        string IUidLink.SubjectUid => RecordUid;
+        string IUidLink.ObjectUid => SharedFolderUid;
     }
 
     [DataContract]
@@ -363,17 +345,17 @@ namespace KeeperSecurity.Sdk
     internal class SyncDownSharedFolderFolderNode
     {
         [DataMember(Name = "folder_uid")]
-        public string folderUid;
+        public string FolderUid { get; set; }
 
         [DataMember(Name = "parent_uid")]
-        public string parentUid;
+        public string ParentUid { get; set; }
 
         [DataMember(Name = "shared_folder_uid")]
-        public string sharedFolderUid;
+        public string SharedFolderUid { get; set; }
     }
 
     [DataContract]
-    internal class SyncDownFolderRecordNode : IRecordNode
+    internal class SyncDownFolderRecordNode
     {
         [DataMember(Name = "folder_uid")]
         public string folderUid;
@@ -386,7 +368,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderFolderRecordNode : IRecordNode
+    internal class SyncDownSharedFolderFolderRecordNode : IFolderRecordLink
     {
         [DataMember(Name = "folder_uid")]
         public string folderUid;
@@ -397,90 +379,98 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "shared_folder_uid")]
         public string sharedFolderUid;
 
-        public string FolderUid => folderUid ?? sharedFolderUid;
-        public string RecordUid => recordUid;
+        string IFolderRecordLink.FolderUid => folderUid ?? sharedFolderUid;
+        string IFolderRecordLink.RecordUid => recordUid;
+
+        string IUidLink.SubjectUid => folderUid ?? sharedFolderUid;
+        string IUidLink.ObjectUid => recordUid;
     }
 
     [DataContract]
-    internal class SyncDownFolderRecord : IRecordNode
+    internal class SyncDownFolderRecord : IFolderRecordLink
     {
         [DataMember(Name = "folder_uid")]
-        public string folderUid;
+        public string FolderUid { get; set; }
         [DataMember(Name = "record_uid")]
-        public string recordUid;
+        public string RecordUid { get; set; }
         [DataMember(Name = "revision")]
         public long revision;
 
-        public string FolderUid => folderUid;
-        public string RecordUid => recordUid;
+        string IUidLink.SubjectUid => FolderUid;
+        string IUidLink.ObjectUid => RecordUid;
     }
 
     [DataContract]
-    internal class SyncDownUserFolder : IFolderNode
+    internal class SyncDownUserFolder : IFolder
     {
         [DataMember(Name = "folder_uid")]
-        public string folderUid;
+        public string FolderUid { get; set; }
 
         [DataMember(Name = "parent_uid")]
-        public string parentUid;
+        public string ParentUid { get; set; }
 
         [DataMember(Name = "user_folder_key")]
-        public string userFolderKey;
+        public string FolderKey { get; set; }
 
         [DataMember(Name = "key_type")]
         public int keyType;
 
         [DataMember(Name = "revision")]
-        public long revision;
+        public long Revision { get; set; }
 
         [DataMember(Name = "type")]
-        public string type;
+        public string FolderType { get; set; }
 
         [DataMember(Name = "data")]
-        public string data;
+        public string Data { get; set; }
 
-        internal byte[] unencryptedFolderKey;
+        string IFolder.SharedFolderUid => null;
 
-        public string ParentUid => parentUid;
-        public string FolderUid => folderUid;
-        public FolderType Type => FolderType.UserFolder;
+
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderFolder : SyncDownSharedFolderFolderNode, IFolderNode, ISharedFolderNode
+    internal class SyncDownSharedFolderFolder : IFolder
     {
+        [DataMember(Name = "folder_uid")]
+        public string FolderUid { get; set; }
+
+        [DataMember(Name = "shared_folder_uid")]
+        public string SharedFolderUid { get; set; }
+
+        [DataMember(Name = "parent_uid")]
+        public string parentUid { get; set; }
+        string IFolder.ParentUid => parentUid ?? SharedFolderUid;
+
         [DataMember(Name = "shared_folder_folder_key")]
         public string sharedFolderFolderKey;
+        string IFolder.FolderKey => sharedFolderFolderKey;
 
         [DataMember(Name = "revision")]
-        public long revision;
+        public long Revision { get; set; }
 
         [DataMember(Name = "type")]
-        public string type;
+        public string FolderType { get; set; }
 
         [DataMember(Name = "data")]
-        public string data;
-
-        internal byte[] unencryptedFolderKey;
-        public string ParentUid => parentUid;
-        public string FolderUid => folderUid;
-        public FolderType Type => FolderType.SharedFolderForder;
-        public string SharedFolderUid => sharedFolderUid;
+        public string Data { get; set; }
     }
 
     [DataContract]
-    internal class SyncDownUserFolderSharedFolder : IFolderNode, ISharedFolderNode
+    internal class SyncDownUserFolderSharedFolder : IFolder
     {
         [DataMember(Name = "folder_uid")]
         public string folderUid;
 
         [DataMember(Name = "shared_folder_uid")]
-        public string sharedFolderUid;
+        public string SharedFolderUid { get; set; }
 
-        public string ParentUid => folderUid;
-        public string FolderUid => sharedFolderUid;
-        public FolderType Type => FolderType.SharedFolder;
-        public string SharedFolderUid => sharedFolderUid;
+        string IFolder.FolderUid => SharedFolderUid;
+        string IFolder.ParentUid => folderUid ?? "";
+        string IFolder.FolderType => "shared_folder";
+        string IFolder.FolderKey => null;
+        long IFolder.Revision => 0;
+        string IFolder.Data => null;
     }
 
     [DataContract]
@@ -491,6 +481,16 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "shared")]
         public bool shared;
+    }
+
+    [DataContract]
+    internal class SyncDownNonSharedData
+    {
+        [DataMember(Name = "record_uid")]
+        public string recordUid;
+
+        [DataMember(Name = "data")]
+        public string data;
     }
 
     [DataContract]
@@ -590,7 +590,15 @@ namespace KeeperSecurity.Sdk
 
         public ExtensionDataObject ExtensionData { get; set; }
     }
+
+    [DataContract]
+    internal class SyncDownRecordUData : IExtensibleDataObject
+    {
+        [DataMember(Name = "file_ids")]
+        public string[] fileIds;
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+
 #pragma warning restore 0649
-
-
 }

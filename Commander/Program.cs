@@ -27,8 +27,8 @@ namespace Commander
         private static async Task MainLoop()
         {
             var storage = new JsonConfigurationStorage();
-            var api = new KeeperEndpoint(storage);
-            var auth = new AuthContext(api, new Ui());
+            var ui = new Ui();
+            var auth = new Auth(ui, storage);
 
             CliCommands commands = new NotConnectedCliCommands(auth);
             var conf = storage.Get();
@@ -114,18 +114,14 @@ namespace Commander
         class Ui : IAuthUI, IDuoTwoFactorUI
         {
 
-            public Task<bool> DisplayDialog(DialogType dialog, string information)
+            public Task<bool> Confirmation(string information)
             {
                 Console.WriteLine(information);
-                if (dialog == DialogType.Confirmation)
-                {
-                    Console.Write("Type \"yes\" to confirm: ");
-                    var answer = Console.ReadLine();
-                    return Task.FromResult(string.Compare(answer, "yes", true) == 0);
-                }
-                return Task.FromResult(true);
+                Console.Write("Type \"yes\" to confirm: ");
+                var answer = Console.ReadLine();
+                return Task.FromResult(string.Compare(answer, "yes", true) == 0);
             }
-
+            
             public Task<string> GetNewPassword(PasswordRuleMatcher matcher)
             {
                 string password1 = null;
@@ -204,36 +200,6 @@ namespace Commander
                 }
 
                 return new DuoCodeResult(input, TwoFactorCodeDuration.Forever);
-            }
-
-            public Task<IUserCredentials> GetUserCredentials(IUserCredentials credentials)
-            {
-                IUserCredentials cred = null;
-                string username = credentials?.Username;
-                string password = credentials?.Password;
-                if (string.IsNullOrEmpty(username))
-                {
-                    Console.Write("Enter Username: ");
-                    username = Console.ReadLine();
-                }
-                else {
-                    Console.WriteLine("Username: " + username);
-                }
-                if (!string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password)) 
-                {
-                    Console.Write("Enter Password: ");
-                    password = HelperUtils.ReadLineMasked();
-                }
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
-                {
-                    cred = new UserCredencials
-                    {
-                        Username = username,
-                        Password = password
-                    };
-                }
-
-                return Task.FromResult(cred);
             }
         }
     }

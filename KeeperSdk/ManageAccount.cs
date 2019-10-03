@@ -65,7 +65,7 @@ namespace KeeperSecurity.Sdk
 
     public static class ManageAccountExtension
     {
-        public static async Task ShareAccount(this AuthContext auth) {
+        public static async Task ShareAccount(this Auth auth) {
             if (auth.accountSettings?.shareAccountTo != null) {
                 foreach (var shareTo in auth.accountSettings.shareAccountTo)
                 {
@@ -79,13 +79,13 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        public static async Task<string> ChangeMasterPassword(this AuthContext auth, int iterations)
+        public static async Task<string> ChangeMasterPassword(this Auth auth, int iterations)
         {
             string passwordRulesIntro = auth.accountSettings?.passwordRulesIntro;
             PasswordRule[] passwordRules = auth.accountSettings?.passwordRules;
             if (passwordRules == null)
             {
-                var userParams = await auth.Api.GetNewUserParams(auth.Username);
+                var userParams = await auth.GetNewUserParams(auth.Username);
                 passwordRules = userParams.PasswordMatchRegex
                     .Zip(userParams.PasswordMatchDescription, (rx, d) => new PasswordRule
                     {

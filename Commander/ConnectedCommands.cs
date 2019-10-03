@@ -105,19 +105,19 @@ namespace Commander
             }
             if (node == null)
             {
-                node = _vault.Root;
+                node = _vault.RootFolder;
             }
 
             if (options.Details)
             {
-                if (node.Children.Count > 0)
+                if (node.Subfolders.Count > 0)
                 {
                     var tab = new Tabulate(2)
                     {
                         DumpRowNo = true
                     };
                     tab.AddHeader(new string[] { "Folder UID", "Name" });
-                    foreach (var uid in node.Children)
+                    foreach (var uid in node.Subfolders)
                     {
                         if (_vault.TryGetFolder(uid, out FolderNode f))
                         {
@@ -151,7 +151,7 @@ namespace Commander
             else
             {
                 List<string> names = new List<string>();
-                foreach (var uid in node.Children)
+                foreach (var uid in node.Subfolders)
                 {
                     if (_vault.TryGetFolder(uid, out FolderNode subnode))
                     {
@@ -204,11 +204,11 @@ namespace Commander
             var isRoot = string.IsNullOrEmpty(indent);
             Console.WriteLine(indent + (isRoot ? "" : "+-- ") + folder.Name);
             indent += isRoot ? " " : (last ? "    " : "|   ");
-            for (int i = 0; i < folder.Children.Count; i++)
+            for (int i = 0; i < folder.Subfolders.Count; i++)
             {
-                if (_vault.TryGetFolder(folder.Children[i], out FolderNode node))
+                if (_vault.TryGetFolder(folder.Subfolders[i], out FolderNode node))
                 {
-                    PrintTree(node, indent, i == folder.Children.Count - 1);
+                    PrintTree(node, indent, i == folder.Subfolders.Count - 1);
                 }
             }
         }
@@ -216,6 +216,7 @@ namespace Commander
         private Task GetCommand(string uid)
         {
             var tab = new Tabulate(3);
+            var secondaryTabs = new List<Tabulate>();
             if (_vault.TryGetRecord(uid, out PasswordRecord record))
             {
                 tab.AddRow(new[] { "Record UID:", record.Uid });
@@ -243,31 +244,47 @@ namespace Commander
                 tab.AddRow(new[] { "Default Manage Users:", sf.DefaultManageUsers.ToString() });
                 tab.AddRow(new[] { "Default Can Edit:", sf.DefaultCanEdit.ToString() });
                 tab.AddRow(new[] { "Default Can Share:", sf.DefaultCanShare.ToString() });
-                if (sf.Records.Count > 0)
+                if (sf.RecordPermissions.Count > 0)
                 {
                     tab.AddRow(new[] { "" });
                     tab.AddRow(new[] { "Record Permissions:" });
-                    foreach (var r in sf.Records)
+                    foreach (var r in sf.RecordPermissions)
                     {
                         tab.AddRow(new[] { r.RecordUid + ":", "Can Edit: " + r.CanEdit.ToString(), "Can Share: " + r.CanShare.ToString() });
                     }
                 }
-                if (sf.Users.Count > 0)
+                var teamLookup = new Dictionary<string, string>();
+                foreach (var t in _vault.Teams)
                 {
-                    tab.AddRow(new[] { "" });
-                    tab.AddRow(new[] { "User Permissions:" });
-                    foreach (var u in sf.Users)
-                    {
-                        tab.AddRow(new[] { u.Username + ":", "Can Manage Records: " + u.ManageRecords.ToString(), "Can Manage Users: " + u.ManageUsers.ToString() });
-                    }
+                    teamLookup.Add(t.TeamUid, t.Name);
                 }
-                if (sf.Teams.Count > 0)
+                if (sf.UsersPermissions.Count > 0)
                 {
                     tab.AddRow(new[] { "" });
-                    tab.AddRow(new[] { "Team Permissions:" });
-                    foreach (var t in sf.Teams)
+                    tab.AddRow(new[] { "User/Team Permissions:" });
+                    var sortedList = sf.UsersPermissions.ToList();
+                    sortedList.Sort((x, y) => {
+                        var res = x.UserType.CompareTo(y.UserType);
+                        if (res == 0)
+                        {
+                            if (x.UserType == UserType.User)
+                            {
+                                res = string.Compare(x.UserId, y.UserId, true);
+                            }
+                            else
+                            {
+                                var xName = teamLookup[x.UserId] ?? x.UserId;
+                                var yName = teamLookup[y.UserId] ?? y.UserId;
+                                res = string.Compare(xName, yName, true);
+
+                            }
+                        }
+                        return res;
+                    });
+                    foreach (var u in sortedList)
                     {
-                        tab.AddRow(new[] { t.Name + ":", "Can Manage Records: " + t.ManageRecords.ToString(), "Can Manage Users: " + t.ManageUsers.ToString() });
+                        var subjectName = u.UserType == UserType.User ? u.UserId : (teamLookup[u.UserId] ?? u.UserId);
+                        tab.AddRow(new[] { $"{u.UserType.ToString()} {subjectName}:", "Can Manage Records: " + u.ManageRecords.ToString(), "Can Manage Users: " + u.ManageUsers.ToString() });
                     }
                 }
             }
@@ -281,7 +298,8 @@ namespace Commander
                 tab.AddRow(new[] { "Folder Type:", f.FolderType.ToString() });
                 tab.AddRow(new[] { "Name:", f.Name });
             }
-            else {
+            else
+            {
                 Console.WriteLine(string.Format("UID {0} is not a valid Keeper object", uid));
                 return Task.FromResult(false);
             }
@@ -294,7 +312,7 @@ namespace Commander
 
         private Task TreeCommand(TreeCommandOptions options)
         {
-            PrintTree(_vault.Root, "", true);
+            PrintTree(_vault.RootFolder, "", true);
             return Task.FromResult(true);
         }
 
@@ -409,7 +427,7 @@ namespace Commander
                 record.Notes = options.Notes;
             }
 
-            await _vault.SaveRecord(record);
+            await _vault.PutRecord(record);
         }
 
         private Task ListSharedFoldersCommand(string arguments)
@@ -421,7 +439,7 @@ namespace Commander
             tab.AddHeader(new string[] { "Shared Folder UID", "Name", "# Records", "# Users" });
             foreach (var sf in _vault.SharedFolders)
             {
-                tab.AddRow(new object[] { sf.Uid, sf.Name, sf.Records.Count, sf.Users.Count + sf.Teams.Count });
+                tab.AddRow(new object[] { sf.Uid, sf.Name, sf.RecordPermissions.Count, sf.UsersPermissions.Count });
             }
 
             tab.Sort(1);
@@ -444,9 +462,9 @@ namespace Commander
         {
             node = null;
             text = null;
-            if (string.IsNullOrEmpty(_currentFolder))
+            if (string.IsNullOrEmpty(_currentFolder) || _currentFolder == _vault.RootFolder.FolderUid)
             {
-                node = _vault.Root;
+                node = _vault.RootFolder;
             }
             else
             {
@@ -464,7 +482,7 @@ namespace Commander
                 if (path[0] == '/')
                 {
                     path = path.Substring(1);
-                    node = _vault.Root;
+                    node = _vault.RootFolder;
                 }
                 foreach (var folder in path.TokenizeArguments(CommandExtensions.IsPathDelimiter))
                 {
@@ -479,7 +497,7 @@ namespace Commander
                         }
                         else if (!string.IsNullOrEmpty(node.FolderUid))
                         {
-                            node = _vault.Root;
+                            node = _vault.RootFolder;
                         }
                         else
                         {
@@ -489,7 +507,7 @@ namespace Commander
                     else
                     {
                         var found = false;
-                        foreach (var subFolder in node.Children)
+                        foreach (var subFolder in node.Subfolders)
                         {
                             if (_vault.TryGetFolder(subFolder, out FolderNode subnode))
                             {
@@ -543,7 +561,7 @@ namespace Commander
                     folder = node.ParentUid;
                     if (string.IsNullOrEmpty(folder))
                     {
-                        sb.Insert(0, _vault.Root.Name + "/");
+                        sb.Insert(0, _vault.RootFolder.Name + "/");
                         if (sb.Length > 40)
                         {
                             sb.Remove(0, sb.Length - 37);
@@ -554,7 +572,7 @@ namespace Commander
 
                 }
             }
-            return _vault.Root.Name;
+            return _vault.RootFolder.Name;
         }
     }
 

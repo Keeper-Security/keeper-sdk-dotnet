@@ -19,7 +19,6 @@ using System.IO;
 using Authentication;
 using Google.Protobuf;
 using System.Runtime.Serialization.Json;
-using System.Linq;
 using System.Diagnostics;
 using System.Text;
 
@@ -29,35 +28,24 @@ namespace KeeperSecurity.Sdk
     public class KeeperEndpoint
     {
         public static string DefaultDeviceName = ".NET Keeper API";
+        public static string DefaultKeeperServer = "keepersecurity.com";
 
         static KeeperEndpoint()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
 
-        public IConfigurationStorage Storage { get; }
-        private byte[] transmissionKey = CryptoUtils.GetRandomBytes(32);
-
-        public KeeperEndpoint(IConfigurationStorage storage)
+        public KeeperEndpoint()
         {
-            Storage = storage;
             ClientVersion = KeeperApiCommand.ClientVersion;
             Locale = KeeperSettings.DefaultLocale();
             ServerKeyId = 1;
-
-            var conf = storage.Get();
-            Server = conf.LastServer;
-            var servConf = conf.GetServerConfiguration(Server);
-            if (servConf != null)
-            {
-                EncryptedDeviceToken = servConf.DeviceId;
-                ServerKeyId = servConf.ServerKeyId;
-            }
+            Server = DefaultKeeperServer;
         }
 
         public async Task<byte[]> ExecuteRest(string endpoint, byte[] payload)
         {
-            var builder = new UriBuilder(Server ?? "keepersecurity.com")
+            var builder = new UriBuilder(Server ?? DefaultKeeperServer)
             {
                 Path = "/api/rest/",
                 Scheme = "https",
@@ -75,13 +63,17 @@ namespace KeeperSecurity.Sdk
             {
                 attempt++;
 
-                var request = WebRequest.Create(uri);
+                var request = (HttpWebRequest) WebRequest.Create(uri);
+                if (WebProxy != null)
+                {
+                    request.Proxy = WebProxy;
+                }
 
                 request.ContentType = "application/octet-stream";
                 request.Method = "POST";
 
-                var encPayload = CryptoUtils.EncryptAesV2(apiPayload.ToByteArray(), transmissionKey);
-                var encKey = CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperPublicKeys[ServerKeyId]);
+                var encPayload = CryptoUtils.EncryptAesV2(apiPayload.ToByteArray(), _transmissionKey);
+                var encKey = CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperPublicKeys[ServerKeyId]);
                 var apiRequest = new ApiRequest()
                 {
                     EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
@@ -99,11 +91,28 @@ namespace KeeperSecurity.Sdk
                 HttpWebResponse response;
                 try
                 {
-                    response = (HttpWebResponse) request.GetResponse();
+                    response = (HttpWebResponse)request.GetResponse();
                 }
                 catch (WebException e)
                 {
                     response = (HttpWebResponse)e.Response;
+                    if (response is HttpWebResponse hwr)
+                    {
+                        if (hwr.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
+                        {
+                            if (WebProxy != null)
+                            {
+                                WebProxy = null;
+                            }
+                            foreach (var key in hwr.Headers.AllKeys)
+                            {
+                                if (string.Compare(key, "Proxy-Authenticate", true) == 0)
+                                {
+                                    throw new ProxyAuthenticateException(e.Message, hwr.Headers[key]);
+                                }
+                            }
+                        }
+                    }
                 }
 
                 if (response.StatusCode == HttpStatusCode.OK && response.ContentType == "application/octet-stream")
@@ -113,7 +122,7 @@ namespace KeeperSecurity.Sdk
                     {
                         await rss.CopyToAsync(ms);
                         var bytes = ms.ToArray();
-                        return CryptoUtils.DecryptAesV2(bytes, transmissionKey);
+                        return CryptoUtils.DecryptAesV2(bytes, _transmissionKey);
                     }
                 }
 
@@ -148,107 +157,38 @@ namespace KeeperSecurity.Sdk
 
         public async Task<byte[]> GetDeviceToken()
         {
-            var deviceRequest = new DeviceRequest
+            byte[] token = null;
+            lock (this)
             {
-                ClientVersion = ClientVersion,
-                DeviceName = DefaultDeviceName
-            };
-
-            var rs = await ExecuteRest("authentication/get_device_token", deviceRequest.ToByteArray());
-            var deviceRs = DeviceResponse.Parser.ParseFrom(rs);
-            if (deviceRs.Status == DeviceStatus.Ok)
-            {
-                return deviceRs.EncryptedDeviceToken.ToByteArray();
+                token = EncryptedDeviceToken;
             }
-            throw new KeeperInvalidDeviceToken();
-        }
-
-        public async Task<NewUserMinimumParams> GetNewUserParams(string userName)
-        {
-            var authRequest = new AuthRequest()
+            if (token == null)
             {
-                ClientVersion = ClientVersion,
-                Username = userName.ToLowerInvariant(),
-                EncryptedDeviceToken = ByteString.CopyFrom(EncryptedDeviceToken)
-            };
-
-            var rs = await ExecuteRest("authentication/get_new_user_params", authRequest.ToByteArray());
-            return NewUserMinimumParams.Parser.ParseFrom(rs);
-        }
-
-        public async Task<PreLoginResponse> GetPreLogin(string username, byte[] twoFactorToken = null)
-        {
-            var oldDeviceToken = EncryptedDeviceToken;
-            if (EncryptedDeviceToken == null)
-            {
-                EncryptedDeviceToken = await GetDeviceToken();
-            }
-
-            var attempt = 0;
-            while (attempt < 3)
-            {
-                attempt++;
-
-                var preLogin = new PreLoginRequest()
+                var deviceRequest = new DeviceRequest
                 {
-                    AuthRequest = new AuthRequest
-                    {
-                        ClientVersion = ClientVersion,
-                        Username = username.ToLowerInvariant(),
-                        EncryptedDeviceToken = ByteString.CopyFrom(EncryptedDeviceToken)
-                    },
-                    LoginType = LoginType.Normal
+                    ClientVersion = ClientVersion,
+                    DeviceName = DefaultDeviceName
                 };
 
-                if (twoFactorToken != null)
+                var rs = await ExecuteRest("authentication/get_device_token", deviceRequest.ToByteArray());
+                var deviceRs = DeviceResponse.Parser.ParseFrom(rs);
+                if (deviceRs.Status == DeviceStatus.Ok)
                 {
-                    preLogin.TwoFactorToken = ByteString.CopyFrom(twoFactorToken);
-                }
-
-                byte[] response = null;
-                try
-                {
-                    response = await ExecuteRest("authentication/pre_login", preLogin.ToByteArray());
-                }
-                catch (KeeperInvalidDeviceToken)
-                {
-                    EncryptedDeviceToken = await GetDeviceToken();
-                    continue;
-                }
-                catch (KeeperRegionRedirect redirect)
-                {
-                    var conf = Storage.Get();
-                    var serverConf = conf.GetServerConfiguration(Server);
-                    if (serverConf != null) {
-                        if (!(EncryptedDeviceToken.SequenceEqual(serverConf.DeviceId) && ServerKeyId == serverConf.ServerKeyId))
-                        {
-                            var c = new Configuration();
-                            c._servers.Add(Server.AdjustServerUrl(), new ServerConfiguration {
-                                Server = Server,
-                                DeviceId = EncryptedDeviceToken,
-                                ServerKeyId = ServerKeyId
-                            });
-                            Storage.Put(c);
-                        }
-                    }
-                    Server = redirect.RegionHost;
-                    serverConf = conf.GetServerConfiguration(Server);
-                    EncryptedDeviceToken = serverConf?.DeviceId;
-                    if (EncryptedDeviceToken == null)
+                    token = deviceRs.EncryptedDeviceToken.ToByteArray();
+                    lock (this)
                     {
-                        EncryptedDeviceToken = await GetDeviceToken();
+                        EncryptedDeviceToken = token;
                     }
-
-                    continue;
                 }
-
-                return PreLoginResponse.Parser.ParseFrom(response);
+                else
+                {
+                    throw new KeeperInvalidDeviceToken();
+                }
             }
-
-            throw new KeeperTooManyAttempts();
+            return token;
         }
 
-        public async Task<R> ExecuteV2Command<C, R>(C command) where C : KeeperApiCommand where R : KeeperApiResponse
+        public virtual async Task<R> ExecuteV2Command<C, R>(C command) where C : KeeperApiCommand where R : KeeperApiResponse
         {
             command.locale = Locale;
             command.clientVersion = ClientVersion;
@@ -277,17 +217,18 @@ namespace KeeperSecurity.Sdk
             }
         }
 
+        private readonly byte[] _transmissionKey = CryptoUtils.GetRandomBytes(32);
         public string Server { get; set; }
-        public byte[] EncryptedDeviceToken { get; private set; }
+        public byte[] EncryptedDeviceToken { get; internal set; }
         public string ClientVersion { get; set; }
         public string Locale { get; set; }
-        public int ServerKeyId { get; private set; }
-
+        public int ServerKeyId { get; internal set; }
+        internal IWebProxy WebProxy { get; set; }
     }
 
-    static class KeeperSettings
+    public static class KeeperSettings
     {
-        internal static string DefaultLocale()
+        public static string DefaultLocale()
         {
             var culture = System.Globalization.CultureInfo.CurrentCulture;
             string locale = null;

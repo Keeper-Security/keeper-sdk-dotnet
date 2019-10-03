@@ -202,7 +202,7 @@ namespace KeeperSecurity.Sdk
         public string url;      // websocket URL associated with Two Factor Method
         [DataMember(Name = "enroll_url")]
         public string enroll_url;      // requires 2FA enrollment
-        
+
         [DataMember(Name = "client_key")]
         public string clientKey;
         [DataMember(Name = "is_enterprise_admin")]
@@ -232,11 +232,26 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "device_id")]
         public string deviceId;
 
-        [DataMember(Name = "session_token")]
+        [DataMember(Name = "session_token", EmitDefaultValue = false)]
         public string sessionToken;
 
-        [DataMember(Name = "username")]
+        [DataMember(Name = "username", EmitDefaultValue = false)]
         public string username;
     }
 
+    [DataContract]
+    public class SetClientKeyCommand : AuthorizedCommand
+    {
+        public SetClientKeyCommand() : base("set_client_key") { }
+
+        [DataMember(Name = "client_key")]
+        public string clientKey;
+    }
+
+    [DataContract]
+    public class SetClientKeyResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "client_key")]
+        public string clientKey;
+    }
 }
