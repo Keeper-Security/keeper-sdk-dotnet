@@ -32,7 +32,7 @@ namespace KeeperSecurity.Sdk
         {
             if (File.Exists(fileName))
             {
-                fileName_ = Path.GetFileName(fileName);
+                fileName_ = fileName;
             }
             else
             {

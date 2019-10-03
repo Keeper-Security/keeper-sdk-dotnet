@@ -10,348 +10,64 @@
 //
 
 using System;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Linq;
-using System.Collections.Generic;
 using System.Diagnostics;
+using Org.BouncyCastle.Crypto.Parameters;
 using System.Runtime.Serialization.Json;
 using System.IO;
-using System.Text;
 
 namespace KeeperSecurity.Sdk
 {
 
     public static class SyncDownExtension
     {
-        static void DeleteRecordKey(this Vault vault, string recordUid)
-        {
-            if (vault.records.TryGetValue(recordUid, out SyncDownRecord sdr))
-            {
-                sdr.unencryptedRecordKey = null;
-            }
-            vault.keeperRecords.Remove(recordUid);
-        }
-
-        static void DeleteSharedFolderKey(this Vault vault, string sharedFolderUid)
-        {
-            if (vault.sharedFolders.TryGetValue(sharedFolderUid, out SyncDownSharedFolder sharedFolder))
-            {
-                if (sharedFolder.records != null)
-                {
-                    foreach (var record in sharedFolder.records)
-                    {
-                        vault.DeleteRecordKey(record.recordUid);
-                    }
-                }
-                sharedFolder.unencryptedSharedFolderKey = null;
-            }
-        }
-
-        static void DeleteTeamKey(this Vault vault, string teamUid)
-        {
-            if (vault.teams.TryGetValue(teamUid, out SyncDownTeam team))
-            {
-                team.unencryptedTeamKey = null;
-                team.privateKey = null;
-
-                if (team.sharedFolderKeys != null)
-                {
-                    foreach (var sfk in team.sharedFolderKeys)
-                    {
-                        vault.DeleteSharedFolderKey(sfk.sharedFolderUid);
-                    }
-                }
-            }
-        }
-
-        private class Comparers : IComparer<IFolderNode>, IComparer<IRecordNode>
-        {
-            public int Compare(IFolderNode x, IFolderNode y)
-            {
-                return string.Compare(x.FolderUid, y.FolderUid);
-            }
-
-            public int Compare(IRecordNode x, IRecordNode y)
-            {
-                int res = string.Compare(x.FolderUid, y.FolderUid);
-                if (res == 0)
-                {
-                    res = string.Compare(x.RecordUid, y.RecordUid);
-                }
-                return res;
-            }
-        }
-
-        private static void ProcessSubFolders(this Vault vault, SyncDownResponse rs)
-        {
-            var comparers = new Comparers();
-            var folderList = new SortedSet<IFolderNode>(vault.userFolders.Values, comparers);
-            var recordList = new SortedSet<IRecordNode>(vault.userFolderRecords ?? Enumerable.Empty<IRecordNode>(), comparers);
-
-            if (rs.userFoldersRemoved != null)
-            {
-                foreach (var ufr in rs.userFoldersRemoved)
-                {
-                    folderList.RemoveWhere(x => x.FolderUid == ufr.folderUid);
-                    recordList.RemoveWhere(x => x.FolderUid == ufr.folderUid);
-                }
-            }
-
-            if (rs.sharedFolderFolderRemoved != null)
-            {
-                foreach (var sffr in rs.sharedFolderFolderRemoved)
-                {
-                    folderList.RemoveWhere(x => x.FolderUid == sffr.folderUid);
-                    recordList.RemoveWhere(x => x.FolderUid == sffr.folderUid);
-                }
-            }
-
-            if (rs.userFolderSharedFoldersRemoved != null)
-            {
-                foreach (var ufsfr in rs.userFolderSharedFoldersRemoved)
-                {
-                    folderList.RemoveWhere(x => x.FolderUid == ufsfr.folderUid);
-                    recordList.RemoveWhere(x => x.FolderUid == ufsfr.folderUid);
-                }
-            }
-
-            if (rs.userFoldersRemovedRecords != null)
-            {
-                foreach (var uffr in rs.userFoldersRemovedRecords)
-                {
-                    recordList.Remove(uffr);
-                }
-            }
-
-            if (rs.sharedFolderFolderRecordsRemoved != null)
-            {
-                foreach (var sffrr in rs.sharedFolderFolderRecordsRemoved)
-                {
-                    recordList.Remove(sffrr);
-                }
-            }
-
-            if (rs.userFolders != null)
-            {
-                foreach (var uf in rs.userFolders)
-                {
-                    var encryptedKey = uf.userFolderKey.Base64UrlDecode();
-                    uf.unencryptedFolderKey = uf.keyType == 2
-                        ? CryptoUtils.DecryptRsa(encryptedKey, vault.Auth.PrivateKey)
-                        : CryptoUtils.DecryptAesV1(encryptedKey, vault.Auth.DataKey);
-                    folderList.Remove(uf);
-                    folderList.Add(uf);
-                }
-            }
-
-            if (rs.sharedFolderFolders != null)
-            {
-                foreach (var sff in rs.sharedFolderFolders)
-                {
-                    if (vault.sharedFolders.TryGetValue(sff.sharedFolderUid, out SyncDownSharedFolder sf))
-                    {
-                        var encryptedKey = sff.sharedFolderFolderKey.Base64UrlDecode();
-                        sff.unencryptedFolderKey = CryptoUtils.DecryptAesV1(encryptedKey, sf.unencryptedSharedFolderKey);
-                        folderList.Remove(sff);
-                        folderList.Add(sff);
-                    }
-                    else
-                    {
-                        Trace.TraceError("Sync_Down: shared_folder_folders: Shared Folder UID {0} not found", sff.sharedFolderUid);
-                    }
-                }
-            }
-
-            if (rs.userFolderSharedFolders != null)
-            {
-                foreach (var ufsf in rs.userFolderSharedFolders)
-                {
-                    folderList.Remove(ufsf);
-                    folderList.Add(ufsf);
-                }
-            }
-
-            if (rs.userFolderRecords != null)
-            {
-                foreach (var ufr in rs.userFolderRecords)
-                {
-                    recordList.Add(ufr);
-                }
-            }
-
-            if (rs.sharedFolderFolderRecords != null)
-            {
-                foreach (var sffr in rs.sharedFolderFolderRecords)
-                {
-                    recordList.Add(sffr);
-                }
-            }
-
-            var toDelete = new HashSet<string>();
-            foreach (var folder in vault.keeperFolders.Values)
-            {
-                toDelete.Add(folder.FolderUid);
-                folder.Children.Clear();
-                folder.Records.Clear();
-            }
-            foreach (var folder in folderList)
-            {
-                if (vault.keeperFolders.TryGetValue(folder.FolderUid, out FolderNode node))
-                {
-                    toDelete.Remove(folder.FolderUid);
-                    node.Children.Clear();
-                    node.Records.Clear();
-                    node.Name = null;
-                }
-                else
-                {
-                    node = new FolderNode
-                    {
-                        FolderType = folder.Type,
-                        FolderUid = folder.FolderUid
-                    };
-                    vault.keeperFolders.Add(folder.FolderUid, node);
-                }
-                node.ParentUid = folder.ParentUid;
-
-                byte[] unencrypted_data = null;
-                switch (folder.Type)
-                {
-                    case FolderType.UserFolder:
-                        if (folder is SyncDownUserFolder uf)
-                        {
-                            unencrypted_data = CryptoUtils.DecryptAesV1(uf.data.Base64UrlDecode(), uf.unencryptedFolderKey);
-                        }
-                        else
-                        {
-                            Trace.TraceError("Folder UID {0} expected to be User-Folder", folder.FolderUid);
-                        }
-                        break;
-
-                    case FolderType.SharedFolderForder:
-                        if (folder is SyncDownSharedFolderFolder sff)
-                        {
-                            unencrypted_data = CryptoUtils.DecryptAesV1(sff.data.Base64UrlDecode(), sff.unencryptedFolderKey);
-                        }
-                        else
-                        {
-                            Trace.TraceError("Folder UID {0} expected to be Shared-Folder-Folder", folder.FolderUid);
-                        }
-                        break;
-                    case FolderType.SharedFolder:
-                        if (vault.sharedFolders.TryGetValue(folder.FolderUid, out SyncDownSharedFolder sf))
-                        {
-                            node.Name = Encoding.UTF8.GetString(CryptoUtils.DecryptAesV1(sf.name.Base64UrlDecode(), sf.unencryptedSharedFolderKey));
-                        }
-                        else
-                        {
-                            Trace.TraceError("Folder UID {0} expected to be Shared-Folder", folder.FolderUid);
-                        }
-                        break;
-                }
-                if (unencrypted_data != null)
-                {
-                    var serializer = new DataContractJsonSerializer(typeof(FolderData));
-                    using (var stream = new MemoryStream(unencrypted_data))
-                    {
-                        var folderData = serializer.ReadObject(stream) as FolderData;
-                        node.Name = folderData.name;
-                    }
-                }
-                if (string.IsNullOrEmpty(node.Name))
-                {
-                    node.Name = node.FolderUid;
-                }
-            }
-            foreach (var uid in toDelete)
-            {
-                vault.keeperFolders.Remove(uid);
-            }
-            vault.Root.Children.Clear();
-            vault.Root.Records.Clear();
-
-            foreach (var node in vault.keeperFolders.Values)
-            {
-                if (string.IsNullOrEmpty(node.ParentUid))
-                {
-                    vault.Root.Children.Add(node.FolderUid);
-                }
-                else
-                {
-                    if (vault.keeperFolders.TryGetValue(node.ParentUid, out FolderNode parent))
-                    {
-                        parent.Children.Add(node.FolderUid);
-                    }
-                    else
-                    {
-                        Trace.TraceError("Folder UID {0} was lost", node.FolderUid);
-                    }
-                }
-            }
-
-            foreach (var record in recordList)
-            {
-                if (string.IsNullOrEmpty(record.FolderUid))
-                {
-                    vault.Root.Records.Add(record.RecordUid);
-                }
-                else
-                {
-                    if (vault.keeperFolders.TryGetValue(record.FolderUid, out FolderNode node))
-                    {
-                        node.Records.Add(record.RecordUid);
-                    }
-                    else
-                    {
-                        Trace.TraceError("Folder UID {0} was lost", node.FolderUid);
-                        vault.Root.Records.Add(record.RecordUid);
-                    }
-                }
-            }
-
-            vault.userFolders.Clear();
-            foreach (var folder in folderList)
-            {
-                vault.userFolders.Add(folder.FolderUid, folder);
-            }
-            vault.userFolderRecords = recordList.ToList();
-        }
-
         public static async Task SyncDown(this Vault vault)
         {
             var command = new SyncDownCommand
             {
-                revision = vault.Revision,
+                revision = vault.Storage.Revision,
                 include = new string[] { "sfheaders", "sfrecords", "sfusers", "teams", "folders" },
                 deviceName = KeeperEndpoint.DefaultDeviceName
             };
 
             var rs = await vault.Auth.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(command);
 
-            ISet<string> uids = new HashSet<string>();
-
-            if (rs.fullSync)
+            var isFullSync = rs.fullSync;
+            var result = new RebuildTask(isFullSync);
+            if (isFullSync)
             {
-                vault.metaData.Clear();
-                vault.records.Clear();
-                vault.sharedFolders.Clear();
-                vault.teams.Clear();
-
-                vault.keeperFolders.Clear();
-                vault.userFolderRecords = null;
-
-                vault.keeperRecords.Clear();
+                vault.Storage.Clear();
             }
 
-            vault.Revision = rs.revision;
+            vault.Storage.Revision = rs.revision;
 
             if (rs.removedRecords != null)
             {
-                foreach (var uid in rs.removedRecords)
+                foreach (var recordUid in rs.removedRecords)
                 {
-                    vault.DeleteRecordKey(uid);
-                    vault.metaData.Remove(uid);
+                    result.AddRecord(recordUid);
+
+                    vault.Storage.RecordKeys.Delete(recordUid, vault.Storage.PersonalScopeUid);
+                    var links = vault.Storage.FolderRecords.GetLinksForSubject(recordUid).ToArray();
+                    foreach (var link in links)
+                    {
+                        if (link.FolderUid == vault.Storage.PersonalScopeUid)
+                        {
+                            vault.Storage.FolderRecords.Delete(link);
+                        }
+                        else
+                        {
+                            var folder = vault.Storage.Folders.Get(link.FolderUid);
+                            if (folder != null)
+                            {
+                                if (folder.FolderType == "user_folder")
+                                {
+                                    vault.Storage.FolderRecords.Delete(link);
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -359,24 +75,19 @@ namespace KeeperSecurity.Sdk
             {
                 foreach (var teamUid in rs.removedTeams)
                 {
-                    vault.DeleteTeamKey(teamUid);
-                    if (vault.teams.TryGetValue(teamUid, out SyncDownTeam sdt))
+                    var sf_links = vault.Storage.SharedFolderKeys.GetLinksForObject(teamUid).ToArray();
+                    foreach (var sf_link in sf_links)
                     {
-                        if (sdt.sharedFolderKeys != null)
+                        vault.Storage.SharedFolderKeys.Delete(sf_link);
+                        var rec_links = vault.Storage.RecordKeys.GetLinksForObject(sf_link.SharedFolderUid).ToArray();
+                        foreach (var rec_link in rec_links)
                         {
-                            foreach (var sfk in sdt.sharedFolderKeys)
-                            {
-                                if (vault.sharedFolders.TryGetValue(sfk.sharedFolderUid, out SyncDownSharedFolder sdsf))
-                                {
-                                    if (sdsf.teams != null)
-                                    {
-                                        sdsf.teams = sdsf.teams.Where(x => x.teamUid != teamUid).ToArray();
-                                    }
-                                }
-                            }
+                            result.AddRecord(rec_link.RecordUid);
                         }
-                        vault.teams.Remove(teamUid);
+
+                        result.AddSharedFolder(sf_link.SharedFolderUid);
                     }
+                    vault.Storage.Teams.Delete(teamUid);
                 }
             }
 
@@ -384,51 +95,81 @@ namespace KeeperSecurity.Sdk
             {
                 foreach (var sharedFolderUid in rs.removedSharedFolders)
                 {
-                    vault.DeleteSharedFolderKey(sharedFolderUid);
-                    if (vault.sharedFolders.TryGetValue(sharedFolderUid, out SyncDownSharedFolder sdsf))
+                    result.AddSharedFolder(sharedFolderUid);
+                    var links = vault.Storage.RecordKeys.GetLinksForObject(sharedFolderUid).ToArray();
+                    foreach (var rec_link in links)
                     {
-                        sdsf.sharedFolderKey = null;
-                        sdsf.keyType = null;
-                        if (sdsf.users != null)
-                        {
-                            sdsf.users = sdsf.users.Where(x => string.Compare(x.username, vault.Auth.Username, true) != 0).ToArray();
-                        }
+                        result.AddRecord(rec_link.RecordUid);
+
+                        vault.Storage.RecordKeys.Delete(rec_link);
                     }
+
+                    vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, "");
                 }
             }
 
-            if (rs.teams != null)
+            if (rs.userFoldersRemoved != null)
             {
-                foreach (var t in rs.teams)
+                foreach (var ufr in rs.userFoldersRemoved)
                 {
-                    if (vault.teams.TryGetValue(t.teamUid, out SyncDownTeam team))
+                    var folderUid = ufr.folderUid;
+
+                    var links = vault.Storage.FolderRecords.GetLinksForObject(folderUid).ToArray();
+                    foreach (var link in links)
                     {
-                        if (t.removedSharedFolders != null)
-                        {
-                            uids.Clear();
-                            uids.UnionWith(t.removedSharedFolders);
-                            team.sharedFolderKeys = t.sharedFolderKeys.Where(x => uids.Contains(x.sharedFolderUid)).ToArray();
-                        }
-                        if (t.sharedFolderKeys != null)
-                        {
-                            if (team.sharedFolderKeys == null)
-                            {
-                                team.sharedFolderKeys = t.sharedFolderKeys;
-                            }
-                            else
-                            {
-                                team.sharedFolderKeys = team.sharedFolderKeys.Concat(t.sharedFolderKeys).ToArray();
-                            }
-                        }
-                        team.name = t.name ?? team.name;
-                        team.restrictEdit = t.restrictEdit;
-                        team.restrictView = t.restrictView;
-                        team.restrictShare = t.restrictShare;
+                        vault.Storage.FolderRecords.Delete(link);
                     }
-                    else
+                    vault.Storage.Folders.Delete(folderUid);
+                }
+            }
+
+            if (rs.sharedFolderFolderRemoved != null)
+            {
+                foreach (var sffr in rs.sharedFolderFolderRemoved)
+                {
+                    var folderUid = sffr.FolderUid ?? sffr.SharedFolderUid;
+                    var links = vault.Storage.FolderRecords.GetLinksForObject(folderUid).ToArray();
+                    foreach (var link in links)
                     {
-                        vault.teams.Add(t.teamUid, t);
+                        vault.Storage.FolderRecords.Delete(link);
                     }
+                    vault.Storage.Folders.Delete(folderUid);
+                }
+            }
+
+            if (rs.userFolderSharedFoldersRemoved != null)
+            {
+                foreach (var ufsfr in rs.userFolderSharedFoldersRemoved)
+                {
+                    var folderUid = ufsfr.SharedFolderUid;
+                    var links = vault.Storage.FolderRecords.GetLinksForObject(folderUid).ToArray();
+                    foreach (var link in links)
+                    {
+                        vault.Storage.FolderRecords.Delete(link);
+                    }
+                    vault.Storage.Folders.Delete(folderUid);
+                }
+            }
+
+            if (rs.userFoldersRemovedRecords != null)
+            {
+                foreach (var ufrr in rs.userFoldersRemovedRecords)
+                {
+                    var folderUid = ufrr.folderUid ?? vault.Storage.PersonalScopeUid;
+                    var recordUid = ufrr.RecordUid;
+
+                    vault.Storage.FolderRecords.Delete(recordUid, folderUid);
+                }
+            }
+
+            if (rs.sharedFolderFolderRecordsRemoved != null)
+            {
+                foreach (var sffrr in rs.sharedFolderFolderRecordsRemoved)
+                {
+                    var folderUid = sffrr.folderUid ?? sffrr.sharedFolderUid;
+                    var recordUid = sffrr.recordUid;
+
+                    vault.Storage.FolderRecords.Delete(recordUid, folderUid);
                 }
             }
 
@@ -436,92 +177,55 @@ namespace KeeperSecurity.Sdk
             {
                 foreach (var sf in rs.sharedFolders)
                 {
+                    var sharedFolderUid = sf.SharedFolderUid;
                     if (sf.fullSync == true)
                     {
-                        vault.sharedFolders.Remove(sf.sharedFolderUid);
-                    }
-                    if (vault.sharedFolders.TryGetValue(sf.sharedFolderUid, out SyncDownSharedFolder sharedFolder))
-                    {
-                        sharedFolder.revision = sf.revision;
-                        sharedFolder.manageRecords = sf.manageRecords ?? sharedFolder.manageRecords;
-                        sharedFolder.manageUsers = sf.manageUsers ?? sharedFolder.manageUsers;
-                        sharedFolder.name = sf.name ?? sharedFolder.name;
-
-                        if (sf.recordsRemoved != null && sharedFolder.records != null)
-                        {
-                            uids.Clear();
-                            uids.UnionWith(sf.recordsRemoved);
-                            sharedFolder.records = sharedFolder.records.Where(x => !uids.Contains(x.recordUid)).ToArray();
-                        }
-                        if (sf.usersRemoved != null && sharedFolder.users != null)
-                        {
-                            uids.Clear();
-                            uids.UnionWith(sf.usersRemoved);
-                            sharedFolder.users = sharedFolder.users.Where(x => !uids.Contains(x.username)).ToArray();
-                        }
-                        if (sf.teamsRemoved != null && sharedFolder.teams != null)
-                        {
-                            uids.Clear();
-                            uids.UnionWith(sf.teamsRemoved);
-                            sharedFolder.teams = sharedFolder.teams.Where(x => !uids.Contains(x.teamUid)).ToArray();
-                        }
-                        if (sf.records != null)
-                        {
-                            if (sharedFolder.records != null)
-                            {
-                                sharedFolder.records = sharedFolder.records.Concat(sf.records).ToArray();
-                            }
-                            else
-                            {
-                                sharedFolder.records = sf.records;
-                            }
-                        }
-                        if (sf.users != null)
-                        {
-                            if (sharedFolder.users != null)
-                            {
-                                sharedFolder.users = sharedFolder.users.Concat(sf.users).ToArray();
-                            }
-                            else
-                            {
-                                sharedFolder.users = sf.users;
-                            }
-                        }
-                        if (sf.teams != null)
-                        {
-                            if (sharedFolder.teams != null)
-                            {
-                                sharedFolder.teams = sharedFolder.teams.Concat(sf.teams).ToArray();
-                            }
-                            else
-                            {
-                                sharedFolder.teams = sf.teams;
-                            }
-                        }
+                        vault.Storage.RecordKeys.DeleteObject(sharedFolderUid);
+                        vault.Storage.SharedFolderKeys.DeleteSubject(sharedFolderUid);
+                        vault.Storage.SharedFolderPermissions.DeleteSubject(sharedFolderUid);
                     }
                     else
                     {
-                        vault.sharedFolders.Add(sf.sharedFolderUid, sf);
+                        if (sf.recordsRemoved != null)
+                        {
+                            foreach (var recordUid in sf.recordsRemoved)
+                            {
+                                result.AddRecord(recordUid);
+                                vault.Storage.RecordKeys.Delete(recordUid, sharedFolderUid);
+                            }
+                        }
+                        if (sf.teamsRemoved != null)
+                        {
+                            foreach (var teamUid in sf.teamsRemoved)
+                            {
+                                vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, teamUid);
+                            }
+                        }
+                        if (sf.usersRemoved != null)
+                        {
+                            foreach (var username in sf.usersRemoved)
+                            {
+                                vault.Storage.SharedFolderPermissions.Delete(sharedFolderUid, username);
+                            }
+                        }
                     }
-                    vault.keeperSharedFolders.Remove(sf.sharedFolderUid);
                 }
             }
 
-            if (rs.recordMetaData != null)
+            if (rs.nonSharedData != null)
             {
-                foreach (var rmd in rs.recordMetaData)
+                foreach (var nsd in rs.nonSharedData)
                 {
-                    if (vault.metaData.TryGetValue(rmd.recordUid, out SyncDownRecordMetaData metaData))
+                    try
                     {
-                        metaData.recordKey = rmd.recordKey;
-                        metaData.recordKeyType = rmd.recordKeyType;
-                        metaData.owner = rmd.owner;
-                        metaData.canEdit = rmd.canEdit;
-                        metaData.canShare = rmd.canShare;
+                        var data = nsd.data.Base64UrlDecode();
+                        data = CryptoUtils.DecryptAesV1(data, vault.Auth.DataKey);
+                        data = CryptoUtils.EncryptAesV1(data, vault.ClientKey);
+                        vault.Storage.NonSharedData.Put(nsd.recordUid, data.Base64UrlEncode());
                     }
-                    else
+                    catch (Exception e)
                     {
-                        vault.metaData.Add(rmd.recordUid, rmd);
+                        Trace.TraceError(e.Message);
                     }
                 }
             }
@@ -530,330 +234,303 @@ namespace KeeperSecurity.Sdk
             {
                 foreach (var r in rs.records)
                 {
-                    if (vault.records.TryGetValue(r.recordUid, out SyncDownRecord record))
-                    {
-                        record.data = r.data;
-                        record.extra = r.extra;
-                        record.udata = r.udata;
-                        record.clientModifiedTime = r.clientModifiedTime;
-                        record.revision = r.revision;
-                        record.version = r.version;
-                        record.shared = r.shared;
-                    }
-                    else
-                    {
-                        vault.records.Add(r.recordUid, r);
-                    }
-                    vault.keeperRecords.Remove(r.recordUid);
+                    var recordUid = r.RecordUid;
+                    result.AddRecord(recordUid);
+                    r.AdjustUdata();
+                    vault.Storage.Records.Put(recordUid, r);
                 }
             }
 
-            //Process keys
-            foreach (var team in vault.teams.Values)
+            if (rs.recordMetaData != null)
             {
-                if (team.unencryptedTeamKey == null)
+                foreach (var rmd in rs.recordMetaData)
                 {
-                    byte[] teamKey = null;
+                    var recordUid = rmd.RecordUid;
+                    result.AddRecord(recordUid);
+
+                    var record = vault.Storage.Records.Get(recordUid);
+                    if (record != null)
+                    {
+                        if (record.Owner != rmd.Owner)
+                        {
+                            record.Owner = rmd.Owner;
+                            vault.Storage.Records.Put(recordUid, record);
+                        }
+                    }
                     try
                     {
-                        if (team.teamKeyType == 1)
+                        byte[] key = null;
+                        switch (rmd.RecordKeyType)
                         {
-                            teamKey = CryptoUtils.DecryptAesV1(team.teamKey.Base64UrlDecode(), vault.Auth.DataKey);
+                            case 0:
+                                key = vault.Auth.DataKey;
+                                break;
+                            case 1:
+                                key = CryptoUtils.DecryptAesV1(rmd.RecordKey.Base64UrlDecode(), vault.Auth.DataKey);
+                                break;
+                            case 2:
+                                key = CryptoUtils.DecryptRsa(rmd.RecordKey.Base64UrlDecode(), vault.Auth.PrivateKey);
+                                break;
+                            default:
+                                throw new Exception($"Record metadata UID {recordUid}: unsupported key type {rmd.RecordKeyType}");
                         }
-                        else if (team.teamKeyType == 2)
+                        if (key != null)
                         {
-                            teamKey = CryptoUtils.DecryptRsa(team.teamKey.Base64UrlDecode(), vault.Auth.PrivateKey);
+                            rmd.RecordKey = CryptoUtils.EncryptAesV1(key, vault.Auth.ClientKey).Base64UrlEncode();
+                            rmd.SharedFolderUid = vault.Storage.PersonalScopeUid;
+                            vault.Storage.RecordKeys.Put(rmd);
                         }
                     }
                     catch (Exception e)
                     {
-                        Trace.TraceError("Decrypt Team Key: UID: {0}, {1}: \"{2}\"", team.teamUid, e.GetType().Name, e.Message);
-                    }
-                    if (teamKey != null)
-                    {
-                        team.unencryptedTeamKey = teamKey;
+                        Trace.TraceError(e.Message);
                     }
                 }
             }
 
-            foreach (var sharedFolder in vault.sharedFolders.Values)
+            if (rs.teams != null)
             {
-                if (sharedFolder.unencryptedSharedFolderKey == null)
+                foreach (var t in rs.teams)
                 {
-                    byte[] key = null;
-                    if (string.IsNullOrEmpty(sharedFolder.sharedFolderKey))
-                    {
-                        if (sharedFolder.teams != null)
-                        {
-                            foreach (var team in sharedFolder.teams)
-                            {
-                                if (vault.teams.TryGetValue(team.teamUid, out SyncDownTeam sdt))
-                                {
-                                    if (sdt.sharedFolderKeys != null)
-                                    {
-                                        var sfk = sdt.sharedFolderKeys.FirstOrDefault(x => x.sharedFolderUid == sharedFolder.sharedFolderUid);
-                                        if (sfk != null)
-                                        {
-                                            try
-                                            {
-                                                if (sfk.keyType == 1)
-                                                {
-                                                    key = CryptoUtils.DecryptAesV1(sfk.sharedFolderKey.Base64UrlDecode(), sdt.unencryptedTeamKey);
-                                                }
-                                                else if (sfk.keyType == 2)
-                                                {
-                                                    key = CryptoUtils.DecryptRsa(sfk.sharedFolderKey.Base64UrlDecode(), sdt.PrivateKey);
-                                                }
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Trace.TraceError("Decrypt Shared Folder Key: UID: {0}, Team UID: {1}, {2}: \"{3}\"", sharedFolder.sharedFolderUid, sdt.teamUid, e.GetType().Name, e.Message);
-                                            }
-                                        }
-                                    }
-                                }
-                                if (key != null)
-                                {
-                                    break;
-                                }
+                    var teamUid = t.TeamUid;
 
-                            }
-                        }
-                    }
-                    else
+                    if (t.removedSharedFolders != null)
                     {
-                        try
+                        foreach (var sharedFolderUid in t.removedSharedFolders)
                         {
-                            if (sharedFolder.keyType == 1)
-                            {
-                                key = CryptoUtils.DecryptAesV1(sharedFolder.sharedFolderKey.Base64UrlDecode(), vault.Auth.DataKey);
-                            }
-                            else if (sharedFolder.keyType == 2)
-                            {
-                                key = CryptoUtils.DecryptRsa(sharedFolder.sharedFolderKey.Base64UrlDecode(), vault.Auth.PrivateKey);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Trace.TraceError("Decrypt Shared Folder Key: UID: {0}, {1}: \"{2}\"", sharedFolder.sharedFolderUid, e.GetType().Name, e.Message);
+                            result.AddSharedFolder(sharedFolderUid);
+                            vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, teamUid);
                         }
                     }
-                    if (key != null)
-                    {
-                        sharedFolder.unencryptedSharedFolderKey = key;
-                    }
-                }
-            }
 
-            uids.Clear();
-            uids.UnionWith(vault.sharedFolders.Values.Where(x => x.unencryptedSharedFolderKey == null).Select(x => x.sharedFolderUid));
-            foreach (var uid in uids)
-            {
-                vault.sharedFolders.Remove(uid);
-            }
-
-            foreach (var record in vault.records.Values)
-            {
-                if (record.unencryptedRecordKey == null)
-                {
-                    byte[] key = null;
-                    if (vault.metaData.TryGetValue(record.recordUid, out SyncDownRecordMetaData sdrmd))
+                    try
                     {
-                        if (string.IsNullOrEmpty(sdrmd.recordKey))
+                        byte[] teamKey = null;
+                        switch (t.KeyType)
                         {
-                            key = vault.Auth.DataKey;
+                            case (int)KeyType.DataKey:
+                                teamKey = CryptoUtils.DecryptAesV1(t.TeamKey.Base64UrlDecode(), vault.Auth.DataKey);
+                                break;
+                            case (int)KeyType.PrivateKey:
+                                teamKey = CryptoUtils.DecryptRsa(t.TeamKey.Base64UrlDecode(), vault.Auth.PrivateKey);
+                                break;
+                            default:
+                                throw new Exception($"Team UID {teamUid}: unsupported key type {t.KeyType}");
                         }
-                        else
+                        if (teamKey != null)
                         {
-                            try
+                            t.TeamKey = CryptoUtils.EncryptAesV1(teamKey, vault.Auth.ClientKey).Base64UrlEncode();
+                            vault.Storage.Teams.Put(teamUid, t);
+                            if (t.sharedFolderKeys != null)
                             {
-                                if (sdrmd.recordKeyType == 1)
-                                {
-                                    key = CryptoUtils.DecryptAesV1(sdrmd.recordKey.Base64UrlDecode(), vault.Auth.DataKey);
-                                }
-                                else if (sdrmd.recordKeyType == 2)
-                                {
-                                    key = CryptoUtils.DecryptRsa(sdrmd.recordKey.Base64UrlDecode(), vault.Auth.PrivateKey);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Trace.TraceError("Decrypt Record Key: UID: {0}, {1}: \"{2}\"", record.recordUid, e.GetType().Name, e.Message);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (var sharedFolder in vault.sharedFolders.Values)
-                        {
-                            if (sharedFolder.records != null)
-                            {
-                                var sfr = sharedFolder.records.FirstOrDefault(x => x.recordUid == record.recordUid);
-                                if (sfr != null)
+                                RsaPrivateCrtKeyParameters teamPrivateKey = null;
+                                foreach (var sft in t.sharedFolderKeys)
                                 {
                                     try
                                     {
-                                        key = CryptoUtils.DecryptAesV1(sfr.recordKey.Base64UrlDecode(), sharedFolder.unencryptedSharedFolderKey);
+                                        byte[] sharedFolderKey = null;
+                                        switch (sft.KeyType)
+                                        {
+                                            case 1:
+                                                sharedFolderKey = sft.SharedFolderKey.Base64UrlDecode();
+                                                break;
+                                            case 2:
+                                                if (teamPrivateKey == null)
+                                                {
+                                                    teamPrivateKey = CryptoUtils.LoadPrivateKey(CryptoUtils.DecryptAesV1(t.TeamPrivateKey.Base64UrlDecode(), teamKey));
+                                                }
+                                                sharedFolderKey = CryptoUtils.DecryptRsa(sharedFolderKey, teamPrivateKey);
+                                                sharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolderKey, teamKey);
+                                                break;
+
+                                        }
+                                        if (sharedFolderKey != null)
+                                        {
+                                            sft.TeamUid = teamUid;
+                                            sft.SharedFolderKey = sharedFolderKey.Base64UrlEncode();
+                                            sft.KeyType = (int)KeyType.TeamKey;
+                                            vault.Storage.SharedFolderKeys.Put(sft);
+                                        }
                                     }
                                     catch (Exception e)
                                     {
-                                        Trace.TraceError("Decrypt Record Key: UID: {0}, Shared Folder UID: {1}, {2}: \"{3}\"", record.recordUid, sharedFolder.sharedFolderUid, e.GetType().Name, e.Message);
+                                        Trace.TraceError(e.Message);
                                     }
-                                }
-                                if (key != null)
-                                {
-                                    break;
                                 }
                             }
                         }
                     }
-                    if (key != null)
+                    catch (Exception e)
                     {
-                        record.unencryptedRecordKey = key;
+                        Trace.TraceError(e.Message);
                     }
                 }
             }
 
-            uids.Clear();
-            uids.UnionWith(vault.records.Values.Where(x => x.unencryptedRecordKey == null).Select(x => x.recordUid));
-            foreach (var uid in uids)
+            if (rs.sharedFolders != null)
             {
-                vault.records.Remove(uid);
-            }
-
-            uids.Clear();
-            uids.UnionWith(vault.keeperRecords.Keys);
-            uids.ExceptWith(vault.records.Keys);
-            foreach (var uid in uids)
-            {
-                vault.keeperRecords.Remove(uid);
-            }
-
-            vault.DecryptRecords();
-
-            uids.Clear();
-            uids.UnionWith(vault.sharedFolders.Values.Where(x => x.unencryptedSharedFolderKey == null).Select(x => x.sharedFolderUid));
-            foreach (var uid in uids)
-            {
-                vault.sharedFolders.Remove(uid);
-            }
-
-            uids.Clear();
-            uids.UnionWith(vault.keeperSharedFolders.Keys);
-            uids.ExceptWith(vault.sharedFolders.Keys);
-            foreach (var uid in uids)
-            {
-                vault.keeperSharedFolders.Remove(uid);
-            }
-            vault.DecryptSharedFolders();
-
-            vault.ProcessSubFolders(rs);
-        }
-
-        internal static void DecryptSharedFolders(this Vault vault)
-        {
-            var uids = new HashSet<string>();
-
-            uids.UnionWith(vault.sharedFolders.Keys);
-            uids.ExceptWith(vault.keeperSharedFolders.Keys);
-            if (uids.Count > 0)
-            {
-                foreach (var uid in uids)
+                foreach (var sf in rs.sharedFolders)
                 {
-                    if (vault.sharedFolders.TryGetValue(uid, out SyncDownSharedFolder sdsf))
-                    {
-                        vault.keeperSharedFolders.Add(uid, new SharedFolder(sdsf));
-                    }
-                }
-            }
-        }
+                    var sharedFolderUid = sf.SharedFolderUid;
 
-        internal static void DecryptRecords(this Vault vault)
-        {
-            var uids = new HashSet<string>();
+                    result.AddSharedFolder(sharedFolderUid);
 
-            uids.UnionWith(vault.records.Keys);
-            uids.ExceptWith(vault.keeperRecords.Keys);
-            if (uids.Count > 0)
-            {
-                var dataSerializer = new DataContractJsonSerializer(typeof(RecordData));
-                var extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra));
-
-                foreach (var uid in uids)
-                {
-                    if (vault.records.TryGetValue(uid, out SyncDownRecord sdr))
+                    if (!string.IsNullOrEmpty(sf.SharedFolderKey))
                     {
                         try
                         {
-                            var record = new PasswordRecord(uid);
-
-                            var unencrypted_data = CryptoUtils.DecryptAesV1(sdr.data.Base64UrlDecode(), sdr.unencryptedRecordKey);
-                            using (var ms = new MemoryStream(unencrypted_data))
+                            byte[] sharedFolderKey = null;
+                            switch (sf.KeyType)
                             {
-                                var data = (RecordData)dataSerializer.ReadObject(ms);
-                                record.Title = data.title;
-                                record.Login = data.secret1;
-                                record.Password = data.secret2;
-                                record.Link = data.link;
-                                record.Notes = data.notes;
-                                if (data.custom != null)
-                                {
-                                    foreach (var cr in data.custom)
-                                    {
-                                        record.Custom.Add(new CustomField
-                                        {
-                                            Name = cr.name,
-                                            Value = cr.value,
-                                            Type = cr.type
-                                        });
-                                    }
-                                }
+                                case 1:
+                                    sharedFolderKey = CryptoUtils.DecryptAesV1(sf.SharedFolderKey.Base64UrlDecode(), vault.Auth.DataKey);
+                                    break;
+                                case 2:
+                                    sharedFolderKey = CryptoUtils.DecryptRsa(sf.SharedFolderKey.Base64UrlDecode(), vault.Auth.PrivateKey);
+                                    break;
+                                default:
+                                    throw new Exception($"Shared Folder UID {sharedFolderUid}: unsupported key type {sf.KeyType}");
                             }
-
-                            if (!string.IsNullOrEmpty(sdr.extra))
+                            if (sharedFolderKey != null)
                             {
-                                var unencrypted_extra = CryptoUtils.DecryptAesV1(sdr.extra.Base64UrlDecode(), sdr.unencryptedRecordKey);
-                                using (var ms = new MemoryStream(unencrypted_extra))
+                                var sharedFolderMetadata = new SyncDownSharedFolderKey
                                 {
-                                    var extra = (RecordExtra)extraSerializer.ReadObject(ms);
-                                    if (extra.files != null && extra.files.Length > 0)
-                                    {
-                                        foreach (var file in extra.files)
-                                        {
-                                            var atta = new AttachmentFile
-                                            {
-                                                Id = file.id,
-                                                Key = file.key,
-                                                Name = file.name,
-                                                Title = file.title ?? "",
-                                                Type = file.type ?? "",
-                                                Size = file.size ?? 0,
-                                                LastModified = file.lastModified != null ? file.lastModified.Value.FromUnixTimeMilliseconds() : DateTimeOffset.Now
-                                            };
-                                            if (file.thumbs != null)
-                                            {
-                                                atta.Thumbnails = file.thumbs
-                                                .Select(t => new AttachmentFileThumb
-                                                {
-                                                    Id = t.id,
-                                                    Type = t.type,
-                                                    Size = t.size ?? 0
-                                                })
-                                                .ToArray();
-                                            }
-                                            record.Attachments.Add(atta);
-                                        }
-                                    }
-                                }
-                            }
+                                    SharedFolderUid = sharedFolderUid,
+                                    SharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolderKey, vault.ClientKey).Base64UrlEncode(),
+                                    KeyType = (int)KeyType.DataKey
+                                };
 
-                            vault.keeperRecords.Add(uid, record);
+                                vault.Storage.SharedFolderKeys.Put(sharedFolderMetadata);
+                            }
                         }
                         catch (Exception e)
                         {
-                            Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"", uid, e.GetType().Name, e.Message);
+                            Trace.TraceError(e.Message);
                         }
                     }
+
+                    if (sf.records != null)
+                    {
+                        foreach (var sfr in sf.records)
+                        {
+                            result.AddRecord(sfr.RecordUid);
+
+                            var recordMetadata = new SyncDownRecordMetaData
+                            {
+                                SharedFolderUid = sharedFolderUid,
+                                RecordUid = sfr.RecordUid,
+                                RecordKey = sfr.RecordKey,
+                                RecordKeyType = (int)KeyType.SharedFolderKey,
+                                CanEdit = sfr.CanEdit,
+                                CanShare = sfr.CanShare
+                            };
+                            vault.Storage.RecordKeys.Put(recordMetadata);
+                        }
+                    }
+
+                    if (sf.teams != null)
+                    {
+                        foreach (var sft in sf.teams)
+                        {
+                            sft.SharedFolderUid = sharedFolderUid;
+                            vault.Storage.SharedFolderPermissions.Put(sft);
+                        }
+                    }
+                    if (sf.users != null)
+                    {
+                        foreach (var sfu in sf.users)
+                        {
+                            sfu.SharedFolderUid = sharedFolderUid;
+                            vault.Storage.SharedFolderPermissions.Put(sfu);
+                        }
+                    }
+                    vault.Storage.SharedFolders.Put(sharedFolderUid, sf);
+                }
+            }
+
+            if (rs.userFolders != null)
+            {
+                foreach (var uf in rs.userFolders)
+                {
+                    var folderUid = uf.FolderUid;
+                    try
+                    {
+                        var folderKey = uf.FolderKey.Base64UrlDecode();
+                        switch (uf.keyType)
+                        {
+                            case 1:
+                                folderKey = CryptoUtils.DecryptAesV1(folderKey, vault.Auth.DataKey);
+                                break;
+                            case 2:
+                                folderKey = CryptoUtils.DecryptRsa(folderKey, vault.Auth.PrivateKey);
+                                break;
+                            default:
+                                throw new Exception($"User Folder UID {folderUid}: unsupported key type {uf.keyType}");
+                        }
+                        uf.FolderKey = CryptoUtils.EncryptAesV1(folderKey, vault.ClientKey).Base64UrlEncode();
+                        vault.Storage.Folders.Put(folderUid, uf);
+                    }
+                    catch (Exception e)
+                    {
+                        Trace.TraceError(e.Message);
+                    }
+                }
+            }
+
+            if (rs.sharedFolderFolders != null)
+            {
+                foreach (IFolder sff in rs.sharedFolderFolders)
+                {
+                    var folderUid = sff.FolderUid;
+                    vault.Storage.Folders.Put(folderUid, sff);
+                }
+            }
+
+            if (rs.userFolderSharedFolders != null)
+            {
+                foreach (IFolder ufsf in rs.userFolderSharedFolders)
+                {
+                    var folderUid = ufsf.FolderUid;
+                    vault.Storage.Folders.Put(folderUid, ufsf);
+                }
+            }
+
+            if (rs.userFolderRecords != null)
+            {
+                foreach (var ufr in rs.userFolderRecords)
+                {
+                    if (string.IsNullOrEmpty(ufr.FolderUid))
+                    {
+                        ufr.FolderUid = vault.Storage.PersonalScopeUid;
+                    }
+                    vault.Storage.FolderRecords.Put(ufr);
+                }
+            }
+
+            if (rs.sharedFolderFolderRecords != null)
+            {
+                foreach (IFolderRecordLink sffr in rs.sharedFolderFolderRecords)
+                {
+                    vault.Storage.FolderRecords.Put(sffr);
+                }
+            }
+
+            vault.RebuildData(result);
+        }
+
+        private static DataContractJsonSerializerSettings _json_settings = new DataContractJsonSerializerSettings
+        {
+            UseSimpleDictionaryFormat = true
+        };
+        private static DataContractJsonSerializer _udataSerializer = new DataContractJsonSerializer(typeof(SyncDownRecordUData), _json_settings);
+
+        internal static void AdjustUdata(this SyncDownRecord syncDownRecord)
+        {
+            if (syncDownRecord.udata != null) {
+                using (var ms = new MemoryStream())
+                {
+                    _udataSerializer.WriteObject(ms, syncDownRecord.udata);
+                    syncDownRecord.Udata = ms.ToArray().Base64UrlEncode();
                 }
             }
         }

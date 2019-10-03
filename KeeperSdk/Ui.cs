@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Threading;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace KeeperSecurity.Sdk.UI
 {
-    public enum DialogType
-    {
-        Information,
-        Confirmation,
-    }
-
     public enum TwoFactorCodeChannel
     {
         Authenticator,
@@ -41,8 +34,7 @@ namespace KeeperSecurity.Sdk.UI
 
     public interface IAuthUI
     {
-        Task<bool> DisplayDialog(DialogType dialog, string information);
-        Task<IUserCredentials> GetUserCredentials(IUserCredentials credentials);
+        Task<bool> Confirmation(string information);
         Task<string> GetNewPassword(PasswordRuleMatcher matcher);
         Task<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel provider);
     }
@@ -102,8 +94,15 @@ namespace KeeperSecurity.Sdk.UI
         public string Phone { get; internal set; }    // Phone number associated the account
         public string EnrollmentUrl { get; internal set; }   // Account requires Enrollment with DUO
     }
+
     public interface IDuoTwoFactorUI
     {
         Task<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, Func<DuoAction, Task> onAction);
     }
+
+    public interface IHttpProxyCredentialUI
+    {
+        Task<IWebProxy> GetHttpProxyCredentials(string proxyAuthenticate);
+    }
+
 }

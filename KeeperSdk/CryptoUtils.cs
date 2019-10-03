@@ -123,9 +123,9 @@ namespace KeeperSecurity.Sdk
 
 
         const int AesGcmNonceLength = 12;
-        public static byte[] EncryptAesV2(byte[] data, byte[] key, byte[] nonce = null)
+        public static byte[] EncryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceLength)
         {
-            nonce = nonce ?? GetRandomBytes(AesGcmNonceLength);
+            var nonce = GetRandomBytes(nonceLength);
             var parameters = new AeadParameters(new KeyParameter(key), 16 * 8, nonce);
 
             var cipher = new GcmBlockCipher(new AesEngine());
@@ -138,16 +138,16 @@ namespace KeeperSecurity.Sdk
             return nonce.Concat(cipherText.Take(len)).ToArray();
         }
 
-        public static byte[] DecryptAesV2(byte[] data, byte[] key)
+        public static byte[] DecryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceLength)
         {
-            var nonce = data.Take(AesGcmNonceLength).ToArray();
+            var nonce = data.Take(nonceLength).ToArray();
             var parameters = new AeadParameters(new KeyParameter(key), 16 * 8, nonce);
 
             var cipher = new GcmBlockCipher(new AesEngine());
             cipher.Init(false, parameters);
-            var decryptedData = new byte[cipher.GetOutputSize(data.Length - AesGcmNonceLength)];
+            var decryptedData = new byte[cipher.GetOutputSize(data.Length - nonceLength)];
 
-            var len = cipher.ProcessBytes(data, AesGcmNonceLength, data.Length - AesGcmNonceLength, decryptedData, 0);
+            var len = cipher.ProcessBytes(data, nonceLength, data.Length - nonceLength, decryptedData, 0);
             len += cipher.DoFinal(decryptedData, len);
 
             return decryptedData.Take(len).ToArray();

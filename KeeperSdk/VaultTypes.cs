@@ -9,14 +9,138 @@
 // Contact: ops@keepersecurity.com
 //
 
+using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Text;
-using KeeperSecurity.Sdk;
 
 namespace KeeperSecurity.Sdk
 {
+    public class PasswordRecord
+    {
+        public PasswordRecord() { }
+
+        public string Uid { get; set; }
+        public bool Owner { get; set; }
+        public bool Shared { get; set; }
+
+        public string Title { get; set; }
+        public string Login { get; set; }
+        public string Password { get; set; }
+        public string Link { get; set; }
+        public string Notes { get; set; }
+        public IList<CustomField> Custom { get; } = new List<CustomField>();
+        public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
+
+        public byte[] RecordKey { get; internal set; }
+    }
+
+    public class CustomField
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+        public string Type { get; set; }
+    }
+
+    public class AttachmentFileThumb
+    {
+        public string Id { get; internal set; }
+        public string Type { get; internal set; }
+        public int Size { get; internal set; }
+    }
+
+    public class AttachmentFile
+    {
+        public string Id { get; internal set; }
+        public string Key { get; internal set; }
+        public string Name { get; internal set; }
+        public string Title { get; internal set; }
+        public string Type { get; internal set; }
+        public long Size { get; internal set; }
+        public DateTimeOffset LastModified { get; internal set; }
+
+        public AttachmentFileThumb[] Thumbnails { get; internal set; }
+    }
+
+    public enum UserType
+    {
+        User = 1,
+        Team = 2
+    }
+    public class SharedFolderPermission
+    {
+        public string UserId { get; internal set; }
+        public UserType UserType { get; internal set; }
+        public bool ManageRecords { get; internal set; }
+        public bool ManageUsers { get; internal set; }
+    }
+
+    public class SharedFolderRecord
+    {
+        public string RecordUid { get; internal set; }
+        public bool CanShare { get; internal set; }
+        public bool CanEdit { get; internal set; }
+    }
+
+    public class SharedFolder
+    {
+        public SharedFolder() { }
+
+        public string Uid { get; set; }
+        public string Name { get; set; }
+
+        public bool DefaultManageRecords { get; set; }
+        public bool DefaultManageUsers { get; set; }
+        public bool DefaultCanEdit { get; set; }
+        public bool DefaultCanShare { get; set; }
+
+        public List<SharedFolderPermission> UsersPermissions { get; } = new List<SharedFolderPermission>();
+        public List<SharedFolderRecord> RecordPermissions { get; } = new List<SharedFolderRecord>();
+
+        public byte[] SharedFolderKey { get; internal set; }
+    }
+
+    public class EnterpriseTeam
+    {
+        public EnterpriseTeam() { }
+        internal EnterpriseTeam(IEnterpriseTeam et, byte[] teamKey)
+        {
+            TeamKey = teamKey;
+            var pk = et.TeamPrivateKey.Base64UrlDecode();
+            TeamPrivateKey = CryptoUtils.LoadPrivateKey(CryptoUtils.DecryptAesV1(pk, teamKey));
+            TeamUid = et.TeamUid;
+            Name = et.Name;
+            RestrictEdit = et.RestrictEdit;
+            RestrictShare = et.RestrictShare;
+            RestrictView = et.RestrictView;
+        }
+
+        public string TeamUid { get; }
+        public string Name { get; }
+        public bool RestrictEdit { get; }
+        public bool RestrictShare { get; }
+        public bool RestrictView { get; }
+
+        public byte[] TeamKey { get; internal set; }
+        public RsaPrivateCrtKeyParameters TeamPrivateKey { get; internal set; }
+    }
+
+    public enum FolderType { UserFolder, SharedFolder, SharedFolderForder }
+    public class FolderNode
+    {
+        public string ParentUid { get; internal set; }
+        public string FolderUid { get; internal set; }
+        public string SharedFolderUid { get; internal set; }
+        public FolderType FolderType { get; internal set; } = FolderType.UserFolder;
+        public string Name { get; internal set; }
+        public IList<string> Subfolders { get; } = new List<string>();
+        public IList<string> Records { get; } = new List<string>();
+    }
+
     public interface IRecordAccessPath
     {
         string RecordUid { get; }

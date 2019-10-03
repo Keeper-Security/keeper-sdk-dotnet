@@ -153,7 +153,7 @@ namespace Commander
 
     public class NotConnectedCliCommands : CliCommands
     {
-        private readonly AuthContext _auth;
+        private readonly Auth _auth;
 
         private class LoginOptions : IUserCredentials {
             [Option("password", Required = false, HelpText = "master password")]
@@ -163,7 +163,7 @@ namespace Commander
             public string Username { get; set; }
         }
 
-        public NotConnectedCliCommands(AuthContext auth) : base()
+        public NotConnectedCliCommands(Auth auth) : base()
         {
             _auth = auth;
 
@@ -180,9 +180,9 @@ namespace Commander
                 Action = (args) => {
                     if (!string.IsNullOrEmpty(args))
                     {
-                        _auth.Api.Server = args.AdjustServerUrl();
+                        _auth.Endpoint.Server = args.AdjustServerUrl();
                     }
-                    Console.WriteLine(string.Format("Keeper Server: {0}", _auth.Api.Server.AdjustServerUrl()));
+                    Console.WriteLine(string.Format("Keeper Server: {0}", _auth.Endpoint.Server.AdjustServerUrl()));
                     return Task.FromResult(true);
                 }
             });
@@ -191,7 +191,8 @@ namespace Commander
 
         private async Task DoLogin(LoginOptions options)
         {
-            await _auth.Login(new UserConfiguration(options));
+            var credentials = await GetUserCredentials(new UserConfiguration(options));
+            await _auth.Login(credentials.Username, credentials.Password);
             if (!string.IsNullOrEmpty(_auth.SessionToken)) {
                 Finished = true;
                 var vault = new Vault(_auth);
@@ -205,5 +206,37 @@ namespace Commander
         {
             return "Not logged in";
         }
+
+        public Task<IUserCredentials> GetUserCredentials(IUserCredentials credentials)
+        {
+            IUserCredentials cred = null;
+            string username = credentials?.Username;
+            string password = credentials?.Password;
+            if (string.IsNullOrEmpty(username))
+            {
+                Console.Write("Enter Username: ");
+                username = Console.ReadLine();
+            }
+            else
+            {
+                Console.WriteLine("Username: " + username);
+            }
+            if (!string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password))
+            {
+                Console.Write("Enter Password: ");
+                password = HelperUtils.ReadLineMasked();
+            }
+            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            {
+                cred = new UserCredencials
+                {
+                    Username = username,
+                    Password = password
+                };
+            }
+
+            return Task.FromResult(cred);
+        }
+
     }
 }
