@@ -29,6 +29,7 @@ namespace KeeperSecurity.Sdk
     {
         public static string DefaultDeviceName = ".NET Keeper API";
         public static string DefaultKeeperServer = "keepersecurity.com";
+        public static readonly string DefaultClientVersion = "c14.0.0";
 
         static KeeperEndpoint()
         {
@@ -37,7 +38,7 @@ namespace KeeperSecurity.Sdk
 
         public KeeperEndpoint()
         {
-            ClientVersion = KeeperApiCommand.ClientVersion;
+            ClientVersion = DefaultClientVersion;
             Locale = KeeperSettings.DefaultLocale();
             ServerKeyId = 1;
             Server = DefaultKeeperServer;

@@ -192,13 +192,16 @@ namespace Commander
         private async Task DoLogin(LoginOptions options)
         {
             var credentials = await GetUserCredentials(new UserConfiguration(options));
-            await _auth.Login(credentials.Username, credentials.Password);
-            if (!string.IsNullOrEmpty(_auth.SessionToken)) {
-                Finished = true;
-                var vault = new Vault(_auth);
-                var connectedCommands = new ConnectedCommands(vault);
-                connectedCommands.ScheduleSyncDown();
-                NewCommands = connectedCommands;
+            if (credentials != null) {
+                await _auth.Login(credentials.Username, credentials.Password);
+                if (!string.IsNullOrEmpty(_auth.SessionToken))
+                {
+                    Finished = true;
+                    var vault = new Vault(_auth);
+                    var connectedCommands = new ConnectedCommands(vault);
+                    connectedCommands.ScheduleSyncDown();
+                    NewCommands = connectedCommands;
+                }
             }
         }
 

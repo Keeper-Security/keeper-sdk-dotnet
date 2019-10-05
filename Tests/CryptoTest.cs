@@ -31,7 +31,7 @@ namespace KeeperSecurity.Sdk
             var key = CryptoUtils.DeriveKeyV2(domain, password, salt, 1000);
             Assert.Equal(expectedKey, key);
         }
-
+/*
         [Fact]
         public void TestAesGcmEncryption()
         {
@@ -51,7 +51,7 @@ namespace KeeperSecurity.Sdk
             var originalData = CryptoUtils.DecryptAesV2(expectedResult, key);
             Assert.Equal(originalData, data);
         }
-
+*/
         class PasswordFinder : IPasswordFinder
         {
             public char[] GetPassword()

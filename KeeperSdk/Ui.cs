@@ -36,7 +36,7 @@ namespace KeeperSecurity.Sdk.UI
     {
         Task<bool> Confirmation(string information);
         Task<string> GetNewPassword(PasswordRuleMatcher matcher);
-        Task<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel provider);
+        TaskCompletionSource<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel provider);
     }
 
     public interface IDuoResult
@@ -97,7 +97,7 @@ namespace KeeperSecurity.Sdk.UI
 
     public interface IDuoTwoFactorUI
     {
-        Task<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, Func<DuoAction, Task> onAction);
+        TaskCompletionSource<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, Func<DuoAction, Task> onAction);
     }
 
     public interface IHttpProxyCredentialUI
