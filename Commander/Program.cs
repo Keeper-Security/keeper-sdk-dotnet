@@ -121,7 +121,7 @@ namespace Commander
                 var answer = Console.ReadLine();
                 return Task.FromResult(string.Compare(answer, "yes", true) == 0);
             }
-            
+
             public Task<string> GetNewPassword(PasswordRuleMatcher matcher)
             {
                 string password1 = null;
@@ -162,44 +162,73 @@ namespace Commander
                 return Task.FromResult(password1);
             }
 
-            public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel channel)
+            public TaskCompletionSource<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel channel)
             {
-                Console.Write("Enter Code: ");
-                var code = Console.ReadLine();
-                if (!string.IsNullOrEmpty(code))
+                TaskCompletionSource<TwoFactorCode> source = new TaskCompletionSource<TwoFactorCode>();
+                Task.Run(() =>
                 {
-                    return Task.FromResult(new TwoFactorCode(code, TwoFactorCodeDuration.Forever));
-                }
-                return Task.FromResult((TwoFactorCode)null);
+                    Console.Write("Enter Code: ");
+                    var code = Console.ReadLine();
+                    if (!string.IsNullOrEmpty(code) && !source.Task.IsCompleted)
+                    {
+                        source.SetResult(new TwoFactorCode(code, TwoFactorCodeDuration.Forever));
+                    }
+                });
+                return source;
             }
-            
-            public async Task<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, Func<DuoAction, Task> onAction)
+
+            public TaskCompletionSource<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, Func<DuoAction, Task> onAction)
             {
-                Console.WriteLine("Type:\n\"push\" for DUO push\n\"sms\" for DUO text message\nDUO app code\nKeeper backup code\n<Enter> to Cancel");
-                Console.Write("> ");
-                var input = Console.ReadLine();
-                if (string.IsNullOrEmpty(input))
+                TaskCompletionSource<TwoFactorCode> source = new TaskCompletionSource<TwoFactorCode>();
+                Task.Run(async () =>
                 {
-                    return null;
-                }
-                switch (input.ToLowerInvariant()) {
-                    case "push":
-                    case "sms":
-                        var action = string.Compare(input, "push", true) == 0 ? DuoAction.DuoPush : DuoAction.TextMessage;
-                        await onAction(action);
-                        if (action != DuoAction.DuoPush)
+                    string input = null;
+                    while (true)
+                    {
+                        Console.WriteLine("Type:\n\"push\" for DUO push\t\"sms\" for DUO text message\nDUO app code\tKeeper backup code\t<Enter> to Cancel");
+                        Console.Write("> ");
+                        input = Console.ReadLine();
+                        if (source.Task.IsCompleted)
                         {
-                            Console.Write("Type the code you receieved from DUO > ");
-                            input = Console.ReadLine();
+                            break;
+                        }
+                        if (string.IsNullOrEmpty(input))
+                        {
+                            break;
+                        }
+                        switch (input.ToLowerInvariant())
+                        {
+                            case "push":
+                            case "sms":
+                                var action = string.Compare(input, "push", true) == 0 ? DuoAction.DuoPush : DuoAction.TextMessage;
+                                input = null;
+                                await onAction(action);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (source.Task.IsCompleted)
+                        {
+                            break;
+                        }
+                        if (!string.IsNullOrEmpty(input))
+                        {
+                            break;
+                        }
+                    }
+                    if (!source.Task.IsCompleted)
+                    {
+                        if (string.IsNullOrEmpty(input))
+                        {
+                            source.SetCanceled();
                         }
                         else
                         {
-                            input = "passcode";
+                            source.SetResult(new TwoFactorCode(input, TwoFactorCodeDuration.Forever));
                         }
-                        break;
-                }
-
-                return new DuoCodeResult(input, TwoFactorCodeDuration.Forever);
+                    }
+                });
+                return source;
             }
         }
     }

@@ -120,13 +120,16 @@ namespace KeeperSecurity.Sdk
 
         private Auth GetAuthContext()
         {
+            var tfa = new TaskCompletionSource<TwoFactorCode>();
+            tfa.SetResult(new TwoFactorCode(_vaultEnv.TwoFactorOneTimeToken, TwoFactorCodeDuration.EveryLogin));
+
             var ui_mock = new Mock<IAuthUI>();
             ui_mock.Setup(x => x.Confirmation(It.IsAny<string>()))
                 .Returns(Task.FromResult(true));
             ui_mock.Setup(x => x.GetNewPassword(It.IsAny<PasswordRuleMatcher>()))
                 .Returns(Task.FromResult("qwerty"));
             ui_mock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>()))
-                .Returns(Task.FromResult(new TwoFactorCode(_vaultEnv.TwoFactorOneTimeToken, TwoFactorCodeDuration.EveryLogin)));
+                .Returns(tfa);
 
             var endpoint = new Mock<KeeperEndpoint>();
             endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, LoginResponse>(It.IsAny<LoginCommand>())).Returns<LoginCommand>(c => ProcessLoginCommand(c));

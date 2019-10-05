@@ -238,6 +238,7 @@ namespace KeeperSecurity.Sdk
                 var loginRs = await Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(command);
                 if (!loginRs.IsSuccess && loginRs.resultCode == "auth_failed") // invalid password
                 {
+                    loginRs.message = "Invalid username or password";
                     throw new KeeperApiException(loginRs.resultCode, loginRs.message);
                 }
                 else
@@ -334,22 +335,28 @@ namespace KeeperSecurity.Sdk
 
                             }
 
-                            TwoFactorCode tfaCode = null;
+                            TaskCompletionSource<TwoFactorCode> tfaTaskSource = null;
                             if (channel == TwoFactorCodeChannel.DuoSecurity)
                             {
-                                tfaCode = await GetDuoTwoFactorCode(command, loginRs);
+                                tfaTaskSource = GetDuoTwoFactorCode(command, loginRs);
                             }
                             else
                             {
-                                tfaCode = await Ui.GetTwoFactorCode(channel);
+                                tfaTaskSource = Ui.GetTwoFactorCode(channel);
                             }
-                            if (tfaCode != null)
+                            if (tfaTaskSource != null)
                             {
-                                token = tfaCode.Code;
-                                tokenType = "one_time";
-                                tokenDuration = tfaCode.Duration;
-                                continue;
+                                var tfaCode = await tfaTaskSource.Task;
+
+                                if (tfaCode != null)
+                                {
+                                    token = tfaCode.Code;
+                                    tokenType = "one_time";
+                                    tokenDuration = tfaCode.Duration;
+                                    continue;
+                                }
                             }
+
                             break;
 
                         case "auth_expired":
@@ -375,7 +382,7 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        private async Task<TwoFactorCode> GetDuoTwoFactorCode(LoginCommand loginCommand, LoginResponse loginResponse)
+        private TaskCompletionSource<TwoFactorCode> GetDuoTwoFactorCode(LoginCommand loginCommand, LoginResponse loginResponse)
         {
             if (Ui is IDuoTwoFactorUI duoUi)
             {
@@ -399,16 +406,18 @@ namespace KeeperSecurity.Sdk
                         .Select(x => x.Value)
                         .ToArray();
                 }
-                string code = null;
-                ClientWebSocket ws = null;
-                var tokenSource = new CancellationTokenSource();
-                var result = await duoUi.GetDuoTwoFactorResult(account, async (duoAction) =>
+                TaskCompletionSource<TwoFactorCode> taskSource = null;
+
+                taskSource = duoUi.GetDuoTwoFactorResult(account, async (duoAction) =>
                 {
+                    CancellationTokenSource tokenSource = null;
+                    ClientWebSocket ws = null;
                     try
                     {
                         if (duoAction == DuoAction.DuoPush)
                         {
                             ws = new ClientWebSocket();
+                            tokenSource = new CancellationTokenSource();
                             await ws.ConnectAsync(new Uri(loginResponse.url), tokenSource.Token);
                         }
                         loginCommand.twoFactorMode = duoAction.GetDuoActionText();
@@ -428,7 +437,12 @@ namespace KeeperSecurity.Sdk
                                     using (var rss = new MemoryStream(buffer, 0, rs.Count))
                                     {
                                         var notification = serializer.ReadObject(rss) as DuoPushNotification;
-                                        code = notification.passcode_;
+                                        if (taskSource != null && !taskSource.Task.IsCompleted)
+                                        {
+                                            if (!string.IsNullOrEmpty(notification.passcode_)) {
+                                                taskSource.SetResult(new TwoFactorCode(notification.passcode_, TwoFactorCodeDuration.EveryLogin));
+                                            }
+                                        }
                                     }
                                 }
                                 await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", tokenSource.Token);
@@ -439,9 +453,9 @@ namespace KeeperSecurity.Sdk
                     {
                         loginCommand.twoFactorMode = null;
                         loginCommand.twoFactorType = null;
-                        tokenSource.Cancel();
-                        if (ws != null)
+                        if (ws != null && tokenSource != null)
                         {
+                            tokenSource.Cancel();
                             lock (tokenSource)
                             {
                                 ws?.Dispose();
@@ -451,35 +465,11 @@ namespace KeeperSecurity.Sdk
                     }
                 });
 
-                if (!tokenSource.IsCancellationRequested)
-                {
-                    var shouldWait = false;
-                    lock (tokenSource)
-                    {
-                        shouldWait = ws != null;
-                    }
-                    if (shouldWait)
-                    {
-                        try
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(60), tokenSource.Token);
-                        }
-                        catch (TaskCanceledException e)
-                        {
-                            Debug.WriteLine("DUO push tash is canceled.");
-                        }
-                    }
-                }
-
-                if (result != null && !string.IsNullOrEmpty(code))
-                {
-                    result = new TwoFactorCode(code, result.Duration);
-                }
-                return result;
+                return taskSource;
             }
             else
             {
-                return await Ui.GetTwoFactorCode(TwoFactorCodeChannel.DuoSecurity);
+                return Ui.GetTwoFactorCode(TwoFactorCodeChannel.DuoSecurity);
             }
         }
 
