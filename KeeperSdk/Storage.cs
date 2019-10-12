@@ -157,7 +157,7 @@ namespace KeeperSecurity.Sdk
 
 
         IEntityStorage<IFolder> Folders { get; }
-        IPredicateStorage<IFolderRecordLink> FolderRecords { get; }
+        IPredicateStorage<IFolderRecordLink> FolderRecords { get; }     // FolderUid / RecordUid
 
         void Clear();
     }
