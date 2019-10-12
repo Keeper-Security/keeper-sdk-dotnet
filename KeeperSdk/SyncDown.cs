@@ -49,7 +49,7 @@ namespace KeeperSecurity.Sdk
                     result.AddRecord(recordUid);
 
                     vault.Storage.RecordKeys.Delete(recordUid, vault.Storage.PersonalScopeUid);
-                    var links = vault.Storage.FolderRecords.GetLinksForSubject(recordUid).ToArray();
+                    var links = vault.Storage.FolderRecords.GetLinksForObject(recordUid).ToArray();
                     foreach (var link in links)
                     {
                         if (link.FolderUid == vault.Storage.PersonalScopeUid)
@@ -100,8 +100,6 @@ namespace KeeperSecurity.Sdk
                     foreach (var rec_link in links)
                     {
                         result.AddRecord(rec_link.RecordUid);
-
-                        vault.Storage.RecordKeys.Delete(rec_link);
                     }
 
                     vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, "");
@@ -114,7 +112,7 @@ namespace KeeperSecurity.Sdk
                 {
                     var folderUid = ufr.folderUid;
 
-                    var links = vault.Storage.FolderRecords.GetLinksForObject(folderUid).ToArray();
+                    var links = vault.Storage.FolderRecords.GetLinksForSubject(folderUid).ToArray();
                     foreach (var link in links)
                     {
                         vault.Storage.FolderRecords.Delete(link);
@@ -128,7 +126,7 @@ namespace KeeperSecurity.Sdk
                 foreach (var sffr in rs.sharedFolderFolderRemoved)
                 {
                     var folderUid = sffr.FolderUid ?? sffr.SharedFolderUid;
-                    var links = vault.Storage.FolderRecords.GetLinksForObject(folderUid).ToArray();
+                    var links = vault.Storage.FolderRecords.GetLinksForSubject(folderUid).ToArray();
                     foreach (var link in links)
                     {
                         vault.Storage.FolderRecords.Delete(link);
@@ -142,7 +140,7 @@ namespace KeeperSecurity.Sdk
                 foreach (var ufsfr in rs.userFolderSharedFoldersRemoved)
                 {
                     var folderUid = ufsfr.SharedFolderUid;
-                    var links = vault.Storage.FolderRecords.GetLinksForObject(folderUid).ToArray();
+                    var links = vault.Storage.FolderRecords.GetLinksForSubject(folderUid).ToArray();
                     foreach (var link in links)
                     {
                         vault.Storage.FolderRecords.Delete(link);

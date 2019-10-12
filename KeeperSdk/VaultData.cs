@@ -196,6 +196,9 @@ namespace KeeperSecurity.Sdk
                 foreach (var sharedFolderUid in uids)
                 {
                     Storage.SharedFolders.Delete(sharedFolderUid);
+                    Storage.RecordKeys.DeleteObject(sharedFolderUid);
+                    Storage.SharedFolderKeys.DeleteSubject(sharedFolderUid);
+                    Storage.SharedFolderPermissions.DeleteSubject(sharedFolderUid);
                 }
             }
 
@@ -211,6 +214,7 @@ namespace KeeperSecurity.Sdk
                 }
             }
 
+            uids.Clear();
             var records = fullRebuild ? Storage.Records.GetAll() : changes.RecordUids.Select(x => Storage.Records.Get(x));
             foreach (var record in records)
             {
@@ -258,7 +262,14 @@ namespace KeeperSecurity.Sdk
                 }
                 else
                 {
-                    Storage.Records.Delete(record.RecordUid);
+                    uids.Add(record.RecordUid);
+                }
+            }
+            if (uids.Count > 0)
+            {
+                foreach (var uid in uids)
+                {
+                    Storage.Records.Delete(uid);
                 }
             }
             BuildFolders();

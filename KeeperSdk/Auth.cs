@@ -152,7 +152,7 @@ namespace KeeperSecurity.Sdk
             return await ExecuteAuthCommand<C, KeeperApiResponse>(command);
         }
 
-        public async Task<R> ExecuteAuthCommand<C, R>(C command, bool throwOnError = true) where C : AuthorizedCommand where R : KeeperApiResponse
+        public async virtual Task<R> ExecuteAuthCommand<C, R>(C command, bool throwOnError = true) where C : AuthorizedCommand where R : KeeperApiResponse
         {
             command.username = Username.ToLowerInvariant();
             command.deviceId = KeeperEndpoint.DefaultDeviceName;

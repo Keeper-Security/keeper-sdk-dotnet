@@ -33,7 +33,7 @@ namespace KeeperSecurity.Sdk
 
         [Fact]
         public async Task TestRefreshSessionToken() {
-            var auth = GetConnectedAuthContext();
+            var auth = _vaultEnv.GetConnectedAuthContext();
             auth.SessionToken = "BadSessionToken";
             await auth.RefreshSessionToken();
             Assert.Equal(auth.SessionToken, _vaultEnv.SessionToken);
@@ -134,11 +134,11 @@ namespace KeeperSecurity.Sdk
             var endpoint = new Mock<KeeperEndpoint>();
             endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, LoginResponse>(It.IsAny<LoginCommand>())).Returns<LoginCommand>(c => ProcessLoginCommand(c));
             var m_auth = new Mock<Auth>(ui_mock.Object, DataVault.GetConfigurationStorage(), endpoint.Object);
-            m_auth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => ProcessPreLogin(x));
+            m_auth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => _vaultEnv.ProcessPreLogin(x));
 
             return m_auth.Object;
         }
-
+        /*
         private Auth GetConnectedAuthContext()
         {
             var ui_mock = new Mock<IAuthUI>();
@@ -174,6 +174,8 @@ namespace KeeperSecurity.Sdk
             });
             return Task.FromResult(rs);
         }
+
+                    */
 
         private Task<LoginResponse> ProcessLoginCommand(LoginCommand command)
         {
@@ -260,6 +262,7 @@ namespace KeeperSecurity.Sdk
             }
             return Task.FromResult(rs);
         }
+
     }
 }
 

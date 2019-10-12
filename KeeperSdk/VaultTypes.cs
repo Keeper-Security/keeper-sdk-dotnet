@@ -12,11 +12,7 @@
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Text;
 
 namespace KeeperSecurity.Sdk
 {
@@ -119,11 +115,11 @@ namespace KeeperSecurity.Sdk
             RestrictView = et.RestrictView;
         }
 
-        public string TeamUid { get; }
-        public string Name { get; }
-        public bool RestrictEdit { get; }
-        public bool RestrictShare { get; }
-        public bool RestrictView { get; }
+        public string TeamUid { get; set; }
+        public string Name { get; set; }
+        public bool RestrictEdit { get; set; }
+        public bool RestrictShare { get; set; }
+        public bool RestrictView { get; set; }
 
         public byte[] TeamKey { get; internal set; }
         public RsaPrivateCrtKeyParameters TeamPrivateKey { get; internal set; }
