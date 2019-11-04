@@ -16,7 +16,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 
 namespace KeeperSecurity.Sdk
@@ -27,12 +26,11 @@ namespace KeeperSecurity.Sdk
         {
         }
 
-        private string fileName_;
         public JsonConfigurationStorage(string fileName)
         {
             if (File.Exists(fileName))
             {
-                fileName_ = fileName;
+                FilePath = Path.GetFullPath(fileName);
             }
             else
             {
@@ -41,20 +39,22 @@ namespace KeeperSecurity.Sdk
                 {
                     Directory.CreateDirectory(personalFolder);
                 }
-                fileName_ = Path.Combine(personalFolder, fileName);
+                FilePath = Path.Combine(personalFolder, fileName);
             }
 
-            Debug.WriteLine(string.Format("JSON config path: \"{0}\"", fileName_));
+            Debug.WriteLine(string.Format("JSON config path: \"{0}\"", FilePath));
         }
+
+        public string FilePath { get; private set; }
 
         public JsonConfiguration Get()
         {
-            if (File.Exists(fileName_))
+            if (File.Exists(FilePath))
             {
                 try
                 {
                     var serializer = new DataContractJsonSerializer(typeof(JsonConfiguration));
-                    using (var stream = File.OpenRead(fileName_))
+                    using (var stream = File.OpenRead(FilePath))
                     {
                         var obj = serializer.ReadObject(stream);
                         return (JsonConfiguration)obj;
@@ -62,11 +62,11 @@ namespace KeeperSecurity.Sdk
                 }
                 catch (SerializationException se)
                 {
-                    Trace.TraceError("JSON configuration: File name: \"{0}\", Error: {1}", fileName_, se.Message);
+                    Trace.TraceError("JSON configuration: File name: \"{0}\", Error: {1}", FilePath, se.Message);
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceError("JSON configuration: File name: \"{0}\", Error: {1}", fileName_, e.Message);
+                    Trace.TraceError("JSON configuration: File name: \"{0}\", Error: {1}", FilePath, e.Message);
                 }
             }
             return new JsonConfiguration();
@@ -173,7 +173,7 @@ namespace KeeperSecurity.Sdk
                     pos = p += 1;
                 }
 
-                File.WriteAllBytes(fileName_, Encoding.UTF8.GetBytes(jsonText));
+                File.WriteAllBytes(FilePath, Encoding.UTF8.GetBytes(jsonText));
             }
         }
     }
@@ -202,7 +202,6 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "server_key_id", EmitDefaultValue = false)]
         public int ServerKeyId { get; set; }
-
     }
 
     [DataContract]

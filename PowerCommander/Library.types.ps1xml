@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Types>
+  <Type>
+    <Name>KeeperSecurity.Sdk.Auth</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>ConfigurationInfo</Name>
+        <GetScriptBlock>
+          $conf = @()
+          if ($this.Storage -is [KeeperSecurity.Sdk.JsonConfigurationStorage]) {
+          $conf += $this.Storage.FilePath
+          }
+          $c = $this.Storage.Get()
+          $conf += "Last Login: $($c.LastLogin)"
+          $conf += "Last Server: $($c.LastServer)"
+          $conf -join "`n"
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Sdk.PasswordRecord</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>DisplayedPassword</Name>
+        <GetScriptBlock>
+          if (Get-KeeperPasswordVisible) {
+          $this.Password
+          } else {
+          if ($this.Password) {
+          "$([char]0x2022)$([char]0x2022)$([char]0x2022)$([char]0x2022)$([char]0x2022)$([char]0x2022)"
+          }
+          }
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>CustomFields</Name>
+        <GetScriptBlock>
+          if ($this.Custom) {
+          $cf = @()
+          foreach ($c in $this.Custom) {
+          $cf += "$($c.Name) : $($c.Value)"
+          }
+          $cf -join "`n"
+          }
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>AttachmentsInfo</Name>
+        <GetScriptBlock>
+          if ($this.Attachments) {
+          $af = @()
+          foreach ($a in $this.Attachments) {
+          $af += "Id: $($a.Id) ; Name: $(if ($a.Title) {$a.Title} else {$a.Name}) ; Size: $($a.Size)"
+          }
+          $af -join "`n"
+          }
+        </GetScriptBlock>
+      </ScriptProperty>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Uid</Name>
+              <Name>Title</Name>
+              <Name>Login</Name>
+              <Name>DisplayedPassword</Name>
+              <Name>Link</Name>
+              <Name>Notes</Name>
+              <Name>CustomFields</Name>
+              <Name>AttachmentsInfo</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Sdk.SharedFolder</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>Users</Name>
+        <GetScriptBlock>$this.UsersPermissions.Count</GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Records</Name>
+        <GetScriptBlock>$this.RecordPermissions.Count</GetScriptBlock>
+      </ScriptProperty>
+
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Uid</Name>
+              <Name>Name</Name>
+              <Name>DefaultManageRecords</Name>
+              <Name>DefaultManageUsers</Name>
+              <Name>DefaultCanEdit</Name>
+              <Name>DefaultCanShare</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Sdk.EnterpriseTeam</Name>
+    <Members>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>TeamUid</Name>
+              <Name>Name</Name>
+              <Name>RestrictEdit</Name>
+              <Name>RestrictShare</Name>
+              <Name>RestrictView</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Sdk.SharedFolderPermission</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>Name</Name>
+        <GetScriptBlock>
+          if ($this.UserType -eq [KeeperSecurity.Sdk.UserType]::Team) {
+          Get-KeeperObject $this.UserId -ObjectType Team -PropertyName Name
+          } else {
+          $this.UserId
+          }
+        </GetScriptBlock>
+      </ScriptProperty>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>UserType</Name>
+              <Name>Name</Name>
+              <Name>ManageRecords</Name>
+              <Name>ManageUsers</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Sdk.SharedFolderRecord</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>RecordTitle</Name>
+        <GetScriptBlock>
+          Get-KeeperObject $this.RecordUid -ObjectType Record -PropertyName Title
+        </GetScriptBlock>
+      </ScriptProperty>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>RecordUid</Name>
+              <Name>RecordTitle</Name>
+              <Name>CanShare</Name>
+              <Name>CanEdit</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+
+</Types>

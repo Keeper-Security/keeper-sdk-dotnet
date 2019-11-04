@@ -156,39 +156,6 @@ namespace KeeperSecurity.Sdk
             throw new Exception("Keeper Api error");
         }
 
-        public async Task<byte[]> GetDeviceToken()
-        {
-            byte[] token = null;
-            lock (this)
-            {
-                token = EncryptedDeviceToken;
-            }
-            if (token == null)
-            {
-                var deviceRequest = new DeviceRequest
-                {
-                    ClientVersion = ClientVersion,
-                    DeviceName = DefaultDeviceName
-                };
-
-                var rs = await ExecuteRest("authentication/get_device_token", deviceRequest.ToByteArray());
-                var deviceRs = DeviceResponse.Parser.ParseFrom(rs);
-                if (deviceRs.Status == DeviceStatus.Ok)
-                {
-                    token = deviceRs.EncryptedDeviceToken.ToByteArray();
-                    lock (this)
-                    {
-                        EncryptedDeviceToken = token;
-                    }
-                }
-                else
-                {
-                    throw new KeeperInvalidDeviceToken();
-                }
-            }
-            return token;
-        }
-
         public virtual async Task<R> ExecuteV2Command<C, R>(C command) where C : KeeperApiCommand where R : KeeperApiResponse
         {
             command.locale = Locale;

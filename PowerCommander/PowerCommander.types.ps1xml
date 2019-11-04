@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Types>
+  <Type>
+    <Name>KeeperSecurity.Commander.FolderEntry</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>Mode</Name>
+        <GetScriptBlock>
+          "f----$(if ($this.Shared) {'S'} else {'-'})"
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+  <Type>
+    <Name>KeeperSecurity.Commander.RecordEntry</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>Mode</Name>
+        <GetScriptBlock>
+          "-r-$(if ($this.HasAttachments) {'A'} else {'-'})$(if ($this.Owner) {'O'} else {'-'})$(if ($this.Shared) {'S'} else {'-'})"
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Commander.FolderEntryFlat</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>Mode</Name>
+        <GetScriptBlock>
+          "f---$(if ($this.Shared) {'S'} else {'-'})-"
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+  <Type>
+    <Name>KeeperSecurity.Commander.RecordEntryFlat</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>Mode</Name>
+        <GetScriptBlock>
+          "-r-$(if ($this.HasAttachments) {'A'} else {'-'})$(if ($this.Owner) {'O'} else {'-'})$(if ($this.Shared) {'S'} else {'-'})"
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+</Types>
