@@ -67,24 +67,27 @@ namespace KeeperSecurity.Sdk
 
             rootFolder = new FolderNode
             {
-                FolderUid = storage.PersonalScopeUid,
+                FolderUid = "",
                 Name = "My Vault",
                 FolderType = FolderType.UserFolder
             };
         }
 
+        public int RecordCount => keeperRecords.Count;
         public IEnumerable<PasswordRecord> Records => keeperRecords.Values;
         public bool TryGetRecord(string recordUid, out PasswordRecord node)
         {
             return keeperRecords.TryGetValue(recordUid, out node);
         }
 
+        public int SharedFolderCount => keeperSharedFolders.Count;
         public IEnumerable<SharedFolder> SharedFolders => keeperSharedFolders.Values;
         public bool TryGetSharedFolder(string sharedFolderUid, out SharedFolder sharedFolder)
         {
             return keeperSharedFolders.TryGetValue(sharedFolderUid, out sharedFolder);
         }
 
+        public int TeamCount => keeperTeams.Count;
         public IEnumerable<EnterpriseTeam> Teams => keeperTeams.Values;
         public bool TryGetTeam(string teamUid, out EnterpriseTeam team)
         {
@@ -343,7 +346,7 @@ namespace KeeperSecurity.Sdk
                 if (keeperFolders.TryGetValue(folderUid, out FolderNode node))
                 {
                     FolderNode parent = null;
-                    if (string.IsNullOrEmpty(node.ParentUid))
+                    if (string.IsNullOrEmpty(node.ParentUid) || node.ParentUid == Storage.PersonalScopeUid)
                     {
                         parent = rootFolder;
                     }
@@ -361,7 +364,7 @@ namespace KeeperSecurity.Sdk
             foreach (var link in Storage.FolderRecords.GetAllLinks())
             {
                 FolderNode node = null;
-                if (string.IsNullOrEmpty(link.FolderUid) || link.FolderUid == rootFolder.FolderUid)
+                if (string.IsNullOrEmpty(link.FolderUid) || link.FolderUid == Storage.PersonalScopeUid || link.FolderUid == rootFolder.FolderUid)
                 {
                     node = rootFolder;
                 }

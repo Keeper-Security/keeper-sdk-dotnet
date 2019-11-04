@@ -2,10 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Keeper.Sdk</id>
-    <version>0.9.0</version>
+    <version>0.9.0-beta</version>
     <authors>Keeper Security Inc.</authors>
     <owners>Keeper Security Inc.</owners>
+    <copyright>Copyright ©2019 Keeper Security Inc.</copyright>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
     <projectUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</projectUrl>
     <description>C# runtime library for Keeper Password Manager.</description>
     <tags>keeper password manager</tags>
@@ -26,8 +28,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="lib\net45\KeeperSdk.dll" target="lib\net45\KeeperSdk.dll" />
-    <file src="lib\netcoreapp2.1\KeeperSdk.dll" target="lib\netcoreapp2.1\KeeperSdk.dll" />
-    <file src="lib\netstandard2.0\KeeperSdk.dll" target="lib\netstandard2.0\KeeperSdk.dll" />
+    <file src="bin\Release\net45\KeeperSdk.dll" target="lib\net45\KeeperSdk.dll" />
+    <file src="bin\Release\netcoreapp2.1\KeeperSdk.dll" target="lib\netcoreapp2.1\KeeperSdk.dll" />
+    <file src="bin\Release\netstandard2.0\KeeperSdk.dll" target="lib\netstandard2.0\KeeperSdk.dll" />
   </files>
 </package>

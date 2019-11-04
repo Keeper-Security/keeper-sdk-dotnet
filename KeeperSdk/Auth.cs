@@ -51,7 +51,40 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        public async virtual Task<PreLoginResponse> GetPreLogin(string username, byte[] twoFactorToken = null)
+        internal async Task<byte[]> GetDeviceToken()
+        {
+            byte[] token = null;
+            lock (this)
+            {
+                token = Endpoint.EncryptedDeviceToken;
+            }
+            if (token == null)
+            {
+                var deviceRequest = new DeviceRequest
+                {
+                    ClientVersion = Endpoint.ClientVersion,
+                    DeviceName = KeeperEndpoint.DefaultDeviceName
+                };
+
+                var rs = await Endpoint.ExecuteRest("authentication/get_device_token", deviceRequest.ToByteArray());
+                var deviceRs = DeviceResponse.Parser.ParseFrom(rs);
+                if (deviceRs.Status == DeviceStatus.Ok)
+                {
+                    token = deviceRs.EncryptedDeviceToken.ToByteArray();
+                    lock (this)
+                    {
+                        Endpoint.EncryptedDeviceToken = token;
+                    }
+                }
+                else
+                {
+                    throw new KeeperInvalidDeviceToken();
+                }
+            }
+            return token;
+        }
+
+        internal async virtual Task<PreLoginResponse> GetPreLogin(string username, byte[] twoFactorToken = null)
         {
             var attempt = 0;
             while (attempt < 5)
@@ -64,7 +97,7 @@ namespace KeeperSecurity.Sdk
                     {
                         ClientVersion = Endpoint.ClientVersion,
                         Username = username.ToLowerInvariant(),
-                        EncryptedDeviceToken = ByteString.CopyFrom(await Endpoint.GetDeviceToken())
+                        EncryptedDeviceToken = ByteString.CopyFrom(await GetDeviceToken())
                     },
                     LoginType = LoginType.Normal
                 };
@@ -134,7 +167,7 @@ namespace KeeperSecurity.Sdk
             throw new KeeperTooManyAttempts();
         }
 
-        public async Task<NewUserMinimumParams> GetNewUserParams(string userName)
+        internal async Task<NewUserMinimumParams> GetNewUserParams(string userName)
         {
             var authRequest = new AuthRequest()
             {
@@ -488,7 +521,7 @@ namespace KeeperSecurity.Sdk
             IsEnterpriseAdmin = false;
         }
 
-        public async Task RefreshSessionToken()
+        internal async Task RefreshSessionToken()
         {
             var command = new LoginCommand
             {
@@ -553,8 +586,8 @@ namespace KeeperSecurity.Sdk
         internal byte[] privateKeyData;
         private RsaPrivateCrtKeyParameters privateKey;
 
-        public byte[] DataKey { get; internal set; }
-        public byte[] ClientKey { get; internal set; }
+        public byte[] DataKey { get; set; }
+        internal byte[] ClientKey { get; set; }
         public RsaPrivateCrtKeyParameters PrivateKey
         {
             get
@@ -569,13 +602,13 @@ namespace KeeperSecurity.Sdk
 
         public bool IsEnterpriseAdmin { get; internal set; }
 
-        public string SessionToken { get; internal set; }
+        public string SessionToken { get; set; }
         public string TwoFactorToken { get; set; }
         public string Username { get; internal set; }
-        public byte[] EncryptedPassword { get; internal set; }
+        public byte[] EncryptedPassword { get; set; }
 
         public KeeperEndpoint Endpoint { get; }
-        public IAuthUI Ui { get; }
+        internal IAuthUI Ui { get; }
         public IConfigurationStorage Storage { get; }
     }
 
