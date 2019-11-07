@@ -33,7 +33,12 @@ namespace KeeperSecurity.Sdk
 
         [Fact]
         public async Task TestRefreshSessionToken() {
-            var auth = _vaultEnv.GetConnectedAuthContext();
+            DataKeyAsEncryptionParams = false;
+            HasTwoFactor = false;
+            var auth = GetAuthContext();
+            var config = auth.Storage.Get();
+            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            await auth.Login(userConfig.Username, userConfig.Password);
             auth.SessionToken = "BadSessionToken";
             await auth.RefreshSessionToken();
             Assert.Equal(auth.SessionToken, _vaultEnv.SessionToken);
@@ -239,7 +244,7 @@ namespace KeeperSecurity.Sdk
                                         rs.isEnterpriseAdmin = false;
                                         break;
                                     case "client_key":
-                                        rs.clientKey = _vaultEnv.ClientKey.Base64UrlEncode();
+                                        rs.clientKey = CryptoUtils.EncryptAesV1(_vaultEnv.ClientKey, _vaultEnv.DataKey).Base64UrlEncode();
                                         break;
 
                                 }

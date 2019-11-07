@@ -1,13 +1,11 @@
-﻿using KeeperSecurity.Sdk;
-using Moq;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Moq;
 using Xunit;
 
-namespace Tests
+namespace KeeperSecurity.Sdk
 {
     public class SyncDownTest
     {
@@ -40,7 +38,7 @@ namespace Tests
             var vault = await GetVault();
             var recordsBefore = vault.keeperRecords.Count;
 
-            var recordUids = vault.keeperRecords.Values.Where(x => x.Owner).Select(x => x.Uid).ToArray();
+            var recordUids = vault.keeperRecords.Values.Where(x => x.Owner && !x.Shared).Select(x => x.Uid).ToArray();
 
             var auth_mock = Mock.Get(vault.Auth);
             auth_mock

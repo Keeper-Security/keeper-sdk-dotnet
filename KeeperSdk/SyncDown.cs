@@ -102,7 +102,7 @@ namespace KeeperSecurity.Sdk
                         result.AddRecord(rec_link.RecordUid);
                     }
 
-                    vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, "");
+                    vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, vault.Storage.PersonalScopeUid);
                 }
             }
 
@@ -394,6 +394,7 @@ namespace KeeperSecurity.Sdk
                                 var sharedFolderMetadata = new SyncDownSharedFolderKey
                                 {
                                     SharedFolderUid = sharedFolderUid,
+                                    TeamUid = vault.Storage.PersonalScopeUid,
                                     SharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolderKey, vault.ClientKey).Base64UrlEncode(),
                                     KeyType = (int)KeyType.DataKey
                                 };

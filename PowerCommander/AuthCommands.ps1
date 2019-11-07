@@ -1,5 +1,7 @@
 #requires -Version 5.0
 
+using namespace KeeperSecurity.Sdk
+
 function Connect-Keeper {
 <#
 	.Synopsis
@@ -25,15 +27,15 @@ function Connect-Keeper {
 		[Parameter()][string] $Server
 	)
 
-	[KeeperSecurity.Sdk.Auth] $auth = $Script:Auth
+	[Auth] $auth = $Script:Auth
 
 	if (-not $NewLogin.IsPresent) {
 		if (-not $Username) {
-			[KeeperSecurity.Sdk.IConfigurationStorage]$storage = $auth.Storage
-			[KeeperSecurity.Sdk.IConfiguration]$config = $storage.Get()
+			[IConfigurationStorage]$storage = $auth.Storage
+			[IConfiguration]$config = $storage.Get()
 			$Username = $config.LastLogin
 			if ($Username) {
-				[KeeperSecurity.Sdk.IUserConfiguration]$userConfig = [KeeperSecurity.Sdk.ConfigurationExtension]::GetUserConfiguration($config, $Username)
+				[IUserConfiguration]$userConfig = [KeeperSecurity.Sdk.ConfigurationExtension]::GetUserConfiguration($config, $Username)
 				if ($userConfig) {
 					$Password = $userConfig.Password
 				}
@@ -82,8 +84,9 @@ function Connect-Keeper {
 $Keeper_ConfigUsernameCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
-	[KeeperSecurity.Sdk.IConfigurationStorage]$storage = $Script:ConfigStorage
-	[KeeperSecurity.Sdk.IConfiguration]$config = $storage.Get()
+	[Auth] $auth = $Script:Auth
+	[IConfigurationStorage]$storage = $auth.Storage
+	[IConfiguration]$config = $storage.Get()
 	$config.Users | Select-Object -ExpandProperty Username | Where {$_.StartsWith($wordToComplete)}
 }
 Register-ArgumentCompleter -Command Connect-Keeper -ParameterName Username -ScriptBlock $Keeper_ConfigUsernameCompleter
