@@ -37,26 +37,6 @@
     <Compile Include="VaultCommands.ps1" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.8.5.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
-      <Name>BouncyCastle.Crypto</Name>
-      <AssemblyName>BouncyCastle.Crypto.dll</AssemblyName>
-      <HintPath>..\KeeperSdk\bin\Debug\net45\BouncyCastle.Crypto.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Google.Protobuf, Version=3.8.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604">
-      <Name>Google.Protobuf</Name>
-      <AssemblyName>Google.Protobuf.dll</AssemblyName>
-      <HintPath>..\KeeperSdk\bin\Debug\net45\Google.Protobuf.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="KeeperSdk, Version=0.9.10.0, Culture=neutral, PublicKeyToken=null">
-      <Name>KeeperSdk</Name>
-      <AssemblyName>KeeperSdk.dll</AssemblyName>
-      <HintPath>..\KeeperSdk\bin\Debug\net45\KeeperSdk.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Library.format.ps1xml">
       <Generator>xml</Generator>
     </Content>

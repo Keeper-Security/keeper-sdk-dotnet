@@ -40,7 +40,7 @@ namespace Tests
             var vault = await GetVault();
             var recordsBefore = vault.keeperRecords.Count;
 
-            var recordUids = vault.keeperRecords.Values.Where(x => x.Owner).Select(x => x.Uid).ToArray();
+            var recordUids = vault.keeperRecords.Values.Where(x => x.Owner && !x.Shared).Select(x => x.Uid).ToArray();
 
             var auth_mock = Mock.Get(vault.Auth);
             auth_mock

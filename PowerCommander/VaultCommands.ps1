@@ -101,11 +101,11 @@ $Keeper_FolderPathRecordCompleter = {
 			} else {
 				if ($components) {
 					$pattern = $components
-					$components[0] = ''
+					$components = @('')
 				} else {
 					$folder = $vault.RootFolder
 					$pattern = ''
-					$components += ''
+					$components = @('')
 				}
 			}
 		} else {
@@ -144,7 +144,7 @@ Register-ArgumentCompleter -CommandName Set-KeeperLocation -ParameterName Path -
 New-Alias -Name kcd -Value Set-KeeperLocation
 
 
-function Get-KeeperChildItem {
+function Get-KeeperChildItems {
 <#
 	.Synopsis
 	Get the content of Keeper folder. Output and parameters are similar to Get-ChildItems cmdlet
@@ -295,8 +295,8 @@ function Get-KeeperChildItem {
 		Write-Error -Message "Not connected"
 	}
 }
-Register-ArgumentCompleter -CommandName Get-KeeperChildItem -ParameterName Path -ScriptBlock $Keeper_FolderPathRecordCompleter
-New-Alias -Name kdir -Value Get-KeeperChildItem
+Register-ArgumentCompleter -CommandName Get-KeeperChildItems -ParameterName Path -ScriptBlock $Keeper_FolderPathRecordCompleter
+New-Alias -Name kdir -Value Get-KeeperChildItems
 
 
 function Get-KeeperObject {

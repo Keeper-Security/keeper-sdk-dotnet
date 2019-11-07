@@ -18,8 +18,6 @@ namespace KeeperSecurity.Sdk
 {
     public class PasswordRecord
     {
-        public PasswordRecord() { }
-
         public string Uid { get; set; }
         public bool Owner { get; set; }
         public bool Shared { get; set; }

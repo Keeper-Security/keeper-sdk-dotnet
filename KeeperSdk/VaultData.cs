@@ -114,7 +114,7 @@ namespace KeeperSecurity.Sdk
 
         public void RebuildData(RebuildTask changes = null)
         {
-            bool fullRebuild = true;// changes == null || changes.IsFullSync;
+            bool fullRebuild = changes == null || changes.IsFullSync;
 
             keeperTeams.Clear();
             foreach (var team in Storage.Teams.GetAll())
@@ -341,45 +341,42 @@ namespace KeeperSecurity.Sdk
                 keeperFolders.TryAdd(node.FolderUid, node);
             }
 
-            foreach (var folderUid in keeperFolders.Keys.ToArray())
+            foreach (var folderUid in keeperFolders.Keys)
             {
                 if (keeperFolders.TryGetValue(folderUid, out FolderNode node))
                 {
                     FolderNode parent = null;
-                    if (string.IsNullOrEmpty(node.ParentUid) || node.ParentUid == Storage.PersonalScopeUid)
+
+                    if (string.IsNullOrEmpty(node.ParentUid))
                     {
                         parent = rootFolder;
                     }
                     else
                     {
-                        keeperFolders.TryGetValue(node.ParentUid, out parent);
+                        if (!keeperFolders.TryGetValue(node.ParentUid, out parent))
+                        {
+                            parent = rootFolder;
+                        }
                     }
-                    if (parent != null)
-                    {
-                        parent.Subfolders.Add(folderUid);
-                    }
+                    parent.Subfolders.Add(folderUid);
                 }
             }
 
             foreach (var link in Storage.FolderRecords.GetAllLinks())
             {
                 FolderNode node = null;
-                if (string.IsNullOrEmpty(link.FolderUid) || link.FolderUid == Storage.PersonalScopeUid || link.FolderUid == rootFolder.FolderUid)
+                if (string.IsNullOrEmpty(link.FolderUid))
                 {
                     node = rootFolder;
                 }
                 else
                 {
-                    keeperFolders.TryGetValue(link.FolderUid, out node);
+                    if (!keeperFolders.TryGetValue(link.FolderUid, out node))
+                    {
+                        node = rootFolder;
+                    }
                 }
-                if (node != null)
-                {
-                    node.Records.Add(link.RecordUid);
-                }
-                else
-                {
-                    Trace.TraceError("Unresolved folder UID");
-                }
+                node.Records.Add(link.RecordUid);
             }
         }
     }

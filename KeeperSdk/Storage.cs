@@ -52,11 +52,6 @@ namespace KeeperSecurity.Sdk
         bool Owner { get; set; }
     }
 
-    public interface IKeeperUser
-    {
-        string Username { get; set; }
-    }
-
     public interface ISharedFolderKey : IUidLink
     {
         string SharedFolderUid { get; }
@@ -148,7 +143,6 @@ namespace KeeperSecurity.Sdk
         IEntityStorage<IPasswordRecord> Records { get; }
         IEntityStorage<ISharedFolder> SharedFolders { get; }
         IEntityStorage<IEnterpriseTeam> Teams { get; }
-        IEntityStorage<IKeeperUser> Users { get; }
         IEntityStorage<string> NonSharedData { get; }
 
         IPredicateStorage<IRecordMetadata> RecordKeys { get; }   // RecordUid / "" or SharedFolderUid
@@ -284,7 +278,6 @@ namespace KeeperSecurity.Sdk
         public IEntityStorage<IPasswordRecord> Records { get; } = new InMemoryItemStorage<IPasswordRecord>();
         public IEntityStorage<ISharedFolder> SharedFolders { get; } = new InMemoryItemStorage<ISharedFolder>();
         public IEntityStorage<IEnterpriseTeam> Teams { get; } = new InMemoryItemStorage<IEnterpriseTeam>();
-        public IEntityStorage<IKeeperUser> Users { get; } = new InMemoryItemStorage<IKeeperUser>();
         public IEntityStorage<string> NonSharedData { get; } = new InMemoryItemStorage<string>();
 
         public IPredicateStorage<IRecordMetadata> RecordKeys { get; } = new InMemorySentenceStorage<IRecordMetadata>();
@@ -299,7 +292,6 @@ namespace KeeperSecurity.Sdk
             Records.Clear();
             SharedFolders.Clear();
             Teams.Clear();
-            Users.Clear();
             NonSharedData.Clear();
 
             RecordKeys.Clear();

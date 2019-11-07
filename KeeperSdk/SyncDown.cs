@@ -394,6 +394,7 @@ namespace KeeperSecurity.Sdk
                                 var sharedFolderMetadata = new SyncDownSharedFolderKey
                                 {
                                     SharedFolderUid = sharedFolderUid,
+                                    TeamUid = vault.Storage.PersonalScopeUid,
                                     SharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolderKey, vault.ClientKey).Base64UrlEncode(),
                                     KeyType = (int)KeyType.DataKey
                                 };

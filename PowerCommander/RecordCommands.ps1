@@ -103,7 +103,13 @@ function Copy-KeeperToClipboard {
 		$found = $false
 		if ($uid) {
 			[PasswordRecord] $rec = $null
-			if ($vault.TryGetRecord($uid, [ref]$rec)) {
+			if (-not $vault.TryGetRecord($uid, [ref]$rec)) {
+				$entries = Get-KeeperChildItems -Filter $uid -ObjectType Record
+				if ($entries.Uid) {
+					$_ = $vault.TryGetRecord($entries[0].Uid, [ref]$rec)
+				}
+			}
+			if ($rec) {
 				$found = $true
 				$value = ''
 				switch($Field) {
@@ -120,7 +126,7 @@ function Copy-KeeperToClipboard {
 			}
 		} 
 		if (-not $found) {
-			Write-Error -Message 'Cannot find a Keeper record'
+			Write-Error -Message "Cannot find a Keeper record: $Record"
 		}
 	}
 }
