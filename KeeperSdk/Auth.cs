@@ -84,7 +84,7 @@ namespace KeeperSecurity.Sdk
             return token;
         }
 
-        internal async virtual Task<PreLoginResponse> GetPreLogin(string username, byte[] twoFactorToken = null)
+        public async virtual Task<PreLoginResponse> GetPreLogin(string username, byte[] twoFactorToken = null)
         {
             var attempt = 0;
             while (attempt < 5)

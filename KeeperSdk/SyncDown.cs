@@ -102,7 +102,7 @@ namespace KeeperSecurity.Sdk
                         result.AddRecord(rec_link.RecordUid);
                     }
 
-                    vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, "");
+                    vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, vault.Storage.PersonalScopeUid);
                 }
             }
 

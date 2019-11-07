@@ -1,13 +1,11 @@
-﻿using KeeperSecurity.Sdk;
-using Moq;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Moq;
 using Xunit;
 
-namespace Tests
+namespace KeeperSecurity.Sdk
 {
     public class SyncDownTest
     {
