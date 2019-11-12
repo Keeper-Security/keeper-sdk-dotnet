@@ -42,7 +42,7 @@ function Get-KeeperRecords {
 			} else {
 				foreach ($record in $vault.Records) {
 					if ($Filter) {
-						$match = $($record.Title, $record.Login, $record.Link, $record.Notes) | Select-String $Filter | Select -First 1
+						$match = $($record.Title, $record.Login, $record.Link, $record.Notes) | Select-String $Filter | Select-Object -First 1
 						if (-not $match) {
 							continue
 						}

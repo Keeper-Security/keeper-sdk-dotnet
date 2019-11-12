@@ -33,6 +33,10 @@ namespace KeeperSecurity.Sdk
         public string clientVersion;
     }
 
+    public interface IBatchCommand
+    {
+    }
+
     /// <summary>
     /// Base Keeper Response
     /// </summary>
@@ -222,12 +226,9 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     public class AuthorizedCommand : KeeperApiCommand
     {
-        public AuthorizedCommand(string command) : base(command)
-        {
-            deviceId = "C# Keeper API";
-        }
+        public AuthorizedCommand(string command) : base(command) { }
 
-        [DataMember(Name = "device_id")]
+        [DataMember(Name = "device_id", EmitDefaultValue = false)]
         public string deviceId;
 
         [DataMember(Name = "session_token", EmitDefaultValue = false)]

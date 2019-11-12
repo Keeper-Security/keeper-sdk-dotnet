@@ -30,23 +30,23 @@ namespace KeeperSecurity.Sdk
 {
     public class Auth
     {
-        public Auth(IAuthUI authUI, IConfigurationStorage storage) : this(authUI, storage, null)
+        public Auth(IAuthUI authUi, IConfigurationStorage storage) : this(authUi, storage, null)
         {
         }
-        public Auth(IAuthUI authUI, IConfigurationStorage storage, KeeperEndpoint endpoint)
+        public Auth(IAuthUI authUi, IConfigurationStorage storage, KeeperEndpoint endpoint)
         {
             Endpoint = endpoint ?? new KeeperEndpoint();
-            Ui = authUI;
+            Ui = authUi;
             Storage = storage ?? new InMemoryConfigurationStorage();
             var conf = Storage.Get();
             if (!string.IsNullOrEmpty(conf.LastServer))
             {
                 Endpoint.Server = conf.LastServer;
-                var server_conf = conf.GetServerConfiguration(conf.LastServer);
-                if (server_conf != null)
+                var serverConf = conf.GetServerConfiguration(conf.LastServer);
+                if (serverConf != null)
                 {
-                    Endpoint.EncryptedDeviceToken = server_conf.DeviceId;
-                    Endpoint.ServerKeyId = server_conf.ServerKeyId;
+                    Endpoint.EncryptedDeviceToken = serverConf.DeviceId;
+                    Endpoint.ServerKeyId = serverConf.ServerKeyId;
                 }
             }
         }
@@ -139,14 +139,14 @@ namespace KeeperSecurity.Sdk
                     {
                         if (!(Endpoint.EncryptedDeviceToken.SequenceEqual(serverConf.DeviceId) && Endpoint.ServerKeyId == serverConf.ServerKeyId))
                         {
-                            var new_conf = new Configuration(conf);
-                            new_conf.MergeServerConfiguration(new ServerConfiguration
+                            var newConf = new Configuration(conf);
+                            newConf.MergeServerConfiguration(new ServerConfiguration
                             {
                                 Server = Endpoint.Server,
                                 DeviceId = Endpoint.EncryptedDeviceToken,
                                 ServerKeyId = Endpoint.ServerKeyId
                             });
-                            Storage.Put(new_conf);
+                            Storage.Put(newConf);
                             conf = Storage.Get();
                         }
                     }
@@ -180,23 +180,18 @@ namespace KeeperSecurity.Sdk
             return NewUserMinimumParams.Parser.ParseFrom(rs);
         }
 
-        public async Task<KeeperApiResponse> ExecuteAuthCommand<C>(C command, bool throwOnError = true) where C : AuthorizedCommand
-        {
-            return await ExecuteAuthCommand<C, KeeperApiResponse>(command);
-        }
-
-        public async virtual Task<R> ExecuteAuthCommand<C, R>(C command, bool throwOnError = true) where C : AuthorizedCommand where R : KeeperApiResponse
+        public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthorizedCommand command, Type responseType = null,  bool throwOnError = true)
         {
             command.username = Username.ToLowerInvariant();
             command.deviceId = KeeperEndpoint.DefaultDeviceName;
 
-            R response = null;
+            KeeperApiResponse response = null;
             int attempt = 0;
             while (attempt < 3)
             {
                 attempt++;
                 command.sessionToken = SessionToken;
-                response = await Endpoint.ExecuteV2Command<C, R>(command);
+                response = await Endpoint.ExecuteV2Command(command, responseType);
                 if (!response.IsSuccess && response.resultCode == "auth_failed")
                 {
                     Debug.WriteLine("Refresh Session Token");
@@ -213,13 +208,19 @@ namespace KeeperSecurity.Sdk
                 throw new KeeperApiException(response.resultCode, response.message);
             }
             return response;
+
+        }
+
+        public virtual async Task<TR> ExecuteAuthCommand<TC, TR>(TC command, bool throwOnError = true) where TC : AuthorizedCommand where TR : KeeperApiResponse
+        {
+            return (TR) await ExecuteAuthCommand(command, typeof(TR), throwOnError);
         }
 
         public async Task Login(string username, string password)
         {
             var configuration = Storage.Get();
-            var user_conf = configuration.GetUserConfiguration(username);
-            var token = user_conf?.TwoFactorToken;
+            var userConf = configuration.GetUserConfiguration(username);
+            var token = userConf?.TwoFactorToken;
             var tokenType = "device_token";
             var tokenDuration = TwoFactorCodeDuration.Forever;
 
@@ -472,8 +473,8 @@ namespace KeeperSecurity.Sdk
                                         var notification = serializer.ReadObject(rss) as DuoPushNotification;
                                         if (taskSource != null && !taskSource.Task.IsCompleted)
                                         {
-                                            if (!string.IsNullOrEmpty(notification.passcode_)) {
-                                                taskSource.SetResult(new TwoFactorCode(notification.passcode_, TwoFactorCodeDuration.EveryLogin));
+                                            if (!string.IsNullOrEmpty(notification.Passcode)) {
+                                                taskSource.SetResult(new TwoFactorCode(notification.Passcode, TwoFactorCodeDuration.EveryLogin));
                                             }
                                         }
                                     }
@@ -549,7 +550,7 @@ namespace KeeperSecurity.Sdk
             var shouldSaveServer = serverConf == null || !(serverConf.DeviceId.SequenceEqual(Endpoint.EncryptedDeviceToken) && serverConf.ServerKeyId == Endpoint.ServerKeyId);
 
             var userConf = configuration.GetUserConfiguration(Username);
-            var shouldSaveUser = userConf == null || string.Compare(userConf.TwoFactorToken, TwoFactorToken) != 0;
+            var shouldSaveUser = userConf == null || String.CompareOrdinal(userConf.TwoFactorToken, TwoFactorToken) != 0;
 
             if (shouldSaveConfig || shouldSaveServer || shouldSaveUser)
             {
@@ -586,8 +587,8 @@ namespace KeeperSecurity.Sdk
         internal byte[] privateKeyData;
         private RsaPrivateCrtKeyParameters privateKey;
 
-        public byte[] DataKey { get; set; }
-        internal byte[] ClientKey { get; set; }
+        public byte[] DataKey { get; private set; }
+        internal byte[] ClientKey { get; private set; }
         public RsaPrivateCrtKeyParameters PrivateKey
         {
             get
@@ -604,7 +605,7 @@ namespace KeeperSecurity.Sdk
 
         public string SessionToken { get; set; }
         public string TwoFactorToken { get; set; }
-        public string Username { get; internal set; }
+        public string Username { get; private set; }
         public byte[] EncryptedPassword { get; set; }
 
         public KeeperEndpoint Endpoint { get; }
@@ -618,9 +619,9 @@ namespace KeeperSecurity.Sdk
     internal class DuoPushNotification
     {
         [DataMember(Name = "event")]
-        public string event_;
+        public string Event;
         [DataMember(Name = "passcode")]
-        public string passcode_;
+        public string Passcode;
     }
 #pragma warning restore 0649
 

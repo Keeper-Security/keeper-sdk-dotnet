@@ -99,8 +99,8 @@ namespace KeeperSecurity.Sdk
             var auth = GetAuthContext();
             var config = auth.Storage.Get();
             var userConfig = config.GetUserConfiguration(config.LastLogin);
-            var auth_mock = Mock.Get(auth.Ui);
-            auth_mock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>())).Throws(new Exception());
+            var authMock = Mock.Get(auth.Ui);
+            authMock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>())).Throws(new Exception());
             Assert.ThrowsAsync<Exception>(() => auth.Login(userConfig.Username, userConfig.Password));
         }
 
@@ -128,20 +128,20 @@ namespace KeeperSecurity.Sdk
             var tfa = new TaskCompletionSource<TwoFactorCode>();
             tfa.SetResult(new TwoFactorCode(_vaultEnv.TwoFactorOneTimeToken, TwoFactorCodeDuration.EveryLogin));
 
-            var ui_mock = new Mock<IAuthUI>();
-            ui_mock.Setup(x => x.Confirmation(It.IsAny<string>()))
+            var uiMock = new Mock<IAuthUI>();
+            uiMock.Setup(x => x.Confirmation(It.IsAny<string>()))
                 .Returns(Task.FromResult(true));
-            ui_mock.Setup(x => x.GetNewPassword(It.IsAny<PasswordRuleMatcher>()))
+            uiMock.Setup(x => x.GetNewPassword(It.IsAny<PasswordRuleMatcher>()))
                 .Returns(Task.FromResult("qwerty"));
-            ui_mock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>()))
+            uiMock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>()))
                 .Returns(tfa);
 
             var endpoint = new Mock<KeeperEndpoint>();
             endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, LoginResponse>(It.IsAny<LoginCommand>())).Returns<LoginCommand>(c => ProcessLoginCommand(c));
-            var m_auth = new Mock<Auth>(ui_mock.Object, DataVault.GetConfigurationStorage(), endpoint.Object);
-            m_auth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => _vaultEnv.ProcessPreLogin(x));
+            var mAuth = new Mock<Auth>(uiMock.Object, DataVault.GetConfigurationStorage(), endpoint.Object);
+            mAuth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => _vaultEnv.ProcessPreLogin(x));
 
-            return m_auth.Object;
+            return mAuth.Object;
         }
         /*
         private Auth GetConnectedAuthContext()
