@@ -88,6 +88,7 @@ namespace KeeperSecurity.Sdk
                         result.AddSharedFolder(sf_link.SharedFolderUid);
                     }
                     vault.Storage.Teams.Delete(teamUid);
+                    vault.Storage.SharedFolderKeys.DeleteObject(teamUid);
                 }
             }
 

@@ -156,8 +156,17 @@ namespace KeeperSecurity.Sdk
             throw new Exception("Keeper Api error");
         }
 
-        public virtual async Task<R> ExecuteV2Command<C, R>(C command) where C : KeeperApiCommand where R : KeeperApiResponse
+        public virtual async Task<KeeperApiResponse> ExecuteV2Command(KeeperApiCommand command, Type responseType) 
         {
+            if (responseType == null)
+            {
+                responseType = typeof(KeeperApiResponse);
+            }
+            else if (!typeof(KeeperApiResponse).IsAssignableFrom(responseType))
+            {
+                responseType = typeof(KeeperApiResponse);
+            }
+
             command.locale = Locale;
             command.clientVersion = ClientVersion;
 
@@ -169,7 +178,7 @@ namespace KeeperSecurity.Sdk
             byte[] rq;
             using (var ms = new MemoryStream())
             {
-                var cmdSerializer = new DataContractJsonSerializer(typeof(C), settings);
+                var cmdSerializer = new DataContractJsonSerializer(command.GetType(), settings);
                 cmdSerializer.WriteObject(ms, command);
                 rq = ms.ToArray();
             }
@@ -180,9 +189,14 @@ namespace KeeperSecurity.Sdk
 
             using (var ms = new MemoryStream(rs))
             {
-                var rsSerializer = new DataContractJsonSerializer(typeof(R), settings);
-                return (R)rsSerializer.ReadObject(ms);
+                var rsSerializer = new DataContractJsonSerializer(responseType, settings);
+                return (KeeperApiResponse)rsSerializer.ReadObject(ms);
             }
+        }
+
+        public virtual async Task<TR> ExecuteV2Command<TC, TR>(TC command) where TC : KeeperApiCommand where TR : KeeperApiResponse
+        {
+            return (TR) await ExecuteV2Command(command, typeof(TR));
         }
 
         private readonly byte[] _transmissionKey = CryptoUtils.GetRandomBytes(32);

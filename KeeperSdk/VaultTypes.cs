@@ -142,6 +142,12 @@ namespace KeeperSecurity.Sdk
         string TeamUid { get; set; }
     }
 
+    public interface ISharedFolderAccessPath
+    {
+        string SharedFolderUid { get; set; }
+        string TeamUid { get; set; }
+    }
+
     [DataContract]
     internal class RecordUpdateUData : IExtensibleDataObject
     {

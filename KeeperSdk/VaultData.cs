@@ -168,6 +168,10 @@ namespace KeeperSecurity.Sdk
                                     {
                                         sfKey = CryptoUtils.DecryptAesV1(sfKey, team.TeamKey);
                                     }
+                                    else
+                                    {
+                                        Trace.TraceError($"Shared Folder key: Team {sfmd.TeamUid} not found");
+                                    }
                                     break;
                                 default:
                                     sfKey = null;

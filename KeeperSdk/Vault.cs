@@ -39,7 +39,7 @@ namespace KeeperSecurity.Sdk
             {
                 if (forEdit && !rmd.CanEdit) continue;
                 if (forShare && !rmd.CanShare) continue;
-                if (string.IsNullOrEmpty(rmd.SharedFolderUid))
+                if (string.IsNullOrEmpty(rmd.SharedFolderUid) || rmd.SharedFolderUid == Storage.PersonalScopeUid)
                 {
                     return rmd;
                 }
@@ -240,6 +240,28 @@ namespace KeeperSecurity.Sdk
 
             await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
             await this.SyncDown();
+        }
+
+        public SharedFolderPermission ResolveSharedFolderAccessPath(ISharedFolderAccessPath path, bool forManageUsers = false, bool forManageRecords = false)
+        {
+            if (!string.IsNullOrEmpty(path.SharedFolderUid))
+            {
+                if (TryGetSharedFolder(path.SharedFolderUid, out SharedFolder sf))
+                {
+                    var permissions = sf.UsersPermissions
+                        .Where(x => (x.UserType == UserType.User && x.UserId == Auth.Username) || (x.UserType == UserType.Team && keeperTeams.ContainsKey(x.UserId)))
+                        .Where(x => (!forManageUsers || x.ManageUsers) && (!forManageRecords || x.ManageRecords))
+                        .ToArray();
+
+                    if (permissions.Length > 0) {
+                        if (permissions[0].UserType == UserType.Team) {
+                            path.TeamUid = permissions[0].UserId;
+                        }
+                        return permissions[0];
+                    }
+                }
+            }
+            return null;
         }
     }
 }

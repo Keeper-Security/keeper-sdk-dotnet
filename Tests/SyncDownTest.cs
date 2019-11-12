@@ -19,8 +19,8 @@ namespace KeeperSecurity.Sdk
         public async Task TestFullSync()
         {
             var auth = _vaultEnv.GetConnectedAuthContext();
-            var auth_mock = Mock.Get(auth);
-            auth_mock
+            var authMock = Mock.Get(auth);
+            authMock
                 .Setup(x => x.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(It.IsAny<SyncDownCommand>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, bool>((c,b) => Task.FromResult(_vaultEnv.GetSyncDownResponse()));
 
@@ -40,8 +40,8 @@ namespace KeeperSecurity.Sdk
 
             var recordUids = vault.keeperRecords.Values.Where(x => x.Owner && !x.Shared).Select(x => x.Uid).ToArray();
 
-            var auth_mock = Mock.Get(vault.Auth);
-            auth_mock
+            var authMock = Mock.Get(vault.Auth);
+            authMock
                 .Setup(x => x.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(It.IsAny<SyncDownCommand>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, bool>((c, b) => Task.FromResult(new SyncDownResponse {
                     result = "success",
@@ -59,8 +59,8 @@ namespace KeeperSecurity.Sdk
             var vault = await GetVault();
             var teamUids = vault.keeperTeams.Values.Select(x => x.TeamUid).ToArray();
 
-            var auth_mock = Mock.Get(vault.Auth);
-            auth_mock
+            var authMock = Mock.Get(vault.Auth);
+            authMock
                 .Setup(x => x.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(It.IsAny<SyncDownCommand>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, bool>((c, b) => Task.FromResult(new SyncDownResponse
                 {
@@ -79,14 +79,14 @@ namespace KeeperSecurity.Sdk
         [Fact]
         public async Task TestRemoveSharedFolderThenTeam() {
             var vault = await GetVault();
-            var auth_mock = Mock.Get(vault.Auth);
+            var authMock = Mock.Get(vault.Auth);
 
             var sfUids = vault.keeperSharedFolders.Values.Select(x => x.Uid).Take(1).ToArray();
             Assert.Single(sfUids);
 
             var links = vault.Storage.SharedFolderKeys.GetLinksForSubject(sfUids[0]).Count();
             Assert.Equal(2, links);
-            auth_mock
+            authMock
                 .Setup(x => x.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(It.IsAny<SyncDownCommand>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, bool>((c, b) => Task.FromResult(new SyncDownResponse
                 {
@@ -104,7 +104,7 @@ namespace KeeperSecurity.Sdk
             Assert.Single(vault.keeperTeams);
 
             var teamUids = vault.keeperTeams.Values.Select(x => x.TeamUid).ToArray();
-            auth_mock
+            authMock
                 .Setup(x => x.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(It.IsAny<SyncDownCommand>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, bool>((c, b) => Task.FromResult(new SyncDownResponse
                 {
@@ -149,7 +149,7 @@ namespace KeeperSecurity.Sdk
         public async Task TestTransferRecordOwnership()
         {
             var vault = await GetVault();
-            var auth_mock = Mock.Get(vault.Auth);
+            var authMock = Mock.Get(vault.Auth);
 
             Assert.Equal(1, vault.RootFolder.Records.Count);
             var sf = vault.Folders.Where(x => x.FolderType == FolderType.SharedFolder).First();
@@ -163,7 +163,7 @@ namespace KeeperSecurity.Sdk
             }).Where(x => x != null).Where(x => x.Owner).Select(x => x.Uid).ToArray();
 
             Assert.Single(uids);
-            auth_mock
+            authMock
                 .Setup(x => x.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(It.IsAny<SyncDownCommand>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, bool>((c, b) => Task.FromResult(new SyncDownResponse
                 {
