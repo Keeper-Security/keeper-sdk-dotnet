@@ -30,10 +30,7 @@ namespace KeeperSecurity.Sdk
 {
     public class Auth
     {
-        public Auth(IAuthUI authUi, IConfigurationStorage storage) : this(authUi, storage, null)
-        {
-        }
-        public Auth(IAuthUI authUi, IConfigurationStorage storage, KeeperEndpoint endpoint)
+        public Auth(IAuthUI authUi, IConfigurationStorage storage, KeeperEndpoint endpoint = null)
         {
             Endpoint = endpoint ?? new KeeperEndpoint();
             Ui = authUi;
@@ -43,15 +40,13 @@ namespace KeeperSecurity.Sdk
             {
                 Endpoint.Server = conf.LastServer;
                 var serverConf = conf.GetServerConfiguration(conf.LastServer);
-                if (serverConf != null)
-                {
-                    Endpoint.EncryptedDeviceToken = serverConf.DeviceId;
-                    Endpoint.ServerKeyId = serverConf.ServerKeyId;
-                }
+                if (serverConf == null) return;
+                Endpoint.EncryptedDeviceToken = serverConf.DeviceId;
+                Endpoint.ServerKeyId = serverConf.ServerKeyId;
             }
         }
 
-        internal async Task<byte[]> GetDeviceToken()
+        private async Task<byte[]> GetDeviceToken()
         {
             byte[] token = null;
             lock (this)
@@ -114,16 +109,10 @@ namespace KeeperSecurity.Sdk
                 }
                 catch (ProxyAuthenticateException pe)
                 {
-                    if (Ui is IHttpProxyCredentialUI proxyUi)
-                    {
-                        var webProxy = await proxyUi.GetHttpProxyCredentials(pe.ProxyAuthenticate);
-                        if (webProxy != null)
-                        {
-                            Endpoint.WebProxy = webProxy;
-                            continue;
-                        }
-                    }
-                    throw pe;
+                    if (!(Ui is IHttpProxyCredentialUI proxyUi)) throw pe;
+                    var webProxy = await proxyUi.GetHttpProxyCredentials(pe.ProxyAuthenticate);
+                    if (webProxy == null) throw pe;
+                    Endpoint.WebProxy = webProxy;
                 }
                 catch (KeeperInvalidDeviceToken)
                 {
@@ -369,15 +358,10 @@ namespace KeeperSecurity.Sdk
 
                             }
 
-                            TaskCompletionSource<TwoFactorCode> tfaTaskSource = null;
-                            if (channel == TwoFactorCodeChannel.DuoSecurity)
-                            {
-                                tfaTaskSource = GetDuoTwoFactorCode(command, loginRs);
-                            }
-                            else
-                            {
-                                tfaTaskSource = Ui.GetTwoFactorCode(channel);
-                            }
+                            TaskCompletionSource<TwoFactorCode> tfaTaskSource = 
+                                channel == TwoFactorCodeChannel.DuoSecurity
+                                    ? GetDuoTwoFactorCode(command, loginRs)
+                                    : Ui.GetTwoFactorCode(channel);
                             if (tfaTaskSource != null)
                             {
                                 var tfaCode = await tfaTaskSource.Task;
@@ -473,7 +457,7 @@ namespace KeeperSecurity.Sdk
                                         var notification = serializer.ReadObject(rss) as DuoPushNotification;
                                         if (taskSource != null && !taskSource.Task.IsCompleted)
                                         {
-                                            if (!string.IsNullOrEmpty(notification.Passcode)) {
+                                            if (!string.IsNullOrEmpty(notification?.Passcode)) {
                                                 taskSource.SetResult(new TwoFactorCode(notification.Passcode, TwoFactorCodeDuration.EveryLogin));
                                             }
                                         }
@@ -493,7 +477,6 @@ namespace KeeperSecurity.Sdk
                             lock (tokenSource)
                             {
                                 ws?.Dispose();
-                                ws = null;
                             }
                         }
                     }
@@ -501,10 +484,8 @@ namespace KeeperSecurity.Sdk
 
                 return taskSource;
             }
-            else
-            {
-                return Ui.GetTwoFactorCode(TwoFactorCodeChannel.DuoSecurity);
-            }
+
+            return Ui.GetTwoFactorCode(TwoFactorCodeChannel.DuoSecurity);
         }
 
         public void Logout()
@@ -587,8 +568,8 @@ namespace KeeperSecurity.Sdk
         internal byte[] privateKeyData;
         private RsaPrivateCrtKeyParameters privateKey;
 
-        public byte[] DataKey { get; private set; }
-        internal byte[] ClientKey { get; private set; }
+        public byte[] DataKey { get; internal set; }
+        internal byte[] ClientKey { get; set; }
         public RsaPrivateCrtKeyParameters PrivateKey
         {
             get
@@ -605,7 +586,7 @@ namespace KeeperSecurity.Sdk
 
         public string SessionToken { get; set; }
         public string TwoFactorToken { get; set; }
-        public string Username { get; private set; }
+        public string Username { get; internal set; }
         public byte[] EncryptedPassword { get; set; }
 
         public KeeperEndpoint Endpoint { get; }

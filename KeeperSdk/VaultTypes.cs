@@ -152,7 +152,7 @@ namespace KeeperSecurity.Sdk
     internal class RecordUpdateUData : IExtensibleDataObject
     {
         [DataMember(Name = "file_ids", EmitDefaultValue = false)]
-        public string[] fileIds;
+        public string[] FileIds;
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
@@ -160,30 +160,29 @@ namespace KeeperSecurity.Sdk
     internal class RecordUpdateRecord : IRecordAccessPath
     {
         [DataMember(Name = "record_uid")]
-        public string recordUid;
+        public string RecordUid { get; set; }
 
         [DataMember(Name = "record_key", EmitDefaultValue = false)]
-        public string recordKey;
+        public string RecordKey;
 
         [DataMember(Name = "data", EmitDefaultValue = false)]
-        public string data;
+        public string Data;
 
         [DataMember(Name = "extra", EmitDefaultValue = false)]
-        public string extra;
+        public string Extra;
 
         [DataMember(Name = "udata", EmitDefaultValue = false)]
-        public RecordUpdateUData udata;
+        public RecordUpdateUData Udata;
 
         [DataMember(Name = "revision")]
-        public long revision;
+        public long Revision;
 
         [DataMember(Name = "version")]
-        public long version = 2;
+        public long Version = 2;
 
         [DataMember(Name = "client_modified_time")]
-        public long clientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        public long ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        public string RecordUid { get => recordUid; }
         [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
         public string SharedFolderUid { get; set; }
         [DataMember(Name = "team_uid", EmitDefaultValue = false)]
@@ -200,48 +199,48 @@ namespace KeeperSecurity.Sdk
         public string pt = DateTime.Now.Ticks.ToString("x");
 
         [DataMember(Name = "client_time")]
-        public long clientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        public long ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         [DataMember(Name = "add_records", EmitDefaultValue = false)]
-        public RecordUpdateRecord[] addRecords;
+        public RecordUpdateRecord[] AddRecords;
 
         [DataMember(Name = "update_records", EmitDefaultValue = false)]
-        public RecordUpdateRecord[] updateRecords;
+        public RecordUpdateRecord[] UpdateRecords;
 
         [DataMember(Name = "remove_records", EmitDefaultValue = false)]
-        public string[] removeRecords;
+        public string[] RemoveRecords;
 
         [DataMember(Name = "delete_records", EmitDefaultValue = false)]
-        public string[] deleteRecords;
+        public string[] DeleteRecords;
     }
 
     [DataContract]
     internal class RecordUpdateStatus
     {
         [DataMember(Name = "record_uid")]
-        public string recordUid;
+        public string RecordUid;
 
         [DataMember(Name = "status_code")]
-        public string statusCode;
+        public string StatusCode;
     }
 
     [DataContract]
     internal class RecordUpdateResponse : KeeperApiResponse
     {
         [DataMember(Name = "add_records")]
-        public RecordUpdateStatus[] addRecords;
+        public RecordUpdateStatus[] AddRecords;
 
         [DataMember(Name = "update_records")]
-        public RecordUpdateRecord[] updateRecords;
+        public RecordUpdateRecord[] UpdateRecords;
 
         [DataMember(Name = "remove_records")]
-        public RecordUpdateStatus[] removeRecords;
+        public RecordUpdateStatus[] RemoveRecords;
 
         [DataMember(Name = "delete_records")]
-        public RecordUpdateStatus[] deleteRecords;
+        public RecordUpdateStatus[] DeleteRecords;
 
         [DataMember(Name = "revision")]
-        public long revision;
+        public long Revision;
     }
 
     [DataContract]
@@ -250,37 +249,37 @@ namespace KeeperSecurity.Sdk
         public RecordAddCommand() : base("record_add") { }
 
         [DataMember(Name = "record_uid")]
-        public string recordUid;
+        public string RecordUid;
 
         [DataMember(Name = "record_key")]
-        public string recordKey;
+        public string RecordKey;
 
         [DataMember(Name = "record_type")]
-        public string recordType;  // password
+        public string RecordType;  // password
         
         [DataMember(Name = "folder_type")] // one of: user_folder, shared_folder, shared_folder_folder
-        public string folderType;
+        public string FolderType;
 
         [DataMember(Name = "how_long_ago")]
-        public int howLongAgo = 0;
+        public int HowLongAgo = 0;
 
         [DataMember(Name = "folder_uid", EmitDefaultValue = false)]
-        public string folderUid;
+        public string FolderUid;
 
         [DataMember(Name = "folder_key", EmitDefaultValue = false)]
-        public string folderKey;
+        public string FolderKey;
 
         [DataMember(Name = "data")]
-        public string data;
+        public string Data;
 
         [DataMember(Name = "extra", EmitDefaultValue = false)]
-        public string extra;
+        public string Extra;
 
         [DataMember(Name = "non_shared_data", EmitDefaultValue = false)]
-        public string nonSharedData;
+        public string NonSharedData;
 
         [DataMember(Name = "file_ids", EmitDefaultValue = false)]
-        public string[] fileIds;
+        public string[] FileIds;
     }
 
 #pragma warning restore 0649

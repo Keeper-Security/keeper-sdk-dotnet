@@ -8,12 +8,12 @@ To install the PowerCommander module copy PowerCommander\ directory to
 
 | Cmdlet name             | Alias | Description
 |-------------------------|-------|----------------------------
-| Connect-Keeper          | kc    |
-| Sync-Keeper             | ks    | 
-| Disconnect-Keeper       |       |
-| Get-KeeperLocation      | kpwd  |
+| Connect-Keeper          | kc    | Login to Keeper server
+| Sync-Keeper             | ks    | Sync with Keeper server 
+| Disconnect-Keeper       |       | Logout and clear the data
+| Get-KeeperLocation      | kpwd  | 
 | Set-KeeperLocation      | kcd   |
 | Get-KeeperChildItems    | kdir  |
 | Get-KeeperObject        | ko    |
-| Get-KeeperRecords       | kr    |
-| Copy-KeeperToClipboard  | kcc   |
+| Get-KeeperRecords       | kr    | Enumerate all records
+| Copy-KeeperToClipboard  | kcc   | Copy record password to clipboard

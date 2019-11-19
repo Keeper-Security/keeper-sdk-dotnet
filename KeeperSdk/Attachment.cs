@@ -47,27 +47,28 @@ namespace KeeperSecurity.Sdk
                 try {
                     MimeType = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(fileName));
                 }
-                catch { }
-                fileStream_ = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                catch {/*ignored*/}
+
+                _fileStream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             } else {
                 Trace.TraceError("FileAttachmentUploadTask: fileName: \"{0}\" not found.", fileName);
             }
         }
-        private FileStream fileStream_;
+        private FileStream _fileStream;
 
         public virtual void PrepareThumbnail() { }
 
         public string Name { get; set; }
         public string Title { get; set; }
         public string MimeType { get; set; }
-        public Stream Stream => fileStream_;
+        public Stream Stream => _fileStream;
         public IThumbnailUploadTask Thumbnail { get; private set; }
 
         public void Dispose()
         {
-            if (fileStream_ != null) {
-                fileStream_.Dispose();
-                fileStream_ = null;
+            if (_fileStream != null) {
+                _fileStream.Dispose();
+                _fileStream = null;
             }
             if (Thumbnail != null) {
                 if (Thumbnail is IDisposable disp) {
@@ -84,13 +85,13 @@ namespace KeeperSecurity.Sdk
         {
             var command = new RequestDownloadCommand();
             command.RecordUid = recordUid;
-            command.fileIDs = new string[] { attachmentId };
+            command.FileIDs = new string[] { attachmentId };
             vault.ResolveRecordAccessPath(command);
 
             var rs = await vault.Auth.ExecuteAuthCommand<RequestDownloadCommand, RequestDownloadResponse>(command);
 
-            var download = rs.downloads[0];
-            return WebRequest.Create(new Uri(download.url));
+            var download = rs.Downloads[0];
+            return WebRequest.Create(new Uri(download.Url));
         }
 
         public static async Task DownloadAttachment(this Vault vault, PasswordRecord record, string attachment, Stream destination)
@@ -150,35 +151,35 @@ namespace KeeperSecurity.Sdk
             }
 
             var request = await CreateAttachmentDownloadRequest(vault, record.Uid, attachmentId);
-            using (var response = await request.GetResponseAsync() as HttpWebResponse)
+            using (var response = (HttpWebResponse) await request.GetResponseAsync())
             {
                 using (var stream = response.GetResponseStream())
                 {
                     var transform = new DecryptAesV1Transform(attachmentFile.Key.Base64UrlDecode());
                     using (var decodeStream = new CryptoStream(stream, transform, CryptoStreamMode.Read))
                     {
-                        if (destination != null) {
+                        if (destination != null)
+                        {
                             await decodeStream.CopyToAsync(destination);
                         }
                     }
                 }
             }
-
         }
 
         internal static async Task UploadSingleFile(UploadParameters upload, Stream source) {
             string boundary = "----------" + DateTime.Now.Ticks.ToString("x");
             byte[] boundaryBytes = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary);
 
-            var request = (HttpWebRequest)WebRequest.Create(new Uri(upload.url));
+            var request = (HttpWebRequest)WebRequest.Create(new Uri(upload.Url));
             request.Method = "POST";
             request.ContentType = "multipart/form-data; boundary=" + boundary;
 
             using (var requestStream = await Task.Factory.FromAsync(request.BeginGetRequestStream, request.EndGetRequestStream, null))
             {
                 string parameterTemplate = "\r\nContent-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}";
-                if (upload.parameters != null) { 
-                    foreach (var pair in upload.parameters) {
+                if (upload.Parameters != null) { 
+                    foreach (var pair in upload.Parameters) {
                         await requestStream.WriteAsync(boundaryBytes, 0, boundaryBytes.Length);
                         string formitem = string.Format(parameterTemplate, pair.Key, pair.Value);
                         byte[] formitembytes = System.Text.Encoding.UTF8.GetBytes(formitem);
@@ -187,7 +188,7 @@ namespace KeeperSecurity.Sdk
                 }
                 await requestStream.WriteAsync(boundaryBytes, 0, boundaryBytes.Length);
                 string fileTemplate = "\r\nContent-Disposition: form-data; name=\"{0}\"\r\nContent-Type: application/octet-stream\r\n\r\n";
-                var fileItem = string.Format(fileTemplate, upload.fileParameter);
+                var fileItem = string.Format(fileTemplate, upload.FileParameter);
                 var fileBytes = Encoding.UTF8.GetBytes(fileItem);
                 await requestStream.WriteAsync(fileBytes, 0, fileBytes.Length);
 
@@ -200,20 +201,24 @@ namespace KeeperSecurity.Sdk
             HttpWebResponse response;
             try {
                 response = (HttpWebResponse)await Task.Factory.FromAsync(request.BeginGetResponse, request.EndGetResponse, null);
-                if ((int)response.StatusCode != upload.successStatusCode)
+                if ((int)response.StatusCode != upload.SuccessStatusCode)
                 {
                     throw new KeeperInvalidParameter("Vault::UploadSingleFile", "StatusCode", response.StatusCode.ToString(), "not success");
                 }
             }
             catch (WebException e) {
                 response = (HttpWebResponse)e.Response;
-                if (response.ContentType == "application/xml") {
-                    using (var stream = new MemoryStream()) {
-                        await response.GetResponseStream().CopyToAsync(stream);
-                        string responseText = Encoding.UTF8.GetString(stream.ToArray());
-                        Trace.TraceError(responseText);
+                if (response != null && response.ContentType == "application/xml") {
+                    using (var stream = new MemoryStream())
+                    {
+                        var srcStream = response.GetResponseStream();
+                        if (srcStream != null)
+                        {
+                            await srcStream.CopyToAsync(stream);
+                            var responseText = Encoding.UTF8.GetString(stream.ToArray());
+                            Trace.TraceError(responseText);
+                        }
                     }
-
                 }
                 throw e;
             }
@@ -227,24 +232,26 @@ namespace KeeperSecurity.Sdk
                 throw new KeeperInvalidParameter("Vault::UploadAttachment", "uploadTask", "GetStream()", "null");
             }
             var thumbStream = uploadTask.Thumbnail?.Stream;
-            var command = new RequestUploadCommand();
-            command.fileCount = 1;
-            command.thumbnailCount = thumbStream != null ? 1 : 0;
+            var command = new RequestUploadCommand
+            {
+                FileCount = 1, 
+                ThumbnailCount = thumbStream != null ? 1 : 0
+            };
 
-            var rs = await vault.Auth.ExecuteAuthCommand<RequestUploadCommand, RequestUpoadResponse>(command);
-            if (rs.fileUploads == null || rs.fileUploads.Length < 1) {
+            var rs = await vault.Auth.ExecuteAuthCommand<RequestUploadCommand, RequestUploadResponse>(command);
+            if (rs.FileUploads == null || rs.FileUploads.Length < 1) {
                 throw new KeeperInvalidParameter("Vault::UploadAttachment", "request_upload", "file_uploads", "empty");
             }
 
-            UploadParameters fileUpload = rs.fileUploads[0];
+            UploadParameters fileUpload = rs.FileUploads[0];
             UploadParameters thumbUpload = null;
-            if (rs.thumbnailUploads != null && rs.thumbnailUploads.Length > 0) {
-                thumbUpload = rs.thumbnailUploads[0];
+            if (rs.ThumbnailUploads != null && rs.ThumbnailUploads.Length > 0) {
+                thumbUpload = rs.ThumbnailUploads[0];
             }
 
             var key = CryptoUtils.GenerateEncryptionKey();
             var atta = new AttachmentFile { 
-                Id = fileUpload.fileID,
+                Id = fileUpload.FileId,
                 Name = uploadTask.Name,
                 Title = uploadTask.Title,
                 Key = key.Base64UrlEncode(),
@@ -256,7 +263,7 @@ namespace KeeperSecurity.Sdk
                 await UploadSingleFile(fileUpload, cryptoStream);
                 atta.Size = transform.EncryptedBytes;
             }
-            if (thumbUpload != null) {
+            if (thumbUpload != null && thumbStream != null) {
                 try {
                     transform = new EncryptAesV1Transform(key);
                     using (var cryptoStream = new CryptoStream(thumbStream, transform, CryptoStreamMode.Read))
@@ -265,7 +272,7 @@ namespace KeeperSecurity.Sdk
                     }
                     var thumbnail = new AttachmentFileThumb
                     {
-                        Id = thumbUpload.fileID,
+                        Id = thumbUpload.FileId,
                         Type = uploadTask.Thumbnail.MimeType,
                         Size = uploadTask.Thumbnail.Size
                     };
@@ -277,7 +284,7 @@ namespace KeeperSecurity.Sdk
                     }
                 }
                 catch (Exception e) {
-                    Trace.TraceError("Upload Thumbname: {0}: \"{1}\"", e.GetType().Name, e.Message);
+                    Trace.TraceError("Upload Thumbnail: {0}: \"{1}\"", e.GetType().Name, e.Message);
                 }
             }
 
@@ -291,7 +298,7 @@ namespace KeeperSecurity.Sdk
         public RequestDownloadCommand() : base("request_download") { }
 
         [DataMember(Name = "file_ids")]
-        public string[] fileIDs;
+        public string[] FileIDs;
 
         [DataMember(Name = "record_uid")]
         public string RecordUid { get; set; }
@@ -309,10 +316,10 @@ namespace KeeperSecurity.Sdk
         public RequestUploadCommand() : base("request_upload") { }
 
         [DataMember(Name = "file_count")]
-        public int fileCount = 0;
+        public int FileCount = 0;
 
         [DataMember(Name = "thumbnail_count")]
-        public int thumbnailCount = 0;
+        public int ThumbnailCount = 0;
     }
 
 #pragma warning disable 0649
@@ -320,9 +327,9 @@ namespace KeeperSecurity.Sdk
     internal class RequestDownload
     {
         [DataMember(Name = "success_status_code")]
-        public int successStatusCode;
+        public int SuccessStatusCode;
         [DataMember(Name = "url")]
-        public string url;
+        public string Url;
     }
 
     [DataContract]
@@ -331,41 +338,40 @@ namespace KeeperSecurity.Sdk
     {
 
         [DataMember(Name = "downloads")]
-        public RequestDownload[] downloads;
+        public RequestDownload[] Downloads;
     }
 
     [DataContract]
     internal class UploadParameters
     {
         [DataMember(Name = "url")]
-        public string url;
+        public string Url;
 
         [DataMember(Name = "max_size")]
-        public long maxSize;
+        public long MaxSize;
 
         [DataMember(Name = "success_status_code")]
-        public int successStatusCode;
+        public int SuccessStatusCode;
 
         [DataMember(Name = "file_id")]
-        public string fileID;
+        public string FileId;
 
         [DataMember(Name = "file_parameter")]
-        public string fileParameter;
+        public string FileParameter;
 
         [DataMember(Name = "parameters")]
-        public IDictionary<string, object> parameters;
+        public IDictionary<string, object> Parameters;
 
     }
 
     [DataContract]
-    [KnownType(typeof(UploadParameters))]
-    internal class RequestUpoadResponse : KeeperApiResponse
+    internal class RequestUploadResponse : KeeperApiResponse
     {
         [DataMember(Name = "file_uploads")]
-        public UploadParameters[] fileUploads;
+        public UploadParameters[] FileUploads;
 
         [DataMember(Name = "thumbnail_uploads")]
-        public UploadParameters[] thumbnailUploads;
+        public UploadParameters[] ThumbnailUploads;
     }
 
 #pragma warning restore 0649

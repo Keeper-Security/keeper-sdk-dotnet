@@ -77,31 +77,31 @@ namespace KeeperSecurity.Sdk
             var recordKey = CryptoUtils.GenerateEncryptionKey();
             var recordAdd = new RecordAddCommand
             {
-                recordUid = CryptoUtils.GenerateUid(),
-                recordKey = CryptoUtils.EncryptAesV1(recordKey, Auth.DataKey).Base64UrlEncode(),
-                recordType = "password"
+                RecordUid = CryptoUtils.GenerateUid(),
+                RecordKey = CryptoUtils.EncryptAesV1(recordKey, Auth.DataKey).Base64UrlEncode(),
+                RecordType = "password"
             };
             if (node == null)
             {
-                recordAdd.folderType = "user_folder";
+                recordAdd.FolderType = "user_folder";
             }
             else
             {
                 switch (node.FolderType)
                 {
                     case FolderType.UserFolder:
-                        recordAdd.folderType = "user_folder";
-                        recordAdd.folderUid = node.FolderUid;
+                        recordAdd.FolderType = "user_folder";
+                        recordAdd.FolderUid = node.FolderUid;
                         break;
                     case FolderType.SharedFolder:
                     case FolderType.SharedFolderForder:
-                        recordAdd.folderUid = node.FolderUid;
-                        recordAdd.folderType = node.FolderType == FolderType.SharedFolder ? "shared_folder" : "shared_folder_folder";
+                        recordAdd.FolderUid = node.FolderUid;
+                        recordAdd.FolderType = node.FolderType == FolderType.SharedFolder ? "shared_folder" : "shared_folder_folder";
                         if (keeperSharedFolders.TryGetValue(node.SharedFolderUid, out SharedFolder sf))
                         {
-                            recordAdd.folderKey = CryptoUtils.EncryptAesV1(recordKey, sf.SharedFolderKey).Base64UrlEncode();
+                            recordAdd.FolderKey = CryptoUtils.EncryptAesV1(recordKey, sf.SharedFolderKey).Base64UrlEncode();
                         }
-                        if (string.IsNullOrEmpty(recordAdd.folderKey))
+                        if (string.IsNullOrEmpty(recordAdd.FolderKey))
                         {
                             throw new Exception($"Cannot resolve shared folder for folder UID: {folderUid}");
                         }
@@ -117,7 +117,7 @@ namespace KeeperSecurity.Sdk
             using (var ms = new MemoryStream())
             {
                 dataSerializer.WriteObject(ms, data);
-                recordAdd.data = CryptoUtils.EncryptAesV1(ms.ToArray(), recordKey).Base64UrlEncode();
+                recordAdd.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), recordKey).Base64UrlEncode();
             }
 
             await Auth.ExecuteAuthCommand(recordAdd);
@@ -135,23 +135,23 @@ namespace KeeperSecurity.Sdk
 
             if (existingRecord != null)
             {
-                updateRecord.recordUid = existingRecord.RecordUid;
+                updateRecord.RecordUid = existingRecord.RecordUid;
                 var rmd = ResolveRecordAccessPath(updateRecord, forEdit: true);
                 if (rmd != null)
                 {
                     if (rmd.RecordKeyType == (int)KeyType.NoKey || rmd.RecordKeyType == (int)KeyType.PrivateKey)
                     {
-                        updateRecord.recordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.DataKey).Base64UrlEncode();
+                        updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.DataKey).Base64UrlEncode();
                     }
                 }
-                updateRecord.revision = existingRecord.Revision;
+                updateRecord.Revision = existingRecord.Revision;
             }
             else
             {
-                updateRecord.recordUid = CryptoUtils.GenerateUid();
+                updateRecord.RecordUid = CryptoUtils.GenerateUid();
                 record.RecordKey = CryptoUtils.GenerateEncryptionKey();
-                updateRecord.recordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.DataKey).Base64UrlEncode();
-                updateRecord.revision = 0;
+                updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.DataKey).Base64UrlEncode();
+                updateRecord.Revision = 0;
             }
             var settings = new DataContractJsonSerializerSettings
             {
@@ -165,8 +165,8 @@ namespace KeeperSecurity.Sdk
                 {
                     try
                     {
-                        var unencrypted_data = CryptoUtils.DecryptAesV1(existingRecord.Data.Base64UrlDecode(), record.RecordKey);
-                        using (var ms = new MemoryStream(unencrypted_data))
+                        var unencryptedData = CryptoUtils.DecryptAesV1(existingRecord.Data.Base64UrlDecode(), record.RecordKey);
+                        using (var ms = new MemoryStream(unencryptedData))
                         {
                             existingData = (RecordData)dataSerializer.ReadObject(ms);
                         }
@@ -180,7 +180,7 @@ namespace KeeperSecurity.Sdk
                 using (var ms = new MemoryStream())
                 {
                     dataSerializer.WriteObject(ms, data);
-                    updateRecord.data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
+                    updateRecord.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
                 }
             }
             if (!skipExtra)
@@ -191,8 +191,8 @@ namespace KeeperSecurity.Sdk
                 {
                     try
                     {
-                        var unencrypted_extra = CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
-                        using (var ms = new MemoryStream(unencrypted_extra))
+                        var unencryptedExtra = CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
+                        using (var ms = new MemoryStream(unencryptedExtra))
                         {
                             existingExtra = (RecordExtra)extraSerializer.ReadObject(ms);
                         }
@@ -206,7 +206,7 @@ namespace KeeperSecurity.Sdk
                 using (var ms = new MemoryStream())
                 {
                     extraSerializer.WriteObject(ms, extra);
-                    updateRecord.extra = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
+                    updateRecord.Extra = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
                 }
                 var udata = new RecordUpdateUData();
                 var ids = new HashSet<string>();
@@ -224,18 +224,18 @@ namespace KeeperSecurity.Sdk
                         }
                     }
                 }
-                udata.fileIds = ids.ToArray();
-                updateRecord.udata = udata;
+                udata.FileIds = ids.ToArray();
+                updateRecord.Udata = udata;
             }
 
             var command = new RecordUpdateCommand();
             if (existingRecord != null)
             {
-                command.updateRecords = new RecordUpdateRecord[] { updateRecord };
+                command.UpdateRecords = new[] { updateRecord };
             }
             else
             {
-                command.addRecords = new RecordUpdateRecord[] { updateRecord };
+                command.AddRecords = new[] { updateRecord };
             }
 
             await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);

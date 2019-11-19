@@ -254,7 +254,7 @@ function modifySharedFolderPermissions {
 				}
 			}
 
-			$ru = New-Object SharedFolderUpdateRecord
+			[SharedFolderUpdateRecord]$ru = New-Object SharedFolderUpdateRecord
 			$ru.recordUid = $rp.RecordUid
 			$rap = $vault.ResolveRecordAccessPath($ru, $hasCanEdit, $hasCanShare)
 			if ($rap) {
@@ -274,9 +274,94 @@ function modifySharedFolderPermissions {
 		}
 	}
 
+	$hasManageRecords = ($permissions -band [Permissions]::ManageRecords) -eq [Permissions]::ManageRecords
+	$hasManageUsers = ($permissions -band [Permissions]::ManageUsers) -eq [Permissions]::ManageUsers 
+
+
 	$user_changes = @()
 	$team_changes = @()
-	if ($userFilter) {
+	if ($userFilter -and ($hasManageRecords -or $hasManageUsers)) {
+		$uts = @{}
+		[SharedFolderPermission] $up = $null
+		foreach ($up in $sharedFolder.UsersPermissions) {
+			if ($up.UserType -eq ([KeeperSecurity.Sdk.UserType]::User)) {
+				if ($up.UserId -ne $vault.Auth.Username) {
+					$uts[$up.UserId] = $up.UserId
+				}
+			} else {
+				[EnterpriseTeam] $team = $null
+				if ($vault.TryGetTeam($up.UserId, [ref]$team)) {
+					$uts[$up.UserId] = $team.Name.ToLower()
+				}
+			}
+		}
+
+		$uids.Clear();
+		foreach ($uf in $userFilter) {
+			if ($uts.ContainsKey($uf)) {
+				$_ = $uids.Add($uf)
+			} else {
+				foreach ($key in $uts.Keys) {
+					if ($uids.Contains($key)) {
+						continue
+					}
+					$n = $uts[$key]
+					if ($uf -eq '*') {
+						$_ = $uids.Add($key)
+					} else {
+						$m = $n -match $uf
+						if ($m) {
+							$_ = $uids.Add($key)
+						}
+					}
+				}
+			}
+		}
+		
+		foreach ($up in $sharedFolder.UsersPermissions) {
+			if (-not $uids.Contains($up.UserId)) {
+				continue
+			}
+			if ($isGrant) {
+				if ((-not $hasManageRecords -or $up.ManageRecords) -and (-not $hasManageUsers -or $up.ManageUsers)) {
+					continue
+				}
+			} else {
+				if ((-not $hasManageRecords -or -not $up.ManageRecords) -and (-not $hasManageUsers -or -not $up.ManageUsers)) {
+					continue
+				}
+			}
+
+			if ($up.UserType -eq ([KeeperSecurity.Sdk.UserType]::User)) {
+				[SharedFolderUpdateUser]$uu = New-Object SharedFolderUpdateUser
+				$uu.Username = $up.UserId
+				if ($hasManageRecords) {
+					$uu.ManageRecords = $isGrant
+				} else {
+					$uu.ManageRecords = $up.ManageRecords
+				}
+				if ($hasManageUsers) {
+					$uu.ManageUsers = $isGrant
+				} else {
+					$uu.ManageUsers = $up.ManageUsers
+				}
+				$user_changes += $uu
+			} else {
+				[SharedFolderUpdateTeam]$tu = New-Object SharedFolderUpdateTeam
+				$tu.TeamUid = $up.UserId
+				if ($hasManageRecords) {
+					$tu.ManageRecords = $isGrant
+				} else {
+					$tu.ManageRecords = $up.ManageRecords
+				}
+				if ($hasManageUsers) {
+					$tu.ManageUsers = $isGrant
+				} else {
+					$tu.ManageUsers = $up.ManageUsers
+				}
+				$team_changes += $tu
+			}
+		}
 	}
 
 	$recordsChanded = 0
@@ -301,13 +386,13 @@ function modifySharedFolderPermissions {
 		if ($left -gt 0 -and $user_changes) {
 			$toAdd = [Math]::Min($left, $user_changes.Count)
 			$command.updateUsers = $user_changes[0..$toAdd]
-			$user_changes = $user_changes[$toAdd..$rec_changes.Count]
+			$user_changes = $user_changes[$toAdd..$user_changes.Count]
 			$left -= $toAdd
 		}
 		if ($left -gt 0 -and $team_changes) {
 			$toAdd = [Math]::Min($left, $team_changes.Count)
 			$command.updateTeams = $team_changes[0..$toAdd]
-			$team_changes = $team_changes[$toAdd..$rec_changes.Count]
+			$team_changes = $team_changes[$toAdd..$team_changes.Count]
 			$left -= $toAdd
 		}
 
@@ -341,13 +426,13 @@ function modifySharedFolderPermissions {
 			}
 		}
 	}
-	if ($recordsChanded -gt 0 -or $usersChanded -gt 0) {
+	if ($recordsChanded -gt 0 -or $usersChanged -gt 0) {
 		$info = "Shared Folder '$($sharedFolder.Name)'. Permission changed for"
 		if ($recordsChanded -gt 0 ) {
 			$info += " $recordsChanded record(s);"
 		}
-		if ($usersChanded -gt 0) {
-			$info += " $usersChanded users(s);"
+		if ($usersChanged -gt 0) {
+			$info += " $usersChanged users(s);"
 		}
 		Write-Information -MessageData $info
 	}
