@@ -75,17 +75,17 @@ namespace KeeperSecurity.Sdk
             {
                 foreach (var teamUid in rs.removedTeams)
                 {
-                    var sf_links = vault.Storage.SharedFolderKeys.GetLinksForObject(teamUid).ToArray();
-                    foreach (var sf_link in sf_links)
+                    var sfLinks = vault.Storage.SharedFolderKeys.GetLinksForObject(teamUid).ToArray();
+                    foreach (var sfLink in sfLinks)
                     {
-                        vault.Storage.SharedFolderKeys.Delete(sf_link);
-                        var rec_links = vault.Storage.RecordKeys.GetLinksForObject(sf_link.SharedFolderUid).ToArray();
-                        foreach (var rec_link in rec_links)
+                        vault.Storage.SharedFolderKeys.Delete(sfLink);
+                        var recLinks = vault.Storage.RecordKeys.GetLinksForObject(sfLink.SharedFolderUid).ToArray();
+                        foreach (var recLink in recLinks)
                         {
-                            result.AddRecord(rec_link.RecordUid);
+                            result.AddRecord(recLink.RecordUid);
                         }
 
-                        result.AddSharedFolder(sf_link.SharedFolderUid);
+                        result.AddSharedFolder(sfLink.SharedFolderUid);
                     }
                     vault.Storage.Teams.Delete(teamUid);
                     vault.Storage.SharedFolderKeys.DeleteObject(teamUid);
@@ -98,9 +98,9 @@ namespace KeeperSecurity.Sdk
                 {
                     result.AddSharedFolder(sharedFolderUid);
                     var links = vault.Storage.RecordKeys.GetLinksForObject(sharedFolderUid).ToArray();
-                    foreach (var rec_link in links)
+                    foreach (var recLink in links)
                     {
-                        result.AddRecord(rec_link.RecordUid);
+                        result.AddRecord(recLink.RecordUid);
                     }
 
                     vault.Storage.SharedFolderKeys.Delete(sharedFolderUid, vault.Storage.PersonalScopeUid);
@@ -518,18 +518,18 @@ namespace KeeperSecurity.Sdk
             vault.RebuildData(result);
         }
 
-        private static DataContractJsonSerializerSettings _json_settings = new DataContractJsonSerializerSettings
+        private static readonly DataContractJsonSerializerSettings JsonSettings = new DataContractJsonSerializerSettings
         {
             UseSimpleDictionaryFormat = true
         };
-        private static DataContractJsonSerializer _udataSerializer = new DataContractJsonSerializer(typeof(SyncDownRecordUData), _json_settings);
+        private static readonly DataContractJsonSerializer UdataSerializer = new DataContractJsonSerializer(typeof(SyncDownRecordUData), JsonSettings);
 
-        internal static void AdjustUdata(this SyncDownRecord syncDownRecord)
+        private static void AdjustUdata(this SyncDownRecord syncDownRecord)
         {
             if (syncDownRecord.udata != null) {
                 using (var ms = new MemoryStream())
                 {
-                    _udataSerializer.WriteObject(ms, syncDownRecord.udata);
+                    UdataSerializer.WriteObject(ms, syncDownRecord.udata);
                     syncDownRecord.Udata = ms.ToArray().Base64UrlEncode();
                 }
             }

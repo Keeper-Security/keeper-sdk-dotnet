@@ -109,12 +109,6 @@ namespace KeeperSecurity.Sdk
         string RecordUid { get; }
     }
 
-    public enum FolderUidType
-    {
-        KeyScope,
-        Folder
-    }
-
     public interface IEntityStorage<T>
     {
         T Get(string uid);
@@ -158,7 +152,7 @@ namespace KeeperSecurity.Sdk
 
     public class InMemoryItemStorage<T> : IEntityStorage<T>
     {
-        private Dictionary<string, T> _items = new Dictionary<string, T>();
+        private readonly Dictionary<string, T> _items = new Dictionary<string, T>();
 
         public void Delete(string uid)
         {
@@ -190,18 +184,33 @@ namespace KeeperSecurity.Sdk
         }
     }
 
-    public class IUidLinkComparer : IComparer<IUidLink>
+    public class UidLinkComparer : IComparer<IUidLink>
     {
         public int Compare(IUidLink x, IUidLink y)
         {
-            var res = string.Compare(x.SubjectUid, y.SubjectUid);
+            if (x == null || y == null)
+            {
+                switch (x)
+                {
+                    case null when y == null:
+                        return 0;
+                    case null:
+                        return 1;
+                    default:
+                        return -1;
+                }
+            }
+
+            var res = string.CompareOrdinal(x.SubjectUid, y.SubjectUid);
             if (res == 0)
             {
-                res = string.Compare(x.ObjectUid ?? "", y.ObjectUid ?? "");
+                res = string.CompareOrdinal(x.ObjectUid ?? "", y.ObjectUid ?? "");
             }
+
             return res;
         }
     }
+
     public class InMemorySentenceStorage<T> : IPredicateStorage<T> where T : IUidLink
     {
         private readonly Dictionary<string, IDictionary<string, T>> _links = new Dictionary<string, IDictionary<string, T>>();
@@ -305,7 +314,7 @@ namespace KeeperSecurity.Sdk
 
     public class UidLink : Tuple<string, string>, IUidLink
     {
-        internal UidLink(string objectUid, string subjectUid) : base(objectUid, subjectUid ?? "") { }
+        private UidLink(string objectUid, string subjectUid) : base(objectUid, subjectUid ?? "") { }
 
         public static UidLink Create(string objectUid, string subjectUid)
         {
@@ -318,11 +327,6 @@ namespace KeeperSecurity.Sdk
 
     public static class StorageExtensions
     {
-        public static T Get<T>(this IPredicateStorage<T> table, string objectUid, string subjectUid) where T : IUidLink
-        {
-            return table.GetLinksForSubject(objectUid).Where(x => string.Compare(x.ObjectUid ?? "", subjectUid ?? "") == 0).FirstOrDefault();
-        }
-
         public static void Delete<T>(this IPredicateStorage<T> table, string objectUid, string subjectUid) where T : IUidLink
         {
             table.Delete(UidLink.Create(objectUid, subjectUid));
