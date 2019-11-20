@@ -10,6 +10,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Sdk
@@ -587,6 +588,9 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "files", EmitDefaultValue = false)]
         public RecordExtraFile[] files;
+
+        [DataMember(Name = "fields", EmitDefaultValue = false)]
+        public Dictionary<string, object>[] fields;
 
         public ExtensionDataObject ExtensionData { get; set; }
     }

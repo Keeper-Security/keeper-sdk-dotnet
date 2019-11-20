@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
@@ -9,6 +12,16 @@ namespace KeeperSecurity.Sdk
 {
     public class CryptoTest
     {
+        [Fact]
+        public void TestSerialization()
+        {
+            var url = "otpauth://totp/?secret=TSHUVWUHZGBBA6BL&issuer=&algorithm=SHA1&digits=6&period=30";
+            var t = CryptoUtils.GetTotpCode(url);
+            if (t != null) {
+            }
+        }
+
+
         [Fact]
         public void TestKeyDerivationV1()
         {
