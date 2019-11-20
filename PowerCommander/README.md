@@ -18,40 +18,57 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Copy-KeeperToClipboard  | kcc   | Copy record password to clipboard
 | Show-TwoFactorCode      | 2fa   | Display Two Factor Code 
 
-## Examples
+
+#### Examples
 1. Connect To Keeper Account
-`PS > Connect-Keeper
-     Keeper Username: email_address@company.com
-        ... Password:
-`
-2. List the content of Keeper root folder
-`PS > kdir
+    ```powershell
+    PS > Connect-Keeper
+         Keeper Username: email_address@company.com
+            ... Password:
+    ```
+2. List the content of Keeper folder
+    ```
+    PS > kdir
+    
+        Vault Folder: \
+    
+    
+    Mode    UID                      Name
+    ----    ---                      ----
+    f-----  b3TMAYfOWJqNxeLjlA6v_g   dasdasd
+    f----S  BvHeHGkdRJfhGaRcI-J5Ww   shared
+    -r-AO-  5qx_urh2EsrL0wBdi34nFw   Web
+    -r---S  ktY3jEBqwFDi9UYZSxmIpw   Control
+    ```
+    - **f** - folder
+    - **r** - record
+    - **S** - shared
+    - **A** - file attachments
+    - **O** - owner
 
-    Vault Folder: \
+3. Show Two Factor Code for all records in the current Keeper folder
+    ```
+    PS > kdir -ObjectType Record | Show-TwoFactorCode
+    ```
 
-
-Mode    UID                      Name
-----    ---                      ----
-f-----  b3TMAYfOWJqNxeLjlA6v_g   dasdasd
-f----S  BvHeHGkdRJfhGaRcI-J5Ww   shared
--r-AO-  5qx_urh2EsrL0wBdi34nFw   Web
--r---S  ktY3jEBqwFDi9UYZSxmIpw   Control
-` 
-f - folder
-r - record
-S - shared
-A - file attachments
-O - owner
-
-3. Show Two Factor Code for the records in the current Keeper folder
-`PS > kdir -ObjectType Record | Show-TwoFactorCode`
-
-4. Show Two Factor Code for all record in the Vault.
-`PS > kr|2fa`  where 
-`kr` is alias for `Get-KeeperRecords` and
-`2fa` is alias for `Show-TwoFactorCode`
+4. Show Two Factor Code for all records in the Vault.
+    ```
+    PS > kr|2fa
+    ```
+     where 
+    * `kr` is alias for `Get-KeeperRecords` 
+    * `2fa` is alias for `Show-TwoFactorCode`
 
 5. Copy record password to clipboard
-`PS > 'contro' | kcc` where 
-`contro` is a substring of record title. See example #2 last entry of `kdir` output
-`kcc` is alias for `Copy-KeeperToClipboard`
+    ```
+    PS > 'contro' | kcc
+    ``` 
+    where 
+    * `contro` is a substring of the record title. See last entry of `kdir` output in example #2 
+    * `kcc` is alias for `Copy-KeeperToClipboard`
+    
+    or
+    ```
+    PS > 'ktY3jEBqwFDi9UYZSxmIpw' | kcc
+    ```
+   `'ktY3jEBqwFDi9UYZSxmIpw'` is the Record UID of the same record
