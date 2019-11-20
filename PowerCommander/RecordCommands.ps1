@@ -145,3 +145,66 @@ function Set-KeeperPasswordVisible {
 	Param ([switch] $Visible)
 	$Script:PasswordVisible = $Visible.IsPresent
 }
+
+function Show-TwoFactorCode {
+	[CmdletBinding()]
+	Param (
+		[Parameter(Mandatory = $true, ValueFromPipeline = $true)] $Records
+	)
+
+	Begin {
+		[Vault]$vault = $Script:Vault
+		if (-not $vault) {
+			Write-Error -Message 'Not connected'
+		}
+		$totps = @()
+	}
+
+	Process {
+		foreach ($r in $Records) {
+			$uid = $null
+
+			if ($r -is [String]) {
+				$uid = $r
+			} 
+			elseif ($r.Uid -ne $null) {
+				$uid = $r.Uid
+			}
+			if ($uid) {
+				[PasswordRecord] $rec = $null
+				if ($vault.TryGetRecord($uid, [ref]$rec)) {
+					if ($rec.ExtraFields) {
+						foreach ($ef in $rec.ExtraFields) {
+							if ($ef.FieldType -eq 'totp') {
+								$totps += [PSCustomObject]@{
+									RecordUid    = $rec.Uid
+									Title        = $rec.Title
+									TotpType     = $ef.Custom['type']
+									TotpData     = $ef.Custom['data']
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	End {
+		$output = @()
+		foreach ($totp in $totps) {
+			[Tuple[string, int, int]]$code = [CryptoUtils]::GetTotpCode($totps.TotpData)
+			if ($code) {
+				$output += [PSCustomObject]@{
+					PSTypeName   = 'TOTP.Codes'
+					RecordTitle  = $totp.Title
+					TOTPCode     = $code.Item1
+					Elapsed      = $code.Item2
+					Left         = $code.Item3 - $code.Item2
+				}
+			}
+		}
+		$output | Format-Table
+	}
+}
+
+New-Alias -Name 2fa -Value Show-TwoFactorCode

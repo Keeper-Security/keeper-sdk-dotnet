@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
@@ -73,8 +74,29 @@ namespace KeeperSecurity.Sdk
                     }
                     return extraFile;
                 }).ToArray(),
+                fields = record.ExtraFields?.Select(x =>
+                {
+                    var map = new Dictionary<string, object>();
+                    map["id"] = x.Id ?? "";
+                    map["field_type"] = x.FieldType ?? "";
+                    map["field_title"] = x.FieldTitle ?? "";
+                    foreach (var pair in x.Custom)
+                    {
+                        if (pair.Value != null)
+                        {
+                            map[pair.Key] = pair.Value;
+                        }
+                    }
+                    return map;
+                }).ToArray(),
                 ExtensionData = existingExtra?.ExtensionData
             };
+        }
+
+        [DataContract]
+        internal class JustExtensionData : IExtensibleDataObject
+        {
+            public ExtensionDataObject ExtensionData { get; set; }
         }
 
         private static DataContractJsonSerializerSettings JsonSettings = new DataContractJsonSerializerSettings
@@ -151,6 +173,30 @@ namespace KeeperSecurity.Sdk
                                 .ToArray();
                             }
                             record.Attachments.Add(atta);
+                        }
+                    }
+                    if (parsedExtra.fields != null)
+                    {
+                        foreach (var field in parsedExtra.fields)
+                        {
+                            var fld = new ExtraField();
+                            foreach (var pair in field) {
+                                switch (pair.Key) {
+                                    case "id":
+                                        fld.Id = pair.Value.ToString();
+                                        break;
+                                    case "field_type":
+                                        fld.FieldType = pair.Value.ToString();
+                                        break;
+                                    case "field_title":
+                                        fld.FieldTitle = pair.Value.ToString();
+                                        break;
+                                    default:
+                                        fld.Custom[pair.Key] = pair.Value;
+                                        break;
+                                }
+                            }
+                            record.ExtraFields.Add(fld);
                         }
                     }
                 }

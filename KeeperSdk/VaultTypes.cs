@@ -29,7 +29,7 @@ namespace KeeperSecurity.Sdk
         public string Notes { get; set; }
         public IList<CustomField> Custom { get; } = new List<CustomField>();
         public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
-
+        public IList<ExtraField> ExtraFields { get; } = new List<ExtraField>();
         public byte[] RecordKey { get; internal set; }
     }
 
@@ -38,6 +38,13 @@ namespace KeeperSecurity.Sdk
         public string Name { get; set; }
         public string Value { get; set; }
         public string Type { get; set; }
+    }
+
+    public class ExtraField {
+        public string Id { get; set; }
+        public string FieldType { get; set; }
+        public string FieldTitle { get; set; }
+        public Dictionary<string, object> Custom { get; } = new Dictionary<string, object>();
     }
 
     public class AttachmentFileThumb

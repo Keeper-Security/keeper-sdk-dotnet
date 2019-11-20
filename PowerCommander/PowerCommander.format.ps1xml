@@ -302,6 +302,43 @@
       </ListControl>
     </View>
 
+    <View>
+      <Name>TOTP.Codes</Name>
+      <ViewSelectedBy>
+        <TypeName>TOTP.Codes</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Record Title</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>TOTP Code</Label>
+          </TableColumnHeader>
+          <TableColumnHeader />
+          <TableColumnHeader />
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>RecordTitle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>TOTPCode</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Elapsed</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Left</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
 
   </ViewDefinitions>
 </Configuration>

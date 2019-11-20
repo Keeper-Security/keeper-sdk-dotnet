@@ -25,6 +25,8 @@ using Org.BouncyCastle.Security;
 using System.Text;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Paddings;
+using System.Web;
+using System.Collections.Generic;
 
 namespace KeeperSecurity.Sdk
 {
@@ -268,6 +270,97 @@ namespace KeeperSecurity.Sdk
             var hmac = new HMACSHA256(key);
             return hmac.ComputeHash(Encoding.UTF8.GetBytes(domain));
         }
+
+        public static byte[] Base32ToBytes(string base32)
+        {
+            const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+            List<byte> output = new List<byte>();
+            char[] bytes = base32.ToCharArray();
+            for (int bitIndex = 0; bitIndex < base32.Length * 5; bitIndex += 8)
+            {
+                int dualbyte = alphabet.IndexOf(bytes[bitIndex / 5]) << 10;
+                if (bitIndex / 5 + 1 < bytes.Length)
+                    dualbyte |= alphabet.IndexOf(bytes[bitIndex / 5 + 1]) << 5;
+                if (bitIndex / 5 + 2 < bytes.Length)
+                    dualbyte |= alphabet.IndexOf(bytes[bitIndex / 5 + 2]);
+
+                dualbyte = 0xff & (dualbyte >> (15 - bitIndex % 5 - 8));
+                output.Add((byte)(dualbyte));
+            }
+            return output.ToArray();
+        }
+
+        public static Tuple<string, int, int> GetTotpCode(string url) {
+            var uri = new Uri(url);
+            if (uri == null || uri.Scheme != "otpauth") {
+                return null;
+            }
+            string secret = null;
+            string algorithm = "SHA1";
+            int digits = 6;
+            int period = 30;
+            var coll = HttpUtility.ParseQueryString(uri.Query);
+            foreach (var key in coll.AllKeys) {
+                switch (key) {
+                    case "secret":
+                        secret = coll[key];
+                        break;
+                    case "algorithm":
+                        algorithm = coll[key];
+                        break;
+                    case "digits":
+                        int.TryParse(coll[key], out digits);
+                        break;
+                    case "period":
+                        int.TryParse(coll[key], out period);
+                        break;
+                }
+            }
+            if (string.IsNullOrEmpty(secret)) {
+                return null;
+            }
+
+            long tmBase = DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000;
+            long tm = tmBase / period;
+            var msg = BitConverter.GetBytes(tm);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(msg);
+            }
+            var secretBytes = Base32ToBytes(secret.ToUpperInvariant());
+
+            HMAC hmac = null;
+            switch (algorithm) {
+                case "SHA1":
+                    hmac = new HMACSHA1(secretBytes);
+                    break;
+                case "SHA256":
+                    hmac = new HMACSHA256(secretBytes);
+                    break;
+                case "MD5":
+                    hmac = new HMACMD5(secretBytes);
+                    break;
+            }
+            if (hmac != null) {
+                var digest = hmac.ComputeHash(msg);
+                var offset = digest[digest.Length - 1] & 0x0f;
+                var codeBytes = new byte[4];
+                Array.Copy(digest, offset, codeBytes, 0, codeBytes.Length);
+                codeBytes[0] &= 0x7f;
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(codeBytes);
+                }
+                var codeInt = BitConverter.ToInt32(codeBytes, 0);
+                codeInt %= Enumerable.Repeat(10, digits).Aggregate(1, (a, b) => a * b);
+                var codeStr = codeInt.ToString();
+                while (codeStr.Length < digits) {
+                    codeStr = "0" + codeStr;
+                }
+                return Tuple.Create(codeStr, (int)(tmBase % period), period);
+            }
+            return null;
+        }
     }
 
     public class EncryptTransform : ICryptoTransform
@@ -422,4 +515,5 @@ namespace KeeperSecurity.Sdk
         {
         }
     }
+
 }
