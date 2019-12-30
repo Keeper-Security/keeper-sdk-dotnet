@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace KeeperSecurity.Sdk
 {
     [DataContract]
-    public class SharedFolderUpdateCommand : AuthorizedCommand, ISharedFolderAccessPath
+    public class SharedFolderUpdateCommand : AuthenticatedCommand, ISharedFolderAccessPath
     {
         public SharedFolderUpdateCommand() : base("shared_folder_update")
         {

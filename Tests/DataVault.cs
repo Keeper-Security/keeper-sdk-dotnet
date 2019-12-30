@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Authentication;
@@ -16,7 +15,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
-using Org.BouncyCastle.Security;
 
 namespace KeeperSecurity.Sdk
 {
@@ -134,15 +132,13 @@ fwIDAQAB
 
         public static IConfigurationStorage GetConfigurationStorage()
         {
-            var serverConf = new ServerConfiguration
+            var serverConf = new ServerConfiguration("test.keepersecurity.com")
             {
-                Server = "test.keepersecurity.com",
                 DeviceId = DeviceId,
                 ServerKeyId = 1
             };
-            var userConf = new UserConfiguration
+            var userConf = new UserConfiguration(UserName)
             {
-                Username = UserName,
                 Password = UserPassword
             };
             var config = new Configuration
@@ -336,7 +332,7 @@ fwIDAQAB
             }
         }
 
-        internal SyncDownResponse GetSyncDownResponse()
+        public SyncDownResponse GetSyncDownResponse()
         {
             var record1 = new PasswordRecord
             {
@@ -436,26 +432,33 @@ fwIDAQAB
         }
 
 
-        public Auth GetConnectedAuthContext()
+        public IAuth GetConnectedAuthContext()
         {
             var ui_mock = new Mock<IAuthUI>();
             var endpoint = new Mock<KeeperEndpoint>();
-            /*
-            endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, LoginResponse>(It.IsAny<LoginCommand>())).Returns<LoginCommand>(c => LoginSuccessResponse(c));
-            m_auth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => ProcessPreLogin(x));
-            */
-            var m_auth = new Mock<Auth>(ui_mock.Object, DataVault.GetConfigurationStorage(), endpoint.Object);
-            var auth = m_auth.Object;
-            var config = auth.Storage.Get();
+            var auth = new Mock<IAuth>();
+
+            auth.Setup(x => x.Ui).Returns(ui_mock.Object);
+            auth.Setup(x => x.Endpoint).Returns(endpoint.Object);
+
+            var storage = DataVault.GetConfigurationStorage();
+            auth.Setup(x => x.Storage).Returns(storage);
+
+            var config = storage.Get();
             var user_conf = config.GetUserConfiguration(config.LastLogin);
-            auth.Username = user_conf.Username;
-            auth.TwoFactorToken = user_conf.TwoFactorToken;
-            auth.ClientKey = ClientKey;
-            auth.DataKey = DataKey;
-            auth.privateKeyData = PrivateKeyData;
-            auth.SessionToken = SessionToken;
-            auth.authResponse = CryptoUtils.DeriveV1KeyHash(Password, Salt, Iterations).Base64UrlEncode();
-            return auth;
+            var authContext = new AuthContext
+            {
+                Username = user_conf.Username,
+                TwoFactorToken = user_conf.TwoFactorToken,
+                ClientKey = ClientKey,
+                DataKey = DataKey,
+                PrivateKey = CryptoUtils.LoadPrivateKey(PrivateKeyData),
+                SessionToken = SessionToken
+            };
+            auth.Setup(x => x.AuthContext).Returns(authContext);
+            auth.Setup(x => x.IsAuthenticated).Returns(true);
+
+            return auth.Object;
         }
 
         internal Task<PreLoginResponse> ProcessPreLogin(string username)

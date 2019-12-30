@@ -30,7 +30,7 @@ namespace KeeperSecurity.Sdk
         public IList<CustomField> Custom { get; } = new List<CustomField>();
         public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
         public IList<ExtraField> ExtraFields { get; } = new List<ExtraField>();
-        public byte[] RecordKey { get; internal set; }
+        public byte[] RecordKey { get; set; }
     }
 
     public class CustomField
@@ -56,13 +56,13 @@ namespace KeeperSecurity.Sdk
 
     public class AttachmentFile
     {
-        public string Id { get; internal set; }
-        public string Key { get; internal set; }
-        public string Name { get; internal set; }
-        public string Title { get; internal set; }
-        public string Type { get; internal set; }
-        public long Size { get; internal set; }
-        public DateTimeOffset LastModified { get; internal set; }
+        public string Id { get; set; }
+        public string Key { get; set; }
+        public string Name { get; set; }
+        public string Title { get; set; }
+        public string Type { get; set; }
+        public long Size { get; set; }
+        public DateTimeOffset LastModified { get; set; }
 
         public AttachmentFileThumb[] Thumbnails { get; internal set; }
     }
@@ -102,7 +102,7 @@ namespace KeeperSecurity.Sdk
         public List<SharedFolderPermission> UsersPermissions { get; } = new List<SharedFolderPermission>();
         public List<SharedFolderRecord> RecordPermissions { get; } = new List<SharedFolderRecord>();
 
-        public byte[] SharedFolderKey { get; internal set; }
+        public byte[] SharedFolderKey { get; set; }
     }
 
     public class EnterpriseTeam
@@ -126,18 +126,18 @@ namespace KeeperSecurity.Sdk
         public bool RestrictShare { get; set; }
         public bool RestrictView { get; set; }
 
-        public byte[] TeamKey { get; internal set; }
+        public byte[] TeamKey { get; set; }
         public RsaPrivateCrtKeyParameters TeamPrivateKey { get; internal set; }
     }
 
     public enum FolderType { UserFolder, SharedFolder, SharedFolderForder }
     public class FolderNode
     {
-        public string ParentUid { get; internal set; }
-        public string FolderUid { get; internal set; }
-        public string SharedFolderUid { get; internal set; }
-        public FolderType FolderType { get; internal set; } = FolderType.UserFolder;
-        public string Name { get; internal set; }
+        public string ParentUid { get; set; }
+        public string FolderUid { get; set; }
+        public string SharedFolderUid { get; set; }
+        public FolderType FolderType { get; set; } = FolderType.UserFolder;
+        public string Name { get; set; }
         public IList<string> Subfolders { get; } = new List<string>();
         public IList<string> Records { get; } = new List<string>();
     }
@@ -198,7 +198,7 @@ namespace KeeperSecurity.Sdk
 
 #pragma warning disable 0649
     [DataContract]
-    internal class RecordUpdateCommand : AuthorizedCommand
+    internal class RecordUpdateCommand : AuthenticatedCommand
     {
         public RecordUpdateCommand() : base("record_update") { }
 
@@ -251,7 +251,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class RecordAddCommand : AuthorizedCommand
+    internal class RecordAddCommand : AuthenticatedCommand
     {
         public RecordAddCommand() : base("record_add") { }
 

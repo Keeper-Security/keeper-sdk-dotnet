@@ -24,6 +24,9 @@ namespace KeeperSecurity.Sdk
         TeamKey = 4
     }
 
+    public interface IUid {
+        string Uid { get; }
+    }
     public interface IUidLink
     {
         string SubjectUid { get; }
@@ -40,7 +43,7 @@ namespace KeeperSecurity.Sdk
         bool CanEdit { get; set; }
     }
 
-    public interface IPasswordRecord
+    public interface IPasswordRecord : IUid
     {
         string RecordUid { get; }
         long Revision { get; }
@@ -52,7 +55,12 @@ namespace KeeperSecurity.Sdk
         bool Owner { get; set; }
     }
 
-    public interface ISharedFolderKey : IUidLink
+    public interface INonSharedData: IUid {
+        string RecordUid { get; }
+        string Data { get; set; }
+    }
+
+        public interface ISharedFolderKey : IUidLink
     {
         string SharedFolderUid { get; }
         string TeamUid { get; }
@@ -69,7 +77,7 @@ namespace KeeperSecurity.Sdk
         bool ManageUsers { get; }
     }
 
-    public interface ISharedFolder
+    public interface ISharedFolder: IUid
     {
         string SharedFolderUid { get; }
         long Revision { get; }
@@ -80,7 +88,7 @@ namespace KeeperSecurity.Sdk
         bool DefaultCanShare { get; }
     }
 
-    public interface IEnterpriseTeam
+    public interface IEnterpriseTeam: IUid
     {
         string TeamUid { get; }
         string Name { get; }
@@ -92,7 +100,7 @@ namespace KeeperSecurity.Sdk
         bool RestrictView { get; }
     }
 
-    public interface IFolder
+    public interface IFolder: IUid
     {
         string ParentUid { get; }
         string FolderUid { get; }
@@ -109,10 +117,10 @@ namespace KeeperSecurity.Sdk
         string RecordUid { get; }
     }
 
-    public interface IEntityStorage<T>
+    public interface IEntityStorage<T> where T: IUid
     {
         T Get(string uid);
-        void Put(string uid, T data);
+        void Put(T data);
         void Delete(string uid);
         IEnumerable<T> GetAll();
         void Clear();
@@ -137,7 +145,7 @@ namespace KeeperSecurity.Sdk
         IEntityStorage<IPasswordRecord> Records { get; }
         IEntityStorage<ISharedFolder> SharedFolders { get; }
         IEntityStorage<IEnterpriseTeam> Teams { get; }
-        IEntityStorage<string> NonSharedData { get; }
+        IEntityStorage<INonSharedData> NonSharedData { get; }
 
         IPredicateStorage<IRecordMetadata> RecordKeys { get; }   // RecordUid / "" or SharedFolderUid
         IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; } // SharedFolderUid / "" or teamUid
@@ -150,7 +158,7 @@ namespace KeeperSecurity.Sdk
         void Clear();
     }
 
-    public class InMemoryItemStorage<T> : IEntityStorage<T>
+    public class InMemoryItemStorage<T> : IEntityStorage<T> where T: IUid
     {
         private readonly Dictionary<string, T> _items = new Dictionary<string, T>();
 
@@ -173,9 +181,9 @@ namespace KeeperSecurity.Sdk
             return _items.Values;
         }
 
-        public void Put(string uid, T data)
+        public void Put(T data)
         {
-            _items[uid] = data;
+            _items[data.Uid] = data;
         }
 
         public void Clear()
@@ -287,7 +295,7 @@ namespace KeeperSecurity.Sdk
         public IEntityStorage<IPasswordRecord> Records { get; } = new InMemoryItemStorage<IPasswordRecord>();
         public IEntityStorage<ISharedFolder> SharedFolders { get; } = new InMemoryItemStorage<ISharedFolder>();
         public IEntityStorage<IEnterpriseTeam> Teams { get; } = new InMemoryItemStorage<IEnterpriseTeam>();
-        public IEntityStorage<string> NonSharedData { get; } = new InMemoryItemStorage<string>();
+        public IEntityStorage<INonSharedData> NonSharedData { get; } = new InMemoryItemStorage<INonSharedData>();
 
         public IPredicateStorage<IRecordMetadata> RecordKeys { get; } = new InMemorySentenceStorage<IRecordMetadata>();
         public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; } = new InMemorySentenceStorage<ISharedFolderKey>();

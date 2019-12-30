@@ -22,12 +22,12 @@ namespace KeeperSecurity.Sdk
 
     public class Vault : VaultData
     {
-        public Vault(Auth auth, IKeeperStorage storage = null) : base(auth.ClientKey, storage ?? new InMemoryKeeperStorage())
+        public Vault(IAuth auth, IKeeperStorage storage = null) : base(auth.AuthContext.ClientKey, storage ?? new InMemoryKeeperStorage())
         {
             Auth = auth;
         }
 
-        public Auth Auth { get; }
+        public IAuth Auth { get; }
 
         public IRecordMetadata ResolveRecordAccessPath(IRecordAccessPath path, bool forEdit = false, bool forShare = false)
         {
@@ -78,7 +78,7 @@ namespace KeeperSecurity.Sdk
             var recordAdd = new RecordAddCommand
             {
                 RecordUid = CryptoUtils.GenerateUid(),
-                RecordKey = CryptoUtils.EncryptAesV1(recordKey, Auth.DataKey).Base64UrlEncode(),
+                RecordKey = CryptoUtils.EncryptAesV1(recordKey, Auth.AuthContext.DataKey).Base64UrlEncode(),
                 RecordType = "password"
             };
             if (node == null)
@@ -108,11 +108,8 @@ namespace KeeperSecurity.Sdk
                         break;
                 }
             }
-            var settings = new DataContractJsonSerializerSettings
-            {
-                UseSimpleDictionaryFormat = true
-            };
-            var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), settings);
+
+            var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
             var data = record.ExtractRecordData();
             using (var ms = new MemoryStream())
             {
@@ -141,7 +138,7 @@ namespace KeeperSecurity.Sdk
                 {
                     if (rmd.RecordKeyType == (int)KeyType.NoKey || rmd.RecordKeyType == (int)KeyType.PrivateKey)
                     {
-                        updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.DataKey).Base64UrlEncode();
+                        updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey).Base64UrlEncode();
                     }
                 }
                 updateRecord.Revision = existingRecord.Revision;
@@ -150,16 +147,12 @@ namespace KeeperSecurity.Sdk
             {
                 updateRecord.RecordUid = CryptoUtils.GenerateUid();
                 record.RecordKey = CryptoUtils.GenerateEncryptionKey();
-                updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.DataKey).Base64UrlEncode();
+                updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey).Base64UrlEncode();
                 updateRecord.Revision = 0;
             }
-            var settings = new DataContractJsonSerializerSettings
-            {
-                UseSimpleDictionaryFormat = true
-            };
             if (!skipData)
             {
-                var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), settings);
+                var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
                 RecordData existingData = null;
                 if (existingRecord != null)
                 {
@@ -185,7 +178,7 @@ namespace KeeperSecurity.Sdk
             }
             if (!skipExtra)
             {
-                var extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), settings);
+                var extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
                 RecordExtra existingExtra = null;
                 if (existingRecord != null)
                 {
@@ -249,7 +242,7 @@ namespace KeeperSecurity.Sdk
                 if (TryGetSharedFolder(path.SharedFolderUid, out SharedFolder sf))
                 {
                     var permissions = sf.UsersPermissions
-                        .Where(x => (x.UserType == UserType.User && x.UserId == Auth.Username) || (x.UserType == UserType.Team && keeperTeams.ContainsKey(x.UserId)))
+                        .Where(x => (x.UserType == UserType.User && x.UserId == Auth.AuthContext.Username) || (x.UserType == UserType.Team && keeperTeams.ContainsKey(x.UserId)))
                         .Where(x => (!forManageUsers || x.ManageUsers) && (!forManageRecords || x.ManageRecords))
                         .ToArray();
 

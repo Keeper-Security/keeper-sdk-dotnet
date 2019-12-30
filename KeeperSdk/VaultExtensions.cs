@@ -10,7 +10,7 @@ namespace KeeperSecurity.Sdk
 {
     public static class VaultExtensions
     {
-        internal static RecordData ExtractRecordData(this PasswordRecord record, RecordData existingData = null)
+        public static RecordData ExtractRecordData(this PasswordRecord record, RecordData existingData = null)
         {
             return new RecordData
             {
@@ -29,7 +29,7 @@ namespace KeeperSecurity.Sdk
             };
         }
 
-        internal static RecordExtra ExtractRecordExtra(this PasswordRecord record, RecordExtra existingExtra = null)
+        public static RecordExtra ExtractRecordExtra(this PasswordRecord record, RecordExtra existingExtra = null)
         {
             IDictionary<string, RecordExtraFile> extraFiles = null;
             if (existingExtra != null && existingExtra.files != null && existingExtra.files.Length > 0)
@@ -99,13 +99,8 @@ namespace KeeperSecurity.Sdk
             public ExtensionDataObject ExtensionData { get; set; }
         }
 
-        private static DataContractJsonSerializerSettings JsonSettings = new DataContractJsonSerializerSettings
-        {
-            UseSimpleDictionaryFormat = true
-        };
-
-        private static DataContractJsonSerializer DataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonSettings);
-        private static DataContractJsonSerializer ExtraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), JsonSettings);
+        private static DataContractJsonSerializer DataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
+        private static DataContractJsonSerializer ExtraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
 
         public static PasswordRecord Load(this IPasswordRecord r, byte[] key)
         {

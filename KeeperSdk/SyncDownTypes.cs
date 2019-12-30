@@ -16,7 +16,7 @@ using System.Runtime.Serialization;
 namespace KeeperSecurity.Sdk
 {
     [DataContract]
-    internal class SyncDownCommand : AuthorizedCommand
+    public class SyncDownCommand : AuthenticatedCommand
     {
         public SyncDownCommand() : base("sync_down")
         {
@@ -38,10 +38,10 @@ namespace KeeperSecurity.Sdk
 
 #pragma warning disable 0649
     [DataContract]
-    internal class SyncDownResponse : KeeperApiResponse
+    public class SyncDownResponse : KeeperApiResponse
     {
         [DataMember(Name = "full_sync")]
-        internal bool fullSync;
+        public bool fullSync;
 
         [DataMember(Name = "revision")]
         public long revision;
@@ -108,7 +108,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownRecord : IPasswordRecord
+    public class SyncDownRecord : IPasswordRecord
     {
         [DataMember(Name = "record_uid")]
         public string RecordUid { get; set; }
@@ -137,10 +137,12 @@ namespace KeeperSecurity.Sdk
         public string Udata { get; set; }
 
         public bool Owner { get; set; }
+
+        string IUid.Uid => RecordUid;
     }
 
     [DataContract]
-    internal class SyncDownSharedFolder : ISharedFolder
+    public class SyncDownSharedFolder : ISharedFolder
     {
         [DataMember(Name = "shared_folder_uid")]
         public string SharedFolderUid { get; set; }
@@ -195,10 +197,12 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "teams_removed")]
         public string[] teamsRemoved;
+
+        string IUid.Uid => SharedFolderUid;
     }
 
     [DataContract]
-    internal class SyncDownTeam : IEnterpriseTeam
+    public class SyncDownTeam : IEnterpriseTeam
     {
         [DataMember(Name = "team_uid")]
         public string TeamUid { get; set; }
@@ -229,10 +233,12 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "shared_folder_keys")]
         public SyncDownSharedFolderKey[] sharedFolderKeys;
+
+        string IUid.Uid => TeamUid;
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderRecord
+    public class SyncDownSharedFolderRecord
     {
         [DataMember(Name = "record_uid")]
         public string RecordUid { get; set; }
@@ -248,7 +254,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderTeam: ISharedFolderPermission
+    public class SyncDownSharedFolderTeam: ISharedFolderPermission
     {
         [DataMember(Name = "team_uid")]
         public string TeamUid { get; set; }
@@ -271,7 +277,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderKey : ISharedFolderKey
+    public class SyncDownSharedFolderKey : ISharedFolderKey
     {
         [DataMember(Name = "shared_folder_uid")]
         public string SharedFolderUid { get; set; }
@@ -290,7 +296,7 @@ namespace KeeperSecurity.Sdk
 
 
     [DataContract]
-    internal class SyncDownSharedFolderUser : ISharedFolderPermission
+    public class SyncDownSharedFolderUser : ISharedFolderPermission
     {
         [DataMember(Name = "username")]
         public string Username { get; set; }
@@ -310,7 +316,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownRecordMetaData : IRecordMetadata
+    public class SyncDownRecordMetaData : IRecordMetadata
     {
         [DataMember(Name = "record_uid")]
         public string RecordUid { get; set; }
@@ -336,14 +342,14 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownFolderNode
+    public class SyncDownFolderNode
     {
         [DataMember(Name = "folder_uid")]
         public string folderUid;
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderFolderNode
+    public class SyncDownSharedFolderFolderNode
     {
         [DataMember(Name = "folder_uid")]
         public string FolderUid { get; set; }
@@ -356,7 +362,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownFolderRecordNode
+    public class SyncDownFolderRecordNode
     {
         [DataMember(Name = "folder_uid")]
         public string folderUid;
@@ -369,7 +375,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderFolderRecordNode : IFolderRecordLink
+    public class SyncDownSharedFolderFolderRecordNode : IFolderRecordLink
     {
         [DataMember(Name = "folder_uid")]
         public string folderUid;
@@ -388,7 +394,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownFolderRecord : IFolderRecordLink
+    public class SyncDownFolderRecord : IFolderRecordLink
     {
         [DataMember(Name = "folder_uid")]
         public string FolderUid { get; set; }
@@ -402,7 +408,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownUserFolder : IFolder
+    public class SyncDownUserFolder : IFolder
     {
         [DataMember(Name = "folder_uid")]
         public string FolderUid { get; set; }
@@ -427,11 +433,11 @@ namespace KeeperSecurity.Sdk
 
         string IFolder.SharedFolderUid => null;
 
-
+        string IUid.Uid => FolderUid;
     }
 
     [DataContract]
-    internal class SyncDownSharedFolderFolder : IFolder
+    public class SyncDownSharedFolderFolder : IFolder
     {
         [DataMember(Name = "folder_uid")]
         public string FolderUid { get; set; }
@@ -455,10 +461,12 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "data")]
         public string Data { get; set; }
+
+        string IUid.Uid => FolderUid;
     }
 
     [DataContract]
-    internal class SyncDownUserFolderSharedFolder : IFolder
+    public class SyncDownUserFolderSharedFolder : IFolder
     {
         [DataMember(Name = "folder_uid")]
         public string folderUid;
@@ -466,16 +474,18 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "shared_folder_uid")]
         public string SharedFolderUid { get; set; }
 
-        string IFolder.FolderUid => SharedFolderUid;
+        public string FolderUid => SharedFolderUid;
         string IFolder.ParentUid => folderUid ?? "";
         string IFolder.FolderType => "shared_folder";
         string IFolder.FolderKey => null;
         long IFolder.Revision => 0;
         string IFolder.Data => null;
+
+        string IUid.Uid => FolderUid;
     }
 
     [DataContract]
-    internal class SyncDownSharingChanges
+    public class SyncDownSharingChanges
     {
         [DataMember(Name = "record_uid")]
         public string recordUid;
@@ -485,17 +495,23 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownNonSharedData
+    public class SyncDownNonSharedData: INonSharedData
     {
         [DataMember(Name = "record_uid")]
         public string recordUid;
 
         [DataMember(Name = "data")]
         public string data;
+
+        public string RecordUid => recordUid;
+
+        public string Data { get => data; set => data = value; }
+
+        public string Uid => RecordUid;
     }
 
     [DataContract]
-    internal class FolderData
+    public class FolderData
     {
         [DataMember(Name = "name")]
         public string name;
@@ -505,7 +521,7 @@ namespace KeeperSecurity.Sdk
 
 #pragma warning disable 0649
     [DataContract]
-    internal class RecordDataCustom
+    public class RecordDataCustom
     {
         [DataMember(Name = "name")]
         public string name = "";
@@ -518,7 +534,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class RecordData
+    public class RecordData
     {
         [DataMember(Name = "title")]
         public string title = "";
@@ -543,7 +559,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class RecordExtraFileThumb
+    public class RecordExtraFileThumb
     {
         [DataMember(Name = "id")]
         public string id = "";
@@ -556,7 +572,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class RecordExtraFile
+    public class RecordExtraFile
     {
         [DataMember(Name = "id")]
         public string id = "";
@@ -584,7 +600,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class RecordExtra : IExtensibleDataObject
+    public class RecordExtra : IExtensibleDataObject
     {
         [DataMember(Name = "files", EmitDefaultValue = false)]
         public RecordExtraFile[] files;
@@ -596,7 +612,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class SyncDownRecordUData : IExtensibleDataObject
+    public class SyncDownRecordUData : IExtensibleDataObject
     {
         [DataMember(Name = "file_ids")]
         public string[] fileIds;

@@ -164,7 +164,7 @@ namespace Commander
                 {
                     if (_vault.TryGetRecord(uid, out PasswordRecord record))
                     {
-                        names.Add(record.Title);
+                        names.Add(string.IsNullOrEmpty(record.Title) ? record.Uid : record.Title);
                     }
                 }
                 names.Sort(len, names.Count - len, StringComparer.InvariantCultureIgnoreCase);

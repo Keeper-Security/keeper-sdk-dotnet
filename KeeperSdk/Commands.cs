@@ -224,9 +224,9 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    public class AuthorizedCommand : KeeperApiCommand
+    public class AuthenticatedCommand : KeeperApiCommand
     {
-        public AuthorizedCommand(string command) : base(command) { }
+        public AuthenticatedCommand(string command) : base(command) { }
 
         [DataMember(Name = "device_id", EmitDefaultValue = false)]
         public string deviceId;
@@ -239,7 +239,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    public class SetClientKeyCommand : AuthorizedCommand
+    public class SetClientKeyCommand : AuthenticatedCommand
     {
         public SetClientKeyCommand() : base("set_client_key") { }
 

@@ -8,6 +8,12 @@ using KeeperSecurity.Sdk;
 
 namespace Commander
 {
+    public class UserCredencials
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+
     public interface ICommand
     {
         int Order { get; }
@@ -153,9 +159,9 @@ namespace Commander
 
     public class NotConnectedCliCommands : CliCommands
     {
-        private readonly Auth _auth;
+        private readonly IAuth _auth;
 
-        private class LoginOptions : IUserCredentials {
+        private class LoginOptions {
             [Option("password", Required = false, HelpText = "master password")]
             public string Password { get; set; }
 
@@ -163,7 +169,7 @@ namespace Commander
             public string Username { get; set; }
         }
 
-        public NotConnectedCliCommands(Auth auth) : base()
+        public NotConnectedCliCommands(IAuth auth) : base()
         {
             _auth = auth;
 
@@ -180,9 +186,9 @@ namespace Commander
                 Action = (args) => {
                     if (!string.IsNullOrEmpty(args))
                     {
-                        _auth.Endpoint.Server = args.AdjustServerUrl();
+                        _auth.Endpoint.Server = args.AdjustServerName();
                     }
-                    Console.WriteLine(string.Format("Keeper Server: {0}", _auth.Endpoint.Server.AdjustServerUrl()));
+                    Console.WriteLine(string.Format("Keeper Server: {0}", _auth.Endpoint.Server.AdjustServerName()));
                     return Task.FromResult(true);
                 }
             });
@@ -191,10 +197,13 @@ namespace Commander
 
         private async Task DoLogin(LoginOptions options)
         {
-            var credentials = await GetUserCredentials(new UserConfiguration(options));
+            var userConf = new UserConfiguration(options.Username) {
+                Password = options.Password
+            };
+            var credentials = await GetUserCredentials(userConf);
             if (credentials != null) {
                 await _auth.Login(credentials.Username, credentials.Password);
-                if (!string.IsNullOrEmpty(_auth.SessionToken))
+                if (!string.IsNullOrEmpty(_auth.AuthContext.SessionToken))
                 {
                     Finished = true;
                     var vault = new Vault(_auth);
@@ -210,9 +219,9 @@ namespace Commander
             return "Not logged in";
         }
 
-        public Task<IUserCredentials> GetUserCredentials(IUserCredentials credentials)
+        public Task<UserConfiguration> GetUserCredentials(UserConfiguration credentials)
         {
-            IUserCredentials cred = null;
+            UserConfiguration cred = null;
             string username = credentials?.Username;
             string password = credentials?.Password;
             if (string.IsNullOrEmpty(username))
@@ -231,9 +240,8 @@ namespace Commander
             }
             if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
             {
-                cred = new UserCredencials
+                cred = new UserConfiguration(username)
                 {
-                    Username = username,
                     Password = password
                 };
             }

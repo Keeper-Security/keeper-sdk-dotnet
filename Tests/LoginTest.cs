@@ -2,8 +2,6 @@
 using System.Threading.Tasks;
 using Xunit;
 using Moq;
-using Authentication;
-using Google.Protobuf;
 using KeeperSecurity.Sdk.UI;
 
 namespace KeeperSecurity.Sdk
@@ -27,8 +25,8 @@ namespace KeeperSecurity.Sdk
             var config = auth.Storage.Get();
             var userConfig = config.GetUserConfiguration(config.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
-            Assert.Equal(auth.SessionToken, _vaultEnv.SessionToken);
-            Assert.Equal(auth.DataKey, _vaultEnv.DataKey);
+            Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
+            Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
         }
 
         [Fact]
@@ -39,9 +37,9 @@ namespace KeeperSecurity.Sdk
             var config = auth.Storage.Get();
             var userConfig = config.GetUserConfiguration(config.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
-            auth.SessionToken = "BadSessionToken";
+            auth.AuthContext.SessionToken = "BadSessionToken";
             await auth.RefreshSessionToken();
-            Assert.Equal(auth.SessionToken, _vaultEnv.SessionToken);
+            Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
         }
 
         [Fact]
@@ -53,8 +51,8 @@ namespace KeeperSecurity.Sdk
             var config = auth.Storage.Get();
             var userConfig = config.GetUserConfiguration(config.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
-            Assert.Equal(auth.SessionToken, _vaultEnv.SessionToken);
-            Assert.Equal(auth.DataKey, _vaultEnv.DataKey);
+            Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
+            Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
         }
 
         [Fact]
@@ -65,14 +63,16 @@ namespace KeeperSecurity.Sdk
             var auth = GetAuthContext();
             var config = auth.Storage.Get();
             var userConfig = config.GetUserConfiguration(config.LastLogin);
-            var uc = new UserConfiguration(userConfig);
-            uc.TwoFactorToken = _vaultEnv.DeviceToken;
+            var uc = new UserConfiguration(userConfig.Username)
+            {
+                TwoFactorToken = _vaultEnv.DeviceToken
+            };
             var c = new Configuration(config);
             c.MergeUserConfiguration(uc);
             auth.Storage.Put(c);
             await auth.Login(userConfig.Username, userConfig.Password);
-            Assert.Equal(auth.SessionToken, _vaultEnv.SessionToken);
-            Assert.Equal(auth.DataKey, _vaultEnv.DataKey);
+            Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
+            Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
         }
 
         [Fact]
@@ -84,8 +84,8 @@ namespace KeeperSecurity.Sdk
             var config = auth.Storage.Get();
             var userConfig = config.GetUserConfiguration(config.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
-            Assert.Equal(auth.SessionToken, _vaultEnv.SessionToken);
-            Assert.Equal(auth.DataKey, _vaultEnv.DataKey);
+            Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
+            Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
             config = auth.Storage.Get();
             userConfig = config.GetUserConfiguration(config.LastLogin);
             Assert.Equal(userConfig.TwoFactorToken, _vaultEnv.DeviceToken);

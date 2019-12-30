@@ -293,7 +293,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class RequestDownloadCommand : AuthorizedCommand, IRecordAccessPath
+    internal class RequestDownloadCommand : AuthenticatedCommand, IRecordAccessPath
     {
         public RequestDownloadCommand() : base("request_download") { }
 
@@ -311,7 +311,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class RequestUploadCommand : AuthorizedCommand
+    internal class RequestUploadCommand : AuthenticatedCommand
     {
         public RequestUploadCommand() : base("request_upload") { }
 

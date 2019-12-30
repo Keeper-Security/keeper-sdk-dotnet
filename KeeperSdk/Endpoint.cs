@@ -34,6 +34,7 @@ namespace KeeperSecurity.Sdk
         static KeeperEndpoint()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+//            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
         }
 
         public KeeperEndpoint()
@@ -69,7 +70,7 @@ namespace KeeperSecurity.Sdk
                 {
                     request.Proxy = WebProxy;
                 }
-
+                request.UserAgent = "KeeperSDK.Net/" + ClientVersion;
                 request.ContentType = "application/octet-stream";
                 request.Method = "POST";
 
@@ -170,15 +171,10 @@ namespace KeeperSecurity.Sdk
             command.locale = Locale;
             command.clientVersion = ClientVersion;
 
-            var settings = new DataContractJsonSerializerSettings
-            {
-                UseSimpleDictionaryFormat = true
-            };
-
             byte[] rq;
             using (var ms = new MemoryStream())
             {
-                var cmdSerializer = new DataContractJsonSerializer(command.GetType(), settings);
+                var cmdSerializer = new DataContractJsonSerializer(command.GetType(), JsonUtils.JsonSettings);
                 cmdSerializer.WriteObject(ms, command);
                 rq = ms.ToArray();
             }
@@ -189,7 +185,7 @@ namespace KeeperSecurity.Sdk
 
             using (var ms = new MemoryStream(rs))
             {
-                var rsSerializer = new DataContractJsonSerializer(responseType, settings);
+                var rsSerializer = new DataContractJsonSerializer(responseType, JsonUtils.JsonSettings);
                 return (KeeperApiResponse)rsSerializer.ReadObject(ms);
             }
         }

@@ -27,6 +27,7 @@ using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Paddings;
 using System.Web;
 using System.Collections.Generic;
+using Org.BouncyCastle.Pkcs;
 
 namespace KeeperSecurity.Sdk
 {
@@ -125,9 +126,8 @@ namespace KeeperSecurity.Sdk
 
 
         const int AesGcmNonceLength = 12;
-        public static byte[] EncryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceLength)
+        public static byte[] EncryptAesV2(byte[] data, byte[] key, byte[] nonce)
         {
-            var nonce = GetRandomBytes(nonceLength);
             var parameters = new AeadParameters(new KeyParameter(key), 16 * 8, nonce);
 
             var cipher = new GcmBlockCipher(new AesEngine());
@@ -138,6 +138,11 @@ namespace KeeperSecurity.Sdk
             len += cipher.DoFinal(cipherText, len);
 
             return nonce.Concat(cipherText.Take(len)).ToArray();
+        }
+
+        public static byte[] EncryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceLength)
+        {
+            return EncryptAesV2(data, key, GetRandomBytes(nonceLength));
         }
 
         public static byte[] DecryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceLength)
@@ -259,6 +264,21 @@ namespace KeeperSecurity.Sdk
             return outBuffer.Take(32).Take(32).ToArray();
         }
 
+        public static void GenerateRsaKey(out byte[] privateKey, out byte[] publicKey)
+        {
+            RsaKeyPairGenerator r = new RsaKeyPairGenerator();
+            r.Init(new KeyGenerationParameters(new SecureRandom(), 2048));
+            AsymmetricCipherKeyPair keys = r.GenerateKeyPair();
+
+            RsaPrivateCrtKeyParameters privateParams = (RsaPrivateCrtKeyParameters)keys.Private;
+            PrivateKeyInfo privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateParams);
+            privateKey = privateKeyInfo.ParsePrivateKey().GetDerEncoded();
+
+            RsaKeyParameters publicParams = (RsaKeyParameters)keys.Public;
+            var publicKeyInfo = new RsaPublicKeyStructure(publicParams.Modulus, publicParams.Exponent);
+            publicKey = publicKeyInfo.GetDerEncoded();
+        }
+
         public static byte[] DeriveKeyV2(string domain, string password, byte[] salt, int iterations)
         {
             var passwordBytes = Encoding.UTF8.GetBytes(domain + password);
@@ -290,9 +310,11 @@ namespace KeeperSecurity.Sdk
             return output.ToArray();
         }
 
-        public static Tuple<string, int, int> GetTotpCode(string url) {
+        public static Tuple<string, int, int> GetTotpCode(string url)
+        {
             var uri = new Uri(url);
-            if (uri == null || uri.Scheme != "otpauth") {
+            if (uri == null || uri.Scheme != "otpauth")
+            {
                 return null;
             }
             string secret = null;
@@ -300,8 +322,10 @@ namespace KeeperSecurity.Sdk
             int digits = 6;
             int period = 30;
             var coll = HttpUtility.ParseQueryString(uri.Query);
-            foreach (var key in coll.AllKeys) {
-                switch (key) {
+            foreach (var key in coll.AllKeys)
+            {
+                switch (key)
+                {
                     case "secret":
                         secret = coll[key];
                         break;
@@ -316,7 +340,8 @@ namespace KeeperSecurity.Sdk
                         break;
                 }
             }
-            if (string.IsNullOrEmpty(secret)) {
+            if (string.IsNullOrEmpty(secret))
+            {
                 return null;
             }
 
@@ -330,7 +355,8 @@ namespace KeeperSecurity.Sdk
             var secretBytes = Base32ToBytes(secret.ToUpperInvariant());
 
             HMAC hmac = null;
-            switch (algorithm) {
+            switch (algorithm)
+            {
                 case "SHA1":
                     hmac = new HMACSHA1(secretBytes);
                     break;
@@ -341,7 +367,8 @@ namespace KeeperSecurity.Sdk
                     hmac = new HMACMD5(secretBytes);
                     break;
             }
-            if (hmac != null) {
+            if (hmac != null)
+            {
                 var digest = hmac.ComputeHash(msg);
                 var offset = digest[digest.Length - 1] & 0x0f;
                 var codeBytes = new byte[4];
@@ -354,7 +381,8 @@ namespace KeeperSecurity.Sdk
                 var codeInt = BitConverter.ToInt32(codeBytes, 0);
                 codeInt %= Enumerable.Repeat(10, digits).Aggregate(1, (a, b) => a * b);
                 var codeStr = codeInt.ToString();
-                while (codeStr.Length < digits) {
+                while (codeStr.Length < digits)
+                {
                     codeStr = "0" + codeStr;
                 }
                 return Tuple.Create(codeStr, (int)(tmBase % period), period);

@@ -109,7 +109,7 @@ namespace KeeperSecurity.Sdk
         protected internal readonly ConcurrentDictionary<string, FolderNode> keeperFolders = new ConcurrentDictionary<string, FolderNode>();
         protected internal readonly FolderNode rootFolder;
 
-        protected internal IKeeperStorage Storage { get; }
+        public IKeeperStorage Storage { get; }
         protected internal byte[] ClientKey { get; }
 
         public void RebuildData(RebuildTask changes = null)

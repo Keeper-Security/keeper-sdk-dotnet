@@ -14,13 +14,142 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Diagnostics;
 
 namespace KeeperSecurity.Sdk
 {
-    public class JsonConfigurationStorage : IConfigurationStorage
+    public abstract class JsonConfigurationBase : IConfigurationStorage
+    {
+        protected abstract byte[] LoadJson();
+        protected abstract void StoreJson(byte[] json);
+
+        public static Configuration JsonConfigurationToConfiguration(JsonConfiguration json)
+        {
+            var configuration = new Configuration
+            {
+                LastLogin = json.lastLogin,
+                LastServer = json.lastServer
+            };
+            if (json.users != null)
+            {
+                foreach (var u in json.users)
+                {
+                    if (!string.IsNullOrEmpty(u.user))
+                    {
+                        var uc = new UserConfiguration(u.user)
+                        {
+                            Password = u.password,
+                            TwoFactorToken = u.twoFactorToken
+                        };
+                        configuration._users.Add(uc.Username, uc);
+                    }
+                }
+            }
+            if (json.servers != null)
+            {
+                foreach (var s in json.servers)
+                {
+                    if (!string.IsNullOrEmpty(s.server))
+                    {
+                        var sc = new ServerConfiguration(s.server)
+                        {
+                            DeviceId = s.deviceId.Base64UrlDecode(),
+                            ServerKeyId = s.serverKeyId
+                        };
+                        configuration._servers.Add(sc.Server, sc);
+                    }
+                }
+            }
+            return configuration;
+        }
+
+        public Configuration Get()
+        {
+            var jsonBytes = LoadJson();
+            if (jsonBytes != null && jsonBytes.Length >= 2)
+            {
+                var json = JsonUtils.ParseJson<JsonConfiguration>(jsonBytes);
+                return JsonConfigurationToConfiguration(json);
+            }
+
+            return new Configuration();
+        }
+
+        public void Put(Configuration configuration)
+        {
+            JsonConfiguration json;
+            var jsonBytes = LoadJson();
+            if (jsonBytes != null && jsonBytes.Length >= 2)
+            {
+                json = JsonUtils.ParseJson<JsonConfiguration>(jsonBytes);
+            }
+            else
+            {
+                json = new JsonConfiguration();
+            }
+            json.lastLogin = configuration.LastLogin;
+            json.lastServer = configuration.LastServer;
+            var users = new Dictionary<string, JsonUserConfiguration>();
+            if (json.users != null)
+            {
+                foreach (var u in json.users)
+                {
+                    if (!string.IsNullOrEmpty(u.user))
+                    {
+                        var username = u.user.AdjustUserName();
+                        users.Add(username, u);
+                    }
+                }
+            }
+            foreach (var u in configuration.Users)
+            {
+                if (!users.TryGetValue(u.Username, out JsonUserConfiguration juser))
+                {
+                    juser = new JsonUserConfiguration
+                    {
+                        user = u.Username,
+                    };
+                    users.Add(u.Username, juser);
+                }
+                juser.twoFactorToken = u.TwoFactorToken;
+            }
+
+            var servers = new Dictionary<string, JsonServerConfiguration>();
+            if (json.servers != null)
+            {
+                foreach (var s in json.servers)
+                {
+                    if (!string.IsNullOrEmpty(s.server))
+                    {
+                        var servername = s.server.AdjustServerName();
+                        servers.Add(servername, s);
+                    }
+                }
+            }
+            foreach (var s in configuration.Servers)
+            {
+                if (!servers.TryGetValue(s.Server, out JsonServerConfiguration jserver))
+                {
+                    jserver = new JsonServerConfiguration
+                    {
+                        server = s.Server
+                    };
+                    servers.Add(s.Server, jserver);
+                }
+                jserver.deviceId = s.DeviceId.Base64UrlEncode();
+                jserver.serverKeyId = s.ServerKeyId;
+            }
+
+            json.users = users.Values.OrderBy(x => x.user).ToArray();
+            json.servers = servers.Values.OrderBy(x => x.server).ToArray();
+
+            var jsonData = JsonUtils.DumpJson(json);
+
+            StoreJson(jsonData);
+        }
+    }
+
+    public class JsonConfigurationStorage : JsonConfigurationBase
     {
         public JsonConfigurationStorage() : this("config.json")
         {
@@ -47,179 +176,80 @@ namespace KeeperSecurity.Sdk
 
         public string FilePath { get; private set; }
 
-        public JsonConfiguration Get()
+        protected override byte[] LoadJson()
         {
             if (File.Exists(FilePath))
             {
                 try
                 {
-                    var serializer = new DataContractJsonSerializer(typeof(JsonConfiguration));
-                    using (var stream = File.OpenRead(FilePath))
-                    {
-                        var obj = serializer.ReadObject(stream);
-                        return (JsonConfiguration)obj;
-                    }
-                }
-                catch (SerializationException se)
-                {
-                    Trace.TraceError("JSON configuration: File name: \"{0}\", Error: {1}", FilePath, se.Message);
+                    return File.ReadAllBytes(FilePath);
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceError("JSON configuration: File name: \"{0}\", Error: {1}", FilePath, e.Message);
+                    Trace.TraceError("Read JSON configuration: File name: \"{0}\", Error: {1}", FilePath, e.Message);
                 }
             }
-            return new JsonConfiguration();
+            return null;
         }
 
-        IConfiguration IConfigurationStorage.Get()
+        protected override void StoreJson(byte[] json)
         {
-            return Get();
-        }
-
-        public void Put(IConfiguration configuration)
-        {
-            var config = Get();
-            if (!string.IsNullOrEmpty(configuration.LastServer))
+            try
             {
-                config.LastServer = configuration.LastServer;
+                File.WriteAllBytes(FilePath, json);
             }
-            if (!string.IsNullOrEmpty(configuration.LastLogin))
+            catch (Exception e)
             {
-                config.LastLogin = configuration.LastLogin;
-            }
-
-            var users = configuration.Users;
-            if (users?.Any() == true)
-            {
-                if (config._users == null)
-                {
-                    config._users = new List<JsonUserConfiguration>();
-                }
-                var lookup = new Dictionary<string, JsonUserConfiguration>();
-                foreach (var user in config._users)
-                {
-                    lookup.Add(user.Username.AdjustUserName(), user);
-                }
-                foreach (var user in users)
-                {
-                    if (!lookup.TryGetValue(user.Username.AdjustUserName(), out JsonUserConfiguration userConf))
-                    {
-                        userConf = new JsonUserConfiguration
-                        {
-                            Username = user.Username
-                        };
-                        config._users.Add(userConf);
-                    }
-                    userConf.TwoFactorToken = user.TwoFactorToken;
-                }
-            }
-
-            var servers = configuration.Servers;
-            if (servers?.Any() == true)
-            {
-                if (config._servers == null)
-                {
-                    config._servers = new List<JsonServerConfiguration>();
-                }
-                var lookup = new Dictionary<string, JsonServerConfiguration>();
-                foreach (var server in config._servers)
-                {
-                    lookup.Add(server.Server.AdjustServerUrl(), server);
-                }
-                foreach (var server in servers)
-                {
-                    if (!lookup.TryGetValue(server.Server.AdjustServerUrl(), out JsonServerConfiguration serverConf))
-                    {
-                        serverConf = new JsonServerConfiguration
-                        {
-                            Server = server.Server.AdjustServerUrl()
-                        };
-                        config._servers.Add(serverConf);
-                    }
-                    serverConf.DeviceId = server.DeviceId.ToArray();
-                    serverConf.ServerKeyId = server.ServerKeyId;
-                }
-            }
-
-            var settings = new DataContractJsonSerializerSettings
-            {
-                UseSimpleDictionaryFormat = true
-            };
-
-            using (var stream = new MemoryStream())
-            {
-                using (var writer = JsonReaderWriterFactory.CreateJsonWriter(stream, Encoding.UTF8, true, true, "    "))
-                {
-                    var serializer = new DataContractJsonSerializer(typeof(JsonConfiguration), settings);
-                    serializer.WriteObject(writer, config);
-                }
-                var jsonText = Encoding.UTF8.GetString(stream.ToArray());
-                var pos = 0;
-                while (pos < jsonText.Length - 1)
-                {
-                    var p = jsonText.IndexOf("\\/", pos, StringComparison.Ordinal);
-                    if (p < 0)
-                    {
-                        break;
-                    }
-                    if (p > 1)
-                    {
-                        if (jsonText[p - 1] != '\\')
-                        {
-                        }
-                        jsonText = jsonText.Remove(p, 1);
-                    }
-                    pos = p += 1;
-                }
-
-                File.WriteAllBytes(FilePath, Encoding.UTF8.GetBytes(jsonText));
+                Trace.TraceError("Store JSON configuration: File name: \"{0}\", Error: {1}", FilePath, e.Message);
             }
         }
     }
 
     [DataContract]
-    public class JsonUserConfiguration : IUserConfiguration
+    public class JsonUserConfiguration : IExtensibleDataObject
     {
         [DataMember(Name = "user", EmitDefaultValue = false)]
-        public string Username { get; set; }
+        public string user;
         [DataMember(Name = "password", EmitDefaultValue = false)]
-        public string Password { get; internal set; }
-
+        //#pragma warning disable 0649
+        public string password;
+        //#pragma warning restore 0649
         [DataMember(Name = "mfa_token", EmitDefaultValue = false)]
-        public string TwoFactorToken { get; set; }
+        public string twoFactorToken;
+
+        public ExtensionDataObject ExtensionData { get; set; }
     }
 
     [DataContract]
-    public class JsonServerConfiguration : IServerConfiguration
+    public class JsonServerConfiguration : IExtensibleDataObject
     {
         [DataMember(Name = "server", EmitDefaultValue = false)]
-        public string Server { get; set; }
+        public string server;
 
         [DataMember(Name = "device_id", EmitDefaultValue = false)]
-        string device_id_;
-        public byte[] DeviceId { get => device_id_.Base64UrlDecode(); set => device_id_ = value.Base64UrlEncode(); }
+        public string deviceId;
 
         [DataMember(Name = "server_key_id", EmitDefaultValue = false)]
-        public int ServerKeyId { get; set; }
+        public int serverKeyId;
+
+        public ExtensionDataObject ExtensionData { get; set; }
     }
 
     [DataContract]
-    public class JsonConfiguration : IConfiguration
+    public class JsonConfiguration : IExtensibleDataObject
     {
         [DataMember(Name = "last_server", EmitDefaultValue = false)]
-        public string LastServer { get; set; }
+        public string lastServer;
 
         [DataMember(Name = "last_login", EmitDefaultValue = false)]
-        public string LastLogin { get; set; }
+        public string lastLogin;
 
         [DataMember(Name = "users", EmitDefaultValue = false)]
-        internal List<JsonUserConfiguration> _users;
+        public JsonUserConfiguration[] users;
 
         [DataMember(Name = "servers", EmitDefaultValue = false)]
-        internal List<JsonServerConfiguration> _servers;
+        public JsonServerConfiguration[] servers;
 
-        public IEnumerable<IUserConfiguration> Users => _users?.Cast<IUserConfiguration>();
-        public IEnumerable<IServerConfiguration> Servers => _servers?.Cast<IServerConfiguration>();
+        public ExtensionDataObject ExtensionData { get; set; }
     }
 }

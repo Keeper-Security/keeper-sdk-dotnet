@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace KeeperSecurity.Sdk
 {
     [DataContract]
-    public class ChangeMasterPasswordCommand : AuthorizedCommand
+    public class ChangeMasterPasswordCommand : AuthenticatedCommand
     {
         public ChangeMasterPasswordCommand() : base("change_master_password") { }
         [DataMember(Name = "auth_verifier")]
@@ -30,7 +30,7 @@ namespace KeeperSecurity.Sdk
 
 
     [DataContract]
-    public class ShareAccountCommand : AuthorizedCommand
+    public class ShareAccountCommand : AuthenticatedCommand
     {
         public ShareAccountCommand() : base("share_account") { }
         [DataMember(Name = "to_role_id")]
@@ -65,26 +65,26 @@ namespace KeeperSecurity.Sdk
     public static class ManageAccountExtension
     {
         public static async Task ShareAccount(this Auth auth) {
-            if (auth.accountSettings?.shareAccountTo != null) {
-                foreach (var shareTo in auth.accountSettings.shareAccountTo)
+            if (auth.AuthContext.accountSettings?.shareAccountTo != null) {
+                foreach (var shareTo in auth.AuthContext.accountSettings.shareAccountTo)
                 {
                     var key = CryptoUtils.LoadPublicKey(shareTo.publicKey.Base64UrlDecode());
                     var command = new ShareAccountCommand();
                     command.ToRoleId = shareTo.roleId;
-                    command.TransferTey = CryptoUtils.EncryptRsa(auth.DataKey, key).Base64UrlEncode();
+                    command.TransferTey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode();
                     await auth.ExecuteAuthCommand(command);
                 }
-                auth.accountSettings.shareAccountTo = null;
+                auth.AuthContext.accountSettings.shareAccountTo = null;
             }
         }
 
         public static async Task<string> ChangeMasterPassword(this Auth auth, int iterations)
         {
-            var passwordRulesIntro = auth.accountSettings?.passwordRulesIntro;
-            PasswordRule[] passwordRules = auth.accountSettings?.passwordRules;
+            var passwordRulesIntro = auth.AuthContext.accountSettings?.passwordRulesIntro;
+            PasswordRule[] passwordRules = auth.AuthContext.accountSettings?.passwordRules;
             if (passwordRules == null)
             {
-                var userParams = await auth.GetNewUserParams(auth.Username);
+                var userParams = await auth.GetNewUserParams(auth.AuthContext.Username);
                 passwordRules = userParams.PasswordMatchRegex
                     .Zip(userParams.PasswordMatchDescription, (rx, d) => new PasswordRule
                     {
@@ -102,7 +102,7 @@ namespace KeeperSecurity.Sdk
             var authSalt = CryptoUtils.GetRandomBytes(16);
             var authVerifier = CryptoUtils.CreateAuthVerifier(password, authSalt, iterations);
             var keySalt = CryptoUtils.GetRandomBytes(16);
-            var encryptionParameters = CryptoUtils.CreateEncryptionParams(password, keySalt, iterations, auth.DataKey);
+            var encryptionParameters = CryptoUtils.CreateEncryptionParams(password, keySalt, iterations, auth.AuthContext.DataKey);
 
             var command = new ChangeMasterPasswordCommand
             {
