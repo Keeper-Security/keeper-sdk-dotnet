@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Keeper.Sdk</id>
-    <version>0.9.0-beta</version>
+    <version>0.9.1</version>
     <authors>Keeper Security Inc.</authors>
     <owners>Keeper Security Inc.</owners>
     <copyright>Copyright ©2019 Keeper Security Inc.</copyright>
@@ -14,16 +14,16 @@
     <repository type="Github" url="https://github.com/Keeper-Security/keeper-sdk-dotnet" />
     <dependencies>
       <group targetFramework=".NETFramework4.5">
-        <dependency id="Google.Protobuf" version="3.8.0" exclude="Build,Analyzers" />
-        <dependency id="Portable.BouncyCastle" version="1.8.5" exclude="Build,Analyzers" />
+        <dependency id="Google.Protobuf" version="3.11.2" exclude="Build,Analyzers" />
+        <dependency id="Portable.BouncyCastle" version="1.8.5.2" exclude="Build,Analyzers" />
       </group>
       <group targetFramework=".NETCoreApp2.1">
-        <dependency id="Google.Protobuf" version="3.8.0" exclude="Build,Analyzers" />
-        <dependency id="Portable.BouncyCastle" version="1.8.5" exclude="Build,Analyzers" />
+        <dependency id="Google.Protobuf" version="3.11.2" exclude="Build,Analyzers" />
+        <dependency id="Portable.BouncyCastle" version="1.8.5.2" exclude="Build,Analyzers" />
       </group>
       <group targetFramework=".NETStandard2.0">
-        <dependency id="Google.Protobuf" version="3.8.0" exclude="Build,Analyzers" />
-        <dependency id="Portable.BouncyCastle" version="1.8.5" exclude="Build,Analyzers" />
+        <dependency id="Google.Protobuf" version="3.11.2" exclude="Build,Analyzers" />
+        <dependency id="Portable.BouncyCastle" version="1.8.5.2" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>
