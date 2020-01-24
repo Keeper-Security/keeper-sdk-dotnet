@@ -10,6 +10,7 @@ namespace KeeperSecurity.Sdk.UI
         Authenticator,
         TextMessage,
         DuoSecurity,
+        RSASecurID,
         Other,
     }
 

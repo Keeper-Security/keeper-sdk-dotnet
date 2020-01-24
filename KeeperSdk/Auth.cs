@@ -394,6 +394,9 @@ namespace KeeperSecurity.Sdk
                                 case "two_factor_channel_duo":
                                     channel = TwoFactorCodeChannel.DuoSecurity;
                                     break;
+                                case "two_factor_channel_rsa":
+                                    channel = TwoFactorCodeChannel.RSASecurID;
+                                    break;
                                 default:
                                     break;
 
