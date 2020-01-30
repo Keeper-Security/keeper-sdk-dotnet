@@ -1,7 +1,7 @@
 ### Reference Keeper Commander Powershell module
 
 To install the PowerCommander module copy PowerCommander\ directory to 
-* `%USERPROFILE%\WindowsPowerShell\Modules` Per User
+* `%USERPROFILE%\Documents\WindowsPowerShell\Modules` Per User
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
 ### Cmdlets
