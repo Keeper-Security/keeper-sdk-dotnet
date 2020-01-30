@@ -105,7 +105,11 @@ namespace KeeperSecurity.Sdk
                     DeviceName = KeeperEndpoint.DefaultDeviceName
                 };
 
-                var rs = await Endpoint.ExecuteRest("authentication/get_device_token", deviceRequest.ToByteArray());
+                var apiPayload = new ApiRequestPayload()
+                {
+                    Payload = deviceRequest.ToByteString()
+                };
+                var rs = await Endpoint.ExecuteRest("authentication/get_device_token", apiPayload);
                 var deviceRs = DeviceResponse.Parser.ParseFrom(rs);
                 if (deviceRs.Status == DeviceStatus.Ok)
                 {
@@ -145,10 +149,13 @@ namespace KeeperSecurity.Sdk
                 {
                     preLogin.TwoFactorToken = ByteString.CopyFrom(twoFactorToken);
                 }
-
+                var apiPayload = new ApiRequestPayload()
+                {
+                    Payload = preLogin.ToByteString()
+                };
                 try
                 {
-                    var response = await Endpoint.ExecuteRest("authentication/pre_login", preLogin.ToByteArray());
+                    var response = await Endpoint.ExecuteRest("authentication/pre_login", apiPayload);
                     return PreLoginResponse.Parser.ParseFrom(response);
                 }
                 catch (ProxyAuthenticateException pe)
@@ -207,8 +214,11 @@ namespace KeeperSecurity.Sdk
                 Username = userName.ToLowerInvariant(),
                 EncryptedDeviceToken = ByteString.CopyFrom(Endpoint.EncryptedDeviceToken)
             };
-
-            var rs = await Endpoint.ExecuteRest("authentication/get_new_user_params", authRequest.ToByteArray());
+            var apiPayload = new ApiRequestPayload()
+            {
+                Payload = authRequest.ToByteString()
+            };
+            var rs = await Endpoint.ExecuteRest("authentication/get_new_user_params", apiPayload);
             return NewUserMinimumParams.Parser.ParseFrom(rs);
         }
 

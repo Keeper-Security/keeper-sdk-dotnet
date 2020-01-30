@@ -45,7 +45,7 @@ namespace KeeperSecurity.Sdk
             Server = DefaultKeeperServer;
         }
 
-        public async Task<byte[]> ExecuteRest(string endpoint, byte[] payload)
+        public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
         {
             var builder = new UriBuilder(Server ?? DefaultKeeperServer)
             {
@@ -55,10 +55,10 @@ namespace KeeperSecurity.Sdk
             };
             var uri = new Uri(builder.Uri, endpoint);
 
-            var apiPayload = new ApiRequestPayload()
-            {
-                Payload = ByteString.CopyFrom(payload)
-            };
+            //var apiPayload = new ApiRequestPayload()
+            //{
+            //    Payload = ByteString.CopyFrom(payload)
+            //};
 
             var attempt = 0;
             while (attempt < 3)
@@ -74,7 +74,7 @@ namespace KeeperSecurity.Sdk
                 request.ContentType = "application/octet-stream";
                 request.Method = "POST";
 
-                var encPayload = CryptoUtils.EncryptAesV2(apiPayload.ToByteArray(), _transmissionKey);
+                var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), _transmissionKey);
                 var encKey = CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperPublicKeys[ServerKeyId]);
                 var apiRequest = new ApiRequest()
                 {
@@ -178,9 +178,12 @@ namespace KeeperSecurity.Sdk
                 cmdSerializer.WriteObject(ms, command);
                 rq = ms.ToArray();
             }
-
+            var apiPayload = new ApiRequestPayload()
+            {
+                Payload = ByteString.CopyFrom(rq)
+            };
             Debug.WriteLine("Request: " + Encoding.UTF8.GetString(rq));
-            var rs = await ExecuteRest("vault/execute_v2_command", rq);
+            var rs = await ExecuteRest("vault/execute_v2_command", apiPayload);
             Debug.WriteLine("Response: " + Encoding.UTF8.GetString(rs));
 
             using (var ms = new MemoryStream(rs))
