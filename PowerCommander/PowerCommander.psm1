@@ -13,13 +13,12 @@ class TerminalUI : UI.IAuthUI {
 		return [Task[bool]]::FromResult($decision -eq 0);
 	}
 	
-	[TaskCompletionSource[UI.TwoFactorCode]]GetTwoFactorCode([UI.TwoFactorCodeChannel] $channel) {
-		[TaskCompletionSource[UI.TwoFactorCode]] $source = $null
+	[Task[UI.TwoFactorCode]]GetTwoFactorCode([UI.TwoFactorCodeChannel] $channel) {
+		[Task[UI.TwoFactorCode]] $source = $null
 		$code = Read-Host -Prompt 'Enter Code'
 		if ($code) {
-			$source = New-Object -TypeName TaskCompletionSource[UI.TwoFactorCode]
 			$rs = New-Object -TypeName UI.TwoFactorCode($code, [UI.TwoFactorCodeDuration]::Forever)
-			$source.SetResult($rs)
+			$source = [Task]::FromResult($rs)
 		}
 		
 		return $source

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using KeeperSecurity.Sdk;
@@ -14,7 +17,17 @@ namespace Commander
         public ConnectedCommands(Vault vault) : base()
         {
             _vault = vault;
-
+            Task.Run(() =>
+            {
+                try
+                {
+                    _ = SubscribeToNotifications();
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            });
             Commands.Add("list", new ParsableCommand<ListCommandOptions>
             {
                 Order = 10,
@@ -81,6 +94,7 @@ namespace Commander
                 Description = "Logout",
                 Action = (_) =>
                 {
+                    UnsubscribeFromNotifications();
                     _vault.Auth.Logout();
                     Finished = true;
                     NewCommands = new NotConnectedCliCommands(_vault.Auth);
@@ -95,6 +109,75 @@ namespace Commander
         }
 
         private string _currentFolder;
+
+        private CancellationTokenSource _notificationCancelToken;
+        private async Task SubscribeToNotifications()
+        {
+            var pushUrl = await _vault.Auth.GetNotificationUrl();
+            var ws = new ClientWebSocket();
+            var ts = new CancellationTokenSource();
+            await ws.ConnectAsync(new Uri(pushUrl), ts.Token);
+            _notificationCancelToken = ts;
+            _ = Task.Run(async () =>
+            {
+                var webSocket = ws;
+                var tokenSource = ts;
+                byte[] buffer = new byte[1024];
+                var segment = new ArraySegment<byte>(buffer);
+                try
+                {
+                    while (webSocket.State == WebSocketState.Open && !tokenSource.IsCancellationRequested)
+                    {
+                        var rs = await ws.ReceiveAsync(segment, tokenSource.Token);
+                        if (rs == null)
+                        {
+                            break;
+                        }
+                        if (rs.Count > 0)
+                        {
+                            var notification = new byte[rs.Count];
+                            Array.Copy(buffer, notification, rs.Count);
+                            _vault.OnNotificationReceived(notification);
+                        }
+                    }
+                    if (webSocket.State == WebSocketState.Open)
+                    {
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                    }
+                    if (!tokenSource.IsCancellationRequested)
+                    {
+                        tokenSource.Cancel();
+                    }
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+                finally
+                {
+                    if (_notificationCancelToken == tokenSource)
+                    {
+                        _notificationCancelToken = null;
+                    }
+                    tokenSource.Dispose();
+                    webSocket.Dispose();
+                }
+            });
+        }
+
+        private void UnsubscribeFromNotifications()
+        {
+            if (_notificationCancelToken != null)
+            {
+                if (!_notificationCancelToken.IsCancellationRequested)
+                {
+                    _notificationCancelToken.Cancel();
+                }
+                _notificationCancelToken.Dispose();
+                _notificationCancelToken = null;
+            }
+        }
 
         private Task ListCommand(ListCommandOptions options)
         {
@@ -538,11 +621,6 @@ namespace Commander
                 }
             }
             return true;
-        }
-
-        public void ScheduleSyncDown()
-        {
-            CommandQueue.Enqueue("sync-down");
         }
 
         public override string GetPrompt()

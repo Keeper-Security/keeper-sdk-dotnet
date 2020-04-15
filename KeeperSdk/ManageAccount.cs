@@ -78,31 +78,19 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        public static async Task<string> ChangeMasterPassword(this Auth auth, int iterations)
+        public static async Task<string> ChangeMasterPassword(this Auth auth)
         {
-            var passwordRulesIntro = auth.AuthContext.accountSettings?.passwordRulesIntro;
-            PasswordRule[] passwordRules = auth.AuthContext.accountSettings?.passwordRules;
-            if (passwordRules == null)
-            {
-                var userParams = await auth.GetNewUserParams(auth.AuthContext.Username);
-                passwordRules = userParams.PasswordMatchRegex
-                    .Zip(userParams.PasswordMatchDescription, (rx, d) => new PasswordRule
-                    {
-                        match = true,
-                        pattern = rx,
-                        description = d
-                    })
-                    .ToArray();
-            }
+            var passwordRulesIntro = auth.AuthContext.passwordRulesIntro ??  auth.AuthContext.accountSettings?.passwordRulesIntro;
+            PasswordRule[] passwordRules = auth.AuthContext.passwordRules ?? auth.AuthContext.accountSettings?.passwordRules;
             var ruleMatcher = new PasswordRuleMatcher(passwordRulesIntro, passwordRules);
             var password = await auth.Ui.GetNewPassword(ruleMatcher);
             var failedRules = ruleMatcher.MatchFailedRules(password);
             if (failedRules.Length != 0) throw new KeeperApiException("password_rule_failed", failedRules[0]);
             
             var authSalt = CryptoUtils.GetRandomBytes(16);
-            var authVerifier = CryptoUtils.CreateAuthVerifier(password, authSalt, iterations);
+            var authVerifier = CryptoUtils.CreateAuthVerifier(password, authSalt, auth.authContext.AuthIterations);
             var keySalt = CryptoUtils.GetRandomBytes(16);
-            var encryptionParameters = CryptoUtils.CreateEncryptionParams(password, keySalt, iterations, auth.AuthContext.DataKey);
+            var encryptionParameters = CryptoUtils.CreateEncryptionParams(password, keySalt, auth.authContext.AuthIterations, auth.AuthContext.DataKey);
 
             var command = new ChangeMasterPasswordCommand
             {

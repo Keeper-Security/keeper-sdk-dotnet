@@ -57,13 +57,4 @@ namespace KeeperSecurity.Sdk
     public class KeeperRequiresUI : Exception
     {
     }
-
-    public class ProxyAuthenticateException : Exception
-    {
-        public string ProxyAuthenticate { get; }
-        public ProxyAuthenticateException(string message, string proxyAuthenticate) : base(message)
-        {
-            ProxyAuthenticate = proxyAuthenticate;
-        }
-    }
 }

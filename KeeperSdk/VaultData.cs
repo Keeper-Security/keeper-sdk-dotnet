@@ -110,7 +110,7 @@ namespace KeeperSecurity.Sdk
         protected internal readonly FolderNode rootFolder;
 
         public IKeeperStorage Storage { get; }
-        protected internal byte[] ClientKey { get; }
+        public byte[] ClientKey { get; }
 
         public void RebuildData(RebuildTask changes = null)
         {

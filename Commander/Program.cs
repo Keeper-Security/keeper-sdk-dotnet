@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
-using System.Diagnostics;
+using System.Net.WebSockets;
 using System.Threading;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Commander
 {
@@ -31,10 +32,10 @@ namespace Commander
             var auth = new Auth(ui, storage);
 
             CliCommands commands = new NotConnectedCliCommands(auth);
-            var conf = storage.Get();
-            if (!string.IsNullOrEmpty(conf.LastLogin))
+            IUserStorage us = storage;
+            if (!string.IsNullOrEmpty(us.LastLogin))
             {
-                commands.CommandQueue.Enqueue(string.Format("login {0}", conf.LastLogin));
+                commands.CommandQueue.Enqueue($"login {us.LastLogin}");
             }
 
             while (commands != null && !commands.Finished)
@@ -81,7 +82,7 @@ namespace Commander
                     {
                         if (command != "?")
                         {
-                            Console.WriteLine(string.Format("Invalid command: {0}", command));
+                            Console.WriteLine($"Invalid command: {command}");
                         }
                         foreach (var c in commands.Commands.OrderBy(x => x.Value.Order))
                         {
@@ -162,53 +163,77 @@ namespace Commander
                 return Task.FromResult(password1);
             }
 
-            public TaskCompletionSource<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel channel)
+            public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel channel)
             {
-                TaskCompletionSource<TwoFactorCode> source = new TaskCompletionSource<TwoFactorCode>();
-                Task.Run(() =>
+                return Task.Run(() =>
                 {
                     Console.Write("Enter Code: ");
                     var code = Console.ReadLine();
-                    if (!string.IsNullOrEmpty(code) && !source.Task.IsCompleted)
-                    {
-                        source.SetResult(new TwoFactorCode(code, TwoFactorCodeDuration.Forever));
-                    }
+                    return new TwoFactorCode(code, TwoFactorCodeDuration.Forever);
                 });
-                return source;
             }
 
-            public TaskCompletionSource<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, Func<DuoAction, Task> onAction)
+            string DuoPasscode { get; set; }
+            public Task<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, CancellationToken token)
             {
-                TaskCompletionSource<TwoFactorCode> source = new TaskCompletionSource<TwoFactorCode>();
-                Task.Run(async () =>
+                return Task.Run(() =>
                 {
+                    if (!string.IsNullOrEmpty(account.PushNotificationUrl) && token != null)
+                    {
+                        DuoPasscode = null;
+                        _ = Task.Run(async () =>
+                        {
+                            var ws = new ClientWebSocket();
+                            try
+                            {
+                                await ws.ConnectAsync(new Uri(account.PushNotificationUrl), token);
+                                byte[] buffer = new byte[1024];
+                                var segment = new ArraySegment<byte>(buffer);
+                                while (ws.State == WebSocketState.Open)
+                                {
+                                    var rs = await ws.ReceiveAsync(segment, token);
+                                    if (rs == null)
+                                    {
+                                        break;
+                                    }
+                                    if (rs.Count > 0)
+                                    {
+                                        var notification = new byte[rs.Count];
+                                        Array.Copy(buffer, notification, rs.Count);
+                                        var passcode = account.ParseDuoPasscodeNotification(notification);
+                                        if (!string.IsNullOrEmpty(passcode))
+                                        {
+                                            DuoPasscode = passcode;
+                                            Console.WriteLine("Press Enter to continue");
+                                        }
+                                    }
+                                }
+                            }
+                            catch (OperationCanceledException) { }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                            }
+                            finally
+                            {
+                                if (ws.State == WebSocketState.Open)
+                                {
+                                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                                }
+                                ws.Dispose();
+                            }
+                        });
+                    }
                     string input = null;
                     while (true)
                     {
                         Console.WriteLine("Type:\n\"push\" for DUO push\t\"sms\" for DUO text message\nDUO app code\tKeeper backup code\t<Enter> to Cancel");
                         Console.Write("> ");
                         input = Console.ReadLine();
-                        if (source.Task.IsCompleted)
+                        if (!string.IsNullOrEmpty(DuoPasscode))
                         {
-                            break;
-                        }
-                        if (string.IsNullOrEmpty(input))
-                        {
-                            break;
-                        }
-                        switch (input.ToLowerInvariant())
-                        {
-                            case "push":
-                            case "sms":
-                                var action = string.Compare(input, "push", true) == 0 ? DuoAction.DuoPush : DuoAction.TextMessage;
-                                input = null;
-                                await onAction(action);
-                                break;
-                            default:
-                                break;
-                        }
-                        if (source.Task.IsCompleted)
-                        {
+                            input = DuoPasscode;
+                            DuoPasscode = null;
                             break;
                         }
                         if (!string.IsNullOrEmpty(input))
@@ -216,19 +241,13 @@ namespace Commander
                             break;
                         }
                     }
-                    if (!source.Task.IsCompleted)
-                    {
-                        if (string.IsNullOrEmpty(input))
-                        {
-                            source.SetCanceled();
-                        }
-                        else
-                        {
-                            source.SetResult(new TwoFactorCode(input, TwoFactorCodeDuration.Forever));
-                        }
-                    }
+                    return new TwoFactorCode(input, TwoFactorCodeDuration.Forever);
                 });
-                return source;
+            }
+
+            public void DuoRequireEnrolment(string enrollmentUrl)
+            {
+                Console.WriteLine($"Complete Duo Enrollment by visiting: {enrollmentUrl}");
             }
         }
     }

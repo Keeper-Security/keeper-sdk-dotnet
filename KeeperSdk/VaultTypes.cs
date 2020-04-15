@@ -12,6 +12,7 @@
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Sdk
@@ -27,10 +28,35 @@ namespace KeeperSecurity.Sdk
         public string Password { get; set; }
         public string Link { get; set; }
         public string Notes { get; set; }
+        public DateTimeOffset ClientModified { get; internal set; }
         public IList<CustomField> Custom { get; } = new List<CustomField>();
         public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
         public IList<ExtraField> ExtraFields { get; } = new List<ExtraField>();
         public byte[] RecordKey { get; set; }
+
+        public CustomField DeleteCustomField(string name)
+        {
+            var cf = Custom.Where(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+            if (cf != null)
+            {
+                if (Custom.Remove(cf))
+                {
+                    return cf;
+                }
+            }
+            return null;
+        }
+
+        public CustomField SetCustomField(string name, string value)
+        {
+            var cf = Custom.Where(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault()
+                ?? new CustomField
+                {
+                    Name = name
+                };
+            cf.Value = value;
+            return cf;
+        }
     }
 
     public class CustomField
@@ -180,6 +206,9 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "udata", EmitDefaultValue = false)]
         public RecordUpdateUData Udata;
+
+        [DataMember(Name = "non_shared_data", EmitDefaultValue = false)]
+        public string NonSharedData;
 
         [DataMember(Name = "revision")]
         public long Revision;

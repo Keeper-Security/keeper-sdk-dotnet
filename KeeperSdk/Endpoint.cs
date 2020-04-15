@@ -21,6 +21,8 @@ using Google.Protobuf;
 using System.Runtime.Serialization.Json;
 using System.Diagnostics;
 using System.Text;
+using KeeperSecurity.Sdk.UI;
+using System.Linq;
 
 namespace KeeperSecurity.Sdk
 {
@@ -37,12 +39,17 @@ namespace KeeperSecurity.Sdk
 //            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
         }
 
-        public KeeperEndpoint()
+        public KeeperEndpoint(IServerStorage storage)
         {
+            _storage = storage;
             ClientVersion = DefaultClientVersion;
             Locale = KeeperSettings.DefaultLocale();
-            ServerKeyId = 1;
-            Server = DefaultKeeperServer;
+            string server = null;
+            if (_storage != null)
+            {
+                server = _storage.LastServer;
+            }
+            Server = server;
         }
 
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
@@ -55,10 +62,7 @@ namespace KeeperSecurity.Sdk
             };
             var uri = new Uri(builder.Uri, endpoint);
 
-            //var apiPayload = new ApiRequestPayload()
-            //{
-            //    Payload = ByteString.CopyFrom(payload)
-            //};
+            var keyId = _serverKeyId;
 
             var attempt = 0;
             while (attempt < 3)
@@ -74,25 +78,25 @@ namespace KeeperSecurity.Sdk
                 request.ContentType = "application/octet-stream";
                 request.Method = "POST";
 
+
                 var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), _transmissionKey);
-                var encKey = CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperPublicKeys[ServerKeyId]);
+                var encKey = CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperPublicKeys[keyId]);
                 var apiRequest = new ApiRequest()
                 {
                     EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
-                    PublicKeyId = ServerKeyId,
+                    PublicKeyId = keyId,
                     Locale = Locale,
                     EncryptedPayload = ByteString.CopyFrom(encPayload)
                 };
 
-                using (var requestStream = request.GetRequestStream())
-                {
-                    var p = apiRequest.ToByteArray();
-                    await requestStream.WriteAsync(p, 0, p.Length);
-                }
-
                 HttpWebResponse response;
                 try
                 {
+                    using (var requestStream = request.GetRequestStream())
+                    {
+                        var p = apiRequest.ToByteArray();
+                        await requestStream.WriteAsync(p, 0, p.Length);
+                    }
                     response = (HttpWebResponse)request.GetResponse();
                 }
                 catch (WebException e)
@@ -102,23 +106,22 @@ namespace KeeperSecurity.Sdk
                     {
                         if (hwr.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
                         {
+                            var authHeader = hwr.Headers.AllKeys
+                                .Where(x => string.Compare(x, "Proxy-Authenticate", true) == 0)
+                                .FirstOrDefault();
+                            WebProxy = await ProxyUi?.GetHttpProxyCredentials(authHeader);
                             if (WebProxy != null)
                             {
-                                WebProxy = null;
+                                continue;
                             }
-                            foreach (var key in hwr.Headers.AllKeys)
-                            {
-                                if (string.Compare(key, "Proxy-Authenticate", true) == 0)
-                                {
-                                    throw new ProxyAuthenticateException(e.Message, hwr.Headers[key]);
-                                }
-                            }
+                            throw;
                         }
                     }
                 }
 
                 if (response.StatusCode == HttpStatusCode.OK && response.ContentType == "application/octet-stream")
                 {
+                    SetConfigurationValid(keyId);
                     using (var ms = new MemoryStream())
                     using (var rss = response.GetResponseStream())
                     {
@@ -139,7 +142,7 @@ namespace KeeperSecurity.Sdk
                             case "key":
                                 if (KeeperSettings.KeeperPublicKeys.ContainsKey(keeperRs.KeyId))
                                 {
-                                    ServerKeyId = keeperRs.KeyId;
+                                    keyId = keeperRs.KeyId;
                                     continue;
                                 }
                                 break;
@@ -199,11 +202,52 @@ namespace KeeperSecurity.Sdk
         }
 
         private readonly byte[] _transmissionKey = CryptoUtils.GetRandomBytes(32);
-        public string Server { get; set; }
-        public byte[] EncryptedDeviceToken { get; internal set; }
+
+        private readonly IServerStorage _storage;
+
+        private string _server;
+        private int _serverKeyId;
+
+        private void SetConfigurationValid(int keyId)
+        {
+            if (keyId != _serverKeyId)
+            {
+                _serverKeyId = keyId;
+                if (_storage != null)
+                {
+                    var sc = _storage.Get(_server);
+                    var configuration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(_server);
+                    configuration.ServerKeyId = _serverKeyId;
+                    _storage.Put(configuration);
+                }
+            }
+        }
+
+        public string Server
+        {
+            get { return _server; }
+            set
+            {
+                _server = value ?? DefaultKeeperServer;
+                _serverKeyId = 1;
+                if (_storage != null)
+                {
+                    var configuration = _storage.Get(_server);
+                    if (configuration != null)
+                    {
+                        if (configuration.ServerKeyId > 0 && configuration.ServerKeyId <= KeeperSettings.KeeperPublicKeys.Count)
+                        {
+                            _serverKeyId = configuration.ServerKeyId;
+                        }
+                    }
+                }
+            }
+        }
+
         public string ClientVersion { get; set; }
         public string Locale { get; set; }
-        public int ServerKeyId { get; internal set; }
+
+        public IHttpProxyCredentialUI ProxyUi { get; set; }
         internal IWebProxy WebProxy { get; set; }
     }
 

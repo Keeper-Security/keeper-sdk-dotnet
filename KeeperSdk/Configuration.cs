@@ -15,11 +15,49 @@ using System.Linq;
 
 namespace KeeperSecurity.Sdk
 {
-    public class UserConfiguration
+    public interface IUserConfiguration
+    {
+        string Username { get; }
+        string Password { get; }
+        string TwoFactorToken { get; set; }
+    }
+
+    public interface IServerConfiguration
+    {
+        string Server { get; }
+        byte[] DeviceId { get; set; }
+        int ServerKeyId { get; set; }
+    }
+
+    public interface IUserStorage
+    {
+        string LastLogin { get; }
+        IUserConfiguration Get(string username);
+        void Put(IUserConfiguration userConfiguration);
+        IEnumerable<IUserConfiguration> Users { get; }
+    }
+
+    public interface IServerStorage
+    {
+        string LastServer { get; }
+        IServerConfiguration Get(string server);
+        void Put(IServerConfiguration serverConfiguration);
+        IEnumerable<IServerConfiguration> Servers { get; }
+    }
+
+    public interface IConfigurationStorage : IUserStorage, IServerStorage { }
+
+    public class UserConfiguration : IUserConfiguration
     {
         public UserConfiguration(string username)
         {
             Username = username.AdjustUserName();
+        }
+
+        public UserConfiguration(IUserConfiguration other) : this(other.Username)
+        {
+            Password = other.Password;
+            TwoFactorToken = other.TwoFactorToken;
         }
 
         public string Username { get; }
@@ -27,11 +65,17 @@ namespace KeeperSecurity.Sdk
         public string TwoFactorToken { get; set; }
     }
 
-    public class ServerConfiguration
+    public class ServerConfiguration : IServerConfiguration
     {
         public ServerConfiguration(string server)
         {
             Server = server.AdjustServerName();
+        }
+
+        public ServerConfiguration(IServerConfiguration other) : this(other.Server)
+        {
+            DeviceId = other.DeviceId;
+            ServerKeyId = other.ServerKeyId;
         }
 
         public string Server { get; }
@@ -39,78 +83,12 @@ namespace KeeperSecurity.Sdk
         public int ServerKeyId { get; set; } = 1;
     }
 
-    public class Configuration
+    public class InMemoryConfigurationStorage : IConfigurationStorage
     {
-        public Configuration()
+        public InMemoryConfigurationStorage()
         {
             _users = new Dictionary<string, UserConfiguration>();
             _servers = new Dictionary<string, ServerConfiguration>();
-        }
-
-        public Configuration(Configuration other) : this()
-        {
-            MergeConfiguration(other);
-        }
-
-        public UserConfiguration GetUserConfiguration(string username)
-        {
-            var name = username.AdjustUserName();
-            return _users.Values.Where(x => string.Compare(name, x.Username) == 0).FirstOrDefault();
-        }
-        public ServerConfiguration GetServerConfiguration(string server)
-        {
-            var url = server.AdjustServerName();
-            return _servers.Values.Where(x => string.Compare(url, x.Server) == 0).FirstOrDefault();
-        }
-
-        public void MergeUserConfiguration(UserConfiguration user)
-        {
-            var u = new UserConfiguration(user.Username)
-            {
-                Password = user.Password,
-                TwoFactorToken = user.TwoFactorToken
-            };
-            _users[u.Username] = u;
-        }
-
-        public void MergeServerConfiguration(ServerConfiguration server)
-        {
-            var s = new ServerConfiguration(server.Server)
-            {
-                DeviceId = server.DeviceId.ToArray(),
-                ServerKeyId = server.ServerKeyId
-            };
-            _servers[s.Server] = s;
-        }
-
-        public void MergeConfiguration(Configuration other)
-        {
-            if (!string.IsNullOrEmpty(other.LastLogin))
-            {
-                LastLogin = other.LastLogin;
-            }
-            if (!string.IsNullOrEmpty(other.LastServer))
-            {
-                LastServer = other.LastServer;
-            }
-
-            var users = other.Users;
-            if (users != null)
-            {
-                foreach (var user in users)
-                {
-                    MergeUserConfiguration(user);
-                }
-            }
-
-            var servers = other.Servers;
-            if (servers != null)
-            {
-                foreach (var server in servers)
-                {
-                    MergeServerConfiguration(server);
-                }
-            }
         }
 
         internal readonly Dictionary<string, UserConfiguration> _users;
@@ -119,20 +97,47 @@ namespace KeeperSecurity.Sdk
         public string LastServer { get; set; }
         public string LastLogin { get; set; }
 
-        public IEnumerable<UserConfiguration> Users => _users.Values;
-        public IEnumerable<ServerConfiguration> Servers => _servers.Values;
-    }
+        public IEnumerable<IUserConfiguration> Users => _users.Values;
+        public IEnumerable<IServerConfiguration> Servers => _servers.Values;
 
 
-    public interface IConfigurationStorage
-    {
-        Configuration Get();
-        void Put(Configuration configuration);
+        IUserConfiguration IUserStorage.Get(string username)
+        {
+            var name = username.AdjustUserName();
+            return _users.Values.Where(x => string.Compare(name, x.Username) == 0).FirstOrDefault();
+        }
+
+        void IUserStorage.Put(IUserConfiguration userConfiguration)
+        {
+            var u = new UserConfiguration(userConfiguration.Username)
+            {
+                Password = userConfiguration.Password,
+                TwoFactorToken = userConfiguration.TwoFactorToken
+            };
+            _users[u.Username] = u;
+            LastLogin = u.Username;
+        }
+
+        IServerConfiguration IServerStorage.Get(string server)
+        {
+            var url = server.AdjustServerName();
+            return _servers.Values.Where(x => string.Compare(url, x.Server) == 0).FirstOrDefault();
+        }
+
+        void IServerStorage.Put(IServerConfiguration serverConfiguration)
+        {
+            var s = new ServerConfiguration(serverConfiguration.Server)
+            {
+                DeviceId = serverConfiguration.DeviceId.ToArray(),
+                ServerKeyId = serverConfiguration.ServerKeyId
+            };
+            _servers[s.Server] = s;
+            LastServer = s.Server;
+        }
     }
 
     public static class ConfigurationExtension
     {
-
         public static string AdjustServerName(this string server)
         {
             if (string.IsNullOrEmpty(server))
@@ -146,52 +151,6 @@ namespace KeeperSecurity.Sdk
         public static string AdjustUserName(this string username)
         {
             return username.ToLowerInvariant();
-        }
-    }
-
-    public class InMemoryConfigurationStorage : IConfigurationStorage
-    {
-        private readonly Configuration _configuration;
-
-        public InMemoryConfigurationStorage()
-        {
-            _configuration = new Configuration();
-        }
-
-        public InMemoryConfigurationStorage(Configuration configuration) : this()
-        {
-            _configuration.MergeConfiguration(configuration);
-        }
-
-        public Configuration Get()
-        {
-            return new Configuration(_configuration);
-        }
-
-        public void Put(Configuration configuration)
-        {
-            _configuration.LastLogin = configuration.LastLogin;
-            _configuration.LastServer = configuration.LastServer;
-            foreach (var user in configuration.Users)
-            {
-                if (!_configuration._users.TryGetValue(user.Username, out UserConfiguration uc))
-                {
-                    uc = new UserConfiguration(user.Username);
-                    _configuration._users.Add(uc.Username, uc);
-                }
-                uc.TwoFactorToken = user.TwoFactorToken;
-            }
-
-            foreach (var server in configuration.Servers)
-            {
-                if (!_configuration._servers.TryGetValue(server.Server, out ServerConfiguration sc))
-                {
-                    sc = new ServerConfiguration(server.Server);
-                    _configuration._servers.Add(server.Server, sc);
-                }
-                sc.DeviceId = server.DeviceId;
-                sc.ServerKeyId = server.ServerKeyId;
-            }
         }
     }
 }

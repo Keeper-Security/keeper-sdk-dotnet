@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Moq;
 using KeeperSecurity.Sdk.UI;
+using Authentication;
 
 namespace KeeperSecurity.Sdk
 {
@@ -22,8 +23,8 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.Get(us.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
             Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
@@ -34,8 +35,8 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.Get(us.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             auth.AuthContext.SessionToken = "BadSessionToken";
             await auth.RefreshSessionToken();
@@ -48,8 +49,8 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = true;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.Get(us.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
             Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
@@ -61,15 +62,13 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = true;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.Get(us.LastLogin);
             var uc = new UserConfiguration(userConfig.Username)
             {
                 TwoFactorToken = _vaultEnv.DeviceToken
             };
-            var c = new Configuration(config);
-            c.MergeUserConfiguration(uc);
-            auth.Storage.Put(c);
+            us.Put(uc);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
             Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
@@ -81,13 +80,12 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = true;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.Get(us.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
             Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
-            config = auth.Storage.Get();
-            userConfig = config.GetUserConfiguration(config.LastLogin);
+            userConfig = us.Get(us.LastLogin);
             Assert.Equal(userConfig.TwoFactorToken, _vaultEnv.DeviceToken);
         }
 
@@ -97,8 +95,8 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = true;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.Get(us.LastLogin);
             var authMock = Mock.Get(auth.Ui);
             authMock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>())).Throws(new Exception());
             Assert.ThrowsAsync<Exception>(() => auth.Login(userConfig.Username, userConfig.Password));
@@ -109,8 +107,8 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.Get(us.LastLogin);
             Assert.ThrowsAsync<KeeperApiException>(() => auth.Login(userConfig.Username, "123456"));
         }
 
@@ -125,8 +123,7 @@ namespace KeeperSecurity.Sdk
 
         private Auth GetAuthContext()
         {
-            var tfa = new TaskCompletionSource<TwoFactorCode>();
-            tfa.SetResult(new TwoFactorCode(_vaultEnv.TwoFactorOneTimeToken, TwoFactorCodeDuration.EveryLogin));
+            var tfa = Task.FromResult(new TwoFactorCode(_vaultEnv.TwoFactorOneTimeToken, TwoFactorCodeDuration.EveryLogin));
 
             var uiMock = new Mock<IAuthUI>();
             uiMock.Setup(x => x.Confirmation(It.IsAny<string>()))
@@ -136,51 +133,14 @@ namespace KeeperSecurity.Sdk
             uiMock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>()))
                 .Returns(tfa);
 
-            var endpoint = new Mock<KeeperEndpoint>();
+            var storage = DataVault.GetConfigurationStorage();
+            var endpoint = new Mock<KeeperEndpoint>(storage);
             endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, LoginResponse>(It.IsAny<LoginCommand>())).Returns<LoginCommand>(c => ProcessLoginCommand(c));
-            var mAuth = new Mock<Auth>(uiMock.Object, DataVault.GetConfigurationStorage(), endpoint.Object);
-            mAuth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => _vaultEnv.ProcessPreLogin(x));
+            var mAuth = new Mock<Auth>(uiMock.Object, storage, endpoint.Object);
+            mAuth.Setup(x => x.GetPreLogin(It.IsAny<string>(), It.IsAny<LoginType>(), null)).Returns<string, LoginType, byte[]>((x, y, z) => _vaultEnv.ProcessPreLogin(x));
 
             return mAuth.Object;
         }
-        /*
-        private Auth GetConnectedAuthContext()
-        {
-            var ui_mock = new Mock<IAuthUI>();
-            var endpoint = new Mock<KeeperEndpoint>();
-            endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, LoginResponse>(It.IsAny<LoginCommand>())).Returns<LoginCommand>(c => ProcessLoginCommand(c));
-            var m_auth = new Mock<Auth>(ui_mock.Object, DataVault.GetConfigurationStorage(), endpoint.Object);
-            m_auth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => ProcessPreLogin(x));
-            var auth = m_auth.Object;
-            var config = auth.Storage.Get();
-            var user_conf = config.GetUserConfiguration(config.LastLogin);
-            auth.Username = user_conf.Username;
-            auth.TwoFactorToken = user_conf.TwoFactorToken;
-            auth.ClientKey = _vaultEnv.ClientKey;
-            auth.DataKey = _vaultEnv.DataKey;
-            auth.privateKeyData = _vaultEnv.PrivateKeyData;
-            auth.SessionToken = _vaultEnv.SessionToken;
-            auth.authResponse = CryptoUtils.DeriveV1KeyHash(_vaultEnv.Password, _vaultEnv.Salt, _vaultEnv.Iterations).Base64UrlEncode();
-            return auth;
-        }
-
-        private Task<PreLoginResponse> ProcessPreLogin(string username)
-        {
-            var rs = new PreLoginResponse
-            {
-                Status = DeviceStatus.Ok
-            };
-            rs.Salt.Add(new Salt
-            {
-                Iterations = _vaultEnv.Iterations,
-                Salt_ = ByteString.CopyFrom(_vaultEnv.Salt),
-                Algorithm = 2,
-                Name = "Master password"
-            });
-            return Task.FromResult(rs);
-        }
-
-                    */
 
         private Task<LoginResponse> ProcessLoginCommand(LoginCommand command)
         {

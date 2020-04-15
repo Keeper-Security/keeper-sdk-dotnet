@@ -31,11 +31,10 @@ function Connect-Keeper {
 
 	if (-not $NewLogin.IsPresent) {
 		if (-not $Username) {
-			[IConfigurationStorage]$storage = $auth.Storage
-			[Configuration]$config = $storage.Get()
-			$Username = $config.LastLogin
+			$storage = $auth.Storage
+			$Username = $storage.LastLogin
 			if ($Username) {
-				[UserConfiguration]$userConfig = $config.GetUserConfiguration($Username)
+				[IUserConfiguration]$userConfig = [IUserStorage].GetMethod("Get").Invoke($storage, $Username)
 				if ($userConfig) {
 					$Password = $userConfig.Password
 				}

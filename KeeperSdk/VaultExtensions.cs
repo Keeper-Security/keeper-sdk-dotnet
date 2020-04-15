@@ -93,12 +93,6 @@ namespace KeeperSecurity.Sdk
             };
         }
 
-        [DataContract]
-        internal class JustExtensionData : IExtensibleDataObject
-        {
-            public ExtensionDataObject ExtensionData { get; set; }
-        }
-
         private static DataContractJsonSerializer DataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
         private static DataContractJsonSerializer ExtraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
 
@@ -110,6 +104,7 @@ namespace KeeperSecurity.Sdk
                 Uid = r.RecordUid,
                 Shared = r.Shared,
                 Owner = r.Owner,
+                ClientModified = r.ClientModifiedTime != 0 ? DateTimeOffset.FromUnixTimeMilliseconds(r.ClientModifiedTime) : DateTimeOffset.Now,
             };
 
             var data = r.Data.Base64UrlDecode();
@@ -154,7 +149,7 @@ namespace KeeperSecurity.Sdk
                                 Title = file.title ?? "",
                                 Type = file.type ?? "",
                                 Size = file.size ?? 0,
-                                LastModified = file.lastModified != null ? file.lastModified.Value.FromUnixTimeMilliseconds() : DateTimeOffset.Now
+                                LastModified = file.lastModified != null ? DateTimeOffset.FromUnixTimeMilliseconds(file.lastModified.Value) : DateTimeOffset.Now
                             };
                             if (file.thumbs != null)
                             {

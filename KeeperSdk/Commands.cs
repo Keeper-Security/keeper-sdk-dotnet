@@ -111,15 +111,23 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "data_key_backup_date")]
         public long? dataKeyBackupDate;
     }
+
     [DataContract]
-    public class AccountEnforcements
+    internal class JustExtensionData : IExtensibleDataObject
+    {
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    [DataContract]
+    public class AccountEnforcements : IExtensibleDataObject
     {
         [DataMember(Name = "password_rules_intro")]
         public string passwordRulesIntro;
-
         [DataMember(Name = "password_rules")]
         public PasswordRule[] passwordRules;
+        public ExtensionDataObject ExtensionData { get; set; }
     }
+
     [DataContract]
     public class AccountShareTo
     {
@@ -253,4 +261,21 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "client_key")]
         public string clientKey;
     }
+
+    [DataContract]
+    public class GetPushInfoCommand : AuthenticatedCommand
+    {
+        public GetPushInfoCommand() : base("get_push_info") { }
+
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string type;
+    }
+
+    [DataContract]
+    public class GetPushInfoResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "url")]
+        public string url;
+    }
+
 }

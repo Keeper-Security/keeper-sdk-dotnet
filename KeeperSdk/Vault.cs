@@ -19,7 +19,6 @@ using System.Diagnostics;
 
 namespace KeeperSecurity.Sdk
 {
-
     public class Vault : VaultData
     {
         public Vault(IAuth auth, IKeeperStorage storage = null) : base(auth.AuthContext.ClientKey, storage ?? new InMemoryKeeperStorage())
@@ -29,7 +28,61 @@ namespace KeeperSecurity.Sdk
 
         public IAuth Auth { get; }
 
-        public IRecordMetadata ResolveRecordAccessPath(IRecordAccessPath path, bool forEdit = false, bool forShare = false)
+        private long scheduledAt = 0;
+        private Task syncDownTask = null;
+        public Task ScheduleSyncDown(TimeSpan delay)
+        {
+            if (delay > TimeSpan.FromSeconds(5))
+            {
+                delay = TimeSpan.FromSeconds(5);
+            }
+            var now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
+            if (syncDownTask != null && scheduledAt > now)
+            {
+                if (now + (long)delay.TotalMilliseconds < scheduledAt)
+                {
+                    return syncDownTask;
+                }
+            }
+            Task myTask = null;
+            myTask = Task.Run(async () =>
+            {
+                try
+                {
+                    if (delay.TotalMilliseconds > 10)
+                    {
+                        await Task.Delay(delay);
+                    }
+                    if (myTask == syncDownTask)
+                    {
+                        scheduledAt = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 1000;
+                        await this.SyncDown();
+                    }
+                }
+                finally
+                {
+                    if (myTask == syncDownTask)
+                    {
+                        syncDownTask = null;
+                        scheduledAt = 0;
+                    }
+                }
+            });
+            scheduledAt = now + (long)delay.TotalMilliseconds;
+            syncDownTask = myTask;
+            return myTask;
+        }
+        public void OnNotificationReceived(byte[] notification) {
+            var evt = JsonUtils.ParseJson<NotificationEvent>(notification);
+            if (evt != null & evt.notificationEvent == "sync") {
+                if (evt.sync) {
+                    ScheduleSyncDown(TimeSpan.FromSeconds(5));
+                }
+            }
+        }
+
+        public IRecordMetadata ResolveRecordAccessPath(IRecordAccessPath path, bool forEdit = false, bool forShare = false, bool forView = false)
         {
             if (string.IsNullOrEmpty(path.RecordUid))
             {
@@ -59,6 +112,7 @@ namespace KeeperSecurity.Sdk
                     {
                         if (forEdit && team.RestrictEdit) continue;
                         if (forShare && team.RestrictShare) continue;
+                        if (forView && team.RestrictView) continue;
                         path.TeamUid = sfmd.TeamUid;
                         return rmd;
                     }
@@ -74,11 +128,12 @@ namespace KeeperSecurity.Sdk
             {
                 keeperFolders.TryGetValue(folderUid, out node);
             }
-            var recordKey = CryptoUtils.GenerateEncryptionKey();
+            record.Uid = CryptoUtils.GenerateUid();
+            record.RecordKey = CryptoUtils.GenerateEncryptionKey();
             var recordAdd = new RecordAddCommand
             {
-                RecordUid = CryptoUtils.GenerateUid(),
-                RecordKey = CryptoUtils.EncryptAesV1(recordKey, Auth.AuthContext.DataKey).Base64UrlEncode(),
+                RecordUid = record.Uid,
+                RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey).Base64UrlEncode(),
                 RecordType = "password"
             };
             if (node == null)
@@ -99,7 +154,7 @@ namespace KeeperSecurity.Sdk
                         recordAdd.FolderType = node.FolderType == FolderType.SharedFolder ? "shared_folder" : "shared_folder_folder";
                         if (keeperSharedFolders.TryGetValue(node.SharedFolderUid, out SharedFolder sf))
                         {
-                            recordAdd.FolderKey = CryptoUtils.EncryptAesV1(recordKey, sf.SharedFolderKey).Base64UrlEncode();
+                            recordAdd.FolderKey = CryptoUtils.EncryptAesV1(record.RecordKey, sf.SharedFolderKey).Base64UrlEncode();
                         }
                         if (string.IsNullOrEmpty(recordAdd.FolderKey))
                         {
@@ -114,11 +169,11 @@ namespace KeeperSecurity.Sdk
             using (var ms = new MemoryStream())
             {
                 dataSerializer.WriteObject(ms, data);
-                recordAdd.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), recordKey).Base64UrlEncode();
+                recordAdd.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
             }
 
             await Auth.ExecuteAuthCommand(recordAdd);
-            await this.SyncDown();
+            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
 
         public async Task PutRecord(PasswordRecord record, bool skipData = false, bool skipExtra = true)
@@ -145,8 +200,9 @@ namespace KeeperSecurity.Sdk
             }
             else
             {
-                updateRecord.RecordUid = CryptoUtils.GenerateUid();
+                record.Uid = CryptoUtils.GenerateUid();
                 record.RecordKey = CryptoUtils.GenerateEncryptionKey();
+                updateRecord.RecordUid = record.Uid;
                 updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey).Base64UrlEncode();
                 updateRecord.Revision = 0;
             }
@@ -221,7 +277,9 @@ namespace KeeperSecurity.Sdk
                 updateRecord.Udata = udata;
             }
 
-            var command = new RecordUpdateCommand();
+            var command = new RecordUpdateCommand { 
+                deviceId = KeeperEndpoint.DefaultDeviceName,
+            };
             if (existingRecord != null)
             {
                 command.UpdateRecords = new[] { updateRecord };
@@ -232,7 +290,24 @@ namespace KeeperSecurity.Sdk
             }
 
             await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
-            await this.SyncDown();
+            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
+        }
+
+        public async Task PutNonSharedData(string recordUid, byte[] data) {
+            var existingRecord = Storage.Records.Get(recordUid);
+            var updateRecord = new RecordUpdateRecord
+            {
+                RecordUid = recordUid,
+                Revision = existingRecord?.Revision ?? 0,
+                NonSharedData = CryptoUtils.EncryptAesV1(data, Auth.AuthContext.DataKey).Base64UrlEncode()
+            };
+            var command = new RecordUpdateCommand
+            {
+                deviceId = KeeperEndpoint.DefaultDeviceName,
+                UpdateRecords = new[] { updateRecord }
+            };
+            await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
+            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
 
         public SharedFolderPermission ResolveSharedFolderAccessPath(ISharedFolderAccessPath path, bool forManageUsers = false, bool forManageRecords = false)

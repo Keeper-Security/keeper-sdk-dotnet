@@ -208,7 +208,7 @@ namespace Commander
                     Finished = true;
                     var vault = new Vault(_auth);
                     var connectedCommands = new ConnectedCommands(vault);
-                    connectedCommands.ScheduleSyncDown();
+                    await vault.SyncDown();
                     NewCommands = connectedCommands;
                 }
             }

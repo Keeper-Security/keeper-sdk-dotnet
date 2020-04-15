@@ -204,6 +204,9 @@ namespace KeeperSecurity.Sdk
             {
                 foreach (var nsd in rs.nonSharedData)
                 {
+                    if (string.IsNullOrEmpty(nsd.Data)) {
+                        continue;
+                    }
                     try
                     {
                         var data = nsd.data.Base64UrlDecode();
