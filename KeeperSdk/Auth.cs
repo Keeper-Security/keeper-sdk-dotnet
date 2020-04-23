@@ -154,16 +154,30 @@ namespace KeeperSecurity.Sdk
             }
             if (loginResponse.enforcements != null)
             {
-                var extra = new JustExtensionData
+                var passwordRules = new Dictionary<string, object>();
+                authContext.Enforcements = new Dictionary<string, object>();
+                foreach (var pair in loginResponse.enforcements)
                 {
-                    ExtensionData = loginResponse.enforcements.ExtensionData
-                };
-                var json = JsonUtils.DumpJson(extra);
-                authContext.Enforcements = JsonUtils.ParseJson<Dictionary<string, object>>(json);
-                if (!string.IsNullOrEmpty(loginResponse.enforcements.passwordRulesIntro))
+                    switch (pair.Key)
+                    {
+                        case "password_rules_intro":
+                        case "password_rules":
+                            passwordRules[pair.Key] = pair.Value;
+                            break;
+                        default:
+                            authContext.Enforcements[pair.Key] = pair.Value;
+                            break;
+                    }
+                }
+                if (passwordRules.Count > 0)
                 {
-                    authContext.passwordRulesIntro = loginResponse.enforcements.passwordRulesIntro;
-                    authContext.passwordRules = loginResponse.enforcements.passwordRules;
+                    var json = JsonUtils.DumpJson(passwordRules);
+                    var rules = JsonUtils.ParseJson<PasswordRules>(json);
+                    if (rules.passwordRules != null)
+                    {
+                        authContext.passwordRules = rules.passwordRules;
+                        authContext.passwordRulesIntro = rules.passwordRulesIntro;
+                    }
                 }
             }
 

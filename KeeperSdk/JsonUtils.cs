@@ -22,7 +22,6 @@ namespace KeeperSecurity.Sdk
 
         public static byte[] DumpJson<T>(T obj)
         {
-
             var serializer = new DataContractJsonSerializer(typeof(T), JsonSettings);
             using (var ms = new MemoryStream()) {
                 using (var writer = JsonReaderWriterFactory.CreateJsonWriter(ms, Encoding.UTF8, false, true))

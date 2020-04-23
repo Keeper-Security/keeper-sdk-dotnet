@@ -152,7 +152,7 @@ namespace KeeperSecurity.Sdk
                             case "bad_request":
                                 throw new KeeperInvalidDeviceToken();
                         }
-                        throw new KeeperApiException(keeperRs.resultCode, keeperRs.message);
+                        throw new KeeperApiException(keeperRs.Error, keeperRs.message);
                     }
                 }
                 throw new Exception("Keeper Api Http error: " + response.StatusCode);

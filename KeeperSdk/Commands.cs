@@ -113,19 +113,12 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    internal class JustExtensionData : IExtensibleDataObject
+    public class PasswordRules
     {
-        public ExtensionDataObject ExtensionData { get; set; }
-    }
-
-    [DataContract]
-    public class AccountEnforcements : IExtensibleDataObject
-    {
-        [DataMember(Name = "password_rules_intro")]
+        [DataMember(Name = "password_rules_intro", EmitDefaultValue = false)]
         public string passwordRulesIntro;
-        [DataMember(Name = "password_rules")]
+        [DataMember(Name = "password_rules", EmitDefaultValue = false)]
         public PasswordRule[] passwordRules;
-        public ExtensionDataObject ExtensionData { get; set; }
     }
 
     [DataContract]
@@ -151,14 +144,8 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    public class AccountSettings
+    public class AccountSettings: PasswordRules
     {
-        [DataMember(Name = "password_rules_intro")]
-        public string passwordRulesIntro;
-
-        [DataMember(Name = "password_rules")]
-        public PasswordRule[] passwordRules;
-
         [DataMember(Name = "channel")]
         public string channel;
 
@@ -223,7 +210,7 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "keys")]
         public AccountKeys keys;
         [DataMember(Name = "enforcements")]
-        public AccountEnforcements enforcements;
+        public IDictionary<string, object> enforcements;
 
         [DataMember(Name = "iterations")]
         public int? iterations;
