@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -32,20 +32,22 @@ namespace KeeperSecurity.Sdk
     public interface IUserStorage
     {
         string LastLogin { get; }
-        IUserConfiguration Get(string username);
-        void Put(IUserConfiguration userConfiguration);
+        IUserConfiguration GetUser(string username);
+        void PutUser(IUserConfiguration userConfiguration);
         IEnumerable<IUserConfiguration> Users { get; }
     }
 
     public interface IServerStorage
     {
         string LastServer { get; }
-        IServerConfiguration Get(string server);
-        void Put(IServerConfiguration serverConfiguration);
+        IServerConfiguration GetServer(string server);
+        void PutServer(IServerConfiguration serverConfiguration);
         IEnumerable<IServerConfiguration> Servers { get; }
     }
 
-    public interface IConfigurationStorage : IUserStorage, IServerStorage { }
+    public interface IConfigurationStorage : IUserStorage, IServerStorage
+    {
+    }
 
     public class UserConfiguration : IUserConfiguration
     {
@@ -91,8 +93,8 @@ namespace KeeperSecurity.Sdk
             _servers = new Dictionary<string, ServerConfiguration>();
         }
 
-        internal readonly Dictionary<string, UserConfiguration> _users;
-        internal readonly Dictionary<string, ServerConfiguration> _servers;
+        private readonly Dictionary<string, UserConfiguration> _users;
+        private readonly Dictionary<string, ServerConfiguration> _servers;
 
         public string LastServer { get; set; }
         public string LastLogin { get; set; }
@@ -101,13 +103,13 @@ namespace KeeperSecurity.Sdk
         public IEnumerable<IServerConfiguration> Servers => _servers.Values;
 
 
-        IUserConfiguration IUserStorage.Get(string username)
+        IUserConfiguration IUserStorage.GetUser(string username)
         {
             var name = username.AdjustUserName();
-            return _users.Values.Where(x => string.Compare(name, x.Username) == 0).FirstOrDefault();
+            return _users.Values.FirstOrDefault(x => string.CompareOrdinal(name, x.Username) == 0);
         }
 
-        void IUserStorage.Put(IUserConfiguration userConfiguration)
+        void IUserStorage.PutUser(IUserConfiguration userConfiguration)
         {
             var u = new UserConfiguration(userConfiguration.Username)
             {
@@ -118,13 +120,13 @@ namespace KeeperSecurity.Sdk
             LastLogin = u.Username;
         }
 
-        IServerConfiguration IServerStorage.Get(string server)
+        IServerConfiguration IServerStorage.GetServer(string server)
         {
             var url = server.AdjustServerName();
-            return _servers.Values.Where(x => string.Compare(url, x.Server) == 0).FirstOrDefault();
+            return _servers.Values.FirstOrDefault(x => string.CompareOrdinal(url, x.Server) == 0);
         }
 
-        void IServerStorage.Put(IServerConfiguration serverConfiguration)
+        void IServerStorage.PutServer(IServerConfiguration serverConfiguration)
         {
             var s = new ServerConfiguration(serverConfiguration.Server)
             {
@@ -144,6 +146,7 @@ namespace KeeperSecurity.Sdk
             {
                 return "keepersecurity.com";
             }
+
             var builder = new UriBuilder(server);
             return builder.Uri.Host.ToLowerInvariant();
         }

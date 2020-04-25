@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -24,9 +24,11 @@ namespace KeeperSecurity.Sdk
         TeamKey = 4
     }
 
-    public interface IUid {
+    public interface IUid
+    {
         string Uid { get; }
     }
+
     public interface IUidLink
     {
         string SubjectUid { get; }
@@ -55,12 +57,13 @@ namespace KeeperSecurity.Sdk
         bool Owner { get; set; }
     }
 
-    public interface INonSharedData: IUid {
+    public interface INonSharedData : IUid
+    {
         string RecordUid { get; }
         string Data { get; set; }
     }
 
-        public interface ISharedFolderKey : IUidLink
+    public interface ISharedFolderKey : IUidLink
     {
         string SharedFolderUid { get; }
         string TeamUid { get; }
@@ -77,7 +80,7 @@ namespace KeeperSecurity.Sdk
         bool ManageUsers { get; }
     }
 
-    public interface ISharedFolder: IUid
+    public interface ISharedFolder : IUid
     {
         string SharedFolderUid { get; }
         long Revision { get; }
@@ -88,7 +91,7 @@ namespace KeeperSecurity.Sdk
         bool DefaultCanShare { get; }
     }
 
-    public interface IEnterpriseTeam: IUid
+    public interface IEnterpriseTeam : IUid
     {
         string TeamUid { get; }
         string Name { get; }
@@ -100,7 +103,7 @@ namespace KeeperSecurity.Sdk
         bool RestrictView { get; }
     }
 
-    public interface IFolder: IUid
+    public interface IFolder : IUid
     {
         string ParentUid { get; }
         string FolderUid { get; }
@@ -117,7 +120,7 @@ namespace KeeperSecurity.Sdk
         string RecordUid { get; }
     }
 
-    public interface IEntityStorage<T> where T: IUid
+    public interface IEntityStorage<T> where T : IUid
     {
         T Get(string uid);
         void Put(T data);
@@ -147,18 +150,20 @@ namespace KeeperSecurity.Sdk
         IEntityStorage<IEnterpriseTeam> Teams { get; }
         IEntityStorage<INonSharedData> NonSharedData { get; }
 
-        IPredicateStorage<IRecordMetadata> RecordKeys { get; }   // RecordUid / "" or SharedFolderUid
+        IPredicateStorage<IRecordMetadata> RecordKeys { get; } // RecordUid / "" or SharedFolderUid
         IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; } // SharedFolderUid / "" or teamUid
-        IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; }  // SharedFolderUid / username or teamUid
+
+        IPredicateStorage<ISharedFolderPermission>
+            SharedFolderPermissions { get; } // SharedFolderUid / username or teamUid
 
 
         IEntityStorage<IFolder> Folders { get; }
-        IPredicateStorage<IFolderRecordLink> FolderRecords { get; }     // FolderUid / RecordUid
+        IPredicateStorage<IFolderRecordLink> FolderRecords { get; } // FolderUid / RecordUid
 
         void Clear();
     }
 
-    public class InMemoryItemStorage<T> : IEntityStorage<T> where T: IUid
+    public class InMemoryItemStorage<T> : IEntityStorage<T> where T : IUid
     {
         private readonly Dictionary<string, T> _items = new Dictionary<string, T>();
 
@@ -173,6 +178,7 @@ namespace KeeperSecurity.Sdk
             {
                 return item;
             }
+
             return default;
         }
 
@@ -221,7 +227,8 @@ namespace KeeperSecurity.Sdk
 
     public class InMemorySentenceStorage<T> : IPredicateStorage<T> where T : IUidLink
     {
-        private readonly Dictionary<string, IDictionary<string, T>> _links = new Dictionary<string, IDictionary<string, T>>();
+        private readonly Dictionary<string, IDictionary<string, T>> _links =
+            new Dictionary<string, IDictionary<string, T>>();
 
         public void Clear()
         {
@@ -253,6 +260,7 @@ namespace KeeperSecurity.Sdk
             {
                 return dict.Values;
             }
+
             return Enumerable.Empty<T>();
         }
 
@@ -274,13 +282,17 @@ namespace KeeperSecurity.Sdk
                 dict = new Dictionary<string, T>();
                 _links.Add(data.SubjectUid, dict);
             }
+
             var objectId = data.ObjectUid ?? "";
-            if (dict.TryGetValue(objectId, out T elem)) {
-                if (!ReferenceEquals(elem, data)) {
+            if (dict.TryGetValue(objectId, out T elem))
+            {
+                if (!ReferenceEquals(elem, data))
+                {
                     dict[objectId] = data;
                 }
             }
-            else {
+            else
+            {
                 dict.Add(objectId, data);
             }
         }
@@ -298,11 +310,17 @@ namespace KeeperSecurity.Sdk
         public IEntityStorage<INonSharedData> NonSharedData { get; } = new InMemoryItemStorage<INonSharedData>();
 
         public IPredicateStorage<IRecordMetadata> RecordKeys { get; } = new InMemorySentenceStorage<IRecordMetadata>();
-        public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; } = new InMemorySentenceStorage<ISharedFolderKey>();
-        public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; } = new InMemorySentenceStorage<ISharedFolderPermission>();
+
+        public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; } =
+            new InMemorySentenceStorage<ISharedFolderKey>();
+
+        public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; } =
+            new InMemorySentenceStorage<ISharedFolderPermission>();
 
         public IEntityStorage<IFolder> Folders { get; } = new InMemoryItemStorage<IFolder>();
-        public IPredicateStorage<IFolderRecordLink> FolderRecords { get; } = new InMemorySentenceStorage<IFolderRecordLink>();
+
+        public IPredicateStorage<IFolderRecordLink> FolderRecords { get; } =
+            new InMemorySentenceStorage<IFolderRecordLink>();
 
         public void Clear()
         {
@@ -322,7 +340,9 @@ namespace KeeperSecurity.Sdk
 
     public class UidLink : Tuple<string, string>, IUidLink
     {
-        private UidLink(string objectUid, string subjectUid) : base(objectUid, subjectUid ?? "") { }
+        private UidLink(string objectUid, string subjectUid) : base(objectUid, subjectUid ?? "")
+        {
+        }
 
         public static UidLink Create(string objectUid, string subjectUid)
         {
@@ -335,7 +355,8 @@ namespace KeeperSecurity.Sdk
 
     public static class StorageExtensions
     {
-        public static void Delete<T>(this IPredicateStorage<T> table, string objectUid, string subjectUid) where T : IUidLink
+        public static void Delete<T>(this IPredicateStorage<T> table, string objectUid, string subjectUid)
+            where T : IUidLink
         {
             table.Delete(UidLink.Create(objectUid, subjectUid));
         }
@@ -347,6 +368,7 @@ namespace KeeperSecurity.Sdk
                 table.Delete(link);
             }
         }
+
         public static void DeleteObject<T>(this IPredicateStorage<T> table, string objectUid) where T : IUidLink
         {
             foreach (var link in table.GetLinksForObject(objectUid).ToArray())

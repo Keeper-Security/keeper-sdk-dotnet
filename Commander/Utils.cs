@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Commander
 {
@@ -32,6 +31,7 @@ namespace Commander
                     else Console.Write("\b \b");
                 }
             }
+
             Console.WriteLine();
             return sb.ToString();
         }
@@ -40,16 +40,19 @@ namespace Commander
     public class Tabulate
     {
         private readonly int _columns;
-        private readonly bool[] _right_align_column;
-        private readonly int[] _max_chars;
+        private readonly bool[] _rightAlignColumn;
+        private readonly int[] _maxChars;
         private readonly List<string[]> _data = new List<string[]>();
+
         public Tabulate(int columns)
         {
             _columns = columns;
-            _right_align_column = Enumerable.Repeat(true, columns).ToArray();
-            _max_chars = Enumerable.Repeat(0, columns).ToArray();
+            _rightAlignColumn = Enumerable.Repeat(true, columns).ToArray();
+            _maxChars = Enumerable.Repeat(0, columns).ToArray();
         }
+
         private string[] _header;
+
         public void AddHeader(IEnumerable<string> header)
         {
             _header = header.Take(_columns).ToArray();
@@ -58,33 +61,33 @@ namespace Commander
         private static bool IsNumber(object value)
         {
             return value is sbyte
-                    || value is byte
-                    || value is short
-                    || value is ushort
-                    || value is int
-                    || value is uint
-                    || value is long
-                    || value is ulong
-                    || value is float
-                    || value is double
-                    || value is decimal;
+                   || value is byte
+                   || value is short
+                   || value is ushort
+                   || value is int
+                   || value is uint
+                   || value is long
+                   || value is ulong
+                   || value is float
+                   || value is double
+                   || value is decimal;
         }
 
         private static bool IsDecimal(object value)
         {
             return value is float
-                    || value is double
-                    || value is decimal;
+                   || value is double
+                   || value is decimal;
         }
 
         public void AddRow(IEnumerable<object> fields)
         {
             var row = Enumerable.Repeat("", _columns).ToArray();
-            int colNo = 0;
+            var colNo = 0;
             foreach (var o in fields)
             {
                 var text = "";
-                bool isNum = false;
+                var isNum = false;
                 if (o != null)
                 {
                     text = o.ToString();
@@ -93,17 +96,19 @@ namespace Commander
                     {
                         if (IsDecimal(o))
                         {
-                            text = string.Format("{0:0.00}", o);
+                            text = $"{o:0.00}";
                         }
                     }
                 }
+
                 if (!string.IsNullOrEmpty(text))
                 {
                     if (!isNum)
                     {
-                        _right_align_column[colNo] = false;
+                        _rightAlignColumn[colNo] = false;
                     }
                 }
+
                 row[colNo] = text;
                 colNo++;
                 if (colNo >= _columns)
@@ -111,6 +116,7 @@ namespace Commander
                     break;
                 }
             }
+
             _data.Add(row);
         }
 
@@ -118,40 +124,35 @@ namespace Commander
         {
             if (colNo >= 0 && colNo < _columns)
             {
-                _right_align_column[colNo] = value;
+                _rightAlignColumn[colNo] = value;
             }
         }
 
         public void Sort(int colNo)
         {
-            if (_data.Count > 1) {
-                bool is_num = _right_align_column[colNo];
-                if (colNo >= 0 && colNo < _columns)
-                {
-                    _data.Sort((x, y) =>
-                    {
+            if (_data.Count <= 1) return;
 
-                        if (is_num)
-                        {
-                            int res = x[colNo].Length.CompareTo(y[colNo].Length);
-                            if (res != 0)
-                            {
-                                return res;
-                            }
-                        }
-                        return x[colNo].CompareTo(y[colNo]);
-                    });
-                }
+            var isNum = _rightAlignColumn[colNo];
+            if (colNo >= 0 && colNo < _columns)
+            {
+                _data.Sort((x, y) =>
+                {
+                    if (!isNum) return string.Compare(y[colNo], x[colNo], StringComparison.Ordinal);
+
+                    var res = x[colNo].Length.CompareTo(y[colNo].Length);
+                    return res != 0 ? res : string.Compare(y[colNo], x[colNo], StringComparison.Ordinal);
+                });
             }
         }
 
-        static readonly string RowSeparator = "  ";
+        private const string RowSeparator = "  ";
         public bool DumpRowNo { get; set; }
         public int LeftPadding { get; set; }
         public int MaxColumnWidth { get; set; } = 40;
 
-        public void Dump() {
-            for (var i = 0; i < _max_chars.Length; i++)
+        public void Dump()
+        {
+            for (var i = 0; i < _maxChars.Length; i++)
             {
                 var len = 0;
                 if (DumpRowNo)
@@ -161,68 +162,72 @@ namespace Commander
                         len = _header[i].Length;
                     }
                 }
-                foreach (var row in _data)
+
+                foreach (var row in _data.Where(row => i < row.Length))
                 {
-                    if (i < row.Length)
+                    len = Math.Max(len, row[i].Length);
+                    if (len > MaxColumnWidth)
                     {
-                        len = Math.Max(len, row[i].Length);
-                        if (len > MaxColumnWidth) {
-                            len = MaxColumnWidth;
-                        }
+                        len = MaxColumnWidth;
                     }
                 }
-                _max_chars[i] = len;
+
+                _maxChars[i] = len;
             }
 
-            int rowNoLen = DumpRowNo ? _data.Count.ToString().Length + 1 : 0;
-            if (rowNoLen > 0 && rowNoLen < 3) {
+            var rowNoLen = DumpRowNo ? _data.Count.ToString().Length + 1 : 0;
+            if (rowNoLen > 0 && rowNoLen < 3)
+            {
                 rowNoLen = 3;
             }
-            if (_header != null) {
-                var r = (DumpRowNo ? (new string[] { "#".PadLeft(rowNoLen) }) : Enumerable.Empty<string>())
-                    .Concat(_header.Zip(_max_chars.Zip(_right_align_column, (m, b) => b ? -m : m), (h, m) => m < 0 ? h.PadLeft(-m) : h.PadRight(m)));
-                if (LeftPadding > 0) {
-                    Console.Write("".PadLeft(LeftPadding));
-                }
-                Console.WriteLine(string.Join(RowSeparator, r));
 
-                r = (DumpRowNo ? (new string[] { "".PadLeft(rowNoLen, '-') }) : Enumerable.Empty<string>())
-                    .Concat(_max_chars.Select(m => "".PadRight(m, '-')));
+            if (_header != null)
+            {
+                var r = (DumpRowNo ? (new string[] {"#".PadLeft(rowNoLen)}) : Enumerable.Empty<string>())
+                    .Concat(_header.Zip(_maxChars.Zip(_rightAlignColumn, (m, b) => b ? -m : m),
+                        (h, m) => m < 0 ? h.PadLeft(-m) : h.PadRight(m)));
                 if (LeftPadding > 0)
                 {
                     Console.Write("".PadLeft(LeftPadding));
                 }
+
+                Console.WriteLine(string.Join(RowSeparator, r));
+
+                r = (DumpRowNo ? (new string[] {"".PadLeft(rowNoLen, '-')}) : Enumerable.Empty<string>())
+                    .Concat(_maxChars.Select(m => "".PadRight(m, '-')));
+                if (LeftPadding > 0)
+                {
+                    Console.Write("".PadLeft(LeftPadding));
+                }
+
                 Console.WriteLine(string.Join(RowSeparator, r));
             }
 
-            int rowNo = 1;
-            foreach (var row in _data) {
-                var r = (DumpRowNo ? (new string[] { rowNo.ToString().PadLeft(rowNoLen) }) : Enumerable.Empty<string>())
-                    .Concat(row.Zip(_max_chars.Zip(_right_align_column, (m, b) => b ? -m : m), (cell, m) => {
+            var rowNo = 1;
+            foreach (var row in _data)
+            {
+                var r = (DumpRowNo ? (new[] {rowNo.ToString().PadLeft(rowNoLen)}) : Enumerable.Empty<string>())
+                    .Concat(row.Zip(_maxChars.Zip(_rightAlignColumn, (m, b) => b ? -m : m), (cell, m) =>
+                    {
                         cell = cell.Replace("\n", " ");
                         if (cell.Length > MaxColumnWidth)
                         {
                             return cell.Substring(0, MaxColumnWidth - 3) + "...";
                         }
-                        else {
-                            if (m < 0)
-                            {
-                                return cell.PadLeft(-m);
-                            }
-                            else {
-                                return cell.PadRight(m);
-                            }
-                        }
+
+                        return m < 0 ? cell.PadLeft(-m) : cell.PadRight(m);
                     }));
 
                 if (LeftPadding > 0)
                 {
                     Console.Write("".PadLeft(LeftPadding));
                 }
+
                 Console.WriteLine(string.Join(RowSeparator, r));
 
                 rowNo++;
             }
+
             Console.WriteLine();
         }
     }

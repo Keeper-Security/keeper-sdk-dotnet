@@ -11,10 +11,11 @@ using KeeperSecurity.Sdk;
 
 namespace Commander
 {
-    public class ConnectedCommands : CliCommands
+    public class ConnectedContext : StateContext
     {
         private readonly Vault _vault;
-        public ConnectedCommands(Vault vault) : base()
+
+        public ConnectedContext(Vault vault)
         {
             _vault = vault;
             Task.Run(() =>
@@ -96,8 +97,7 @@ namespace Commander
                 {
                     UnsubscribeFromNotifications();
                     _vault.Auth.Logout();
-                    Finished = true;
-                    NewCommands = new NotConnectedCliCommands(_vault.Auth);
+                    NextStateContext = new NotConnectedCliContext(_vault.Auth);
                     return Task.FromResult(false);
                 }
             });
@@ -111,6 +111,7 @@ namespace Commander
         private string _currentFolder;
 
         private CancellationTokenSource _notificationCancelToken;
+
         private async Task SubscribeToNotifications()
         {
             var pushUrl = await _vault.Auth.GetNotificationUrl();
@@ -122,34 +123,34 @@ namespace Commander
             {
                 var webSocket = ws;
                 var tokenSource = ts;
-                byte[] buffer = new byte[1024];
+                var buffer = new byte[1024];
                 var segment = new ArraySegment<byte>(buffer);
                 try
                 {
                     while (webSocket.State == WebSocketState.Open && !tokenSource.IsCancellationRequested)
                     {
                         var rs = await ws.ReceiveAsync(segment, tokenSource.Token);
-                        if (rs == null)
-                        {
-                            break;
-                        }
-                        if (rs.Count > 0)
-                        {
-                            var notification = new byte[rs.Count];
-                            Array.Copy(buffer, notification, rs.Count);
-                            _vault.OnNotificationReceived(notification);
-                        }
+                        if (rs == null) break;
+                        if (rs.Count <= 0) continue;
+
+                        var notification = new byte[rs.Count];
+                        Array.Copy(buffer, notification, rs.Count);
+                        _vault.OnNotificationReceived(notification);
                     }
+
                     if (webSocket.State == WebSocketState.Open)
                     {
                         await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
                     }
+
                     if (!tokenSource.IsCancellationRequested)
                     {
                         tokenSource.Cancel();
                     }
                 }
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException)
+                {
+                }
                 catch (Exception e)
                 {
                     Debug.WriteLine(e.Message);
@@ -160,23 +161,24 @@ namespace Commander
                     {
                         _notificationCancelToken = null;
                     }
+
                     tokenSource.Dispose();
                     webSocket.Dispose();
                 }
-            });
+            }, ts.Token);
         }
 
         private void UnsubscribeFromNotifications()
         {
-            if (_notificationCancelToken != null)
+            if (_notificationCancelToken == null) return;
+
+            if (!_notificationCancelToken.IsCancellationRequested)
             {
-                if (!_notificationCancelToken.IsCancellationRequested)
-                {
-                    _notificationCancelToken.Cancel();
-                }
-                _notificationCancelToken.Dispose();
-                _notificationCancelToken = null;
+                _notificationCancelToken.Cancel();
             }
+
+            _notificationCancelToken.Dispose();
+            _notificationCancelToken = null;
         }
 
         private Task ListCommand(ListCommandOptions options)
@@ -186,6 +188,7 @@ namespace Commander
             {
                 _vault.TryGetFolder(_currentFolder, out node);
             }
+
             if (node == null)
             {
                 node = _vault.RootFolder;
@@ -199,12 +202,12 @@ namespace Commander
                     {
                         DumpRowNo = true
                     };
-                    tab.AddHeader(new string[] { "Folder UID", "Name" });
+                    tab.AddHeader(new[] {"Folder UID", "Name"});
                     foreach (var uid in node.Subfolders)
                     {
-                        if (_vault.TryGetFolder(uid, out FolderNode f))
+                        if (_vault.TryGetFolder(uid, out var f))
                         {
-                            tab.AddRow(new string[] { f.FolderUid, f.Name });
+                            tab.AddRow(new[] {f.FolderUid, f.Name});
                         }
                     }
 
@@ -218,12 +221,12 @@ namespace Commander
                     {
                         DumpRowNo = true
                     };
-                    tab.AddHeader(new string[] { "Record UID", "Title", "Login", "URL" });
+                    tab.AddHeader(new[] {"Record UID", "Title", "Login", "URL"});
                     foreach (var uid in node.Records)
                     {
-                        if (_vault.TryGetRecord(uid, out PasswordRecord r))
+                        if (_vault.TryGetRecord(uid, out var r))
                         {
-                            tab.AddRow(new string[] { r.Uid, r.Title, r.Login, r.Link });
+                            tab.AddRow(new[] {r.Uid, r.Title, r.Login, r.Link});
                         }
                     }
 
@@ -233,49 +236,49 @@ namespace Commander
             }
             else
             {
-                List<string> names = new List<string>();
+                var names = new List<string>();
                 foreach (var uid in node.Subfolders)
                 {
-                    if (_vault.TryGetFolder(uid, out FolderNode subnode))
+                    if (_vault.TryGetFolder(uid, out var subNode))
                     {
-                        names.Add(subnode.Name + "/");
+                        names.Add(subNode.Name + "/");
                     }
                 }
                 names.Sort(StringComparer.InvariantCultureIgnoreCase);
-                int len = names.Count;
+
+                var len = names.Count;
                 foreach (var uid in node.Records)
                 {
-                    if (_vault.TryGetRecord(uid, out PasswordRecord record))
+                    if (_vault.TryGetRecord(uid, out var record))
                     {
                         names.Add(string.IsNullOrEmpty(record.Title) ? record.Uid : record.Title);
                     }
                 }
+                if (names.Count <= 0) return Task.FromResult(true);
                 names.Sort(len, names.Count - len, StringComparer.InvariantCultureIgnoreCase);
-                if (names.Count > 0)
+
+                len = names.Select(x => x.Length).Max();
+                if (len < 16)
                 {
-                    len = names.Select(x => x.Length).Max();
-                    if (len < 16)
-                    {
-                        len = 16;
-                    }
-                    len += 2;
-                    int columns = Console.BufferWidth / len;
-                    if (columns < 1)
-                    {
-                        columns = 1;
-                    }
-                    int columnWidth = Console.BufferWidth / columns;
-                    int colNo = 0;
-                    for (int i = 0; i < names.Count; i++)
-                    {
-                        Console.Write(names[i].PadRight(columnWidth - 1));
-                        colNo++;
-                        if (colNo >= columns)
-                        {
-                            Console.WriteLine();
-                            colNo = 0;
-                        }
-                    }
+                    len = 16;
+                }
+
+                len += 2;
+                var columns = Console.BufferWidth / len;
+                if (columns < 1)
+                {
+                    columns = 1;
+                }
+
+                var columnWidth = Console.BufferWidth / columns;
+                var colNo = 0;
+                foreach (var t in names)
+                {
+                    Console.Write(t.PadRight(columnWidth - 1));
+                    colNo++;
+                    if (colNo < columns) continue;
+                    Console.WriteLine();
+                    colNo = 0;
                 }
             }
 
@@ -287,9 +290,9 @@ namespace Commander
             var isRoot = string.IsNullOrEmpty(indent);
             Console.WriteLine(indent + (isRoot ? "" : "+-- ") + folder.Name);
             indent += isRoot ? " " : (last ? "    " : "|   ");
-            for (int i = 0; i < folder.Subfolders.Count; i++)
+            for (var i = 0; i < folder.Subfolders.Count; i++)
             {
-                if (_vault.TryGetFolder(folder.Subfolders[i], out FolderNode node))
+                if (_vault.TryGetFolder(folder.Subfolders[i], out var node))
                 {
                     PrintTree(node, indent, i == folder.Subfolders.Count - 1);
                 }
@@ -299,93 +302,100 @@ namespace Commander
         private Task GetCommand(string uid)
         {
             var tab = new Tabulate(3);
-            var secondaryTabs = new List<Tabulate>();
-            if (_vault.TryGetRecord(uid, out PasswordRecord record))
+            if (_vault.TryGetRecord(uid, out var record))
             {
-                tab.AddRow(new[] { "Record UID:", record.Uid });
-                tab.AddRow(new[] { "Title:", record.Title });
-                tab.AddRow(new[] { "Login:", record.Login });
-                tab.AddRow(new[] { "Password:", record.Password });
-                tab.AddRow(new[] { "Login URL:", record.Link });
-                tab.AddRow(new[] { "Notes:", record.Notes });
+                tab.AddRow(new[] {"Record UID:", record.Uid});
+                tab.AddRow(new[] {"Title:", record.Title});
+                tab.AddRow(new[] {"Login:", record.Login});
+                tab.AddRow(new[] {"Password:", record.Password});
+                tab.AddRow(new[] {"Login URL:", record.Link});
+                tab.AddRow(new[] {"Notes:", record.Notes});
                 if (record.Custom != null && record.Custom.Count > 0)
                 {
-                    tab.AddRow(new[] { "" });
-                    tab.AddRow(new[] { "Custom Fields:", "" });
+                    tab.AddRow(new[] {""});
+                    tab.AddRow(new[] {"Custom Fields:", ""});
                     foreach (var c in record.Custom)
                     {
-                        tab.AddRow(new[] { c.Name + ":", c.Value });
+                        tab.AddRow(new[] {c.Name + ":", c.Value});
+                    }
+                }
+            }
+            else if (_vault.TryGetSharedFolder(uid, out var sf))
+            {
+                tab.AddRow(new[] {"Shared Folder UID:", sf.Uid});
+                tab.AddRow(new[] {"Name:", sf.Name});
+                tab.AddRow(new[] {"Default Manage Records:", sf.DefaultManageRecords.ToString()});
+                tab.AddRow(new[] {"Default Manage Users:", sf.DefaultManageUsers.ToString()});
+                tab.AddRow(new[] {"Default Can Edit:", sf.DefaultCanEdit.ToString()});
+                tab.AddRow(new[] {"Default Can Share:", sf.DefaultCanShare.ToString()});
+                if (sf.RecordPermissions.Count > 0)
+                {
+                    tab.AddRow(new[] {""});
+                    tab.AddRow(new[] {"Record Permissions:"});
+                    foreach (var r in sf.RecordPermissions)
+                    {
+                        tab.AddRow(new[]
+                        {
+                            r.RecordUid + ":", "Can Edit: " + r.CanEdit.ToString(),
+                            "Can Share: " + r.CanShare.ToString()
+                        });
                     }
                 }
 
-            }
-            else if (_vault.TryGetSharedFolder(uid, out SharedFolder sf))
-            {
-                tab.AddRow(new[] { "Shared Folder UID:", sf.Uid });
-                tab.AddRow(new[] { "Name:", sf.Name });
-                tab.AddRow(new[] { "Default Manage Records:", sf.DefaultManageRecords.ToString() });
-                tab.AddRow(new[] { "Default Manage Users:", sf.DefaultManageUsers.ToString() });
-                tab.AddRow(new[] { "Default Can Edit:", sf.DefaultCanEdit.ToString() });
-                tab.AddRow(new[] { "Default Can Share:", sf.DefaultCanShare.ToString() });
-                if (sf.RecordPermissions.Count > 0)
-                {
-                    tab.AddRow(new[] { "" });
-                    tab.AddRow(new[] { "Record Permissions:" });
-                    foreach (var r in sf.RecordPermissions)
-                    {
-                        tab.AddRow(new[] { r.RecordUid + ":", "Can Edit: " + r.CanEdit.ToString(), "Can Share: " + r.CanShare.ToString() });
-                    }
-                }
-                var teamLookup = new Dictionary<string, string>();
-                foreach (var t in _vault.Teams)
-                {
-                    teamLookup.Add(t.TeamUid, t.Name);
-                }
+                var teamLookup = _vault.Teams.ToDictionary(t => t.TeamUid, t => t.Name);
                 if (sf.UsersPermissions.Count > 0)
                 {
-                    tab.AddRow(new[] { "" });
-                    tab.AddRow(new[] { "User/Team Permissions:" });
+                    tab.AddRow(new[] {""});
+                    tab.AddRow(new[] {"User/Team Permissions:"});
                     var sortedList = sf.UsersPermissions.ToList();
-                    sortedList.Sort((x, y) => {
+                    sortedList.Sort((x, y) =>
+                    {
                         var res = x.UserType.CompareTo(y.UserType);
                         if (res == 0)
                         {
                             if (x.UserType == UserType.User)
                             {
-                                res = string.Compare(x.UserId, y.UserId, true);
+                                res = string.Compare(x.UserId, y.UserId, StringComparison.OrdinalIgnoreCase);
                             }
                             else
                             {
                                 var xName = teamLookup[x.UserId] ?? x.UserId;
                                 var yName = teamLookup[y.UserId] ?? y.UserId;
-                                res = string.Compare(xName, yName, true);
-
+                                res = string.Compare(xName, yName, StringComparison.OrdinalIgnoreCase);
                             }
                         }
+
                         return res;
                     });
                     foreach (var u in sortedList)
                     {
                         var subjectName = u.UserType == UserType.User ? u.UserId : (teamLookup[u.UserId] ?? u.UserId);
-                        tab.AddRow(new[] { $"{u.UserType.ToString()} {subjectName}:", "Can Manage Records: " + u.ManageRecords.ToString(), "Can Manage Users: " + u.ManageUsers.ToString() });
+                        tab.AddRow(new[]
+                        {
+                            $"{u.UserType} {subjectName}:",
+                            $"Can Manage Records: {u.ManageRecords}",
+                            $"Can Manage Users: {u.ManageUsers}"
+                        });
                     }
                 }
             }
-            else if (_vault.TryGetFolder(uid, out FolderNode f))
+            else if (_vault.TryGetFolder(uid, out var f))
             {
-                tab.AddRow(new[] { "Folder UID:", f.FolderUid });
+                tab.AddRow(new[] {"Folder UID:", f.FolderUid});
                 if (!string.IsNullOrEmpty(f.ParentUid))
                 {
-                    tab.AddRow(new[] { "Parent Folder UID:", f.ParentUid });
+                    tab.AddRow(new[] {"Parent Folder UID:", f.ParentUid});
                 }
-                tab.AddRow(new[] { "Folder Type:", f.FolderType.ToString() });
-                tab.AddRow(new[] { "Name:", f.Name });
+
+                tab.AddRow(new[] {"Folder Type:", f.FolderType.ToString()});
+                tab.AddRow(new[] {"Name:", f.Name});
             }
             else
             {
-                Console.WriteLine(string.Format("UID {0} is not a valid Keeper object", uid));
+                Console.WriteLine($"UID {uid} is not a valid Keeper object");
                 return Task.FromResult(false);
             }
+
             Console.WriteLine();
             tab.SetColumnRightAlign(0, true);
             tab.LeftPadding = 4;
@@ -401,14 +411,15 @@ namespace Commander
 
         private Task ChangeDirectoryCommand(string name)
         {
-            if (TryResolvePath(name, out FolderNode node))
+            if (TryResolvePath(name, out var node))
             {
                 _currentFolder = node.FolderUid;
             }
             else
             {
-                Console.WriteLine(string.Format("Invalid folder name: {0}", name));
+                Console.WriteLine($"Invalid folder name: {name}");
             }
+
             return Task.FromResult(true);
         }
 
@@ -416,7 +427,7 @@ namespace Commander
         {
             if (!TryResolvePath(options.Folder, out FolderNode node))
             {
-                Console.WriteLine(string.Format("Cannot resolve folder {0}", options.Folder));
+                Console.WriteLine($"Cannot resolve folder {options.Folder}");
                 return;
             }
 
@@ -432,6 +443,7 @@ namespace Commander
             {
                 record.Password = CryptoUtils.GenerateUid();
             }
+
             if (!options.Force)
             {
                 if (string.IsNullOrEmpty(record.Login))
@@ -439,11 +451,13 @@ namespace Commander
                     Console.Write("..." + "Login: ".PadRight(16));
                     record.Login = Console.ReadLine();
                 }
+
                 if (string.IsNullOrEmpty(record.Password))
                 {
                     Console.Write("..." + "Password: ".PadRight(16));
                     record.Login = HelperUtils.ReadLineMasked();
                 }
+
                 if (string.IsNullOrEmpty(record.Link))
                 {
                     Console.Write("..." + "Login URL: ".PadRight(16));
@@ -456,40 +470,37 @@ namespace Commander
 
         private async Task UpdateRecordCommand(UpdateRecordOptions options)
         {
-            PasswordRecord record = null;
-            if (_vault.TryGetRecord(options.RecordId, out record))
+            if (_vault.TryGetRecord(options.RecordId, out var record))
             {
             }
-            else if (TryResolvePath(options.RecordId, out FolderNode node, out string title))
+            else if (TryResolvePath(options.RecordId, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
-                    if (_vault.TryGetRecord(uid, out PasswordRecord r))
-                    {
-                        if (string.Compare(title, r.Title) == 0)
-                        {
-                            record = r;
-                            break;
-                        }
-                    }
+                    if (!_vault.TryGetRecord(uid, out var r)) continue;
+                    if (string.CompareOrdinal(title, r.Title) != 0) continue;
+
+                    record = r;
+                    break;
                 }
             }
-            else
-            {
-            }
+
             if (record == null)
             {
-                Console.WriteLine(string.Format("Cannot resolve record {0}", options.RecordId));
+                Console.WriteLine($"Cannot resolve record {options.RecordId}");
                 return;
             }
+
             if (!string.IsNullOrEmpty(options.Title))
             {
                 record.Title = options.Title;
             }
+
             if (!string.IsNullOrEmpty(options.Login))
             {
                 record.Login = options.Login;
             }
+
             if (string.IsNullOrEmpty(options.Password))
             {
                 if (options.Generate)
@@ -501,10 +512,12 @@ namespace Commander
             {
                 record.Password = options.Password;
             }
+
             if (!string.IsNullOrEmpty(options.Url))
             {
                 record.Link = options.Url;
             }
+
             if (!string.IsNullOrEmpty(options.Notes))
             {
                 record.Notes = options.Notes;
@@ -519,10 +532,10 @@ namespace Commander
             {
                 DumpRowNo = true
             };
-            tab.AddHeader(new string[] { "Shared Folder UID", "Name", "# Records", "# Users" });
+            tab.AddHeader(new[] {"Shared Folder UID", "Name", "# Records", "# Users"});
             foreach (var sf in _vault.SharedFolders)
             {
-                tab.AddRow(new object[] { sf.Uid, sf.Name, sf.RecordPermissions.Count, sf.UsersPermissions.Count });
+                tab.AddRow(new object[] {sf.Uid, sf.Name, sf.RecordPermissions.Count, sf.UsersPermissions.Count});
             }
 
             tab.Sort(1);
@@ -533,14 +546,15 @@ namespace Commander
 
         private bool TryResolvePath(string path, out FolderNode node)
         {
-            string text;
-            var res = TryResolvePath(path, out node, out text);
+            var res = TryResolvePath(path, out node, out var text);
             if (res)
             {
                 res = string.IsNullOrEmpty(text);
             }
+
             return res;
         }
+
         private bool TryResolvePath(string path, out FolderNode node, out string text)
         {
             node = null;
@@ -567,6 +581,7 @@ namespace Commander
                     path = path.Substring(1);
                     node = _vault.RootFolder;
                 }
+
                 foreach (var folder in path.TokenizeArguments(CommandExtensions.IsPathDelimiter))
                 {
                     if (folder == "..")
@@ -592,34 +607,28 @@ namespace Commander
                         var found = false;
                         foreach (var subFolder in node.Subfolders)
                         {
-                            if (_vault.TryGetFolder(subFolder, out FolderNode subnode))
-                            {
-                                if (string.Compare(folder, subnode.Name) == 0)
-                                {
-                                    found = true;
-                                    node = subnode;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                return false;
-                            }
+                            if (!_vault.TryGetFolder(subFolder, out var subNode)) return false;
+
+                            if (string.CompareOrdinal(folder, subNode.Name) != 0) continue;
+
+                            found = true;
+                            node = subNode;
+                            break;
                         }
-                        if (!found)
+
+                        if (found) continue;
+                        if (string.IsNullOrEmpty(text))
                         {
-                            if (string.IsNullOrEmpty(text))
-                            {
-                                text = folder;
-                            }
-                            else
-                            {
-                                return false;
-                            }
+                            text = folder;
+                        }
+                        else
+                        {
+                            return false;
                         }
                     }
                 }
             }
+
             return true;
         }
 
@@ -629,27 +638,26 @@ namespace Commander
             {
                 var folder = _currentFolder;
                 var sb = new StringBuilder();
-                while (_vault.TryGetFolder(folder, out FolderNode node))
+                while (_vault.TryGetFolder(folder, out var node))
                 {
                     if (sb.Length > 0)
                     {
                         sb.Insert(0, '/');
                     }
+
                     sb.Insert(0, node.Name);
                     folder = node.ParentUid;
-                    if (string.IsNullOrEmpty(folder))
-                    {
-                        sb.Insert(0, _vault.RootFolder.Name + "/");
-                        if (sb.Length > 40)
-                        {
-                            sb.Remove(0, sb.Length - 37);
-                            sb.Insert(0, "...");
-                        }
-                        return sb.ToString();
-                    }
+                    if (!string.IsNullOrEmpty(folder)) continue;
 
+                    sb.Insert(0, _vault.RootFolder.Name + "/");
+                    if (sb.Length <= 40) return sb.ToString();
+
+                    sb.Remove(0, sb.Length - 37);
+                    sb.Insert(0, "...");
+                    return sb.ToString();
                 }
             }
+
             return _vault.RootFolder.Name;
         }
     }
@@ -685,7 +693,6 @@ namespace Commander
 
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
-
     }
 
     class AddRecordOptions : EditRecord

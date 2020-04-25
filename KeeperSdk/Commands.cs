@@ -5,19 +5,15 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
-using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Sdk
 {
-    /// <summary>
-    /// Base Keeper command
-    /// </summary>
     [DataContract]
     public class KeeperApiCommand
     {

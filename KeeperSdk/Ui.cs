@@ -1,4 +1,15 @@
-﻿using System;
+﻿//  _  __
+// | |/ /___ ___ _ __  ___ _ _ ®
+// | ' </ -_) -_) '_ \/ -_) '_|
+// |_|\_\___\___| .__/\___|_|
+//              |_|
+//
+// Keeper SDK
+// Copyright 2020 Keeper Security Inc.
+// Contact: ops@keepersecurity.com
+//
+
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
@@ -31,6 +42,7 @@ namespace KeeperSecurity.Sdk.UI
             Code = code;
             Duration = duration;
         }
+
         public string Code { get; }
         public TwoFactorCodeDuration Duration { get; }
     }
@@ -49,7 +61,9 @@ namespace KeeperSecurity.Sdk.UI
 
     public class DuoCodeResult : TwoFactorCode, IDuoResult
     {
-        public DuoCodeResult(string code, TwoFactorCodeDuration duration) : base(code, duration) { }
+        public DuoCodeResult(string code, TwoFactorCodeDuration duration) : base(code, duration)
+        {
+        }
     }
 
     public enum DuoAction
@@ -68,28 +82,21 @@ namespace KeeperSecurity.Sdk.UI
 
         public static bool TryParseDuoAction(string text, out DuoAction action)
         {
-            lock (DuoActions)
+            foreach (var pair in DuoActions)
             {
-                foreach (var pair in DuoActions)
-                {
-                    if (string.Compare(text, pair.Value, true) == 0)
-                    {
-                        action = pair.Key;
-                        return true;
-                    }
-                }
+                if (string.Compare(text, pair.Value, StringComparison.OrdinalIgnoreCase) != 0) continue;
+
+                action = pair.Key;
+                return true;
             }
+
             action = DuoAction.DuoPush;
             return false;
         }
 
         public static string GetTwoFactorChannelText(this TwoFactorCodeChannel channel)
         {
-            if (TwoFactorChannels.TryGetValue(channel, out string ch))
-            {
-                return ch;
-            }
-            return "";
+            return TwoFactorChannels.TryGetValue(channel, out var ch) ? ch : "";
         }
 
         public static TwoFactorCodeChannel GetTwoFactorChannel(string channel)
@@ -104,44 +111,49 @@ namespace KeeperSecurity.Sdk.UI
                     }
                 }
             }
+
             return TwoFactorCodeChannel.Other;
         }
 
-        private static readonly IDictionary<TwoFactorCodeChannel, string> TwoFactorChannels = new Dictionary<TwoFactorCodeChannel, string>
-        {
-            { TwoFactorCodeChannel.Authenticator, "two_factor_channel_google" },
-            { TwoFactorCodeChannel.TextMessage, "two_factor_channel_sms" },
-            { TwoFactorCodeChannel.DuoSecurity, "two_factor_channel_duo" },
-            { TwoFactorCodeChannel.RSASecurID, "two_factor_channel_rsa" },
-        };
+        private static readonly IDictionary<TwoFactorCodeChannel, string> TwoFactorChannels =
+            new Dictionary<TwoFactorCodeChannel, string>
+            {
+                {TwoFactorCodeChannel.Authenticator, "two_factor_channel_google"},
+                {TwoFactorCodeChannel.TextMessage, "two_factor_channel_sms"},
+                {TwoFactorCodeChannel.DuoSecurity, "two_factor_channel_duo"},
+                {TwoFactorCodeChannel.RSASecurID, "two_factor_channel_rsa"},
+            };
 
         internal static readonly IDictionary<DuoAction, string> DuoActions = new Dictionary<DuoAction, string>
         {
-            { DuoAction.DuoPush, "push" },
-            { DuoAction.TextMessage, "sms" },
-            { DuoAction.VoiceCall, "phone" },
+            {DuoAction.DuoPush, "push"},
+            {DuoAction.TextMessage, "sms"},
+            {DuoAction.VoiceCall, "phone"},
         };
     }
 
     public sealed class DuoAccount
     {
         public string PushNotificationUrl { get; internal set; }
+
         public string ParseDuoPasscodeNotification(byte[] notification)
         {
             if (notification != null)
             {
                 var evt = JsonUtils.ParseJson<NotificationEvent>(notification);
-                return evt.Passcode;
+                return evt.passcode;
             }
+
             return null;
         }
+
         public DuoAction[] Capabilities { get; internal set; }
-        public string Phone { get; internal set; }    // Phone number associated the account
+        public string Phone { get; internal set; } // Phone number associated the account
     }
 
     public interface IDuoTwoFactorUI
     {
-        void DuoRequireEnrolment(string enrollmentUrl);
+        void DuoRequireEnrollment(string enrollmentUrl);
         Task<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, CancellationToken token);
     }
 

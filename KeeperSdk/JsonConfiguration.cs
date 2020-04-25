@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -33,6 +33,7 @@ namespace KeeperSecurity.Sdk
             {
                 _configuration = null;
             }
+
             if (_configuration == null)
             {
                 var jsonBytes = LoadJson();
@@ -46,6 +47,7 @@ namespace KeeperSecurity.Sdk
                     _configuration = new JsonConfiguration();
                 }
             }
+
             return _configuration;
         }
 
@@ -55,8 +57,8 @@ namespace KeeperSecurity.Sdk
         {
             get
             {
-                var _conf = GetJsonConfiguration();
-                return (_conf.users ?? Enumerable.Empty<JsonUserConfiguration>())
+                var conf = GetJsonConfiguration();
+                return (conf.users ?? Enumerable.Empty<JsonUserConfiguration>())
                     .Select(x => new UserConfiguration(x.user)
                     {
                         Password = x.password,
@@ -65,42 +67,39 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        IUserConfiguration IUserStorage.Get(string username)
+        IUserConfiguration IUserStorage.GetUser(string username)
         {
-            var _conf = GetJsonConfiguration();
-            if (_conf.users != null)
-            {
-                var name = username.AdjustUserName();
-                var uc = _conf.users.Where(x => x.user == name).FirstOrDefault();
-                if (uc != null)
-                {
-                    return new UserConfiguration(name)
-                    {
-                        Password = uc.password,
-                        TwoFactorToken = uc.twoFactorToken,
-                    };
-                }
-            }
+            var conf = GetJsonConfiguration();
+            if (conf.users == null) return null;
 
-            return null;
+            var name = username.AdjustUserName();
+            var uc = conf.users.FirstOrDefault(x => x.user == name);
+            if (uc == null) return null;
+
+            return new UserConfiguration(name)
+            {
+                Password = uc.password,
+                TwoFactorToken = uc.twoFactorToken,
+            };
         }
 
-        void IUserStorage.Put(IUserConfiguration userConfiguration)
+        void IUserStorage.PutUser(IUserConfiguration userConfiguration)
         {
             var name = userConfiguration.Username.AdjustUserName();
-            var _conf = GetJsonConfiguration();
-            JsonUserConfiguration uc = (_conf.users ?? Enumerable.Empty<JsonUserConfiguration>()).Where(x => x.user == name).FirstOrDefault();
+            var conf = GetJsonConfiguration();
+            var uc = (conf.users ?? Enumerable.Empty<JsonUserConfiguration>()).FirstOrDefault(x => x.user == name);
             if (uc == null)
             {
                 uc = new JsonUserConfiguration
                 {
                     user = name
                 };
-                _conf.users = (_conf.users ?? Enumerable.Empty<JsonUserConfiguration>()).Concat(new[] { uc }).ToArray();
+                conf.users = (conf.users ?? Enumerable.Empty<JsonUserConfiguration>()).Concat(new[] {uc}).ToArray();
             }
+
             uc.twoFactorToken = userConfiguration.TwoFactorToken;
-            _conf.lastLogin = name;
-            StoreJson(JsonUtils.DumpJson(_conf));
+            conf.lastLogin = name;
+            StoreJson(JsonUtils.DumpJson(conf));
         }
 
 
@@ -110,23 +109,24 @@ namespace KeeperSecurity.Sdk
         {
             get
             {
-                var _conf = GetJsonConfiguration();
-                return (_conf.servers ?? Enumerable.Empty<JsonServerConfiguration>())
+                var conf = GetJsonConfiguration();
+                return (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>())
                     .Select(x => new ServerConfiguration(x.server)
                     {
                         ServerKeyId = x.serverKeyId,
                         DeviceId = string.IsNullOrEmpty(x.deviceId) ? null : x.deviceId.Base64UrlDecode()
-                    }); ;
+                    });
+                ;
             }
         }
 
-        IServerConfiguration IServerStorage.Get(string server)
+        IServerConfiguration IServerStorage.GetServer(string server)
         {
-            var _conf = GetJsonConfiguration();
-            if (_conf.servers != null)
+            var conf = GetJsonConfiguration();
+            if (conf.servers != null)
             {
                 var serverName = server.AdjustServerName();
-                return _conf.servers.Where(x => x.server == serverName)
+                return conf.servers.Where(x => x.server == serverName)
                     .Select(x => new ServerConfiguration(x.server)
                     {
                         ServerKeyId = x.serverKeyId,
@@ -134,32 +134,35 @@ namespace KeeperSecurity.Sdk
                     })
                     .FirstOrDefault();
             }
+
             return null;
         }
 
-        void IServerStorage.Put(IServerConfiguration serverConfiguration)
+        void IServerStorage.PutServer(IServerConfiguration serverConfiguration)
         {
             var name = serverConfiguration.Server.AdjustUserName();
-            var _conf = GetJsonConfiguration();
-            JsonServerConfiguration sc = (_conf.servers ?? Enumerable.Empty<JsonServerConfiguration>())
-                .Where(x => x.server == name)
-                .FirstOrDefault();
+            var conf = GetJsonConfiguration();
+            var sc = (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>())
+                .FirstOrDefault(x => x.server == name);
             if (sc == null)
             {
                 sc = new JsonServerConfiguration
                 {
                     server = name
                 };
-                _conf.servers = (_conf.servers ?? Enumerable.Empty<JsonServerConfiguration>()).Concat(new[] { sc }).ToArray();
+                conf.servers = (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>()).Concat(new[] {sc})
+                    .ToArray();
             }
+
             sc.serverKeyId = serverConfiguration.ServerKeyId;
             if (serverConfiguration.DeviceId != null)
             {
                 sc.deviceId = serverConfiguration.DeviceId.Base64UrlEncode();
             }
-            _conf.lastServer = name;
 
-            StoreJson(JsonUtils.DumpJson(_conf));
+            conf.lastServer = name;
+
+            StoreJson(JsonUtils.DumpJson(conf));
         }
     }
 
@@ -177,18 +180,20 @@ namespace KeeperSecurity.Sdk
             }
             else
             {
-                var personalFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".keeper");
+                var personalFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+                    ".keeper");
                 if (!Directory.Exists(personalFolder))
                 {
                     Directory.CreateDirectory(personalFolder);
                 }
+
                 FilePath = Path.Combine(personalFolder, fileName);
             }
 
-            Debug.WriteLine(string.Format("JSON config path: \"{0}\"", FilePath));
+            Debug.WriteLine($"JSON config path: \"{FilePath}\"");
         }
 
-        public string FilePath { get; private set; }
+        public string FilePath { get; }
 
         protected override byte[] LoadJson()
         {
@@ -203,6 +208,7 @@ namespace KeeperSecurity.Sdk
                     Trace.TraceError("Read JSON configuration: File name: \"{0}\", Error: {1}", FilePath, e.Message);
                 }
             }
+
             return null;
         }
 
@@ -224,9 +230,11 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "user", EmitDefaultValue = false)]
         public string user;
+
         [DataMember(Name = "password", EmitDefaultValue = false)]
         //#pragma warning disable 0649
         public string password;
+
         //#pragma warning restore 0649
         [DataMember(Name = "mfa_token", EmitDefaultValue = false)]
         public string twoFactorToken;

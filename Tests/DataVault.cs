@@ -3,21 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Authentication;
 using Google.Protobuf;
+using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
 using Moq;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
 
-namespace KeeperSecurity.Sdk
+namespace Tests
 {
     public static class DataVault
     {
@@ -29,7 +28,7 @@ namespace KeeperSecurity.Sdk
         public static byte[] UserDataKey = CryptoUtils.GetRandomBytes(32);
         public static byte[] UserClientKey = CryptoUtils.GetRandomBytes(32);
 
-        public static string UserPrivateKey =$@"-----BEGIN PRIVATE KEY-----
+        public static string UserPrivateKey = @"-----BEGIN PRIVATE KEY-----
 MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCpHQCOYFejfvWl
 ia9LU0zydeVsC/mpRs9i5XopXAqM3dPxZfkrocMaXf7KUBsjTa8jMq576ANuOjXB
 QanaqEA1zVXGWUtJaeQmbBu4ZRMRangA2O6ygyE+8TCdrVc92WtIx2wqiSNs/3Fu
@@ -58,9 +57,7 @@ dGSJ3+1Sowp8JguM0OrfU4PU/C/K6HoezU+Evb6e3q31vskzLMqNar84+5M8fRAS
 sveiIVtNpnh8NemUf/pKfA==
 -----END PRIVATE KEY-----";
 
-//        public static string PrivateKeyPassword = "E,{-qhsm;<cq]3D(3H5K/";
-        public static string UserPublicKey =
-$@"-----BEGIN PUBLIC KEY-----
+        public static string UserPublicKey = @"-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqR0AjmBXo371pYmvS1NM
 8nXlbAv5qUbPYuV6KVwKjN3T8WX5K6HDGl3+ylAbI02vIzKue+gDbjo1wUGp2qhA
 Nc1VxllLSWnkJmwbuGUTEWp4ANjusoMhPvEwna1XPdlrSMdsKokjbP9xbguPdvXx
@@ -87,16 +84,18 @@ fwIDAQAB
         public static byte[] V2DerivedKey = CryptoUtils.DeriveKeyV2("data_key", UserPassword, UserSalt, UserIterations);
         public static string EncryptedDataKey = CryptoUtils.EncryptAesV2(UserDataKey, V2DerivedKey).Base64UrlEncode();
 
-        public static string EncryptionParams = CryptoUtils.CreateEncryptionParams(UserPassword, UserSalt, UserIterations, UserDataKey).Base64UrlEncode();
+        public static string EncryptionParams = CryptoUtils
+            .CreateEncryptionParams(UserPassword, UserSalt, UserIterations, UserDataKey).Base64UrlEncode();
 
         public static long Revision = 100;
 
         private static RsaKeyParameters LoadPublicKey(string publicKey)
         {
             PemReader pemReader = new PemReader(new StringReader(publicKey));
-            RsaKeyParameters key = (RsaKeyParameters)pemReader.ReadObject();
+            RsaKeyParameters key = (RsaKeyParameters) pemReader.ReadObject();
             return key;
         }
+
         private static byte[] ExportPublicKey(RsaKeyParameters publicKey)
         {
             var publicKeyInfo = new RsaPublicKeyStructure(publicKey.Modulus, publicKey.Exponent);
@@ -106,24 +105,27 @@ fwIDAQAB
         public class PasswordFinder : IPasswordFinder
         {
             private readonly char[] _password;
+
             public PasswordFinder(string password)
             {
                 _password = password.ToCharArray();
             }
+
             public char[] GetPassword()
             {
                 return _password;
             }
         }
+
         private static RsaPrivateCrtKeyParameters LoadPrivateKey(string privateKey)
         {
-            PemReader pemReader = new PemReader(new StringReader(privateKey));
-            return (RsaPrivateCrtKeyParameters)pemReader.ReadObject();
+            var pemReader = new PemReader(new StringReader(privateKey));
+            return (RsaPrivateCrtKeyParameters) pemReader.ReadObject();
         }
 
-        private static byte[] ExportPrivateKey(RsaPrivateCrtKeyParameters privateKey)
+        private static byte[] ExportPrivateKey(AsymmetricKeyParameter privateKey)
         {
-            PrivateKeyInfo privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
             return privateKeyInfo.ParsePrivateKey().GetDerEncoded();
         }
 
@@ -136,14 +138,14 @@ fwIDAQAB
                 ServerKeyId = 1
             };
             IServerStorage ss = storage;
-            ss.Put(serverConf);
+            ss.PutServer(serverConf);
 
             var userConf = new UserConfiguration(UserName)
             {
                 Password = UserPassword
             };
             IUserStorage us = storage;
-            us.Put(userConf);
+            us.PutUser(userConf);
 
             return storage;
         }
@@ -174,6 +176,7 @@ fwIDAQAB
 
         private readonly DataContractJsonSerializer _dataSerializer;
         private readonly DataContractJsonSerializer _extraSerializer;
+
         public VaultEnvironment()
         {
             var settings = new DataContractJsonSerializerSettings
@@ -182,10 +185,10 @@ fwIDAQAB
             };
             _dataSerializer = new DataContractJsonSerializer(typeof(RecordData), settings);
             _extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), settings);
-
         }
 
-        private Tuple<SyncDownRecord, SyncDownRecordMetaData> GenerateRecord(PasswordRecord record, KeyType keyType, long revision)
+        private Tuple<SyncDownRecord, SyncDownRecordMetaData> GenerateRecord(PasswordRecord record, KeyType keyType,
+            long revision)
         {
             var sdr = new SyncDownRecord
             {
@@ -221,14 +224,19 @@ fwIDAQAB
                     Owner = keyType == KeyType.DataKey,
                     CanShare = keyType == KeyType.DataKey,
                     CanEdit = keyType == KeyType.DataKey,
-                    RecordKeyType = (int)keyType
+                    RecordKeyType = (int) keyType
                 };
-                sdrmd.RecordKey = (keyType == KeyType.DataKey ? CryptoUtils.EncryptAesV1(record.RecordKey, DataKey) : CryptoUtils.EncryptRsa(record.RecordKey, PublicKey)).Base64UrlEncode();
+                sdrmd.RecordKey =
+                    (keyType == KeyType.DataKey
+                        ? CryptoUtils.EncryptAesV1(record.RecordKey, DataKey)
+                        : CryptoUtils.EncryptRsa(record.RecordKey, PublicKey)).Base64UrlEncode();
             }
+
             return new Tuple<SyncDownRecord, SyncDownRecordMetaData>(sdr, sdrmd);
         }
 
-        private SyncDownSharedFolder GenerateSharedFolder(SharedFolder sharedFolder, long revision, IEnumerable<PasswordRecord> records, IEnumerable<EnterpriseTeam> teams)
+        private SyncDownSharedFolder GenerateSharedFolder(SharedFolder sharedFolder, long revision,
+            IEnumerable<PasswordRecord> records, IEnumerable<EnterpriseTeam> teams)
         {
             var sf = new SyncDownSharedFolder
             {
@@ -236,7 +244,8 @@ fwIDAQAB
                 Revision = revision,
                 KeyType = 1,
                 SharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, DataKey).Base64UrlEncode(),
-                Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(sharedFolder.Name), sharedFolder.SharedFolderKey).Base64UrlEncode(),
+                Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(sharedFolder.Name), sharedFolder.SharedFolderKey)
+                    .Base64UrlEncode(),
                 ManageRecords = false,
                 ManageUsers = false,
                 DefaultManageRecords = true,
@@ -244,8 +253,10 @@ fwIDAQAB
                 DefaultCanEdit = true,
                 DefaultCanShare = true,
                 fullSync = true,
-                users = new SyncDownSharedFolderUser[] {
-                    new SyncDownSharedFolderUser {
+                users = new[]
+                {
+                    new SyncDownSharedFolderUser
+                    {
                         Username = User,
                         ManageRecords = true,
                         ManageUsers = true
@@ -262,6 +273,7 @@ fwIDAQAB
                     CanEdit = false
                 }).ToArray();
             }
+
             if (teams != null)
             {
                 sf.teams = teams.Select(x => new SyncDownSharedFolderTeam
@@ -272,12 +284,15 @@ fwIDAQAB
                     ManageUsers = true
                 }).ToArray();
             }
+
             return sf;
         }
 
         private SyncDownTeam GenerateTeam(EnterpriseTeam team, KeyType keyType, IEnumerable<SharedFolder> sharedFolders)
         {
-            var encryptedTeamKey = keyType == KeyType.DataKey ? CryptoUtils.EncryptAesV1(team.TeamKey, DataKey) : CryptoUtils.EncryptRsa(team.TeamKey, PublicKey);
+            var encryptedTeamKey = keyType == KeyType.DataKey
+                ? CryptoUtils.EncryptAesV1(team.TeamKey, DataKey)
+                : CryptoUtils.EncryptRsa(team.TeamKey, PublicKey);
             var t = new SyncDownTeam
             {
                 TeamUid = team.TeamUid,
@@ -299,18 +314,19 @@ fwIDAQAB
                     SharedFolderKey = CryptoUtils.EncryptAesV1(x.SharedFolderKey, team.TeamKey).Base64UrlEncode(),
                 }).ToArray();
             }
+
             return t;
         }
 
         private SyncDownUserFolder GenerateUserFolder(FolderNode folder, long revision)
         {
             var folderKey = CryptoUtils.GenerateEncryptionKey();
-            var data = new FolderData { name = folder.Name };
+            var data = new FolderData {name = folder.Name};
             using (var stream = new MemoryStream())
             {
                 using (var writer = JsonReaderWriterFactory.CreateJsonWriter(stream, Encoding.UTF8))
                 {
-                    var settings = new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true };
+                    var settings = new DataContractJsonSerializerSettings {UseSimpleDictionaryFormat = true};
                     var serializer = new DataContractJsonSerializer(typeof(FolderData), settings);
                     serializer.WriteObject(writer, data);
                 }
@@ -318,7 +334,7 @@ fwIDAQAB
                 return new SyncDownUserFolder
                 {
                     FolderUid = folder.FolderUid,
-                    keyType = (int)KeyType.DataKey,
+                    keyType = (int) KeyType.DataKey,
                     Revision = revision,
                     FolderKey = CryptoUtils.EncryptAesV1(folderKey, DataKey).Base64UrlEncode(),
                     FolderType = "user_folder",
@@ -339,7 +355,7 @@ fwIDAQAB
                 Link = "https://keepersecurity.com/1",
                 Notes = "note1"
             };
-            record1.Custom.Add(new CustomField { Name = "name1", Value = "value1" });
+            record1.Custom.Add(new CustomField {Name = "name1", Value = "value1"});
             record1.Attachments.Add(new AttachmentFile
             {
                 Id = "ABCDEFGH",
@@ -399,8 +415,8 @@ fwIDAQAB
             var (r1, md1) = GenerateRecord(record1, KeyType.DataKey, 10);
             var (r2, md2) = GenerateRecord(record2, KeyType.PrivateKey, 11);
             var (r3, _) = GenerateRecord(record3, KeyType.NoKey, 12);
-            var sf1 = GenerateSharedFolder(sharedFolder1, 12, new[] { record1, record3 }, new[] { team1 });
-            var t1 = GenerateTeam(team1, KeyType.DataKey, new[] { sharedFolder1 });
+            var sf1 = GenerateSharedFolder(sharedFolder1, 12, new[] {record1, record3}, new[] {team1});
+            var t1 = GenerateTeam(team1, KeyType.DataKey, new[] {sharedFolder1});
             var uf1 = GenerateUserFolder(userFolder1, 14);
 
             var sdr = new SyncDownResponse
@@ -408,19 +424,21 @@ fwIDAQAB
                 result = "success",
                 fullSync = true,
                 revision = Revision,
-                records = new[] { r1, r2, r3 },
-                recordMetaData = new[] { md1, md2 },
-                sharedFolders = new[] { sf1 },
-                teams = new[] { t1 },
-                userFolders = new[] { uf1 },
-                userFolderSharedFolders = new[] { new SyncDownUserFolderSharedFolder { SharedFolderUid = sharedFolder1.Uid } }
+                records = new[] {r1, r2, r3},
+                recordMetaData = new[] {md1, md2},
+                sharedFolders = new[] {sf1},
+                teams = new[] {t1},
+                userFolders = new[] {uf1},
+                userFolderSharedFolders = new[]
+                    {new SyncDownUserFolderSharedFolder {SharedFolderUid = sharedFolder1.Uid}}
             };
 
-            sdr.userFolderRecords = new[] {
-                new SyncDownFolderRecord { RecordUid = r1.RecordUid},
-                new SyncDownFolderRecord { RecordUid = r2.RecordUid, FolderUid = userFolder1.FolderUid },
-                new SyncDownFolderRecord { RecordUid = r1.RecordUid, FolderUid = sharedFolder1.Uid},
-                new SyncDownFolderRecord { RecordUid = r3.RecordUid, FolderUid = sharedFolder1.Uid},
+            sdr.userFolderRecords = new[]
+            {
+                new SyncDownFolderRecord {RecordUid = r1.RecordUid},
+                new SyncDownFolderRecord {RecordUid = r2.RecordUid, FolderUid = userFolder1.FolderUid},
+                new SyncDownFolderRecord {RecordUid = r1.RecordUid, FolderUid = sharedFolder1.Uid},
+                new SyncDownFolderRecord {RecordUid = r3.RecordUid, FolderUid = sharedFolder1.Uid},
             };
 
             return sdr;
@@ -430,21 +448,21 @@ fwIDAQAB
         public IAuth GetConnectedAuthContext()
         {
             var storage = DataVault.GetConfigurationStorage();
-            var ui_mock = new Mock<IAuthUI>();
+            var uiMock = new Mock<IAuthUI>();
             var endpoint = new Mock<KeeperEndpoint>(storage);
             var auth = new Mock<IAuth>();
 
-            auth.Setup(x => x.Ui).Returns(ui_mock.Object);
+            auth.Setup(x => x.Ui).Returns(uiMock.Object);
             auth.Setup(x => x.Endpoint).Returns(endpoint.Object);
 
             auth.Setup(x => x.Storage).Returns(storage);
 
             IUserStorage us = storage;
-            var user_conf = us.Get(us.LastLogin);
+            var userConf = us.GetUser(us.LastLogin);
             var authContext = new AuthContext
             {
-                Username = user_conf.Username,
-                TwoFactorToken = user_conf.TwoFactorToken,
+                Username = userConf.Username,
+                TwoFactorToken = userConf.TwoFactorToken,
                 ClientKey = ClientKey,
                 DataKey = DataKey,
                 PrivateKey = CryptoUtils.LoadPrivateKey(PrivateKeyData),
@@ -472,9 +490,9 @@ fwIDAQAB
             return Task.FromResult(rs);
         }
 
-        internal Task<LoginResponse> LoginSuccessResponse(LoginCommand command)
+        internal Task<KeeperSecurity.Sdk.LoginResponse> LoginSuccessResponse(LoginCommand command)
         {
-            var rs = new LoginResponse
+            var rs = new KeeperSecurity.Sdk.LoginResponse
             {
                 result = "success",
                 resultCode = "auth_success",
@@ -499,10 +517,10 @@ fwIDAQAB
                         case "client_key":
                             rs.clientKey = ClientKey.Base64UrlEncode();
                             break;
-
                     }
                 }
             }
+
             return Task.FromResult(rs);
         }
     }

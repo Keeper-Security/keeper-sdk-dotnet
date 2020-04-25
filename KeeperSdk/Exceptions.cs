@@ -5,11 +5,12 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
 using System;
+
 namespace KeeperSecurity.Sdk
 {
     public class KeeperInvalidParameter : Exception
@@ -51,10 +52,6 @@ namespace KeeperSecurity.Sdk
     }
 
     public class KeeperTooManyAttempts : Exception
-    {
-    }
-
-    public class KeeperRequiresUI : Exception
     {
     }
 }
