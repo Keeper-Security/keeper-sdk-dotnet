@@ -209,9 +209,6 @@ namespace Tests
                                         }
 
                                         break;
-                                    case "is_enterprise_admin":
-                                        rs.isEnterpriseAdmin = false;
-                                        break;
                                     case "client_key":
                                         rs.clientKey = CryptoUtils.EncryptAesV1(_vaultEnv.ClientKey, _vaultEnv.DataKey)
                                             .Base64UrlEncode();

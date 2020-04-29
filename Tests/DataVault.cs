@@ -511,9 +511,6 @@ fwIDAQAB
                                 encryptionParams = EncryptionParams
                             };
                             break;
-                        case "is_enterprise_admin":
-                            rs.isEnterpriseAdmin = false;
-                            break;
                         case "client_key":
                             rs.clientKey = ClientKey.Base64UrlEncode();
                             break;

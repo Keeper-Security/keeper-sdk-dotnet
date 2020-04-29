@@ -48,10 +48,10 @@ namespace KeeperSecurity.Sdk
         public string RuleIntro { get; }
         public PasswordRule[] Rules { get; }
 
-        public PasswordRuleMatcher(string ruleIntro, PasswordRule[] rules)
+        public PasswordRuleMatcher(PasswordRequirements requirements)
         {
-            RuleIntro = ruleIntro;
-            Rules = rules;
+            RuleIntro = requirements.PasswordRulesIntro;
+            Rules = requirements.PasswordRules;
         }
 
         public string[] MatchFailedRules(string password)
@@ -73,11 +73,11 @@ namespace KeeperSecurity.Sdk
 
     public static class ManageAccountExtension
     {
-        public static async Task ShareAccount(this Auth auth)
+        public static async Task ShareAccount(this Auth auth, AccountShareTo[] shareAccountTo)
         {
-            if (auth.AuthContext.AccountSettings?.shareAccountTo != null)
+            if (shareAccountTo != null)
             {
-                foreach (var shareTo in auth.AuthContext.AccountSettings.shareAccountTo)
+                foreach (var shareTo in shareAccountTo)
                 {
                     var key = CryptoUtils.LoadPublicKey(shareTo.publicKey.Base64UrlDecode());
                     var command = new ShareAccountCommand
@@ -87,18 +87,12 @@ namespace KeeperSecurity.Sdk
                     };
                     await auth.ExecuteAuthCommand(command);
                 }
-
-                auth.AuthContext.AccountSettings.shareAccountTo = null;
             }
         }
 
-        public static async Task<string> ChangeMasterPassword(this Auth auth)
+        public static async Task<string> ChangeMasterPassword(this Auth auth, PasswordRequirements requirements)
         {
-            var passwordRulesIntro = auth.AuthContext.PasswordRulesIntro ??
-                                     auth.AuthContext.AccountSettings?.passwordRulesIntro;
-            PasswordRule[] passwordRules =
-                auth.AuthContext.PasswordRules ?? auth.AuthContext.AccountSettings?.passwordRules;
-            var ruleMatcher = new PasswordRuleMatcher(passwordRulesIntro, passwordRules);
+            var ruleMatcher = new PasswordRuleMatcher(requirements);
             var password = await auth.Ui.GetNewPassword(ruleMatcher);
             var failedRules = ruleMatcher.MatchFailedRules(password);
             if (failedRules.Length != 0) throw new KeeperApiException("password_rule_failed", failedRules[0]);

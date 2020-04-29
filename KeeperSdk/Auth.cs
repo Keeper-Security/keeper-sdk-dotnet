@@ -62,14 +62,10 @@ namespace KeeperSecurity.Sdk
         public string Username { get; internal set; }
         public byte[] DataKey { get; internal set; }
         public byte[] ClientKey { get; internal set; }
-        internal AccountSettings AccountSettings;
+
         public RsaPrivateCrtKeyParameters PrivateKey { get; internal set; }
-        public bool IsEnterpriseAdmin { get; internal set; }
         public string SessionToken { get; internal set; }
         public string TwoFactorToken { get; set; }
-        public IDictionary<string, object> Enforcements { get; internal set; }
-        public string PasswordRulesIntro { get; internal set; }
-        public PasswordRule[] PasswordRules { get; internal set; }
         public string AuthResponse { get; internal set; }
         public byte[] AuthSalt { get; internal set; }
         public int AuthIterations { get; internal set; }
@@ -86,7 +82,7 @@ namespace KeeperSecurity.Sdk
             {
                 username = primary.Username.ToLowerInvariant(),
                 authResponse = authHash,
-                include = new[] {"keys", "settings", "enforcements", "is_enterprise_admin", "client_key"},
+                include = new[] {"keys", "client_key"},
             };
 
             if (secondary != null)
@@ -152,44 +148,6 @@ namespace KeeperSecurity.Sdk
             else
             {
                 throw new Exception("Missing data key");
-            }
-
-            authContext.IsEnterpriseAdmin = loginResponse.isEnterpriseAdmin ?? false;
-            if (loginResponse.accountSettings != null)
-            {
-                authContext.PasswordRulesIntro = loginResponse.accountSettings.passwordRulesIntro;
-                authContext.PasswordRules = loginResponse.accountSettings.passwordRules;
-                authContext.AccountSettings = loginResponse.accountSettings;
-            }
-
-            if (loginResponse.enforcements != null)
-            {
-                var passwordRules = new Dictionary<string, object>();
-                authContext.Enforcements = new Dictionary<string, object>();
-                foreach (var pair in loginResponse.enforcements)
-                {
-                    switch (pair.Key)
-                    {
-                        case "password_rules_intro":
-                        case "password_rules":
-                            passwordRules[pair.Key] = pair.Value;
-                            break;
-                        default:
-                            authContext.Enforcements[pair.Key] = pair.Value;
-                            break;
-                    }
-                }
-
-                if (passwordRules.Count > 0)
-                {
-                    var json = JsonUtils.DumpJson(passwordRules);
-                    var rules = JsonUtils.ParseJson<PasswordRules>(json);
-                    if (rules.passwordRules != null)
-                    {
-                        authContext.PasswordRules = rules.passwordRules;
-                        authContext.PasswordRulesIntro = rules.passwordRulesIntro;
-                    }
-                }
             }
 
             if (!string.IsNullOrEmpty(loginResponse.deviceToken))
@@ -460,7 +418,7 @@ namespace KeeperSecurity.Sdk
                             var channel = AuthUIExtensions.GetTwoFactorChannel(loginRs.channel);
                             if (channel == TwoFactorCodeChannel.DuoSecurity && Ui is IDuoTwoFactorUI duoUi)
                             {
-                                if (string.IsNullOrEmpty(loginRs.enroll_url))
+                                if (string.IsNullOrEmpty(loginRs.enrollUrl))
                                 {
                                     var account = new DuoAccount
                                     {
@@ -509,7 +467,7 @@ namespace KeeperSecurity.Sdk
                                 }
                                 else
                                 {
-                                    duoUi.DuoRequireEnrollment(loginRs.enroll_url);
+                                    duoUi.DuoRequireEnrollment(loginRs.enrollUrl);
                                 }
                             }
                             else
@@ -544,7 +502,11 @@ namespace KeeperSecurity.Sdk
                     switch (loginRs.resultCode)
                     {
                         case "auth_expired":
-                            var newPassword = await this.ChangeMasterPassword();
+                            var newPassword = await this.ChangeMasterPassword(new PasswordRequirements
+                            {
+                                PasswordRulesIntro = loginRs.passwordRulesIntro,
+                                PasswordRules = loginRs.passwordRules
+                            });
                             if (!string.IsNullOrEmpty(newPassword))
                             {
                                 primaryCredentials.Password = newPassword;
@@ -555,10 +517,14 @@ namespace KeeperSecurity.Sdk
                             break;
 
                         case "auth_expired_transfer":
-                            var shareAccountTo = loginRs.accountSettings.shareAccountTo;
                             if (await Ui.Confirmation("Do you accept Account Transfer policy?"))
                             {
-                                await this.ShareAccount();
+                                var cmd = new AccountSummaryCommand
+                                {
+                                    include = new[] {"settings"}
+                                };
+                                var summaryRs = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(cmd);
+                                await this.ShareAccount(summaryRs.Settings.shareAccountTo);
                                 continue;
                             }
 
