@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.572
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeeperSdk", "KeeperSdk\KeeperSdk.csproj", "{29B50177-F7B4-46F6-B3DA-B9FEF269EEF2}"
 EndProject
@@ -9,6 +9,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commander", "Commander\Commander.csproj", "{8CB5CA92-64AD-47E7-AE6A-AE71249755EF}"
 EndProject
 Project("{F5034706-568F-408A-B7B3-4D38C6DB8A32}") = "PowerCommander", "PowerCommander\PowerCommander.pssproj", "{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5CD05D46-E97D-4149-8EAB-0406E3840DB9}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
