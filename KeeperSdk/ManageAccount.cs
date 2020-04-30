@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -20,9 +20,11 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     public class ChangeMasterPasswordCommand : AuthenticatedCommand
     {
-        public ChangeMasterPasswordCommand() : base("change_master_password") { }
-        [DataMember(Name = "auth_verifier")]
-        public string AuthVerifier;
+        public ChangeMasterPasswordCommand() : base("change_master_password")
+        {
+        }
+
+        [DataMember(Name = "auth_verifier")] public string AuthVerifier;
 
         [DataMember(Name = "encryption_params")]
         public string EncryptionParams;
@@ -32,30 +34,37 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     public class ShareAccountCommand : AuthenticatedCommand
     {
-        public ShareAccountCommand() : base("share_account") { }
-        [DataMember(Name = "to_role_id")]
-        public long ToRoleId;
+        public ShareAccountCommand() : base("share_account")
+        {
+        }
 
-        [DataMember(Name = "transfer_key")]
-        public string TransferTey;
+        [DataMember(Name = "to_role_id")] public long ToRoleId;
+
+        [DataMember(Name = "transfer_key")] public string TransferTey;
     }
 
-    public class PasswordRuleMatcher { 
+    public class PasswordRuleMatcher
+    {
         public string RuleIntro { get; }
         public PasswordRule[] Rules { get; }
 
-        public PasswordRuleMatcher(string ruleIntro, PasswordRule[] rules) {
-            RuleIntro = ruleIntro;
-            Rules = rules;
+        public PasswordRuleMatcher(PasswordRequirements requirements)
+        {
+            RuleIntro = requirements.PasswordRulesIntro;
+            Rules = requirements.PasswordRules;
         }
 
-        public string[] MatchFailedRules(string password) {
+        public string[] MatchFailedRules(string password)
+        {
             return Rules?
-                .Where(x => {
+                .Where(x =>
+                {
                     var match = Regex.IsMatch(password, x.pattern);
-                    if (!x.match) {
+                    if (!x.match)
+                    {
                         match = !match;
                     }
+
                     return !match;
                 })
                 .Select(x => x.description).ToArray();
@@ -64,45 +73,35 @@ namespace KeeperSecurity.Sdk
 
     public static class ManageAccountExtension
     {
-        public static async Task ShareAccount(this Auth auth) {
-            if (auth.AuthContext.accountSettings?.shareAccountTo != null) {
-                foreach (var shareTo in auth.AuthContext.accountSettings.shareAccountTo)
+        public static async Task ShareAccount(this Auth auth, AccountShareTo[] shareAccountTo)
+        {
+            if (shareAccountTo != null)
+            {
+                foreach (var shareTo in shareAccountTo)
                 {
                     var key = CryptoUtils.LoadPublicKey(shareTo.publicKey.Base64UrlDecode());
-                    var command = new ShareAccountCommand();
-                    command.ToRoleId = shareTo.roleId;
-                    command.TransferTey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode();
+                    var command = new ShareAccountCommand
+                    {
+                        ToRoleId = shareTo.roleId,
+                        TransferTey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode()
+                    };
                     await auth.ExecuteAuthCommand(command);
                 }
-                auth.AuthContext.accountSettings.shareAccountTo = null;
             }
         }
 
-        public static async Task<string> ChangeMasterPassword(this Auth auth, int iterations)
+        public static async Task<string> ChangeMasterPassword(this Auth auth, PasswordRequirements requirements)
         {
-            var passwordRulesIntro = auth.AuthContext.accountSettings?.passwordRulesIntro;
-            PasswordRule[] passwordRules = auth.AuthContext.accountSettings?.passwordRules;
-            if (passwordRules == null)
-            {
-                var userParams = await auth.GetNewUserParams(auth.AuthContext.Username);
-                passwordRules = userParams.PasswordMatchRegex
-                    .Zip(userParams.PasswordMatchDescription, (rx, d) => new PasswordRule
-                    {
-                        match = true,
-                        pattern = rx,
-                        description = d
-                    })
-                    .ToArray();
-            }
-            var ruleMatcher = new PasswordRuleMatcher(passwordRulesIntro, passwordRules);
+            var ruleMatcher = new PasswordRuleMatcher(requirements);
             var password = await auth.Ui.GetNewPassword(ruleMatcher);
             var failedRules = ruleMatcher.MatchFailedRules(password);
             if (failedRules.Length != 0) throw new KeeperApiException("password_rule_failed", failedRules[0]);
-            
+
             var authSalt = CryptoUtils.GetRandomBytes(16);
-            var authVerifier = CryptoUtils.CreateAuthVerifier(password, authSalt, iterations);
+            var authVerifier = CryptoUtils.CreateAuthVerifier(password, authSalt, auth.authContext.AuthIterations);
             var keySalt = CryptoUtils.GetRandomBytes(16);
-            var encryptionParameters = CryptoUtils.CreateEncryptionParams(password, keySalt, iterations, auth.AuthContext.DataKey);
+            var encryptionParameters = CryptoUtils.CreateEncryptionParams(password, keySalt,
+                auth.authContext.AuthIterations, auth.AuthContext.DataKey);
 
             var command = new ChangeMasterPasswordCommand
             {
@@ -114,6 +113,4 @@ namespace KeeperSecurity.Sdk
             return password;
         }
     }
-
-
 }

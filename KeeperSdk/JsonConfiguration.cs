@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -23,129 +23,146 @@ namespace KeeperSecurity.Sdk
         protected abstract byte[] LoadJson();
         protected abstract void StoreJson(byte[] json);
 
-        public static Configuration JsonConfigurationToConfiguration(JsonConfiguration json)
+        private JsonConfiguration _configuration;
+        private long _loadEpochMillis;
+
+        private JsonConfiguration GetJsonConfiguration()
         {
-            var configuration = new Configuration
+            var nowMillis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            if (nowMillis - _loadEpochMillis > 1000)
             {
-                LastLogin = json.lastLogin,
-                LastServer = json.lastServer
+                _configuration = null;
+            }
+
+            if (_configuration == null)
+            {
+                var jsonBytes = LoadJson();
+                _loadEpochMillis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                if (jsonBytes != null && jsonBytes.Length >= 2)
+                {
+                    _configuration = JsonUtils.ParseJson<JsonConfiguration>(jsonBytes);
+                }
+                else
+                {
+                    _configuration = new JsonConfiguration();
+                }
+            }
+
+            return _configuration;
+        }
+
+        string IUserStorage.LastLogin => GetJsonConfiguration().lastLogin;
+
+        IEnumerable<IUserConfiguration> IUserStorage.Users
+        {
+            get
+            {
+                var conf = GetJsonConfiguration();
+                return (conf.users ?? Enumerable.Empty<JsonUserConfiguration>())
+                    .Select(x => new UserConfiguration(x.user)
+                    {
+                        Password = x.password,
+                        TwoFactorToken = x.twoFactorToken,
+                    });
+            }
+        }
+
+        IUserConfiguration IUserStorage.GetUser(string username)
+        {
+            var conf = GetJsonConfiguration();
+            if (conf.users == null) return null;
+
+            var name = username.AdjustUserName();
+            var uc = conf.users.FirstOrDefault(x => x.user == name);
+            if (uc == null) return null;
+
+            return new UserConfiguration(name)
+            {
+                Password = uc.password,
+                TwoFactorToken = uc.twoFactorToken,
             };
-            if (json.users != null)
-            {
-                foreach (var u in json.users)
-                {
-                    if (!string.IsNullOrEmpty(u.user))
-                    {
-                        var uc = new UserConfiguration(u.user)
-                        {
-                            Password = u.password,
-                            TwoFactorToken = u.twoFactorToken
-                        };
-                        configuration._users.Add(uc.Username, uc);
-                    }
-                }
-            }
-            if (json.servers != null)
-            {
-                foreach (var s in json.servers)
-                {
-                    if (!string.IsNullOrEmpty(s.server))
-                    {
-                        var sc = new ServerConfiguration(s.server)
-                        {
-                            DeviceId = s.deviceId.Base64UrlDecode(),
-                            ServerKeyId = s.serverKeyId
-                        };
-                        configuration._servers.Add(sc.Server, sc);
-                    }
-                }
-            }
-            return configuration;
         }
 
-        public Configuration Get()
+        void IUserStorage.PutUser(IUserConfiguration userConfiguration)
         {
-            var jsonBytes = LoadJson();
-            if (jsonBytes != null && jsonBytes.Length >= 2)
+            var name = userConfiguration.Username.AdjustUserName();
+            var conf = GetJsonConfiguration();
+            var uc = (conf.users ?? Enumerable.Empty<JsonUserConfiguration>()).FirstOrDefault(x => x.user == name);
+            if (uc == null)
             {
-                var json = JsonUtils.ParseJson<JsonConfiguration>(jsonBytes);
-                return JsonConfigurationToConfiguration(json);
+                uc = new JsonUserConfiguration
+                {
+                    user = name
+                };
+                conf.users = (conf.users ?? Enumerable.Empty<JsonUserConfiguration>()).Concat(new[] {uc}).ToArray();
             }
 
-            return new Configuration();
+            uc.twoFactorToken = userConfiguration.TwoFactorToken;
+            conf.lastLogin = name;
+            StoreJson(JsonUtils.DumpJson(conf));
         }
 
-        public void Put(Configuration configuration)
+
+        string IServerStorage.LastServer => GetJsonConfiguration().lastServer;
+
+        IEnumerable<IServerConfiguration> IServerStorage.Servers
         {
-            JsonConfiguration json;
-            var jsonBytes = LoadJson();
-            if (jsonBytes != null && jsonBytes.Length >= 2)
+            get
             {
-                json = JsonUtils.ParseJson<JsonConfiguration>(jsonBytes);
-            }
-            else
-            {
-                json = new JsonConfiguration();
-            }
-            json.lastLogin = configuration.LastLogin;
-            json.lastServer = configuration.LastServer;
-            var users = new Dictionary<string, JsonUserConfiguration>();
-            if (json.users != null)
-            {
-                foreach (var u in json.users)
-                {
-                    if (!string.IsNullOrEmpty(u.user))
+                var conf = GetJsonConfiguration();
+                return (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>())
+                    .Select(x => new ServerConfiguration(x.server)
                     {
-                        var username = u.user.AdjustUserName();
-                        users.Add(username, u);
-                    }
-                }
+                        ServerKeyId = x.serverKeyId,
+                        DeviceId = string.IsNullOrEmpty(x.deviceId) ? null : x.deviceId.Base64UrlDecode()
+                    });
+                ;
             }
-            foreach (var u in configuration.Users)
+        }
+
+        IServerConfiguration IServerStorage.GetServer(string server)
+        {
+            var conf = GetJsonConfiguration();
+            if (conf.servers != null)
             {
-                if (!users.TryGetValue(u.Username, out JsonUserConfiguration juser))
-                {
-                    juser = new JsonUserConfiguration
+                var serverName = server.AdjustServerName();
+                return conf.servers.Where(x => x.server == serverName)
+                    .Select(x => new ServerConfiguration(x.server)
                     {
-                        user = u.Username,
-                    };
-                    users.Add(u.Username, juser);
-                }
-                juser.twoFactorToken = u.TwoFactorToken;
+                        ServerKeyId = x.serverKeyId,
+                        DeviceId = string.IsNullOrEmpty(x.deviceId) ? null : x.deviceId.Base64UrlDecode()
+                    })
+                    .FirstOrDefault();
             }
 
-            var servers = new Dictionary<string, JsonServerConfiguration>();
-            if (json.servers != null)
+            return null;
+        }
+
+        void IServerStorage.PutServer(IServerConfiguration serverConfiguration)
+        {
+            var name = serverConfiguration.Server.AdjustUserName();
+            var conf = GetJsonConfiguration();
+            var sc = (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>())
+                .FirstOrDefault(x => x.server == name);
+            if (sc == null)
             {
-                foreach (var s in json.servers)
+                sc = new JsonServerConfiguration
                 {
-                    if (!string.IsNullOrEmpty(s.server))
-                    {
-                        var servername = s.server.AdjustServerName();
-                        servers.Add(servername, s);
-                    }
-                }
-            }
-            foreach (var s in configuration.Servers)
-            {
-                if (!servers.TryGetValue(s.Server, out JsonServerConfiguration jserver))
-                {
-                    jserver = new JsonServerConfiguration
-                    {
-                        server = s.Server
-                    };
-                    servers.Add(s.Server, jserver);
-                }
-                jserver.deviceId = s.DeviceId.Base64UrlEncode();
-                jserver.serverKeyId = s.ServerKeyId;
+                    server = name
+                };
+                conf.servers = (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>()).Concat(new[] {sc})
+                    .ToArray();
             }
 
-            json.users = users.Values.OrderBy(x => x.user).ToArray();
-            json.servers = servers.Values.OrderBy(x => x.server).ToArray();
+            sc.serverKeyId = serverConfiguration.ServerKeyId;
+            if (serverConfiguration.DeviceId != null)
+            {
+                sc.deviceId = serverConfiguration.DeviceId.Base64UrlEncode();
+            }
 
-            var jsonData = JsonUtils.DumpJson(json);
+            conf.lastServer = name;
 
-            StoreJson(jsonData);
+            StoreJson(JsonUtils.DumpJson(conf));
         }
     }
 
@@ -163,18 +180,20 @@ namespace KeeperSecurity.Sdk
             }
             else
             {
-                var personalFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".keeper");
+                var personalFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+                    ".keeper");
                 if (!Directory.Exists(personalFolder))
                 {
                     Directory.CreateDirectory(personalFolder);
                 }
+
                 FilePath = Path.Combine(personalFolder, fileName);
             }
 
-            Debug.WriteLine(string.Format("JSON config path: \"{0}\"", FilePath));
+            Debug.WriteLine($"JSON config path: \"{FilePath}\"");
         }
 
-        public string FilePath { get; private set; }
+        public string FilePath { get; }
 
         protected override byte[] LoadJson()
         {
@@ -189,6 +208,7 @@ namespace KeeperSecurity.Sdk
                     Trace.TraceError("Read JSON configuration: File name: \"{0}\", Error: {1}", FilePath, e.Message);
                 }
             }
+
             return null;
         }
 
@@ -210,9 +230,11 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "user", EmitDefaultValue = false)]
         public string user;
+
         [DataMember(Name = "password", EmitDefaultValue = false)]
         //#pragma warning disable 0649
         public string password;
+
         //#pragma warning restore 0649
         [DataMember(Name = "mfa_token", EmitDefaultValue = false)]
         public string twoFactorToken;

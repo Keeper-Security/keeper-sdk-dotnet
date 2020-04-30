@@ -1,8 +1,18 @@
-﻿using System;
+﻿//  _  __
+// | |/ /___ ___ _ __  ___ _ _ ®
+// | ' </ -_) -_) '_ \/ -_) '_|
+// |_|\_\___\___| .__/\___|_|
+//              |_|
+//
+// Keeper SDK
+// Copyright 2020 Keeper Security Inc.
+// Contact: ops@keepersecurity.com
+//
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
@@ -32,7 +42,7 @@ namespace KeeperSecurity.Sdk
         public static RecordExtra ExtractRecordExtra(this PasswordRecord record, RecordExtra existingExtra = null)
         {
             IDictionary<string, RecordExtraFile> extraFiles = null;
-            if (existingExtra != null && existingExtra.files != null && existingExtra.files.Length > 0)
+            if (existingExtra?.files != null && existingExtra.files.Length > 0)
             {
                 extraFiles = new Dictionary<string, RecordExtraFile>();
                 foreach (var f in existingExtra.files)
@@ -40,6 +50,7 @@ namespace KeeperSecurity.Sdk
                     extraFiles.Add(f.id, f);
                 }
             }
+
             return new RecordExtra
             {
                 files = record.Attachments?.Select(x =>
@@ -52,6 +63,7 @@ namespace KeeperSecurity.Sdk
                             return extraFile;
                         }
                     }
+
                     extraFile = new RecordExtraFile
                     {
                         id = x.Id,
@@ -64,43 +76,41 @@ namespace KeeperSecurity.Sdk
                     if (x.Thumbnails != null && x.Thumbnails.Length > 0)
                     {
                         extraFile.thumbs = x.Thumbnails.Select(y =>
-                            new RecordExtraFileThumb
-                            {
-                                id = y.Id,
-                                size = y.Size,
-                                type = y.Type
-                            })
+                                new RecordExtraFileThumb
+                                {
+                                    id = y.Id,
+                                    size = y.Size,
+                                    type = y.Type
+                                })
                             .ToArray();
                     }
+
                     return extraFile;
                 }).ToArray(),
                 fields = record.ExtraFields?.Select(x =>
                 {
-                    var map = new Dictionary<string, object>();
-                    map["id"] = x.Id ?? "";
-                    map["field_type"] = x.FieldType ?? "";
-                    map["field_title"] = x.FieldTitle ?? "";
-                    foreach (var pair in x.Custom)
+                    var map = new Dictionary<string, object>
                     {
-                        if (pair.Value != null)
-                        {
-                            map[pair.Key] = pair.Value;
-                        }
+                        ["id"] = x.Id ?? "",
+                        ["field_type"] = x.FieldType ?? "",
+                        ["field_title"] = x.FieldTitle ?? ""
+                    };
+                    foreach (var pair in x.Custom.Where(pair => pair.Value != null))
+                    {
+                        map[pair.Key] = pair.Value;
                     }
+
                     return map;
                 }).ToArray(),
                 ExtensionData = existingExtra?.ExtensionData
             };
         }
 
-        [DataContract]
-        internal class JustExtensionData : IExtensibleDataObject
-        {
-            public ExtensionDataObject ExtensionData { get; set; }
-        }
+        private static readonly DataContractJsonSerializer DataSerializer =
+            new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
 
-        private static DataContractJsonSerializer DataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
-        private static DataContractJsonSerializer ExtraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
+        private static readonly DataContractJsonSerializer ExtraSerializer =
+            new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
 
         public static PasswordRecord Load(this IPasswordRecord r, byte[] key)
         {
@@ -110,13 +120,16 @@ namespace KeeperSecurity.Sdk
                 Uid = r.RecordUid,
                 Shared = r.Shared,
                 Owner = r.Owner,
+                ClientModified = r.ClientModifiedTime != 0
+                    ? DateTimeOffset.FromUnixTimeMilliseconds(r.ClientModifiedTime)
+                    : DateTimeOffset.Now,
             };
 
             var data = r.Data.Base64UrlDecode();
             data = CryptoUtils.DecryptAesV1(data, key);
             using (var ms = new MemoryStream(data))
             {
-                var parsedData = (RecordData)DataSerializer.ReadObject(ms);
+                var parsedData = (RecordData) DataSerializer.ReadObject(ms);
                 record.Title = parsedData.title;
                 record.Login = parsedData.secret1;
                 record.Password = parsedData.secret2;
@@ -141,7 +154,7 @@ namespace KeeperSecurity.Sdk
                 var extra = CryptoUtils.DecryptAesV1(r.Extra.Base64UrlDecode(), key);
                 using (var ms = new MemoryStream(extra))
                 {
-                    var parsedExtra = (RecordExtra)ExtraSerializer.ReadObject(ms);
+                    var parsedExtra = (RecordExtra) ExtraSerializer.ReadObject(ms);
                     if (parsedExtra.files != null && parsedExtra.files.Length > 0)
                     {
                         foreach (var file in parsedExtra.files)
@@ -154,29 +167,35 @@ namespace KeeperSecurity.Sdk
                                 Title = file.title ?? "",
                                 Type = file.type ?? "",
                                 Size = file.size ?? 0,
-                                LastModified = file.lastModified != null ? file.lastModified.Value.FromUnixTimeMilliseconds() : DateTimeOffset.Now
+                                LastModified = file.lastModified != null
+                                    ? DateTimeOffset.FromUnixTimeMilliseconds(file.lastModified.Value)
+                                    : DateTimeOffset.Now
                             };
                             if (file.thumbs != null)
                             {
                                 atta.Thumbnails = file.thumbs
-                                .Select(t => new AttachmentFileThumb
-                                {
-                                    Id = t.id,
-                                    Type = t.type,
-                                    Size = t.size ?? 0
-                                })
-                                .ToArray();
+                                    .Select(t => new AttachmentFileThumb
+                                    {
+                                        Id = t.id,
+                                        Type = t.type,
+                                        Size = t.size ?? 0
+                                    })
+                                    .ToArray();
                             }
+
                             record.Attachments.Add(atta);
                         }
                     }
+
                     if (parsedExtra.fields != null)
                     {
                         foreach (var field in parsedExtra.fields)
                         {
                             var fld = new ExtraField();
-                            foreach (var pair in field) {
-                                switch (pair.Key) {
+                            foreach (var pair in field)
+                            {
+                                switch (pair.Key)
+                                {
                                     case "id":
                                         fld.Id = pair.Value.ToString();
                                         break;
@@ -191,16 +210,18 @@ namespace KeeperSecurity.Sdk
                                         break;
                                 }
                             }
+
                             record.ExtraFields.Add(fld);
                         }
                     }
                 }
             }
+
             return record;
         }
 
 
-        internal static SharedFolder Load(this ISharedFolder sf, IEnumerable<IRecordMetadata> records, 
+        internal static SharedFolder Load(this ISharedFolder sf, IEnumerable<IRecordMetadata> records,
             IEnumerable<ISharedFolderPermission> users, byte[] sharedFolderKey)
         {
             var sharedFolder = new SharedFolder
@@ -243,6 +264,5 @@ namespace KeeperSecurity.Sdk
 
             return sharedFolder;
         }
-
     }
 }

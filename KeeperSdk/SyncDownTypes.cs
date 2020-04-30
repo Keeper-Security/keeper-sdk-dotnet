@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -254,7 +254,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    public class SyncDownSharedFolderTeam: ISharedFolderPermission
+    public class SyncDownSharedFolderTeam : ISharedFolderPermission
     {
         [DataMember(Name = "team_uid")]
         public string TeamUid { get; set; }
@@ -271,7 +271,7 @@ namespace KeeperSecurity.Sdk
         public string SharedFolderUid { get; set; }
 
         string ISharedFolderPermission.UserId => TeamUid;
-        int ISharedFolderPermission.UserType => (int)UserType.Team;
+        int ISharedFolderPermission.UserType => (int) UserType.Team;
         string IUidLink.SubjectUid => SharedFolderUid;
         string IUidLink.ObjectUid => TeamUid;
     }
@@ -312,7 +312,7 @@ namespace KeeperSecurity.Sdk
         string IUidLink.SubjectUid => SharedFolderUid;
         string IUidLink.ObjectUid => Username;
         string ISharedFolderPermission.UserId => Username;
-        int ISharedFolderPermission.UserType => (int)UserType.User;
+        int ISharedFolderPermission.UserType => (int) UserType.User;
     }
 
     [DataContract]
@@ -398,8 +398,10 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "folder_uid")]
         public string FolderUid { get; set; }
+
         [DataMember(Name = "record_uid")]
         public string RecordUid { get; set; }
+
         [DataMember(Name = "revision")]
         public long revision;
 
@@ -446,12 +448,12 @@ namespace KeeperSecurity.Sdk
         public string SharedFolderUid { get; set; }
 
         [DataMember(Name = "parent_uid")]
-        public string parentUid { get; set; }
-        string IFolder.ParentUid => parentUid ?? SharedFolderUid;
+        public string ParentUid { get; set; }
 
         [DataMember(Name = "shared_folder_folder_key")]
-        public string sharedFolderFolderKey;
-        string IFolder.FolderKey => sharedFolderFolderKey;
+        public string SharedFolderFolderKey;
+
+        string IFolder.FolderKey => SharedFolderFolderKey;
 
         [DataMember(Name = "revision")]
         public long Revision { get; set; }
@@ -495,7 +497,7 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    public class SyncDownNonSharedData: INonSharedData
+    public class SyncDownNonSharedData : INonSharedData
     {
         [DataMember(Name = "record_uid")]
         public string recordUid;
@@ -505,7 +507,11 @@ namespace KeeperSecurity.Sdk
 
         public string RecordUid => recordUid;
 
-        public string Data { get => data; set => data = value; }
+        public string Data
+        {
+            get => data;
+            set => data = value;
+        }
 
         public string Uid => RecordUid;
     }
@@ -616,6 +622,7 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "file_ids")]
         public string[] fileIds;
+
         public ExtensionDataObject ExtensionData { get; set; }
     }
 

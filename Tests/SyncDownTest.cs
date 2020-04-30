@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using KeeperSecurity.Sdk;
 using Moq;
 using Xunit;
 
-namespace KeeperSecurity.Sdk
+namespace Tests
 {
     public class SyncDownTest
     {
@@ -116,12 +116,12 @@ namespace KeeperSecurity.Sdk
         [Fact]
         public async Task TestRemoveTeamAndSharedFolder() {
             var vault = await GetVault();
-            var auth_mock = Mock.Get(vault.Auth);
+            var authMock = Mock.Get(vault.Auth);
 
             var sfUids = vault.SharedFolders.Select(x => x.Uid).ToArray();
             var teamUids = vault.Teams.Select(x => x.TeamUid).ToArray();
 
-            auth_mock
+            authMock
                 .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
                 {

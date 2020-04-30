@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -19,22 +19,86 @@ using System.Diagnostics;
 
 namespace KeeperSecurity.Sdk
 {
-
     public class Vault : VaultData
     {
-        public Vault(IAuth auth, IKeeperStorage storage = null) : base(auth.AuthContext.ClientKey, storage ?? new InMemoryKeeperStorage())
+        public Vault(IAuth auth, IKeeperStorage storage = null) : base(auth.AuthContext.ClientKey,
+            storage ?? new InMemoryKeeperStorage())
         {
             Auth = auth;
         }
 
         public IAuth Auth { get; }
 
-        public IRecordMetadata ResolveRecordAccessPath(IRecordAccessPath path, bool forEdit = false, bool forShare = false)
+        private long scheduledAt;
+        private Task syncDownTask;
+
+        public Task ScheduleSyncDown(TimeSpan delay)
+        {
+            if (delay > TimeSpan.FromSeconds(5))
+            {
+                delay = TimeSpan.FromSeconds(5);
+            }
+
+            var now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
+            if (syncDownTask != null && scheduledAt > now)
+            {
+                if (now + (long) delay.TotalMilliseconds < scheduledAt)
+                {
+                    return syncDownTask;
+                }
+            }
+
+            Task myTask = null;
+            myTask = Task.Run(async () =>
+            {
+                try
+                {
+                    if (delay.TotalMilliseconds > 10)
+                    {
+                        await Task.Delay(delay);
+                    }
+
+                    if (myTask == syncDownTask)
+                    {
+                        scheduledAt = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 1000;
+                        await this.SyncDown();
+                    }
+                }
+                finally
+                {
+                    if (myTask == syncDownTask)
+                    {
+                        syncDownTask = null;
+                        scheduledAt = 0;
+                    }
+                }
+            });
+            scheduledAt = now + (long) delay.TotalMilliseconds;
+            syncDownTask = myTask;
+            return myTask;
+        }
+
+        public void OnNotificationReceived(byte[] notification)
+        {
+            var evt = JsonUtils.ParseJson<NotificationEvent>(notification);
+            if (evt != null & evt?.notificationEvent == "sync")
+            {
+                if (evt.sync)
+                {
+                    ScheduleSyncDown(TimeSpan.FromSeconds(5));
+                }
+            }
+        }
+
+        public IRecordMetadata ResolveRecordAccessPath(IRecordAccessPath path, bool forEdit = false,
+            bool forShare = false, bool forView = false)
         {
             if (string.IsNullOrEmpty(path.RecordUid))
             {
                 return null;
             }
+
             foreach (var rmd in Storage.RecordKeys.GetLinksForSubject(path.RecordUid))
             {
                 if (forEdit && !rmd.CanEdit) continue;
@@ -43,6 +107,7 @@ namespace KeeperSecurity.Sdk
                 {
                     return rmd;
                 }
+
                 foreach (var sfmd in Storage.SharedFolderKeys.GetLinksForSubject(rmd.SharedFolderUid))
                 {
                     if (string.IsNullOrEmpty(sfmd.TeamUid))
@@ -50,20 +115,24 @@ namespace KeeperSecurity.Sdk
                         path.SharedFolderUid = sfmd.SharedFolderUid;
                         return rmd;
                     }
+
                     if (!forEdit && !forShare)
                     {
                         path.TeamUid = sfmd.TeamUid;
                         return rmd;
                     }
+
                     if (keeperTeams.TryGetValue(sfmd.TeamUid, out EnterpriseTeam team))
                     {
                         if (forEdit && team.RestrictEdit) continue;
                         if (forShare && team.RestrictShare) continue;
+                        if (forView && team.RestrictView) continue;
                         path.TeamUid = sfmd.TeamUid;
                         return rmd;
                     }
                 }
             }
+
             return null;
         }
 
@@ -74,11 +143,13 @@ namespace KeeperSecurity.Sdk
             {
                 keeperFolders.TryGetValue(folderUid, out node);
             }
-            var recordKey = CryptoUtils.GenerateEncryptionKey();
+
+            record.Uid = CryptoUtils.GenerateUid();
+            record.RecordKey = CryptoUtils.GenerateEncryptionKey();
             var recordAdd = new RecordAddCommand
             {
-                RecordUid = CryptoUtils.GenerateUid(),
-                RecordKey = CryptoUtils.EncryptAesV1(recordKey, Auth.AuthContext.DataKey).Base64UrlEncode(),
+                RecordUid = record.Uid,
+                RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey).Base64UrlEncode(),
                 RecordType = "password"
             };
             if (node == null)
@@ -94,17 +165,22 @@ namespace KeeperSecurity.Sdk
                         recordAdd.FolderUid = node.FolderUid;
                         break;
                     case FolderType.SharedFolder:
-                    case FolderType.SharedFolderForder:
+                    case FolderType.SharedFolderFolder:
                         recordAdd.FolderUid = node.FolderUid;
-                        recordAdd.FolderType = node.FolderType == FolderType.SharedFolder ? "shared_folder" : "shared_folder_folder";
-                        if (keeperSharedFolders.TryGetValue(node.SharedFolderUid, out SharedFolder sf))
+                        recordAdd.FolderType = node.FolderType == FolderType.SharedFolder
+                            ? "shared_folder"
+                            : "shared_folder_folder";
+                        if (keeperSharedFolders.TryGetValue(node.SharedFolderUid, out var sf))
                         {
-                            recordAdd.FolderKey = CryptoUtils.EncryptAesV1(recordKey, sf.SharedFolderKey).Base64UrlEncode();
+                            recordAdd.FolderKey = CryptoUtils.EncryptAesV1(record.RecordKey, sf.SharedFolderKey)
+                                .Base64UrlEncode();
                         }
+
                         if (string.IsNullOrEmpty(recordAdd.FolderKey))
                         {
                             throw new Exception($"Cannot resolve shared folder for folder UID: {folderUid}");
                         }
+
                         break;
                 }
             }
@@ -114,11 +190,11 @@ namespace KeeperSecurity.Sdk
             using (var ms = new MemoryStream())
             {
                 dataSerializer.WriteObject(ms, data);
-                recordAdd.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), recordKey).Base64UrlEncode();
+                recordAdd.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
             }
 
             await Auth.ExecuteAuthCommand(recordAdd);
-            await this.SyncDown();
+            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
 
         public async Task PutRecord(PasswordRecord record, bool skipData = false, bool skipExtra = true)
@@ -128,6 +204,7 @@ namespace KeeperSecurity.Sdk
             {
                 existingRecord = Storage.Records.Get(record.Uid);
             }
+
             var updateRecord = new RecordUpdateRecord();
 
             if (existingRecord != null)
@@ -136,20 +213,25 @@ namespace KeeperSecurity.Sdk
                 var rmd = ResolveRecordAccessPath(updateRecord, forEdit: true);
                 if (rmd != null)
                 {
-                    if (rmd.RecordKeyType == (int)KeyType.NoKey || rmd.RecordKeyType == (int)KeyType.PrivateKey)
+                    if (rmd.RecordKeyType == (int) KeyType.NoKey || rmd.RecordKeyType == (int) KeyType.PrivateKey)
                     {
-                        updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey).Base64UrlEncode();
+                        updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey)
+                            .Base64UrlEncode();
                     }
                 }
+
                 updateRecord.Revision = existingRecord.Revision;
             }
             else
             {
-                updateRecord.RecordUid = CryptoUtils.GenerateUid();
+                record.Uid = CryptoUtils.GenerateUid();
                 record.RecordKey = CryptoUtils.GenerateEncryptionKey();
-                updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey).Base64UrlEncode();
+                updateRecord.RecordUid = record.Uid;
+                updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey)
+                    .Base64UrlEncode();
                 updateRecord.Revision = 0;
             }
+
             if (!skipData)
             {
                 var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
@@ -158,17 +240,20 @@ namespace KeeperSecurity.Sdk
                 {
                     try
                     {
-                        var unencryptedData = CryptoUtils.DecryptAesV1(existingRecord.Data.Base64UrlDecode(), record.RecordKey);
+                        var unencryptedData =
+                            CryptoUtils.DecryptAesV1(existingRecord.Data.Base64UrlDecode(), record.RecordKey);
                         using (var ms = new MemoryStream(unencryptedData))
                         {
-                            existingData = (RecordData)dataSerializer.ReadObject(ms);
+                            existingData = (RecordData) dataSerializer.ReadObject(ms);
                         }
                     }
                     catch (Exception e)
                     {
-                        Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"", existingRecord.RecordUid, e.GetType().Name, e.Message);
+                        Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"", existingRecord.RecordUid,
+                            e.GetType().Name, e.Message);
                     }
                 }
+
                 var data = record.ExtractRecordData(existingData);
                 using (var ms = new MemoryStream())
                 {
@@ -176,6 +261,7 @@ namespace KeeperSecurity.Sdk
                     updateRecord.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
                 }
             }
+
             if (!skipExtra)
             {
                 var extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
@@ -184,23 +270,27 @@ namespace KeeperSecurity.Sdk
                 {
                     try
                     {
-                        var unencryptedExtra = CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
+                        var unencryptedExtra =
+                            CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
                         using (var ms = new MemoryStream(unencryptedExtra))
                         {
-                            existingExtra = (RecordExtra)extraSerializer.ReadObject(ms);
+                            existingExtra = (RecordExtra) extraSerializer.ReadObject(ms);
                         }
                     }
                     catch (Exception e)
                     {
-                        Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"", existingRecord.RecordUid, e.GetType().Name, e.Message);
+                        Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"", existingRecord.RecordUid,
+                            e.GetType().Name, e.Message);
                     }
                 }
+
                 var extra = record.ExtractRecordExtra(existingExtra);
                 using (var ms = new MemoryStream())
                 {
                     extraSerializer.WriteObject(ms, extra);
                     updateRecord.Extra = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
                 }
+
                 var udata = new RecordUpdateUData();
                 var ids = new HashSet<string>();
                 if (record.Attachments != null)
@@ -217,43 +307,71 @@ namespace KeeperSecurity.Sdk
                         }
                     }
                 }
+
                 udata.FileIds = ids.ToArray();
                 updateRecord.Udata = udata;
             }
 
-            var command = new RecordUpdateCommand();
+            var command = new RecordUpdateCommand
+            {
+                deviceId = Auth.EncryptedDeviceToken.Base64UrlEncode()
+            };
             if (existingRecord != null)
             {
-                command.UpdateRecords = new[] { updateRecord };
+                command.UpdateRecords = new[] {updateRecord};
             }
             else
             {
-                command.AddRecords = new[] { updateRecord };
+                command.AddRecords = new[] {updateRecord};
             }
 
             await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
-            await this.SyncDown();
+            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
 
-        public SharedFolderPermission ResolveSharedFolderAccessPath(ISharedFolderAccessPath path, bool forManageUsers = false, bool forManageRecords = false)
+        public async Task PutNonSharedData(string recordUid, byte[] data)
+        {
+            var existingRecord = Storage.Records.Get(recordUid);
+            var updateRecord = new RecordUpdateRecord
+            {
+                RecordUid = recordUid,
+                Revision = existingRecord?.Revision ?? 0,
+                NonSharedData = CryptoUtils.EncryptAesV1(data, Auth.AuthContext.DataKey).Base64UrlEncode()
+            };
+            var command = new RecordUpdateCommand
+            {
+                deviceId = Auth.EncryptedDeviceToken.Base64UrlEncode(),
+                UpdateRecords = new[] {updateRecord}
+            };
+            await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
+            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
+        }
+
+        public SharedFolderPermission ResolveSharedFolderAccessPath(ISharedFolderAccessPath path,
+            bool forManageUsers = false, bool forManageRecords = false)
         {
             if (!string.IsNullOrEmpty(path.SharedFolderUid))
             {
-                if (TryGetSharedFolder(path.SharedFolderUid, out SharedFolder sf))
+                if (TryGetSharedFolder(path.SharedFolderUid, out var sf))
                 {
                     var permissions = sf.UsersPermissions
-                        .Where(x => (x.UserType == UserType.User && x.UserId == Auth.AuthContext.Username) || (x.UserType == UserType.Team && keeperTeams.ContainsKey(x.UserId)))
+                        .Where(x => (x.UserType == UserType.User && x.UserId == Auth.AuthContext.Username) ||
+                                    (x.UserType == UserType.Team && keeperTeams.ContainsKey(x.UserId)))
                         .Where(x => (!forManageUsers || x.ManageUsers) && (!forManageRecords || x.ManageRecords))
                         .ToArray();
 
-                    if (permissions.Length > 0) {
-                        if (permissions[0].UserType == UserType.Team) {
+                    if (permissions.Length > 0)
+                    {
+                        if (permissions[0].UserType == UserType.Team)
+                        {
                             path.TeamUid = permissions[0].UserId;
                         }
+
                         return permissions[0];
                     }
                 }
             }
+
             return null;
         }
     }

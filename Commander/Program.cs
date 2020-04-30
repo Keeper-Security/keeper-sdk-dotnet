@@ -1,22 +1,19 @@
 ﻿using System;
-using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
-using System.Diagnostics;
+using System.Net.WebSockets;
 using System.Threading;
+using System.Diagnostics;
 
 namespace Commander
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
-            Console.CancelKeyPress += (s, e) =>
-            {
-                Environment.Exit(1);
-            };
+            Console.CancelKeyPress += (s, e) => { Environment.Exit(1); };
             Welcome();
 
             MainLoop().GetAwaiter().GetResult();
@@ -24,102 +21,123 @@ namespace Commander
             Console.WriteLine("Good Bye");
         }
 
+        private static CliContext cliContext;
+
         private static async Task MainLoop()
         {
-            var storage = new JsonConfigurationStorage();
-            var ui = new Ui();
-            var auth = new Auth(ui, storage);
-
-            CliCommands commands = new NotConnectedCliCommands(auth);
-            var conf = storage.Get();
-            if (!string.IsNullOrEmpty(conf.LastLogin))
             {
-                commands.CommandQueue.Enqueue(string.Format("login {0}", conf.LastLogin));
+                var storage = new JsonConfigurationStorage();
+                var ui = new Ui();
+                var auth = new Auth(ui, storage);
+                var notConnected = new NotConnectedCliContext(auth);
+                cliContext = new CliContext
+                {
+                    StateContext = notConnected
+                };
+                IUserStorage us = storage;
+                if (!string.IsNullOrEmpty(us.LastLogin))
+                {
+                    cliContext.CommandQueue.Enqueue($"login {us.LastLogin}");
+                }
             }
 
-            while (commands != null && !commands.Finished)
+            while (!cliContext.Finished)
             {
-                string command = null;
-                if (commands.CommandQueue.Count > 0)
+                if (cliContext.StateContext == null) break;
+                if (cliContext.StateContext.NextStateContext != null)
                 {
-                    command = commands.CommandQueue.Dequeue();
+                    cliContext.StateContext = cliContext.StateContext.NextStateContext;
+                    cliContext.StateContext.NextStateContext = null;
+                }
+
+                string command;
+                if (cliContext.CommandQueue.Count > 0)
+                {
+                    command = cliContext.CommandQueue.Dequeue();
                 }
                 else
                 {
-                    Console.Write(commands.GetPrompt() + "> ");
+                    Console.Write(cliContext.StateContext.GetPrompt() + "> ");
                     command = Console.ReadLine();
                 }
-                if (!string.IsNullOrEmpty(command))
+
+                if (string.IsNullOrEmpty(command)) continue;
+
+                command = command.Trim();
+                var parameter = "";
+                var pos = command.IndexOf(' ');
+                if (pos > 1)
                 {
-                    command = command.Trim();
-                    string parameter = "";
-                    int pos = command.IndexOf(' ');
-                    if (pos > 1)
-                    {
-                        parameter = command.Substring(pos + 1).Trim();
-                        parameter = parameter.Trim('"');
-                        command = command.Substring(0, pos).Trim();
-                    }
-                    command = command.ToLowerInvariant();
-                    if (commands.CommandAliases.TryGetValue(command, out string full_command))
-                    {
-                        command = full_command;
-                    }
-                    if (commands.Commands.TryGetValue(command, out ICommand cmd))
-                    {
-                        try
-                        {
-
-                            await cmd.ExecuteCommand(parameter);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Error: " + e.Message);
-                        }
-                    }
-                    else
-                    {
-                        if (command != "?")
-                        {
-                            Console.WriteLine(string.Format("Invalid command: {0}", command));
-                        }
-                        foreach (var c in commands.Commands.OrderBy(x => x.Value.Order))
-                        {
-                            Console.WriteLine("    " + c.Key.PadRight(16) + c.Value.Description);
-                        }
-                    }
-
-                    if (commands.Finished)
-                    {
-                        commands = commands.NewCommands;
-                    }
-                    Console.WriteLine();
+                    parameter = command.Substring(pos + 1).Trim();
+                    parameter = parameter.Trim('"');
+                    command = command.Substring(0, pos).Trim();
                 }
+
+                command = command.ToLowerInvariant();
+                if (cliContext.CommandAliases.TryGetValue(command, out var fullCommand))
+                {
+                    command = fullCommand;
+                }
+                else if (cliContext.StateContext.CommandAliases.TryGetValue(command, out fullCommand))
+                {
+                    command = fullCommand;
+                }
+
+                if (!cliContext.Commands.TryGetValue(command, out var cmd))
+                {
+                    cliContext.StateContext.Commands.TryGetValue(command, out cmd);
+                }
+
+                if (cmd != null)
+                {
+                    try
+                    {
+                        await cmd.ExecuteCommand(parameter);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Error: " + e.Message);
+                    }
+                }
+                else
+                {
+                    if (command != "?")
+                    {
+                        Console.WriteLine($"Invalid command: {command}");
+                    }
+
+                    foreach (var c in (cliContext.Commands.Concat(cliContext.StateContext.Commands))
+                        .OrderBy(x => x.Value.Order))
+                    {
+                        Console.WriteLine("    " + c.Key.PadRight(16) + c.Value.Description);
+                    }
+                }
+
+                Console.WriteLine();
             }
         }
 
         static void Welcome()
         {
             Console.WriteLine();
-            Console.WriteLine(" _  __  ");
-            Console.WriteLine("| |/ /___ ___ _ __  ___ _ _ ");
-            Console.WriteLine("| ' </ -_) -_) '_ \\/ -_) '_|");
-            Console.WriteLine("|_|\\_\\___\\___| .__/\\___|_|");
-            Console.WriteLine("             |_|            ");
-            Console.WriteLine("password manager & digital vault");
+            Console.WriteLine(@" _  __  ");
+            Console.WriteLine(@"| |/ /___ ___ _ __  ___ _ _ ");
+            Console.WriteLine(@"| ' </ -_) -_) '_ \/ -_) '_|");
+            Console.WriteLine(@"|_|\_\___\___| .__/\___|_|  ");
+            Console.WriteLine(@"             |_|            ");
+            Console.WriteLine(@"password manager & digital vault");
             Console.WriteLine();
             Console.WriteLine();
         }
 
         class Ui : IAuthUI, IDuoTwoFactorUI
         {
-
             public Task<bool> Confirmation(string information)
             {
                 Console.WriteLine(information);
                 Console.Write("Type \"yes\" to confirm: ");
                 var answer = Console.ReadLine();
-                return Task.FromResult(string.Compare(answer, "yes", true) == 0);
+                return Task.FromResult(string.Compare(answer, "yes", StringComparison.OrdinalIgnoreCase) == 0);
             }
 
             public Task<string> GetNewPassword(PasswordRuleMatcher matcher)
@@ -128,22 +146,24 @@ namespace Commander
                 while (string.IsNullOrEmpty(password1))
                 {
                     Console.Write("New Master Password: ");
-                    password1 = HelperUtils.ReadLineMasked();
 
-                    if (!string.IsNullOrEmpty(password1) && matcher != null)
+                    password1 = HelperUtils.ReadLineMasked();
+                    if (string.IsNullOrEmpty(password1)) continue;
+
+                    if (matcher == null) continue;
+
+                    var failedRules = matcher.MatchFailedRules(password1);
+                    if (!(failedRules?.Length > 0)) continue;
+
+                    password1 = null;
+                    if (!string.IsNullOrEmpty(matcher.RuleIntro))
                     {
-                        var failedRules = matcher.MatchFailedRules(password1);
-                        if (failedRules != null && failedRules.Length > 0)
-                        {
-                            if (!string.IsNullOrEmpty(matcher.RuleIntro))
-                            {
-                                Console.WriteLine(matcher.RuleIntro);
-                            }
-                            foreach (var rule in failedRules)
-                            {
-                                Console.WriteLine(rule);
-                            }
-                        }
+                        Console.WriteLine(matcher.RuleIntro);
+                    }
+
+                    foreach (var rule in failedRules)
+                    {
+                        Console.WriteLine(rule);
                     }
                 }
 
@@ -152,85 +172,103 @@ namespace Commander
                 {
                     Console.Write("Password Again: ");
                     password2 = HelperUtils.ReadLineMasked();
-                    if (string.Compare(password1, password2, false) != 0)
-                    {
-                        Console.WriteLine("Passwords do not match.");
-                        password2 = null;
-                    }
+                    if (string.CompareOrdinal(password1, password2) == 0) continue;
+
+                    Console.WriteLine("Passwords do not match.");
+                    password2 = null;
                 }
 
                 return Task.FromResult(password1);
             }
 
-            public TaskCompletionSource<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel channel)
+            public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel channel)
             {
-                TaskCompletionSource<TwoFactorCode> source = new TaskCompletionSource<TwoFactorCode>();
-                Task.Run(() =>
+                return Task.Run(() =>
                 {
                     Console.Write("Enter Code: ");
                     var code = Console.ReadLine();
-                    if (!string.IsNullOrEmpty(code) && !source.Task.IsCompleted)
-                    {
-                        source.SetResult(new TwoFactorCode(code, TwoFactorCodeDuration.Forever));
-                    }
+                    return new TwoFactorCode(code, TwoFactorCodeDuration.Forever);
                 });
-                return source;
             }
 
-            public TaskCompletionSource<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, Func<DuoAction, Task> onAction)
+            string DuoPasscode { get; set; }
+
+            public Task<TwoFactorCode> GetDuoTwoFactorResult(DuoAccount account, CancellationToken token)
             {
-                TaskCompletionSource<TwoFactorCode> source = new TaskCompletionSource<TwoFactorCode>();
-                Task.Run(async () =>
+                return Task.Run(() =>
                 {
-                    string input = null;
+                    if (!string.IsNullOrEmpty(account.PushNotificationUrl))
+                    {
+                        DuoPasscode = null;
+                        _ = Task.Run(async () =>
+                        {
+                            var ws = new ClientWebSocket();
+                            try
+                            {
+                                await ws.ConnectAsync(new Uri(account.PushNotificationUrl), token);
+                                var buffer = new byte[1024];
+                                var segment = new ArraySegment<byte>(buffer);
+                                while (ws.State == WebSocketState.Open)
+                                {
+                                    var rs = await ws.ReceiveAsync(segment, token);
+                                    if (rs == null) break;
+                                    if (rs.Count <= 0) continue;
+
+                                    var notification = new byte[rs.Count];
+                                    Array.Copy(buffer, notification, rs.Count);
+                                    var passcode = account.ParseDuoPasscodeNotification(notification);
+                                    if (string.IsNullOrEmpty(passcode)) continue;
+                                    DuoPasscode = passcode;
+                                    Console.WriteLine("Press Enter to continue");
+                                }
+                            }
+                            catch (OperationCanceledException)
+                            {
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                            }
+                            finally
+                            {
+                                if (ws.State == WebSocketState.Open)
+                                {
+                                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                                }
+
+                                ws.Dispose();
+                            }
+                        }, token);
+                    }
+
+                    string input;
                     while (true)
                     {
-                        Console.WriteLine("Type:\n\"push\" for DUO push\t\"sms\" for DUO text message\nDUO app code\tKeeper backup code\t<Enter> to Cancel");
+                        Console.WriteLine(
+                            "Type:\n\"push\" for DUO push\t\"sms\" for DUO text message\nDUO app code\tKeeper backup code\t<Enter> to Cancel");
                         Console.Write("> ");
                         input = Console.ReadLine();
-                        if (source.Task.IsCompleted)
+                        if (!string.IsNullOrEmpty(DuoPasscode))
                         {
+                            input = DuoPasscode;
+                            DuoPasscode = null;
                             break;
                         }
-                        if (string.IsNullOrEmpty(input))
-                        {
-                            break;
-                        }
-                        switch (input.ToLowerInvariant())
-                        {
-                            case "push":
-                            case "sms":
-                                var action = string.Compare(input, "push", true) == 0 ? DuoAction.DuoPush : DuoAction.TextMessage;
-                                input = null;
-                                await onAction(action);
-                                break;
-                            default:
-                                break;
-                        }
-                        if (source.Task.IsCompleted)
-                        {
-                            break;
-                        }
+
                         if (!string.IsNullOrEmpty(input))
                         {
                             break;
                         }
                     }
-                    if (!source.Task.IsCompleted)
-                    {
-                        if (string.IsNullOrEmpty(input))
-                        {
-                            source.SetCanceled();
-                        }
-                        else
-                        {
-                            source.SetResult(new TwoFactorCode(input, TwoFactorCodeDuration.Forever));
-                        }
-                    }
-                });
-                return source;
+
+                    return new TwoFactorCode(input, TwoFactorCodeDuration.Forever);
+                }, token);
+            }
+
+            public void DuoRequireEnrollment(string enrollmentUrl)
+            {
+                Console.WriteLine($"Complete Duo Enrollment by visiting: {enrollmentUrl}");
             }
         }
     }
 }
-

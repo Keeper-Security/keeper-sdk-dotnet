@@ -1,4 +1,15 @@
-﻿using System;
+﻿//  _  __
+// | |/ /___ ___ _ __  ___ _ _ ®
+// | ' </ -_) -_) '_ \/ -_) '_|
+// |_|\_\___\___| .__/\___|_|
+//              |_|
+//
+// Keeper SDK
+// Copyright 2020 Keeper Security Inc.
+// Contact: ops@keepersecurity.com
+//
+
+using System;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Sdk
@@ -8,20 +19,20 @@ namespace KeeperSecurity.Sdk
     {
         public SharedFolderUpdateCommand() : base("shared_folder_update")
         {
-            pt = KeeperEndpoint.DefaultDeviceName;
+            pt = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
         }
 
         [DataMember(Name = "pt", EmitDefaultValue = false)]
         public string pt;
 
         [DataMember(Name = "operation")]
-        public string Operation { get; set; }
+        public string operation;
 
         [DataMember(Name = "shared_folder_uid")]
-        public string shared_folder_uid;
+        public string sharedFolderUid;
 
         [DataMember(Name = "from_team_uid", EmitDefaultValue = false)]
-        public string from_team_uid;
+        public string fromTeamUid;
 
         [DataMember(Name = "name", EmitDefaultValue = false)]
         public string name;
@@ -71,15 +82,25 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "remove_records", EmitDefaultValue = false)]
         public SharedFolderUpdateRecord[] removeRecords;
 
-        public string SharedFolderUid { get => shared_folder_uid; set => shared_folder_uid = value; }
-        public string TeamUid { get => from_team_uid; set => from_team_uid = value; }
+        public string SharedFolderUid
+        {
+            get => sharedFolderUid;
+            set => sharedFolderUid = value;
+        }
+
+        public string TeamUid
+        {
+            get => fromTeamUid;
+            set => fromTeamUid = value;
+        }
     }
 
     [DataContract]
-    public class SharedFolderUpdateUser {
+    public class SharedFolderUpdateUser
+    {
         [DataMember(Name = "username", EmitDefaultValue = false)]
         public string Username { get; set; }
-        
+
         [DataMember(Name = "manage_users", EmitDefaultValue = false)]
         public bool? ManageUsers { get; set; }
 
@@ -129,7 +150,8 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    public class SharedFolderUpdateResponse : KeeperApiResponse {
+    public class SharedFolderUpdateResponse : KeeperApiResponse
+    {
         [DataMember(Name = "add_users")]
         public SharedFolderUpdateUserStatus[] addUsers;
 
@@ -159,7 +181,8 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    public class SharedFolderUpdateUserStatus {
+    public class SharedFolderUpdateUserStatus
+    {
         [DataMember(Name = "username")]
         public string Username { get; set; }
 

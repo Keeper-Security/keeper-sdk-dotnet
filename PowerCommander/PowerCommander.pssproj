@@ -8,9 +8,9 @@
     <AssemblyName>MyApplication</AssemblyName>
     <Name>PowerCommander</Name>
     <PackageEntryPoint>PowerCommander.tests.ps1</PackageEntryPoint>
-    <DotNetVersion>v4.6.2</DotNetVersion>
+    <DotNetVersion>v4.6.1</DotNetVersion>
     <PackageType>Console</PackageType>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

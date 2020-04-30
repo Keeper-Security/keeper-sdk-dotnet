@@ -5,13 +5,14 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Sdk
@@ -27,10 +28,36 @@ namespace KeeperSecurity.Sdk
         public string Password { get; set; }
         public string Link { get; set; }
         public string Notes { get; set; }
+        public DateTimeOffset ClientModified { get; internal set; }
         public IList<CustomField> Custom { get; } = new List<CustomField>();
         public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
         public IList<ExtraField> ExtraFields { get; } = new List<ExtraField>();
         public byte[] RecordKey { get; set; }
+
+        public CustomField DeleteCustomField(string name)
+        {
+            var cf = Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
+            if (cf != null)
+            {
+                if (Custom.Remove(cf))
+                {
+                    return cf;
+                }
+            }
+
+            return null;
+        }
+
+        public CustomField SetCustomField(string name, string value)
+        {
+            var cf = Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase))
+                     ?? new CustomField
+                     {
+                         Name = name
+                     };
+            cf.Value = value;
+            return cf;
+        }
     }
 
     public class CustomField
@@ -40,7 +67,8 @@ namespace KeeperSecurity.Sdk
         public string Type { get; set; }
     }
 
-    public class ExtraField {
+    public class ExtraField
+    {
         public string Id { get; set; }
         public string FieldType { get; set; }
         public string FieldTitle { get; set; }
@@ -72,6 +100,7 @@ namespace KeeperSecurity.Sdk
         User = 1,
         Team = 2
     }
+
     public class SharedFolderPermission
     {
         public string UserId { get; internal set; }
@@ -89,8 +118,6 @@ namespace KeeperSecurity.Sdk
 
     public class SharedFolder
     {
-        public SharedFolder() { }
-
         public string Uid { get; set; }
         public string Name { get; set; }
 
@@ -107,7 +134,10 @@ namespace KeeperSecurity.Sdk
 
     public class EnterpriseTeam
     {
-        public EnterpriseTeam() { }
+        public EnterpriseTeam()
+        {
+        }
+
         internal EnterpriseTeam(IEnterpriseTeam et, byte[] teamKey)
         {
             TeamKey = teamKey;
@@ -130,7 +160,13 @@ namespace KeeperSecurity.Sdk
         public RsaPrivateCrtKeyParameters TeamPrivateKey { get; internal set; }
     }
 
-    public enum FolderType { UserFolder, SharedFolder, SharedFolderForder }
+    public enum FolderType
+    {
+        UserFolder,
+        SharedFolder,
+        SharedFolderFolder
+    }
+
     public class FolderNode
     {
         public string ParentUid { get; set; }
@@ -160,14 +196,14 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "file_ids", EmitDefaultValue = false)]
         public string[] FileIds;
+
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
     [DataContract]
     internal class RecordUpdateRecord : IRecordAccessPath
     {
-        [DataMember(Name = "record_uid")]
-        public string RecordUid { get; set; }
+        [DataMember(Name = "record_uid")] public string RecordUid { get; set; }
 
         [DataMember(Name = "record_key", EmitDefaultValue = false)]
         public string RecordKey;
@@ -181,17 +217,19 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "udata", EmitDefaultValue = false)]
         public RecordUpdateUData Udata;
 
-        [DataMember(Name = "revision")]
-        public long Revision;
+        [DataMember(Name = "non_shared_data", EmitDefaultValue = false)]
+        public string NonSharedData;
 
-        [DataMember(Name = "version")]
-        public long Version = 2;
+        [DataMember(Name = "revision")] public long Revision;
+
+        [DataMember(Name = "version")] public long Version = 2;
 
         [DataMember(Name = "client_modified_time")]
         public long ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
         public string SharedFolderUid { get; set; }
+
         [DataMember(Name = "team_uid", EmitDefaultValue = false)]
         public string TeamUid { get; set; }
     }
@@ -200,13 +238,13 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     internal class RecordUpdateCommand : AuthenticatedCommand
     {
-        public RecordUpdateCommand() : base("record_update") { }
+        public RecordUpdateCommand() : base("record_update")
+        {
+        }
 
-        [DataMember(Name = "pt")]
-        public string pt = DateTime.Now.Ticks.ToString("x");
+        [DataMember(Name = "pt")] public string pt = DateTime.Now.Ticks.ToString("x");
 
-        [DataMember(Name = "client_time")]
-        public long ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        [DataMember(Name = "client_time")] public long ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         [DataMember(Name = "add_records", EmitDefaultValue = false)]
         public RecordUpdateRecord[] AddRecords;
@@ -224,51 +262,42 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     internal class RecordUpdateStatus
     {
-        [DataMember(Name = "record_uid")]
-        public string RecordUid;
+        [DataMember(Name = "record_uid")] public string RecordUid;
 
-        [DataMember(Name = "status_code")]
-        public string StatusCode;
+        [DataMember(Name = "status_code")] public string StatusCode;
     }
 
     [DataContract]
     internal class RecordUpdateResponse : KeeperApiResponse
     {
-        [DataMember(Name = "add_records")]
-        public RecordUpdateStatus[] AddRecords;
+        [DataMember(Name = "add_records")] public RecordUpdateStatus[] AddRecords;
 
-        [DataMember(Name = "update_records")]
-        public RecordUpdateRecord[] UpdateRecords;
+        [DataMember(Name = "update_records")] public RecordUpdateRecord[] UpdateRecords;
 
-        [DataMember(Name = "remove_records")]
-        public RecordUpdateStatus[] RemoveRecords;
+        [DataMember(Name = "remove_records")] public RecordUpdateStatus[] RemoveRecords;
 
-        [DataMember(Name = "delete_records")]
-        public RecordUpdateStatus[] DeleteRecords;
+        [DataMember(Name = "delete_records")] public RecordUpdateStatus[] DeleteRecords;
 
-        [DataMember(Name = "revision")]
-        public long Revision;
+        [DataMember(Name = "revision")] public long Revision;
     }
 
     [DataContract]
     internal class RecordAddCommand : AuthenticatedCommand
     {
-        public RecordAddCommand() : base("record_add") { }
+        public RecordAddCommand() : base("record_add")
+        {
+        }
 
-        [DataMember(Name = "record_uid")]
-        public string RecordUid;
+        [DataMember(Name = "record_uid")] public string RecordUid;
 
-        [DataMember(Name = "record_key")]
-        public string RecordKey;
+        [DataMember(Name = "record_key")] public string RecordKey;
 
-        [DataMember(Name = "record_type")]
-        public string RecordType;  // password
-        
+        [DataMember(Name = "record_type")] public string RecordType; // password
+
         [DataMember(Name = "folder_type")] // one of: user_folder, shared_folder, shared_folder_folder
         public string FolderType;
 
-        [DataMember(Name = "how_long_ago")]
-        public int HowLongAgo = 0;
+        [DataMember(Name = "how_long_ago")] public int HowLongAgo = 0;
 
         [DataMember(Name = "folder_uid", EmitDefaultValue = false)]
         public string FolderUid;
@@ -276,8 +305,7 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "folder_key", EmitDefaultValue = false)]
         public string FolderKey;
 
-        [DataMember(Name = "data")]
-        public string Data;
+        [DataMember(Name = "data")] public string Data;
 
         [DataMember(Name = "extra", EmitDefaultValue = false)]
         public string Extra;

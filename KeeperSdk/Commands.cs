@@ -5,19 +5,14 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2019 Keeper Security Inc.
+// Copyright 2020 Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Sdk
 {
-    /// <summary>
-    /// Base Keeper command
-    /// </summary>
     [DataContract]
     public class KeeperApiCommand
     {
@@ -37,9 +32,6 @@ namespace KeeperSecurity.Sdk
     {
     }
 
-    /// <summary>
-    /// Base Keeper Response
-    /// </summary>
     [DataContract]
     public class KeeperApiResponse
     {
@@ -55,9 +47,6 @@ namespace KeeperSecurity.Sdk
         public bool IsSuccess => result == "success";
     }
 
-    /// <summary>
-    /// REST Keeper Response
-    /// </summary>
     [DataContract]
     public class KeeperApiErrorResponse : KeeperApiResponse
     {
@@ -69,9 +58,6 @@ namespace KeeperSecurity.Sdk
         public string RegionHost { get; set; }
     }
 
-    /// <summary>
-    /// Login command
-    /// </summary>
     [DataContract]
     public class LoginCommand : KeeperApiCommand
     {
@@ -96,9 +82,6 @@ namespace KeeperSecurity.Sdk
         public int? deviceTokenExpiresInDays;
     }
 
-    /// <summary>
-    /// Login response
-    /// </summary>
     [DataContract]
     public class AccountKeys
     {
@@ -111,22 +94,15 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "data_key_backup_date")]
         public long? dataKeyBackupDate;
     }
-    [DataContract]
-    public class AccountEnforcements
-    {
-        [DataMember(Name = "password_rules_intro")]
-        public string passwordRulesIntro;
 
-        [DataMember(Name = "password_rules")]
-        public PasswordRule[] passwordRules;
-    }
     [DataContract]
-    public class AccountShareTo
+    public class PasswordRequirements
     {
-        [DataMember(Name = "role_id")]
-        public long roleId;
-        [DataMember(Name = "public_key")]
-        public string publicKey;
+        [DataMember(Name = "password_rules_intro", EmitDefaultValue = false)]
+        public string PasswordRulesIntro { get; set; }
+
+        [DataMember(Name = "password_rules", EmitDefaultValue = false)]
+        public PasswordRule[] PasswordRules;
     }
 
     [DataContract]
@@ -142,33 +118,6 @@ namespace KeeperSecurity.Sdk
         public string description;
     }
 
-    [DataContract]
-    public class AccountSettings
-    {
-        [DataMember(Name = "password_rules_intro")]
-        public string passwordRulesIntro;
-
-        [DataMember(Name = "password_rules")]
-        public PasswordRule[] passwordRules;
-
-        [DataMember(Name = "channel")]
-        public string channel;
-
-        [DataMember(Name = "sso_user")]
-        public bool? ssoUser;
-
-        [DataMember(Name = "must_perform_account_share_by")]
-        public long? mustPerformAccountShareBy;
-
-        [DataMember(Name = "share_account_to")]
-        public AccountShareTo[] shareAccountTo;
-
-        [DataMember(Name = "master_password_last_modified")]
-        public long? masterPasswordLastModified;
-
-        [DataMember(Name = "email_verified")]
-        public string email_verified;
-    }
 
     [DataContract]
     public class LoginResponse : KeeperApiResponse
@@ -203,19 +152,18 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "url")]
         public string url;      // websocket URL associated with Two Factor Method
         [DataMember(Name = "enroll_url")]
-        public string enroll_url;      // requires 2FA enrollment
+        public string enrollUrl;      // requires 2FA enrollment
 
         [DataMember(Name = "client_key")]
         public string clientKey;
-        [DataMember(Name = "is_enterprise_admin")]
-        public bool? isEnterpriseAdmin;
 
-        [DataMember(Name = "settings")]
-        public AccountSettings accountSettings;
         [DataMember(Name = "keys")]
         public AccountKeys keys;
-        [DataMember(Name = "enforcements")]
-        public AccountEnforcements enforcements;
+
+        [DataMember(Name = "password_rules_intro", EmitDefaultValue = false)]
+        public string passwordRulesIntro;
+        [DataMember(Name = "password_rules", EmitDefaultValue = false)]
+        public PasswordRule[] passwordRules;
 
         [DataMember(Name = "iterations")]
         public int? iterations;
@@ -253,4 +201,21 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "client_key")]
         public string clientKey;
     }
+
+    [DataContract]
+    public class GetPushInfoCommand : AuthenticatedCommand
+    {
+        public GetPushInfoCommand() : base("get_push_info") { }
+
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string type;
+    }
+
+    [DataContract]
+    public class GetPushInfoResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "url")]
+        public string url;
+    }
+
 }

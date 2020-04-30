@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Xunit;
-using Moq;
+using Authentication;
+using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
+using Moq;
+using Xunit;
 
-namespace KeeperSecurity.Sdk
+namespace Tests
 {
     public class LoginTest
     {
         readonly VaultEnvironment _vaultEnv;
         private bool HasTwoFactor { get; set; }
         private bool DataKeyAsEncryptionParams { get; set; }
+
         public LoginTest()
         {
             _vaultEnv = new VaultEnvironment();
@@ -22,20 +25,21 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.GetUser(us.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
             Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
         }
 
         [Fact]
-        public async Task TestRefreshSessionToken() {
+        public async Task TestRefreshSessionToken()
+        {
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.GetUser(us.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             auth.AuthContext.SessionToken = "BadSessionToken";
             await auth.RefreshSessionToken();
@@ -48,8 +52,8 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = true;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.GetUser(us.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
             Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
@@ -61,15 +65,13 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = true;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.GetUser(us.LastLogin);
             var uc = new UserConfiguration(userConfig.Username)
             {
                 TwoFactorToken = _vaultEnv.DeviceToken
             };
-            var c = new Configuration(config);
-            c.MergeUserConfiguration(uc);
-            auth.Storage.Put(c);
+            us.PutUser(uc);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
             Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
@@ -81,13 +83,12 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = true;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.GetUser(us.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
             Assert.Equal(auth.AuthContext.DataKey, _vaultEnv.DataKey);
-            config = auth.Storage.Get();
-            userConfig = config.GetUserConfiguration(config.LastLogin);
+            userConfig = us.GetUser(us.LastLogin);
             Assert.Equal(userConfig.TwoFactorToken, _vaultEnv.DeviceToken);
         }
 
@@ -97,20 +98,21 @@ namespace KeeperSecurity.Sdk
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = true;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.GetUser(us.LastLogin);
             var authMock = Mock.Get(auth.Ui);
             authMock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>())).Throws(new Exception());
             Assert.ThrowsAsync<Exception>(() => auth.Login(userConfig.Username, userConfig.Password));
         }
 
         [Fact]
-        public void TestLoginFailed() {
+        public void TestLoginFailed()
+        {
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            var config = auth.Storage.Get();
-            var userConfig = config.GetUserConfiguration(config.LastLogin);
+            IUserStorage us = auth.Storage;
+            var userConfig = us.GetUser(us.LastLogin);
             Assert.ThrowsAsync<KeeperApiException>(() => auth.Login(userConfig.Username, "123456"));
         }
 
@@ -125,8 +127,8 @@ namespace KeeperSecurity.Sdk
 
         private Auth GetAuthContext()
         {
-            var tfa = new TaskCompletionSource<TwoFactorCode>();
-            tfa.SetResult(new TwoFactorCode(_vaultEnv.TwoFactorOneTimeToken, TwoFactorCodeDuration.EveryLogin));
+            var tfa = Task.FromResult(new TwoFactorCode(_vaultEnv.TwoFactorOneTimeToken,
+                TwoFactorCodeDuration.EveryLogin));
 
             var uiMock = new Mock<IAuthUI>();
             uiMock.Setup(x => x.Confirmation(It.IsAny<string>()))
@@ -136,58 +138,24 @@ namespace KeeperSecurity.Sdk
             uiMock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorCodeChannel>()))
                 .Returns(tfa);
 
-            var endpoint = new Mock<KeeperEndpoint>();
-            endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, LoginResponse>(It.IsAny<LoginCommand>())).Returns<LoginCommand>(c => ProcessLoginCommand(c));
-            var mAuth = new Mock<Auth>(uiMock.Object, DataVault.GetConfigurationStorage(), endpoint.Object);
-            mAuth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => _vaultEnv.ProcessPreLogin(x));
+            var storage = DataVault.GetConfigurationStorage();
+            var endpoint = new Mock<KeeperEndpoint>(storage);
+            endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, KeeperSecurity.Sdk.LoginResponse>(It.IsAny<LoginCommand>()))
+                .Returns<LoginCommand>(ProcessLoginCommand);
+            var mAuth = new Mock<Auth>(uiMock.Object, storage, endpoint.Object);
+            mAuth.Setup(x => x.GetPreLogin(It.IsAny<string>(), It.IsAny<LoginType>(), null))
+                .Returns<string, LoginType, byte[]>((x, y, z) => _vaultEnv.ProcessPreLogin(x));
 
             return mAuth.Object;
         }
-        /*
-        private Auth GetConnectedAuthContext()
-        {
-            var ui_mock = new Mock<IAuthUI>();
-            var endpoint = new Mock<KeeperEndpoint>();
-            endpoint.Setup(x => x.ExecuteV2Command<LoginCommand, LoginResponse>(It.IsAny<LoginCommand>())).Returns<LoginCommand>(c => ProcessLoginCommand(c));
-            var m_auth = new Mock<Auth>(ui_mock.Object, DataVault.GetConfigurationStorage(), endpoint.Object);
-            m_auth.Setup(x => x.GetPreLogin(It.IsAny<string>(), null)).Returns<string, byte[]>((x, y) => ProcessPreLogin(x));
-            var auth = m_auth.Object;
-            var config = auth.Storage.Get();
-            var user_conf = config.GetUserConfiguration(config.LastLogin);
-            auth.Username = user_conf.Username;
-            auth.TwoFactorToken = user_conf.TwoFactorToken;
-            auth.ClientKey = _vaultEnv.ClientKey;
-            auth.DataKey = _vaultEnv.DataKey;
-            auth.privateKeyData = _vaultEnv.PrivateKeyData;
-            auth.SessionToken = _vaultEnv.SessionToken;
-            auth.authResponse = CryptoUtils.DeriveV1KeyHash(_vaultEnv.Password, _vaultEnv.Salt, _vaultEnv.Iterations).Base64UrlEncode();
-            return auth;
-        }
 
-        private Task<PreLoginResponse> ProcessPreLogin(string username)
+        private Task<KeeperSecurity.Sdk.LoginResponse> ProcessLoginCommand(LoginCommand command)
         {
-            var rs = new PreLoginResponse
+            var rs = new KeeperSecurity.Sdk.LoginResponse();
+            if (string.Compare(command.username, _vaultEnv.User, StringComparison.OrdinalIgnoreCase) == 0)
             {
-                Status = DeviceStatus.Ok
-            };
-            rs.Salt.Add(new Salt
-            {
-                Iterations = _vaultEnv.Iterations,
-                Salt_ = ByteString.CopyFrom(_vaultEnv.Salt),
-                Algorithm = 2,
-                Name = "Master password"
-            });
-            return Task.FromResult(rs);
-        }
-
-                    */
-
-        private Task<LoginResponse> ProcessLoginCommand(LoginCommand command)
-        {
-            var rs = new LoginResponse();
-            if (string.Compare(command.username, _vaultEnv.User, true) == 0)
-            {
-                var auth1 = CryptoUtils.DeriveV1KeyHash(_vaultEnv.Password, _vaultEnv.Salt, _vaultEnv.Iterations).Base64UrlEncode();
+                var auth1 = CryptoUtils.DeriveV1KeyHash(_vaultEnv.Password, _vaultEnv.Salt, _vaultEnv.Iterations)
+                    .Base64UrlEncode();
                 if (auth1 == command.authResponse)
                 {
                     var method = command.twoFactorType ?? "";
@@ -239,14 +207,12 @@ namespace KeeperSecurity.Sdk
                                         {
                                             rs.keys.encryptedDataKey = _vaultEnv.EncryptedDataKey;
                                         }
-                                        break;
-                                    case "is_enterprise_admin":
-                                        rs.isEnterpriseAdmin = false;
+
                                         break;
                                     case "client_key":
-                                        rs.clientKey = CryptoUtils.EncryptAesV1(_vaultEnv.ClientKey, _vaultEnv.DataKey).Base64UrlEncode();
+                                        rs.clientKey = CryptoUtils.EncryptAesV1(_vaultEnv.ClientKey, _vaultEnv.DataKey)
+                                            .Base64UrlEncode();
                                         break;
-
                                 }
                             }
                         }
@@ -265,10 +231,8 @@ namespace KeeperSecurity.Sdk
                 rs.result = "fail";
                 rs.resultCode = "Failed_to_find_user";
             }
+
             return Task.FromResult(rs);
         }
-
     }
 }
-
-
