@@ -51,9 +51,9 @@ namespace KeeperSecurity.Sdk
             return _configuration;
         }
 
-        string IUserStorage.LastLogin => GetJsonConfiguration().lastLogin;
+        public string LastLogin => GetJsonConfiguration().lastLogin;
 
-        IEnumerable<IUserConfiguration> IUserStorage.Users
+        public IEnumerable<IUserConfiguration> Users
         {
             get
             {
@@ -67,7 +67,7 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        IUserConfiguration IUserStorage.GetUser(string username)
+        public IUserConfiguration GetUser(string username)
         {
             var conf = GetJsonConfiguration();
             if (conf.users == null) return null;
@@ -83,7 +83,7 @@ namespace KeeperSecurity.Sdk
             };
         }
 
-        void IUserStorage.PutUser(IUserConfiguration userConfiguration)
+        public void PutUser(IUserConfiguration userConfiguration)
         {
             var name = userConfiguration.Username.AdjustUserName();
             var conf = GetJsonConfiguration();
@@ -103,9 +103,9 @@ namespace KeeperSecurity.Sdk
         }
 
 
-        string IServerStorage.LastServer => GetJsonConfiguration().lastServer;
+        public string LastServer => GetJsonConfiguration().lastServer;
 
-        IEnumerable<IServerConfiguration> IServerStorage.Servers
+        public IEnumerable<IServerConfiguration> Servers
         {
             get
             {
@@ -120,7 +120,7 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        IServerConfiguration IServerStorage.GetServer(string server)
+        public IServerConfiguration GetServer(string server)
         {
             var conf = GetJsonConfiguration();
             if (conf.servers != null)
@@ -138,7 +138,7 @@ namespace KeeperSecurity.Sdk
             return null;
         }
 
-        void IServerStorage.PutServer(IServerConfiguration serverConfiguration)
+        public void PutServer(IServerConfiguration serverConfiguration)
         {
             var name = serverConfiguration.Server.AdjustUserName();
             var conf = GetJsonConfiguration();

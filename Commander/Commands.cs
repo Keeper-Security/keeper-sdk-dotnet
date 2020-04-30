@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
-using CommandLine.Text;
 using KeeperSecurity.Sdk;
 
 namespace Commander
@@ -158,7 +157,7 @@ namespace Commander
         }
 
         public StateContext StateContext { get; set; }
-        public bool Finished { get; protected set; }
+        public bool Finished { get; set; }
         public Queue<string> CommandQueue { get; } = new Queue<string>();
     }
 

@@ -103,13 +103,13 @@ namespace KeeperSecurity.Sdk
         public IEnumerable<IServerConfiguration> Servers => _servers.Values;
 
 
-        IUserConfiguration IUserStorage.GetUser(string username)
+        public IUserConfiguration GetUser(string username)
         {
             var name = username.AdjustUserName();
             return _users.Values.FirstOrDefault(x => string.CompareOrdinal(name, x.Username) == 0);
         }
 
-        void IUserStorage.PutUser(IUserConfiguration userConfiguration)
+        public void PutUser(IUserConfiguration userConfiguration)
         {
             var u = new UserConfiguration(userConfiguration.Username)
             {
@@ -120,13 +120,13 @@ namespace KeeperSecurity.Sdk
             LastLogin = u.Username;
         }
 
-        IServerConfiguration IServerStorage.GetServer(string server)
+        public IServerConfiguration GetServer(string server)
         {
             var url = server.AdjustServerName();
             return _servers.Values.FirstOrDefault(x => string.CompareOrdinal(url, x.Server) == 0);
         }
 
-        void IServerStorage.PutServer(IServerConfiguration serverConfiguration)
+        public void PutServer(IServerConfiguration serverConfiguration)
         {
             var s = new ServerConfiguration(serverConfiguration.Server)
             {
