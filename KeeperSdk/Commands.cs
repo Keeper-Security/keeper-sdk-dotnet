@@ -9,6 +9,7 @@
 // Contact: ops@keepersecurity.com
 //
 
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Sdk
@@ -159,6 +160,9 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "keys")]
         public AccountKeys keys;
+
+        [DataMember(Name = "enforcements")]
+        public IDictionary<string, object> Enforcements { get; set; }
 
         [DataMember(Name = "password_rules_intro", EmitDefaultValue = false)]
         public string passwordRulesIntro;

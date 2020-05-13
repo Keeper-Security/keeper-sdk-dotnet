@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45;netcoreapp2.1</TargetFrameworks>
     <LangVersion>7.1</LangVersion>
-    <Version>0.9.7-alpha1</Version>
+    <Version>0.9.7-alpha2</Version>
     <Authors>Keeper Security Inc.</Authors>
     <Product>.NET Keeper Sdk</Product>
     <PackageTags>keeper password manager</PackageTags>
