@@ -19,7 +19,7 @@ namespace KeeperSecurity.Sdk
     {
         public SharedFolderUpdateCommand() : base("shared_folder_update")
         {
-            pt = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+            pt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
         }
 
         [DataMember(Name = "pt", EmitDefaultValue = false)]

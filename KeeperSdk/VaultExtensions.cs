@@ -121,7 +121,7 @@ namespace KeeperSecurity.Sdk
                 Shared = r.Shared,
                 Owner = r.Owner,
                 ClientModified = r.ClientModifiedTime != 0
-                    ? DateTimeOffset.FromUnixTimeMilliseconds(r.ClientModifiedTime)
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
                     : DateTimeOffset.Now,
             };
 
@@ -168,7 +168,7 @@ namespace KeeperSecurity.Sdk
                                 Type = file.type ?? "",
                                 Size = file.size ?? 0,
                                 LastModified = file.lastModified != null
-                                    ? DateTimeOffset.FromUnixTimeMilliseconds(file.lastModified.Value)
+                                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(file.lastModified.Value)
                                     : DateTimeOffset.Now
                             };
                             if (file.thumbs != null)

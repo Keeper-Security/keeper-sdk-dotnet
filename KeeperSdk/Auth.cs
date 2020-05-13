@@ -92,18 +92,7 @@ namespace KeeperSecurity.Sdk
                 command.twoFactorMode = secondary.SecondFactorMode;
                 if (secondary.SecondFactorDuration != null)
                 {
-                    switch (secondary.SecondFactorDuration)
-                    {
-                        case TwoFactorCodeDuration.Every30Days:
-                            command.deviceTokenExpiresInDays = 30;
-                            break;
-                        case TwoFactorCodeDuration.Forever:
-                            command.deviceTokenExpiresInDays = 9999;
-                            break;
-                        default:
-                            command.deviceTokenExpiresInDays = null;
-                            break;
-                    }
+                    command.deviceTokenExpiresInDays = (int) secondary.SecondFactorDuration;
                 }
             }
 
@@ -175,17 +164,17 @@ namespace KeeperSecurity.Sdk
 
             auth.authContext = authContext;
 
-            if (!string.IsNullOrEmpty(authContext.TwoFactorToken))
+            if (!string.IsNullOrEmpty(loginResponse.deviceToken) && loginResponse.deviceTokenScope == "expiration")
             {
                 IUserStorage us = auth.Storage;
                 var uc = us.GetUser(auth.authContext.Username);
                 var storedToken = uc?.TwoFactorToken;
-                if (string.IsNullOrEmpty(storedToken) || !authContext.TwoFactorToken.SequenceEqual(storedToken))
+                if (string.IsNullOrEmpty(storedToken) || !loginResponse.deviceToken.SequenceEqual(storedToken))
                 {
                     var userConfig = uc != null
                         ? new UserConfiguration(uc)
                         : new UserConfiguration(auth.authContext.Username);
-                    userConfig.TwoFactorToken = authContext.TwoFactorToken;
+                    userConfig.TwoFactorToken = loginResponse.deviceToken;
                     us.PutUser(userConfig);
                 }
             }

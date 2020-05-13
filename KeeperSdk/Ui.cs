@@ -27,11 +27,11 @@ namespace KeeperSecurity.Sdk.UI
     }
 
 
-    public enum TwoFactorCodeDuration
+    public enum TwoFactorCodeDuration: int
     {
-        EveryLogin,
-        Every30Days,
-        Forever,
+        EveryLogin = 0,
+        Every30Days = 30,
+        Forever = 9999,
     }
 
 
