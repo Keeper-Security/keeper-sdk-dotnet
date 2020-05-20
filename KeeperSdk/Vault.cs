@@ -116,20 +116,19 @@ namespace KeeperSecurity.Sdk
                         return rmd;
                     }
 
-                    if (!forEdit && !forShare)
+                    if (!forEdit && !forShare && !forView)
                     {
                         path.TeamUid = sfmd.TeamUid;
                         return rmd;
                     }
 
-                    if (keeperTeams.TryGetValue(sfmd.TeamUid, out EnterpriseTeam team))
-                    {
-                        if (forEdit && team.RestrictEdit) continue;
-                        if (forShare && team.RestrictShare) continue;
-                        if (forView && team.RestrictView) continue;
-                        path.TeamUid = sfmd.TeamUid;
-                        return rmd;
-                    }
+                    if (!keeperTeams.TryGetValue(sfmd.TeamUid, out var team)) continue;
+                    if (forEdit && team.RestrictEdit) continue;
+                    if (forShare && team.RestrictShare) continue;
+                    if (forView && team.RestrictView) continue;
+                    
+                    path.TeamUid = sfmd.TeamUid;
+                    return rmd;
                 }
             }
 
