@@ -73,7 +73,7 @@ namespace KeeperSecurity.Sdk
 
     public static class AuthExtensions
     {
-        public static async Task<LoginResponse> ExecuteLoginCommand(this KeeperEndpoint endpoint,
+        public static async Task<LoginResponse> ExecuteLoginCommand(this IAuth auth,
             PrimaryCredentials primary, SecondaryCredentials secondary = null)
         {
             var authHash = CryptoUtils.DeriveV1KeyHash(primary.Password, primary.Salt, primary.Iterations)
@@ -83,6 +83,7 @@ namespace KeeperSecurity.Sdk
                 username = primary.Username.ToLowerInvariant(),
                 authResponse = authHash,
                 include = new[] {"keys", "client_key"},
+                platformDeviceToken = auth.EncryptedDeviceToken.Base64UrlEncode(),
             };
 
             if (secondary != null)
@@ -96,7 +97,7 @@ namespace KeeperSecurity.Sdk
                 }
             }
 
-            return await endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(command);
+            return await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(command);
         }
 
         public static void ParseLoginResponse(this Auth auth, PrimaryCredentials primary,
@@ -399,7 +400,7 @@ namespace KeeperSecurity.Sdk
                         primaryCredentials.Iterations = authParams.Iterations;
                     }
 
-                    var loginRs = await Endpoint.ExecuteLoginCommand(primaryCredentials, secondaryCredentials);
+                    var loginRs = await this.ExecuteLoginCommand(primaryCredentials, secondaryCredentials);
                     if (!loginRs.IsSuccess && (Ui == null || !PostLoginErrorCodes.Contains(loginRs.resultCode)))
                     {
                         if (SecondFactorErrorCodes.Contains(loginRs.resultCode) && Ui != null)

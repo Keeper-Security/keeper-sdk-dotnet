@@ -81,6 +81,8 @@ namespace KeeperSecurity.Sdk
         public string twoFactorMode;
         [DataMember(Name = "device_token_expire_days", EmitDefaultValue = false)]
         public int? deviceTokenExpiresInDays;
+        [DataMember(Name = "platform_device_token", EmitDefaultValue = false)]
+        public string platformDeviceToken;
     }
 
     [DataContract]
