@@ -1,5 +1,30 @@
 This folder is a sample Commander CLI application using the .NET SDK.  Below is a code sample that connects to Keeper and loads a vault.
 
+### Sample Commander application reference 
+
+* ```login``` Login to Keeper
+
+* ```logout``` Logout from Keeper
+
+* ```sync-down``` or ```d``` Download, sync and decrypt vault
+
+* ```list``` or ```ls``` List all records (try ```ls -l``` as well)
+
+* ```tree``` Display entire folder structure as a tree
+
+* ```cd``` Change current folder
+
+* ```get``` Retrieve and display specified Keeper Record/Folder/Team in printable or JSON format.
+
+* ```list-sf``` Display all shared folders
+
+**Record Management Commands**
+
+* ```add-record``` Add a record to the vault
+
+* ```update-record``` Update a record contents such as the password
+
+
 ### Sample C# application
 
 ```csharp
