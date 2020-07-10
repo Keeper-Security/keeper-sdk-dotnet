@@ -1,7 +1,3 @@
-### Password Management SDK for IT Admins & Developers
-
-Keeper Security develops the world's most downloaded password manager and encrypted digital vault with millions of individual customers and thousands of enterprise customers worldwide.  Keeper is a zero-knowledge, native and cloud-based solution available on every mobile and desktop device platform. <a href="#about-keeper">Read more</a> about Keeper or visit the [Keeper Security](https://keepersecurity.com) website.
-
 ### .Net and PowerShell SDK for Keeper Password Manager
 
 The Keeper .Net and PowerShell module ("PowerCommander") provides basic vault API access. The current features of the .Net and PowerShell library include the following:
@@ -168,6 +164,10 @@ namespace SimpleSdkConsoleApp
 ```
 
 ### About Keeper Security
+
+Keeper Security develops the world's most downloaded password manager and encrypted digital vault with millions of individual customers and thousands of enterprise customers worldwide.  Keeper is a zero-knowledge, native and cloud-based solution available on every mobile and desktop device platform. <a href="#about-keeper">Read more</a> about Keeper or visit the [Keeper Security](https://keepersecurity.com) website.
+
+### Security
 
 Keeper is a Zero Knowledge security provider. Zero Knowledge is a system architecture that guarantees the highest levels of security and privacy by adhering to the following principles:
 
