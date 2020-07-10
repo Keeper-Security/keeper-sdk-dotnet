@@ -14,7 +14,7 @@ To use the PowerShell modules, see the [PowerCommander library](https://github.c
 For integration into your .Net systems, please utilize the [KeeperSDK library](https://github.com/Keeper-Security/Commander/tree/master/dotnet-keeper-sdk/KeeperSdk).
 
 ### Sample App
-For help with implementation of SDK features, please see the [Commander CLI](https://github.com/Keeper-Security/Commander/tree/master/dotnet-keeper-sdk/Commander) sample application.  This application contains several basic operations such as logging in, authentication with two-factor, loading and decrypting the vault and updating passwords.
+For help with implementation of SDK features, please see the [Commander CLI Sample App](https://github.com/Keeper-Security/Commander/tree/master/dotnet-keeper-sdk/Commander).  This application contains several basic operations such as logging in, authentication with two-factor, loading and decrypting the vault and updating passwords.
 
 ### Developer Requirements for KeeperSDK Library
 
@@ -22,35 +22,11 @@ For help with implementation of SDK features, please see the [Commander CLI](htt
 * .Net Core 2.1
 * .Net Standard 2.0
 
-### Sample Commander application reference 
-
-* ```login``` Login to Keeper
-
-* ```logout``` Logout from Keeper
-
-* ```sync-down``` or ```d``` Download, sync and decrypt vault
-
-* ```list``` or ```ls``` List all records (try ```ls -l``` as well)
-
-* ```tree``` Display entire folder structure as a tree
-
-* ```cd``` Change current folder
-
-* ```get``` Retrieve and display specified Keeper Record/Folder/Team in printable or JSON format.
-
-* ```list-sf``` Display all shared folders
-
-**Record Management Commands**
-
-* ```add-record``` Add a record to the vault
-
-* ```update-record``` Update a record contents such as the password
-
 If you need any assistance or require specific functionality not supported in Commander yet, please contact us at commander@keepersecurity.com.
 
 ### About Keeper Security
 
-Keeper Security develops the world's most downloaded password manager and encrypted digital vault with millions of individual customers and thousands of enterprise customers worldwide.  Keeper is a zero-knowledge, native and cloud-based solution available on every mobile and desktop device platform. <a href="#about-keeper">Read more</a> about Keeper or visit the [Keeper Security](https://keepersecurity.com) website.
+Keeper Security develops the world's most downloaded password manager and encrypted digital vault with millions of individual customers and thousands of enterprise customers worldwide.  Keeper is a zero-knowledge, native and cloud-based solution available on every mobile and desktop device platform. Learn more about Keeper by visiting the [Keeper Security](https://keepersecurity.com) website.
 
 ### Security
 
