@@ -122,7 +122,7 @@ namespace Tests
             DataKeyAsEncryptionParams = false;
             HasTwoFactor = false;
             var auth = GetAuthContext();
-            Assert.ThrowsAsync<KeeperApiException>(() => auth.Login("wrong.user@keepersecurity.com", "123456"));
+            Assert.ThrowsAsync<KeeperApiException>(() => auth.Login("bad_user_id@company.com", "some_password_here"));
         }
 
         private Auth GetAuthContext()
