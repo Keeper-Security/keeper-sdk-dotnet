@@ -20,7 +20,7 @@ namespace Tests
 {
     public static class DataVault
     {
-        public static string UserName = "unit.test@keepersecurity.com";
+        public static string UserName = "some_fake_user@company.com";
 
         public static string UserPassword = CryptoUtils.GetRandomBytes(8).Base64UrlEncode();
         public static int UserIterations = 1000;
@@ -350,9 +350,9 @@ fwIDAQAB
                 Uid = CryptoUtils.GenerateUid(),
                 RecordKey = CryptoUtils.GenerateEncryptionKey(),
                 Title = "Record 1",
-                Login = "user1@keepersecurity.com",
+                Login = "some_fake_user1@company.com",
                 Password = "password1",
-                Link = "https://keepersecurity.com/1",
+                Link = "https://google.com",
                 Notes = "note1"
             };
             record1.Custom.Add(new CustomField {Name = "name1", Value = "value1"});
@@ -369,9 +369,9 @@ fwIDAQAB
                 Uid = CryptoUtils.GenerateUid(),
                 RecordKey = CryptoUtils.GenerateEncryptionKey(),
                 Title = "Record 2",
-                Login = "user2@keepersecurity.com",
+                Login = "some_fake_user2@company.com",
                 Password = "password2",
-                Link = "https://keepersecurity.com/2",
+                Link = "https://google.com",
                 Notes = "note2"
             };
             var record3 = new PasswordRecord
@@ -379,9 +379,9 @@ fwIDAQAB
                 Uid = CryptoUtils.GenerateUid(),
                 RecordKey = CryptoUtils.GenerateEncryptionKey(),
                 Title = "Record 3",
-                Login = "user3@keepersecurity.com",
+                Login = "some_fake_user3@company.com",
                 Password = "password3",
-                Link = "https://keepersecurity.com/3",
+                Link = "https://google.com",
             };
 
             var sharedFolder1 = new SharedFolder
