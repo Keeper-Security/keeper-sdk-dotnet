@@ -10,7 +10,7 @@ function Get-KeeperSharedFolders {
 	.Parameter Uid
 	Shared Folder UID
 
-	.Filter
+	.Parameter Filter
 	Return matching shared folders only
 #>
 	[CmdletBinding()]

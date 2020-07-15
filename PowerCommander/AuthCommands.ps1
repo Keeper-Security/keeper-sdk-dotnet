@@ -138,7 +138,7 @@ function Out-Keeper {
 	.Synopsis
 	Get access to SDK Library classes
 
-	.Parameter $ObjectType
+	.Parameter ObjectType
 	Object Type 
 
 #>

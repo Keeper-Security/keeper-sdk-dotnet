@@ -10,10 +10,10 @@ function Get-KeeperRecords {
 	.Parameter Uid
 	Record UID
 
-	.Filter
+	.Parameter Filter
 	Return matching records only
 
-	.ShowPassword
+	.Parameter ShowPassword
 	Display record password
 #>
 	[CmdletBinding()]
@@ -70,7 +70,7 @@ function Copy-KeeperToClipboard {
 	.Parameter Record
 	Record UID or any object containg record UID
 
-	.Field
+	.Parameter Field
 	Record field to copy to clipboard. Record password is default.
 #>
 
@@ -217,26 +217,26 @@ function Add-KeeperRecord {
 	.Parameter Title
 	Title field
 
-	.UpdateOnly 
+	.Parameter UpdateOnly 
 	Do not create a new record
 
-	.Login
+	.Parameter Login
 	Login field
 
-	.Password
+	.Parameter Password
 	Password field
 
-	.GeneratePassword
+	.Parameter GeneratePassword
 	Generate random password
 
-	.URL
+	.Parameter URL
 	Website Address field
 
-	.Custom
+	.Parameter Custom
 	Comma-separated list of key:value pairs. 
 	Example: -Custom "name1:value1, name2:value2"
 
-	.Notes
+	.Parameter Notes
 	Notes field
 
 #>
@@ -247,7 +247,7 @@ function Add-KeeperRecord {
 		[Parameter()][switch] $UpdateOnly,
 		[Parameter()][string] $Login,
 		[Parameter()][switch] $GeneratePassword,
-		[Parameter()][securestring] $Password,
+		[Parameter()][string] $Password,
 		[Parameter()][string] $URL,
 		[Parameter()][string[]] $Custom,
 		[Parameter()][string] $Notes
@@ -283,7 +283,6 @@ function Add-KeeperRecord {
             $record.Notes += $Notes
         }
 
-        [string]$PlainPassword = ''
         if ($GeneratePassword.IsPresent) {
             if ($record.Password) {
                 if ($record.Notes) {
@@ -291,11 +290,7 @@ function Add-KeeperRecord {
                 }
                 $record.Notes += "Password generated on $(Get-Date)`nOld password: $($record.Password)`n"
             }
-            $PlainPassword = [CryptoUtils]::GenerateUid()
-        }
-        elseif ($Password) {
-        	$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
-        	$PlainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+            $Password = [CryptoUtils]::GenerateUid()
         }
 
         if (-not $record.Uid) {
@@ -304,8 +299,8 @@ function Add-KeeperRecord {
         if ($Login) {
             $record.Login = $Login
         }
-        if ($PlainPassword) {
-            $record.Password = $PlainPassword
+        if ($Password) {
+            $record.Password = $Password
         }
         if ($URL) {
             $record.Link = $URL
@@ -321,6 +316,8 @@ function Add-KeeperRecord {
 	}
     End {
         $_ = $vault.PutRecord($record).GetAwaiter().GetResult()
+		$_ = $vault.TryGetRecord($record.Uid, [ref]$record)
+		$record
     }
 }
 New-Alias -Name kadd -Value Add-KeeperRecord
@@ -333,35 +330,30 @@ function Move-RecordToSharedFolder {
 	.Parameter Record
 	Record UID, Title or any object containg property UID
 
-	.UpdateOnly 
-	Do not create a new record
+	.Parameter SharedFolder 
+	Shared Folder name
+
+	.Parameter CanShare 
+	Grant re-share permission. 
+
+	.Parameter CanEdit 
+	Grant edit permission. 
 #>
 
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true, ValueFromPipeline = $true)] $Records,
-		[Parameter(Position = 0, Mandatory = $true)][string] $SharedFolder
+		[Parameter(Position = 0, Mandatory = $true)][string] $SharedFolder,
+		[Parameter()][ValidateSet('Yes' ,'No')][string] $CanShare,
+		[Parameter()][ValidateSet('Yes' ,'No')] $CanEdit
 	)
-
+	
 	Begin {
 		[Vault]$vault = $Script:Vault
 		if (-not $vault) {
 			Write-Error -Message 'Not connected'
 		}
-        $sourceRecords = @{}
-		[SharedFolder]$targetFolder = $null
-		if (-not $vault.TryGetSharedFolder($SharedFolder, [ref]$targetFolder)) {
-			$fols = Get-KeeperSharedFolders -Filter $SharedFolder | Where-Object Name -eq $SharedFolder
-			if ($fols.Length -eq 1) {
-				$targetFolder = $fols[0]
-			}
-			elseif ($fols.Length -gt 1) {
-				Write-Error -Message "There are more than one shared folders `"$($SharedFolder)`""
-			}
-		}
-		if ($targetFolder -eq $null) {
-			Write-Error -Message "Shared Folder `"$($SharedFolder)`" not found"
-		}
+		$sourceRecords = @{}
 	}
 
 	Process {
@@ -378,69 +370,93 @@ function Move-RecordToSharedFolder {
 				[PasswordRecord] $rec = $null
 				if ($vault.TryGetRecord($uid, [ref]$rec)) {
 					if ($rec.Owner) {
-	                    $sourceRecords[$rec.Uid] = $rec
+						$sourceRecords[$rec.Uid] = $rec
 					}
 				} else {
 					$recs = Get-KeeperRecords -Filter $uid | Where-Object Title -eq $uid
 					foreach ($rec in $recs) {
 						if ($rec.Owner) {
-		                    $sourceRecords[$rec.Uid] = $rec
+							$sourceRecords[$rec.Uid] = $rec
 						}
 					}
-                }
-            }
-        }
-	}
-
-    End {
-        if ($sourceRecords.Count -gt 0) {
-
-
-
-
-			[SharedFolderUpdateCommand]$command = New-Object SharedFolderUpdateCommand
-			$command.operation = 'update'
-			$command.SharedFolderUid = $targetFolder.Uid
-			$command.forceUpdate = $true
-			$perm = $vault.ResolveSharedFolderAccessPath($command, $false, $ftrue)
-			if ($perm) {
-				$addRecords = @()
-				foreach ($rec in $sourceRecords.Values) {
-					$ur = New-Object SharedFolderUpdateRecord
-					$ur.RecordUid = $rec.Uid
-					$encKey = [CryptoUtils]::EncryptAesV1($rec.RecordKey, $targetFolder.SharedFolderKey)
-					$ur.CanEdit = $targetFolder.DefaultCanEdit
-					$ur.CanShare = $targetFolder.DefaultCanShare
-					$ur.RecordKey = [CryptoUtils]::Base64UrlEncode($encKey)
-					$addRecords += $ur
 				}
-				$command.addRecords = $addRecords
-				$t = $vault.Auth.ExecuteAuthCommand($command, [SharedFolderUpdateResponse], $true)
-				$rs = $t.GetAwaiter().GetResult()
-				if ($rs.addRecords) {
-					$recordsAdded = 0
-					foreach ($status in $rs.addRecords) {
-						if ($status.Status -eq 'success') {
-							$recordsAdded++
-						} else {
-							Write-Information -MessageData "Shared Folder UID / Record UID  ($($command.SharedFolderUid) / $($status.RecordUid)) error: ($($status.Status))"
-						}
-					}
-					if ($recordsAdded -gt 0) {
-						$info = "Shared Folder '$($sharedFolder.Name)'. Added $($recordsAdded) records"
-						Write-Information -MessageData $info
-					}
-				}
-			} else {
-				Write-Information "You don't have permissions on Shared Folder ($($targetFolder.Name)) ($($targetFolder.Uid))"
-				return
 			}
-        } else {
-			Write-Output -MessageData "No records"
 		}
-    }
+
+	}
+	End {
+		$_ = keeperRecordMoveCommand -sharedFolder:$SharedFolder -records:$sourceRecords.Values -canShare$:CanShare -canEdit:$CanEdit -isLink:$false
+	}
 }
 New-Alias -Name kmv -Value Move-RecordToSharedFolder
+
+function Copy-RecordToSharedFolder {
+<#
+	.Synopsis
+	Copies owned records to Shared Folder.
+
+	.Parameter Record
+	Record UID, Title or any object containg property UID
+
+	.Parameter SharedFolder 
+	Shared Folder name
+
+	.Parameter CanShare 
+	Grant re-share permission. 
+
+	.Parameter CanEdit 
+	Grant edit permission. 
+#>
+
+	[CmdletBinding()]
+	Param (
+		[Parameter(Mandatory = $true, ValueFromPipeline = $true)] $Records,
+		[Parameter(Position = 0, Mandatory = $true)][string] $SharedFolder,
+		[Parameter()][ValidateSet('Yes' ,'No')][string] $CanShare,
+		[Parameter()][ValidateSet('Yes' ,'No')] $CanEdit
+	)
+	
+	Begin {
+		[Vault]$vault = $Script:Vault
+		if (-not $vault) {
+			Write-Error -Message 'Not connected'
+		}
+		$sourceRecords = @{}
+	}
+
+	Process {
+		foreach ($r in $Records) {
+    		$uid = $null
+
+			if ($r -is [String]) {
+				$uid = $r
+			} 
+			elseif ($r.Uid -ne $null) {
+				$uid = $r.Uid
+			}
+			if ($uid) {
+				[PasswordRecord] $rec = $null
+				if ($vault.TryGetRecord($uid, [ref]$rec)) {
+					if ($rec.Owner) {
+						$sourceRecords[$rec.Uid] = $rec
+					}
+				} else {
+					$recs = Get-KeeperRecords -Filter $uid | Where-Object Title -eq $uid
+					foreach ($rec in $recs) {
+						if ($rec.Owner) {
+							$sourceRecords[$rec.Uid] = $rec
+						}
+					}
+				}
+			}
+		}
+
+	}
+	End {
+		$_ = keeperRecordMoveCommand -sharedFolder:$SharedFolder -records:$sourceRecords.Values -canShare$:CanShare -canEdit:$CanEdit -isLink:$true
+	}
+}
+New-Alias -Name kcp -Value Copy-RecordToSharedFolder
 
 $Keeper_SharedFolderNameCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
@@ -457,3 +473,157 @@ $Keeper_SharedFolderNameCompleter = {
         }
 }
 Register-ArgumentCompleter -Command Move-RecordToSharedFolder -ParameterName SharedFolder -ScriptBlock $Keeper_SharedFolderNameCompleter
+Register-ArgumentCompleter -Command Copy-RecordToSharedFolder -ParameterName SharedFolder -ScriptBlock $Keeper_SharedFolderNameCompleter
+
+
+function keeperRecordMoveCommand {
+	Param (
+		[string]$sharedFolder, 
+		[PasswordRecord[]]$records, 
+		[string]$canShare,
+		[string]$canEdit,
+		[bool]$isLink
+	)
+
+	[Vault]$vault = $Script:Vault
+	if (-not $vault) {
+		Write-Error -Message 'Not connected'		
+	}
+	[SharedFolder]$targetFolder = $null
+	if (-not $vault.TryGetSharedFolder($SharedFolder, [ref]$targetFolder)) {
+		$fols = Get-KeeperSharedFolders -Filter $SharedFolder | Where-Object Name -eq $SharedFolder
+		if ($fols.Length -eq 1) {
+			$targetFolder = $fols[0]			
+		}
+		elseif ($fols.Length -gt 1) {
+			Write-Error -Message "There are more than one shared folders `"$($SharedFolder)`""			
+		}		
+	}
+	if ($targetFolder -eq $null) {
+		Write-Error -Message "Shared Folder `"$($SharedFolder)`" not found"		
+	}
+
+	$er = @{}
+	if ($targetFolder.RecordPermissions) {
+		foreach ($rp in $targetFolder.RecordPermissions) {
+			$er[$rp.RecordUid] = $true
+		}
+	}
+
+    $sourceRecords = @{}
+	foreach ($r in $records) {
+    	$uid = $null
+
+		if ($r -is [String]) {
+			$uid = $r
+		} 
+		elseif ($r.Uid -ne $null) {
+			$uid = $r.Uid
+		}
+		if ($uid) {
+			[PasswordRecord] $rec = $null
+			if ($vault.TryGetRecord($uid, [ref]$rec)) {
+				if ($rec.Owner) {
+	                $sourceRecords[$rec.Uid] = $rec
+				}
+			} else {
+				$recs = Get-KeeperRecords -Filter $uid | Where-Object Title -eq $uid
+				foreach ($rec in $recs) {
+					if ($rec.Owner) {
+		                $sourceRecords[$rec.Uid] = $rec
+					}
+				}
+            }
+        }
+    }
+
+    if ($sourceRecords.Count -gt 0) {
+		[MoveCommand]$command = New-Object MoveCommand
+		$command.toType = 'shared_folder'
+		$command.toUid = $targetFolder.Uid
+		$command.isLink = $isLink
+
+		$moveObjects = @()
+		$transitionObjects = @()
+
+		$sfKey = $targetFolder.SharedFolderKey
+		[PasswordRecord]$rec = $null
+		[FolderNode]$folder = $null
+		foreach ($rec in $sourceRecords.Values) {
+			if ($er.ContainsKey($rec.Uid)) {
+				continue
+			}
+			$folder = $null
+			foreach ($rid in $vault.RootFolder.Records) {
+				if ($rid -eq $rec.Uid) {
+					$folder = $vault.RootFolder
+					break
+				}
+			}
+			if ($folder -eq $null) {
+				foreach ($f in $vault.Folders) {
+					if ($f.FolderUid -eq $targetFolder.Uid) {
+						continue
+					}
+					foreach ($rid in $f.Records) {
+						if ($rid -eq $rec.Uid) {
+							$folder = $f
+							break
+						}
+					}
+					if ($folder) {
+						if ($folder.FolderType -eq [FolderType]::UserFolder) {
+							break
+						}
+					}
+				}
+			}
+			if ($folder -eq $null) {
+				continue
+			}
+			$mo = New-Object MoveObject
+			$mo.type = 'record'
+			$mo.uid = $rec.Uid
+			$folderType = 'user_folder'
+			if ($folder.FolderType -eq [FolderType]::SharedFolder) {
+				$folderType = 'shared_folder'
+			}
+			elseif ($folder.FolderType -eq [FolderType]::SharedSharedFolder) {
+				$folderType = 'shared_shared_folder'
+			}
+			$mo.fromType = $folderType
+			$mo.fromUid = $folder.FolderUid
+			$canFlag = $targetFolder.DefaultCanShare
+			if ($canShare -eq 'Yes') {
+				$canFlag = $true
+			}
+			elseif ($canShare -eq 'No') {
+				$canFlag = $false
+			}
+			$mo.canShare = $canFlag
+
+			$mo.canEdit = $canEdit
+			$mo.cascade = $false
+			$moveObjects += $mo
+
+			$to = New-Object TransitionKey
+			$to.uid = $rec.Uid
+			$encKey = [CryptoUtils]::EncryptAesV1($rec.RecordKey, $sfKey)
+			$to.key = [CryptoUtils]::Base64UrlEncode($encKey)
+			$transitionObjects += $to
+		}
+		if ($moveObjects.Length -gt 0) {
+			$command.moveObjects = $moveObjects
+			$command.transitionKeys = $transitionObjects
+
+			$command
+			$t = $vault.Auth.ExecuteAuthCommand($command, [KeeperApiResponse], $true)
+			$rs = $t.GetAwaiter().GetResult()
+			$_ = Sync-Keeper
+		} else {
+			Write-Host "No records to be added to $($sharedFolder)"
+		}
+    } else {
+		Write-Host "No records to be added to $($sharedFolder)"
+	}
+}
