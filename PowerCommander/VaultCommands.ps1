@@ -152,16 +152,19 @@ function Get-KeeperChildItems {
 	.Parameter Path
 	Keeper folder
 
-	.Filter
+	.Parameter Filter
+	Match the string in Title, Uid, Login, and Link fields
 
-	.Recursive
+	.Parameter Recursive
+	Get child items in subfolders recursively
 
-	.Depth
+	.Parameter Depth
+	Recursion depth
 
-	.SkipGrouping
+	.Parameter SkipGrouping
 	Do not group result set by folder
 	
-	.ObjectType
+	.Parameter ObjectType
 	Limit result set to Folders or Records only
 #>
 
@@ -307,9 +310,10 @@ function Get-KeeperObject {
 	.Parameter Uid
 	Keeper UID
 
-	.ObjectType
+	.Parameter ObjectType
+	One of the following Record, SharedFolder, Folder, Team
 	
-	.PropertyName
+	.Parameter PropertyName
 	Return object property not the entire object
 #>
 	[CmdletBinding()]

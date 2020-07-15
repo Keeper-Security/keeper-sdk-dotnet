@@ -221,11 +221,11 @@ namespace KeeperSecurity.Sdk
         public string fromType;
         [DataMember(Name = "from_uid", EmitDefaultValue = false)]
         public string fromUid;
-        [DataMember(Name = "can_edit", EmitDefaultValue = false)]
+        [DataMember(Name = "can_edit")]
         public bool canEdit { get; set; }
-        [DataMember(Name = "can_reshare", EmitDefaultValue = false)]
+        [DataMember(Name = "can_reshare")]
         public bool canShare { get; set; }
-        [DataMember(Name = "cascade", EmitDefaultValue = false)]
+        [DataMember(Name = "cascade")]
         public bool cascade { get; set; }
     }
 
@@ -243,14 +243,16 @@ namespace KeeperSecurity.Sdk
     {
         public MoveCommand() : base("move") { }
 
+        [DataMember(Name = "to_type", EmitDefaultValue = false)]
+        public string toType;
         [DataMember(Name = "to_uid", EmitDefaultValue = false)]
         public string toUid;
-        [DataMember(Name = "link", EmitDefaultValue = false)]
+        [DataMember(Name = "link")]
         public bool isLink;
         [DataMember(Name = "move", EmitDefaultValue = false)]
         public MoveObject[] moveObjects;
         [DataMember(Name = "transition_keys", EmitDefaultValue = false)]
         public TransitionKey[] transitionKeys;
-        
+
     }
 }
