@@ -6,20 +6,24 @@ To install the PowerCommander module copy PowerCommander\ directory to
 
 ### Cmdlets
 
-| Cmdlet name             | Alias | Description
-|-------------------------|-------|----------------------------
-| Connect-Keeper          | kc    | Login to Keeper server
-| Sync-Keeper             | ks    | Sync with Keeper server 
-| Disconnect-Keeper       |       | Logout and clear the data
-| Get-KeeperLocation      | kpwd  | Print current Keeper folder
-| Set-KeeperLocation      | kcd   | Change Keeper folder
-| Get-KeeperChildItems    | kdir  | Display subfolder and record names in the current Keeper folder
-| Get-KeeperRecords       | kr    | Enumerate all records
-| Copy-KeeperToClipboard  | kcc   | Copy record password to clipboard
-| Show-TwoFactorCode      | 2fa   | Display Two Factor Code 
+| Cmdlet name               | Alias | Description
+|---------------------------|-------|----------------------------
+| Connect-Keeper            | kc    | Login to Keeper server
+| Sync-Keeper               | ks    | Sync with Keeper server 
+| Disconnect-Keeper         |       | Logout and clear the data
+| Get-KeeperLocation        | kpwd  | Print current Keeper folder
+| Set-KeeperLocation        | kcd   | Change Keeper folder
+| Get-KeeperChildItems      | kdir  | Display subfolder and record names in the current Keeper folder
+| Get-KeeperRecords         | kr    | Enumerate all records
+| Get-KeeperSharedFolders   | ksf   | Enumerate all shared folders
+| Add-KeeperRecord          | kadd  | Add/Modify Keeper record
+| Move-RecordToSharedFolder | kmv   | Copy owned record to shared folder
+| Copy-KeeperToClipboard    | kcc   | Copy record password to clipboard
+| Show-TwoFactorCode        | 2fa   | Display Two Factor Code 
 
 
 #### Examples
+
 1. Connect To Keeper Account
     ```powershell
     PS > Connect-Keeper
@@ -72,3 +76,20 @@ To install the PowerCommander module copy PowerCommander\ directory to
     PS > 'ktY3jEBqwFDi9UYZSxmIpw' | kcc
     ```
    `'ktY3jEBqwFDi9UYZSxmIpw'` is the Record UID of the same record
+
+6. Add/Modify Keeper record
+    ```
+    PS > kadd -Login email@company.com -GeneratePassword -URL https://company.com -Custom 'Name:John Doe' 'Record for John Doe'
+    ```
+    creates a record in Keeper 
+
+    ```
+    PS > kadd -GeneratePassword -UpdateOnly 'Record for John Doe'
+    ```
+    generates a new password
+
+7. Copy owned record to shared folder
+    ```
+    PS > Get-KeeperChildItem -ObjectType Record | Move-RecordToSharedFolder 'Shared Folder'
+    ```
+    copies all records in the current Keeper folder to the shared folder with name 'Shared Folder'

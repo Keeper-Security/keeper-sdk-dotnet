@@ -50,12 +50,22 @@ namespace KeeperSecurity.Sdk
 
         public CustomField SetCustomField(string name, string value)
         {
-            var cf = Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase))
-                     ?? new CustomField
-                     {
-                         Name = name
-                     };
+            var cf = Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
+            if (cf == null)
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return null;
+                }
+
+                cf = new CustomField
+                {
+                    Name = name
+                };
+                Custom.Add(cf);
+            }
             cf.Value = value;
+
             return cf;
         }
     }

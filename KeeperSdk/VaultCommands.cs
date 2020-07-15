@@ -29,10 +29,10 @@ namespace KeeperSecurity.Sdk
         public string operation;
 
         [DataMember(Name = "shared_folder_uid")]
-        public string sharedFolderUid;
+        public string shared_folder_uid;
 
         [DataMember(Name = "from_team_uid", EmitDefaultValue = false)]
-        public string fromTeamUid;
+        public string from_team_uid;
 
         [DataMember(Name = "name", EmitDefaultValue = false)]
         public string name;
@@ -84,14 +84,14 @@ namespace KeeperSecurity.Sdk
 
         public string SharedFolderUid
         {
-            get => sharedFolderUid;
-            set => sharedFolderUid = value;
+            get => shared_folder_uid;
+            set => shared_folder_uid = value;
         }
 
         public string TeamUid
         {
-            get => fromTeamUid;
-            set => fromTeamUid = value;
+            get => from_team_uid;
+            set => from_team_uid = value;
         }
     }
 
@@ -208,5 +208,49 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "status")]
         public string Status { get; set; }
+    }
+
+    [DataContract]
+    public class MoveObject
+    {
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string type;
+        [DataMember(Name = "uid", EmitDefaultValue = false)]
+        public string uid;
+        [DataMember(Name = "from_type", EmitDefaultValue = false)]
+        public string fromType;
+        [DataMember(Name = "from_uid", EmitDefaultValue = false)]
+        public string fromUid;
+        [DataMember(Name = "can_edit", EmitDefaultValue = false)]
+        public bool canEdit { get; set; }
+        [DataMember(Name = "can_reshare", EmitDefaultValue = false)]
+        public bool canShare { get; set; }
+        [DataMember(Name = "cascade", EmitDefaultValue = false)]
+        public bool cascade { get; set; }
+    }
+
+    [DataContract]
+    public class TransitionKey
+    {
+        [DataMember(Name = "uid", EmitDefaultValue = false)]
+        public string uid;
+        [DataMember(Name = "key", EmitDefaultValue = false)]
+        public string key;
+    }
+
+    [DataContract]
+    public class MoveCommand : AuthenticatedCommand
+    {
+        public MoveCommand() : base("move") { }
+
+        [DataMember(Name = "to_uid", EmitDefaultValue = false)]
+        public string toUid;
+        [DataMember(Name = "link", EmitDefaultValue = false)]
+        public bool isLink;
+        [DataMember(Name = "move", EmitDefaultValue = false)]
+        public MoveObject[] moveObjects;
+        [DataMember(Name = "transition_keys", EmitDefaultValue = false)]
+        public TransitionKey[] transitionKeys;
+        
     }
 }
