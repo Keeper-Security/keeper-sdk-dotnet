@@ -1,10 +1,53 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using KeeperSecurity.Sdk;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 using Xunit;
 
 namespace Tests
 {
+    [DataContract]
+    public class JsonList
+    {
+        [DataMember(Name = "servers")]
+        public readonly IList<string> Servers = new List<string>(); 
+    }
+
     public class CryptoTest
     {
+        [Fact]
+        public void TestECDHAgreement()
+        {
+
+            var txt = @"{""servers"": [""aaa"", ""bbb""]}";
+
+            var lll = JsonUtils.ParseJson<JsonList>(Encoding.UTF8.GetBytes(txt));
+
+            var privKey = "HIIeyuuRkVGvhtax8mlX7fangaC6DKa2R8VAg5AAtBY";
+            var pubKey ="BBbdHwhMWW6gTtUU1Qy6ICgFOMOMTJK5agJhPSWcsXBzh3WNprrZMTDzDcLmj3yfmJFVVeEdiccdPdBe1C1r6Ng";
+
+            var privateKey = CryptoUtils.LoadPrivateEcKey(privKey.Base64UrlDecode());
+            var publicKey = CryptoUtils.LoadPublicEcKey(pubKey.Base64UrlDecode());
+
+            var aggr = AgreementUtilities.GetBasicAgreement("ECDHC");
+            aggr.Init(privateKey);
+
+            var expectedSecret = new BigInteger(1, "LWyhYOlzZqzFxnYxtw815CIdLtfaB2oDh9hAybvfX-M".Base64UrlDecode());
+            var secret = aggr.CalculateAgreement(publicKey);
+            Assert.Equal(expectedSecret, secret);
+
+            var recordUid = "1xRhhNDGkK-Mj4NLh6LNZg".Base64UrlDecode();
+
+            var expectedKey = "TPKrsCKfsnmktwahlihr22EqRA1c_BcZn8FA3M_1HDc".Base64UrlDecode();
+            var key = SHA256.Create().ComputeHash(secret.ToByteArrayUnsigned().Concat(recordUid).ToArray());
+            Assert.Equal(expectedKey, key);
+        }
+
         [Fact]
         public void TestDecryptAesV1()
         {

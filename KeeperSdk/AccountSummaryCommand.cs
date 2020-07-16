@@ -6,6 +6,11 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     public class AccountSummaryCommand : AuthenticatedCommand
     {
+        public const string IsEnterpriseAdmin = "is_enterprise_admin";
+        public const string License = "license";
+        public const string Settings = "settings";
+        public const string Enforcements = "enforcements";
+
         public AccountSummaryCommand() : base("account_summary") { }
 
         [DataMember(Name = "include")]
@@ -28,7 +33,7 @@ namespace KeeperSecurity.Sdk
         public string ExpirationDate { get; set; }
 
         [DataMember(Name = "seconds_until_expiration")]
-        public long SecondsUntilExpiration { get; set; }
+        public float SecondsUntilExpiration { get; set; }
 
         [DataMember(Name = "file_plan_type")]
         public int FilePlanType { get; set; }
@@ -37,7 +42,7 @@ namespace KeeperSecurity.Sdk
         public string StorageExpirationDate { get; set; }
 
         [DataMember(Name = "seconds_until_storage_expiration")]
-        public long SecondsUntilStorageExpiration { get; set; }
+        public float SecondsUntilStorageExpiration { get; set; }
     }
 
     [DataContract]
@@ -68,13 +73,13 @@ namespace KeeperSecurity.Sdk
         public string accountFolderKey;
 
         [DataMember(Name = "must_perform_account_share_by")]
-        public long? mustPerformAccountShareBy;
+        public float? mustPerformAccountShareBy;
 
         [DataMember(Name = "share_account_to")]
         public AccountShareTo[] shareAccountTo;
 
         [DataMember(Name = "master_password_last_modified")]
-        public long? masterPasswordLastModified;
+        public float? masterPasswordLastModified;
 
         [DataMember(Name = "theme")]
         public string theme;
@@ -82,6 +87,20 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "sso_user")]
         public bool? ssoUser;
     }
+
+    [DataContract]
+    public class AccountKeys
+    {
+        [DataMember(Name = "encryption_params")]
+        public string encryptionParams;
+        [DataMember(Name = "encrypted_data_key")]
+        public string encryptedDataKey;
+        [DataMember(Name = "encrypted_private_key")]
+        public string encryptedPrivateKey;
+        [DataMember(Name = "data_key_backup_date")]
+        public float? dataKeyBackupDate;
+    }
+
 
     [DataContract]
     public class AccountSummaryResponse : KeeperApiResponse
@@ -98,5 +117,10 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "settings")]
         public AccountSettings Settings { get; set; }
 
+        [DataMember(Name = "client_key")]
+        public string clientKey;
+
+        [DataMember(Name = "keys")]
+        public AccountKeys keys;
     }
 }

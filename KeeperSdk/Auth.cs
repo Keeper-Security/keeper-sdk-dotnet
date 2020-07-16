@@ -12,573 +12,360 @@
 using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Sdk.UI;
-using System.Linq;
 using System.Diagnostics;
+using System.Reflection;
 using Authentication;
 using Org.BouncyCastle.Crypto.Parameters;
 using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
+using AccountSummary;
 using Google.Protobuf;
-using System.Collections.Generic;
-using System.Threading;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Tests")]
 
 namespace KeeperSecurity.Sdk
 {
-    public class PrimaryCredentials
+    public interface IAuthentication
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public byte[] Salt { get; set; }
-        public int Iterations { get; set; }
-    }
-
-    public class SecondaryCredentials
-    {
-        public string SecondFactorType { get; set; }
-        public string SecondFactorToken { get; set; }
-        public string SecondFactorMode { get; set; }
-        public TwoFactorCodeDuration? SecondFactorDuration { get; set; }
+        IKeeperEndpoint Endpoint { get; }
+        IAuthContext AuthContext { get; }
+        Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType);
+        Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null);
+        Task Logout();
     }
 
     public interface IAuth
     {
-        KeeperEndpoint Endpoint { get; }
-        byte[] EncryptedDeviceToken { get; }
+        string Username { get; }
+        IKeeperEndpoint Endpoint { get; }
+        byte[] DeviceToken { get; set; }
         IAuthUI Ui { get; }
         IConfigurationStorage Storage { get; }
-        bool IsAuthenticated { get; }
-        AuthContext AuthContext { get; }
-
-        Task Login(string username, string password);
-        void Logout();
-
-        Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType = null,
-            bool throwOnError = true);
+        bool ResumeSession { get; set; }
     }
 
-    public class AuthContext
+    public interface IAuthContext: IDisposable
+    {
+        string Username { get; }
+        byte[] DataKey { get; }
+        byte[] SessionToken { get; }
+        byte[] DeviceToken { get; }
+        byte[] ClientKey { get; }
+        RsaPrivateCrtKeyParameters PrivateKey { get; }
+        IFanOut<NotificationEvent> PushNotifications { get; }
+    }
+
+    [Flags]
+    public enum SessionTokenRestriction
+    {
+        AccountRecovery = 1 << 0,
+        ShareAccount = 1 << 1,
+        AcceptInvite = 1 << 2,
+    }
+
+    public class AuthContext : IAuthContext
     {
         public string Username { get; internal set; }
         public byte[] DataKey { get; internal set; }
         public byte[] ClientKey { get; internal set; }
-
         public RsaPrivateCrtKeyParameters PrivateKey { get; internal set; }
-        public string SessionToken { get; internal set; }
-        public string TwoFactorToken { get; set; }
-        public string AuthResponse { get; internal set; }
-        public byte[] AuthSalt { get; internal set; }
-        public int AuthIterations { get; internal set; }
+        public IFanOut<NotificationEvent> PushNotifications { get; } = new FanOut<NotificationEvent>();
+        public byte[] SessionToken { get; internal set; }
+        public SessionTokenRestriction SessionTokenRestriction { get; set; }
+        public byte[] DeviceToken { get; internal set; }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            PushNotifications.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~AuthContext()
+        {
+            Dispose(false);
+        }
     }
 
-    public static class AuthExtensions
+    public class Auth : IAuth, IAuthentication
     {
-        public static async Task<LoginResponse> ExecuteLoginCommand(this IAuth auth,
-            PrimaryCredentials primary, SecondaryCredentials secondary = null)
-        {
-            var authHash = CryptoUtils.DeriveV1KeyHash(primary.Password, primary.Salt, primary.Iterations)
-                .Base64UrlEncode();
-            var command = new LoginCommand
-            {
-                username = primary.Username.ToLowerInvariant(),
-                authResponse = authHash,
-                include = new[] {"keys", "client_key"},
-                platformDeviceToken = auth.EncryptedDeviceToken.Base64UrlEncode(),
-            };
+        private static readonly Regex VersionPattern;
+        static Auth() {
+            VersionPattern = new Regex(@"^[a-z]+(\d{2})\.\d{1,2}\.\d{1,2}$");
+        }
 
-            if (secondary != null)
+        public Auth(IAuthUI authUi, IConfigurationStorage storage, IKeeperEndpoint endpoint = null)
+        {
+            Storage = storage ?? new InMemoryConfigurationStorage();
+            Endpoint = endpoint ?? new KeeperEndpoint(Storage.LastServer, Storage.Servers);
+
+            Ui = authUi;
+            if (Endpoint is KeeperEndpoint ep && Ui is IHttpProxyCredentialUI proxyUi)
             {
-                command.twoFactorType = secondary.SecondFactorType;
-                command.twoFactorToken = secondary.SecondFactorToken;
-                command.twoFactorMode = secondary.SecondFactorMode;
-                if (secondary.SecondFactorDuration != null)
+                ep.ProxyUi = proxyUi;
+            }
+        }
+
+        public string Username { get; set; }
+        internal string Password { get; set; }
+
+        public IKeeperEndpoint Endpoint { get; }
+        public byte[] DeviceToken { get; set; }
+        public bool ResumeSession { get; set; }
+
+        public IAuthUI Ui { get; }
+        public IConfigurationStorage Storage { get; }
+
+        internal AuthContext authContext;
+        public IAuthContext AuthContext => authContext;
+        public Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType = null)
+        {
+            return ExecuteAuthCommand(command, responseType, true);
+        }
+
+        public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType, bool throwOnError = true)
+        {
+            var attempt = 0;
+            while (attempt < 2)
+            {
+                attempt++;
+                if (!this.IsAuthenticated()) break;
+
+                command.username = authContext.Username;
+                command.sessionToken = authContext.SessionToken.Base64UrlEncode();
+                try
                 {
-                    command.deviceTokenExpiresInDays = (int) secondary.SecondFactorDuration;
+                    var response = await Endpoint.ExecuteV2Command(command, responseType);
+                    if (response.IsSuccess) return response;
+
+                    if (response.resultCode == "auth_failed")
+                    {
+                        throw new KeeperAuthFailed();
+                    }
+
+                    if (throwOnError)
+                    {
+                        throw new KeeperApiException(response.resultCode, response.message);
+                    }
+
+                    return response;
+                }
+                catch (KeeperAuthFailed)
+                {
+                    Debug.WriteLine("Refresh Session Token");
+                    authContext.SessionToken = null;
+                    await RefreshSessionToken();
+                    if (this.IsAuthenticated())
+                    {
+                        continue;
+                    }
+                    await Logout();
+                }
+
+                break;
+            }
+
+            throw new KeeperAuthFailed();
+        }
+
+        public async Task Login(string username, params string[] passwords)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new KeeperStartLoginException(LoginState.RequiresUsername, "Username is required.");
+            }
+
+            Username = username.ToLowerInvariant();
+            Password = null;
+
+            var isV3Api = false;
+            var match = VersionPattern.Match(Endpoint.ClientVersion);
+            if (match.Groups.Count == 2)
+            {
+                if (int.TryParse(match.Groups[1].Value, out var version))
+                {
+                    isV3Api = version >= 15;
                 }
             }
 
-            return await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(command);
-        }
-
-        public static void ParseLoginResponse(this Auth auth, PrimaryCredentials primary,
-            SecondaryCredentials secondary, LoginResponse loginResponse)
-        {
-            var authContext = new AuthContext
+            if (isV3Api)
             {
-                Username = primary.Username,
-                SessionToken = loginResponse.sessionToken,
-            };
-
-            if (loginResponse.keys != null)
+                var authV3 = new AuthV3(this);
+                var contextV3 = await authV3.LoginV3(passwords);
+                this.StoreConfigurationIfChangedV3(contextV3);
+                authContext = contextV3;
+            }
+            else
             {
-                if (loginResponse.keys.encryptedDataKey != null)
+                var authV2 = new AuthV2(this);
+                var contextV2 = await authV2.LoginV2(passwords);
+                this.StoreConfigurationIfChangedV2(contextV2);
+                authContext = contextV2;
+            }
+
+            if (authContext.SessionTokenRestriction != 0 && Ui is IPostLoginTaskUI postUi)
+            {
+                if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
                 {
-                    var key = CryptoUtils.DeriveKeyV2("data_key", primary.Password, primary.Salt, primary.Iterations);
-                    authContext.DataKey =
-                        CryptoUtils.DecryptAesV2(loginResponse.keys.encryptedDataKey.Base64UrlDecode(), key);
+                    Password = await this.ChangeMasterPassword();
+                    authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
                 }
-                else if (loginResponse.keys.encryptionParams != null)
+
+                if ((authContext.SessionTokenRestriction & SessionTokenRestriction.ShareAccount) != 0)
                 {
-                    authContext.DataKey = CryptoUtils.DecryptEncryptionParams(primary.Password,
-                        loginResponse.keys.encryptionParams.Base64UrlDecode());
+                    //expired_account_transfer_description
+                    var description =
+                        "Your Keeper administrator has changed your account settings to enable the ability to transfer your vault records at a later date, " +
+                        "in accordance with company operating procedures and or policies." +
+                        "\nPlease acknowledge this change in account settings by clicking 'Accept' or contact your administrator to request an extension." +
+                        "\nDo you accept Account Transfer policy?";
+                    if (await postUi.Confirmation(description))
+                    {
+                        var cmd = new AccountSummaryCommand
+                        {
+                            include = new[] {"settings"}
+                        };
+                        var summaryRs = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(cmd);
+                        await this.ShareAccount(summaryRs.Settings.shareAccountTo);
+                        authContext.SessionTokenRestriction &= ~SessionTokenRestriction.ShareAccount;
+                    }
+                }
+
+
+                if (authContext.SessionTokenRestriction == 0)
+                {
+                    await Login(Username, Password);
                 }
                 else
                 {
-                    throw new Exception("Missing data key");
-                }
-
-                if (loginResponse.keys.encryptedPrivateKey != null)
-                {
-                    var privateKeyData =
-                        CryptoUtils.DecryptAesV1(loginResponse.keys.encryptedPrivateKey.Base64UrlDecode(),
-                            authContext.DataKey);
-                    authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+                    //need_vault_settings_update
+                    throw new KeeperPostLoginErrors("Please log into the web Vault to update your account settings.");
                 }
             }
             else
             {
-                throw new Exception("Missing data key");
-            }
+                Username = null;
+                Password = null;
 
-            if (!string.IsNullOrEmpty(loginResponse.deviceToken))
-            {
-                authContext.TwoFactorToken = loginResponse.deviceToken;
-            }
-            else if (secondary != null)
-            {
-                if (string.Equals(secondary.SecondFactorType, "device_token"))
+                if (isV3Api)
                 {
-                    authContext.TwoFactorToken = secondary.SecondFactorToken;
-                }
-            }
-
-            authContext.AuthResponse = CryptoUtils.DeriveV1KeyHash(primary.Password, primary.Salt, primary.Iterations)
-                .Base64UrlEncode();
-            authContext.AuthSalt = primary.Salt;
-            authContext.AuthIterations = primary.Iterations;
-
-            if (!string.IsNullOrEmpty(loginResponse.clientKey))
-            {
-                authContext.ClientKey =
-                    CryptoUtils.DecryptAesV1(loginResponse.clientKey.Base64UrlDecode(), authContext.DataKey);
-            }
-
-            auth.authContext = authContext;
-
-            if (!string.IsNullOrEmpty(loginResponse.deviceToken) && loginResponse.deviceTokenScope == "expiration")
-            {
-                IUserStorage us = auth.Storage;
-                var uc = us.GetUser(auth.authContext.Username);
-                var storedToken = uc?.TwoFactorToken;
-                if (string.IsNullOrEmpty(storedToken) || !loginResponse.deviceToken.SequenceEqual(storedToken))
-                {
-                    var userConfig = uc != null
-                        ? new UserConfiguration(uc)
-                        : new UserConfiguration(auth.authContext.Username);
-                    userConfig.TwoFactorToken = loginResponse.deviceToken;
-                    us.PutUser(userConfig);
-                }
-            }
-        }
-
-        public static async Task<TR> ExecuteAuthCommand<TC, TR>(this IAuth auth, TC command, bool throwOnError = true)
-            where TC : AuthenticatedCommand
-            where TR : KeeperApiResponse
-        {
-            return (TR) await auth.ExecuteAuthCommand(command, typeof(TR), throwOnError);
-        }
-
-        public static Task ExecuteAuthCommand<TC>(this IAuth auth, TC command)
-            where TC : AuthenticatedCommand
-        {
-            return auth.ExecuteAuthCommand<TC, KeeperApiResponse>(command, true);
-        }
-
-        public static async Task<string> GetNotificationUrl(this IAuth auth)
-        {
-            if (!auth.IsAuthenticated)
-            {
-                throw new KeeperApiException("auth_failed", "Not authenticated");
-            }
-
-            var command = new GetPushInfoCommand();
-            var rs = await auth.ExecuteAuthCommand<GetPushInfoCommand, GetPushInfoResponse>(command);
-            return rs.url;
-        }
-    }
-
-    public class Auth : IAuth
-    {
-        public static readonly ISet<string> SecondFactorErrorCodes =
-            new HashSet<string>(new[] {"need_totp", "invalid_device_token", "invalid_totp"});
-
-        public static readonly ISet<string> PostLoginErrorCodes =
-            new HashSet<string>(new[] {"auth_expired", "auth_expired_transfer"});
-
-        public Auth(IAuthUI authUi, IConfigurationStorage storage, KeeperEndpoint endpoint = null)
-        {
-            Storage = storage ?? new InMemoryConfigurationStorage();
-            Endpoint = endpoint ?? new KeeperEndpoint(Storage);
-            var conf = (storage as IServerStorage)?.GetServer(Endpoint.Server);
-            if (conf != null)
-            {
-                EncryptedDeviceToken = conf.DeviceId;
-            }
-
-            Ui = authUi;
-        }
-
-        internal AuthContext authContext;
-        public AuthContext AuthContext => authContext;
-        public bool IsAuthenticated => authContext != null && !string.IsNullOrEmpty(authContext.SessionToken);
-
-        private async Task<byte[]> GetDeviceToken()
-        {
-            var deviceRequest = new DeviceRequest
-            {
-                ClientVersion = Endpoint.ClientVersion,
-                DeviceName = Endpoint.DeviceName
-            };
-
-            var apiPayload = new ApiRequestPayload()
-            {
-                Payload = deviceRequest.ToByteString()
-            };
-            var rs = await Endpoint.ExecuteRest("authentication/get_device_token", apiPayload);
-            var deviceRs = DeviceResponse.Parser.ParseFrom(rs);
-            if (deviceRs.Status == DeviceStatus.Ok)
-            {
-                return deviceRs.EncryptedDeviceToken.ToByteArray();
-            }
-
-            throw new KeeperApiException("device_token_rejected", "Device is rejected");
-        }
-
-        public virtual async Task<PreLoginResponse> GetPreLogin(string username,
-            LoginType loginType = LoginType.Normal, byte[] twoFactorToken = null)
-        {
-            var attempt = 0;
-            var encryptedDeviceToken = EncryptedDeviceToken;
-            while (attempt < 5)
-            {
-                attempt++;
-
-                if (encryptedDeviceToken == null)
-                {
-                    encryptedDeviceToken = await GetDeviceToken();
-                }
-
-                var preLogin = new PreLoginRequest()
-                {
-                    AuthRequest = new AuthRequest
+                    var rq = new AccountSummaryRequest
                     {
-                        ClientVersion = Endpoint.ClientVersion,
-                        Username = username.ToLowerInvariant(),
-                        EncryptedDeviceToken = ByteString.CopyFrom(encryptedDeviceToken)
-                    },
-                    LoginType = loginType
-                };
-
-                if (twoFactorToken != null)
-                {
-                    preLogin.TwoFactorToken = ByteString.CopyFrom(twoFactorToken);
-                }
-
-                var apiPayload = new ApiRequestPayload()
-                {
-                    Payload = preLogin.ToByteString()
-                };
-                try
-                {
-                    var response = await Endpoint.ExecuteRest("authentication/pre_login", apiPayload);
-                    if (EncryptedDeviceToken == null || !EncryptedDeviceToken.SequenceEqual(encryptedDeviceToken))
+                        SummaryVersion = 1
+                    };
+                    var rs = await this.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
+                    if (rs.ClientKey?.Length > 0)
                     {
-                        EncryptedDeviceToken = encryptedDeviceToken;
-                        IServerStorage ss = Storage;
-                        var sc = ss.GetServer(Endpoint.Server);
-                        var conf = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(Endpoint.Server);
-                        conf.DeviceId = EncryptedDeviceToken;
-                        ss.PutServer(conf);
+                        authContext.ClientKey = CryptoUtils.DecryptAesV1(rs.ClientKey.ToByteArray(), authContext.DataKey);
                     }
 
-                    return PreLoginResponse.Parser.ParseFrom(response);
-                }
-                catch (KeeperInvalidDeviceToken)
-                {
-                    encryptedDeviceToken = null;
-                    continue;
-                }
-                catch (KeeperRegionRedirect redirect)
-                {
-                    Endpoint.Server = redirect.RegionHost;
-                    var conf = ((IServerStorage) Storage).GetServer(Endpoint.Server);
-                    encryptedDeviceToken = conf?.DeviceId;
-                    continue;
-                }
-            }
-
-            throw new KeeperTooManyAttempts();
-        }
-
-        public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType = null,
-            bool throwOnError = true)
-        {
-            if (!IsAuthenticated)
-            {
-                throw new KeeperApiException("auth_failed", "auth_failed");
-            }
-
-            command.username = authContext.Username;
-            command.sessionToken = authContext.SessionToken;
-
-            var response = await Endpoint.ExecuteV2Command(command, responseType);
-            if (!response.IsSuccess && response.resultCode == "auth_failed")
-            {
-                Debug.WriteLine("Refresh Session Token");
-                authContext.SessionToken = null;
-                await RefreshSessionToken();
-                if (IsAuthenticated)
-                {
-                    command.sessionToken = authContext.SessionToken;
-                    response = await Endpoint.ExecuteV2Command(command, responseType);
+                    if (rs.KeysInfo?.EncryptedPrivateKey?.Length > 0)
+                    {
+                        var privateKeyData =
+                            CryptoUtils.DecryptAesV1(rs.KeysInfo.EncryptedPrivateKey.ToByteArray(), authContext.DataKey);
+                        authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+                    }
                 }
                 else
                 {
-                    Logout();
+                    var accountSummaryRq = new AccountSummaryCommand
+                    {
+                        include = new[] {"keys", "client_key"},
+                    };
+                    var accountSummaryRs = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(accountSummaryRq);
+                    if (accountSummaryRs.keys.encryptedPrivateKey != null)
+                    {
+                        var privateKeyData =
+                            CryptoUtils.DecryptAesV1(accountSummaryRs.keys.encryptedPrivateKey.Base64UrlDecode(),
+                                authContext.DataKey);
+                        authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+                    }
+
+                    if (!string.IsNullOrEmpty(accountSummaryRs.clientKey))
+                    {
+                        authContext.ClientKey = CryptoUtils.DecryptAesV1(accountSummaryRs.clientKey.Base64UrlDecode(), authContext.DataKey);
+                    }
                 }
             }
+        }
 
-            if (response != null && !response.IsSuccess && throwOnError)
+        internal async Task RefreshSessionToken()
+        {
+            if (AuthContext is AuthContextV2 contextV2)
             {
-                throw new KeeperApiException(response.resultCode, response.message);
+                await LoginV2Extensions.RefreshSessionTokenV2(Endpoint, contextV2);
+            }
+        }
+
+        public async Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null)
+        {
+#if DEBUG
+            Debug.WriteLine($"REST Request: endpoint \"{endpoint}\": {request}");
+#endif
+            var rq = new ApiRequestPayload
+            {
+                EncryptedSessionToken = ByteString.CopyFrom(authContext.SessionToken),
+                ApiVersion = 3,
+            };
+            if (request != null)
+            {
+                rq.Payload = request.ToByteString();
             }
 
+            var rsBytes = await Endpoint.ExecuteRest(endpoint, rq);
+            if (responseType == null) return null;
+
+            var responseParser = responseType.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public);
+            if (responseParser == null) throw new KeeperInvalidParameter("ExecuteAuthRest", "responseType", responseType.Name, "Google Protobuf class expected");
+            var mp = (MessageParser) (responseParser.GetMethod.Invoke(null, null));
+
+            var response = mp.ParseFrom(rsBytes);
+#if DEBUG
+            Debug.WriteLine($"REST response: endpoint \"{endpoint}\": {response}");
+#endif
             return response;
         }
 
-        public async Task Login(string username, string password)
+        public async Task Logout()
         {
-            var primaryCredentials = new PrimaryCredentials
-            {
-                Username = username.ToLower(),
-                Password = password,
-            };
-
-            SecondaryCredentials secondaryCredentials = null;
-            {
-                IUserStorage us = Storage;
-                var userConf = us.GetUser(username);
-                var storedToken = userConf?.TwoFactorToken;
-                if (!string.IsNullOrEmpty(storedToken))
-                {
-                    secondaryCredentials = new SecondaryCredentials
-                    {
-                        SecondFactorType = "device_token",
-                        SecondFactorToken = storedToken,
-                    };
-                }
-            }
-
-            PreLoginResponse preLogin = null;
-            CancellationTokenSource cancellationToken = null;
-            var attempt = 0;
+            if (authContext == null) return;
             try
             {
-                while (true)
+                if (this.IsAuthenticated())
                 {
-                    attempt++;
-                    if (attempt >= 5)
+                    if (authContext is AuthContextV3)
                     {
-                        throw new KeeperApiException("auth_failed", "Invalid username or password");
+                        await ExecuteAuthRest("vault/logout_v3", null);
                     }
-
-                    if (preLogin == null)
-                    {
-                        preLogin = await GetPreLogin(username);
-                        var authParams = preLogin.Salt[0];
-                        primaryCredentials.Salt = authParams.Salt_.ToByteArray();
-                        primaryCredentials.Iterations = authParams.Iterations;
-                    }
-
-                    var loginRs = await this.ExecuteLoginCommand(primaryCredentials, secondaryCredentials);
-                    if (!loginRs.IsSuccess && (Ui == null || !PostLoginErrorCodes.Contains(loginRs.resultCode)))
-                    {
-                        if (SecondFactorErrorCodes.Contains(loginRs.resultCode) && Ui != null)
-                        {
-                            var channel = AuthUIExtensions.GetTwoFactorChannel(loginRs.channel);
-                            if (channel == TwoFactorCodeChannel.DuoSecurity && Ui is IDuoTwoFactorUI duoUi)
-                            {
-                                if (string.IsNullOrEmpty(loginRs.enrollUrl))
-                                {
-                                    var account = new DuoAccount
-                                    {
-                                        Phone = loginRs.phone,
-                                        PushNotificationUrl = loginRs.url,
-                                    };
-                                    if (loginRs.capabilities != null)
-                                    {
-                                        account.Capabilities = loginRs.capabilities
-                                            .Select<string, DuoAction?>(x =>
-                                            {
-                                                if (AuthUIExtensions.TryParseDuoAction(x, out var action))
-                                                {
-                                                    return action;
-                                                }
-
-                                                return null;
-                                            })
-                                            .Where(x => x != null).Select(x => x.Value).ToArray();
-                                    }
-
-                                    if (cancellationToken == null)
-                                    {
-                                        cancellationToken = new CancellationTokenSource();
-                                    }
-
-                                    var code = await duoUi.GetDuoTwoFactorResult(account, cancellationToken.Token);
-                                    if (code != null && !string.IsNullOrEmpty(code.Code))
-                                    {
-                                        secondaryCredentials = new SecondaryCredentials
-                                        {
-                                            SecondFactorType = "one_time",
-                                            SecondFactorDuration = code.Duration,
-                                        };
-                                        if (AuthUIExtensions.DuoActions.Values.Any(x => x == code.Code))
-                                        {
-                                            secondaryCredentials.SecondFactorMode = code.Code;
-                                        }
-                                        else
-                                        {
-                                            secondaryCredentials.SecondFactorToken = code.Code;
-                                        }
-
-                                        continue;
-                                    }
-                                }
-                                else
-                                {
-                                    duoUi.DuoRequireEnrollment(loginRs.enrollUrl);
-                                }
-                            }
-                            else
-                            {
-                                var code = await Ui.GetTwoFactorCode(channel);
-                                if (code != null && !string.IsNullOrEmpty(code.Code))
-                                {
-                                    secondaryCredentials = new SecondaryCredentials
-                                    {
-                                        SecondFactorType = "one_time",
-                                        SecondFactorToken = code.Code,
-                                        SecondFactorDuration = code.Duration,
-                                    };
-                                    continue;
-                                }
-                            }
-                        }
-
-                        var message = loginRs.resultCode == "auth_failed"
-                            ? "Invalid username or password"
-                            : loginRs.message;
-                        throw new KeeperApiException(loginRs.resultCode, message);
-                    }
-
-                    this.ParseLoginResponse(primaryCredentials, secondaryCredentials, loginRs);
-
-                    if (loginRs.IsSuccess)
-                    {
-                        break;
-                    }
-
-                    switch (loginRs.resultCode)
-                    {
-                        case "auth_expired":
-                            var newPassword = await this.ChangeMasterPassword(new PasswordRequirements
-                            {
-                                PasswordRulesIntro = loginRs.passwordRulesIntro,
-                                PasswordRules = loginRs.passwordRules
-                            });
-                            if (!string.IsNullOrEmpty(newPassword))
-                            {
-                                primaryCredentials.Password = newPassword;
-                                preLogin = null;
-                                continue;
-                            }
-
-                            break;
-
-                        case "auth_expired_transfer":
-                            if (await Ui.Confirmation("Do you accept Account Transfer policy?"))
-                            {
-                                var cmd = new AccountSummaryCommand
-                                {
-                                    include = new[] {"settings"}
-                                };
-                                var summaryRs = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(cmd);
-                                await this.ShareAccount(summaryRs.Settings.shareAccountTo);
-                                continue;
-                            }
-
-                            break;
-                    }
-
-                    throw new KeeperApiException(loginRs.resultCode, loginRs.message);
                 }
             }
             finally
             {
-                if (cancellationToken != null)
-                {
-                    if (!cancellationToken.IsCancellationRequested)
-                    {
-                        cancellationToken.Cancel();
-                    }
-
-                    cancellationToken.Dispose();
-                }
+                authContext?.Dispose();
+                authContext = null;
             }
         }
-
-        public void Logout()
-        {
-            authContext = null;
-        }
-
-        public async Task RefreshSessionToken()
-        {
-            var command = new LoginCommand
-            {
-                username = authContext.Username,
-                authResponse = authContext.AuthResponse,
-                twoFactorToken = authContext.TwoFactorToken,
-                twoFactorType = !string.IsNullOrEmpty(authContext.TwoFactorToken) ? "device_token" : null
-            };
-
-            var loginRs = await Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(command);
-            if (loginRs.IsSuccess)
-            {
-                authContext.SessionToken = loginRs.sessionToken;
-            }
-            else
-            {
-                throw new KeeperApiException(loginRs.resultCode, loginRs.message);
-            }
-        }
-
-        public KeeperEndpoint Endpoint { get; }
-        public byte[] EncryptedDeviceToken { get; private set; }
-
-        public IAuthUI Ui { get; }
-        public IConfigurationStorage Storage { get; }
     }
 
 #pragma warning disable 0649
     [DataContract]
-    internal class NotificationEvent
+    public class NotificationEvent
     {
         [DataMember(Name = "pt")] public string pt;
         [DataMember(Name = "event")] public string notificationEvent;
+        [DataMember(Name = "command")] public string command;
         [DataMember(Name = "sync")] public bool sync;
         [DataMember(Name = "passcode")] public string passcode;
+        [DataMember(Name = "encryptedLoginToken")] public string encryptedLoginToken;
+        [DataMember(Name = "encryptedDeviceToken")] public string encryptedDeviceToken;
+        [DataMember(Name = "email")] public string email;
+        [DataMember(Name = "username")] public string username;
+        [DataMember(Name = "message")] public string message;
+        [DataMember(Name = "approved")] public bool approved;
     }
 #pragma warning restore 0649
 }

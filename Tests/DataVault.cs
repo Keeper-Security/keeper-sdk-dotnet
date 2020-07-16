@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Authentication;
 using Google.Protobuf;
 using KeeperSecurity.Sdk;
-using KeeperSecurity.Sdk.UI;
-using Moq;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -20,6 +18,9 @@ namespace Tests
 {
     public static class DataVault
     {
+        public static string DefaultEnvironment = "env.company.com";
+
+        public static byte[] AccountUid = CryptoUtils.GetRandomBytes(16);
         public static string UserName = "some_fake_user@company.com";
 
         public static string UserPassword = CryptoUtils.GetRandomBytes(8).Base64UrlEncode();
@@ -67,7 +68,7 @@ on/uveEdP2ac+kax8vO5EeVfBzOdw+WPaBtUO1h7rSZ6xKOm6x1OahNTUFy7Cgm0
 fwIDAQAB
 -----END PUBLIC KEY-----";
 
-        public static string SessionToken = CryptoUtils.GetRandomBytes(64).Base64UrlEncode();
+        public static byte[] SessionToken = CryptoUtils.GetRandomBytes(64);
         public static byte[] DeviceId = CryptoUtils.GetRandomBytes(64);
 
         public static string TwoFactorOneTimeToken = "123456";
@@ -131,36 +132,46 @@ fwIDAQAB
 
         public static IConfigurationStorage GetConfigurationStorage()
         {
-            var storage = new InMemoryConfigurationStorage();
-            var serverConf = new ServerConfiguration("test.keepersecurity.com")
+            IConfigurationStorage storage = new InMemoryConfigurationStorage();
+            var serverConf = new ServerConfiguration(DefaultEnvironment)
             {
                 DeviceId = DeviceId,
-                ServerKeyId = 1
+                ServerKeyId = 2
             };
-            IServerStorage ss = storage;
-            ss.PutServer(serverConf);
+            storage.Servers.Put(serverConf);
 
             var userConf = new UserConfiguration(UserName)
             {
                 Password = UserPassword
             };
-            IUserStorage us = storage;
-            us.PutUser(userConf);
-
+            storage.Users.Put(userConf);
+            storage.LastServer = DefaultEnvironment;
+            storage.LastLogin = UserName;
             return storage;
         }
+    }
+
+    public class KInfoDevice
+    {
+        public byte[] Token { get; internal set; }
+        public byte[] PublicKey { get; internal set; }
+        public ISet<string> Environment { get; } = new HashSet<string>();
+        public ISet<string> ApprovedUser { get; } = new HashSet<string>();
+        public ISet<string> TwoFactorUser { get; } = new HashSet<string>();
+        public IDictionary<string, byte[]> UserDataKey { get; } = new Dictionary<string, byte[]>();
     }
 
     public class VaultEnvironment
     {
         public string User { get; } = DataVault.UserName;
+        public byte[] AccountUid { get; } = DataVault.AccountUid;
         public string Password { get; } = DataVault.UserPassword;
         public int Iterations { get; } = DataVault.UserIterations;
         public byte[] Salt { get; } = DataVault.UserSalt;
         public byte[] DataKey { get; } = DataVault.UserDataKey;
         public RsaKeyParameters PublicKey { get; } = DataVault.ImportedPublicKey;
         public string EncodedPublicKey { get; } = DataVault.EncodedPublicKey;
-        public string SessionToken { get; } = DataVault.SessionToken;
+        public byte[] SessionToken { get; } = DataVault.SessionToken;
         public byte[] DeviceId { get; } = DataVault.DeviceId;
         public string OneTimeToken { get; } = DataVault.TwoFactorOneTimeToken;
         public string DeviceToken { get; } = DataVault.TwoFactorDeviceToken;
@@ -173,6 +184,7 @@ fwIDAQAB
         public long Revision { get; } = DataVault.Revision;
         public string TwoFactorOneTimeToken { get; } = DataVault.TwoFactorOneTimeToken;
 
+        public IList<KInfoDevice> KInfoDevices { get; } = new List<KInfoDevice>();
 
         private readonly DataContractJsonSerializer _dataSerializer;
         private readonly DataContractJsonSerializer _extraSerializer;
@@ -430,55 +442,26 @@ fwIDAQAB
                 teams = new[] {t1},
                 userFolders = new[] {uf1},
                 userFolderSharedFolders = new[]
-                    {new SyncDownUserFolderSharedFolder {SharedFolderUid = sharedFolder1.Uid}}
+                {
+                    new SyncDownUserFolderSharedFolder {SharedFolderUid = sharedFolder1.Uid}
+                },
+                userFolderRecords = new[] {
+                    new SyncDownFolderRecord {RecordUid = r1.RecordUid},
+                    new SyncDownFolderRecord {RecordUid = r2.RecordUid, FolderUid = userFolder1.FolderUid}, 
+                    new SyncDownFolderRecord {RecordUid = r1.RecordUid, FolderUid = sharedFolder1.Uid}, 
+                    new SyncDownFolderRecord {RecordUid = r3.RecordUid, FolderUid = sharedFolder1.Uid},
+                }
             };
 
-            sdr.userFolderRecords = new[]
-            {
-                new SyncDownFolderRecord {RecordUid = r1.RecordUid},
-                new SyncDownFolderRecord {RecordUid = r2.RecordUid, FolderUid = userFolder1.FolderUid},
-                new SyncDownFolderRecord {RecordUid = r1.RecordUid, FolderUid = sharedFolder1.Uid},
-                new SyncDownFolderRecord {RecordUid = r3.RecordUid, FolderUid = sharedFolder1.Uid},
-            };
 
             return sdr;
-        }
-
-
-        public IAuth GetConnectedAuthContext()
-        {
-            var storage = DataVault.GetConfigurationStorage();
-            var uiMock = new Mock<IAuthUI>();
-            var endpoint = new Mock<KeeperEndpoint>(storage);
-            var auth = new Mock<IAuth>();
-
-            auth.Setup(x => x.Ui).Returns(uiMock.Object);
-            auth.Setup(x => x.Endpoint).Returns(endpoint.Object);
-
-            auth.Setup(x => x.Storage).Returns(storage);
-
-            IUserStorage us = storage;
-            var userConf = us.GetUser(us.LastLogin);
-            var authContext = new AuthContext
-            {
-                Username = userConf.Username,
-                TwoFactorToken = userConf.TwoFactorToken,
-                ClientKey = ClientKey,
-                DataKey = DataKey,
-                PrivateKey = CryptoUtils.LoadPrivateKey(PrivateKeyData),
-                SessionToken = SessionToken
-            };
-            auth.Setup(x => x.AuthContext).Returns(authContext);
-            auth.Setup(x => x.IsAuthenticated).Returns(true);
-
-            return auth.Object;
         }
 
         internal Task<PreLoginResponse> ProcessPreLogin(string username)
         {
             var rs = new PreLoginResponse
             {
-                Status = DeviceStatus.Ok
+                DeviceStatus = DeviceStatus.DeviceOk
             };
             rs.Salt.Add(new Salt
             {
@@ -496,7 +479,7 @@ fwIDAQAB
             {
                 result = "success",
                 resultCode = "auth_success",
-                sessionToken = SessionToken
+                sessionToken = SessionToken.Base64UrlEncode()
             };
             if (command.include != null)
             {

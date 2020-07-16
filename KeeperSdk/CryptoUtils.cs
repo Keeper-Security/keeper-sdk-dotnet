@@ -28,6 +28,8 @@ using Org.BouncyCastle.Crypto.Paddings;
 using System.Web;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
 
 namespace KeeperSecurity.Sdk
@@ -36,12 +38,20 @@ namespace KeeperSecurity.Sdk
     {
         private const string CorruptedEncryptionParametersMessage = "Corrupted encryption parameters";
 
-        private static readonly RNGCryptoServiceProvider RngCsp = new RNGCryptoServiceProvider();
+        private static readonly SecureRandom RngCsp = new SecureRandom();
+
+        internal static readonly ECDomainParameters EcParameters;
+
+        static CryptoUtils()
+        {
+            var curve = ECNamedCurveTable.GetByName("secp256r1");
+            EcParameters = new ECDomainParameters(curve.Curve, curve.G, curve.N);
+        }
 
         public static byte[] GetRandomBytes(int length)
         {
             var bytes = new byte[length];
-            RngCsp.GetBytes(bytes);
+            RngCsp.NextBytes(bytes);
             return bytes;
         }
 
@@ -277,7 +287,7 @@ namespace KeeperSecurity.Sdk
         public static void GenerateRsaKey(out byte[] privateKey, out byte[] publicKey)
         {
             var r = new RsaKeyPairGenerator();
-            r.Init(new KeyGenerationParameters(new SecureRandom(), 2048));
+            r.Init(new KeyGenerationParameters(RngCsp, 2048));
             var keys = r.GenerateKeyPair();
 
             var privateParams = (RsaPrivateCrtKeyParameters) keys.Private;
@@ -299,6 +309,61 @@ namespace KeeperSecurity.Sdk
 
             var hmac = new HMACSHA256(key);
             return hmac.ComputeHash(Encoding.UTF8.GetBytes(domain));
+        }
+
+        public static void GenerateEcKey(out ECPrivateKeyParameters privateKey, out ECPublicKeyParameters publicKey)
+        {
+            var keyGeneratorParams = new ECKeyGenerationParameters(EcParameters, RngCsp);
+            var keyGenerator = new ECKeyPairGenerator("ECDH");
+            keyGenerator.Init(keyGeneratorParams);
+            var keyPair = keyGenerator.GenerateKeyPair();
+            privateKey = keyPair.Private as ECPrivateKeyParameters;
+            publicKey = keyPair.Public as ECPublicKeyParameters;
+        }
+
+        public static byte[] UnloadEcPrivateKey(ECPrivateKeyParameters key)
+        {
+            return key.D.ToByteArrayUnsigned();
+        }
+
+        public static byte[] UnloadEcPublicKey(ECPublicKeyParameters key)
+        {
+            return key.Q.GetEncoded();
+        }
+
+        public static ECPrivateKeyParameters LoadPrivateEcKey(byte[] key)
+        {
+            return new ECPrivateKeyParameters(new BigInteger(1, key), EcParameters);
+        }
+
+        public static ECPublicKeyParameters LoadPublicEcKey(byte[] key)
+        {
+            var point = new X9ECPoint(EcParameters.Curve, new DerOctetString(key)).Point;
+            return new ECPublicKeyParameters(point, EcParameters);
+        }
+
+        public static ECPublicKeyParameters GetPublicEcKey(ECPrivateKeyParameters privateKey)
+        {
+            return new ECPublicKeyParameters(privateKey.Parameters.G.Multiply(privateKey.D), privateKey.Parameters);
+        }
+
+        public static byte[] EncryptEc(byte[] data, ECPublicKeyParameters publicKey)
+        {
+            GenerateEcKey(out var ePrivateKey, out var ePublicKey);
+            var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
+            agreement.Init(ePrivateKey);
+            var key = agreement.CalculateAgreement(publicKey).ToByteArrayUnsigned();
+            var encryptedData = EncryptAesV2(data, key);
+            return UnloadEcPublicKey(ePublicKey).Concat(encryptedData).ToArray();
+        }
+
+        public static byte[] DecryptEc(byte[] data, ECPrivateKeyParameters privateKey)
+        {
+            var ePublicKey = LoadPublicEcKey(data.Take(65).ToArray());
+            var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
+            agreement.Init(privateKey);
+            var key = agreement.CalculateAgreement(ePublicKey).ToByteArrayUnsigned();
+            return DecryptAesV2(data.Skip(65).ToArray(), key);
         }
 
         public static byte[] Base32ToBytes(string base32)

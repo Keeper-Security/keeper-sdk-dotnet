@@ -46,3 +46,4 @@ project.lock.json
 *nuget.targets
 *.nuget.props
 UpgradeLog.htm
+nuget.config

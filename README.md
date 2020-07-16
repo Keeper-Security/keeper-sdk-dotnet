@@ -18,7 +18,7 @@ For help with implementation of SDK features, please see the [Commander CLI Samp
 
 ### Developer Requirements for KeeperSDK Library
 
-* .Net Framework 4.6.1
+* .Net Framework 4.5
 * .Net Core 2.1
 * .Net Standard 2.0
 

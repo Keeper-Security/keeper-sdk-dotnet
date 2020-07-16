@@ -96,7 +96,7 @@ function Copy-KeeperToClipboard {
 		if ($Record -is [String]) {
 			$uid = $Record
 		} 
-		elseif ($Record.Uid -ne $null) {
+		elseif ($null -ne $Record.Uid) {
 			$uid = $Record.Uid
 		}
 
@@ -167,7 +167,7 @@ function Show-TwoFactorCode {
 			if ($r -is [String]) {
 				$uid = $r
 			} 
-			elseif ($r.Uid -ne $null) {
+			elseif ($null -ne $r.Uid) {
 				$uid = $r.Uid
 			}
 			if ($uid) {

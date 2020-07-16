@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
@@ -126,7 +127,7 @@ namespace Commander
         public IDictionary<string, string> CommandAliases { get; } = new Dictionary<string, string>();
     }
 
-    public sealed class CliContext: CliCommands
+    public sealed class CliContext : CliCommands
     {
         public CliContext()
         {
@@ -164,23 +165,32 @@ namespace Commander
     public abstract class StateContext : CliCommands
     {
         public abstract string GetPrompt();
+
+        public virtual Task<bool> ProcessException(Exception e)
+        {
+            return Task.FromResult(false);
+        }
+
         public StateContext NextStateContext { get; set; }
     }
 
     public class NotConnectedCliContext : StateContext
     {
-        private readonly IAuth _auth;
+        private readonly Auth _auth;
 
         private class LoginOptions
         {
             [Option("password", Required = false, HelpText = "master password")]
             public string Password { get; set; }
 
+            [Option("resume", Required = false, HelpText = "resume last login")]
+            public bool Resume { get; set; }
+
             [Value(0, Required = true, MetaName = "email", HelpText = "account email")]
             public string Username { get; set; }
         }
 
-        public NotConnectedCliContext(IAuth auth)
+        public NotConnectedCliContext(Auth auth)
         {
             _auth = auth;
 
@@ -210,34 +220,7 @@ namespace Commander
 
         private async Task DoLogin(LoginOptions options)
         {
-            var userConf = new UserConfiguration(options.Username)
-            {
-                Password = options.Password
-            };
-            var credentials = await GetUserCredentials(userConf);
-            if (credentials != null)
-            {
-                await _auth.Login(credentials.Username, credentials.Password);
-                if (!string.IsNullOrEmpty(_auth.AuthContext.SessionToken))
-                {
-                    var vault = new Vault(_auth);
-                    var connectedCommands = new ConnectedContext(vault);
-                    await vault.SyncDown();
-                    NextStateContext = connectedCommands;
-                }
-            }
-        }
-
-        public override string GetPrompt()
-        {
-            return "Not logged in";
-        }
-
-        public Task<UserConfiguration> GetUserCredentials(UserConfiguration credentials)
-        {
-            UserConfiguration cred = null;
-            string username = credentials?.Username;
-            string password = credentials?.Password;
+            var username = options.Username;
             if (string.IsNullOrEmpty(username))
             {
                 Console.Write("Enter Username: ");
@@ -248,21 +231,45 @@ namespace Commander
                 Console.WriteLine("Username: " + username);
             }
 
-            if (!string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password))
+            if (_auth.Ui is IUsePassword up)
             {
-                Console.Write("Enter Password: ");
-                password = HelperUtils.ReadLineMasked();
-            }
-
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
-            {
-                cred = new UserConfiguration(username)
+                up.UsePassword = null;
+                var passwords = new Queue<string>();
+                if (!string.IsNullOrEmpty(options.Password))
                 {
-                    Password = password
-                };
+                    passwords.Enqueue(options.Password);
+                }
+
+                var uc = _auth.Storage.Users.Get(username);
+                if (!string.IsNullOrEmpty(uc?.Password))
+                {
+                    passwords.Enqueue(uc.Password);
+                }
+
+                if (passwords.Any())
+                {
+                    up.UsePassword = (u) => passwords.Any() ? passwords.Dequeue() : "";
+                }
             }
 
-            return Task.FromResult(cred);
+            try
+            {
+                _auth.ResumeSession = options.Resume;
+                await _auth.Login(username);
+                if (_auth.IsAuthenticated())
+                {
+                    var connectedCommands = new ConnectedContext(_auth);
+                    NextStateContext = connectedCommands;
+                }
+            }
+            catch (KeeperCanceled)
+            {
+            }
+        }
+
+        public override string GetPrompt()
+        {
+            return "Not logged in";
         }
     }
 }

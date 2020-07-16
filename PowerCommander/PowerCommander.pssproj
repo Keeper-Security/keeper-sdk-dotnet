@@ -8,9 +8,10 @@
     <AssemblyName>MyApplication</AssemblyName>
     <Name>PowerCommander</Name>
     <PackageEntryPoint>PowerCommander.tests.ps1</PackageEntryPoint>
-    <DotNetVersion>v4.6.1</DotNetVersion>
+    <DotNetVersion>net462</DotNetVersion>
     <PackageType>Console</PackageType>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <PowerShellVersion>Windows PowerShell</PowerShellVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,11 +49,12 @@
     <Content Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\KeeperSdk\KeeperSdk.csproj">
+    <Reference Include="KeeperSdk, Version=0.9.7.14, Culture=neutral, PublicKeyToken=null">
       <Name>KeeperSdk</Name>
-      <Project>{29b50177-f7b4-46f6-b3da-b9fef269eef2}</Project>
-      <Private>True</Private>
-    </ProjectReference>
+      <AssemblyName>KeeperSdk.dll</AssemblyName>
+      <HintPath>KeeperSdk.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />

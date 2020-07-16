@@ -18,6 +18,10 @@ This folder is a sample Commander CLI application using the .NET SDK.  Below is 
 
 * ```list-sf``` Display all shared folders
 
+** Device Management Commands**
+
+* ```devices``` device management: list, approve
+
 **Record Management Commands**
 
 * ```add-record``` Add a record to the vault
@@ -25,10 +29,13 @@ This folder is a sample Commander CLI application using the .NET SDK.  Below is 
 * ```update-record``` Update a record contents such as the password
 
 
-### Sample C# application
+### Sample C# .Net Core application
 
 ```csharp
 using System;
+using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
@@ -37,29 +44,62 @@ namespace SimpleSdkConsoleApp
 {
     class AuthUi : IAuthUI
     {
-        public Task<bool> Confirmation(string information)
+        public Task<string> GetMasterPassword(string username)
         {
-            return Task.FromResult(false); // cancel any dialogs.
-        }
-
-        public Task<string> GetNewPassword(PasswordRuleMatcher matcher)
-        {
-            return Task.FromResult(""); // do not change expired password. 
-        }
-
-        public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorCodeChannel provider)
-        {
-            // ask for second factor authorization code:
-            // 1. Google / Microsoft Authenticator
-            // 2. Backup code
-            // 3. Code received in SMS
-
-            return Task.Run(() =>
+            string password = null;
+            if (string.IsNullOrEmpty(password))
             {
-                Console.Write("Enter 2FA Code: ");
-                var code = Console.ReadLine();
-                return new TwoFactorCode(code, TwoFactorCodeDuration.Forever);
+                Console.Write("\nEnter Master Password: ");
+                password = HelperUtils.ReadLineMasked();
+            }
+
+            return Task.FromResult(password);
+        }
+
+        public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorChannel channel, ITwoFactorChannelInfo[] channels, CancellationToken token)
+        {
+            Console.Write("\nEnter 2FA Code: ");
+            var code = Console.ReadLine();
+            return Task.FromResult(new TwoFactorCode(channel, code, TwoFactorDuration.Forever));
+        }
+
+        public Task<bool> WaitForDeviceApproval(IDeviceApprovalChannelInfo[] channels, CancellationToken token)
+        {
+            var tokenSource = new TaskCompletionSource<bool>();
+            _ = Task.Run(async () => {
+                var emailChannel = channels.FirstOrDefault(x => x.Channel == DeviceApprovalChannel.Email);
+                if (emailChannel is IDeviceApprovalPushInfo pi)
+                {
+                    await pi.InvokeDeviceApprovalPushAction.Invoke(TwoFactorDuration.EveryLogin);
+                }
+                Console.WriteLine("\nDevice Approval\n\nCheck your email, approve your device by clicking verification link\n<Esc> to cancel");
+
+                var complete = false;
+                void onApprove()
+                {
+                    complete = true;
+                }
+                using (var reg = token.Register(onApprove))
+                {
+                    while (!complete)
+                    {
+                        while (Console.KeyAvailable)
+                        {
+                            var ch = Console.ReadKey(true);
+                            if (ch.Key == ConsoleKey.Escape) {
+                                complete = true;
+                                tokenSource.TrySetResult(false);
+                                break;
+                            }
+                        }
+                        if (!complete) {
+                            await Task.Delay(200);
+                        }
+                        var answer = Console.ReadLine();
+                    }
+                }
             });
+            return tokenSource.Task;
         }
     }
 
@@ -68,11 +108,10 @@ namespace SimpleSdkConsoleApp
         private static async Task Main()
         {
             // Keeper SDK needs a storage to save some parameters 
-            // such as: last login name, 2FA device token, etc
+            // such as: last login name, device information, etc
             // 
-            //var configuration = new InMemoryConfigurationStorage();
             //
-            IConfigurationStorage configuration = new JsonConfigurationStorage("test.json");
+            IConfigurationStorage configuration = new JsonConfigurationStorage();
             var auth = new Auth(new AuthUi(), configuration);
 
             var prompt = "Enter Email Address: ";
@@ -94,40 +133,12 @@ namespace SimpleSdkConsoleApp
                 username = configuration.LastLogin;
             }
 
-            var password = "";
-            Console.Write("Enter Password: ");
-            while (true)
-            {
-                var key = Console.ReadKey(true);
-
-                if (key.Key == ConsoleKey.Enter)
-                {
-                    break;
-                }
-
-                if (char.IsControl(key.KeyChar))
-                {
-                    password = password.Remove(password.Length - 1);
-                    Console.Write("\b \b");
-                }
-                else
-                {
-                    password += key.KeyChar;
-                    Console.Write("*");
-                }
-            }
-
-            if (string.IsNullOrEmpty(password))
-            {
-                Console.WriteLine("Bye.");
-                return;
-            }
 
             Console.WriteLine();
 
             // Login to Keeper
             Console.WriteLine("Logging in...");
-            await auth.Login(username, password);
+            await auth.Login(username);
 
             var vault = new Vault(auth);
             Console.WriteLine("Retrieving records...");
@@ -137,5 +148,35 @@ namespace SimpleSdkConsoleApp
             Console.WriteLine($"Vault has {vault.RecordCount} records.");
         }
     }
-}
-```
+    public static class HelperUtils
+    {
+        public static string ReadLineMasked(char mask = '*')
+        {
+            var sb = new StringBuilder();
+            ConsoleKeyInfo keyInfo;
+            while ((keyInfo = Console.ReadKey(true)).Key != ConsoleKey.Enter)
+            {
+                if (!char.IsControl(keyInfo.KeyChar))
+                {
+                    sb.Append(keyInfo.KeyChar);
+                    Console.Write(mask);
+                }
+                else if (keyInfo.Key == ConsoleKey.Backspace && sb.Length > 0)
+                {
+                    sb.Remove(sb.Length - 1, 1);
+
+                    if (Console.CursorLeft == 0)
+                    {
+                        Console.SetCursorPosition(Console.BufferWidth - 1, Console.CursorTop - 1);
+                        Console.Write(' ');
+                        Console.SetCursorPosition(Console.BufferWidth - 1, Console.CursorTop - 1);
+                    }
+                    else Console.Write("\b \b");
+                }
+            }
+
+            Console.WriteLine();
+            return sb.ToString();
+        }
+    }
+}```

@@ -10,6 +10,7 @@
 //
 
 using System;
+using Authentication;
 
 namespace KeeperSecurity.Sdk
 {
@@ -25,6 +26,13 @@ namespace KeeperSecurity.Sdk
         public string Method { get; }
         public string Parameter { get; }
         public string Value { get; }
+    }
+
+    public class KeeperPostLoginErrors : Exception
+    {
+        public KeeperPostLoginErrors(string message) : base(message)
+        {
+        }
     }
 
     public class KeeperApiException : Exception
@@ -49,9 +57,33 @@ namespace KeeperSecurity.Sdk
 
     public class KeeperInvalidDeviceToken : Exception
     {
+        public string AdditionalInfo { get; }
+
+        public KeeperInvalidDeviceToken(string additionalInfo)
+        {
+            AdditionalInfo = additionalInfo;
+        }
     }
 
+    public class KeeperCanceled : Exception
+    {
+    }
+
+    public class KeeperAuthFailed : Exception
+    {
+    }
+    
     public class KeeperTooManyAttempts : Exception
     {
+    }
+
+    public class KeeperStartLoginException : Exception
+    {
+        public LoginState LoginState { get; }
+
+        public KeeperStartLoginException(LoginState loginState, string message) : base(message)
+        {
+            LoginState = loginState;
+        }
     }
 }

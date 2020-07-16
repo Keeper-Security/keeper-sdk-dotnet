@@ -21,13 +21,13 @@ namespace KeeperSecurity.Sdk
 {
     public class Vault : VaultData
     {
-        public Vault(IAuth auth, IKeeperStorage storage = null) : base(auth.AuthContext.ClientKey,
+        public Vault(IAuthentication auth, IKeeperStorage storage = null) : base(auth.AuthContext.ClientKey,
             storage ?? new InMemoryKeeperStorage())
         {
             Auth = auth;
         }
 
-        public IAuth Auth { get; }
+        public IAuthentication Auth { get; }
 
         private long scheduledAt;
         private Task syncDownTask;
@@ -79,9 +79,8 @@ namespace KeeperSecurity.Sdk
             return myTask;
         }
 
-        public void OnNotificationReceived(byte[] notification)
+        public void OnNotificationReceived(NotificationEvent evt)
         {
-            var evt = JsonUtils.ParseJson<NotificationEvent>(notification);
             if (evt != null & evt?.notificationEvent == "sync")
             {
                 if (evt.sync)
@@ -313,7 +312,7 @@ namespace KeeperSecurity.Sdk
 
             var command = new RecordUpdateCommand
             {
-                deviceId = Auth.EncryptedDeviceToken.Base64UrlEncode()
+                deviceId = Auth.AuthContext.DeviceToken.Base64UrlEncode()
             };
             if (existingRecord != null)
             {
@@ -339,7 +338,7 @@ namespace KeeperSecurity.Sdk
             };
             var command = new RecordUpdateCommand
             {
-                deviceId = Auth.EncryptedDeviceToken.Base64UrlEncode(),
+                deviceId = Auth.AuthContext.DeviceToken.Base64UrlEncode(),
                 UpdateRecords = new[] {updateRecord}
             };
             await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);

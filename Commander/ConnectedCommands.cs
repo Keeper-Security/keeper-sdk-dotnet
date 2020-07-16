@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using AccountSummary;
+using Authentication;
 using CommandLine;
+using Google.Protobuf;
 using KeeperSecurity.Sdk;
 
 namespace Commander
@@ -14,15 +15,19 @@ namespace Commander
     public class ConnectedContext : StateContext
     {
         private readonly Vault _vault;
+        private readonly Auth _auth;
 
-        public ConnectedContext(Vault vault)
+        private AccountSummaryElements _accountSummary;
+        public ConnectedContext(Auth auth)
         {
-            _vault = vault;
-            Task.Run(() =>
+            _auth = auth;
+            _vault = new Vault(_auth);
+            SubscribeToNotifications();
+            Task.Run(async () =>
             {
                 try
                 {
-                    _ = SubscribeToNotifications();
+                    await _vault.SyncDown();
                 }
                 catch (Exception e)
                 {
@@ -82,24 +87,35 @@ namespace Commander
             {
                 Order = 100,
                 Description = "Download & decrypt data",
-                Action = async (_) =>
+                Action = async _ =>
                 {
                     Console.WriteLine("Syncing...");
                     await _vault.SyncDown();
                 }
             });
 
+            if (_auth.AuthContext is AuthContextV3)
+            {
+                Commands.Add("devices", new ParsableCommand<OtherDevicesOptions>
+                {
+                    Order = 50,
+                    Description = "Devices (other than current) commands",
+                    Action = DeviceCommand,
+                });
+
+                Commands.Add("this-device", new ParsableCommand<ThisDeviceOptions>
+                {
+                    Order = 51,
+                    Description = "Current device command",
+                    Action = ThisDeviceCommand,
+                });
+            }
+
             Commands.Add("logout", new SimpleCommand
             {
                 Order = 200,
                 Description = "Logout",
-                Action = (_) =>
-                {
-                    UnsubscribeFromNotifications();
-                    _vault.Auth.Logout();
-                    NextStateContext = new NotConnectedCliContext(_vault.Auth);
-                    return Task.FromResult(false);
-                }
+                Action = LogoutCommand,
             });
 
             CommandAliases.Add("ls", "list");
@@ -110,75 +126,40 @@ namespace Commander
 
         private string _currentFolder;
 
-        private CancellationTokenSource _notificationCancelToken;
-
-        private async Task SubscribeToNotifications()
+        private bool NotificationCallback(NotificationEvent evt)
         {
-            var pushUrl = await _vault.Auth.GetNotificationUrl();
-            var ws = new ClientWebSocket();
-            var ts = new CancellationTokenSource();
-            await ws.ConnectAsync(new Uri(pushUrl), ts.Token);
-            _notificationCancelToken = ts;
-            _ = Task.Run(async () =>
+            _vault.OnNotificationReceived(evt);
+            if (string.Compare(evt.notificationEvent, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) == 0)
             {
-                var webSocket = ws;
-                var tokenSource = ts;
-                var buffer = new byte[1024];
-                var segment = new ArraySegment<byte>(buffer);
-                try
+                _accountSummary = null;
+                if (!string.IsNullOrEmpty(evt.encryptedDeviceToken))
                 {
-                    while (webSocket.State == WebSocketState.Open && !tokenSource.IsCancellationRequested)
-                    {
-                        var rs = await ws.ReceiveAsync(segment, tokenSource.Token);
-                        if (rs == null) break;
-                        if (rs.Count <= 0) continue;
-
-                        var notification = new byte[rs.Count];
-                        Array.Copy(buffer, notification, rs.Count);
-                        _vault.OnNotificationReceived(notification);
-                    }
-
-                    if (webSocket.State == WebSocketState.Open)
-                    {
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
-                    }
-
-                    if (!tokenSource.IsCancellationRequested)
-                    {
-                        tokenSource.Cancel();
-                    }
+                    Console.WriteLine($"New notification arrived for Device ID: {TokenToString(evt.encryptedDeviceToken.Base64UrlDecode())}");
                 }
-                catch (OperationCanceledException)
+                else
                 {
+                    Console.WriteLine("New notification arrived.");
                 }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
-                finally
-                {
-                    if (_notificationCancelToken == tokenSource)
-                    {
-                        _notificationCancelToken = null;
-                    }
+            }
 
-                    tokenSource.Dispose();
-                    webSocket.Dispose();
-                }
-            }, ts.Token);
+            return false;
+        }
+
+        private void SubscribeToNotifications()
+        {
+            _auth.AuthContext.PushNotifications.RegisterCallback(NotificationCallback);
         }
 
         private void UnsubscribeFromNotifications()
         {
-            if (_notificationCancelToken == null) return;
+            _auth.AuthContext?.PushNotifications.RemoveCallback(NotificationCallback);
+        }
 
-            if (!_notificationCancelToken.IsCancellationRequested)
-            {
-                _notificationCancelToken.Cancel();
-            }
-
-            _notificationCancelToken.Dispose();
-            _notificationCancelToken = null;
+        private async Task LogoutCommand(string _)
+        {
+            UnsubscribeFromNotifications();
+            await _auth.Logout();
+            NextStateContext = new NotConnectedCliContext(_auth);
         }
 
         private Task ListCommand(ListCommandOptions options)
@@ -336,8 +317,8 @@ namespace Commander
                     {
                         tab.AddRow(new[]
                         {
-                            r.RecordUid + ":", "Can Edit: " + r.CanEdit.ToString(),
-                            "Can Share: " + r.CanShare.ToString()
+                            r.RecordUid + ":", "Can Edit: " + r.CanEdit,
+                            "Can Share: " + r.CanShare
                         });
                     }
                 }
@@ -526,6 +507,230 @@ namespace Commander
             await _vault.PutRecord(record);
         }
 
+        private string TokenToString(byte[] token)
+        {
+            var sb = new StringBuilder();
+            foreach (var b in token)
+            {
+                sb.AppendFormat("{0:x2}", b);
+                if (sb.Length >= 20)
+                {
+                    break;
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private string DeviceStatusToString(DeviceStatus status)
+        {
+            switch (status)
+            {
+                case DeviceStatus.DeviceOk:
+                    return "OK";
+                case DeviceStatus.DeviceNeedsApproval:
+                    return "Need Approval";
+                case DeviceStatus.DeviceDisabledByUser:
+                    return "Disabled";
+                case DeviceStatus.DeviceLockedByAdmin:
+                    return "Locked";
+                default:
+                    return "";
+            }
+        }
+
+        private async Task ThisDeviceCommand(ThisDeviceOptions arguments)
+        {
+            if (!(_auth.AuthContext is AuthContextV3 contextV3)) return;
+
+            if (_accountSummary == null)
+            {
+                _accountSummary = await _auth.LoadAccountSummary();
+            }
+
+            var device = _accountSummary?.Devices
+                .FirstOrDefault(x => x.EncryptedDeviceToken.ToByteArray().SequenceEqual(_auth.AuthContext.DeviceToken));
+            if (device == null)
+            {
+                Console.WriteLine("???????????????");
+                return;
+            }
+
+            switch (arguments.Command)
+            {
+                case null:
+                    Console.WriteLine();
+                    Console.WriteLine("{0, 16}: {1}", "Device Name", device.DeviceName);
+                    Console.WriteLine("{0, 16}: {1}", "Client Version", device.ClientVersion);
+                    Console.WriteLine("{0, 16}: {1}", "Has Data Key", device.EncryptedDataKey.Length > 0);
+                    break;
+
+                case "rename":
+                    if (string.IsNullOrEmpty(arguments.Parameter))
+                    {
+                        Console.WriteLine($"{arguments.Command} command requires new device name parameter.");
+                    }
+                    else
+                    {
+                        var request = new DeviceUpdateRequest
+                        {
+                            ClientVersion = _auth.Endpoint.ClientVersion,
+                            DeviceStatus = DeviceStatus.DeviceOk,
+                            DeviceName = arguments.Parameter,
+                            EncryptedDeviceToken = device.EncryptedDeviceToken,
+                        };
+                        await _auth.ExecuteAuthRest("authentication/update_device", request);
+                    }
+
+                    break;
+
+                case "register":
+                {
+                    if (device.EncryptedDataKey.Length == 0)
+                    {
+                        await _auth.RegisterDataKeyForDevice(device);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Device already registered.");
+                    }
+
+                }
+                break;
+
+                case "timeout":
+                {
+                    if (string.IsNullOrEmpty(arguments.Parameter))
+                    {
+                        Console.WriteLine($"{arguments.Command}: requires timeout in minutes parameter.");
+                    }
+                    else
+                    {
+                        if (int.TryParse(arguments.Parameter, out var timeout))
+                        {
+                            var rq = new UserSettingRequest
+                            {
+                                Setting = "session_logout_timer_desktop",
+                                Value = $"{timeout}"
+                            };
+
+                            await _auth.ExecuteAuthRest("setting/set_user_setting", rq);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{arguments.Command}: invalid timeout in minutes parameter: {arguments.Parameter}");
+                        }
+                    }
+                }
+                    break;
+            }
+        }
+
+        private async Task DeviceCommand(OtherDevicesOptions arguments)
+        {
+            if (!(_auth.AuthContext is AuthContextV3 contextV3)) return;
+
+            if (_accountSummary == null)
+            {
+                _accountSummary = await _auth.LoadAccountSummary();
+            }
+
+            if (_accountSummary == null)
+            {
+                Console.WriteLine("No devices available");
+                return;
+            }
+
+            var devices = _accountSummary.Devices
+                .Where(x => !x.EncryptedDeviceToken.SequenceEqual(contextV3.DeviceToken))
+                .OrderBy(x => (int) x.DeviceStatus)
+                .ToArray();
+
+            if (devices.Length == 0)
+            {
+                Console.WriteLine("No devices available");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(arguments.Command) || arguments.Command == "list")
+            {
+                var tab = new Tabulate(5)
+                {
+                    DumpRowNo = true
+                };
+                tab.AddHeader(new[] {"Device Name", "Client", "ID", "Status", "Data Key"});
+                foreach (var device in devices)
+                {
+                    tab.AddRow(new[]
+                    {
+                        device.DeviceName,
+                        device.ClientVersion,
+                        TokenToString(device.EncryptedDeviceToken.ToByteArray()),
+                        DeviceStatusToString(device.DeviceStatus),
+                        device.EncryptedDataKey.Length > 0 ? "Yes" : "No"
+                    });
+                }
+
+                Console.WriteLine();
+                tab.Dump();
+                return;
+            }
+
+            if (arguments.Command == "approve" || arguments.Command == "decline")
+            {
+                if (string.IsNullOrEmpty(arguments.DeviceId))
+                {
+                    Console.WriteLine("No device Id");
+                    return;
+                }
+
+                var isDecline = arguments.Command == "decline";
+                var toApprove = devices
+                    .Where(x => x.DeviceStatus == DeviceStatus.DeviceNeedsApproval)
+                    .Where(x =>
+                    {
+                        if (arguments.DeviceId == "all")
+                        {
+                            return true;
+                        }
+
+                        var token = TokenToString(x.EncryptedDeviceToken.ToByteArray());
+                        return token.StartsWith(arguments.DeviceId);
+                    })
+                    .ToArray();
+
+                if (toApprove.Length == 0)
+                {
+                    Console.WriteLine($"No device approval for criteria \"{arguments.DeviceId}\"");
+                    return;
+                }
+
+                foreach (var device in toApprove)
+                {
+                    var deviceApprove = new ApproveDeviceRequest
+                    {
+                        AccountUid = ByteString.CopyFrom(contextV3.AccountUid),
+                        EncryptedDeviceToken = device.EncryptedDeviceToken,
+                        DenyApproval = isDecline
+                    };
+                    if (_accountSummary.Settings.SsoUser && !isDecline)
+                    {
+                        var publicKeyBytes = device.DevicePublicKey.ToByteArray();
+                        var publicKey = CryptoUtils.LoadPublicEcKey(publicKeyBytes);
+                        var encryptedDataKey = CryptoUtils.EncryptEc(_auth.AuthContext.DataKey, publicKey);
+                        deviceApprove.EncryptedDeviceDataKey = ByteString.CopyFrom(encryptedDataKey);
+                    }
+
+                    await _auth.ExecuteAuthRest("authentication/approve_device", deviceApprove);
+                }
+
+                _accountSummary = null;
+                return;
+            }
+
+            Console.WriteLine($"Unsupported device command {arguments.Command}");
+        }
+
         private Task ListSharedFoldersCommand(string arguments)
         {
             var tab = new Tabulate(4)
@@ -632,8 +837,23 @@ namespace Commander
             return true;
         }
 
+        public override async Task<bool> ProcessException(Exception e)
+        {
+            if (!(e is KeeperAuthFailed)) return await base.ProcessException(e);
+            
+            Console.WriteLine("Session is expired. Disconnecting...");
+            await LogoutCommand("");
+            return true;
+        }
+
         public override string GetPrompt()
         {
+            if (!_auth.IsAuthenticated())
+            {
+                _ = LogoutCommand("");
+                return "";
+            }
+
             if (!string.IsNullOrEmpty(_currentFolder))
             {
                 var folder = _currentFolder;
@@ -714,5 +934,23 @@ namespace Commander
 
         [Value(0, Required = true, MetaName = "title", HelpText = "record path or UID")]
         public string RecordId { get; set; }
+    }
+
+    class OtherDevicesOptions
+    {
+        [Value(0, Required = false, HelpText = "device command: \"approve\", \"decline\", \"list\"")]
+        public string Command { get; set; }
+
+        [Value(1, Required = false, HelpText = "device id or \"all\" or \"clear\"")]
+        public string DeviceId { get; set; }
+    }
+
+    class ThisDeviceOptions
+    {
+        [Value(0, Required = false, HelpText = "this-device command: \"register\", \"rename\", \"timeout\"")]
+        public string Command { get; set; }
+
+        [Value(1, Required = false, HelpText = "sub-command parameter")]
+        public string Parameter { get; set; }
     }
 }

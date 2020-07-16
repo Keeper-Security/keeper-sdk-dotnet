@@ -15,164 +15,309 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace KeeperSecurity.Sdk
 {
-    public abstract class JsonConfigurationBase : IConfigurationStorage
+    public interface IStorageProtection
     {
-        protected abstract byte[] LoadJson();
-        protected abstract void StoreJson(byte[] json);
+        string Obscure(string data);
+        string Clarify(string data);
+    }
+
+    public interface IStorageProtectionFactory
+    {
+        IStorageProtection Resolve(string protection);
+    }
+
+    internal interface IEntityClone<in T>
+    {
+        void CloneFrom(T entity);
+    }
+
+    internal class ListConfigCollection<T, IT> : IConfigCollection<IT> where T : IT, IEntityClone<IT>, new() where IT : class, IConfigurationId
+    {
+        private readonly Func<List<T>> _listFunc;
+        private readonly Action _modified;
+
+        public ListConfigCollection(Func<List<T>> listFunc, Action modified)
+        {
+            _listFunc = listFunc;
+            _modified = modified;
+        }
+
+        public IT Get(string id)
+        {
+            var list = _listFunc();
+            return list.FirstOrDefault(x => string.CompareOrdinal(x.Id, id) == 0);
+        }
+
+        public void Put(IT configuration)
+        {
+            var list = _listFunc();
+            var conf = list.FirstOrDefault(x => string.CompareOrdinal(x.Id, configuration.Id) == 0);
+            if (conf == null)
+            {
+                conf = new T();
+                list.Add(conf);
+            }
+
+            conf.CloneFrom(configuration);
+            _modified?.Invoke();
+        }
+
+        public void Delete(string id)
+        {
+            var list = _listFunc();
+            var item = list.FirstOrDefault(x => string.CompareOrdinal(x.Id, id) == 0);
+            if (item != null)
+            {
+                list.Remove(item);
+                _modified?.Invoke();
+            }
+        }
+
+        public IEnumerable<IT> List => _listFunc().Cast<IT>();
+    }
+
+    public interface IJsonConfigurationLoader
+    {
+        byte[] LoadJson();
+        void StoreJson(byte[] json);
+    }
+
+    public class JsonConfigurationCache
+    {
+        private readonly IJsonConfigurationLoader _loader;
+
+        public JsonConfigurationCache(IJsonConfigurationLoader loader)
+        {
+            _loader = loader;
+            ReadTimeout = 2000;
+            WriteTimeout = 2000;
+        }
+
+        public int ReadTimeout { get; set; }
+        private long _readEpochMillis;
+
+        public bool SkipSecurity { get; set; }
+        public string SecurityAlgorithm { get; set; }
+        public int WriteTimeout { get; set; }
 
         private JsonConfiguration _configuration;
-        private long _loadEpochMillis;
-
-        private JsonConfiguration GetJsonConfiguration()
+        public JsonConfiguration Configuration
         {
-            var nowMillis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            if (nowMillis - _loadEpochMillis > 1000)
+            get
             {
+                var task = _storeConfigurationTask;
+                if (task != null && !task.IsCompleted) return _configuration;
+
+                var nowMillis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                if (nowMillis - _readEpochMillis > ReadTimeout)
+                {
+                    _configuration = null;
+                }
+
+                lock (this)
+                {
+                    if (_configuration == null)
+                    {
+                        var jsonBytes = _loader.LoadJson();
+                        _readEpochMillis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                        if (jsonBytes != null && jsonBytes.Length >= 2)
+                        {
+                            try
+                            {
+                                _configuration = JsonUtils.ParseJson<JsonConfiguration>(jsonBytes);
+                                if (StorageProtection != null && !string.IsNullOrEmpty(_configuration.security))
+                                {
+                                    var protector = StorageProtection.Resolve(_configuration.security);
+                                    if (protector != null)
+                                    {
+                                        foreach (var u in _configuration.users)
+                                        {
+                                            if (u.secured != true) continue;
+                                            u.secured = null;
+                                            try
+                                            {
+                                                u.user_password = protector.Clarify(u.user_password);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Debug.WriteLine(e);
+                                                u.user_password = null;
+                                            }
+
+                                            try
+                                            {
+                                                u.resumeCode = protector.Clarify(u.resumeCode);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Debug.WriteLine(e);
+                                                u.resumeCode = null;
+                                            }
+                                        }
+
+                                        foreach (var d in _configuration.devices)
+                                        {
+                                            if (d.secured != true) continue;
+                                            d.secured = null;
+                                            try
+                                            {
+                                                d.privateKey = protector.Clarify(d.privateKey);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Debug.WriteLine(e);
+                                                d.privateKey = null;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                            }
+                        }
+                        if (_configuration == null)
+                        {
+                            _configuration = new JsonConfiguration();
+                        }
+                    }
+                }
+
+                return _configuration;
+            }
+        }
+
+        private Task _storeConfigurationTask;
+        public void Save()
+        {
+            var task = _storeConfigurationTask;
+            if (task != null && !task.IsCompleted) return;
+
+            _storeConfigurationTask = Task.Run(async () =>
+            {
+                task = _storeConfigurationTask;
+                await Task.Delay(WriteTimeout);
+                if (task == _storeConfigurationTask)
+                {
+                    Flush();
+                }
+            });
+        }
+
+        public void Flush()
+        {
+            _storeConfigurationTask = null;
+            lock (this)
+            {
+                if (_configuration == null) return;
+                var algorithm = SecurityAlgorithm ?? _configuration.security;
+                if (!SkipSecurity && StorageProtection != null && !string.IsNullOrEmpty(algorithm))
+                {
+                    var protector = StorageProtection.Resolve(algorithm);
+                    if (protector != null)
+                    {
+                        _configuration.security = algorithm;
+                        foreach (var device in _configuration.devices)
+                        {
+                            if (string.IsNullOrEmpty(device.privateKey)) continue;
+                            try
+                            {
+                                var encryptedPrivateKey = protector.Obscure(device.privateKey);
+                                device.privateKey = encryptedPrivateKey;
+                                device.secured = true;
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                            }
+                        }
+
+                        foreach (var user in _configuration.users)
+                        {
+                            if (string.IsNullOrEmpty(user.user_password) && string.IsNullOrEmpty(user.resumeCode)) continue;
+                            try
+                            {
+                                var encryptedPassword = protector.Obscure(user.user_password);
+                                var encryptedCloneCode = protector.Obscure(user.resumeCode);
+                                user.user_password = encryptedPassword;
+                                user.resumeCode = encryptedCloneCode;
+                                user.secured = true;
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                            }
+                        }
+                    }
+                }
+
+                _loader.StoreJson(JsonUtils.DumpJson(_configuration));
                 _configuration = null;
             }
-
-            if (_configuration == null)
-            {
-                var jsonBytes = LoadJson();
-                _loadEpochMillis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                if (jsonBytes != null && jsonBytes.Length >= 2)
-                {
-                    _configuration = JsonUtils.ParseJson<JsonConfiguration>(jsonBytes);
-                }
-                else
-                {
-                    _configuration = new JsonConfiguration();
-                }
-            }
-
-            return _configuration;
         }
 
-        public string LastLogin => GetJsonConfiguration().lastLogin;
+        public IStorageProtectionFactory StorageProtection { get; set; }
+    }
 
-        public IEnumerable<IUserConfiguration> Users
+    public sealed class JsonConfigurationStorage : IConfigurationStorage
+    {
+        public JsonConfigurationStorage() : this(new JsonConfigurationCache(new JsonConfigurationFileLoader()))
         {
-            get
-            {
-                var conf = GetJsonConfiguration();
-                return (conf.users ?? Enumerable.Empty<JsonUserConfiguration>())
-                    .Select(x => new UserConfiguration(x.user)
-                    {
-                        Password = x.password,
-                        TwoFactorToken = x.twoFactorToken,
-                    });
-            }
         }
 
-        public IUserConfiguration GetUser(string username)
+        public JsonConfigurationStorage(JsonConfigurationCache cache)
         {
-            var conf = GetJsonConfiguration();
-            if (conf.users == null) return null;
-
-            var name = username.AdjustUserName();
-            var uc = conf.users.FirstOrDefault(x => x.user == name);
-            if (uc == null) return null;
-
-            return new UserConfiguration(name)
-            {
-                Password = uc.password,
-                TwoFactorToken = uc.twoFactorToken,
-            };
+            Cache = cache;
+            Users = new ListConfigCollection<JsonUserConfiguration, IUserConfiguration>(
+                () => Cache.Configuration.users ?? (Cache.Configuration.users = new List<JsonUserConfiguration>()),
+                Cache.Save);
+            Servers = new ListConfigCollection<JsonServerConfiguration, IServerConfiguration>(
+                () => Cache.Configuration.servers ?? (Cache.Configuration.servers = new List<JsonServerConfiguration>()),
+                Cache.Save);
+            Devices = new ListConfigCollection<JsonDeviceConfiguration, IDeviceConfiguration>(
+                () => Cache.Configuration.devices ?? (Cache.Configuration.devices = new List<JsonDeviceConfiguration>()),
+                Cache.Save);
         }
 
-        public void PutUser(IUserConfiguration userConfiguration)
+        public JsonConfigurationCache Cache { get; }
+
+        public IConfigCollection<IUserConfiguration> Users { get; }
+        public IConfigCollection<IServerConfiguration> Servers { get; }
+        public IConfigCollection<IDeviceConfiguration> Devices { get; }
+
+        public string LastLogin
         {
-            var name = userConfiguration.Username.AdjustUserName();
-            var conf = GetJsonConfiguration();
-            var uc = (conf.users ?? Enumerable.Empty<JsonUserConfiguration>()).FirstOrDefault(x => x.user == name);
-            if (uc == null)
+            get => Cache.Configuration.lastLogin;
+            set
             {
-                uc = new JsonUserConfiguration
-                {
-                    user = name
-                };
-                conf.users = (conf.users ?? Enumerable.Empty<JsonUserConfiguration>()).Concat(new[] {uc}).ToArray();
-            }
-
-            uc.twoFactorToken = userConfiguration.TwoFactorToken;
-            conf.lastLogin = name;
-            StoreJson(JsonUtils.DumpJson(conf));
-        }
-
-
-        public string LastServer => GetJsonConfiguration().lastServer;
-
-        public IEnumerable<IServerConfiguration> Servers
-        {
-            get
-            {
-                var conf = GetJsonConfiguration();
-                return (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>())
-                    .Select(x => new ServerConfiguration(x.server)
-                    {
-                        ServerKeyId = x.serverKeyId,
-                        DeviceId = string.IsNullOrEmpty(x.deviceId) ? null : x.deviceId.Base64UrlDecode()
-                    });
-                ;
+                Cache.Configuration.lastLogin = value;
+                Cache.Save();
             }
         }
 
-        public IServerConfiguration GetServer(string server)
+        public string LastServer
         {
-            var conf = GetJsonConfiguration();
-            if (conf.servers != null)
+            get => Cache.Configuration.lastServer;
+            set
             {
-                var serverName = server.AdjustServerName();
-                return conf.servers.Where(x => x.server == serverName)
-                    .Select(x => new ServerConfiguration(x.server)
-                    {
-                        ServerKeyId = x.serverKeyId,
-                        DeviceId = string.IsNullOrEmpty(x.deviceId) ? null : x.deviceId.Base64UrlDecode()
-                    })
-                    .FirstOrDefault();
+                Cache.Configuration.lastServer = value;
+                Cache.Save();
             }
-
-            return null;
-        }
-
-        public void PutServer(IServerConfiguration serverConfiguration)
-        {
-            var name = serverConfiguration.Server.AdjustUserName();
-            var conf = GetJsonConfiguration();
-            var sc = (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>())
-                .FirstOrDefault(x => x.server == name);
-            if (sc == null)
-            {
-                sc = new JsonServerConfiguration
-                {
-                    server = name
-                };
-                conf.servers = (conf.servers ?? Enumerable.Empty<JsonServerConfiguration>()).Concat(new[] {sc})
-                    .ToArray();
-            }
-
-            sc.serverKeyId = serverConfiguration.ServerKeyId;
-            if (serverConfiguration.DeviceId != null)
-            {
-                sc.deviceId = serverConfiguration.DeviceId.Base64UrlEncode();
-            }
-
-            conf.lastServer = name;
-
-            StoreJson(JsonUtils.DumpJson(conf));
         }
     }
 
-    public class JsonConfigurationStorage : JsonConfigurationBase
+    public class JsonConfigurationFileLoader : IJsonConfigurationLoader
     {
-        public JsonConfigurationStorage() : this("config.json")
+        public JsonConfigurationFileLoader() : this("config.json")
         {
         }
 
-        public JsonConfigurationStorage(string fileName)
+        public JsonConfigurationFileLoader(string fileName)
         {
             if (File.Exists(fileName))
             {
@@ -195,7 +340,7 @@ namespace KeeperSecurity.Sdk
 
         public string FilePath { get; }
 
-        protected override byte[] LoadJson()
+        public byte[] LoadJson()
         {
             if (File.Exists(FilePath))
             {
@@ -212,7 +357,7 @@ namespace KeeperSecurity.Sdk
             return null;
         }
 
-        protected override void StoreJson(byte[] json)
+        public void StoreJson(byte[] json)
         {
             try
             {
@@ -226,33 +371,122 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
-    public class JsonUserConfiguration : IExtensibleDataObject
+    public class JsonUserConfiguration : IUserConfiguration, IEntityClone<IUserConfiguration>, IExtensibleDataObject
     {
         [DataMember(Name = "user", EmitDefaultValue = false)]
         public string user;
 
         [DataMember(Name = "password", EmitDefaultValue = false)]
         //#pragma warning disable 0649
-        public string password;
-
+        public string user_password;
         //#pragma warning restore 0649
+
         [DataMember(Name = "mfa_token", EmitDefaultValue = false)]
-        public string twoFactorToken;
+        public string mfaToken;
+
+        [DataMember(Name = "server", EmitDefaultValue = false)]
+        public string _server;
+
+        [DataMember(Name = "last_device", EmitDefaultValue = false)]
+        public string _lastDevice;
+
+        [DataMember(Name = "resume_code", EmitDefaultValue = false)]
+        public string resumeCode;
+
+        [DataMember(Name = "secured", EmitDefaultValue = false)]
+        public bool? secured;
+
+        public ExtensionDataObject ExtensionData { get; set; }
+
+        void IEntityClone<IUserConfiguration>.CloneFrom(IUserConfiguration userConf)
+        {
+            if (string.IsNullOrEmpty(user))
+            {
+                user = userConf.Username;
+            }
+            mfaToken = userConf.TwoFactorToken;
+            _server = userConf.Server;
+            _lastDevice = userConf.DeviceToken;
+            resumeCode = userConf.CloneCode;
+        }
+
+        string IUserConfiguration.Username => user;
+        string IUserConfiguration.Password => user_password;
+        string IUserConfiguration.TwoFactorToken => mfaToken;
+        string IUserConfiguration.Server => _server;
+        string IUserConfiguration.DeviceToken => _lastDevice;
+        string IUserConfiguration.CloneCode => resumeCode;
+        string IConfigurationId.Id => user;
+    }
+
+    [DataContract]
+    public class JsonServerConfiguration : IServerConfiguration, IEntityClone<IServerConfiguration>, IExtensibleDataObject
+    {
+        [DataMember(Name = "server", EmitDefaultValue = false)]
+        public string server;
+
+        [DataMember(Name = "server_key_id", EmitDefaultValue = false)]
+        public int serverKeyId;
+
+        [DataMember(Name = "device_id", EmitDefaultValue = false)]
+        public string deviceId;
+
+        string IServerConfiguration.Server => server;
+        int IServerConfiguration.ServerKeyId => serverKeyId;
+        byte[] IServerConfiguration.DeviceId => string.IsNullOrEmpty(deviceId) ? null : deviceId.Base64UrlDecode();
+        string IConfigurationId.Id => server;
+
+        void IEntityClone<IServerConfiguration>.CloneFrom(IServerConfiguration serverConf)
+        {
+            if (string.IsNullOrEmpty(server))
+            {
+                server = serverConf.Server;
+            }
+            serverKeyId = serverConf.ServerKeyId;
+            deviceId = serverConf.DeviceId?.Base64UrlEncode();
+        }
 
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
     [DataContract]
-    public class JsonServerConfiguration : IExtensibleDataObject
+    public class JsonDeviceConfiguration : IDeviceConfiguration, IEntityClone<IDeviceConfiguration>, IExtensibleDataObject
     {
-        [DataMember(Name = "server", EmitDefaultValue = false)]
-        public string server;
 
-        [DataMember(Name = "device_id", EmitDefaultValue = false)]
-        public string deviceId;
+        [DataMember(Name = "device_token", EmitDefaultValue = false)]
+        public string deviceToken;
 
-        [DataMember(Name = "server_key_id", EmitDefaultValue = false)]
-        public int serverKeyId;
+        [DataMember(Name = "private_key", EmitDefaultValue = false)]
+        public string privateKey;
+
+        [DataMember(Name = "servers", EmitDefaultValue = false)]
+        public string[] servers;
+
+        [DataMember(Name = "secured", EmitDefaultValue = false)]
+        public bool? secured;
+
+        string IDeviceConfiguration.DeviceToken => deviceToken;
+        byte[] IDeviceConfiguration.DeviceKey => string.IsNullOrEmpty(privateKey) ? null : privateKey.Base64UrlDecode();
+        IEnumerable<string> IDeviceConfiguration.Servers => servers;
+        string IConfigurationId.Id => deviceToken;
+
+        void IEntityClone<IDeviceConfiguration>.CloneFrom(IDeviceConfiguration deviceConf)
+        {
+            if (string.IsNullOrEmpty(deviceToken))
+            {
+                deviceToken = deviceConf.DeviceToken;
+                if (deviceConf.DeviceKey != null)
+                {
+                    privateKey = deviceConf.DeviceKey.Base64UrlEncode();
+                }
+
+            }
+
+            if (deviceConf.Servers != null)
+            {
+                servers = deviceConf.Servers.ToArray();
+            }
+        }
 
         public ExtensionDataObject ExtensionData { get; set; }
     }
@@ -267,11 +501,16 @@ namespace KeeperSecurity.Sdk
         public string lastLogin;
 
         [DataMember(Name = "users", EmitDefaultValue = false)]
-        public JsonUserConfiguration[] users;
+        public List<JsonUserConfiguration> users;
 
         [DataMember(Name = "servers", EmitDefaultValue = false)]
-        public JsonServerConfiguration[] servers;
+        public List<JsonServerConfiguration> servers;
 
+        [DataMember(Name = "devices", EmitDefaultValue = false)]
+        public List<JsonDeviceConfiguration> devices;
+
+        [DataMember(Name = "security", EmitDefaultValue = false)]
+        public string security;
         public ExtensionDataObject ExtensionData { get; set; }
     }
 }
