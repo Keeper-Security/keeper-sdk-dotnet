@@ -234,9 +234,9 @@ namespace KeeperSecurity.Sdk
                                             var json = new byte[rs.Count];
                                             Array.Copy(buffer, 0, json, 0, json.Length);
                                             var notification = JsonUtils.ParseJson<NotificationEvent>(json);
-                                            if (!string.IsNullOrEmpty(notification.passcode))
+                                            if (!string.IsNullOrEmpty(notification.Passcode))
                                             {
-                                                auth.PushToken.Push(new TwoFactorCode(channel, notification.passcode, duration));
+                                                auth.PushToken.Push(new TwoFactorCode(channel, notification.Passcode, duration));
                                             }
                                         }
 

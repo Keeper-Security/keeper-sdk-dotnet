@@ -81,9 +81,9 @@ namespace KeeperSecurity.Sdk
 
         public void OnNotificationReceived(NotificationEvent evt)
         {
-            if (evt != null & evt?.notificationEvent == "sync")
+            if (evt != null & evt?.Event == "sync")
             {
-                if (evt.sync)
+                if (evt.Sync)
                 {
                     ScheduleSyncDown(TimeSpan.FromSeconds(5));
                 }

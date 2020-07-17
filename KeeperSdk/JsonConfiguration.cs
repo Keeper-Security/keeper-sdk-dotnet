@@ -16,6 +16,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Org.BouncyCastle.Crypto;
 
 namespace KeeperSecurity.Sdk
 {
@@ -134,43 +135,49 @@ namespace KeeperSecurity.Sdk
                                     var protector = StorageProtection.Resolve(_configuration.security);
                                     if (protector != null)
                                     {
-                                        foreach (var u in _configuration.users)
+                                        if (_configuration.users != null)
                                         {
-                                            if (u.secured != true) continue;
-                                            u.secured = null;
-                                            try
+                                            foreach (var u in _configuration.users)
                                             {
-                                                u.user_password = protector.Clarify(u.user_password);
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Debug.WriteLine(e);
-                                                u.user_password = null;
-                                            }
+                                                if (u.secured != true) continue;
+                                                u.secured = null;
+                                                try
+                                                {
+                                                    u.user_password = protector.Clarify(u.user_password);
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Debug.WriteLine(e);
+                                                    u.user_password = null;
+                                                }
 
-                                            try
-                                            {
-                                                u.resumeCode = protector.Clarify(u.resumeCode);
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Debug.WriteLine(e);
-                                                u.resumeCode = null;
+                                                try
+                                                {
+                                                    u.resumeCode = protector.Clarify(u.resumeCode);
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Debug.WriteLine(e);
+                                                    u.resumeCode = null;
+                                                }
                                             }
                                         }
 
-                                        foreach (var d in _configuration.devices)
+                                        if (_configuration.devices != null)
                                         {
-                                            if (d.secured != true) continue;
-                                            d.secured = null;
-                                            try
+                                            foreach (var d in _configuration.devices)
                                             {
-                                                d.privateKey = protector.Clarify(d.privateKey);
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Debug.WriteLine(e);
-                                                d.privateKey = null;
+                                                if (d.secured != true) continue;
+                                                d.secured = null;
+                                                try
+                                                {
+                                                    d.privateKey = protector.Clarify(d.privateKey);
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Debug.WriteLine(e);
+                                                    d.privateKey = null;
+                                                }
                                             }
                                         }
                                     }

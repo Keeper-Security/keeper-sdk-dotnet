@@ -449,7 +449,7 @@ namespace Commander
                         }
                     }
 
-                    Console.WriteLine("To change default 2FA token persistence use command 2fa=<duration>");
+                    Console.WriteLine("To change default 2FA token persistence use command 2fa_duration=<duration>");
                     var dur = Enum
                         .GetValues(typeof(TwoFactorDuration))
                         .OfType<TwoFactorDuration>()
@@ -477,7 +477,7 @@ namespace Commander
                             return;
                         }
 
-                        if (answer.StartsWith("2fa=", StringComparison.CurrentCultureIgnoreCase))
+                        if (answer.StartsWith("2fa_duration=", StringComparison.CurrentCultureIgnoreCase))
                         {
                             TryParseTextToDuration(answer.Substring(4), out duration);
                             continue;
@@ -494,14 +494,14 @@ namespace Commander
                                     if (emailAction is IDeviceApprovalOtpInfo otp)
                                     {
                                         var code = answer.Substring("email_code=".Length);
-                                        await otp.InvokeDeviceApprovalOtpAction.Invoke(code, duration);
+                                        await otp.InvokeDeviceApprovalOtpAction.Invoke(code);
                                     }
                                 }
                                 else if (string.Compare(answer, "email_send", StringComparison.CurrentCultureIgnoreCase) == 0)
                                 {
                                     if (emailAction is IDeviceApprovalPushInfo push)
                                     {
-                                        await push.InvokeDeviceApprovalPushAction(duration);
+                                        await push.InvokeDeviceApprovalPushAction.Invoke();
                                     }
                                 }
                             }
@@ -516,7 +516,7 @@ namespace Commander
                             {
                                 if (keeperPushAction is IDeviceApprovalPushInfo push)
                                 {
-                                    await push.InvokeDeviceApprovalPushAction(duration);
+                                    await push.InvokeDeviceApprovalPushAction.Invoke();
                                 }
                             }
                             continue;
@@ -528,19 +528,24 @@ namespace Commander
                                 .FirstOrDefault((x) => x.Channel == DeviceApprovalChannel.TwoFactorAuth);
                             if (tfaAction != null)
                             {
+                                if (tfaAction is IDeviceApprovalDuration dura)
+                                {
+                                    dura.Duration = duration;
+                                }
+
                                 if (answer.StartsWith("2fa_code=", StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     if (tfaAction is IDeviceApprovalOtpInfo otp)
                                     {
                                         var code = answer.Substring("2fa_code=".Length);
-                                        await otp.InvokeDeviceApprovalOtpAction.Invoke(code, duration);
+                                        await otp.InvokeDeviceApprovalOtpAction.Invoke(code);
                                     }
                                 }
                                 else if (string.Compare(answer, "2fa_send", StringComparison.CurrentCultureIgnoreCase) == 0)
                                 {
                                     if (tfaAction is IDeviceApprovalPushInfo push)
                                     {
-                                        await push.InvokeDeviceApprovalPushAction(duration);
+                                        await push.InvokeDeviceApprovalPushAction.Invoke();
                                     }
                                 }
                             }

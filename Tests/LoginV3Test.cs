@@ -93,7 +93,7 @@ namespace Tests
                             {
                                 Task.Run(() =>
                                 {
-                                    pi.InvokeDeviceApprovalPushAction.Invoke(TwoFactorDuration.Every30Days);
+                                    pi.InvokeDeviceApprovalPushAction.Invoke();
                                 });
                             }
                         }

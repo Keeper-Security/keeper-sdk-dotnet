@@ -61,9 +61,19 @@ namespace Enterprise {
             "BRIPCgdtYXhpbXVtGAMgASgFEg8KB2FsbG93ZWQYBCABKAgiZwobRG9tYWlu",
             "UGFzc3dvcmRSdWxlc1Jlc3BvbnNlEkgKGWRvbWFpblBhc3N3b3JkUnVsZXNG",
             "aWVsZHMYASADKAsyJS5FbnRlcnByaXNlLkRvbWFpblBhc3N3b3JkUnVsZXNG",
-            "aWVsZHMqPQoORW50ZXJwcmlzZVR5cGUSFwoTRU5URVJQUklTRV9TVEFOREFS",
-            "RBAAEhIKDkVOVEVSUFJJU0VfTVNQEAFCJgoYY29tLmtlZXBlcnNlY3VyaXR5",
-            "LnByb3RvQgpFbnRlcnByaXNlYgZwcm90bzM="));
+            "aWVsZHMiggEKGEFwcHJvdmVVc2VyRGV2aWNlUmVxdWVzdBISCgphY2NvdW50",
+            "VWlkGAEgASgMEhwKFGVuY3J5cHRlZERldmljZVRva2VuGAIgASgMEh4KFmVu",
+            "Y3J5cHRlZERldmljZURhdGFLZXkYAyABKAwSFAoMZGVueUFwcHJvdmFsGAQg",
+            "ASgIIm4KGUFwcHJvdmVVc2VyRGV2aWNlUmVzcG9uc2USEgoKYWNjb3VudFVp",
+            "ZBgBIAEoDBIcChRlbmNyeXB0ZWREZXZpY2VUb2tlbhgCIAEoDBIOCgZmYWls",
+            "ZWQYAyABKAgSDwoHbWVzc2FnZRgEIAEoCSJZChlBcHByb3ZlVXNlckRldmlj",
+            "ZXNSZXF1ZXN0EjwKDmRldmljZVJlcXVlc3RzGAEgAygLMiQuRW50ZXJwcmlz",
+            "ZS5BcHByb3ZlVXNlckRldmljZVJlcXVlc3QiXAoaQXBwcm92ZVVzZXJEZXZp",
+            "Y2VzUmVzcG9uc2USPgoPZGV2aWNlUmVzcG9uc2VzGAEgAygLMiUuRW50ZXJw",
+            "cmlzZS5BcHByb3ZlVXNlckRldmljZVJlc3BvbnNlKj0KDkVudGVycHJpc2VU",
+            "eXBlEhcKE0VOVEVSUFJJU0VfU1RBTkRBUkQQABISCg5FTlRFUlBSSVNFX01T",
+            "UBABQiYKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IKRW50ZXJwcmlzZWIG",
+            "cHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Enterprise.EnterpriseType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -82,7 +92,11 @@ namespace Enterprise {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseRegistration), global::Enterprise.EnterpriseRegistration.Parser, new[]{ "EncryptedTreeKey", "EnterpriseName", "RootNodeData", "AdminUserData", "AdminName", "RoleData", "RsaKeyPair", "NumberSeats", "EnterpriseType", "RolePublicKey", "RolePrivateKeyEncryptedWithRoleKey", "RoleKeyEncryptedWithTreeKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DomainPasswordRulesRequest), global::Enterprise.DomainPasswordRulesRequest.Parser, new[]{ "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DomainPasswordRulesFields), global::Enterprise.DomainPasswordRulesFields.Parser, new[]{ "Type", "Minimum", "Maximum", "Allowed" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DomainPasswordRulesResponse), global::Enterprise.DomainPasswordRulesResponse.Parser, new[]{ "DomainPasswordRulesFields" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DomainPasswordRulesResponse), global::Enterprise.DomainPasswordRulesResponse.Parser, new[]{ "DomainPasswordRulesFields" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDeviceRequest), global::Enterprise.ApproveUserDeviceRequest.Parser, new[]{ "AccountUid", "EncryptedDeviceToken", "EncryptedDeviceDataKey", "DenyApproval" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDeviceResponse), global::Enterprise.ApproveUserDeviceResponse.Parser, new[]{ "AccountUid", "EncryptedDeviceToken", "Failed", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDevicesRequest), global::Enterprise.ApproveUserDevicesRequest.Parser, new[]{ "DeviceRequests" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDevicesResponse), global::Enterprise.ApproveUserDevicesResponse.Parser, new[]{ "DeviceResponses" }, null, null, null, null)
           }));
     }
     #endregion
@@ -2905,6 +2919,677 @@ namespace Enterprise {
             break;
           case 10: {
             domainPasswordRulesFields_.AddEntriesFrom(input, _repeated_domainPasswordRulesFields_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class ApproveUserDeviceRequest : pb::IMessage<ApproveUserDeviceRequest> {
+    private static readonly pb::MessageParser<ApproveUserDeviceRequest> _parser = new pb::MessageParser<ApproveUserDeviceRequest>(() => new ApproveUserDeviceRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<ApproveUserDeviceRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[16]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDeviceRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDeviceRequest(ApproveUserDeviceRequest other) : this() {
+      accountUid_ = other.accountUid_;
+      encryptedDeviceToken_ = other.encryptedDeviceToken_;
+      encryptedDeviceDataKey_ = other.encryptedDeviceDataKey_;
+      denyApproval_ = other.denyApproval_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDeviceRequest Clone() {
+      return new ApproveUserDeviceRequest(this);
+    }
+
+    /// <summary>Field number for the "accountUid" field.</summary>
+    public const int AccountUidFieldNumber = 1;
+    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString AccountUid {
+      get { return accountUid_; }
+      set {
+        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encryptedDeviceToken" field.</summary>
+    public const int EncryptedDeviceTokenFieldNumber = 2;
+    private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString EncryptedDeviceToken {
+      get { return encryptedDeviceToken_; }
+      set {
+        encryptedDeviceToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encryptedDeviceDataKey" field.</summary>
+    public const int EncryptedDeviceDataKeyFieldNumber = 3;
+    private pb::ByteString encryptedDeviceDataKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// required for cloud sso
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString EncryptedDeviceDataKey {
+      get { return encryptedDeviceDataKey_; }
+      set {
+        encryptedDeviceDataKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "denyApproval" field.</summary>
+    public const int DenyApprovalFieldNumber = 4;
+    private bool denyApproval_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool DenyApproval {
+      get { return denyApproval_; }
+      set {
+        denyApproval_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as ApproveUserDeviceRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(ApproveUserDeviceRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AccountUid != other.AccountUid) return false;
+      if (EncryptedDeviceToken != other.EncryptedDeviceToken) return false;
+      if (EncryptedDeviceDataKey != other.EncryptedDeviceDataKey) return false;
+      if (DenyApproval != other.DenyApproval) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
+      if (EncryptedDeviceDataKey.Length != 0) hash ^= EncryptedDeviceDataKey.GetHashCode();
+      if (DenyApproval != false) hash ^= DenyApproval.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AccountUid);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (EncryptedDeviceDataKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(EncryptedDeviceDataKey);
+      }
+      if (DenyApproval != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(DenyApproval);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (AccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceToken);
+      }
+      if (EncryptedDeviceDataKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceDataKey);
+      }
+      if (DenyApproval != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(ApproveUserDeviceRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.AccountUid.Length != 0) {
+        AccountUid = other.AccountUid;
+      }
+      if (other.EncryptedDeviceToken.Length != 0) {
+        EncryptedDeviceToken = other.EncryptedDeviceToken;
+      }
+      if (other.EncryptedDeviceDataKey.Length != 0) {
+        EncryptedDeviceDataKey = other.EncryptedDeviceDataKey;
+      }
+      if (other.DenyApproval != false) {
+        DenyApproval = other.DenyApproval;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            EncryptedDeviceDataKey = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            DenyApproval = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class ApproveUserDeviceResponse : pb::IMessage<ApproveUserDeviceResponse> {
+    private static readonly pb::MessageParser<ApproveUserDeviceResponse> _parser = new pb::MessageParser<ApproveUserDeviceResponse>(() => new ApproveUserDeviceResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<ApproveUserDeviceResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[17]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDeviceResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDeviceResponse(ApproveUserDeviceResponse other) : this() {
+      accountUid_ = other.accountUid_;
+      encryptedDeviceToken_ = other.encryptedDeviceToken_;
+      failed_ = other.failed_;
+      message_ = other.message_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDeviceResponse Clone() {
+      return new ApproveUserDeviceResponse(this);
+    }
+
+    /// <summary>Field number for the "accountUid" field.</summary>
+    public const int AccountUidFieldNumber = 1;
+    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString AccountUid {
+      get { return accountUid_; }
+      set {
+        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encryptedDeviceToken" field.</summary>
+    public const int EncryptedDeviceTokenFieldNumber = 2;
+    private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString EncryptedDeviceToken {
+      get { return encryptedDeviceToken_; }
+      set {
+        encryptedDeviceToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "failed" field.</summary>
+    public const int FailedFieldNumber = 3;
+    private bool failed_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Failed {
+      get { return failed_; }
+      set {
+        failed_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message" field.</summary>
+    public const int MessageFieldNumber = 4;
+    private string message_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as ApproveUserDeviceResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(ApproveUserDeviceResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AccountUid != other.AccountUid) return false;
+      if (EncryptedDeviceToken != other.EncryptedDeviceToken) return false;
+      if (Failed != other.Failed) return false;
+      if (Message != other.Message) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
+      if (Failed != false) hash ^= Failed.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AccountUid);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (Failed != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Failed);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (AccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceToken);
+      }
+      if (Failed != false) {
+        size += 1 + 1;
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(ApproveUserDeviceResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.AccountUid.Length != 0) {
+        AccountUid = other.AccountUid;
+      }
+      if (other.EncryptedDeviceToken.Length != 0) {
+        EncryptedDeviceToken = other.EncryptedDeviceToken;
+      }
+      if (other.Failed != false) {
+        Failed = other.Failed;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            Failed = input.ReadBool();
+            break;
+          }
+          case 34: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class ApproveUserDevicesRequest : pb::IMessage<ApproveUserDevicesRequest> {
+    private static readonly pb::MessageParser<ApproveUserDevicesRequest> _parser = new pb::MessageParser<ApproveUserDevicesRequest>(() => new ApproveUserDevicesRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<ApproveUserDevicesRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[18]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDevicesRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDevicesRequest(ApproveUserDevicesRequest other) : this() {
+      deviceRequests_ = other.deviceRequests_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDevicesRequest Clone() {
+      return new ApproveUserDevicesRequest(this);
+    }
+
+    /// <summary>Field number for the "deviceRequests" field.</summary>
+    public const int DeviceRequestsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Enterprise.ApproveUserDeviceRequest> _repeated_deviceRequests_codec
+        = pb::FieldCodec.ForMessage(10, global::Enterprise.ApproveUserDeviceRequest.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.ApproveUserDeviceRequest> deviceRequests_ = new pbc::RepeatedField<global::Enterprise.ApproveUserDeviceRequest>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Enterprise.ApproveUserDeviceRequest> DeviceRequests {
+      get { return deviceRequests_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as ApproveUserDevicesRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(ApproveUserDevicesRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!deviceRequests_.Equals(other.deviceRequests_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= deviceRequests_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      deviceRequests_.WriteTo(output, _repeated_deviceRequests_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += deviceRequests_.CalculateSize(_repeated_deviceRequests_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(ApproveUserDevicesRequest other) {
+      if (other == null) {
+        return;
+      }
+      deviceRequests_.Add(other.deviceRequests_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            deviceRequests_.AddEntriesFrom(input, _repeated_deviceRequests_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class ApproveUserDevicesResponse : pb::IMessage<ApproveUserDevicesResponse> {
+    private static readonly pb::MessageParser<ApproveUserDevicesResponse> _parser = new pb::MessageParser<ApproveUserDevicesResponse>(() => new ApproveUserDevicesResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<ApproveUserDevicesResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[19]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDevicesResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDevicesResponse(ApproveUserDevicesResponse other) : this() {
+      deviceResponses_ = other.deviceResponses_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ApproveUserDevicesResponse Clone() {
+      return new ApproveUserDevicesResponse(this);
+    }
+
+    /// <summary>Field number for the "deviceResponses" field.</summary>
+    public const int DeviceResponsesFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Enterprise.ApproveUserDeviceResponse> _repeated_deviceResponses_codec
+        = pb::FieldCodec.ForMessage(10, global::Enterprise.ApproveUserDeviceResponse.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.ApproveUserDeviceResponse> deviceResponses_ = new pbc::RepeatedField<global::Enterprise.ApproveUserDeviceResponse>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Enterprise.ApproveUserDeviceResponse> DeviceResponses {
+      get { return deviceResponses_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as ApproveUserDevicesResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(ApproveUserDevicesResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!deviceResponses_.Equals(other.deviceResponses_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= deviceResponses_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      deviceResponses_.WriteTo(output, _repeated_deviceResponses_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += deviceResponses_.CalculateSize(_repeated_deviceResponses_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(ApproveUserDevicesResponse other) {
+      if (other == null) {
+        return;
+      }
+      deviceResponses_.Add(other.deviceResponses_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            deviceResponses_.AddEntriesFrom(input, _repeated_deviceResponses_codec);
             break;
           }
         }

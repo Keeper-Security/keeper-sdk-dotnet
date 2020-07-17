@@ -101,13 +101,18 @@ namespace KeeperSecurity.Sdk.UI
         Task<string> GetNewPassword(PasswordRuleMatcher matcher);
     }
 
-    public delegate Task<bool> DeviceApprovalPushActionDelegate(TwoFactorDuration duration);
+    public interface IDeviceApprovalDuration
+    {
+        TwoFactorDuration Duration { get; set; }
+    }
+
+    public delegate Task DeviceApprovalPushActionDelegate();
     public interface IDeviceApprovalPushInfo : IDeviceApprovalChannelInfo
     {
         DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; }
     }
 
-    public delegate Task<bool> DeviceApprovalOtpDelegate(string code, TwoFactorDuration duration);
+    public delegate Task DeviceApprovalOtpDelegate(string code);
     public interface IDeviceApprovalOtpInfo : IDeviceApprovalChannelInfo
     {
         DeviceApprovalOtpDelegate InvokeDeviceApprovalOtpAction { get; }

@@ -125,11 +125,10 @@ namespace Commander
         }
 
         private string _currentFolder;
-
         private bool NotificationCallback(NotificationEvent evt)
         {
             _vault.OnNotificationReceived(evt);
-            if (string.Compare(evt.notificationEvent, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) == 0)
+            if (string.Compare(evt.Event, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) == 0)
             {
                 _accountSummary = null;
                 if (!string.IsNullOrEmpty(evt.encryptedDeviceToken))
@@ -556,6 +555,8 @@ namespace Commander
                 return;
             }
 
+            var availableVerbs = new[] {"rename", "register", "persistent_login", "timeout"};
+
             switch (arguments.Command)
             {
                 case null:
@@ -563,6 +564,8 @@ namespace Commander
                     Console.WriteLine("{0, 16}: {1}", "Device Name", device.DeviceName);
                     Console.WriteLine("{0, 16}: {1}", "Client Version", device.ClientVersion);
                     Console.WriteLine("{0, 16}: {1}", "Has Data Key", device.EncryptedDataKey.Length > 0);
+                    Console.WriteLine();
+                    Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
                     break;
 
                 case "rename":
@@ -598,11 +601,36 @@ namespace Commander
                 }
                 break;
 
+                case "persistent_login":
+                {
+                    bool? enabled;
+                    if (string.Compare(arguments.Parameter, "on", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    {
+                        enabled = true;
+                    }
+                    else if (string.Compare(arguments.Parameter, "off", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    {
+                        enabled = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"\"{arguments.Command}\" accepts the following parameters: on, off");
+                        return;
+                    }
+                    var rq = new UserSettingRequest
+                    {
+                        Setting = "persistent_login",
+                        Value = enabled.Value ? "1" : "0"
+                    };
+                    await _auth.ExecuteAuthRest("setting/set_user_setting", rq);
+                }
+                break;
+
                 case "timeout":
                 {
                     if (string.IsNullOrEmpty(arguments.Parameter))
                     {
-                        Console.WriteLine($"{arguments.Command}: requires timeout in minutes parameter.");
+                        Console.WriteLine($"\"{arguments.Command}\" requires timeout in minutes parameter.");
                     }
                     else
                     {
@@ -610,7 +638,7 @@ namespace Commander
                         {
                             var rq = new UserSettingRequest
                             {
-                                Setting = "session_logout_timer_desktop",
+                                Setting = "logout_timer",
                                 Value = $"{timeout}"
                             };
 
@@ -623,6 +651,12 @@ namespace Commander
                     }
                 }
                     break;
+
+                default:
+                {
+                    Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
+                }
+                break;
             }
         }
 
@@ -709,7 +743,6 @@ namespace Commander
                 {
                     var deviceApprove = new ApproveDeviceRequest
                     {
-                        AccountUid = ByteString.CopyFrom(contextV3.AccountUid),
                         EncryptedDeviceToken = device.EncryptedDeviceToken,
                         DenyApproval = isDecline
                     };

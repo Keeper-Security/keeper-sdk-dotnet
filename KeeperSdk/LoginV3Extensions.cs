@@ -11,6 +11,7 @@ using Google.Protobuf;
 using KeeperSecurity.Sdk.UI;
 using Org.BouncyCastle.Crypto.Parameters;
 using Push;
+using SsoCloud;
 using TwoFactorChannel = KeeperSecurity.Sdk.UI.TwoFactorChannel;
 
 namespace KeeperSecurity.Sdk
@@ -607,71 +608,62 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        private static DeviceApprovalPushActionDelegate GetDeviceApprovePushAction(
+        private static async Task ExecuteDeviceApprovePushAction(
             this IAuth auth,
             TwoFactorPushType type,
-            ByteString loginToken)
+            ByteString loginToken,
+            TwoFactorExpiration expiration = TwoFactorExpiration.TwoFaExpImmediately)
         {
-            return async (duration) =>
+            var request = new TwoFactorSendPushRequest
             {
-                var request = new TwoFactorSendPushRequest
-                {
-                    EncryptedLoginToken = loginToken,
-                    PushType = type,
-                    ExpireIn = SdkExpirationToKeeper(duration),
-                };
-                try
-                {
-                    await auth.ExecutePushAction(request);
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e);
-                    return false;
-                }
+                EncryptedLoginToken = loginToken,
+                PushType = type,
+                ExpireIn = expiration
             };
+            try
+            {
+                await auth.ExecutePushAction(request);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
         }
 
-        private static DeviceApprovalOtpDelegate GetDeviceApproveOtpAction(
+        private static async Task ExecuteDeviceApproveOtpAction(
             this AuthV3 auth,
             TwoFactorValueType type,
-            ByteString loginToken)
+            ByteString loginToken,
+            string otp,
+            TwoFactorExpiration expiration = TwoFactorExpiration.TwoFaExpImmediately)
         {
-            return async (otp, duration) =>
+            var request = new TwoFactorValidateRequest
             {
-                var request = new TwoFactorValidateRequest
-                {
-                    EncryptedLoginToken = loginToken,
-                    ValueType = type,
-                    Value = otp,
-                    ExpireIn = SdkExpirationToKeeper(duration),
-                };
-                try
-                {
-                    var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
-                    var resumeToken = validateRs.EncryptedLoginToken.ToByteArray();
-                    var notification = new NotificationEvent
-                    {
-                        notificationEvent = "received_totp",
-                        encryptedLoginToken = resumeToken.Base64UrlEncode(),
-                    };
-                    var wssRs = new WssClientResponse
-                    {
-                        MessageType = MessageType.Dna,
-                        Message = Encoding.UTF8.GetString(JsonUtils.DumpJson(notification)),
-                    };
-                    ;
-                    auth.WebSocketChannel.Push(wssRs);
-
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e);
-                    return false;
-                }
+                EncryptedLoginToken = loginToken,
+                ValueType = type,
+                Value = otp,
+                ExpireIn = expiration
             };
+            try
+            {
+                var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
+                var resumeToken = validateRs.EncryptedLoginToken.ToByteArray();
+                var notification = new NotificationEvent
+                {
+                    Event = "received_totp",
+                    encryptedLoginToken = resumeToken.Base64UrlEncode(),
+                };
+                var wssRs = new WssClientResponse
+                {
+                    MessageType = MessageType.Dna,
+                    Message = Encoding.UTF8.GetString(JsonUtils.DumpJson(notification)),
+                };
+                auth.WebSocketChannel.Push(wssRs);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
         }
 
         private static async Task<AuthContextV3> ApproveDevice(this AuthV3 auth, ByteString loginToken)
@@ -680,52 +672,52 @@ namespace KeeperSecurity.Sdk
             var loginTokenTaskSource = new TaskCompletionSource<bool>();
             IDeviceApprovalChannelInfo email = new DeviceApprovalEmailResend
             {
-                InvokeDeviceApprovalPushAction = async (duration) =>
+                InvokeDeviceApprovalPushAction = async () =>
                 {
                     try
                     {
                         await auth.RequestDeviceVerification("email");
-                        return true;
                     }
                     catch (Exception e)
                     {
                         Debug.WriteLine(e);
-                        return false;
                     }
                 },
-                InvokeDeviceApprovalOtpAction = async (code, duration) =>
+                InvokeDeviceApprovalOtpAction = async (code) =>
                 {
                     try
                     {
-
                         await auth.ValidateDeviceVerificationCode(code);
-                        return true;
                     }
                     catch (Exception e)
                     {
                         Debug.WriteLine(e);
-                        return false;
                     }
                 }
                 
             };
             IDeviceApprovalChannelInfo push = new DeviceApprovalKeeperPushAction
             {
-                InvokeDeviceApprovalPushAction =
-                    auth.GetDeviceApprovePushAction(TwoFactorPushType.TwoFaPushKeeper, loginToken)
+                InvokeDeviceApprovalPushAction = async () =>
+                {
+                    await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushKeeper, loginToken);
+                }
             };
-            IDeviceApprovalChannelInfo otp = new DeviceApprovalTwoFactorAuth
+            var otp = new DeviceApprovalTwoFactorAuth();
+            otp.InvokeDeviceApprovalPushAction = async () =>
             {
-                InvokeDeviceApprovalPushAction =
-                    auth.GetDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken),
-                InvokeDeviceApprovalOtpAction = auth.GetDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken)
+                await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken, SdkExpirationToKeeper(otp.Duration));
+            };
+            otp.InvokeDeviceApprovalOtpAction = async (oneTimePassword) =>
+            {
+                await auth.ExecuteDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken, oneTimePassword, SdkExpirationToKeeper(otp.Duration));
             };
 
             bool NotificationCallback(WssClientResponse rs)
             {
                 if (loginTokenTaskSource.Task.IsCompleted) return true;
                 var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
-                if (string.CompareOrdinal(message.notificationEvent, "received_totp") == 0)
+                if (string.CompareOrdinal(message.Event, "received_totp") == 0)
                 {
                     if (!string.IsNullOrEmpty(message.encryptedLoginToken))
                     {
@@ -736,13 +728,13 @@ namespace KeeperSecurity.Sdk
                     return true;
                 }
 
-                if (string.CompareOrdinal(message.message, "device_approved") == 0)
+                if (string.CompareOrdinal(message.Message, "device_approved") == 0)
                 {
-                    loginTokenTaskSource.TrySetResult(message.approved);
+                    loginTokenTaskSource.TrySetResult(message.Approved);
                     return true;
                 }
 
-                if (string.CompareOrdinal(message.command, "device_verified") == 0)
+                if (string.CompareOrdinal(message.Command, "device_verified") == 0)
                 {
                     loginTokenTaskSource.TrySetResult(true);
                     return true;
@@ -941,7 +933,7 @@ namespace KeeperSecurity.Sdk
                 {
                     if (loginTaskSource.Task.IsCompleted) return true;
                     var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
-                    if (message.notificationEvent != "received_totp") return false;
+                    if (message.Event != "received_totp") return false;
                     if (string.IsNullOrEmpty(message.encryptedLoginToken)) return false;
                     resumeWithToken = ByteString.CopyFrom(message.encryptedLoginToken.Base64UrlDecode());
                     loginTaskSource.TrySetResult(true);
@@ -1104,7 +1096,7 @@ namespace KeeperSecurity.Sdk
                     if (!string.IsNullOrEmpty(token.NewPassword))
                     {
                         var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.NewPassword.Base64UrlDecode(), pk));
-                        auth.PasswordQueue.Enqueue(token.NewPassword);
+                        auth.PasswordQueue.Enqueue(password);
                     }
 
                     return await auth.ResumeLogin(response.EncryptedLoginToken, LoginMethod.AfterSso);
@@ -1118,11 +1110,18 @@ namespace KeeperSecurity.Sdk
         {
             if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
             {
+                var rq = new SsoCloudRequest
+                {
+                    ClientVersion = auth.Endpoint.ClientVersion,
+                    MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
+                    Embedded = true,
+                    ForceLogin = false
+                };
+                var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+                var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);
+
                 var queryString = System.Web.HttpUtility.ParseQueryString("");
-                queryString.Add("message_session_uid", auth.MessageSessionUid.Base64UrlEncode());
-                queryString.Add("client_version_id", auth.Endpoint.ClientVersion);
-                CryptoUtils.GenerateRsaKey(out _, out var publicKey);
-                queryString.Add("key", publicKey.Base64UrlEncode());
+                queryString.Add("payload", apiRequest.ToByteArray().Base64UrlEncode());
                 var builder = new UriBuilder(new Uri(response.Url))
                 {
                     Query = queryString.ToString()
@@ -1142,11 +1141,10 @@ namespace KeeperSecurity.Sdk
                         throw new KeeperCanceled();
                     }
 
-                    var token = JsonUtils.ParseJson<SsoToken>(Encoding.UTF8.GetBytes(tokenTask.Result));
-                    if (!string.IsNullOrEmpty(token.LoginToken))
-                    {
-                        return await auth.ResumeLogin(ByteString.CopyFrom(token.LoginToken.Base64UrlDecode()));
-                    }
+                    var rsBytes = tokenTask.Result.Base64UrlDecode();
+                    rsBytes = CryptoUtils.DecryptAesV2(rsBytes, transmissionKey);
+                    var rs = SsoCloudResponse.Parser.ParseFrom(rsBytes);
+                    return await auth.ResumeLogin(rs.EncryptedLoginToken, LoginMethod.AfterSso);
                 }
             }
 
@@ -1183,6 +1181,23 @@ namespace KeeperSecurity.Sdk
             return await auth.ResumeLogin(loginToken);
         }
 
+        internal static async Task RequestDeviceAdminApproval(this AuthV3 auth)
+        {
+            var request = new DeviceVerificationRequest
+            {
+                Username = auth.Username,
+                ClientVersion = auth.Endpoint.ClientVersion,
+                MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
+                EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+            };
+#if DEBUG
+            Debug.WriteLine($"REST Request: endpoint \"request_device_admin_approval\": {request}");
+#endif
+            await auth.Endpoint.ExecuteRest("authentication/request_device_admin_approval",
+                new ApiRequestPayload { Payload = request.ToByteString() });
+        }
+
+
         internal static async Task<AuthContextV3> RequestDataKey(this AuthV3 auth, ByteString loginToken)
         {
             if (!(auth.Ui is IAuthSsoUI ssoUi)) throw new KeeperCanceled();
@@ -1190,7 +1205,7 @@ namespace KeeperSecurity.Sdk
             var completeToken = new CancellationTokenSource();
             var completeTask = new TaskCompletionSource<bool>();
 
-            var pushChannel = new GetDataKeyKeeperPushActionInfo
+            var pushChannel = new GetDataKeyActionInfo(DataKeyShareChannel.KeeperPush)
             {
                 InvokeGetDataKeyAction = async () =>
                 {
@@ -1203,16 +1218,24 @@ namespace KeeperSecurity.Sdk
                 }
             };
 
+            var adminChannel = new GetDataKeyActionInfo(DataKeyShareChannel.AdminApproval)
+            {
+                InvokeGetDataKeyAction = async () =>
+                {
+                    await auth.RequestDeviceAdminApproval();
+                }
+            };
+
             bool ProcessDataKeyRequest(WssClientResponse wssRs)
             {
                 if (completeTask.Task.IsCompleted) return true;
                 var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(wssRs.Message));
-                if (string.CompareOrdinal(message.message, "device_approved") == 0)
+                if (string.CompareOrdinal(message.Message, "device_approved") == 0)
                 {
-                    completeTask.TrySetResult(message.approved);
+                    completeTask.TrySetResult(message.Approved);
                     return true;
                 }
-                if (string.CompareOrdinal(message.command, "device_verified") == 0)
+                if (string.CompareOrdinal(message.Command, "device_verified") == 0)
                 {
                     completeTask.TrySetResult(true);
                     return true;

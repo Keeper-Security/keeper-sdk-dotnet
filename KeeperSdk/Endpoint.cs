@@ -112,6 +112,7 @@ namespace KeeperSecurity.Sdk
         Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload);
         Task<KeeperApiResponse> ExecuteV2Command(KeeperApiCommand command, Type responseType);
         Task<IWebSocketChannel> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token);
+        ApiRequest PrepareApiRequest(IMessage request, byte[] transmissionKey, byte[] sessionToken = null);
     }
 
     public static class KeeperEndpointUtils
@@ -149,24 +150,38 @@ namespace KeeperSecurity.Sdk
             return "push.services." + (Server ?? DefaultKeeperServer);
         }
 
-        public async Task<IWebSocketChannel> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token)
+
+        public ApiRequest PrepareApiRequest(IMessage request, byte[] transmissionKey, byte[] sessionToken = null)
         {
-            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+            if (transmissionKey == null)
+            {
+                transmissionKey = _transmissionKey;
+            }
+
             var payload = new ApiRequestPayload
             {
                 ApiVersion = 3,
-                Payload = connectionRequest.ToByteString()
+                Payload = request.ToByteString()
             };
+            if (sessionToken != null)
+            {
+                payload.EncryptedSessionToken = ByteString.CopyFrom(sessionToken);
+            }
             var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
             var encKey = CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperPublicKeys[ServerKeyId]);
-            var apiRequest = new ApiRequest()
+            return new ApiRequest()
             {
                 EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
                 PublicKeyId = ServerKeyId,
                 Locale = Locale,
                 EncryptedPayload = ByteString.CopyFrom(encPayload)
             };
+        }
 
+        public async Task<IWebSocketChannel> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token)
+        {
+            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+            var apiRequest = PrepareApiRequest(connectionRequest, transmissionKey);
             var builder = new UriBuilder
             {
                 Scheme = "wss",

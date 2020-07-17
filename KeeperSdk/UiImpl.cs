@@ -4,11 +4,11 @@ using System.Collections.Generic;
 namespace KeeperSecurity.Sdk.UI
 {
 
-    public class GetDataKeyKeeperPushActionInfo : IGetDataKeyActionInfo
+    public class GetDataKeyActionInfo : IGetDataKeyActionInfo
     {
-        public GetDataKeyKeeperPushActionInfo()
+        public GetDataKeyActionInfo(DataKeyShareChannel channel)
         {
-            Channel = DataKeyShareChannel.KeeperPush;
+            Channel = channel;
         }
 
         public DataKeyShareChannel Channel { get; }
@@ -40,9 +40,10 @@ namespace KeeperSecurity.Sdk.UI
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
     }
 
-    public class DeviceApprovalTwoFactorAuth : IDeviceApprovalPushInfo, IDeviceApprovalOtpInfo
+    public class DeviceApprovalTwoFactorAuth : IDeviceApprovalPushInfo, IDeviceApprovalOtpInfo, IDeviceApprovalDuration
     {
         public DeviceApprovalChannel Channel { get; }
+        public TwoFactorDuration Duration { get; set; }
 
         public DeviceApprovalTwoFactorAuth()
         {

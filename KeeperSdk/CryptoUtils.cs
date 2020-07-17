@@ -77,6 +77,7 @@ namespace KeeperSecurity.Sdk
             var base64 = text
                 .Replace("-", "+")
                 .Replace("_", "/")
+                .Replace("=", "")
                 .Replace("\r", "")
                 .Replace("\n", "");
             base64 = base64.PadRight(base64.Length + (4 - base64.Length % 4) % 4, '=');
