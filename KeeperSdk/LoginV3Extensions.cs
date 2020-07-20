@@ -894,15 +894,30 @@ namespace KeeperSecurity.Sdk
                         break;
 
                     case TwoFactorChannelType.TwoFaCtDuo:
-                        availableChannels.Add(new TwoFactorDuoChannel
+                        var duoTfa = new TwoFactorDuoChannel
                         {
-                            SupportedActions = new[]
-                            {
-                                TwoFactorPushAction.DuoPush,
-                                TwoFactorPushAction.DuoTextMessage, TwoFactorPushAction.DuoVoiceCall
-                            },
-                            InvokeTwoFactorPushAction = GetActionDelegate(auth, ch, loginToken)
-                        });
+                            InvokeTwoFactorPushAction = GetActionDelegate(auth, ch, loginToken),
+                            SupportedActions = (ch.Capabilities ?? Enumerable.Empty<string>())
+                                .Select<string, TwoFactorPushAction?>(x =>
+                                {
+                                    switch (x)
+                                    {
+                                        case "push":
+                                            return TwoFactorPushAction.DuoPush;
+                                        case "sms":
+                                            return TwoFactorPushAction.DuoTextMessage;
+                                        case "phone":
+                                            return TwoFactorPushAction.DuoVoiceCall;
+                                    }
+
+                                    return null;
+                                })
+                                .Where(x => x.HasValue)
+                                .Select(x => x.Value)
+                                .ToArray()
+                        };
+
+                        availableChannels.Add(duoTfa);
                         break;
 
                     case TwoFactorChannelType.TwoFaCtKeeper:

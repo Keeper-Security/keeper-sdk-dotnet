@@ -617,12 +617,7 @@ namespace Commander
                         Console.WriteLine($"\"{arguments.Command}\" accepts the following parameters: on, off");
                         return;
                     }
-                    var rq = new UserSettingRequest
-                    {
-                        Setting = "persistent_login",
-                        Value = enabled.Value ? "1" : "0"
-                    };
-                    await _auth.ExecuteAuthRest("setting/set_user_setting", rq);
+                    await _auth.SetSessionPersistentLogin(enabled.Value);
                 }
                 break;
 
@@ -636,13 +631,7 @@ namespace Commander
                     {
                         if (int.TryParse(arguments.Parameter, out var timeout))
                         {
-                            var rq = new UserSettingRequest
-                            {
-                                Setting = "logout_timer",
-                                Value = $"{timeout}"
-                            };
-
-                            await _auth.ExecuteAuthRest("setting/set_user_setting", rq);
+                            await _auth.SetSessionInactivityTimeout(timeout);
                         }
                         else
                         {
