@@ -494,8 +494,8 @@ namespace Tests
                                     AcceptDeviceVerificationRequest(loginToken.Username, loginToken.DeviceToken);
                                     var evt = new NotificationEvent
                                     {
-                                        approved = true,
-                                        message = "device_approved"
+                                        Approved = true,
+                                        Message = "device_approved"
                                     };
                                     webSocket.Push(new WssClientResponse
                                     {

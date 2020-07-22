@@ -25,13 +25,16 @@ namespace Commander
 
         private static IntPtr ConsoleHwnd;
 
-        private static void Main()
+        private static async Task Main()
         {
-            Console.CancelKeyPress += (s, e) => { Environment.Exit(1); };
+            Console.CancelKeyPress += (s, e) =>
+            {
+                e.Cancel = true;
+            };
             Welcome();
             ConsoleHwnd = GetForegroundWindow();
 
-            MainLoop().GetAwaiter().GetResult();
+            await MainLoop();
 
             Console.WriteLine("Good Bye");
         }
@@ -77,6 +80,11 @@ namespace Commander
                 }
                 else
                 {
+                    if (Console.CursorLeft != 0)
+                    {
+                        Console.WriteLine();
+                    }
+
                     Console.Write(cliContext.StateContext.GetPrompt() + "> ");
                     command = Console.ReadLine();
                 }
@@ -132,7 +140,7 @@ namespace Commander
                     foreach (var c in (cliContext.Commands.Concat(cliContext.StateContext.Commands))
                         .OrderBy(x => x.Value.Order))
                     {
-                        Console.WriteLine("    " + c.Key.PadRight(16) + c.Value.Description);
+                        Console.WriteLine("    " + c.Key.PadRight(24) + c.Value.Description);
                     }
                 }
 
@@ -457,7 +465,7 @@ namespace Commander
                         .ToArray();
                     Console.WriteLine("Available durations are: " + string.Join(", ", dur));
 
-                    Console.WriteLine("<Enter> to resume\n\"q\" to cancel\n");
+                    Console.WriteLine("<Enter> to resume\n\"cancel\" to cancel\n");
 
                     var duration = TwoFactorDuration.EveryLogin;
 
@@ -471,7 +479,7 @@ namespace Commander
                             break;
                         }
                         
-                        if (string.Compare(answer, "q", StringComparison.InvariantCultureIgnoreCase) == 0)
+                        if (string.Compare(answer, "cancel", StringComparison.InvariantCultureIgnoreCase) == 0)
                         {
                             deviceApprovalTask.SetResult(false);
                             return;
@@ -618,8 +626,9 @@ namespace Commander
                         .Where(x => !string.IsNullOrEmpty(x))
                         .ToArray();
 
-                    Console.WriteLine($"Type {string.Join(", ", actions.Select(x => $"\"{x}\""))} to request data key");
-                    Console.WriteLine("or \"cancel\" to stop waiting.");
+                    Console.WriteLine("\nRequest Data Key\n");
+                    Console.WriteLine($"{string.Join("\n", actions.Select(x => $"\"{x}\""))}");
+                    Console.WriteLine("\"cancel\" to stop waiting.");
                     var reg = token.Register(CompleteReadLine);
                     while (true)
                     {

@@ -12,7 +12,7 @@ using KeeperSecurity.Sdk;
 
 namespace Commander
 {
-    public class ConnectedContext : StateContext
+    public partial class ConnectedContext : StateContext
     {
         private readonly Vault _vault;
         private readonly Auth _auth;
@@ -23,6 +23,7 @@ namespace Commander
             _auth = auth;
             _vault = new Vault(_auth);
             SubscribeToNotifications();
+            CheckIfEnterpriseAdmin();
             Task.Run(async () =>
             {
                 try
@@ -34,94 +35,98 @@ namespace Commander
                     Debug.WriteLine(e.Message);
                 }
             });
-            Commands.Add("list", new ParsableCommand<ListCommandOptions>
-            {
-                Order = 10,
-                Description = "List folder content",
-                Action = ListCommand
-            });
 
-            Commands.Add("cd", new SimpleCommand
+            lock (Commands)
             {
-                Order = 11,
-                Description = "Change current folder",
-                Action = ChangeDirectoryCommand
-            });
-
-            Commands.Add("tree", new ParsableCommand<TreeCommandOptions>
-            {
-                Order = 12,
-                Description = "Display folder structure",
-                Action = TreeCommand
-            });
-
-            Commands.Add("get", new SimpleCommand
-            {
-                Order = 13,
-                Description = "Display specified Keeper record/folder/team",
-                Action = GetCommand
-            });
-
-            Commands.Add("add-record", new ParsableCommand<AddRecordOptions>
-            {
-                Order = 20,
-                Description = "Add record",
-                Action = AddRecordCommand
-            });
-
-            Commands.Add("update-record", new ParsableCommand<UpdateRecordOptions>
-            {
-                Order = 21,
-                Description = "Update record",
-                Action = UpdateRecordCommand
-            });
-
-            Commands.Add("list-sf", new SimpleCommand
-            {
-                Order = 22,
-                Description = "List shared folders",
-                Action = ListSharedFoldersCommand
-            });
-
-            Commands.Add("sync-down", new SimpleCommand
-            {
-                Order = 100,
-                Description = "Download & decrypt data",
-                Action = async _ =>
+                Commands.Add("list", new ParsableCommand<ListCommandOptions>
                 {
-                    Console.WriteLine("Syncing...");
-                    await _vault.SyncDown();
+                    Order = 10,
+                    Description = "List folder content",
+                    Action = ListCommand
+                });
+
+                Commands.Add("cd", new SimpleCommand
+                {
+                    Order = 11,
+                    Description = "Change current folder",
+                    Action = ChangeDirectoryCommand
+                });
+
+                Commands.Add("tree", new ParsableCommand<TreeCommandOptions>
+                {
+                    Order = 12,
+                    Description = "Display folder structure",
+                    Action = TreeCommand
+                });
+
+                Commands.Add("get", new SimpleCommand
+                {
+                    Order = 13,
+                    Description = "Display specified Keeper record/folder/team",
+                    Action = GetCommand
+                });
+
+                Commands.Add("add-record", new ParsableCommand<AddRecordOptions>
+                {
+                    Order = 20,
+                    Description = "Add record",
+                    Action = AddRecordCommand
+                });
+
+                Commands.Add("update-record", new ParsableCommand<UpdateRecordOptions>
+                {
+                    Order = 21,
+                    Description = "Update record",
+                    Action = UpdateRecordCommand
+                });
+
+                Commands.Add("list-sf", new SimpleCommand
+                {
+                    Order = 22,
+                    Description = "List shared folders",
+                    Action = ListSharedFoldersCommand
+                });
+
+                if (_auth.AuthContext is AuthContextV3)
+                {
+                    Commands.Add("devices", new ParsableCommand<OtherDevicesOptions>
+                    {
+                        Order = 50,
+                        Description = "Devices (other than current) commands",
+                        Action = DeviceCommand,
+                    });
+
+                    Commands.Add("this-device", new ParsableCommand<ThisDeviceOptions>
+                    {
+                        Order = 51,
+                        Description = "Current device command",
+                        Action = ThisDeviceCommand,
+                    });
                 }
-            });
 
-            if (_auth.AuthContext is AuthContextV3)
-            {
-                Commands.Add("devices", new ParsableCommand<OtherDevicesOptions>
+                Commands.Add("sync-down", new SimpleCommand
                 {
-                    Order = 50,
-                    Description = "Devices (other than current) commands",
-                    Action = DeviceCommand,
+                    Order = 100,
+                    Description = "Download & decrypt data",
+                    Action = async _ =>
+                    {
+                        Console.WriteLine("Syncing...");
+                        await _vault.SyncDown();
+                    }
                 });
 
-                Commands.Add("this-device", new ParsableCommand<ThisDeviceOptions>
+                Commands.Add("logout", new SimpleCommand
                 {
-                    Order = 51,
-                    Description = "Current device command",
-                    Action = ThisDeviceCommand,
+                    Order = 200,
+                    Description = "Logout",
+                    Action = LogoutCommand,
                 });
+
+                CommandAliases.Add("ls", "list");
+                CommandAliases.Add("d", "sync-down");
+                CommandAliases.Add("add", "add-record");
+                CommandAliases.Add("upd", "update-record");
             }
-
-            Commands.Add("logout", new SimpleCommand
-            {
-                Order = 200,
-                Description = "Logout",
-                Action = LogoutCommand,
-            });
-
-            CommandAliases.Add("ls", "list");
-            CommandAliases.Add("d", "sync-down");
-            CommandAliases.Add("add", "add-record");
-            CommandAliases.Add("upd", "update-record");
         }
 
         private string _currentFolder;
@@ -131,9 +136,9 @@ namespace Commander
             if (string.Compare(evt.Event, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) == 0)
             {
                 _accountSummary = null;
-                if (!string.IsNullOrEmpty(evt.encryptedDeviceToken))
+                if (!string.IsNullOrEmpty(evt.EncryptedDeviceToken))
                 {
-                    Console.WriteLine($"New notification arrived for Device ID: {TokenToString(evt.encryptedDeviceToken.Base64UrlDecode())}");
+                    Console.WriteLine($"New notification arrived for Device ID: {TokenToString(evt.EncryptedDeviceToken.Base64UrlDecode())}");
                 }
                 else
                 {
@@ -152,6 +157,7 @@ namespace Commander
         private void UnsubscribeFromNotifications()
         {
             _auth.AuthContext?.PushNotifications.RemoveCallback(NotificationCallback);
+            _auth.AuthContext?.PushNotifications.RemoveCallback(EnterpriseNotificationCallback);
         }
 
         private async Task LogoutCommand(string _)
@@ -540,7 +546,7 @@ namespace Commander
 
         private async Task ThisDeviceCommand(ThisDeviceOptions arguments)
         {
-            if (!(_auth.AuthContext is AuthContextV3 contextV3)) return;
+            if (!(_auth.AuthContext is AuthContextV3)) return;
 
             if (_accountSummary == null)
             {
@@ -560,13 +566,21 @@ namespace Commander
             switch (arguments.Command)
             {
                 case null:
+                {
                     Console.WriteLine();
                     Console.WriteLine("{0, 16}: {1}", "Device Name", device.DeviceName);
                     Console.WriteLine("{0, 16}: {1}", "Client Version", device.ClientVersion);
                     Console.WriteLine("{0, 16}: {1}", "Has Data Key", device.EncryptedDataKey.Length > 0);
+                    var uc = _auth.Storage.Users.Get(_auth.AuthContext.Username);
+                    if (uc?.LastDevice?.LogoutTimer != null)
+                    {
+                        Console.WriteLine("{0, 16}: {1}", "Logout Timeout", uc.LastDevice.LogoutTimer);
+                    }
+
                     Console.WriteLine();
                     Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
-                    break;
+                }
+                break;
 
                 case "rename":
                     if (string.IsNullOrEmpty(arguments.Parameter))
@@ -632,6 +646,18 @@ namespace Commander
                         if (int.TryParse(arguments.Parameter, out var timeout))
                         {
                             await _auth.SetSessionInactivityTimeout(timeout);
+                            var uc = _auth.Storage.Users.Get(_auth.AuthContext.Username);
+                            if (uc?.LastDevice != null && uc.LastDevice.LogoutTimer != timeout)
+                            {
+                                var userConf = new UserConfiguration(uc)
+                                {
+                                    LastDevice = new UserDeviceConfiguration(uc.LastDevice)
+                                    {
+                                        LogoutTimer = timeout
+                                    }
+                                };
+                                _auth.Storage.Users.Put(userConf);
+                            }
                         }
                         else
                         {

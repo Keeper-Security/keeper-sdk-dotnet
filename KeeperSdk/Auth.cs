@@ -20,6 +20,8 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using AccountSummary;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Type = System.Type;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Tests")]
 
@@ -395,18 +397,26 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "passcode")]
         public string Passcode { get; set; }
 
-        [DataMember(Name = "pt")]
-        public string Pt
+        [DataMember(Name = "deviceName")]
+        public string DeviceName
         {
             get => Passcode;
             set => Passcode = value;
         }
 
         [DataMember(Name = "encryptedLoginToken")]
-        public string encryptedLoginToken;
+        public string EncryptedLoginToken { get; set; }
 
         [DataMember(Name = "encryptedDeviceToken")]
-        public string encryptedDeviceToken;
+        public string EncryptedDeviceToken
+        {
+            get => EncryptedLoginToken;
+            set => EncryptedLoginToken = value;
+        }
+
+        [DataMember(Name = "ipAddress")]
+        public string IPAddress { get; set; }
+
     }
 #pragma warning restore 0649
 }

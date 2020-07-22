@@ -24,10 +24,6 @@ namespace Tests
         public void TestECDHAgreement()
         {
 
-            var txt = @"{""servers"": [""aaa"", ""bbb""]}";
-
-            var lll = JsonUtils.ParseJson<JsonList>(Encoding.UTF8.GetBytes(txt));
-
             var privKey = "HIIeyuuRkVGvhtax8mlX7fangaC6DKa2R8VAg5AAtBY";
             var pubKey ="BBbdHwhMWW6gTtUU1Qy6ICgFOMOMTJK5agJhPSWcsXBzh3WNprrZMTDzDcLmj3yfmJFVVeEdiccdPdBe1C1r6Ng";
 

@@ -598,9 +598,9 @@ namespace KeeperSecurity.Sdk
 
             var existingUser = auth.Storage.Users.Get(context.Username);
             if (existingUser == null || 
-                (!context.PersistTwoFactorToken && existingUser.DeviceToken?.Length > 0) ||
+                (!context.PersistTwoFactorToken && existingUser.TwoFactorToken?.Length > 0) ||
                 (context.PersistTwoFactorToken && 
-                    string.CompareOrdinal(existingUser.DeviceToken??"", context.TwoFactorToken??"") != 0))
+                    string.CompareOrdinal(existingUser.TwoFactorToken ?? "", context.TwoFactorToken??"") != 0))
             {
                 var uc = existingUser != null ? new UserConfiguration(existingUser) : new UserConfiguration(context.Username);
                 uc.TwoFactorToken = context.PersistTwoFactorToken ? context.TwoFactorToken : "";

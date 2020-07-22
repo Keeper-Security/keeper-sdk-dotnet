@@ -79,23 +79,24 @@ namespace SsoCloud {
             "ASgJEhkKEW1lc3NhZ2VTZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMgASgJ",
             "EhsKE2VuY3J5cHRlZExvZ2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJOYW1l",
             "GAUgASgJEhQKDGlkcFNlc3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRTZXNz",
-            "aW9uVG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSLMAQoOU2FtbFJl",
+            "aW9uVG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSLkAQoOU2FtbFJl",
             "bGF5U3RhdGUSGQoRbWVzc2FnZVNlc3Npb25VaWQYASABKAwSEAoIdXNlcm5h",
             "bWUYAiABKAkSEAoIZW1iZWRkZWQYAyABKAgSDAoEanNvbhgEIAEoCBIOCgZk",
             "ZXN0SWQYBSABKA0SDQoFa2V5SWQYBiABKAUSPAoRc3VwcG9ydGVkTGFuZ3Vh",
             "Z2UYByABKA4yIS5BdXRoZW50aWNhdGlvbi5TdXBwb3J0ZWRMYW5ndWFnZRIQ",
-            "CghjaGVja3N1bRgIIAEoBCodChBBdXRoUHJvdG9jb2xUeXBlEgkKBVNBTUwy",
-            "EAAq5wEKCERhdGFUeXBlEgcKA0FOWRAAEgsKB0JPT0xFQU4QARILCgdJTlRF",
-            "R0VSEAISCgoGU1RSSU5HEAMSCQoFQllURVMQBBIHCgNVUkwQBRIuCipjb21f",
-            "a2VlcGVyc2VjdXJpdHlfcHJvdG9fU3NvQ2xvdWRfRGF0YVR5cGUQBhI2CjJj",
-            "b21fa2VlcGVyc2VjdXJpdHlfcHJvdG9fU3NvQ2xvdWRfQXV0aFByb3RvY29s",
-            "VHlwZRAHEjAKLGNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9T",
-            "c29JZHBUeXBlEAgqUgocU3NvQ2xvdWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIH",
-            "CgNTRVQQABIHCgNHRVQQARIKCgZERUxFVEUQAhIUChBSRVNFVF9UT19ERUZB",
-            "VUxUEAMqaQoKU3NvSWRwVHlwZRINCglYWF9VTlVTRUQQABILCgdHRU5FUklD",
-            "EAESBgoCRjUQAhIKCgZHT09HTEUQAxIICgRPS1RBEAQSCAoEQURGUxAFEgkK",
-            "BUFaVVJFEAYSDAoIT05FTE9HSU4QB0IkChhjb20ua2VlcGVyc2VjdXJpdHku",
-            "cHJvdG9CCFNzb0Nsb3VkYgZwcm90bzM="));
+            "CghjaGVja3N1bRgIIAEoBBIWCg5pc0dlbmVyYXRlZFVpZBgJIAEoCCodChBB",
+            "dXRoUHJvdG9jb2xUeXBlEgkKBVNBTUwyEAAq5wEKCERhdGFUeXBlEgcKA0FO",
+            "WRAAEgsKB0JPT0xFQU4QARILCgdJTlRFR0VSEAISCgoGU1RSSU5HEAMSCQoF",
+            "QllURVMQBBIHCgNVUkwQBRIuCipjb21fa2VlcGVyc2VjdXJpdHlfcHJvdG9f",
+            "U3NvQ2xvdWRfRGF0YVR5cGUQBhI2CjJjb21fa2VlcGVyc2VjdXJpdHlfcHJv",
+            "dG9fU3NvQ2xvdWRfQXV0aFByb3RvY29sVHlwZRAHEjAKLGNvbV9rZWVwZXJz",
+            "ZWN1cml0eV9wcm90b19Tc29DbG91ZF9Tc29JZHBUeXBlEAgqUgocU3NvQ2xv",
+            "dWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIHCgNTRVQQABIHCgNHRVQQARIKCgZE",
+            "RUxFVEUQAhIUChBSRVNFVF9UT19ERUZBVUxUEAMqaQoKU3NvSWRwVHlwZRIN",
+            "CglYWF9VTlVTRUQQABILCgdHRU5FUklDEAESBgoCRjUQAhIKCgZHT09HTEUQ",
+            "AxIICgRPS1RBEAQSCAoEQURGUxAFEgkKBUFaVVJFEAYSDAoIT05FTE9HSU4Q",
+            "B0IkChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CCFNzb0Nsb3VkYgZwcm90",
+            "bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::SsoCloud.AuthProtocolType), typeof(global::SsoCloud.DataType), typeof(global::SsoCloud.SsoCloudSettingOperationType), typeof(global::SsoCloud.SsoIdpType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -118,7 +119,7 @@ namespace SsoCloud {
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudServiceProviderConfigurationListResponse), global::SsoCloud.SsoCloudServiceProviderConfigurationListResponse.Parser, new[]{ "ConfigurationItem" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudRequest), global::SsoCloud.SsoCloudRequest.Parser, new[]{ "MessageSessionUid", "ClientVersion", "Embedded", "Json", "Dest", "IdpSessionId", "ForceLogin", "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudResponse), global::SsoCloud.SsoCloudResponse.Parser, new[]{ "Command", "MessageSessionUid", "Email", "EncryptedLoginToken", "ProviderName", "IdpSessionId", "EncryptedSessionToken", "ErrorToken" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SamlRelayState), global::SsoCloud.SamlRelayState.Parser, new[]{ "MessageSessionUid", "Username", "Embedded", "Json", "DestId", "KeyId", "SupportedLanguage", "Checksum" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SamlRelayState), global::SsoCloud.SamlRelayState.Parser, new[]{ "MessageSessionUid", "Username", "Embedded", "Json", "DestId", "KeyId", "SupportedLanguage", "Checksum", "IsGeneratedUid" }, null, null, null, null)
           }));
     }
     #endregion
@@ -4377,6 +4378,7 @@ namespace SsoCloud {
       keyId_ = other.keyId_;
       supportedLanguage_ = other.supportedLanguage_;
       checksum_ = other.checksum_;
+      isGeneratedUid_ = other.isGeneratedUid_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4497,6 +4499,20 @@ namespace SsoCloud {
       }
     }
 
+    /// <summary>Field number for the "isGeneratedUid" field.</summary>
+    public const int IsGeneratedUidFieldNumber = 9;
+    private bool isGeneratedUid_;
+    /// <summary>
+    /// Used if the messageSessionUid was generated by Keeper rather than the client
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool IsGeneratedUid {
+      get { return isGeneratedUid_; }
+      set {
+        isGeneratedUid_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as SamlRelayState);
@@ -4518,6 +4534,7 @@ namespace SsoCloud {
       if (KeyId != other.KeyId) return false;
       if (SupportedLanguage != other.SupportedLanguage) return false;
       if (Checksum != other.Checksum) return false;
+      if (IsGeneratedUid != other.IsGeneratedUid) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -4532,6 +4549,7 @@ namespace SsoCloud {
       if (KeyId != 0) hash ^= KeyId.GetHashCode();
       if (SupportedLanguage != global::Authentication.SupportedLanguage.English) hash ^= SupportedLanguage.GetHashCode();
       if (Checksum != 0UL) hash ^= Checksum.GetHashCode();
+      if (IsGeneratedUid != false) hash ^= IsGeneratedUid.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -4577,6 +4595,10 @@ namespace SsoCloud {
         output.WriteRawTag(64);
         output.WriteUInt64(Checksum);
       }
+      if (IsGeneratedUid != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(IsGeneratedUid);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -4608,6 +4630,9 @@ namespace SsoCloud {
       }
       if (Checksum != 0UL) {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Checksum);
+      }
+      if (IsGeneratedUid != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -4643,6 +4668,9 @@ namespace SsoCloud {
       }
       if (other.Checksum != 0UL) {
         Checksum = other.Checksum;
+      }
+      if (other.IsGeneratedUid != false) {
+        IsGeneratedUid = other.IsGeneratedUid;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -4685,6 +4713,10 @@ namespace SsoCloud {
           }
           case 64: {
             Checksum = input.ReadUInt64();
+            break;
+          }
+          case 72: {
+            IsGeneratedUid = input.ReadBool();
             break;
           }
         }

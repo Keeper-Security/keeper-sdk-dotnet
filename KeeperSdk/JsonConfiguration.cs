@@ -16,7 +16,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Org.BouncyCastle.Crypto;
 
 namespace KeeperSecurity.Sdk
 {
@@ -110,17 +109,16 @@ namespace KeeperSecurity.Sdk
         {
             get
             {
-                var task = _storeConfigurationTask;
-                if (task != null && !task.IsCompleted) return _configuration;
-
-                var nowMillis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                if (nowMillis - _readEpochMillis > ReadTimeout)
-                {
-                    _configuration = null;
-                }
-
                 lock (this)
                 {
+                    if (_configuration != null && _storeConfigurationTask != null && !_storeConfigurationTask.IsCompleted) return _configuration;
+
+                    var nowMillis = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    if (nowMillis - _readEpochMillis > ReadTimeout)
+                    {
+                        _configuration = null;
+                    }
+
                     if (_configuration == null)
                     {
                         var jsonBytes = _loader.LoadJson();
@@ -151,14 +149,17 @@ namespace KeeperSecurity.Sdk
                                                     u.user_password = null;
                                                 }
 
-                                                try
+                                                if (u._last_device.resume_code != null)
                                                 {
-                                                    u.resumeCode = protector.Clarify(u.resumeCode);
-                                                }
-                                                catch (Exception e)
-                                                {
-                                                    Debug.WriteLine(e);
-                                                    u.resumeCode = null;
+                                                    try
+                                                    {
+                                                        u._last_device.resume_code = protector.Clarify(u._last_device.resume_code);
+                                                    }
+                                                    catch (Exception e)
+                                                    {
+                                                        Debug.WriteLine(e);
+                                                        u._last_device.resume_code = null;
+                                                    }
                                                 }
                                             }
                                         }
@@ -202,25 +203,31 @@ namespace KeeperSecurity.Sdk
         private Task _storeConfigurationTask;
         public void Save()
         {
-            var task = _storeConfigurationTask;
-            if (task != null && !task.IsCompleted) return;
-
-            _storeConfigurationTask = Task.Run(async () =>
+            lock (this)
             {
-                task = _storeConfigurationTask;
-                await Task.Delay(WriteTimeout);
-                if (task == _storeConfigurationTask)
+                if (_storeConfigurationTask != null && !_storeConfigurationTask.IsCompleted) return;
+
+                _storeConfigurationTask = Task.Run(async () =>
                 {
-                    Flush();
-                }
-            });
+                    await Task.Delay(WriteTimeout);
+                    if (_storeConfigurationTask != null)
+                    {
+                        Flush();
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Why?");
+                    }
+                });
+            }
         }
 
         public void Flush()
         {
-            _storeConfigurationTask = null;
             lock (this)
             {
+                _storeConfigurationTask = null;
+
                 if (_configuration == null) return;
                 var algorithm = SecurityAlgorithm ?? _configuration.security;
                 if (!SkipSecurity && StorageProtection != null && !string.IsNullOrEmpty(algorithm))
@@ -246,13 +253,27 @@ namespace KeeperSecurity.Sdk
 
                         foreach (var user in _configuration.users)
                         {
-                            if (string.IsNullOrEmpty(user.user_password) && string.IsNullOrEmpty(user.resumeCode)) continue;
+                            if (string.IsNullOrEmpty(user.user_password) && string.IsNullOrEmpty(user._last_device?.resume_code)) continue;
                             try
                             {
-                                var encryptedPassword = protector.Obscure(user.user_password);
-                                var encryptedCloneCode = protector.Obscure(user.resumeCode);
+                                string encryptedPassword = null;
+                                string encryptedResumeCode = null;
+                                if (!string.IsNullOrEmpty(user.user_password))
+                                {
+                                    encryptedPassword = protector.Obscure(user.user_password);
+                                }
+
+                                if (!string.IsNullOrEmpty(user._last_device?.resume_code))
+                                {
+                                    encryptedResumeCode = protector.Obscure(user._last_device.resume_code);
+                                }
+                                
                                 user.user_password = encryptedPassword;
-                                user.resumeCode = encryptedCloneCode;
+                                if (user._last_device != null)
+                                {
+                                    user._last_device.resume_code = encryptedResumeCode;
+                                }
+
                                 user.secured = true;
                             }
                             catch (Exception e)
@@ -378,6 +399,36 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
+    public class JsonUserDeviceConfiguration : IUserDeviceConfiguration, IEntityClone<IUserDeviceConfiguration>, IExtensibleDataObject
+    {
+        [DataMember(Name = "device_token", EmitDefaultValue = false)]
+        public string device_token;
+
+        [DataMember(Name = "resume_code", EmitDefaultValue = false)]
+        public string resume_code;
+
+        [DataMember(Name = "logout_timer", EmitDefaultValue = false)]
+        public int? logout_timer;
+
+        public ExtensionDataObject ExtensionData { get; set; }
+
+        void IEntityClone<IUserDeviceConfiguration>.CloneFrom(IUserDeviceConfiguration userDevConf)
+        {
+            if (string.IsNullOrEmpty(device_token))
+            {
+                device_token = userDevConf.DeviceToken;
+            }
+            resume_code = userDevConf.ResumeCode;
+            logout_timer = userDevConf.LogoutTimer;
+        }
+
+        string IUserDeviceConfiguration.DeviceToken => device_token;
+        string IUserDeviceConfiguration.ResumeCode => resume_code;
+        int? IUserDeviceConfiguration.LogoutTimer => logout_timer;
+    }
+
+
+    [DataContract]
     public class JsonUserConfiguration : IUserConfiguration, IEntityClone<IUserConfiguration>, IExtensibleDataObject
     {
         [DataMember(Name = "user", EmitDefaultValue = false)]
@@ -389,16 +440,13 @@ namespace KeeperSecurity.Sdk
         //#pragma warning restore 0649
 
         [DataMember(Name = "mfa_token", EmitDefaultValue = false)]
-        public string mfaToken;
+        public string _mfa_token;
 
         [DataMember(Name = "server", EmitDefaultValue = false)]
         public string _server;
 
         [DataMember(Name = "last_device", EmitDefaultValue = false)]
-        public string _lastDevice;
-
-        [DataMember(Name = "resume_code", EmitDefaultValue = false)]
-        public string resumeCode;
+        public JsonUserDeviceConfiguration _last_device;
 
         [DataMember(Name = "secured", EmitDefaultValue = false)]
         public bool? secured;
@@ -411,18 +459,25 @@ namespace KeeperSecurity.Sdk
             {
                 user = userConf.Username;
             }
-            mfaToken = userConf.TwoFactorToken;
+
+            _last_device = userConf.LastDevice != null
+                ? new JsonUserDeviceConfiguration
+                {
+                    device_token = userConf.LastDevice.DeviceToken,
+                    resume_code = userConf.LastDevice.ResumeCode,
+                    logout_timer = userConf.LastDevice.LogoutTimer
+                }
+                : _last_device = null;
+
+            _mfa_token = userConf.TwoFactorToken;
             _server = userConf.Server;
-            _lastDevice = userConf.DeviceToken;
-            resumeCode = userConf.CloneCode;
         }
 
         string IUserConfiguration.Username => user;
         string IUserConfiguration.Password => user_password;
-        string IUserConfiguration.TwoFactorToken => mfaToken;
+        string IUserConfiguration.TwoFactorToken => _mfa_token;
         string IUserConfiguration.Server => _server;
-        string IUserConfiguration.DeviceToken => _lastDevice;
-        string IUserConfiguration.CloneCode => resumeCode;
+        IUserDeviceConfiguration IUserConfiguration.LastDevice => _last_device;
         string IConfigurationId.Id => user;
     }
 

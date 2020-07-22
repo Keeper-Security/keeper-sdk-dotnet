@@ -354,6 +354,7 @@ namespace KeeperSecurity.Sdk
             var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
             agreement.Init(ePrivateKey);
             var key = agreement.CalculateAgreement(publicKey).ToByteArrayUnsigned();
+            key = SHA256.Create().ComputeHash(key);
             var encryptedData = EncryptAesV2(data, key);
             return UnloadEcPublicKey(ePublicKey).Concat(encryptedData).ToArray();
         }
@@ -364,6 +365,7 @@ namespace KeeperSecurity.Sdk
             var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
             agreement.Init(privateKey);
             var key = agreement.CalculateAgreement(ePublicKey).ToByteArrayUnsigned();
+            key = SHA256.Create().ComputeHash(key);
             return DecryptAesV2(data.Skip(65).ToArray(), key);
         }
 

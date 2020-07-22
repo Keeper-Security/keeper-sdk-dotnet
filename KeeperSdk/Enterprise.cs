@@ -61,19 +61,19 @@ namespace Enterprise {
             "BRIPCgdtYXhpbXVtGAMgASgFEg8KB2FsbG93ZWQYBCABKAgiZwobRG9tYWlu",
             "UGFzc3dvcmRSdWxlc1Jlc3BvbnNlEkgKGWRvbWFpblBhc3N3b3JkUnVsZXNG",
             "aWVsZHMYASADKAsyJS5FbnRlcnByaXNlLkRvbWFpblBhc3N3b3JkUnVsZXNG",
-            "aWVsZHMiggEKGEFwcHJvdmVVc2VyRGV2aWNlUmVxdWVzdBISCgphY2NvdW50",
-            "VWlkGAEgASgMEhwKFGVuY3J5cHRlZERldmljZVRva2VuGAIgASgMEh4KFmVu",
-            "Y3J5cHRlZERldmljZURhdGFLZXkYAyABKAwSFAoMZGVueUFwcHJvdmFsGAQg",
-            "ASgIIm4KGUFwcHJvdmVVc2VyRGV2aWNlUmVzcG9uc2USEgoKYWNjb3VudFVp",
-            "ZBgBIAEoDBIcChRlbmNyeXB0ZWREZXZpY2VUb2tlbhgCIAEoDBIOCgZmYWls",
-            "ZWQYAyABKAgSDwoHbWVzc2FnZRgEIAEoCSJZChlBcHByb3ZlVXNlckRldmlj",
-            "ZXNSZXF1ZXN0EjwKDmRldmljZVJlcXVlc3RzGAEgAygLMiQuRW50ZXJwcmlz",
-            "ZS5BcHByb3ZlVXNlckRldmljZVJlcXVlc3QiXAoaQXBwcm92ZVVzZXJEZXZp",
-            "Y2VzUmVzcG9uc2USPgoPZGV2aWNlUmVzcG9uc2VzGAEgAygLMiUuRW50ZXJw",
-            "cmlzZS5BcHByb3ZlVXNlckRldmljZVJlc3BvbnNlKj0KDkVudGVycHJpc2VU",
-            "eXBlEhcKE0VOVEVSUFJJU0VfU1RBTkRBUkQQABISCg5FTlRFUlBSSVNFX01T",
-            "UBABQiYKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IKRW50ZXJwcmlzZWIG",
-            "cHJvdG8z"));
+            "aWVsZHMiiAEKGEFwcHJvdmVVc2VyRGV2aWNlUmVxdWVzdBIYChBlbnRlcnBy",
+            "aXNlVXNlcklkGAEgASgDEhwKFGVuY3J5cHRlZERldmljZVRva2VuGAIgASgM",
+            "Eh4KFmVuY3J5cHRlZERldmljZURhdGFLZXkYAyABKAwSFAoMZGVueUFwcHJv",
+            "dmFsGAQgASgIInQKGUFwcHJvdmVVc2VyRGV2aWNlUmVzcG9uc2USGAoQZW50",
+            "ZXJwcmlzZVVzZXJJZBgBIAEoAxIcChRlbmNyeXB0ZWREZXZpY2VUb2tlbhgC",
+            "IAEoDBIOCgZmYWlsZWQYAyABKAgSDwoHbWVzc2FnZRgEIAEoCSJZChlBcHBy",
+            "b3ZlVXNlckRldmljZXNSZXF1ZXN0EjwKDmRldmljZVJlcXVlc3RzGAEgAygL",
+            "MiQuRW50ZXJwcmlzZS5BcHByb3ZlVXNlckRldmljZVJlcXVlc3QiXAoaQXBw",
+            "cm92ZVVzZXJEZXZpY2VzUmVzcG9uc2USPgoPZGV2aWNlUmVzcG9uc2VzGAEg",
+            "AygLMiUuRW50ZXJwcmlzZS5BcHByb3ZlVXNlckRldmljZVJlc3BvbnNlKj0K",
+            "DkVudGVycHJpc2VUeXBlEhcKE0VOVEVSUFJJU0VfU1RBTkRBUkQQABISCg5F",
+            "TlRFUlBSSVNFX01TUBABQiYKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IK",
+            "RW50ZXJwcmlzZWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Enterprise.EnterpriseType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -93,8 +93,8 @@ namespace Enterprise {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DomainPasswordRulesRequest), global::Enterprise.DomainPasswordRulesRequest.Parser, new[]{ "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DomainPasswordRulesFields), global::Enterprise.DomainPasswordRulesFields.Parser, new[]{ "Type", "Minimum", "Maximum", "Allowed" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DomainPasswordRulesResponse), global::Enterprise.DomainPasswordRulesResponse.Parser, new[]{ "DomainPasswordRulesFields" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDeviceRequest), global::Enterprise.ApproveUserDeviceRequest.Parser, new[]{ "AccountUid", "EncryptedDeviceToken", "EncryptedDeviceDataKey", "DenyApproval" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDeviceResponse), global::Enterprise.ApproveUserDeviceResponse.Parser, new[]{ "AccountUid", "EncryptedDeviceToken", "Failed", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDeviceRequest), global::Enterprise.ApproveUserDeviceRequest.Parser, new[]{ "EnterpriseUserId", "EncryptedDeviceToken", "EncryptedDeviceDataKey", "DenyApproval" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDeviceResponse), global::Enterprise.ApproveUserDeviceResponse.Parser, new[]{ "EnterpriseUserId", "EncryptedDeviceToken", "Failed", "Message" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDevicesRequest), global::Enterprise.ApproveUserDevicesRequest.Parser, new[]{ "DeviceRequests" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ApproveUserDevicesResponse), global::Enterprise.ApproveUserDevicesResponse.Parser, new[]{ "DeviceResponses" }, null, null, null, null)
           }));
@@ -2952,7 +2952,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ApproveUserDeviceRequest(ApproveUserDeviceRequest other) : this() {
-      accountUid_ = other.accountUid_;
+      enterpriseUserId_ = other.enterpriseUserId_;
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       encryptedDeviceDataKey_ = other.encryptedDeviceDataKey_;
       denyApproval_ = other.denyApproval_;
@@ -2964,14 +2964,14 @@ namespace Enterprise {
       return new ApproveUserDeviceRequest(this);
     }
 
-    /// <summary>Field number for the "accountUid" field.</summary>
-    public const int AccountUidFieldNumber = 1;
-    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    /// <summary>Field number for the "enterpriseUserId" field.</summary>
+    public const int EnterpriseUserIdFieldNumber = 1;
+    private long enterpriseUserId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString AccountUid {
-      get { return accountUid_; }
+    public long EnterpriseUserId {
+      get { return enterpriseUserId_; }
       set {
-        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        enterpriseUserId_ = value;
       }
     }
 
@@ -3024,7 +3024,7 @@ namespace Enterprise {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (AccountUid != other.AccountUid) return false;
+      if (EnterpriseUserId != other.EnterpriseUserId) return false;
       if (EncryptedDeviceToken != other.EncryptedDeviceToken) return false;
       if (EncryptedDeviceDataKey != other.EncryptedDeviceDataKey) return false;
       if (DenyApproval != other.DenyApproval) return false;
@@ -3034,7 +3034,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
       if (EncryptedDeviceDataKey.Length != 0) hash ^= EncryptedDeviceDataKey.GetHashCode();
       if (DenyApproval != false) hash ^= DenyApproval.GetHashCode();
@@ -3051,9 +3051,9 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (AccountUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(AccountUid);
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
       }
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(18);
@@ -3075,8 +3075,8 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (AccountUid.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      if (EnterpriseUserId != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EnterpriseUserId);
       }
       if (EncryptedDeviceToken.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceToken);
@@ -3098,8 +3098,8 @@ namespace Enterprise {
       if (other == null) {
         return;
       }
-      if (other.AccountUid.Length != 0) {
-        AccountUid = other.AccountUid;
+      if (other.EnterpriseUserId != 0L) {
+        EnterpriseUserId = other.EnterpriseUserId;
       }
       if (other.EncryptedDeviceToken.Length != 0) {
         EncryptedDeviceToken = other.EncryptedDeviceToken;
@@ -3121,8 +3121,8 @@ namespace Enterprise {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            AccountUid = input.ReadBytes();
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
             break;
           }
           case 18: {
@@ -3168,7 +3168,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ApproveUserDeviceResponse(ApproveUserDeviceResponse other) : this() {
-      accountUid_ = other.accountUid_;
+      enterpriseUserId_ = other.enterpriseUserId_;
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       failed_ = other.failed_;
       message_ = other.message_;
@@ -3180,14 +3180,14 @@ namespace Enterprise {
       return new ApproveUserDeviceResponse(this);
     }
 
-    /// <summary>Field number for the "accountUid" field.</summary>
-    public const int AccountUidFieldNumber = 1;
-    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    /// <summary>Field number for the "enterpriseUserId" field.</summary>
+    public const int EnterpriseUserIdFieldNumber = 1;
+    private long enterpriseUserId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString AccountUid {
-      get { return accountUid_; }
+    public long EnterpriseUserId {
+      get { return enterpriseUserId_; }
       set {
-        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        enterpriseUserId_ = value;
       }
     }
 
@@ -3237,7 +3237,7 @@ namespace Enterprise {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (AccountUid != other.AccountUid) return false;
+      if (EnterpriseUserId != other.EnterpriseUserId) return false;
       if (EncryptedDeviceToken != other.EncryptedDeviceToken) return false;
       if (Failed != other.Failed) return false;
       if (Message != other.Message) return false;
@@ -3247,7 +3247,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
       if (Failed != false) hash ^= Failed.GetHashCode();
       if (Message.Length != 0) hash ^= Message.GetHashCode();
@@ -3264,9 +3264,9 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (AccountUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(AccountUid);
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
       }
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(18);
@@ -3288,8 +3288,8 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (AccountUid.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      if (EnterpriseUserId != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EnterpriseUserId);
       }
       if (EncryptedDeviceToken.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceToken);
@@ -3311,8 +3311,8 @@ namespace Enterprise {
       if (other == null) {
         return;
       }
-      if (other.AccountUid.Length != 0) {
-        AccountUid = other.AccountUid;
+      if (other.EnterpriseUserId != 0L) {
+        EnterpriseUserId = other.EnterpriseUserId;
       }
       if (other.EncryptedDeviceToken.Length != 0) {
         EncryptedDeviceToken = other.EncryptedDeviceToken;
@@ -3334,8 +3334,8 @@ namespace Enterprise {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            AccountUid = input.ReadBytes();
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
             break;
           }
           case 18: {

@@ -13,7 +13,21 @@ namespace KeeperSecurity.Sdk
         void Push(T message);
         bool IsCompleted { get; }
     }
+    /*
+    class CallbackDisposable : IDisposable
+    {
+        private readonly Action Unregister;
+        public CallbackDisposable(Action unregister = null)
+        {
+            Unregister = unregister;
+        }
 
+        public void Dispose()
+        {
+            Unregister?.Invoke();
+        }
+    }
+    */
     public class FanOut<T>: IFanOut<T>
     {
         private readonly List<NotificationCallback<T>> _callbacks = new List<NotificationCallback<T>>();
@@ -25,7 +39,7 @@ namespace KeeperSecurity.Sdk
             {
                 foreach (var cb in _callbacks)
                 {
-                    if (ReferenceEquals(cb, callback)) return;
+                    if (ReferenceEquals(cb, callback)) return; 
                 }
 
                 _callbacks.Add(callback);

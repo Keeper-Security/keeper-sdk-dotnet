@@ -91,31 +91,32 @@ namespace KeeperSecurity.Sdk
             auth.DeviceToken = null;
 
             var userConf = auth.Storage.Users.Get(auth.Username);
-            var deviceToken = userConf?.DeviceToken;
-            if (!string.IsNullOrEmpty(deviceToken))
+            var lastDevice = userConf?.LastDevice;
+            if (lastDevice != null)
             {
-                var dc = auth.Storage.Devices.Get(deviceToken);
+                var dc = auth.Storage.Devices.Get(lastDevice.DeviceToken);
                 if (dc != null)
                 {
                     try
                     {
                         if (dc.DeviceKey?.Length > 0)
                         {
-                            auth.DeviceToken = deviceToken.Base64UrlDecode();
+                            auth.DeviceToken = lastDevice.DeviceToken.Base64UrlDecode();
                             auth.DeviceKey = CryptoUtils.LoadPrivateEcKey(dc.DeviceKey);
-                            if (!string.IsNullOrEmpty(userConf.CloneCode))
+                            if (!string.IsNullOrEmpty(lastDevice.ResumeCode))
                             {
-                                auth.CloneCode = userConf.CloneCode.Base64UrlDecode();
+                                auth.CloneCode = lastDevice.ResumeCode.Base64UrlDecode();
                             }
                         }
                         else
                         {
-                            auth.Storage.Devices.Delete(deviceToken);
+                            throw new KeeperInvalidDeviceToken("user configuration");
                         }
                     }
                     catch (Exception e)
                     {
                         Debug.WriteLine(e);
+                        auth.Storage.Devices.Delete(lastDevice.DeviceToken);
                         auth.DeviceToken = null;
                         auth.DeviceKey = null;
                         auth.CloneCode = null;
@@ -651,7 +652,7 @@ namespace KeeperSecurity.Sdk
                 var notification = new NotificationEvent
                 {
                     Event = "received_totp",
-                    encryptedLoginToken = resumeToken.Base64UrlEncode(),
+                    EncryptedLoginToken = resumeToken.Base64UrlEncode(),
                 };
                 var wssRs = new WssClientResponse
                 {
@@ -719,9 +720,9 @@ namespace KeeperSecurity.Sdk
                 var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
                 if (string.CompareOrdinal(message.Event, "received_totp") == 0)
                 {
-                    if (!string.IsNullOrEmpty(message.encryptedLoginToken))
+                    if (!string.IsNullOrEmpty(message.EncryptedLoginToken))
                     {
-                        resumeLoginToken = ByteString.CopyFrom(message.encryptedLoginToken.Base64UrlDecode());
+                        resumeLoginToken = ByteString.CopyFrom(message.EncryptedLoginToken.Base64UrlDecode());
                     }
 
                     loginTokenTaskSource.TrySetResult(true);
@@ -949,8 +950,8 @@ namespace KeeperSecurity.Sdk
                     if (loginTaskSource.Task.IsCompleted) return true;
                     var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
                     if (message.Event != "received_totp") return false;
-                    if (string.IsNullOrEmpty(message.encryptedLoginToken)) return false;
-                    resumeWithToken = ByteString.CopyFrom(message.encryptedLoginToken.Base64UrlDecode());
+                    if (string.IsNullOrEmpty(message.EncryptedLoginToken)) return false;
+                    resumeWithToken = ByteString.CopyFrom(message.EncryptedLoginToken.Base64UrlDecode());
                     loginTaskSource.TrySetResult(true);
                     return true;
                 }
@@ -1015,19 +1016,29 @@ namespace KeeperSecurity.Sdk
             var sc = auth.Storage.Servers.Get(auth.Endpoint.Server);
             if (sc == null || sc.Server != auth.Endpoint.Server || sc.ServerKeyId != auth.Endpoint.ServerKeyId)
             {
-                ServerConfiguration serverConf = sc == null ? new ServerConfiguration(auth.Endpoint.Server) : new ServerConfiguration(sc);
+                var serverConf = sc == null ? new ServerConfiguration(auth.Endpoint.Server) : new ServerConfiguration(sc);
                 serverConf.ServerKeyId = auth.Endpoint.ServerKeyId;
                 auth.Storage.Servers.Put(serverConf);
             }
 
             var existingUser = auth.Storage.Users.Get(context.Username);
             var deviceToken = context.DeviceToken.Base64UrlEncode();
-            if (existingUser == null || auth.ResumeSession || existingUser.DeviceToken != deviceToken)
+            if (existingUser == null || auth.ResumeSession || existingUser.LastDevice?.DeviceToken != deviceToken)
             {
                 var uc = existingUser != null ? new UserConfiguration(existingUser) : new UserConfiguration(context.Username);
-                uc.DeviceToken = context.DeviceToken.Base64UrlEncode();
                 uc.Server = auth.Endpoint.Server;
-                uc.CloneCode = auth.ResumeSession ? context.CloneCode.Base64UrlEncode() : null;
+                UserDeviceConfiguration lastDevice;
+                if (existingUser?.LastDevice != null && existingUser.LastDevice.DeviceToken == deviceToken)
+                {
+                    lastDevice = new UserDeviceConfiguration(existingUser.LastDevice);
+                }
+                else
+                {
+                    lastDevice = new UserDeviceConfiguration(deviceToken);
+                }
+                lastDevice.ResumeCode = auth.ResumeSession ? context.CloneCode.Base64UrlEncode() : null;
+
+                uc.LastDevice = lastDevice;
                 auth.Storage.Users.Put(uc);
             }
         }
@@ -1259,7 +1270,7 @@ namespace KeeperSecurity.Sdk
             }
 
             auth.WebSocketChannel.RegisterCallback(ProcessDataKeyRequest);
-            var uiTask = ssoUi.WaitForDataKey(new IGetDataKeyChannelInfo[] {pushChannel}, completeToken.Token);
+            var uiTask = ssoUi.WaitForDataKey(new IGetDataKeyChannelInfo[] {pushChannel, adminChannel}, completeToken.Token);
             var index = Task.WaitAny(uiTask, completeTask.Task);
             auth.WebSocketChannel.RemoveCallback(ProcessDataKeyRequest);
             if (index == 0)

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
 using Google.Protobuf;
-using Org.BouncyCastle.Operators;
 
 namespace KeeperSecurity.Sdk
 {

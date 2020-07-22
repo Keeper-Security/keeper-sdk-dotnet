@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace KeeperSecurity.Sdk
 {
@@ -20,14 +19,20 @@ namespace KeeperSecurity.Sdk
         string Id { get; }
     }
 
+    public interface IUserDeviceConfiguration
+    {
+        string DeviceToken { get; }
+        string ResumeCode { get; }
+        int? LogoutTimer { get; }
+    }
+
     public interface IUserConfiguration: IConfigurationId
     {
         string Username { get; }
         string Password { get; }
         string TwoFactorToken { get; }
         string Server { get; }
-        string DeviceToken { get; }
-        string CloneCode { get; }
+        IUserDeviceConfiguration LastDevice { get; }
     }
 
     public interface IServerConfiguration: IConfigurationId
@@ -63,6 +68,46 @@ namespace KeeperSecurity.Sdk
         string LastServer { get; set; }
     }
 
+    public class InMemoryConfigCollection<T> : IConfigCollection<T> where T : class, IConfigurationId
+    {
+        private readonly Dictionary<string, T> _collection = new Dictionary<string, T>();
+        IEnumerable<T> IConfigCollection<T>.List => _collection.Values;
+        void IConfigCollection<T>.Delete(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            _collection.Remove(id);
+        }
+
+        T IConfigCollection<T>.Get(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            return _collection.TryGetValue(id, out var result) ? result : default;
+        }
+
+        void IConfigCollection<T>.Put(T configuration)
+        {
+            _collection[configuration.Id] = configuration;
+        }
+    }
+
+    public class UserDeviceConfiguration : IUserDeviceConfiguration
+    {
+        public UserDeviceConfiguration(string deviceToken)
+        {
+            DeviceToken = deviceToken;
+        }
+
+        public UserDeviceConfiguration(IUserDeviceConfiguration other) : this(other.DeviceToken)
+        {
+            ResumeCode = other.ResumeCode;
+            LogoutTimer = other.LogoutTimer;
+        }
+
+        public string DeviceToken { get; set; }
+        public string ResumeCode { get; set; }
+        public int? LogoutTimer { get; set; }
+    }
+
     public class UserConfiguration : IUserConfiguration
     {
         public UserConfiguration(string username)
@@ -75,16 +120,17 @@ namespace KeeperSecurity.Sdk
             Password = other.Password;
             TwoFactorToken = other.TwoFactorToken;
             Server = other.Server;
-            DeviceToken = other.DeviceToken;
-            CloneCode = other.CloneCode;
+            if (other.LastDevice != null)
+            {
+                LastDevice = new UserDeviceConfiguration(other.LastDevice);
+            }
         }
 
         public string Username { get; }
         public string Password { get; set; }
         public string TwoFactorToken { get; set; }
         public string Server { get; set; }
-        public string DeviceToken { get; set; }
-        public string CloneCode { get; set; }
+        public IUserDeviceConfiguration LastDevice { get; set; } 
 
         string IConfigurationId.Id => Username;
     }
@@ -134,28 +180,6 @@ namespace KeeperSecurity.Sdk
         public IEnumerable<string> Servers => KeeperServers;
         string IConfigurationId.Id => DeviceToken;
 
-    }
-
-    public class InMemoryConfigCollection<T> : IConfigCollection<T> where T: class, IConfigurationId
-    {
-        private readonly Dictionary<string, T> _collection = new Dictionary<string, T>();
-        IEnumerable<T>  IConfigCollection<T>.List => _collection.Values;
-        void IConfigCollection<T>.Delete(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return;
-            _collection.Remove(id);
-        }
-
-        T IConfigCollection<T>.Get(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return null;
-            return _collection.TryGetValue(id, out var result) ? result : default;
-        }
-
-        void IConfigCollection<T>.Put(T configuration)
-        {
-            _collection[configuration.Id] = configuration;
-        }
     }
 
     public class InMemoryConfigurationStorage : IConfigurationStorage
