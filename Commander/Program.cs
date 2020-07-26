@@ -43,7 +43,7 @@ namespace Commander
 
         private static async Task MainLoop()
         {
-
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             {
                 var storage = new JsonConfigurationStorage();
                 storage.Cache.StorageProtection = new CommanderStorageProtection();
@@ -51,7 +51,7 @@ namespace Commander
                 var auth = new Auth(ui, storage);
                 auth.Endpoint.DeviceName = "Commander C#";
                 var version = System.Diagnostics.FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
-                auth.Endpoint.ClientVersion = "c15.0.0";
+                auth.Endpoint.ClientVersion = "w15.0.0";
                 var notConnected = new NotConnectedCliContext(auth);
                 cliContext = new CliContext
                 {
@@ -456,8 +456,8 @@ namespace Commander
                                 break;
                         }
                     }
-
-                    Console.WriteLine("To change default 2FA token persistence use command 2fa_duration=<duration>");
+                    const string TwoFactorDurationPrefix = "2fa_duration";
+                    Console.Write($"\"{TwoFactorDurationPrefix}=<duration>\" to change 2FA token persistence. ");
                     var dur = Enum
                         .GetValues(typeof(TwoFactorDuration))
                         .OfType<TwoFactorDuration>()
@@ -485,9 +485,9 @@ namespace Commander
                             return;
                         }
 
-                        if (answer.StartsWith("2fa_duration=", StringComparison.CurrentCultureIgnoreCase))
+                        if (answer.StartsWith($"{TwoFactorDurationPrefix}=", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            TryParseTextToDuration(answer.Substring(4), out duration);
+                            TryParseTextToDuration(answer.Substring(TwoFactorDurationPrefix.Length + 1), out duration);
                             continue;
                         }
 

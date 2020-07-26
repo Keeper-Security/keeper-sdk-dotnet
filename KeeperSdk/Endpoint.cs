@@ -247,6 +247,8 @@ namespace KeeperSecurity.Sdk
                 catch (WebException e)
                 {
                     response = (HttpWebResponse) e.Response;
+                    if (response == null) throw;
+
                     if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
                     {
                         if (ProxyUi != null)

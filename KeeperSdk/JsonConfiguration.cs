@@ -236,49 +236,55 @@ namespace KeeperSecurity.Sdk
                     if (protector != null)
                     {
                         _configuration.security = algorithm;
-                        foreach (var device in _configuration.devices)
+                        if (_configuration.devices != null)
                         {
-                            if (string.IsNullOrEmpty(device.privateKey)) continue;
-                            try
+                            foreach (var device in _configuration.devices)
                             {
-                                var encryptedPrivateKey = protector.Obscure(device.privateKey);
-                                device.privateKey = encryptedPrivateKey;
-                                device.secured = true;
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e);
+                                if (string.IsNullOrEmpty(device.privateKey)) continue;
+                                try
+                                {
+                                    var encryptedPrivateKey = protector.Obscure(device.privateKey);
+                                    device.privateKey = encryptedPrivateKey;
+                                    device.secured = true;
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e);
+                                }
                             }
                         }
 
-                        foreach (var user in _configuration.users)
+                        if (_configuration.users != null)
                         {
-                            if (string.IsNullOrEmpty(user.user_password) && string.IsNullOrEmpty(user._last_device?.resume_code)) continue;
-                            try
+                            foreach (var user in _configuration.users)
                             {
-                                string encryptedPassword = null;
-                                string encryptedResumeCode = null;
-                                if (!string.IsNullOrEmpty(user.user_password))
+                                if (string.IsNullOrEmpty(user.user_password) && string.IsNullOrEmpty(user._last_device?.resume_code)) continue;
+                                try
                                 {
-                                    encryptedPassword = protector.Obscure(user.user_password);
-                                }
+                                    string encryptedPassword = null;
+                                    string encryptedResumeCode = null;
+                                    if (!string.IsNullOrEmpty(user.user_password))
+                                    {
+                                        encryptedPassword = protector.Obscure(user.user_password);
+                                    }
 
-                                if (!string.IsNullOrEmpty(user._last_device?.resume_code))
-                                {
-                                    encryptedResumeCode = protector.Obscure(user._last_device.resume_code);
-                                }
-                                
-                                user.user_password = encryptedPassword;
-                                if (user._last_device != null)
-                                {
-                                    user._last_device.resume_code = encryptedResumeCode;
-                                }
+                                    if (!string.IsNullOrEmpty(user._last_device?.resume_code))
+                                    {
+                                        encryptedResumeCode = protector.Obscure(user._last_device.resume_code);
+                                    }
 
-                                user.secured = true;
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e);
+                                    user.user_password = encryptedPassword;
+                                    if (user._last_device != null)
+                                    {
+                                        user._last_device.resume_code = encryptedResumeCode;
+                                    }
+
+                                    user.secured = true;
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e);
+                                }
                             }
                         }
                     }

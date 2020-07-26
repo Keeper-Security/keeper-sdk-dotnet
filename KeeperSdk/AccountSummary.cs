@@ -49,68 +49,68 @@ namespace AccountSummary {
             "IAEoDBIbChNlbmNyeXB0ZWRQcml2YXRlS2V5GAUgASgMIoEBCgdTeW5jTG9n",
             "EhMKC2NvdW50cnlOYW1lGAEgASgJEhIKCnNlY29uZHNBZ28YAiABKAMSEgoK",
             "ZGV2aWNlTmFtZRgDIAEoCRITCgtjb3VudHJ5Q29kZRgEIAEoCRIRCglkZXZp",
-            "Y2VVSUQYBSABKAwSEQoJaXBBZGRyZXNzGAYgASgJIskFCgdMaWNlbnNlEhgK",
+            "Y2VVSUQYBSABKAwSEQoJaXBBZGRyZXNzGAYgASgJIsoFCgdMaWNlbnNlEhgK",
             "EHN1YnNjcmlwdGlvbkNvZGUYASABKAkSFQoNcHJvZHVjdFR5cGVJZBgCIAEo",
             "BRIXCg9wcm9kdWN0VHlwZU5hbWUYAyABKAkSFgoOZXhwaXJhdGlvbkRhdGUY",
-            "BCABKAkSHQoVc2Vjb25kc1VuaXRFeHBpcmF0aW9uGAUgASgDEhIKCm1heERl",
-            "dmljZXMYBiABKAUSFAoMZmlsZVBsYW5UeXBlGAcgASgFEhEKCWJ5dGVzVXNl",
-            "ZBgIIAEoAxISCgpieXRlc1RvdGFsGAkgASgDEiUKHXNlY29uZHNVbnRpbFN0",
-            "b3JhZ2VFeHBpcmF0aW9uGAogASgDEh0KFXN0b3JhZ2VFeHBpcmF0aW9uRGF0",
-            "ZRgLIAEoCRIsCiRoYXNBdXRvUmVuZXdhYmxlQXBwc3RvcmVTdWJzY3JpcHRp",
-            "b24YDCABKAgSEwoLYWNjb3VudFR5cGUYDSABKAUSGAoQdXBsb2Fkc1JlbWFp",
-            "bmluZxgOIAEoBRIUCgxlbnRlcnByaXNlSWQYDyABKAUSEwoLY2hhdEVuYWJs",
-            "ZWQYECABKAgSIAoYYXVkaXRBbmRSZXBvcnRpbmdFbmFibGVkGBEgASgIEiEK",
-            "GWJyZWFjaFdhdGNoRmVhdHVyZURpc2FibGUYEiABKAgSEgoKYWNjb3VudFVp",
-            "ZBgTIAEoDBIcChRhbGxvd1BlcnNvbmFsTGljZW5zZRgUIAEoCBISCgpsaWNl",
-            "bnNlZEJ5GBUgASgJEg0KBWVtYWlsGBYgASgJEhoKEmJyZWFjaFdhdGNoRW5h",
-            "YmxlZBgXIAEoCBIaChJicmVhY2hXYXRjaFNjYW5uZWQYGCABKAgSHQoVYnJl",
-            "YWNoV2F0Y2hFeHBpcmF0aW9uGBkgASgDEh4KFmJyZWFjaFdhdGNoRGF0ZUNy",
-            "ZWF0ZWQYGiABKAMSDQoFZXJyb3IYGyABKAkiowEKBUFkZE9uEhQKDGxpY2Vu",
-            "c2VLZXlJZBgBIAEoBRIMCgRuYW1lGAIgASgJEhYKDmV4cGlyYXRpb25EYXRl",
-            "GAMgASgDEhMKC2NyZWF0ZWREYXRlGAQgASgDEg8KB2lzVHJpYWwYBSABKAgS",
-            "DwoHZW5hYmxlZBgGIAEoCBIPCgdzY2FubmVkGAcgASgIEhYKDmZlYXR1cmVE",
-            "aXNhYmxlGAggASgIIvYFCghTZXR0aW5ncxINCgVhdWRpdBgBIAEoCBIhChlt",
-            "dXN0UGVyZnJvbUFjY291bnRTaGFyZUJ5GAIgASgDEj4KDnNoYXJlQWNjb3Vu",
-            "dFRvGAMgAygLMiYuQWNjb3VudFN1bW1hcnkuTWlzc2luZ0FjY291bnRTaGFy",
-            "ZUtleRIrCgVydWxlcxgEIAMoCzIcLkFjY291bnRTdW1tYXJ5LlBhc3N3b3Jk",
-            "UnVsZRIaChJwYXNzd29yZFJ1bGVzSW50cm8YBSABKAkSFgoOYXV0b0JhY2t1",
-            "cERheXMYBiABKAUSDQoFdGhlbWUYByABKAkSDwoHY2hhbm5lbBgIIAEoCRIU",
-            "CgxjaGFubmVsVmFsdWUYCSABKAkSFQoNcnNhQ29uZmlndXJlZBgKIAEoCBIV",
-            "Cg1lbWFpbFZhcmlmaWVkGAsgASgIEiIKGm1hc3RlclBhc3N3b3JkTGFzdE1v",
-            "ZGlmaWVkGAwgASgBEhgKEGFjY291bnRGb2xkZXJLZXkYDSABKAwSMQoMc2Vj",
-            "dXJpdHlLZXlzGA4gAygLMhsuQWNjb3VudFN1bW1hcnkuU2VjdXJpdHlLZXkS",
-            "KwoJa2V5VmFsdWVzGA8gAygLMhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUS",
-            "DwoHc3NvVXNlchgQIAEoCBIYChBvbmxpbmVBY2Nlc3NPbmx5GBEgASgIEhwK",
-            "FG1hc3RlclBhc3N3b3JkRXhwaXJ5GBIgASgFEhkKEXR3b0ZhY3RvclJlcXVp",
-            "cmVkGBMgASgIEhYKDmRpc2FsbG93RXhwb3J0GBQgASgIEhUKDXJlc3RyaWN0",
-            "RmlsZXMYFSABKAgSGgoScmVzdHJpY3RBbGxTaGFyaW5nGBYgASgIEhcKD3Jl",
-            "c3RyaWN0U2hhcmluZxgXIAEoCBIiChpyZXN0cmljdFNoYXJpbmdJbmNvbWlu",
-            "Z0FsbBgYIAEoCBIpCiFyZXN0cmljdFNoYXJpbmdJbmNvbWluZ0VudGVycHJp",
-            "c2UYGSABKAgiJgoIS2V5VmFsdWUSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIg",
-            "ASgJIjwKFk1pc3NpbmdBY2NvdW50U2hhcmVLZXkSDwoHcm9sZV9pZBgBIAEo",
-            "AxIRCglwdWJsaWNLZXkYAiABKAwidQoMUGFzc3dvcmRSdWxlEhAKCHJ1bGVU",
-            "eXBlGAEgASgJEg8KB3BhdHRlcm4YAiABKAkSDQoFbWF0Y2gYAyABKAgSDwoH",
-            "bWluaW11bRgEIAEoBRITCgtkZXNjcmlwdGlvbhgFIAEoCRINCgV2YWx1ZRgG",
-            "IAEoCSKXAQoLU2VjdXJpdHlLZXkSEAoIZGV2aWNlSWQYASABKAMSEgoKZGV2",
-            "aWNlTmFtZRgCIAEoCRIRCglkYXRlQWRkZWQYAyABKAMSDwoHaXNWYWxpZBgE",
-            "IAEoCBI+ChJkZXZpY2VSZWdpc3RyYXRpb24YBSABKAsyIi5BY2NvdW50U3Vt",
-            "bWFyeS5EZXZpY2VSZWdpc3RyYXRpb24ieQoSRGV2aWNlUmVnaXN0cmF0aW9u",
-            "EhEKCWtleUhhbmRsZRgBIAEoCRIRCglwdWJsaWNLZXkYAiABKAwSFwoPYXR0",
-            "ZXN0YXRpb25DZXJ0GAMgASgJEg8KB2NvdW50ZXIYBCABKAMSEwoLY29tcHJv",
-            "bWlzZWQYBSABKAgisAIKBUdyb3VwEg0KBWFkbWluGAEgASgIEh0KFWdyb3Vw",
-            "VmVyaWZpY2F0aW9uQ29kZRgCIAEoCRIvCg1ncm91cFNldHRpbmdzGAMgAygL",
-            "MhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUSNAoNYWRtaW5pc3RyYXRvchgE",
-            "IAEoCzIdLkFjY291bnRTdW1tYXJ5LkFkbWluaXN0cmF0b3ISDQoFZXJyb3IY",
-            "BSABKAkSGQoRdHdvRmFjdG9yUmVxdWlyZWQYBiABKAgSFwoPcmVzdHJpY3RT",
-            "aGFyaW5nGAcgASgIEhoKEnJlc3RyaWN0QWxsU2hhcmluZxgIIAEoCBIWCg5h",
-            "dXRvQmFja3VwRGF5cxgJIAEoBRIbChNhZG1pbkFjY291bnRTaGFyaW5nGAog",
-            "ASgIIugBCg1BZG1pbmlzdHJhdG9yEhEKCWZpcnN0TmFtZRgBIAEoCRIQCghs",
-            "YXN0TmFtZRgCIAEoCRINCgVlbWFpbBgDIAEoCRIcChRjdXJyZW50TnVtYmVy",
-            "T2ZVc2VycxgEIAEoBRIVCg1udW1iZXJPZlVzZXJzGAUgASgFEhcKD251bWJl",
-            "ck9mRGV2aWNlcxgGIAEoBRIYChBzdWJzY3JpcHRpb25Db2RlGAcgASgJEhYK",
-            "DmV4cGlyYXRpb25EYXRlGAggASgJEhQKDHB1cmNoYXNlRGF0ZRgJIAEoCRIN",
-            "CgV0b3RhbBgKIAEoCUIqChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CDkFj",
-            "Y291bnRTdW1tYXJ5YgZwcm90bzM="));
+            "BCABKAkSHgoWc2Vjb25kc1VudGlsRXhwaXJhdGlvbhgFIAEoAxISCgptYXhE",
+            "ZXZpY2VzGAYgASgFEhQKDGZpbGVQbGFuVHlwZRgHIAEoBRIRCglieXRlc1Vz",
+            "ZWQYCCABKAMSEgoKYnl0ZXNUb3RhbBgJIAEoAxIlCh1zZWNvbmRzVW50aWxT",
+            "dG9yYWdlRXhwaXJhdGlvbhgKIAEoAxIdChVzdG9yYWdlRXhwaXJhdGlvbkRh",
+            "dGUYCyABKAkSLAokaGFzQXV0b1JlbmV3YWJsZUFwcHN0b3JlU3Vic2NyaXB0",
+            "aW9uGAwgASgIEhMKC2FjY291bnRUeXBlGA0gASgFEhgKEHVwbG9hZHNSZW1h",
+            "aW5pbmcYDiABKAUSFAoMZW50ZXJwcmlzZUlkGA8gASgFEhMKC2NoYXRFbmFi",
+            "bGVkGBAgASgIEiAKGGF1ZGl0QW5kUmVwb3J0aW5nRW5hYmxlZBgRIAEoCBIh",
+            "ChlicmVhY2hXYXRjaEZlYXR1cmVEaXNhYmxlGBIgASgIEhIKCmFjY291bnRV",
+            "aWQYEyABKAwSHAoUYWxsb3dQZXJzb25hbExpY2Vuc2UYFCABKAgSEgoKbGlj",
+            "ZW5zZWRCeRgVIAEoCRINCgVlbWFpbBgWIAEoCRIaChJicmVhY2hXYXRjaEVu",
+            "YWJsZWQYFyABKAgSGgoSYnJlYWNoV2F0Y2hTY2FubmVkGBggASgIEh0KFWJy",
+            "ZWFjaFdhdGNoRXhwaXJhdGlvbhgZIAEoAxIeChZicmVhY2hXYXRjaERhdGVD",
+            "cmVhdGVkGBogASgDEg0KBWVycm9yGBsgASgJIqMBCgVBZGRPbhIUCgxsaWNl",
+            "bnNlS2V5SWQYASABKAUSDAoEbmFtZRgCIAEoCRIWCg5leHBpcmF0aW9uRGF0",
+            "ZRgDIAEoAxITCgtjcmVhdGVkRGF0ZRgEIAEoAxIPCgdpc1RyaWFsGAUgASgI",
+            "Eg8KB2VuYWJsZWQYBiABKAgSDwoHc2Nhbm5lZBgHIAEoCBIWCg5mZWF0dXJl",
+            "RGlzYWJsZRgIIAEoCCL2BQoIU2V0dGluZ3MSDQoFYXVkaXQYASABKAgSIQoZ",
+            "bXVzdFBlcmZvcm1BY2NvdW50U2hhcmVCeRgCIAEoAxI+Cg5zaGFyZUFjY291",
+            "bnRUbxgDIAMoCzImLkFjY291bnRTdW1tYXJ5Lk1pc3NpbmdBY2NvdW50U2hh",
+            "cmVLZXkSKwoFcnVsZXMYBCADKAsyHC5BY2NvdW50U3VtbWFyeS5QYXNzd29y",
+            "ZFJ1bGUSGgoScGFzc3dvcmRSdWxlc0ludHJvGAUgASgJEhYKDmF1dG9CYWNr",
+            "dXBEYXlzGAYgASgFEg0KBXRoZW1lGAcgASgJEg8KB2NoYW5uZWwYCCABKAkS",
+            "FAoMY2hhbm5lbFZhbHVlGAkgASgJEhUKDXJzYUNvbmZpZ3VyZWQYCiABKAgS",
+            "FQoNZW1haWxWZXJpZmllZBgLIAEoCBIiChptYXN0ZXJQYXNzd29yZExhc3RN",
+            "b2RpZmllZBgMIAEoARIYChBhY2NvdW50Rm9sZGVyS2V5GA0gASgMEjEKDHNl",
+            "Y3VyaXR5S2V5cxgOIAMoCzIbLkFjY291bnRTdW1tYXJ5LlNlY3VyaXR5S2V5",
+            "EisKCWtleVZhbHVlcxgPIAMoCzIYLkFjY291bnRTdW1tYXJ5LktleVZhbHVl",
+            "Eg8KB3Nzb1VzZXIYECABKAgSGAoQb25saW5lQWNjZXNzT25seRgRIAEoCBIc",
+            "ChRtYXN0ZXJQYXNzd29yZEV4cGlyeRgSIAEoBRIZChF0d29GYWN0b3JSZXF1",
+            "aXJlZBgTIAEoCBIWCg5kaXNhbGxvd0V4cG9ydBgUIAEoCBIVCg1yZXN0cmlj",
+            "dEZpbGVzGBUgASgIEhoKEnJlc3RyaWN0QWxsU2hhcmluZxgWIAEoCBIXCg9y",
+            "ZXN0cmljdFNoYXJpbmcYFyABKAgSIgoacmVzdHJpY3RTaGFyaW5nSW5jb21p",
+            "bmdBbGwYGCABKAgSKQohcmVzdHJpY3RTaGFyaW5nSW5jb21pbmdFbnRlcnBy",
+            "aXNlGBkgASgIIiYKCEtleVZhbHVlEgsKA2tleRgBIAEoCRINCgV2YWx1ZRgC",
+            "IAEoCSI8ChZNaXNzaW5nQWNjb3VudFNoYXJlS2V5Eg8KB3JvbGVfaWQYASAB",
+            "KAMSEQoJcHVibGljS2V5GAIgASgMInUKDFBhc3N3b3JkUnVsZRIQCghydWxl",
+            "VHlwZRgBIAEoCRIPCgdwYXR0ZXJuGAIgASgJEg0KBW1hdGNoGAMgASgIEg8K",
+            "B21pbmltdW0YBCABKAUSEwoLZGVzY3JpcHRpb24YBSABKAkSDQoFdmFsdWUY",
+            "BiABKAkilwEKC1NlY3VyaXR5S2V5EhAKCGRldmljZUlkGAEgASgDEhIKCmRl",
+            "dmljZU5hbWUYAiABKAkSEQoJZGF0ZUFkZGVkGAMgASgDEg8KB2lzVmFsaWQY",
+            "BCABKAgSPgoSZGV2aWNlUmVnaXN0cmF0aW9uGAUgASgLMiIuQWNjb3VudFN1",
+            "bW1hcnkuRGV2aWNlUmVnaXN0cmF0aW9uInkKEkRldmljZVJlZ2lzdHJhdGlv",
+            "bhIRCglrZXlIYW5kbGUYASABKAkSEQoJcHVibGljS2V5GAIgASgMEhcKD2F0",
+            "dGVzdGF0aW9uQ2VydBgDIAEoCRIPCgdjb3VudGVyGAQgASgDEhMKC2NvbXBy",
+            "b21pc2VkGAUgASgIIrACCgVHcm91cBINCgVhZG1pbhgBIAEoCBIdChVncm91",
+            "cFZlcmlmaWNhdGlvbkNvZGUYAiABKAkSLwoNZ3JvdXBTZXR0aW5ncxgDIAMo",
+            "CzIYLkFjY291bnRTdW1tYXJ5LktleVZhbHVlEjQKDWFkbWluaXN0cmF0b3IY",
+            "BCABKAsyHS5BY2NvdW50U3VtbWFyeS5BZG1pbmlzdHJhdG9yEg0KBWVycm9y",
+            "GAUgASgJEhkKEXR3b0ZhY3RvclJlcXVpcmVkGAYgASgIEhcKD3Jlc3RyaWN0",
+            "U2hhcmluZxgHIAEoCBIaChJyZXN0cmljdEFsbFNoYXJpbmcYCCABKAgSFgoO",
+            "YXV0b0JhY2t1cERheXMYCSABKAUSGwoTYWRtaW5BY2NvdW50U2hhcmluZxgK",
+            "IAEoCCLoAQoNQWRtaW5pc3RyYXRvchIRCglmaXJzdE5hbWUYASABKAkSEAoI",
+            "bGFzdE5hbWUYAiABKAkSDQoFZW1haWwYAyABKAkSHAoUY3VycmVudE51bWJl",
+            "ck9mVXNlcnMYBCABKAUSFQoNbnVtYmVyT2ZVc2VycxgFIAEoBRIXCg9udW1i",
+            "ZXJPZkRldmljZXMYBiABKAUSGAoQc3Vic2NyaXB0aW9uQ29kZRgHIAEoCRIW",
+            "Cg5leHBpcmF0aW9uRGF0ZRgIIAEoCRIUCgxwdXJjaGFzZURhdGUYCSABKAkS",
+            "DQoFdG90YWwYCiABKAlCKgoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQg5B",
+            "Y2NvdW50U3VtbWFyeWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -119,9 +119,9 @@ namespace AccountSummary {
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.DeviceInfo), global::AccountSummary.DeviceInfo.Parser, new[]{ "EncryptedDeviceToken", "DeviceName", "DeviceStatus", "DevicePublicKey", "EncryptedDataKey", "ClientVersion", "Username", "IpAddress", "ApproveRequestTime" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeysInfo), global::AccountSummary.KeysInfo.Parser, new[]{ "EncryptionParams", "EncryptedDataKey", "DataKeyBackupDate", "UserAuthUid", "EncryptedPrivateKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.SyncLog), global::AccountSummary.SyncLog.Parser, new[]{ "CountryName", "SecondsAgo", "DeviceName", "CountryCode", "DeviceUID", "IpAddress" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.License), global::AccountSummary.License.Parser, new[]{ "SubscriptionCode", "ProductTypeId", "ProductTypeName", "ExpirationDate", "SecondsUnitExpiration", "MaxDevices", "FilePlanType", "BytesUsed", "BytesTotal", "SecondsUntilStorageExpiration", "StorageExpirationDate", "HasAutoRenewableAppstoreSubscription", "AccountType", "UploadsRemaining", "EnterpriseId", "ChatEnabled", "AuditAndReportingEnabled", "BreachWatchFeatureDisable", "AccountUid", "AllowPersonalLicense", "LicensedBy", "Email", "BreachWatchEnabled", "BreachWatchScanned", "BreachWatchExpiration", "BreachWatchDateCreated", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.License), global::AccountSummary.License.Parser, new[]{ "SubscriptionCode", "ProductTypeId", "ProductTypeName", "ExpirationDate", "SecondsUntilExpiration", "MaxDevices", "FilePlanType", "BytesUsed", "BytesTotal", "SecondsUntilStorageExpiration", "StorageExpirationDate", "HasAutoRenewableAppstoreSubscription", "AccountType", "UploadsRemaining", "EnterpriseId", "ChatEnabled", "AuditAndReportingEnabled", "BreachWatchFeatureDisable", "AccountUid", "AllowPersonalLicense", "LicensedBy", "Email", "BreachWatchEnabled", "BreachWatchScanned", "BreachWatchExpiration", "BreachWatchDateCreated", "Error" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.AddOn), global::AccountSummary.AddOn.Parser, new[]{ "LicenseKeyId", "Name", "ExpirationDate", "CreatedDate", "IsTrial", "Enabled", "Scanned", "FeatureDisable" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Settings), global::AccountSummary.Settings.Parser, new[]{ "Audit", "MustPerfromAccountShareBy", "ShareAccountTo", "Rules", "PasswordRulesIntro", "AutoBackupDays", "Theme", "Channel", "ChannelValue", "RsaConfigured", "EmailVarified", "MasterPasswordLastModified", "AccountFolderKey", "SecurityKeys", "KeyValues", "SsoUser", "OnlineAccessOnly", "MasterPasswordExpiry", "TwoFactorRequired", "DisallowExport", "RestrictFiles", "RestrictAllSharing", "RestrictSharing", "RestrictSharingIncomingAll", "RestrictSharingIncomingEnterprise" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Settings), global::AccountSummary.Settings.Parser, new[]{ "Audit", "MustPerformAccountShareBy", "ShareAccountTo", "Rules", "PasswordRulesIntro", "AutoBackupDays", "Theme", "Channel", "ChannelValue", "RsaConfigured", "EmailVerified", "MasterPasswordLastModified", "AccountFolderKey", "SecurityKeys", "KeyValues", "SsoUser", "OnlineAccessOnly", "MasterPasswordExpiry", "TwoFactorRequired", "DisallowExport", "RestrictFiles", "RestrictAllSharing", "RestrictSharing", "RestrictSharingIncomingAll", "RestrictSharingIncomingEnterprise" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValue), global::AccountSummary.KeyValue.Parser, new[]{ "Key", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.MissingAccountShareKey), global::AccountSummary.MissingAccountShareKey.Parser, new[]{ "RoleId", "PublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.PasswordRule), global::AccountSummary.PasswordRule.Parser, new[]{ "RuleType", "Pattern", "Match", "Minimum", "Description", "Value" }, null, null, null, null),
@@ -1611,7 +1611,7 @@ namespace AccountSummary {
       productTypeId_ = other.productTypeId_;
       productTypeName_ = other.productTypeName_;
       expirationDate_ = other.expirationDate_;
-      secondsUnitExpiration_ = other.secondsUnitExpiration_;
+      secondsUntilExpiration_ = other.secondsUntilExpiration_;
       maxDevices_ = other.maxDevices_;
       filePlanType_ = other.filePlanType_;
       bytesUsed_ = other.bytesUsed_;
@@ -1686,14 +1686,14 @@ namespace AccountSummary {
       }
     }
 
-    /// <summary>Field number for the "secondsUnitExpiration" field.</summary>
-    public const int SecondsUnitExpirationFieldNumber = 5;
-    private long secondsUnitExpiration_;
+    /// <summary>Field number for the "secondsUntilExpiration" field.</summary>
+    public const int SecondsUntilExpirationFieldNumber = 5;
+    private long secondsUntilExpiration_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long SecondsUnitExpiration {
-      get { return secondsUnitExpiration_; }
+    public long SecondsUntilExpiration {
+      get { return secondsUntilExpiration_; }
       set {
-        secondsUnitExpiration_ = value;
+        secondsUntilExpiration_ = value;
       }
     }
 
@@ -1959,7 +1959,7 @@ namespace AccountSummary {
       if (ProductTypeId != other.ProductTypeId) return false;
       if (ProductTypeName != other.ProductTypeName) return false;
       if (ExpirationDate != other.ExpirationDate) return false;
-      if (SecondsUnitExpiration != other.SecondsUnitExpiration) return false;
+      if (SecondsUntilExpiration != other.SecondsUntilExpiration) return false;
       if (MaxDevices != other.MaxDevices) return false;
       if (FilePlanType != other.FilePlanType) return false;
       if (BytesUsed != other.BytesUsed) return false;
@@ -1992,7 +1992,7 @@ namespace AccountSummary {
       if (ProductTypeId != 0) hash ^= ProductTypeId.GetHashCode();
       if (ProductTypeName.Length != 0) hash ^= ProductTypeName.GetHashCode();
       if (ExpirationDate.Length != 0) hash ^= ExpirationDate.GetHashCode();
-      if (SecondsUnitExpiration != 0L) hash ^= SecondsUnitExpiration.GetHashCode();
+      if (SecondsUntilExpiration != 0L) hash ^= SecondsUntilExpiration.GetHashCode();
       if (MaxDevices != 0) hash ^= MaxDevices.GetHashCode();
       if (FilePlanType != 0) hash ^= FilePlanType.GetHashCode();
       if (BytesUsed != 0L) hash ^= BytesUsed.GetHashCode();
@@ -2044,9 +2044,9 @@ namespace AccountSummary {
         output.WriteRawTag(34);
         output.WriteString(ExpirationDate);
       }
-      if (SecondsUnitExpiration != 0L) {
+      if (SecondsUntilExpiration != 0L) {
         output.WriteRawTag(40);
-        output.WriteInt64(SecondsUnitExpiration);
+        output.WriteInt64(SecondsUntilExpiration);
       }
       if (MaxDevices != 0) {
         output.WriteRawTag(48);
@@ -2156,8 +2156,8 @@ namespace AccountSummary {
       if (ExpirationDate.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(ExpirationDate);
       }
-      if (SecondsUnitExpiration != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(SecondsUnitExpiration);
+      if (SecondsUntilExpiration != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(SecondsUntilExpiration);
       }
       if (MaxDevices != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(MaxDevices);
@@ -2248,8 +2248,8 @@ namespace AccountSummary {
       if (other.ExpirationDate.Length != 0) {
         ExpirationDate = other.ExpirationDate;
       }
-      if (other.SecondsUnitExpiration != 0L) {
-        SecondsUnitExpiration = other.SecondsUnitExpiration;
+      if (other.SecondsUntilExpiration != 0L) {
+        SecondsUntilExpiration = other.SecondsUntilExpiration;
       }
       if (other.MaxDevices != 0) {
         MaxDevices = other.MaxDevices;
@@ -2345,7 +2345,7 @@ namespace AccountSummary {
             break;
           }
           case 40: {
-            SecondsUnitExpiration = input.ReadInt64();
+            SecondsUntilExpiration = input.ReadInt64();
             break;
           }
           case 48: {
@@ -2793,7 +2793,7 @@ namespace AccountSummary {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Settings(Settings other) : this() {
       audit_ = other.audit_;
-      mustPerfromAccountShareBy_ = other.mustPerfromAccountShareBy_;
+      mustPerformAccountShareBy_ = other.mustPerformAccountShareBy_;
       shareAccountTo_ = other.shareAccountTo_.Clone();
       rules_ = other.rules_.Clone();
       passwordRulesIntro_ = other.passwordRulesIntro_;
@@ -2802,7 +2802,7 @@ namespace AccountSummary {
       channel_ = other.channel_;
       channelValue_ = other.channelValue_;
       rsaConfigured_ = other.rsaConfigured_;
-      emailVarified_ = other.emailVarified_;
+      emailVerified_ = other.emailVerified_;
       masterPasswordLastModified_ = other.masterPasswordLastModified_;
       accountFolderKey_ = other.accountFolderKey_;
       securityKeys_ = other.securityKeys_.Clone();
@@ -2836,14 +2836,14 @@ namespace AccountSummary {
       }
     }
 
-    /// <summary>Field number for the "mustPerfromAccountShareBy" field.</summary>
-    public const int MustPerfromAccountShareByFieldNumber = 2;
-    private long mustPerfromAccountShareBy_;
+    /// <summary>Field number for the "mustPerformAccountShareBy" field.</summary>
+    public const int MustPerformAccountShareByFieldNumber = 2;
+    private long mustPerformAccountShareBy_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long MustPerfromAccountShareBy {
-      get { return mustPerfromAccountShareBy_; }
+    public long MustPerformAccountShareBy {
+      get { return mustPerformAccountShareBy_; }
       set {
-        mustPerfromAccountShareBy_ = value;
+        mustPerformAccountShareBy_ = value;
       }
     }
 
@@ -2933,14 +2933,14 @@ namespace AccountSummary {
       }
     }
 
-    /// <summary>Field number for the "emailVarified" field.</summary>
-    public const int EmailVarifiedFieldNumber = 11;
-    private bool emailVarified_;
+    /// <summary>Field number for the "emailVerified" field.</summary>
+    public const int EmailVerifiedFieldNumber = 11;
+    private bool emailVerified_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool EmailVarified {
-      get { return emailVarified_; }
+    public bool EmailVerified {
+      get { return emailVerified_; }
       set {
-        emailVarified_ = value;
+        emailVerified_ = value;
       }
     }
 
@@ -3122,7 +3122,7 @@ namespace AccountSummary {
         return true;
       }
       if (Audit != other.Audit) return false;
-      if (MustPerfromAccountShareBy != other.MustPerfromAccountShareBy) return false;
+      if (MustPerformAccountShareBy != other.MustPerformAccountShareBy) return false;
       if(!shareAccountTo_.Equals(other.shareAccountTo_)) return false;
       if(!rules_.Equals(other.rules_)) return false;
       if (PasswordRulesIntro != other.PasswordRulesIntro) return false;
@@ -3131,7 +3131,7 @@ namespace AccountSummary {
       if (Channel != other.Channel) return false;
       if (ChannelValue != other.ChannelValue) return false;
       if (RsaConfigured != other.RsaConfigured) return false;
-      if (EmailVarified != other.EmailVarified) return false;
+      if (EmailVerified != other.EmailVerified) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(MasterPasswordLastModified, other.MasterPasswordLastModified)) return false;
       if (AccountFolderKey != other.AccountFolderKey) return false;
       if(!securityKeys_.Equals(other.securityKeys_)) return false;
@@ -3153,7 +3153,7 @@ namespace AccountSummary {
     public override int GetHashCode() {
       int hash = 1;
       if (Audit != false) hash ^= Audit.GetHashCode();
-      if (MustPerfromAccountShareBy != 0L) hash ^= MustPerfromAccountShareBy.GetHashCode();
+      if (MustPerformAccountShareBy != 0L) hash ^= MustPerformAccountShareBy.GetHashCode();
       hash ^= shareAccountTo_.GetHashCode();
       hash ^= rules_.GetHashCode();
       if (PasswordRulesIntro.Length != 0) hash ^= PasswordRulesIntro.GetHashCode();
@@ -3162,7 +3162,7 @@ namespace AccountSummary {
       if (Channel.Length != 0) hash ^= Channel.GetHashCode();
       if (ChannelValue.Length != 0) hash ^= ChannelValue.GetHashCode();
       if (RsaConfigured != false) hash ^= RsaConfigured.GetHashCode();
-      if (EmailVarified != false) hash ^= EmailVarified.GetHashCode();
+      if (EmailVerified != false) hash ^= EmailVerified.GetHashCode();
       if (MasterPasswordLastModified != 0D) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(MasterPasswordLastModified);
       if (AccountFolderKey.Length != 0) hash ^= AccountFolderKey.GetHashCode();
       hash ^= securityKeys_.GetHashCode();
@@ -3194,9 +3194,9 @@ namespace AccountSummary {
         output.WriteRawTag(8);
         output.WriteBool(Audit);
       }
-      if (MustPerfromAccountShareBy != 0L) {
+      if (MustPerformAccountShareBy != 0L) {
         output.WriteRawTag(16);
-        output.WriteInt64(MustPerfromAccountShareBy);
+        output.WriteInt64(MustPerformAccountShareBy);
       }
       shareAccountTo_.WriteTo(output, _repeated_shareAccountTo_codec);
       rules_.WriteTo(output, _repeated_rules_codec);
@@ -3224,9 +3224,9 @@ namespace AccountSummary {
         output.WriteRawTag(80);
         output.WriteBool(RsaConfigured);
       }
-      if (EmailVarified != false) {
+      if (EmailVerified != false) {
         output.WriteRawTag(88);
-        output.WriteBool(EmailVarified);
+        output.WriteBool(EmailVerified);
       }
       if (MasterPasswordLastModified != 0D) {
         output.WriteRawTag(97);
@@ -3289,8 +3289,8 @@ namespace AccountSummary {
       if (Audit != false) {
         size += 1 + 1;
       }
-      if (MustPerfromAccountShareBy != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(MustPerfromAccountShareBy);
+      if (MustPerformAccountShareBy != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(MustPerformAccountShareBy);
       }
       size += shareAccountTo_.CalculateSize(_repeated_shareAccountTo_codec);
       size += rules_.CalculateSize(_repeated_rules_codec);
@@ -3312,7 +3312,7 @@ namespace AccountSummary {
       if (RsaConfigured != false) {
         size += 1 + 1;
       }
-      if (EmailVarified != false) {
+      if (EmailVerified != false) {
         size += 1 + 1;
       }
       if (MasterPasswordLastModified != 0D) {
@@ -3367,8 +3367,8 @@ namespace AccountSummary {
       if (other.Audit != false) {
         Audit = other.Audit;
       }
-      if (other.MustPerfromAccountShareBy != 0L) {
-        MustPerfromAccountShareBy = other.MustPerfromAccountShareBy;
+      if (other.MustPerformAccountShareBy != 0L) {
+        MustPerformAccountShareBy = other.MustPerformAccountShareBy;
       }
       shareAccountTo_.Add(other.shareAccountTo_);
       rules_.Add(other.rules_);
@@ -3390,8 +3390,8 @@ namespace AccountSummary {
       if (other.RsaConfigured != false) {
         RsaConfigured = other.RsaConfigured;
       }
-      if (other.EmailVarified != false) {
-        EmailVarified = other.EmailVarified;
+      if (other.EmailVerified != false) {
+        EmailVerified = other.EmailVerified;
       }
       if (other.MasterPasswordLastModified != 0D) {
         MasterPasswordLastModified = other.MasterPasswordLastModified;
@@ -3447,7 +3447,7 @@ namespace AccountSummary {
             break;
           }
           case 16: {
-            MustPerfromAccountShareBy = input.ReadInt64();
+            MustPerformAccountShareBy = input.ReadInt64();
             break;
           }
           case 26: {
@@ -3483,7 +3483,7 @@ namespace AccountSummary {
             break;
           }
           case 88: {
-            EmailVarified = input.ReadBool();
+            EmailVerified = input.ReadBool();
             break;
           }
           case 97: {
