@@ -395,8 +395,11 @@ namespace KeeperSecurity.Sdk
                     }
                     if (auth.DeviceKey == null)
                     {
-                        auth.Storage.Devices.Delete(auth.DeviceToken.Base64UrlEncode());
-                        auth.DeviceToken = null;
+                        if (dc?.DeviceToken != null)
+                        {
+                            auth.Storage.Devices.Delete(dc.DeviceToken);
+                            auth.DeviceToken = null;
+                        }
                         continue;
                     }
                 }
