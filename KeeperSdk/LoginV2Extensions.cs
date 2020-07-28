@@ -170,8 +170,7 @@ namespace KeeperSecurity.Sdk
 
                     var duoChannel = new TwoFactorDuoChannel
                     {
-                        EnrollmentUrl = loginRs.enrollUrl,
-                        Phone = loginRs.phone,
+                        PhoneNumber = loginRs.phone,
                         SupportedActions = (loginRs.capabilities ?? new string[0])
                             .Select<string, TwoFactorPushAction?>(x =>
                             {

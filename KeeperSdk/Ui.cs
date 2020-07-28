@@ -122,6 +122,7 @@ namespace KeeperSecurity.Sdk.UI
     {
         string ChannelName { get; }
         string ApplicationName { get; }
+        string PhoneNumber { get; }
     }
 
     public delegate Task<bool> TwoFactorPushActionDelegate(TwoFactorPushAction pushAction, TwoFactorDuration duration);

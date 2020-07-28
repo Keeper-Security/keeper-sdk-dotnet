@@ -79,24 +79,26 @@ namespace SsoCloud {
             "ASgJEhkKEW1lc3NhZ2VTZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMgASgJ",
             "EhsKE2VuY3J5cHRlZExvZ2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJOYW1l",
             "GAUgASgJEhQKDGlkcFNlc3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRTZXNz",
-            "aW9uVG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSLkAQoOU2FtbFJl",
-            "bGF5U3RhdGUSGQoRbWVzc2FnZVNlc3Npb25VaWQYASABKAwSEAoIdXNlcm5h",
-            "bWUYAiABKAkSEAoIZW1iZWRkZWQYAyABKAgSDAoEanNvbhgEIAEoCBIOCgZk",
-            "ZXN0SWQYBSABKA0SDQoFa2V5SWQYBiABKAUSPAoRc3VwcG9ydGVkTGFuZ3Vh",
-            "Z2UYByABKA4yIS5BdXRoZW50aWNhdGlvbi5TdXBwb3J0ZWRMYW5ndWFnZRIQ",
-            "CghjaGVja3N1bRgIIAEoBBIWCg5pc0dlbmVyYXRlZFVpZBgJIAEoCCodChBB",
-            "dXRoUHJvdG9jb2xUeXBlEgkKBVNBTUwyEAAq5wEKCERhdGFUeXBlEgcKA0FO",
-            "WRAAEgsKB0JPT0xFQU4QARILCgdJTlRFR0VSEAISCgoGU1RSSU5HEAMSCQoF",
-            "QllURVMQBBIHCgNVUkwQBRIuCipjb21fa2VlcGVyc2VjdXJpdHlfcHJvdG9f",
-            "U3NvQ2xvdWRfRGF0YVR5cGUQBhI2CjJjb21fa2VlcGVyc2VjdXJpdHlfcHJv",
-            "dG9fU3NvQ2xvdWRfQXV0aFByb3RvY29sVHlwZRAHEjAKLGNvbV9rZWVwZXJz",
-            "ZWN1cml0eV9wcm90b19Tc29DbG91ZF9Tc29JZHBUeXBlEAgqUgocU3NvQ2xv",
-            "dWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIHCgNTRVQQABIHCgNHRVQQARIKCgZE",
-            "RUxFVEUQAhIUChBSRVNFVF9UT19ERUZBVUxUEAMqaQoKU3NvSWRwVHlwZRIN",
-            "CglYWF9VTlVTRUQQABILCgdHRU5FUklDEAESBgoCRjUQAhIKCgZHT09HTEUQ",
-            "AxIICgRPS1RBEAQSCAoEQURGUxAFEgkKBUFaVVJFEAYSDAoIT05FTE9HSU4Q",
-            "B0IkChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CCFNzb0Nsb3VkYgZwcm90",
-            "bzM="));
+            "aW9uVG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSJaChJTc29DbG91",
+            "ZExvZ1JlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQSEwoL",
+            "c2VydmljZU5hbWUYAiABKAkSEQoJc2VydmljZUlkGAMgASgNIuQBCg5TYW1s",
+            "UmVsYXlTdGF0ZRIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIQCgh1c2Vy",
+            "bmFtZRgCIAEoCRIQCghlbWJlZGRlZBgDIAEoCBIMCgRqc29uGAQgASgIEg4K",
+            "BmRlc3RJZBgFIAEoDRINCgVrZXlJZBgGIAEoBRI8ChFzdXBwb3J0ZWRMYW5n",
+            "dWFnZRgHIAEoDjIhLkF1dGhlbnRpY2F0aW9uLlN1cHBvcnRlZExhbmd1YWdl",
+            "EhAKCGNoZWNrc3VtGAggASgEEhYKDmlzR2VuZXJhdGVkVWlkGAkgASgIKh0K",
+            "EEF1dGhQcm90b2NvbFR5cGUSCQoFU0FNTDIQACrnAQoIRGF0YVR5cGUSBwoD",
+            "QU5ZEAASCwoHQk9PTEVBThABEgsKB0lOVEVHRVIQAhIKCgZTVFJJTkcQAxIJ",
+            "CgVCWVRFUxAEEgcKA1VSTBAFEi4KKmNvbV9rZWVwZXJzZWN1cml0eV9wcm90",
+            "b19Tc29DbG91ZF9EYXRhVHlwZRAGEjYKMmNvbV9rZWVwZXJzZWN1cml0eV9w",
+            "cm90b19Tc29DbG91ZF9BdXRoUHJvdG9jb2xUeXBlEAcSMAosY29tX2tlZXBl",
+            "cnNlY3VyaXR5X3Byb3RvX1Nzb0Nsb3VkX1Nzb0lkcFR5cGUQCCpSChxTc29D",
+            "bG91ZFNldHRpbmdPcGVyYXRpb25UeXBlEgcKA1NFVBAAEgcKA0dFVBABEgoK",
+            "BkRFTEVURRACEhQKEFJFU0VUX1RPX0RFRkFVTFQQAyppCgpTc29JZHBUeXBl",
+            "Eg0KCVhYX1VOVVNFRBAAEgsKB0dFTkVSSUMQARIGCgJGNRACEgoKBkdPT0dM",
+            "RRADEggKBE9LVEEQBBIICgRBREZTEAUSCQoFQVpVUkUQBhIMCghPTkVMT0dJ",
+            "ThAHQiQKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IIU3NvQ2xvdWRiBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::SsoCloud.AuthProtocolType), typeof(global::SsoCloud.DataType), typeof(global::SsoCloud.SsoCloudSettingOperationType), typeof(global::SsoCloud.SsoIdpType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -119,6 +121,7 @@ namespace SsoCloud {
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudServiceProviderConfigurationListResponse), global::SsoCloud.SsoCloudServiceProviderConfigurationListResponse.Parser, new[]{ "ConfigurationItem" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudRequest), global::SsoCloud.SsoCloudRequest.Parser, new[]{ "MessageSessionUid", "ClientVersion", "Embedded", "Json", "Dest", "IdpSessionId", "ForceLogin", "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudResponse), global::SsoCloud.SsoCloudResponse.Parser, new[]{ "Command", "MessageSessionUid", "Email", "EncryptedLoginToken", "ProviderName", "IdpSessionId", "EncryptedSessionToken", "ErrorToken" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudLogRequest), global::SsoCloud.SsoCloudLogRequest.Parser, new[]{ "SsoServiceProviderId", "ServiceName", "ServiceId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SamlRelayState), global::SsoCloud.SamlRelayState.Parser, new[]{ "MessageSessionUid", "Username", "Embedded", "Json", "DestId", "KeyId", "SupportedLanguage", "Checksum", "IsGeneratedUid" }, null, null, null, null)
           }));
     }
@@ -4343,6 +4346,204 @@ namespace SsoCloud {
 
   /// <summary>
   ///*
+  /// This allows the user to retrieve or clear SSO logs related to a service provider.
+  /// </summary>
+  public sealed partial class SsoCloudLogRequest : pb::IMessage<SsoCloudLogRequest> {
+    private static readonly pb::MessageParser<SsoCloudLogRequest> _parser = new pb::MessageParser<SsoCloudLogRequest>(() => new SsoCloudLogRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SsoCloudLogRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[19]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SsoCloudLogRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SsoCloudLogRequest(SsoCloudLogRequest other) : this() {
+      ssoServiceProviderId_ = other.ssoServiceProviderId_;
+      serviceName_ = other.serviceName_;
+      serviceId_ = other.serviceId_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SsoCloudLogRequest Clone() {
+      return new SsoCloudLogRequest(this);
+    }
+
+    /// <summary>Field number for the "ssoServiceProviderId" field.</summary>
+    public const int SsoServiceProviderIdFieldNumber = 1;
+    private ulong ssoServiceProviderId_;
+    /// <summary>
+    /// The ID of the service provider
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong SsoServiceProviderId {
+      get { return ssoServiceProviderId_; }
+      set {
+        ssoServiceProviderId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "serviceName" field.</summary>
+    public const int ServiceNameFieldNumber = 2;
+    private string serviceName_ = "";
+    /// <summary>
+    /// Either the service name, such as "Cloud SSO Connect"
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ServiceName {
+      get { return serviceName_; }
+      set {
+        serviceName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "serviceId" field.</summary>
+    public const int ServiceIdFieldNumber = 3;
+    private uint serviceId_;
+    /// <summary>
+    /// Or the ID of the service, such as 1.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public uint ServiceId {
+      get { return serviceId_; }
+      set {
+        serviceId_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SsoCloudLogRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SsoCloudLogRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SsoServiceProviderId != other.SsoServiceProviderId) return false;
+      if (ServiceName != other.ServiceName) return false;
+      if (ServiceId != other.ServiceId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
+      if (ServiceName.Length != 0) hash ^= ServiceName.GetHashCode();
+      if (ServiceId != 0) hash ^= ServiceId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (SsoServiceProviderId != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(SsoServiceProviderId);
+      }
+      if (ServiceName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ServiceName);
+      }
+      if (ServiceId != 0) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(ServiceId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (SsoServiceProviderId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(SsoServiceProviderId);
+      }
+      if (ServiceName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ServiceName);
+      }
+      if (ServiceId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(ServiceId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SsoCloudLogRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SsoServiceProviderId != 0UL) {
+        SsoServiceProviderId = other.SsoServiceProviderId;
+      }
+      if (other.ServiceName.Length != 0) {
+        ServiceName = other.ServiceName;
+      }
+      if (other.ServiceId != 0) {
+        ServiceId = other.ServiceId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            SsoServiceProviderId = input.ReadUInt64();
+            break;
+          }
+          case 18: {
+            ServiceName = input.ReadString();
+            break;
+          }
+          case 24: {
+            ServiceId = input.ReadUInt32();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  ///*
   /// This is used internally by Cloud SSO.  Clients do not use it.
   /// </summary>
   public sealed partial class SamlRelayState : pb::IMessage<SamlRelayState> {
@@ -4353,7 +4554,7 @@ namespace SsoCloud {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[19]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

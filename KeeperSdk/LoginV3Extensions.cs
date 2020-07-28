@@ -893,6 +893,7 @@ namespace KeeperSecurity.Sdk
                     case TwoFactorChannelType.TwoFaCtSms:
                         availableChannels.Add(new TwoFactorSmsChannel
                         {
+                            PhoneNumber =  ch.PhoneNumber,
                             InvokeTwoFactorPushAction = GetActionDelegate(auth, ch, loginToken)
                         });
                         break;
@@ -900,6 +901,7 @@ namespace KeeperSecurity.Sdk
                     case TwoFactorChannelType.TwoFaCtDuo:
                         var duoTfa = new TwoFactorDuoChannel
                         {
+                            PhoneNumber = ch.PhoneNumber,
                             InvokeTwoFactorPushAction = GetActionDelegate(auth, ch, loginToken),
                             SupportedActions = (ch.Capabilities ?? Enumerable.Empty<string>())
                                 .Select<string, TwoFactorPushAction?>(x =>

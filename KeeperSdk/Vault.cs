@@ -134,7 +134,7 @@ namespace KeeperSecurity.Sdk
             return null;
         }
 
-        public async Task AddRecord(PasswordRecord record, string folderUid)
+        public async Task AddRecord(PasswordRecord record, string folderUid = null)
         {
             FolderNode node = null;
             if (!string.IsNullOrEmpty(folderUid))
@@ -203,53 +203,48 @@ namespace KeeperSecurity.Sdk
                 existingRecord = Storage.Records.Get(record.Uid);
             }
 
-            var updateRecord = new RecordUpdateRecord();
-
-            if (existingRecord != null)
+            if (existingRecord == null)
             {
-                updateRecord.RecordUid = existingRecord.RecordUid;
-                var rmd = ResolveRecordAccessPath(updateRecord, forEdit: true);
-                if (rmd != null)
+                await AddRecord(record);
+                return;
+            }
+
+            var updateRecord = new RecordUpdateRecord
+            {
+                RecordUid = existingRecord.RecordUid
+            };
+
+            var rmd = ResolveRecordAccessPath(updateRecord, true);
+            if (rmd != null)
+            {
+                if (rmd.RecordKeyType == (int) KeyType.NoKey || rmd.RecordKeyType == (int) KeyType.PrivateKey)
                 {
-                    if (rmd.RecordKeyType == (int) KeyType.NoKey || rmd.RecordKeyType == (int) KeyType.PrivateKey)
-                    {
-                        updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey)
-                            .Base64UrlEncode();
-                    }
+                    updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey)
+                        .Base64UrlEncode();
                 }
+            }
 
-                updateRecord.Revision = existingRecord.Revision;
-            }
-            else
-            {
-                record.Uid = CryptoUtils.GenerateUid();
-                record.RecordKey = CryptoUtils.GenerateEncryptionKey();
-                updateRecord.RecordUid = record.Uid;
-                updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, Auth.AuthContext.DataKey)
-                    .Base64UrlEncode();
-                updateRecord.Revision = 0;
-            }
+            updateRecord.Revision = existingRecord.Revision;
 
             if (!skipData)
             {
                 var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
                 RecordData existingData = null;
-                if (existingRecord != null)
+                try
                 {
-                    try
+                    var unencryptedData =
+                        CryptoUtils.DecryptAesV1(existingRecord.Data.Base64UrlDecode(), record.RecordKey);
+                    using (var ms = new MemoryStream(unencryptedData))
                     {
-                        var unencryptedData =
-                            CryptoUtils.DecryptAesV1(existingRecord.Data.Base64UrlDecode(), record.RecordKey);
-                        using (var ms = new MemoryStream(unencryptedData))
-                        {
-                            existingData = (RecordData) dataSerializer.ReadObject(ms);
-                        }
+                        existingData = (RecordData) dataSerializer.ReadObject(ms);
                     }
-                    catch (Exception e)
-                    {
-                        Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"", existingRecord.RecordUid,
-                            e.GetType().Name, e.Message);
-                    }
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"",
+                        existingRecord.RecordUid,
+                        e.GetType().Name,
+                        e.Message);
                 }
 
                 var data = record.ExtractRecordData(existingData);
@@ -264,22 +259,22 @@ namespace KeeperSecurity.Sdk
             {
                 var extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
                 RecordExtra existingExtra = null;
-                if (existingRecord != null)
+                try
                 {
-                    try
+                    var unencryptedExtra =
+                        CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
+                    using (var ms = new MemoryStream(unencryptedExtra))
                     {
-                        var unencryptedExtra =
-                            CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
-                        using (var ms = new MemoryStream(unencryptedExtra))
-                        {
-                            existingExtra = (RecordExtra) extraSerializer.ReadObject(ms);
-                        }
+                        existingExtra = (RecordExtra) extraSerializer.ReadObject(ms);
                     }
-                    catch (Exception e)
-                    {
-                        Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"", existingRecord.RecordUid,
-                            e.GetType().Name, e.Message);
-                    }
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"",
+                        existingRecord.RecordUid,
+                        e.GetType().Name,
+                        e.Message);
+
                 }
 
                 var extra = record.ExtractRecordExtra(existingExtra);
@@ -312,16 +307,9 @@ namespace KeeperSecurity.Sdk
 
             var command = new RecordUpdateCommand
             {
-                deviceId = Auth.AuthContext.DeviceToken.Base64UrlEncode()
+                deviceId = Auth.AuthContext.DeviceToken.Base64UrlEncode(), 
+                UpdateRecords = new[] {updateRecord}
             };
-            if (existingRecord != null)
-            {
-                command.UpdateRecords = new[] {updateRecord};
-            }
-            else
-            {
-                command.AddRecords = new[] {updateRecord};
-            }
 
             await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
             await ScheduleSyncDown(TimeSpan.FromSeconds(0));

@@ -65,6 +65,7 @@ namespace KeeperSecurity.Sdk.UI
 
         public TwoFactorChannel Channel { get; }
         public string ApplicationName { get; }
+        public string PhoneNumber { get; internal set; }
         public string ChannelName { get; }
     }
 
@@ -80,6 +81,7 @@ namespace KeeperSecurity.Sdk.UI
         public TwoFactorChannel Channel { get; }
         public string ChannelName { get; }
         public string ApplicationName { get; }
+        public string PhoneNumber { get; internal set; }
     }
 
     public class TwoFactorDuoChannel : ITwoFactorAppCodeInfo, ITwoFactorPushInfo
@@ -94,8 +96,7 @@ namespace KeeperSecurity.Sdk.UI
         public TwoFactorChannel Channel { get; }
         public string ChannelName { get; }
         public string ApplicationName { get; }
-        public string EnrollmentUrl { get; internal set; }
-        public string Phone { get; internal set; }
+        public string PhoneNumber { get; internal set; }
         public TwoFactorPushAction[] SupportedActions { get; set; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
     }
@@ -114,6 +115,7 @@ namespace KeeperSecurity.Sdk.UI
         public string ChannelName { get; }
         public string ApplicationName { get; }
         public TwoFactorPushAction[] SupportedActions { get; }
+        public string PhoneNumber { get; internal set; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
     }
 
@@ -130,6 +132,7 @@ namespace KeeperSecurity.Sdk.UI
         public TwoFactorChannel Channel { get; }
         public string ChannelName { get; }
         public string ApplicationName { get; }
+        public string PhoneNumber { get; internal set; }
         public TwoFactorPushAction[] SupportedActions { get; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
     }

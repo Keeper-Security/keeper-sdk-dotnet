@@ -1,8 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using KeeperSecurity.Sdk;
 
 namespace SecurityKey
 {
@@ -11,54 +15,43 @@ namespace SecurityKey
         public string Version { get; set; }
         public string AppId { get; set; }
         public string Challenge { get; set; }
-        public byte[] KeyHandle { get; set; }
+        public string KeyHandle { get; set; }
     };
 
     public class AuthenticateResponse
     {
-        public byte[] ClientData { get; internal set; }
-        public byte[] Signature { get; internal set; }
-        public byte[] KeyHandle { get; internal set; }
+        public string ClientData { get; internal set; }
+        public string Signature { get; internal set; }
+        public string KeyHandle { get; internal set; }
     };
+
+    [DataContract]
+    class U2F_ClientData
+    {
+        [DataMember(Name = "typ")]
+        public string Type { get; set; }
+
+        [DataMember(Name = "challenge")]
+        public string Challenge { get; set; }
+
+        [DataMember(Name = "origin")]
+        public string Origin { get; set; }
+    }
 
     public class U2F : IDisposable
     {
-        private Stream _connection;
-        private string U2FVersion;
-        public U2F(Stream connection)
-        {
-            _connection = connection;
-        }
-
-        public Task<AuthenticateResponse> Authenticate(AuthenticateRequest request, Action onTestUserPresenceRequired = null) {
-
-            return Authenticate(request, onTestUserPresenceRequired, CancellationToken.None);
-        }
-
-        public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest request, Action OnTestUserPresenceRequired, CancellationToken token)
-        {
-            
-            return null;
-        }
-
-
-        public const string Register = "navigator.id.finishEnrollment";
-        public const string Sign = "navigator.id.getAssertion";
-
-        public void Dispose()
-        {
-            _connection?.Dispose();
-            _connection = null;
-        }
-    }
-
-    public static class CTAP1
-    {
-        public enum INS: byte
+        public enum CTAP1_INS : byte
         {
             Register = 1,
             Authenticate = 2,
             Version = 3,
+        }
+
+
+        private Stream _connection;
+        public U2F(Stream connection)
+        {
+            _connection = connection;
         }
 
         public static async Task<string> GetVersion(Stream connection)
@@ -66,7 +59,7 @@ namespace SecurityKey
             var rs = await Apdu.SendAdpu(connection, new ApduRequest
             {
                 Cla = 0,
-                Ins = (byte)INS.Version,
+                Ins = (byte) CTAP1_INS.Version,
                 maxResponseSize = 0xf0
             });
             if (rs.SW1 == 0x90 && rs.SW2 == 0x00)
@@ -77,11 +70,95 @@ namespace SecurityKey
             throw new ApduException(rs.SW1, rs.SW2);
         }
 
-        public static async Task<byte[]> Authenticate(Stream connection, byte[] clientParams, byte[] appIdHash, byte[] keyHandle, bool checkOnly = false)
-        {
-            return null;
+        public Task<AuthenticateResponse> Authenticate(AuthenticateRequest request, Action onTestUserPresenceRequired = null) {
+
+            return Authenticate(request, onTestUserPresenceRequired, CancellationToken.None);
         }
 
+        public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest request, Action onTestUserPresenceRequired, CancellationToken token)
+        {
+            var appIdHash = SHA256.Create().ComputeHash(Encoding.ASCII.GetBytes(request.AppId));
+            var u2fClientData = new U2F_ClientData
+            {
+                Type = U2F_Sign,
+                Challenge = request.Challenge,
+                Origin = request.AppId
+            };
+            var clientDataBytes = JsonUtils.DumpJson(u2fClientData);
+            var clientDataHash = SHA256.Create().ComputeHash(clientDataBytes);
+
+            bool userNotified = false;
+            while (true)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+                var response = await U2F_Authenticate(clientDataHash, appIdHash, request.KeyHandle.Base64UrlDecode(), false);
+                if (response.SW1 == 0x90 && response.SW2 == 0x00)
+                {
+                    return new AuthenticateResponse
+                    {
+                        ClientData = clientDataBytes.Base64UrlEncode(),
+                        Signature = response.data.Base64UrlEncode(),
+                        KeyHandle = request.KeyHandle
+                    };
+                }
+
+                if (response.SW1 == 0x69 && response.SW2 == 0x85)
+                {
+                    if (!userNotified)
+                    {
+                        userNotified = true;
+                        onTestUserPresenceRequired?.Invoke();
+                    }
+
+                    try
+                    {
+                        await Task.Delay(200, token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    throw new ApduException(response.SW1, response.SW2);
+                }
+
+            }
+            throw new KeeperCanceled();
+        }
+
+        public async Task<bool> CheckOnly(AuthenticateRequest request)
+        {
+            var clientDataHash = SHA256.Create().ComputeHash(new byte[0]);
+            var appIdHash = SHA256.Create().ComputeHash(Encoding.ASCII.GetBytes(request.AppId));
+            var response = await U2F_Authenticate(clientDataHash, appIdHash, request.KeyHandle.Base64UrlDecode(), true);
+            return response.SW1 == 0x90 && response.SW2 == 0x00 || response.SW1 == 0x69 && response.SW2 == 0x85;
+        }
+
+        private async Task<ApduResponse> U2F_Authenticate(byte[] clientDataHash, byte[] appIdHash, byte[] keyHandle, bool checkOnly) 
+        {
+            var request = new ApduRequest
+            {
+                Ins = (byte)CTAP1_INS.Authenticate,
+                P1 = checkOnly ? (byte)0x07 : (byte)0x03,
+                data = clientDataHash.Concat(appIdHash).Concat(Enumerable.Repeat((byte) keyHandle.Length, 1)).Concat(keyHandle).ToArray()
+            };
+
+            return await Apdu.SendAdpu(_connection, request);
+        }
+
+        public const string U2F_Register = "navigator.id.finishEnrollment";
+        public const string U2F_Sign = "navigator.id.getAssertion";
+
+        public void Dispose()
+        {
+            _connection?.Dispose();
+            _connection = null;
+        }
     }
 
     public class ApduException: Exception
