@@ -238,72 +238,76 @@ namespace Authentication {
             "cHBvcnRUb29sQ2hhbmdlVXNlcm5hbWVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEg",
             "ASgJEhMKC25ld1VzZXJuYW1lGAIgASgJImAKHFN1cHBvcnRUb29sRGVsZXRl",
             "VXNlclJlcXVlc3QSFQoNYWdlbnRVc2VybmFtZRgBIAEoCRIZChF1c2VybmFt",
-            "ZUZvckRlbGV0ZRgCIAEoCRIOCgZyZWFzb24YAyABKAkiLgoSVXNlckRhdGFL",
-            "ZXlSZXF1ZXN0EhgKEGVudGVycHJpc2VVc2VySWQYASADKAMigQEKC1VzZXJE",
-            "YXRhS2V5EhgKEGVudGVycHJpc2VVc2VySWQYASABKAMSGAoQZW5jcnlwdGVk",
-            "RGF0YUtleRgCIAEoDBIPCgdyb2xlS2V5GAMgASgMEi0KBnN0YXR1cxgEIAEo",
-            "DjIdLkF1dGhlbnRpY2F0aW9uLkRhdGFLZXlTdGF0dXMiSAoTVXNlckRhdGFL",
-            "ZXlSZXNwb25zZRIxCgx1c2VyRGF0YUtleXMYASADKAsyGy5BdXRoZW50aWNh",
-            "dGlvbi5Vc2VyRGF0YUtleSq5AgoRU3VwcG9ydGVkTGFuZ3VhZ2USCwoHRU5H",
-            "TElTSBAAEgoKBkFSQUJJQxABEgsKB0JSSVRJU0gQAhILCgdDSElORVNFEAMS",
-            "FQoRQ0hJTkVTRV9IT05HX0tPTkcQBBISCg5DSElORVNFX1RBSVdBThAFEgkK",
-            "BURVVENIEAYSCgoGRlJFTkNIEAcSCgoGR0VSTUFOEAgSCQoFR1JFRUsQCRIK",
-            "CgZIRUJSRVcQChILCgdJVEFMSUFOEAsSDAoISkFQQU5FU0UQDBIKCgZLT1JF",
-            "QU4QDRIKCgZQT0xJU0gQDhIOCgpQT1JUVUdVRVNFEA8SFQoRUE9SVFVHVUVT",
-            "RV9CUkFaSUwQEBIMCghST01BTklBThAREgsKB1JVU1NJQU4QEhIKCgZTTE9W",
-            "QUsQExILCgdTUEFOSVNIEBQqRQoJTG9naW5UeXBlEgoKBk5PUk1BTBAAEgcK",
-            "A1NTTxABEgcKA0JJTxACEg0KCUFMVEVSTkFURRADEgsKB09GRkxJTkUQBCpx",
-            "CgxEZXZpY2VTdGF0dXMSGQoVREVWSUNFX05FRURTX0FQUFJPVkFMEAASDQoJ",
-            "REVWSUNFX09LEAESGwoXREVWSUNFX0RJU0FCTEVEX0JZX1VTRVIQAhIaChZE",
-            "RVZJQ0VfTE9DS0VEX0JZX0FETUlOEAMqQQoNTGljZW5zZVN0YXR1cxIJCgVP",
-            "VEhFUhAAEgoKBkFDVElWRRABEgsKB0VYUElSRUQQAhIMCghESVNBQkxFRBAD",
-            "KjcKC0FjY291bnRUeXBlEgwKCENPTlNVTUVSEAASCgoGRkFNSUxZEAESDgoK",
-            "RU5URVJQUklTRRACKpIBChBTZXNzaW9uVG9rZW5UeXBlEhIKDk5PX1JFU1RS",
-            "SUNUSU9OEAASFAoQQUNDT1VOVF9SRUNPVkVSWRABEhEKDVNIQVJFX0FDQ09V",
-            "TlQQAhIMCghQVVJDSEFTRRADEgwKCFJFU1RSSUNUEAQSEQoNQUNDRVBUX0lO",
-            "VklURRAFEhIKDlNVUFBPUlRfU0VSVkVSEAYqRwoHVmVyc2lvbhITCg9pbnZh",
-            "bGlkX3ZlcnNpb24QABITCg9kZWZhdWx0X3ZlcnNpb24QARISCg5zZWNvbmRf",
-            "dmVyc2lvbhACKjcKH01hc3RlclBhc3N3b3JkUmVlbnRyeUFjdGlvblR5cGUS",
-            "CgoGVU5NQVNLEAASCAoEQ09QWRABKmwKC0xvZ2luTWV0aG9kEhcKE0lOVkFM",
-            "SURfTE9HSU5NRVRIT0QQABIUChBFWElTVElOR19BQ0NPVU5UEAESDgoKU1NP",
-            "X0RPTUFJThACEg0KCUFGVEVSX1NTTxADEg8KC05FV19BQ0NPVU5UEAQqxwMK",
-            "CkxvZ2luU3RhdGUSFgoSSU5WQUxJRF9MT0dJTlNUQVRFEAASDgoKTE9HR0VE",
-            "X09VVBABEhwKGERFVklDRV9BUFBST1ZBTF9SRVFVSVJFRBACEhEKDURFVklD",
-            "RV9MT0NLRUQQAxISCg5BQ0NPVU5UX0xPQ0tFRBAEEhkKFURFVklDRV9BQ0NP",
-            "VU5UX0xPQ0tFRBAFEgsKB1VQR1JBREUQBhITCg9MSUNFTlNFX0VYUElSRUQQ",
-            "BxITCg9SRUdJT05fUkVESVJFQ1QQCBIWChJSRURJUkVDVF9DTE9VRF9TU08Q",
-            "CRIXChNSRURJUkVDVF9PTlNJVEVfU1NPEAoSEAoMUkVRVUlSRVNfMkZBEAwS",
-            "FgoSUkVRVUlSRVNfQVVUSF9IQVNIEA0SFQoRUkVRVUlSRVNfVVNFUk5BTUUQ",
-            "DhIZChVBRlRFUl9DTE9VRF9TU09fTE9HSU4QDxIdChlSRVFVSVJFU19BQ0NP",
-            "VU5UX0NSRUFUSU9OEBASJgoiUkVRVUlSRVNfREVWSUNFX0VOQ1JZUFRFRF9E",
-            "QVRBX0tFWRAREhcKE0xPR0lOX1RPS0VOX0VYUElSRUQQEhINCglMT0dHRURf",
-            "SU4QYypNChRFbmNyeXB0ZWREYXRhS2V5VHlwZRIKCgZOT19LRVkQABIYChRC",
-            "WV9ERVZJQ0VfUFVCTElDX0tFWRABEg8KC0JZX1BBU1NXT1JEEAIqLQoOUGFz",
-            "c3dvcmRNZXRob2QSCwoHRU5URVJFRBAAEg4KCkJJT01FVFJJQ1MQASq5AQoR",
-            "VHdvRmFjdG9yUHVzaFR5cGUSFAoQVFdPX0ZBX1BVU0hfTk9ORRAAEhMKD1RX",
-            "T19GQV9QVVNIX1NNUxABEhYKElRXT19GQV9QVVNIX0tFRVBFUhACEhgKFFRX",
-            "T19GQV9QVVNIX0RVT19QVVNIEAMSGAoUVFdPX0ZBX1BVU0hfRFVPX1RFWFQQ",
-            "BBIYChRUV09fRkFfUFVTSF9EVU9fQ0FMTBAFEhMKD1RXT19GQV9QVVNIX0RO",
-            "QRAGKsMBChJUd29GYWN0b3JWYWx1ZVR5cGUSFAoQVFdPX0ZBX0NPREVfTk9O",
-            "RRAAEhQKEFRXT19GQV9DT0RFX1RPVFAQARITCg9UV09fRkFfQ09ERV9TTVMQ",
-            "AhITCg9UV09fRkFfQ09ERV9EVU8QAxITCg9UV09fRkFfQ09ERV9SU0EQBBIT",
-            "Cg9UV09fRkFfUkVTUF9VMkYQBRIYChRUV09fRkFfUkVTUF9XRUJBVVRIThAG",
-            "EhMKD1RXT19GQV9DT0RFX0ROQRAHKuEBChRUd29GYWN0b3JDaGFubmVsVHlw",
-            "ZRISCg5UV09fRkFfQ1RfTk9ORRAAEhIKDlRXT19GQV9DVF9UT1RQEAESEQoN",
-            "VFdPX0ZBX0NUX1NNUxACEhEKDVRXT19GQV9DVF9EVU8QAxIRCg1UV09fRkFf",
-            "Q1RfUlNBEAQSFAoQVFdPX0ZBX0NUX0JBQ0tVUBAFEhEKDVRXT19GQV9DVF9V",
-            "MkYQBhIWChJUV09fRkFfQ1RfV0VCQVVUSE4QBxIUChBUV09fRkFfQ1RfS0VF",
-            "UEVSEAgSEQoNVFdPX0ZBX0NUX0ROQRAJKqsBChNUd29GYWN0b3JFeHBpcmF0",
-            "aW9uEhoKFlRXT19GQV9FWFBfSU1NRURJQVRFTFkQABIYChRUV09fRkFfRVhQ",
-            "XzVfTUlOVVRFUxABEhcKE1RXT19GQV9FWFBfMTJfSE9VUlMQAhIXChNUV09f",
-            "RkFfRVhQXzI0X0hPVVJTEAMSFgoSVFdPX0ZBX0VYUF8zMF9EQVlTEAQSFAoQ",
-            "VFdPX0ZBX0VYUF9ORVZFUhAFKkAKC0xpY2Vuc2VUeXBlEgkKBVZBVUxUEAAS",
-            "CAoEQ0hBVBABEgsKB1NUT1JBR0UQAhIPCgtCUkVBQ0hXQVRDSBADKmkKC09i",
-            "amVjdFR5cGVzEgoKBlJFQ09SRBAAEhYKElNIQVJFRF9GT0xERVJfVVNFUhAB",
-            "EhYKElNIQVJFRF9GT0xERVJfVEVBTRACEg8KC1VTRVJfRk9MREVSEAMSDQoJ",
-            "VEVBTV9VU0VSEAQqRgoNRGF0YUtleVN0YXR1cxIJCgVES19PSxAAEhQKEERL",
-            "X0RPRVNOT1RfRVhJU1QQARIUChBES19BQ0NFU1NfREVOSUVEEAJCKgoYY29t",
-            "LmtlZXBlcnNlY3VyaXR5LnByb3RvQg5BdXRoZW50aWNhdGlvbmIGcHJvdG8z"));
+            "ZUZvckRlbGV0ZRgCIAEoCRIOCgZyZWFzb24YAyABKAkilQEKJURlbGV0ZVVz",
+            "ZXJXaXRoVmVyaWZpY2F0aW9uQ29kZVJlcXVlc3QSFQoNYWdlbnRVc2VybmFt",
+            "ZRgBIAEoCRIZChF1c2VybmFtZUZvckRlbGV0ZRgCIAEoCRIOCgZyZWFzb24Y",
+            "AyABKAkSGAoQdmVyaWZpY2F0aW9uQ29kZRgEIAEoCRIQCghvdmVycmlkZRgF",
+            "IAEoCCIuChJVc2VyRGF0YUtleVJlcXVlc3QSGAoQZW50ZXJwcmlzZVVzZXJJ",
+            "ZBgBIAMoAyKBAQoLVXNlckRhdGFLZXkSGAoQZW50ZXJwcmlzZVVzZXJJZBgB",
+            "IAEoAxIYChBlbmNyeXB0ZWREYXRhS2V5GAIgASgMEg8KB3JvbGVLZXkYAyAB",
+            "KAwSLQoGc3RhdHVzGAQgASgOMh0uQXV0aGVudGljYXRpb24uRGF0YUtleVN0",
+            "YXR1cyJIChNVc2VyRGF0YUtleVJlc3BvbnNlEjEKDHVzZXJEYXRhS2V5cxgB",
+            "IAMoCzIbLkF1dGhlbnRpY2F0aW9uLlVzZXJEYXRhS2V5KrkCChFTdXBwb3J0",
+            "ZWRMYW5ndWFnZRILCgdFTkdMSVNIEAASCgoGQVJBQklDEAESCwoHQlJJVElT",
+            "SBACEgsKB0NISU5FU0UQAxIVChFDSElORVNFX0hPTkdfS09ORxAEEhIKDkNI",
+            "SU5FU0VfVEFJV0FOEAUSCQoFRFVUQ0gQBhIKCgZGUkVOQ0gQBxIKCgZHRVJN",
+            "QU4QCBIJCgVHUkVFSxAJEgoKBkhFQlJFVxAKEgsKB0lUQUxJQU4QCxIMCghK",
+            "QVBBTkVTRRAMEgoKBktPUkVBThANEgoKBlBPTElTSBAOEg4KClBPUlRVR1VF",
+            "U0UQDxIVChFQT1JUVUdVRVNFX0JSQVpJTBAQEgwKCFJPTUFOSUFOEBESCwoH",
+            "UlVTU0lBThASEgoKBlNMT1ZBSxATEgsKB1NQQU5JU0gQFCpFCglMb2dpblR5",
+            "cGUSCgoGTk9STUFMEAASBwoDU1NPEAESBwoDQklPEAISDQoJQUxURVJOQVRF",
+            "EAMSCwoHT0ZGTElORRAEKnEKDERldmljZVN0YXR1cxIZChVERVZJQ0VfTkVF",
+            "RFNfQVBQUk9WQUwQABINCglERVZJQ0VfT0sQARIbChdERVZJQ0VfRElTQUJM",
+            "RURfQllfVVNFUhACEhoKFkRFVklDRV9MT0NLRURfQllfQURNSU4QAypBCg1M",
+            "aWNlbnNlU3RhdHVzEgkKBU9USEVSEAASCgoGQUNUSVZFEAESCwoHRVhQSVJF",
+            "RBACEgwKCERJU0FCTEVEEAMqNwoLQWNjb3VudFR5cGUSDAoIQ09OU1VNRVIQ",
+            "ABIKCgZGQU1JTFkQARIOCgpFTlRFUlBSSVNFEAIqkgEKEFNlc3Npb25Ub2tl",
+            "blR5cGUSEgoOTk9fUkVTVFJJQ1RJT04QABIUChBBQ0NPVU5UX1JFQ09WRVJZ",
+            "EAESEQoNU0hBUkVfQUNDT1VOVBACEgwKCFBVUkNIQVNFEAMSDAoIUkVTVFJJ",
+            "Q1QQBBIRCg1BQ0NFUFRfSU5WSVRFEAUSEgoOU1VQUE9SVF9TRVJWRVIQBipH",
+            "CgdWZXJzaW9uEhMKD2ludmFsaWRfdmVyc2lvbhAAEhMKD2RlZmF1bHRfdmVy",
+            "c2lvbhABEhIKDnNlY29uZF92ZXJzaW9uEAIqNwofTWFzdGVyUGFzc3dvcmRS",
+            "ZWVudHJ5QWN0aW9uVHlwZRIKCgZVTk1BU0sQABIICgRDT1BZEAEqbAoLTG9n",
+            "aW5NZXRob2QSFwoTSU5WQUxJRF9MT0dJTk1FVEhPRBAAEhQKEEVYSVNUSU5H",
+            "X0FDQ09VTlQQARIOCgpTU09fRE9NQUlOEAISDQoJQUZURVJfU1NPEAMSDwoL",
+            "TkVXX0FDQ09VTlQQBCrHAwoKTG9naW5TdGF0ZRIWChJJTlZBTElEX0xPR0lO",
+            "U1RBVEUQABIOCgpMT0dHRURfT1VUEAESHAoYREVWSUNFX0FQUFJPVkFMX1JF",
+            "UVVJUkVEEAISEQoNREVWSUNFX0xPQ0tFRBADEhIKDkFDQ09VTlRfTE9DS0VE",
+            "EAQSGQoVREVWSUNFX0FDQ09VTlRfTE9DS0VEEAUSCwoHVVBHUkFERRAGEhMK",
+            "D0xJQ0VOU0VfRVhQSVJFRBAHEhMKD1JFR0lPTl9SRURJUkVDVBAIEhYKElJF",
+            "RElSRUNUX0NMT1VEX1NTTxAJEhcKE1JFRElSRUNUX09OU0lURV9TU08QChIQ",
+            "CgxSRVFVSVJFU18yRkEQDBIWChJSRVFVSVJFU19BVVRIX0hBU0gQDRIVChFS",
+            "RVFVSVJFU19VU0VSTkFNRRAOEhkKFUFGVEVSX0NMT1VEX1NTT19MT0dJThAP",
+            "Eh0KGVJFUVVJUkVTX0FDQ09VTlRfQ1JFQVRJT04QEBImCiJSRVFVSVJFU19E",
+            "RVZJQ0VfRU5DUllQVEVEX0RBVEFfS0VZEBESFwoTTE9HSU5fVE9LRU5fRVhQ",
+            "SVJFRBASEg0KCUxPR0dFRF9JThBjKk0KFEVuY3J5cHRlZERhdGFLZXlUeXBl",
+            "EgoKBk5PX0tFWRAAEhgKFEJZX0RFVklDRV9QVUJMSUNfS0VZEAESDwoLQllf",
+            "UEFTU1dPUkQQAiotCg5QYXNzd29yZE1ldGhvZBILCgdFTlRFUkVEEAASDgoK",
+            "QklPTUVUUklDUxABKrkBChFUd29GYWN0b3JQdXNoVHlwZRIUChBUV09fRkFf",
+            "UFVTSF9OT05FEAASEwoPVFdPX0ZBX1BVU0hfU01TEAESFgoSVFdPX0ZBX1BV",
+            "U0hfS0VFUEVSEAISGAoUVFdPX0ZBX1BVU0hfRFVPX1BVU0gQAxIYChRUV09f",
+            "RkFfUFVTSF9EVU9fVEVYVBAEEhgKFFRXT19GQV9QVVNIX0RVT19DQUxMEAUS",
+            "EwoPVFdPX0ZBX1BVU0hfRE5BEAYqwwEKElR3b0ZhY3RvclZhbHVlVHlwZRIU",
+            "ChBUV09fRkFfQ09ERV9OT05FEAASFAoQVFdPX0ZBX0NPREVfVE9UUBABEhMK",
+            "D1RXT19GQV9DT0RFX1NNUxACEhMKD1RXT19GQV9DT0RFX0RVTxADEhMKD1RX",
+            "T19GQV9DT0RFX1JTQRAEEhMKD1RXT19GQV9SRVNQX1UyRhAFEhgKFFRXT19G",
+            "QV9SRVNQX1dFQkFVVEhOEAYSEwoPVFdPX0ZBX0NPREVfRE5BEAcq4QEKFFR3",
+            "b0ZhY3RvckNoYW5uZWxUeXBlEhIKDlRXT19GQV9DVF9OT05FEAASEgoOVFdP",
+            "X0ZBX0NUX1RPVFAQARIRCg1UV09fRkFfQ1RfU01TEAISEQoNVFdPX0ZBX0NU",
+            "X0RVTxADEhEKDVRXT19GQV9DVF9SU0EQBBIUChBUV09fRkFfQ1RfQkFDS1VQ",
+            "EAUSEQoNVFdPX0ZBX0NUX1UyRhAGEhYKElRXT19GQV9DVF9XRUJBVVRIThAH",
+            "EhQKEFRXT19GQV9DVF9LRUVQRVIQCBIRCg1UV09fRkFfQ1RfRE5BEAkqqwEK",
+            "E1R3b0ZhY3RvckV4cGlyYXRpb24SGgoWVFdPX0ZBX0VYUF9JTU1FRElBVEVM",
+            "WRAAEhgKFFRXT19GQV9FWFBfNV9NSU5VVEVTEAESFwoTVFdPX0ZBX0VYUF8x",
+            "Ml9IT1VSUxACEhcKE1RXT19GQV9FWFBfMjRfSE9VUlMQAxIWChJUV09fRkFf",
+            "RVhQXzMwX0RBWVMQBBIUChBUV09fRkFfRVhQX05FVkVSEAUqQAoLTGljZW5z",
+            "ZVR5cGUSCQoFVkFVTFQQABIICgRDSEFUEAESCwoHU1RPUkFHRRACEg8KC0JS",
+            "RUFDSFdBVENIEAMqaQoLT2JqZWN0VHlwZXMSCgoGUkVDT1JEEAASFgoSU0hB",
+            "UkVEX0ZPTERFUl9VU0VSEAESFgoSU0hBUkVEX0ZPTERFUl9URUFNEAISDwoL",
+            "VVNFUl9GT0xERVIQAxINCglURUFNX1VTRVIQBCpGCg1EYXRhS2V5U3RhdHVz",
+            "EgkKBURLX09LEAASFAoQREtfRE9FU05PVF9FWElTVBABEhQKEERLX0FDQ0VT",
+            "U19ERU5JRUQQAkIqChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CDkF1dGhl",
+            "bnRpY2F0aW9uYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Enterprise.EnterpriseReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), typeof(global::Authentication.DataKeyStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -386,6 +390,7 @@ namespace Authentication {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserSettingRequest), global::Authentication.UserSettingRequest.Parser, new[]{ "Setting", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolChangeUsernameRequest), global::Authentication.SupportToolChangeUsernameRequest.Parser, new[]{ "Username", "NewUsername" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolDeleteUserRequest), global::Authentication.SupportToolDeleteUserRequest.Parser, new[]{ "AgentUsername", "UsernameForDelete", "Reason" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeleteUserWithVerificationCodeRequest), global::Authentication.DeleteUserWithVerificationCodeRequest.Parser, new[]{ "AgentUsername", "UsernameForDelete", "Reason", "VerificationCode", "Override" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKeyRequest), global::Authentication.UserDataKeyRequest.Parser, new[]{ "EnterpriseUserId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKey), global::Authentication.UserDataKey.Parser, new[]{ "EnterpriseUserId", "EncryptedDataKey", "RoleKey", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKeyResponse), global::Authentication.UserDataKeyResponse.Parser, new[]{ "UserDataKeys" }, null, null, null, null)
@@ -16616,6 +16621,247 @@ namespace Authentication {
 
   }
 
+  public sealed partial class DeleteUserWithVerificationCodeRequest : pb::IMessage<DeleteUserWithVerificationCodeRequest> {
+    private static readonly pb::MessageParser<DeleteUserWithVerificationCodeRequest> _parser = new pb::MessageParser<DeleteUserWithVerificationCodeRequest>(() => new DeleteUserWithVerificationCodeRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<DeleteUserWithVerificationCodeRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[79]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeleteUserWithVerificationCodeRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeleteUserWithVerificationCodeRequest(DeleteUserWithVerificationCodeRequest other) : this() {
+      agentUsername_ = other.agentUsername_;
+      usernameForDelete_ = other.usernameForDelete_;
+      reason_ = other.reason_;
+      verificationCode_ = other.verificationCode_;
+      override_ = other.override_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeleteUserWithVerificationCodeRequest Clone() {
+      return new DeleteUserWithVerificationCodeRequest(this);
+    }
+
+    /// <summary>Field number for the "agentUsername" field.</summary>
+    public const int AgentUsernameFieldNumber = 1;
+    private string agentUsername_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string AgentUsername {
+      get { return agentUsername_; }
+      set {
+        agentUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "usernameForDelete" field.</summary>
+    public const int UsernameForDeleteFieldNumber = 2;
+    private string usernameForDelete_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string UsernameForDelete {
+      get { return usernameForDelete_; }
+      set {
+        usernameForDelete_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "reason" field.</summary>
+    public const int ReasonFieldNumber = 3;
+    private string reason_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Reason {
+      get { return reason_; }
+      set {
+        reason_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "verificationCode" field.</summary>
+    public const int VerificationCodeFieldNumber = 4;
+    private string verificationCode_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string VerificationCode {
+      get { return verificationCode_; }
+      set {
+        verificationCode_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "override" field.</summary>
+    public const int OverrideFieldNumber = 5;
+    private bool override_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Override {
+      get { return override_; }
+      set {
+        override_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as DeleteUserWithVerificationCodeRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(DeleteUserWithVerificationCodeRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AgentUsername != other.AgentUsername) return false;
+      if (UsernameForDelete != other.UsernameForDelete) return false;
+      if (Reason != other.Reason) return false;
+      if (VerificationCode != other.VerificationCode) return false;
+      if (Override != other.Override) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (AgentUsername.Length != 0) hash ^= AgentUsername.GetHashCode();
+      if (UsernameForDelete.Length != 0) hash ^= UsernameForDelete.GetHashCode();
+      if (Reason.Length != 0) hash ^= Reason.GetHashCode();
+      if (VerificationCode.Length != 0) hash ^= VerificationCode.GetHashCode();
+      if (Override != false) hash ^= Override.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (AgentUsername.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(AgentUsername);
+      }
+      if (UsernameForDelete.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(UsernameForDelete);
+      }
+      if (Reason.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Reason);
+      }
+      if (VerificationCode.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(VerificationCode);
+      }
+      if (Override != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(Override);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (AgentUsername.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(AgentUsername);
+      }
+      if (UsernameForDelete.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(UsernameForDelete);
+      }
+      if (Reason.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reason);
+      }
+      if (VerificationCode.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(VerificationCode);
+      }
+      if (Override != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(DeleteUserWithVerificationCodeRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.AgentUsername.Length != 0) {
+        AgentUsername = other.AgentUsername;
+      }
+      if (other.UsernameForDelete.Length != 0) {
+        UsernameForDelete = other.UsernameForDelete;
+      }
+      if (other.Reason.Length != 0) {
+        Reason = other.Reason;
+      }
+      if (other.VerificationCode.Length != 0) {
+        VerificationCode = other.VerificationCode;
+      }
+      if (other.Override != false) {
+        Override = other.Override;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AgentUsername = input.ReadString();
+            break;
+          }
+          case 18: {
+            UsernameForDelete = input.ReadString();
+            break;
+          }
+          case 26: {
+            Reason = input.ReadString();
+            break;
+          }
+          case 34: {
+            VerificationCode = input.ReadString();
+            break;
+          }
+          case 40: {
+            Override = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
   public sealed partial class UserDataKeyRequest : pb::IMessage<UserDataKeyRequest> {
     private static readonly pb::MessageParser<UserDataKeyRequest> _parser = new pb::MessageParser<UserDataKeyRequest>(() => new UserDataKeyRequest());
     private pb::UnknownFieldSet _unknownFields;
@@ -16624,7 +16870,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[79]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[80]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16746,7 +16992,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[80]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[81]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16959,7 +17205,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[81]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[82]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

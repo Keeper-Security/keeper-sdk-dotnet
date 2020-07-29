@@ -186,6 +186,9 @@ namespace Commander
             [Option("resume", Required = false, HelpText = "resume last login")]
             public bool Resume { get; set; }
 
+            [Option("sso", Required = false, HelpText = "login using sso provider")]
+            public bool IsSsoProvider { get; set; }
+
             [Value(0, Required = true, MetaName = "email", HelpText = "account email")]
             public string Username { get; set; }
         }
@@ -221,41 +224,63 @@ namespace Commander
         private async Task DoLogin(LoginOptions options)
         {
             var username = options.Username;
-            if (string.IsNullOrEmpty(username))
+            var isSsoProvider = options.IsSsoProvider;
+            if (isSsoProvider)
             {
-                Console.Write("Enter Username: ");
-                username = Console.ReadLine();
+                if (string.IsNullOrEmpty(username))
+                {
+                    Console.Write("Enter SSO Provider: ");
+                    username = Console.ReadLine();
+                }
             }
             else
             {
-                Console.WriteLine("Username: " + username);
+                if (string.IsNullOrEmpty(username))
+                {
+                    Console.Write("Enter Username: ");
+                    username = Console.ReadLine();
+                }
+                else
+                {
+                    Console.WriteLine("Username: " + username);
+                }
+
+                if (_auth.Ui is IUsePassword up)
+                {
+                    up.UsePassword = null;
+                    var passwords = new Queue<string>();
+                    if (!string.IsNullOrEmpty(options.Password))
+                    {
+                        passwords.Enqueue(options.Password);
+                    }
+
+                    var uc = _auth.Storage.Users.Get(username);
+                    if (!string.IsNullOrEmpty(uc?.Password))
+                    {
+                        passwords.Enqueue(uc.Password);
+                    }
+
+                    if (passwords.Any())
+                    {
+                        up.UsePassword = (u) => passwords.Any() ? passwords.Dequeue() : "";
+                    }
+                }
             }
 
-            if (_auth.Ui is IUsePassword up)
-            {
-                up.UsePassword = null;
-                var passwords = new Queue<string>();
-                if (!string.IsNullOrEmpty(options.Password))
-                {
-                    passwords.Enqueue(options.Password);
-                }
-
-                var uc = _auth.Storage.Users.Get(username);
-                if (!string.IsNullOrEmpty(uc?.Password))
-                {
-                    passwords.Enqueue(uc.Password);
-                }
-
-                if (passwords.Any())
-                {
-                    up.UsePassword = (u) => passwords.Any() ? passwords.Dequeue() : "";
-                }
-            }
+            if (string.IsNullOrEmpty(username)) return;
 
             try
             {
-                _auth.ResumeSession = options.Resume;
-                await _auth.Login(username);
+                if (isSsoProvider)
+                {
+                    await _auth.LoginSso(username);
+                }
+                else
+                {
+                    _auth.ResumeSession = options.Resume;
+                    await _auth.Login(username);
+                }
+
                 if (_auth.IsAuthenticated())
                 {
                     var connectedCommands = new ConnectedContext(_auth);

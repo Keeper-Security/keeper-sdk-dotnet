@@ -47,7 +47,13 @@ namespace KeeperSecurity.Sdk
         }
 
         public bool IsSsoAccount { get; set; }
-        public string Username => _auth.Username;
+
+        public string Username
+        {
+            get => _auth.Username;
+            set => _auth.Username = value;
+        }
+
         public byte[] CloneCode { get; set; }
 
         public string Password
@@ -80,6 +86,157 @@ namespace KeeperSecurity.Sdk
 
     public static class LoginV3Extensions
     {
+        private static async Task EnsureDeviceTokenIsRegistered(this AuthV3 auth, string username)
+        {
+            if (string.Compare(auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
+            {
+                auth.Username = username;
+                auth.DeviceToken = null;
+                auth.DeviceKey = null;
+                auth.CloneCode = null;
+            }
+
+            IDeviceConfiguration deviceConf = null;
+            if (auth.DeviceToken != null)
+            {
+                var token = auth.DeviceToken.Base64UrlEncode();
+                deviceConf = auth.Storage.Devices.Get(token);
+                if (deviceConf == null)
+                {
+                    auth.DeviceToken = null;
+                    auth.DeviceKey = null;
+                    auth.CloneCode = null;
+                }
+            }
+
+            var userConf = auth.Storage.Users.Get(auth.Username);
+            var lastDevice = userConf?.LastDevice;
+            var attempt = 0;
+            while (auth.DeviceToken == null || auth.DeviceKey == null)
+            {
+                attempt++;
+                if (attempt > 10) throw new KeeperInvalidDeviceToken("too many attempts");
+
+                auth.DeviceToken = null;
+                auth.DeviceKey = null;
+                auth.CloneCode = null;
+
+                if (lastDevice != null)
+                {
+                    deviceConf = auth.Storage.Devices.Get(lastDevice.DeviceToken);
+                    if (deviceConf != null)
+                    {
+                        if (!string.IsNullOrEmpty(lastDevice.ResumeCode))
+                        {
+                            auth.CloneCode = lastDevice.ResumeCode.Base64UrlDecode();
+                        }
+                    }
+
+                    lastDevice = null;
+                }
+
+                if (deviceConf == null)
+                {
+                    deviceConf = auth.Storage.Devices.List.FirstOrDefault() ?? await auth.RegisterDevice();
+                }
+
+                try
+                {
+                    if (!(deviceConf.DeviceKey?.Length > 0)) throw new KeeperInvalidDeviceToken("invalid configuration");
+                    auth.DeviceToken = deviceConf.DeviceToken.Base64UrlDecode();
+                    auth.DeviceKey = CryptoUtils.LoadPrivateEcKey(deviceConf.DeviceKey);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e);
+                    auth.Storage.Devices.Delete(deviceConf.DeviceToken);
+                }
+            }
+
+            {
+                var token = auth.DeviceToken.Base64UrlEncode();
+                deviceConf = auth.Storage.Devices.Get(token);
+                if (deviceConf == null) throw new KeeperInvalidDeviceToken("invalid configuration");
+
+                if (deviceConf.Servers == null || deviceConf.Servers.All(x => x != auth.Endpoint.Server))
+                {
+                    await auth.RegisterDeviceInRegion(deviceConf);
+                }
+            }
+
+            {
+                if (attempt > 0 && auth.WebSocketChannel != null)
+                {
+                    try
+                    {
+                        auth.WebSocketChannel.Dispose();
+                        auth.WebSocketChannel = null;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e);
+                    }
+                }
+
+                if (auth.WebSocketChannel == null)
+                {
+                    var cancellationTokenSource = new CancellationTokenSource();
+                    try
+                    {
+                        var connectRequest = new WssConnectionRequest
+                        {
+                            EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+                            MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
+                            DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                        };
+                        auth.WebSocketChannel = await auth.Endpoint.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e);
+                    }
+                }
+            }
+        }
+
+        internal static async Task<AuthContextV3> LoginSsoV3(this AuthV3 auth, string providerName)
+        {
+            if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
+            {
+                var payload = new ApiRequestPayload
+                {
+                    ApiVersion = 3,
+                    Payload = new SsoServiceProviderRequest
+                    {
+                        ClientVersion = auth.Endpoint.ClientVersion,
+                        Locale = auth.Endpoint.Locale,
+                        Name = providerName
+                    }.ToByteString()
+                };
+
+                var rsBytes = await auth.Endpoint.ExecuteRest("enterprise/get_sso_service_provider", payload);
+                if (rsBytes?.Length > 0)
+                {
+                    var rs = SsoServiceProviderResponse.Parser.ParseFrom(rsBytes);
+
+                    auth.IsSsoAccount = true;
+                    if (rs.IsCloud)
+                    {
+                        return await auth.AuthorizeUsingCloudSso(rs.SpUrl);
+                    }
+
+                    return await auth.AuthorizeUsingOnsiteSso(rs.SpUrl);
+                }
+                else
+                {
+                    throw new KeeperInvalidParameter("enterprise/get_sso_service_provider", "provider_name", providerName, "SSO provider not found");
+                }
+            }
+
+            throw new KeeperAuthFailed();
+        }
+
+
         internal static async Task<AuthContextV3> LoginV3(this AuthV3 auth, params string[] passwords)
         {
             foreach (var p in passwords)
@@ -87,43 +244,6 @@ namespace KeeperSecurity.Sdk
                 if (string.IsNullOrEmpty(p)) continue;
                 auth.PasswordQueue.Enqueue(p);
             }
-
-            auth.DeviceToken = null;
-
-            var userConf = auth.Storage.Users.Get(auth.Username);
-            var lastDevice = userConf?.LastDevice;
-            if (lastDevice != null)
-            {
-                var dc = auth.Storage.Devices.Get(lastDevice.DeviceToken);
-                if (dc != null)
-                {
-                    try
-                    {
-                        if (dc.DeviceKey?.Length > 0)
-                        {
-                            auth.DeviceToken = lastDevice.DeviceToken.Base64UrlDecode();
-                            auth.DeviceKey = CryptoUtils.LoadPrivateEcKey(dc.DeviceKey);
-                            if (!string.IsNullOrEmpty(lastDevice.ResumeCode))
-                            {
-                                auth.CloneCode = lastDevice.ResumeCode.Base64UrlDecode();
-                            }
-                        }
-                        else
-                        {
-                            throw new KeeperInvalidDeviceToken("user configuration");
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e);
-                        auth.Storage.Devices.Delete(lastDevice.DeviceToken);
-                        auth.DeviceToken = null;
-                        auth.DeviceKey = null;
-                        auth.CloneCode = null;
-                    }
-                }
-            }
-
             try
             {
                 return await auth.StartLogin();
@@ -292,11 +412,11 @@ namespace KeeperSecurity.Sdk
 
                 case LoginState.RedirectCloudSso:
                     auth.IsSsoAccount = true;
-                    return await auth.AuthorizeUsingCloudSso(response);
+                    return await auth.AuthorizeUsingCloudSso(response.Url);
 
                 case LoginState.RedirectOnsiteSso:
                     auth.IsSsoAccount = true;
-                    return await auth.AuthorizeUsingOnsiteSso(response);
+                    return await auth.AuthorizeUsingOnsiteSso(response.Url, response.EncryptedLoginToken);
 
                 case LoginState.RequiresDeviceEncryptedDataKey:
                 {
@@ -365,73 +485,26 @@ namespace KeeperSecurity.Sdk
             return await auth.ExecuteStartLogin(request);
         }
 
-        internal static async Task<AuthContextV3> StartLogin(this AuthV3 auth, bool forceNewLogin = false)
+        internal static async Task<AuthContextV3> StartLogin(this AuthV3 auth, bool forceNewLogin = false, LoginMethod loginMethod = LoginMethod.ExistingAccount)
         {
             var attempt = 0;
             while (true)
             {
                 attempt++;
-                if (auth.DeviceToken == null || auth.DeviceKey == null)
-                {
-                    auth.DeviceKey = null;
-                    auth.CloneCode = null;
-                    var dc = auth.Storage.Devices.List.FirstOrDefault() ?? await auth.RegisterDevice();
-                    if (dc.DeviceKey?.Length > 0)
-                    {
-                        try
-                        {
-                            auth.DeviceToken = dc.DeviceToken.Base64UrlDecode();
-                            auth.DeviceKey = CryptoUtils.LoadPrivateEcKey(dc.DeviceKey);
-                            if (dc.Servers == null || dc.Servers.All(x => x != auth.Endpoint.Server))
-                            {
-                                await auth.RegisterDeviceInRegion(dc);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine(e);
-                        }
+                await auth.EnsureDeviceTokenIsRegistered(auth.Username);
 
-                    }
-                    if (auth.DeviceKey == null)
-                    {
-                        if (dc?.DeviceToken != null)
-                        {
-                            auth.Storage.Devices.Delete(dc.DeviceToken);
-                            auth.DeviceToken = null;
-                        }
-                        continue;
-                    }
-                }
-
-                var cancellationTokenSource = new CancellationTokenSource();
                 try
                 {
-                    try
-                    {
-                        var connectRequest = new WssConnectionRequest
-                        {
-                            EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
-                            MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
-                            DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                        };
-                        auth.WebSocketChannel = await auth.Endpoint.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e);
-                    }
-
                     var request = new StartLoginRequest
                     {
                         ClientVersion = auth.Endpoint.ClientVersion,
                         EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
                         LoginType = LoginType.Normal,
-                        LoginMethod = LoginMethod.ExistingAccount,
+                        LoginMethod = loginMethod,
                         MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
                         ForceNewLogin = forceNewLogin
                     };
-                    if (auth.ResumeSession && auth.CloneCode != null)
+                    if (!forceNewLogin && auth.ResumeSession && loginMethod == LoginMethod.ExistingAccount && auth.CloneCode != null)
                     {
                         request.CloneCode = ByteString.CopyFrom(auth.CloneCode);
                     }
@@ -471,9 +544,6 @@ namespace KeeperSecurity.Sdk
                         auth.WebSocketChannel.Dispose();
                         auth.WebSocketChannel = null;
                     }
-
-                    cancellationTokenSource.Cancel();
-
                     if (attempt < 3 && e is KeeperInvalidDeviceToken)
                     {
                         auth.Storage.Devices.Delete(auth.DeviceToken.Base64UrlEncode());
@@ -1048,57 +1118,15 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        internal static async Task<AuthContextV3> AuthorizeUsingOnsiteSso(this AuthV3 auth, Authentication.LoginResponse response)
+        internal static async Task<AuthContextV3> AuthorizeUsingOnsiteSso(this AuthV3 auth, string ssoBaseUrl, ByteString loginToken = null)
         {
-            Salt masterSalt = null;
-            Salt firstSalt = null;
-            foreach (var salt in response.Salt)
-            {
-                if (firstSalt == null)
-                {
-                    firstSalt = salt;
-                }
-
-                if (salt.Name == "Master")
-                {
-                    masterSalt = salt;
-                }
-
-                if (masterSalt != null)
-                {
-                    break;
-                }
-            }
-
-            var saltInfo = masterSalt ?? firstSalt;
-            if (saltInfo == null)
-            {
-                throw new KeeperStartLoginException(LoginState.RequiresAuthHash, "can not find salt");
-            }
-
-            while (auth.PasswordQueue.Count > 0)
-            {
-                var pwd = auth.PasswordQueue.Dequeue();
-                if (string.IsNullOrEmpty(pwd)) continue;
-                try
-                {
-                    return await auth.ExecuteValidateAuthHash(response.EncryptedLoginToken, pwd, saltInfo);
-                }
-                catch (KeeperAuthFailed)
-                {
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e);
-                }
-            }
-
             if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
             {
                 var queryString = System.Web.HttpUtility.ParseQueryString("");
                 CryptoUtils.GenerateRsaKey(out var privateKey, out var publicKey);
                 queryString.Add("key", publicKey.Base64UrlEncode());
-                var builder = new UriBuilder(new Uri(response.Url))
+                queryString.Add("embedded", "");
+                var builder = new UriBuilder(new Uri(ssoBaseUrl))
                 {
                     Query = queryString.ToString()
                 };
@@ -1130,14 +1158,22 @@ namespace KeeperSecurity.Sdk
                         auth.PasswordQueue.Enqueue(password);
                     }
 
-                    return await auth.ResumeLogin(response.EncryptedLoginToken, LoginMethod.AfterSso);
+                    if (loginToken != null)
+                    {
+                        return await auth.ResumeLogin(loginToken, LoginMethod.AfterSso);
+                    }
+                    else
+                    {
+                        await auth.EnsureDeviceTokenIsRegistered(token.Email);
+                        return await auth.StartLogin(false, LoginMethod.AfterSso);
+                    }
                 }
             }
 
             throw new KeeperAuthFailed();
         }
 
-        internal static async Task<AuthContextV3> AuthorizeUsingCloudSso(this AuthV3 auth, Authentication.LoginResponse response)
+        internal static async Task<AuthContextV3> AuthorizeUsingCloudSso(this AuthV3 auth, string ssoBaseUrl)
         {
             if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
             {
@@ -1153,7 +1189,7 @@ namespace KeeperSecurity.Sdk
 
                 var queryString = System.Web.HttpUtility.ParseQueryString("");
                 queryString.Add("payload", apiRequest.ToByteArray().Base64UrlEncode());
-                var builder = new UriBuilder(new Uri(response.Url))
+                var builder = new UriBuilder(new Uri(ssoBaseUrl))
                 {
                     Query = queryString.ToString()
                 };
@@ -1175,6 +1211,7 @@ namespace KeeperSecurity.Sdk
                     var rsBytes = tokenTask.Result.Base64UrlDecode();
                     rsBytes = CryptoUtils.DecryptAesV2(rsBytes, transmissionKey);
                     var rs = SsoCloudResponse.Parser.ParseFrom(rsBytes);
+                    await auth.EnsureDeviceTokenIsRegistered(rs.Email);
                     return await auth.ResumeLogin(rs.EncryptedLoginToken, LoginMethod.AfterSso);
                 }
             }

@@ -41,8 +41,8 @@ namespace KeeperSecurity.Sdk
 
         public WebSocketChannel(ClientWebSocket webSocket, byte[] transmissionKey, CancellationToken token)
         {
-            this._webSocket = webSocket;
-            this.TransmissionKey = transmissionKey;
+            _webSocket = webSocket;
+            TransmissionKey = transmissionKey;
             _ = Task.Run(async () =>
                 {
                     try

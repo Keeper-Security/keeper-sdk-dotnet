@@ -21,6 +21,7 @@ using System.Text.RegularExpressions;
 using AccountSummary;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using SsoCloud;
 using Type = System.Type;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Tests")]
@@ -174,6 +175,40 @@ namespace KeeperSecurity.Sdk
             throw new KeeperAuthFailed();
         }
 
+        private static bool IsV3Api(string clientVersion)
+        {
+            var match = VersionPattern.Match(clientVersion);
+            if (match.Groups.Count == 2)
+            {
+                if (int.TryParse(match.Groups[1].Value, out var version))
+                {
+                    return version >= 15;
+                }
+            }
+
+            return false;
+        }
+
+        public async Task LoginSso(string providerName)
+        {
+            var isV3Api = IsV3Api(Endpoint.ClientVersion);
+            if (isV3Api)
+            {
+                var authV3 = new AuthV3(this);
+                var contextV3 = await authV3.LoginSsoV3(providerName);
+                this.StoreConfigurationIfChangedV3(contextV3);
+                authContext = contextV3;
+            }
+            else
+            {
+                var authV2 = new AuthV2(this);
+                var contextV2 = await authV2.LoginSsoV2(providerName);
+                this.StoreConfigurationIfChangedV2(contextV2);
+                authContext = contextV2;
+            }
+            await PostLogin(isV3Api);
+        }
+
         public async Task Login(string username, params string[] passwords)
         {
             if (string.IsNullOrEmpty(username))
@@ -184,16 +219,7 @@ namespace KeeperSecurity.Sdk
             Username = username.ToLowerInvariant();
             Password = null;
 
-            var isV3Api = false;
-            var match = VersionPattern.Match(Endpoint.ClientVersion);
-            if (match.Groups.Count == 2)
-            {
-                if (int.TryParse(match.Groups[1].Value, out var version))
-                {
-                    isV3Api = version >= 15;
-                }
-            }
-
+            var isV3Api = IsV3Api(Endpoint.ClientVersion);
             if (isV3Api)
             {
                 var authV3 = new AuthV3(this);
@@ -209,6 +235,11 @@ namespace KeeperSecurity.Sdk
                 authContext = contextV2;
             }
 
+            await PostLogin(isV3Api);
+        }
+
+        private async Task PostLogin(bool isV3Api)
+        {
             if (authContext.SessionTokenRestriction != 0 && Ui is IPostLoginTaskUI postUi)
             {
                 if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
@@ -229,7 +260,7 @@ namespace KeeperSecurity.Sdk
                     {
                         var cmd = new AccountSummaryCommand
                         {
-                            include = new[] {"settings"}
+                            include = new[] { "settings" }
                         };
                         var summaryRs = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(cmd);
                         await this.ShareAccount(summaryRs.Settings.shareAccountTo);
@@ -276,7 +307,7 @@ namespace KeeperSecurity.Sdk
                 {
                     var accountSummaryRq = new AccountSummaryCommand
                     {
-                        include = new[] {"keys", "client_key"},
+                        include = new[] { "keys", "client_key" },
                     };
                     var accountSummaryRs = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(accountSummaryRq);
                     if (accountSummaryRs.keys.encryptedPrivateKey != null)

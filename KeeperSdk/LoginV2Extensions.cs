@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.Serialization;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Authentication;
@@ -58,7 +60,12 @@ namespace KeeperSecurity.Sdk
             PushToken = new FanOut<TwoFactorCode>();
         }
 
-        public string Username => _auth.Username;
+        public string Username
+        {
+            get => _auth.Username;
+            set => _auth.Username = value;
+        }
+
         public string Password
         {
             get => _auth.Password;
@@ -110,6 +117,68 @@ namespace KeeperSecurity.Sdk
             }
 
             context.SessionToken = loginRs.sessionToken.Base64UrlDecode();
+        }
+
+        internal static async Task<AuthContextV2> LoginSsoV2(this AuthV2 auth, string providerName)
+        {
+            var rq = new GetSsoServiceProviderCommand
+            {
+                Name = providerName
+            };
+
+            var rs = (GetSsoServiceProviderResponse) await auth.Endpoint.ExecuteV2Command(rq, typeof(GetSsoServiceProviderResponse));
+            if (!rs.IsSuccess) throw new KeeperApiException(rs.resultCode, rs.message);
+            if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
+            {
+                if (!string.IsNullOrEmpty(rs.RegionHost))
+                {
+                    if (string.Compare(auth.Endpoint.Server, rs.RegionHost, StringComparison.InvariantCultureIgnoreCase) != 0)
+                    {
+                        auth.Endpoint.Server = rs.RegionHost;
+                    }
+                }
+
+                var queryString = System.Web.HttpUtility.ParseQueryString("");
+                CryptoUtils.GenerateRsaKey(out var privateKey, out var publicKey);
+                queryString.Add("key", publicKey.Base64UrlEncode());
+                queryString.Add("embedded", "");
+                var builder = new UriBuilder(new Uri(rs.SpUrl))
+                {
+                    Query = queryString.ToString()
+                };
+                var userTask = ssoUi.GetSsoToken(builder.Uri.AbsoluteUri, false);
+                var index = Task.WaitAny(userTask);
+                if (index == 0)
+                {
+                    if (userTask.IsFaulted)
+                    {
+                        throw userTask.Exception.GetBaseException();
+                    }
+
+                    if (userTask.IsCanceled)
+                    {
+                        throw new KeeperCanceled();
+                    }
+
+                    var tokenStr = userTask.Result;
+                    var token = JsonUtils.ParseJson<SsoToken>(Encoding.UTF8.GetBytes(tokenStr));
+                    var pk = CryptoUtils.LoadPrivateKey(privateKey);
+                    if (!string.IsNullOrEmpty(token.Password))
+                    {
+                        var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.Password.Base64UrlDecode(), pk));
+                        auth.PasswordQueue.Enqueue(password);
+                    }
+                    if (!string.IsNullOrEmpty(token.NewPassword))
+                    {
+                        var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.NewPassword.Base64UrlDecode(), pk));
+                        auth.PasswordQueue.Enqueue(password);
+                    }
+
+                    auth.Username = token.Email;
+                    return await auth.LoginV2();
+                }
+            }
+            throw new KeeperAuthFailed();
         }
 
         public static async Task<AuthContextV2> LoginV2(this AuthV2 auth, params string[] passwords)
@@ -607,4 +676,27 @@ namespace KeeperSecurity.Sdk
             }
         }
     }
+
+    [DataContract]
+    public class GetSsoServiceProviderCommand : KeeperApiCommand
+    {
+        public GetSsoServiceProviderCommand() : base("get_sso_service_provider") { }
+
+        [DataMember(Name = "name")]
+        public string Name { get; set; }
+    }
+
+    [DataContract]
+    public class GetSsoServiceProviderResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "sp_url")]
+        public string SpUrl { get; set; }
+
+        [DataMember(Name = "name")]
+        public string Name { get; set; }
+
+        [DataMember(Name = "region_host")]
+        public string RegionHost { get; set; }
+    }
+
 }
