@@ -454,9 +454,7 @@ namespace KeeperSecurity.Sdk
                     break;
 
                 case LoginState.RegionRedirect:
-                {
-                }
-                    break;
+                    throw new KeeperRegionRedirect(response.StateSpecificValue);
 
                 case LoginState.DeviceAccountLocked:
                 case LoginState.DeviceLocked:

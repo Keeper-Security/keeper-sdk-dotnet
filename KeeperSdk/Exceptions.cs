@@ -26,11 +26,6 @@ namespace KeeperSecurity.Sdk
         public string Method { get; }
         public string Parameter { get; }
         public string Value { get; }
-
-        public override string ToString()
-        {
-            return $"\"{Value}\": {Message}";
-        }
     }
 
     public class KeeperPostLoginErrors : Exception

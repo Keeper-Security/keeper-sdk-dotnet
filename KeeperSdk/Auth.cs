@@ -195,17 +195,39 @@ namespace KeeperSecurity.Sdk
             if (isV3Api)
             {
                 var authV3 = new AuthV3(this);
-                var contextV3 = await authV3.LoginSsoV3(providerName);
+                AuthContextV3 contextV3;
+                try
+                {
+                    contextV3 = await authV3.LoginSsoV3(providerName);
+                }
+                catch (KeeperRegionRedirect krr)
+                {
+                    Endpoint.Server = krr.RegionHost;
+                    contextV3 = await authV3.LoginSsoV3(providerName);
+                }
+
                 this.StoreConfigurationIfChangedV3(contextV3);
                 authContext = contextV3;
             }
             else
             {
                 var authV2 = new AuthV2(this);
-                var contextV2 = await authV2.LoginSsoV2(providerName);
+
+                AuthContextV2 contextV2;
+                try
+                {
+                    contextV2 = await authV2.LoginSsoV2(providerName);
+                }
+                catch (KeeperRegionRedirect krr)
+                {
+                    Endpoint.Server = krr.RegionHost;
+                    contextV2 = await authV2.LoginSsoV2(providerName);
+                }
+
                 this.StoreConfigurationIfChangedV2(contextV2);
                 authContext = contextV2;
             }
+
             await PostLogin(isV3Api);
         }
 
@@ -223,14 +245,34 @@ namespace KeeperSecurity.Sdk
             if (isV3Api)
             {
                 var authV3 = new AuthV3(this);
-                var contextV3 = await authV3.LoginV3(passwords);
+                AuthContextV3 contextV3;
+                try
+                {
+                    contextV3 = await authV3.LoginV3(passwords);
+                }
+                catch (KeeperRegionRedirect krr)
+                {
+                    Endpoint.Server = krr.RegionHost;
+                    contextV3 = await authV3.LoginV3(passwords);
+                }
+
                 this.StoreConfigurationIfChangedV3(contextV3);
                 authContext = contextV3;
             }
             else
             {
                 var authV2 = new AuthV2(this);
-                var contextV2 = await authV2.LoginV2(passwords);
+                AuthContextV2 contextV2;
+                try
+                {
+                    contextV2 = await authV2.LoginV2(passwords);
+                }
+                catch (KeeperRegionRedirect krr)
+                {
+                    Endpoint.Server = krr.RegionHost;
+                    contextV2 = await authV2.LoginV2(passwords);
+                }
+
                 this.StoreConfigurationIfChangedV2(contextV2);
                 authContext = contextV2;
             }
