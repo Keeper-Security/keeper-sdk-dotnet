@@ -150,6 +150,7 @@ namespace KeeperSecurity.Sdk
                 {
                     Debug.WriteLine(e);
                     auth.Storage.Devices.Delete(deviceConf.DeviceToken);
+                    deviceConf = null;
                 }
             }
 
@@ -382,6 +383,7 @@ namespace KeeperSecurity.Sdk
                             break;
                     }
 
+                    authContext.WebSocketChannel = auth.WebSocketChannel;
                     return authContext;
 
                 case LoginState.RequiresUsername:

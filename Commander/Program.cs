@@ -5,8 +5,6 @@ using System.Linq;
 using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
 using System.Net;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -14,29 +12,23 @@ namespace Commander
 {
     internal class Program
     {
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
-
-        const int VK_RETURN = 0x0D;
-        const int WM_KEYDOWN = 0x100;
-
-        private static IntPtr ConsoleHwnd;
-
-        private static async Task Main()
+        internal static readonly InputManager InputManager = new InputManager();
+        private static void Main()
         {
             Console.CancelKeyPress += (s, e) =>
             {
                 e.Cancel = true;
             };
             Welcome();
-            ConsoleHwnd = GetForegroundWindow();
 
-            await MainLoop();
+            _ = Task.Run(async () =>
+            {
+                await MainLoop();
+                Console.WriteLine("Good Bye");
+                Environment.Exit(0);
+            });
 
-            Console.WriteLine("Good Bye");
+            InputManager.Run();
         }
 
         private static CliContext cliContext;
@@ -50,7 +42,6 @@ namespace Commander
                 var ui = new Ui();
                 var auth = new Auth(ui, storage);
                 auth.Endpoint.DeviceName = "Commander C#";
-                var version = System.Diagnostics.FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
                 auth.Endpoint.ClientVersion = "w15.0.0";
                 var notConnected = new NotConnectedCliContext(auth);
                 cliContext = new CliContext
@@ -86,7 +77,7 @@ namespace Commander
                     }
 
                     Console.Write(cliContext.StateContext.GetPrompt() + "> ");
-                    command = Console.ReadLine();
+                    command = await InputManager.ReadLine();
                 }
 
                 if (string.IsNullOrEmpty(command)) continue;
@@ -163,14 +154,13 @@ namespace Commander
 
         internal static void CompleteReadLine()
         {
-            PostMessage(ConsoleHwnd, WM_KEYDOWN, VK_RETURN, 0);
         }
 
         class Ui : IAuthUI, IPostLoginTaskUI, IAuthSsoUI, IUsePassword, IHttpProxyCredentialUI
         {
             public Func<string, string> UsePassword { get; set; }
 
-            public Task<string> GetMasterPassword(string username)
+            public async Task<string> GetMasterPassword(string username)
             {
                 string password = null;
                 if (UsePassword != null)
@@ -181,29 +171,29 @@ namespace Commander
                 if (string.IsNullOrEmpty(password))
                 {
                     Console.Write("\nEnter Master Password: ");
-                    password = HelperUtils.ReadLineMasked();
+                    password = await InputManager.ReadLine(true);
                 }
 
-                return Task.FromResult(password);
+                return password;
             }
 
-            public Task<bool> Confirmation(string information)
+            public async Task<bool> Confirmation(string information)
             {
                 Console.WriteLine(information);
                 Console.Write("Type \"yes\" to confirm, <Enter> to cancel");
 
-                var answer = Console.ReadLine();
-                return Task.FromResult(string.Compare(answer, "yes", StringComparison.OrdinalIgnoreCase) == 0);
+                var answer = await InputManager.ReadLine();
+                return string.Compare(answer, "yes", StringComparison.OrdinalIgnoreCase) == 0;
             }
 
-            public Task<string> GetNewPassword(PasswordRuleMatcher matcher)
+            public async Task<string> GetNewPassword(PasswordRuleMatcher matcher)
             {
                 string password1 = null;
                 while (string.IsNullOrEmpty(password1))
                 {
                     Console.Write("New Master Password: ");
 
-                    password1 = HelperUtils.ReadLineMasked();
+                    password1 = await InputManager.ReadLine(true);
                     if (string.IsNullOrEmpty(password1)) continue;
 
                     if (matcher == null) continue;
@@ -223,14 +213,14 @@ namespace Commander
                 while (string.IsNullOrEmpty(password2))
                 {
                     Console.Write("Password Again: ");
-                    password2 = HelperUtils.ReadLineMasked();
+                    password2 = await InputManager.ReadLine(true);
                     if (string.CompareOrdinal(password1, password2) == 0) continue;
 
                     Console.WriteLine("Passwords do not match.");
                     password2 = null;
                 }
 
-                return Task.FromResult(password1);
+                return password1;
             }
 
             private static string DurationToText(TwoFactorDuration duration)
@@ -350,7 +340,7 @@ namespace Commander
                     while (true)
                     {
                         Console.Write($"[{codeChannel?.ChannelName ?? ""}] ({DurationToText(duration)}) > ");
-                        code = Console.ReadLine();
+                        code = await InputManager.ReadLine();
 
                         if (twoFactorTask.Task.IsCompleted) break;
                         if (string.IsNullOrEmpty(code))
@@ -472,7 +462,7 @@ namespace Commander
                     while (true)
                     {
                         Console.Write($"({DurationToText(duration)}) > ");
-                        var answer = Console.ReadLine();
+                        var answer = await InputManager.ReadLine();
                         if (string.IsNullOrEmpty(answer))
                         {
                             deviceApprovalTask.SetResult(true);
@@ -574,13 +564,13 @@ namespace Commander
                 Console.WriteLine($"Complete {(isCloudSso ? "Cloud" : "OnSite")} SSO login");
                 Console.WriteLine($"\nLogin Url:\n\n{url}\n");
                 var ts = new TaskCompletionSource<string>();
-                _ = Task.Run(() =>
+                _ = Task.Run(async () =>
                 {
                     while (!ts.Task.IsCompleted)
                     {
                         Console.WriteLine("Type \"clipboard\" to get token from the clipboard or \"cancel\"");
                         Console.Write("> ");
-                        var answer = Console.ReadLine();
+                        var answer = await InputManager.ReadLine();
                         switch (answer.ToLowerInvariant())
                         {
                             case "clipboard":
@@ -597,7 +587,7 @@ namespace Commander
                                 {
                                     Console.WriteLine($"Token:\n{token}\n\nType \"yes\" to accept this token <Enter> to discard");
                                     Console.Write("> ");
-                                    answer = Console.ReadLine();
+                                    answer = await InputManager.ReadLine();
                                     if (answer == "yes")
                                     {
                                         ts.TrySetResult(token);
@@ -633,7 +623,7 @@ namespace Commander
                     while (true)
                     {
                         Console.Write("> ");
-                        var answer = Console.ReadLine();
+                        var answer = await InputManager.ReadLine();
                         if (token.IsCancellationRequested) break;
                         if (string.IsNullOrEmpty(answer))
                         {
@@ -726,15 +716,15 @@ namespace Commander
                 }
 
                 var proxyTask = new TaskCompletionSource<IWebProxy>();
-                Task.Run(() =>
+                Task.Run(async () =>
                 {
                     Console.WriteLine("\nProxy Authentication\n");
                     Console.Write("Proxy Username: ");
-                    username = Console.ReadLine();
+                    username = await InputManager.ReadLine();
                     if (string.IsNullOrEmpty(username)) proxyTask.TrySetCanceled();
 
                     Console.Write("Proxy Password: ");
-                    password = HelperUtils.ReadLineMasked();
+                    password = await InputManager.ReadLine(true);
                     if (string.IsNullOrEmpty(username)) proxyTask.TrySetCanceled();
                     var cred = new NetworkCredential(username, password);
                     var myCache = new CredentialCache();

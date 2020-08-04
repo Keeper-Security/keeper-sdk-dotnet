@@ -435,19 +435,19 @@ namespace Commander
                 if (string.IsNullOrEmpty(record.Login))
                 {
                     Console.Write("..." + "Login: ".PadRight(16));
-                    record.Login = Console.ReadLine();
+                    record.Login = await Program.InputManager.ReadLine();
                 }
 
                 if (string.IsNullOrEmpty(record.Password))
                 {
                     Console.Write("..." + "Password: ".PadRight(16));
-                    record.Login = HelperUtils.ReadLineMasked();
+                    record.Login = await Program.InputManager.ReadLine(true);
                 }
 
                 if (string.IsNullOrEmpty(record.Link))
                 {
                     Console.Write("..." + "Login URL: ".PadRight(16));
-                    record.Link = Console.ReadLine();
+                    record.Link = await Program.InputManager.ReadLine();
                 }
             }
 
@@ -561,7 +561,7 @@ namespace Commander
                 return;
             }
 
-            var availableVerbs = new[] {"rename", "register", "persistent_login", "timeout"};
+            var availableVerbs = new[] {"rename", "register", "persistent_login", "ip_disable_auto_approve", "timeout"};
 
             switch (arguments.Command)
             {
@@ -615,6 +615,7 @@ namespace Commander
                 }
                 break;
 
+                case "ip_disable_auto_approve":
                 case "persistent_login":
                 {
                     bool? enabled;
@@ -631,7 +632,7 @@ namespace Commander
                         Console.WriteLine($"\"{arguments.Command}\" accepts the following parameters: on, off");
                         return;
                     }
-                    await _auth.SetSessionPersistentLogin(enabled.Value);
+                    await _auth.SetSessionParameter(arguments.Command, enabled.Value ? "1" : "0");
                 }
                 break;
 

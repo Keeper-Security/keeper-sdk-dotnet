@@ -346,7 +346,7 @@ namespace KeeperSecurity.Sdk
                                                 }
 
                                                 sharedFolderKey =
-                                                    CryptoUtils.DecryptRsa(sharedFolderKey, teamPrivateKey);
+                                                    CryptoUtils.DecryptRsa(sft.SharedFolderKey.Base64UrlDecode(), teamPrivateKey);
                                                 sharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolderKey, teamKey);
                                                 break;
                                         }

@@ -230,7 +230,7 @@ namespace Commander
                 if (string.IsNullOrEmpty(username))
                 {
                     Console.Write("Enter SSO Provider: ");
-                    username = Console.ReadLine();
+                    username = await Program.InputManager.ReadLine();
                 }
             }
             else
@@ -238,7 +238,7 @@ namespace Commander
                 if (string.IsNullOrEmpty(username))
                 {
                     Console.Write("Enter Username: ");
-                    username = Console.ReadLine();
+                    username = await Program.InputManager.ReadLine();
                 }
                 else
                 {

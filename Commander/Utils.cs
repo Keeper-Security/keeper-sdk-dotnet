@@ -2,38 +2,295 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms.Layout;
 
 namespace Commander
 {
-    public static class HelperUtils
+    public class InputManager
     {
-        public static string ReadLineMasked(char mask = '*')
-        {
-            var sb = new StringBuilder();
-            ConsoleKeyInfo keyInfo;
-            while ((keyInfo = Console.ReadKey(true)).Key != ConsoleKey.Enter)
-            {
-                if (!char.IsControl(keyInfo.KeyChar))
-                {
-                    sb.Append(keyInfo.KeyChar);
-                    Console.Write(mask);
-                }
-                else if (keyInfo.Key == ConsoleKey.Backspace && sb.Length > 0)
-                {
-                    sb.Remove(sb.Length - 1, 1);
+        private readonly StringBuilder _buffer = new StringBuilder();
+        private bool _isSecured;
+        private TaskCompletionSource<string> _taskSource;
+        private const char Mask = '*';
+        private int _cursorPosition = 0;
+        private readonly Queue<string> _yankRing = new Queue<string>();
 
-                    if (Console.CursorLeft == 0)
+        public void Run()
+        {
+            Console.TreatControlCAsInput = true;
+            while (true)
+            {
+                var keyInfo = Console.ReadKey(true);
+                lock (this)
+                {
+                    if (_taskSource == null)
                     {
-                        Console.SetCursorPosition(Console.BufferWidth - 1, Console.CursorTop - 1);
-                        Console.Write(' ');
-                        Console.SetCursorPosition(Console.BufferWidth - 1, Console.CursorTop - 1);
+                        if (keyInfo.Key == ConsoleKey.Enter)
+                        {
+                            break;
+                        }
+
+                        continue;
                     }
-                    else Console.Write("\b \b");
+                }
+
+                if (keyInfo.Key == ConsoleKey.Enter)
+                {
+                    TaskCompletionSource<string> ts;
+                    lock (this)
+                    {
+                        ts = _taskSource;
+                        _taskSource = null;
+                    }
+
+                    var line = _buffer.ToString();
+                    _buffer.Length = 0;
+                    _cursorPosition = 0;
+                    _yankRing.Clear();
+                    Console.WriteLine();
+                    if (ts != null)
+                    {
+                        Task.Run(() => { ts.TrySetResult(line); });
+
+                    }
+                }
+                else if (!char.IsControl(keyInfo.KeyChar))
+                {
+                    if (_cursorPosition >= _buffer.Length)
+                    {
+                        _buffer.Append(keyInfo.KeyChar);
+                        Console.Write(_isSecured ? Mask : keyInfo.KeyChar);
+                        _cursorPosition++;
+                    }
+                    else
+                    {
+                        _buffer.Insert(_cursorPosition, keyInfo.KeyChar);
+                        var tail = _buffer.ToString(_cursorPosition, _buffer.Length - _cursorPosition);
+                        if (_isSecured)
+                        {
+                            tail = new string(Mask, tail.Length);
+                        }
+
+                        _cursorPosition++;
+
+                        var left = Console.CursorLeft;
+                        var top = Console.CursorTop;
+                        if (left < Console.BufferWidth - 1)
+                        {
+                            left++;
+                        }
+                        else
+                        {
+                            left = 0;
+                            top++;
+                        }
+
+                        Console.Write(tail);
+                        Console.SetCursorPosition(left, top);
+                    }
+
+                }
+                else if (keyInfo.Key == ConsoleKey.Backspace && _cursorPosition > 0)
+                {
+                    _buffer.Remove(_cursorPosition - 1, 1);
+                    _cursorPosition--;
+
+
+                    var tail = _buffer.ToString(_cursorPosition, _buffer.Length - _cursorPosition);
+                    if (_isSecured)
+                    {
+                        tail = new string(Mask, tail.Length);
+                    }
+
+                    var left = Console.CursorLeft;
+                    var top = Console.CursorTop;
+                    if (left > 0)
+                    {
+                        left--;
+                    }
+                    else
+                    {
+                        left = Console.BufferWidth - 1;
+                        top--;
+                    }
+
+                    Console.SetCursorPosition(left, top);
+                    Console.Write(tail + " ");
+                    Console.SetCursorPosition(left, top);
+                }
+                else if (keyInfo.Key == ConsoleKey.LeftArrow || keyInfo.Key == ConsoleKey.RightArrow)
+                {
+                    var left = Console.CursorLeft;
+                    var top = Console.CursorTop;
+
+                    if (keyInfo.Key == ConsoleKey.LeftArrow)
+                    {
+                        if (_cursorPosition > 0)
+                        {
+                            _cursorPosition--;
+                            if (left > 0)
+                            {
+                                left--;
+                            }
+                            else
+                            {
+                                left = Console.BufferWidth - 1;
+                                top--;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (_cursorPosition < _buffer.Length)
+                        {
+                            _cursorPosition++;
+                            if (left < Console.BufferWidth - 1)
+                            {
+                                left++;
+                            }
+                            else
+                            {
+                                left = 0;
+                                top++;
+                            }
+                        }
+                    }
+
+                    Console.SetCursorPosition(left, top);
+                }
+                else if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0)
+                {
+                    var left = Console.CursorLeft;
+                    var top = Console.CursorTop;
+                    if (keyInfo.Key == ConsoleKey.A || keyInfo.Key == ConsoleKey.E)
+                    {
+                        if (keyInfo.Key == ConsoleKey.A)
+                        {
+                            left -= _cursorPosition;
+                            _cursorPosition = 0;
+                        }
+                        else
+                        {
+                            left += _buffer.Length - _cursorPosition;
+                            _cursorPosition = _buffer.Length;
+                        }
+
+                        while (left < 0)
+                        {
+                            left += Console.BufferWidth;
+                            top--;
+                        }
+
+                        while (left >= Console.BufferWidth)
+                        {
+                            left -= Console.BufferWidth;
+                            top++;
+                        }
+
+                        Console.SetCursorPosition(left, top);
+                    }
+
+                    if (keyInfo.Key == ConsoleKey.K || keyInfo.Key == ConsoleKey.U)
+                    {
+                        if (_buffer.Length > 0)
+                        {
+                            var start = keyInfo.Key == ConsoleKey.K ? _cursorPosition : 0;
+                            var len = keyInfo.Key == ConsoleKey.K ? _buffer.Length - _cursorPosition : _cursorPosition;
+                            if (len > 0)
+                            {
+                                var yankText = _buffer.ToString(start, len);
+                                _yankRing.Enqueue(yankText);
+                                _buffer.Remove(start, len);
+                                if (keyInfo.Key == ConsoleKey.K)
+                                {
+                                    Console.Write(new string(' ', len));
+                                }
+                                else
+                                {
+                                    left -= _cursorPosition;
+                                    _cursorPosition = 0;
+                                    while (left < 0)
+                                    {
+                                        left += Console.BufferWidth;
+                                        top--;
+                                    }
+
+                                    var text = (_isSecured ? new string(Mask, _buffer.Length) : _buffer.ToString()) + new string(' ', len);
+                                    Console.SetCursorPosition(left, top);
+                                    Console.Write(text);
+                                }
+
+                                Console.SetCursorPosition(left, top);
+                            }
+                        }
+                    }
+                    else if (keyInfo.Key == ConsoleKey.Y)
+                    {
+                        if (_yankRing.Count > 0)
+                        {
+                            var yankText = _yankRing.Dequeue();
+                            _buffer.Insert(_cursorPosition, yankText);
+                            var len = _buffer.Length - _cursorPosition;
+                            var text = _isSecured ? new string(Mask, len) : _buffer.ToString(_cursorPosition, len);
+                            left += yankText.Length;
+                            _cursorPosition += yankText.Length;
+                            while (left >= Console.BufferWidth)
+                            {
+                                left -= Console.BufferWidth;
+                                top++;
+                            }
+
+                            Console.Write(text);
+                            Console.SetCursorPosition(left, top);
+                        }
+                    }
+                    else if (keyInfo.Key == ConsoleKey.L)
+                    {
+                        left -= _cursorPosition;
+                        _cursorPosition = 0;
+                        var text = new string(' ', _buffer.Length);
+                        _buffer.Length = 0;
+                        while (left < 0)
+                        {
+                            left += Console.BufferWidth;
+                            top--;
+                        }
+                        Console.SetCursorPosition(left, top);
+                        Console.Write(text);
+                        Console.SetCursorPosition(left, top);
+                    }
                 }
             }
+        }
 
-            Console.WriteLine();
-            return sb.ToString();
+        public Task<string> ReadLine(bool secured = false)
+        {
+            TaskCompletionSource<string> ts;
+            lock (this)
+            {
+                ts = _taskSource;
+                _taskSource = null;
+            }
+
+            if (ts != null)
+            {
+                Task.Run(() =>
+                {
+                    ts.TrySetResult("");
+                });
+            }
+
+            lock (this)
+            {
+                _buffer.Length = 0;
+                _cursorPosition = 0;
+                _yankRing.Clear();
+                _isSecured = secured;
+                _taskSource = new TaskCompletionSource<string>();
+                return _taskSource.Task;
+            }
         }
     }
 

@@ -215,102 +215,111 @@ namespace Authentication {
             "bnRlcnByaXNlVXNlcklkGAEgASgDEg0KBWFsaWFzGAIgASgJIiYKBkRldmlj",
             "ZRIcChRlbmNyeXB0ZWREZXZpY2VUb2tlbhgBIAEoDCJcChxSZWdpc3RlckRl",
             "dmljZURhdGFLZXlSZXF1ZXN0EhwKFGVuY3J5cHRlZERldmljZVRva2VuGAEg",
-            "ASgMEh4KFmVuY3J5cHRlZERldmljZURhdGFLZXkYAiABKAwiiQEKKVZhbGlk",
-            "YXRlQ3JlYXRlVXNlclZlcmlmaWNhdGlvbkNvZGVSZXF1ZXN0EhAKCHVzZXJu",
-            "YW1lGAEgASgJEhUKDWNsaWVudFZlcnNpb24YAiABKAkSGAoQdmVyaWZpY2F0",
-            "aW9uQ29kZRgDIAEoCRIZChFtZXNzYWdlU2Vzc2lvblVpZBgEIAEoDCKFAQol",
-            "VmFsaWRhdGVEZXZpY2VWZXJpZmljYXRpb25Db2RlUmVxdWVzdBIQCgh1c2Vy",
-            "bmFtZRgBIAEoCRIVCg1jbGllbnRWZXJzaW9uGAIgASgJEhgKEHZlcmlmaWNh",
-            "dGlvbkNvZGUYAyABKAkSGQoRbWVzc2FnZVNlc3Npb25VaWQYBCABKAwiWQoZ",
-            "U2VuZFNlc3Npb25NZXNzYWdlUmVxdWVzdBIZChFtZXNzYWdlU2Vzc2lvblVp",
-            "ZBgBIAEoDBIPCgdjb21tYW5kGAIgASgJEhAKCHVzZXJuYW1lGAMgASgJIkQK",
-            "KUdldFVzZXJBY2NvdW50c0Zyb21QYXJ0aWFsVXNlcm5hbWVSZXF1ZXN0EhcK",
-            "D3BhcnRpYWxVc2VybmFtZRgBIAEoCSJNChFHbG9iYWxVc2VyQWNjb3VudBIQ",
-            "Cgh1c2VybmFtZRgBIAEoCRISCgphY2NvdW50VWlkGAIgASgMEhIKCnJlZ2lv",
-            "bk5hbWUYAyABKAkiagoqR2V0VXNlckFjY291bnRzRnJvbVBhcnRpYWxVc2Vy",
-            "bmFtZVJlc3BvbnNlEjwKEWdsb2JhbFVzZXJBY2NvdW50GAEgAygLMiEuQXV0",
-            "aGVudGljYXRpb24uR2xvYmFsVXNlckFjY291bnQiUAoZU3NvU2VydmljZVBy",
-            "b3ZpZGVyUmVxdWVzdBIMCgRuYW1lGAEgASgJEhUKDWNsaWVudFZlcnNpb24Y",
-            "AiABKAkSDgoGbG9jYWxlGAMgASgJImEKGlNzb1NlcnZpY2VQcm92aWRlclJl",
-            "c3BvbnNlEgwKBG5hbWUYASABKAkSDQoFc3BVcmwYAiABKAkSDwoHaXNDbG91",
-            "ZBgDIAEoCBIVCg1jbGllbnRWZXJzaW9uGAQgASgJIjQKElVzZXJTZXR0aW5n",
-            "UmVxdWVzdBIPCgdzZXR0aW5nGAEgASgJEg0KBXZhbHVlGAIgASgJIkkKIFN1",
-            "cHBvcnRUb29sQ2hhbmdlVXNlcm5hbWVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEg",
-            "ASgJEhMKC25ld1VzZXJuYW1lGAIgASgJImAKHFN1cHBvcnRUb29sRGVsZXRl",
-            "VXNlclJlcXVlc3QSFQoNYWdlbnRVc2VybmFtZRgBIAEoCRIZChF1c2VybmFt",
-            "ZUZvckRlbGV0ZRgCIAEoCRIOCgZyZWFzb24YAyABKAkilQEKJURlbGV0ZVVz",
-            "ZXJXaXRoVmVyaWZpY2F0aW9uQ29kZVJlcXVlc3QSFQoNYWdlbnRVc2VybmFt",
-            "ZRgBIAEoCRIZChF1c2VybmFtZUZvckRlbGV0ZRgCIAEoCRIOCgZyZWFzb24Y",
-            "AyABKAkSGAoQdmVyaWZpY2F0aW9uQ29kZRgEIAEoCRIQCghvdmVycmlkZRgF",
-            "IAEoCCIuChJVc2VyRGF0YUtleVJlcXVlc3QSGAoQZW50ZXJwcmlzZVVzZXJJ",
-            "ZBgBIAMoAyKBAQoLVXNlckRhdGFLZXkSGAoQZW50ZXJwcmlzZVVzZXJJZBgB",
-            "IAEoAxIYChBlbmNyeXB0ZWREYXRhS2V5GAIgASgMEg8KB3JvbGVLZXkYAyAB",
-            "KAwSLQoGc3RhdHVzGAQgASgOMh0uQXV0aGVudGljYXRpb24uRGF0YUtleVN0",
-            "YXR1cyJIChNVc2VyRGF0YUtleVJlc3BvbnNlEjEKDHVzZXJEYXRhS2V5cxgB",
-            "IAMoCzIbLkF1dGhlbnRpY2F0aW9uLlVzZXJEYXRhS2V5KrkCChFTdXBwb3J0",
-            "ZWRMYW5ndWFnZRILCgdFTkdMSVNIEAASCgoGQVJBQklDEAESCwoHQlJJVElT",
-            "SBACEgsKB0NISU5FU0UQAxIVChFDSElORVNFX0hPTkdfS09ORxAEEhIKDkNI",
-            "SU5FU0VfVEFJV0FOEAUSCQoFRFVUQ0gQBhIKCgZGUkVOQ0gQBxIKCgZHRVJN",
-            "QU4QCBIJCgVHUkVFSxAJEgoKBkhFQlJFVxAKEgsKB0lUQUxJQU4QCxIMCghK",
-            "QVBBTkVTRRAMEgoKBktPUkVBThANEgoKBlBPTElTSBAOEg4KClBPUlRVR1VF",
-            "U0UQDxIVChFQT1JUVUdVRVNFX0JSQVpJTBAQEgwKCFJPTUFOSUFOEBESCwoH",
-            "UlVTU0lBThASEgoKBlNMT1ZBSxATEgsKB1NQQU5JU0gQFCpFCglMb2dpblR5",
-            "cGUSCgoGTk9STUFMEAASBwoDU1NPEAESBwoDQklPEAISDQoJQUxURVJOQVRF",
-            "EAMSCwoHT0ZGTElORRAEKnEKDERldmljZVN0YXR1cxIZChVERVZJQ0VfTkVF",
-            "RFNfQVBQUk9WQUwQABINCglERVZJQ0VfT0sQARIbChdERVZJQ0VfRElTQUJM",
-            "RURfQllfVVNFUhACEhoKFkRFVklDRV9MT0NLRURfQllfQURNSU4QAypBCg1M",
-            "aWNlbnNlU3RhdHVzEgkKBU9USEVSEAASCgoGQUNUSVZFEAESCwoHRVhQSVJF",
-            "RBACEgwKCERJU0FCTEVEEAMqNwoLQWNjb3VudFR5cGUSDAoIQ09OU1VNRVIQ",
-            "ABIKCgZGQU1JTFkQARIOCgpFTlRFUlBSSVNFEAIqkgEKEFNlc3Npb25Ub2tl",
-            "blR5cGUSEgoOTk9fUkVTVFJJQ1RJT04QABIUChBBQ0NPVU5UX1JFQ09WRVJZ",
-            "EAESEQoNU0hBUkVfQUNDT1VOVBACEgwKCFBVUkNIQVNFEAMSDAoIUkVTVFJJ",
-            "Q1QQBBIRCg1BQ0NFUFRfSU5WSVRFEAUSEgoOU1VQUE9SVF9TRVJWRVIQBipH",
-            "CgdWZXJzaW9uEhMKD2ludmFsaWRfdmVyc2lvbhAAEhMKD2RlZmF1bHRfdmVy",
-            "c2lvbhABEhIKDnNlY29uZF92ZXJzaW9uEAIqNwofTWFzdGVyUGFzc3dvcmRS",
-            "ZWVudHJ5QWN0aW9uVHlwZRIKCgZVTk1BU0sQABIICgRDT1BZEAEqbAoLTG9n",
-            "aW5NZXRob2QSFwoTSU5WQUxJRF9MT0dJTk1FVEhPRBAAEhQKEEVYSVNUSU5H",
-            "X0FDQ09VTlQQARIOCgpTU09fRE9NQUlOEAISDQoJQUZURVJfU1NPEAMSDwoL",
-            "TkVXX0FDQ09VTlQQBCrHAwoKTG9naW5TdGF0ZRIWChJJTlZBTElEX0xPR0lO",
-            "U1RBVEUQABIOCgpMT0dHRURfT1VUEAESHAoYREVWSUNFX0FQUFJPVkFMX1JF",
-            "UVVJUkVEEAISEQoNREVWSUNFX0xPQ0tFRBADEhIKDkFDQ09VTlRfTE9DS0VE",
-            "EAQSGQoVREVWSUNFX0FDQ09VTlRfTE9DS0VEEAUSCwoHVVBHUkFERRAGEhMK",
-            "D0xJQ0VOU0VfRVhQSVJFRBAHEhMKD1JFR0lPTl9SRURJUkVDVBAIEhYKElJF",
-            "RElSRUNUX0NMT1VEX1NTTxAJEhcKE1JFRElSRUNUX09OU0lURV9TU08QChIQ",
-            "CgxSRVFVSVJFU18yRkEQDBIWChJSRVFVSVJFU19BVVRIX0hBU0gQDRIVChFS",
-            "RVFVSVJFU19VU0VSTkFNRRAOEhkKFUFGVEVSX0NMT1VEX1NTT19MT0dJThAP",
-            "Eh0KGVJFUVVJUkVTX0FDQ09VTlRfQ1JFQVRJT04QEBImCiJSRVFVSVJFU19E",
-            "RVZJQ0VfRU5DUllQVEVEX0RBVEFfS0VZEBESFwoTTE9HSU5fVE9LRU5fRVhQ",
-            "SVJFRBASEg0KCUxPR0dFRF9JThBjKk0KFEVuY3J5cHRlZERhdGFLZXlUeXBl",
-            "EgoKBk5PX0tFWRAAEhgKFEJZX0RFVklDRV9QVUJMSUNfS0VZEAESDwoLQllf",
-            "UEFTU1dPUkQQAiotCg5QYXNzd29yZE1ldGhvZBILCgdFTlRFUkVEEAASDgoK",
-            "QklPTUVUUklDUxABKrkBChFUd29GYWN0b3JQdXNoVHlwZRIUChBUV09fRkFf",
-            "UFVTSF9OT05FEAASEwoPVFdPX0ZBX1BVU0hfU01TEAESFgoSVFdPX0ZBX1BV",
-            "U0hfS0VFUEVSEAISGAoUVFdPX0ZBX1BVU0hfRFVPX1BVU0gQAxIYChRUV09f",
-            "RkFfUFVTSF9EVU9fVEVYVBAEEhgKFFRXT19GQV9QVVNIX0RVT19DQUxMEAUS",
-            "EwoPVFdPX0ZBX1BVU0hfRE5BEAYqwwEKElR3b0ZhY3RvclZhbHVlVHlwZRIU",
-            "ChBUV09fRkFfQ09ERV9OT05FEAASFAoQVFdPX0ZBX0NPREVfVE9UUBABEhMK",
-            "D1RXT19GQV9DT0RFX1NNUxACEhMKD1RXT19GQV9DT0RFX0RVTxADEhMKD1RX",
-            "T19GQV9DT0RFX1JTQRAEEhMKD1RXT19GQV9SRVNQX1UyRhAFEhgKFFRXT19G",
-            "QV9SRVNQX1dFQkFVVEhOEAYSEwoPVFdPX0ZBX0NPREVfRE5BEAcq4QEKFFR3",
-            "b0ZhY3RvckNoYW5uZWxUeXBlEhIKDlRXT19GQV9DVF9OT05FEAASEgoOVFdP",
-            "X0ZBX0NUX1RPVFAQARIRCg1UV09fRkFfQ1RfU01TEAISEQoNVFdPX0ZBX0NU",
-            "X0RVTxADEhEKDVRXT19GQV9DVF9SU0EQBBIUChBUV09fRkFfQ1RfQkFDS1VQ",
-            "EAUSEQoNVFdPX0ZBX0NUX1UyRhAGEhYKElRXT19GQV9DVF9XRUJBVVRIThAH",
-            "EhQKEFRXT19GQV9DVF9LRUVQRVIQCBIRCg1UV09fRkFfQ1RfRE5BEAkqqwEK",
-            "E1R3b0ZhY3RvckV4cGlyYXRpb24SGgoWVFdPX0ZBX0VYUF9JTU1FRElBVEVM",
-            "WRAAEhgKFFRXT19GQV9FWFBfNV9NSU5VVEVTEAESFwoTVFdPX0ZBX0VYUF8x",
-            "Ml9IT1VSUxACEhcKE1RXT19GQV9FWFBfMjRfSE9VUlMQAxIWChJUV09fRkFf",
-            "RVhQXzMwX0RBWVMQBBIUChBUV09fRkFfRVhQX05FVkVSEAUqQAoLTGljZW5z",
-            "ZVR5cGUSCQoFVkFVTFQQABIICgRDSEFUEAESCwoHU1RPUkFHRRACEg8KC0JS",
-            "RUFDSFdBVENIEAMqaQoLT2JqZWN0VHlwZXMSCgoGUkVDT1JEEAASFgoSU0hB",
-            "UkVEX0ZPTERFUl9VU0VSEAESFgoSU0hBUkVEX0ZPTERFUl9URUFNEAISDwoL",
-            "VVNFUl9GT0xERVIQAxINCglURUFNX1VTRVIQBCpGCg1EYXRhS2V5U3RhdHVz",
-            "EgkKBURLX09LEAASFAoQREtfRE9FU05PVF9FWElTVBABEhQKEERLX0FDQ0VT",
-            "U19ERU5JRUQQAkIqChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CDkF1dGhl",
-            "bnRpY2F0aW9uYgZwcm90bzM="));
+            "ASgMEh4KFmVuY3J5cHRlZERldmljZURhdGFLZXkYAiABKAwibgopVmFsaWRh",
+            "dGVDcmVhdGVVc2VyVmVyaWZpY2F0aW9uQ29kZVJlcXVlc3QSEAoIdXNlcm5h",
+            "bWUYASABKAkSFQoNY2xpZW50VmVyc2lvbhgCIAEoCRIYChB2ZXJpZmljYXRp",
+            "b25Db2RlGAMgASgJIoUBCiVWYWxpZGF0ZURldmljZVZlcmlmaWNhdGlvbkNv",
+            "ZGVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEhUKDWNsaWVudFZlcnNpb24Y",
+            "AiABKAkSGAoQdmVyaWZpY2F0aW9uQ29kZRgDIAEoCRIZChFtZXNzYWdlU2Vz",
+            "c2lvblVpZBgEIAEoDCJZChlTZW5kU2Vzc2lvbk1lc3NhZ2VSZXF1ZXN0EhkK",
+            "EW1lc3NhZ2VTZXNzaW9uVWlkGAEgASgMEg8KB2NvbW1hbmQYAiABKAkSEAoI",
+            "dXNlcm5hbWUYAyABKAkiRAopR2V0VXNlckFjY291bnRzRnJvbVBhcnRpYWxV",
+            "c2VybmFtZVJlcXVlc3QSFwoPcGFydGlhbFVzZXJuYW1lGAEgASgJIk0KEUds",
+            "b2JhbFVzZXJBY2NvdW50EhAKCHVzZXJuYW1lGAEgASgJEhIKCmFjY291bnRV",
+            "aWQYAiABKAwSEgoKcmVnaW9uTmFtZRgDIAEoCSJqCipHZXRVc2VyQWNjb3Vu",
+            "dHNGcm9tUGFydGlhbFVzZXJuYW1lUmVzcG9uc2USPAoRZ2xvYmFsVXNlckFj",
+            "Y291bnQYASADKAsyIS5BdXRoZW50aWNhdGlvbi5HbG9iYWxVc2VyQWNjb3Vu",
+            "dCJQChlTc29TZXJ2aWNlUHJvdmlkZXJSZXF1ZXN0EgwKBG5hbWUYASABKAkS",
+            "FQoNY2xpZW50VmVyc2lvbhgCIAEoCRIOCgZsb2NhbGUYAyABKAkiYQoaU3Nv",
+            "U2VydmljZVByb3ZpZGVyUmVzcG9uc2USDAoEbmFtZRgBIAEoCRINCgVzcFVy",
+            "bBgCIAEoCRIPCgdpc0Nsb3VkGAMgASgIEhUKDWNsaWVudFZlcnNpb24YBCAB",
+            "KAkiNAoSVXNlclNldHRpbmdSZXF1ZXN0Eg8KB3NldHRpbmcYASABKAkSDQoF",
+            "dmFsdWUYAiABKAkiSQogU3VwcG9ydFRvb2xDaGFuZ2VVc2VybmFtZVJlcXVl",
+            "c3QSEAoIdXNlcm5hbWUYASABKAkSEwoLbmV3VXNlcm5hbWUYAiABKAkiYAoc",
+            "U3VwcG9ydFRvb2xEZWxldGVVc2VyUmVxdWVzdBIVCg1hZ2VudFVzZXJuYW1l",
+            "GAEgASgJEhkKEXVzZXJuYW1lRm9yRGVsZXRlGAIgASgJEg4KBnJlYXNvbhgD",
+            "IAEoCSKVAQolRGVsZXRlVXNlcldpdGhWZXJpZmljYXRpb25Db2RlUmVxdWVz",
+            "dBIVCg1hZ2VudFVzZXJuYW1lGAEgASgJEhkKEXVzZXJuYW1lRm9yRGVsZXRl",
+            "GAIgASgJEg4KBnJlYXNvbhgDIAEoCRIYChB2ZXJpZmljYXRpb25Db2RlGAQg",
+            "ASgJEhAKCG92ZXJyaWRlGAUgASgIIq4BCiZEZWxldGVVc2VyV2l0aFZlcmlm",
+            "aWNhdGlvbkNvZGVSZXNwb25zZRIVCg1kZWxldGVkVXNlcklkGAEgASgFEhcK",
+            "D2RlbGV0ZWRVc2VybmFtZRgCIAEoCRIZChFkZWxldGVkQWNjb3VudFVpZBgD",
+            "IAEoDBIRCglkZWxldGVkQnkYBCABKAkSDgoGcmVhc29uGAUgASgJEhYKDmRl",
+            "bGV0ZURhdGVUaW1lGAYgASgJIk8KHVN1cHBvcnRUb29sUmVzdG9yZURlbGV0",
+            "ZWRVc2VyEhUKDWFnZW50VXNlcm5hbWUYASABKAkSFwoPZGVsZXRlZFVzZXJu",
+            "YW1lGAIgASgJIk8KF1N1cHBvcnRUb29sUmVzdG9yZWRVc2VyEg4KBnVzZXJJ",
+            "ZBgBIAEoBRIQCgh1c2VybmFtZRgCIAEoCRISCgphY2NvdW50VWlkGAMgASgM",
+            "Ii4KElVzZXJEYXRhS2V5UmVxdWVzdBIYChBlbnRlcnByaXNlVXNlcklkGAEg",
+            "AygDIlEKG0VudGVycHJpc2VVc2VySWREYXRhS2V5UGFpchIYChBlbnRlcnBy",
+            "aXNlVXNlcklkGAEgASgDEhgKEGVuY3J5cHRlZERhdGFLZXkYAiABKAwilQEK",
+            "C1VzZXJEYXRhS2V5Eg4KBnJvbGVJZBgBIAEoAxIPCgdyb2xlS2V5GAIgASgM",
+            "EhIKCnByaXZhdGVLZXkYAyABKAkSUQocZW50ZXJwcmlzZVVzZXJJZERhdGFL",
+            "ZXlQYWlycxgEIAMoCzIrLkF1dGhlbnRpY2F0aW9uLkVudGVycHJpc2VVc2Vy",
+            "SWREYXRhS2V5UGFpciJ6ChNVc2VyRGF0YUtleVJlc3BvbnNlEjEKDHVzZXJE",
+            "YXRhS2V5cxgBIAMoCzIbLkF1dGhlbnRpY2F0aW9uLlVzZXJEYXRhS2V5EhQK",
+            "DGFjY2Vzc0RlbmllZBgCIAMoAxIaChJub0VuY3J5cHRlZERhdGFLZXkYAyAD",
+            "KAMquQIKEVN1cHBvcnRlZExhbmd1YWdlEgsKB0VOR0xJU0gQABIKCgZBUkFC",
+            "SUMQARILCgdCUklUSVNIEAISCwoHQ0hJTkVTRRADEhUKEUNISU5FU0VfSE9O",
+            "R19LT05HEAQSEgoOQ0hJTkVTRV9UQUlXQU4QBRIJCgVEVVRDSBAGEgoKBkZS",
+            "RU5DSBAHEgoKBkdFUk1BThAIEgkKBUdSRUVLEAkSCgoGSEVCUkVXEAoSCwoH",
+            "SVRBTElBThALEgwKCEpBUEFORVNFEAwSCgoGS09SRUFOEA0SCgoGUE9MSVNI",
+            "EA4SDgoKUE9SVFVHVUVTRRAPEhUKEVBPUlRVR1VFU0VfQlJBWklMEBASDAoI",
+            "Uk9NQU5JQU4QERILCgdSVVNTSUFOEBISCgoGU0xPVkFLEBMSCwoHU1BBTklT",
+            "SBAUKkUKCUxvZ2luVHlwZRIKCgZOT1JNQUwQABIHCgNTU08QARIHCgNCSU8Q",
+            "AhINCglBTFRFUk5BVEUQAxILCgdPRkZMSU5FEAQqcQoMRGV2aWNlU3RhdHVz",
+            "EhkKFURFVklDRV9ORUVEU19BUFBST1ZBTBAAEg0KCURFVklDRV9PSxABEhsK",
+            "F0RFVklDRV9ESVNBQkxFRF9CWV9VU0VSEAISGgoWREVWSUNFX0xPQ0tFRF9C",
+            "WV9BRE1JThADKkEKDUxpY2Vuc2VTdGF0dXMSCQoFT1RIRVIQABIKCgZBQ1RJ",
+            "VkUQARILCgdFWFBJUkVEEAISDAoIRElTQUJMRUQQAyo3CgtBY2NvdW50VHlw",
+            "ZRIMCghDT05TVU1FUhAAEgoKBkZBTUlMWRABEg4KCkVOVEVSUFJJU0UQAiqS",
+            "AQoQU2Vzc2lvblRva2VuVHlwZRISCg5OT19SRVNUUklDVElPThAAEhQKEEFD",
+            "Q09VTlRfUkVDT1ZFUlkQARIRCg1TSEFSRV9BQ0NPVU5UEAISDAoIUFVSQ0hB",
+            "U0UQAxIMCghSRVNUUklDVBAEEhEKDUFDQ0VQVF9JTlZJVEUQBRISCg5TVVBQ",
+            "T1JUX1NFUlZFUhAGKkcKB1ZlcnNpb24SEwoPaW52YWxpZF92ZXJzaW9uEAAS",
+            "EwoPZGVmYXVsdF92ZXJzaW9uEAESEgoOc2Vjb25kX3ZlcnNpb24QAio3Ch9N",
+            "YXN0ZXJQYXNzd29yZFJlZW50cnlBY3Rpb25UeXBlEgoKBlVOTUFTSxAAEggK",
+            "BENPUFkQASpsCgtMb2dpbk1ldGhvZBIXChNJTlZBTElEX0xPR0lOTUVUSE9E",
+            "EAASFAoQRVhJU1RJTkdfQUNDT1VOVBABEg4KClNTT19ET01BSU4QAhINCglB",
+            "RlRFUl9TU08QAxIPCgtORVdfQUNDT1VOVBAEKscDCgpMb2dpblN0YXRlEhYK",
+            "EklOVkFMSURfTE9HSU5TVEFURRAAEg4KCkxPR0dFRF9PVVQQARIcChhERVZJ",
+            "Q0VfQVBQUk9WQUxfUkVRVUlSRUQQAhIRCg1ERVZJQ0VfTE9DS0VEEAMSEgoO",
+            "QUNDT1VOVF9MT0NLRUQQBBIZChVERVZJQ0VfQUNDT1VOVF9MT0NLRUQQBRIL",
+            "CgdVUEdSQURFEAYSEwoPTElDRU5TRV9FWFBJUkVEEAcSEwoPUkVHSU9OX1JF",
+            "RElSRUNUEAgSFgoSUkVESVJFQ1RfQ0xPVURfU1NPEAkSFwoTUkVESVJFQ1Rf",
+            "T05TSVRFX1NTTxAKEhAKDFJFUVVJUkVTXzJGQRAMEhYKElJFUVVJUkVTX0FV",
+            "VEhfSEFTSBANEhUKEVJFUVVJUkVTX1VTRVJOQU1FEA4SGQoVQUZURVJfQ0xP",
+            "VURfU1NPX0xPR0lOEA8SHQoZUkVRVUlSRVNfQUNDT1VOVF9DUkVBVElPThAQ",
+            "EiYKIlJFUVVJUkVTX0RFVklDRV9FTkNSWVBURURfREFUQV9LRVkQERIXChNM",
+            "T0dJTl9UT0tFTl9FWFBJUkVEEBISDQoJTE9HR0VEX0lOEGMqTQoURW5jcnlw",
+            "dGVkRGF0YUtleVR5cGUSCgoGTk9fS0VZEAASGAoUQllfREVWSUNFX1BVQkxJ",
+            "Q19LRVkQARIPCgtCWV9QQVNTV09SRBACKi0KDlBhc3N3b3JkTWV0aG9kEgsK",
+            "B0VOVEVSRUQQABIOCgpCSU9NRVRSSUNTEAEquQEKEVR3b0ZhY3RvclB1c2hU",
+            "eXBlEhQKEFRXT19GQV9QVVNIX05PTkUQABITCg9UV09fRkFfUFVTSF9TTVMQ",
+            "ARIWChJUV09fRkFfUFVTSF9LRUVQRVIQAhIYChRUV09fRkFfUFVTSF9EVU9f",
+            "UFVTSBADEhgKFFRXT19GQV9QVVNIX0RVT19URVhUEAQSGAoUVFdPX0ZBX1BV",
+            "U0hfRFVPX0NBTEwQBRITCg9UV09fRkFfUFVTSF9ETkEQBirDAQoSVHdvRmFj",
+            "dG9yVmFsdWVUeXBlEhQKEFRXT19GQV9DT0RFX05PTkUQABIUChBUV09fRkFf",
+            "Q09ERV9UT1RQEAESEwoPVFdPX0ZBX0NPREVfU01TEAISEwoPVFdPX0ZBX0NP",
+            "REVfRFVPEAMSEwoPVFdPX0ZBX0NPREVfUlNBEAQSEwoPVFdPX0ZBX1JFU1Bf",
+            "VTJGEAUSGAoUVFdPX0ZBX1JFU1BfV0VCQVVUSE4QBhITCg9UV09fRkFfQ09E",
+            "RV9ETkEQByrhAQoUVHdvRmFjdG9yQ2hhbm5lbFR5cGUSEgoOVFdPX0ZBX0NU",
+            "X05PTkUQABISCg5UV09fRkFfQ1RfVE9UUBABEhEKDVRXT19GQV9DVF9TTVMQ",
+            "AhIRCg1UV09fRkFfQ1RfRFVPEAMSEQoNVFdPX0ZBX0NUX1JTQRAEEhQKEFRX",
+            "T19GQV9DVF9CQUNLVVAQBRIRCg1UV09fRkFfQ1RfVTJGEAYSFgoSVFdPX0ZB",
+            "X0NUX1dFQkFVVEhOEAcSFAoQVFdPX0ZBX0NUX0tFRVBFUhAIEhEKDVRXT19G",
+            "QV9DVF9ETkEQCSqrAQoTVHdvRmFjdG9yRXhwaXJhdGlvbhIaChZUV09fRkFf",
+            "RVhQX0lNTUVESUFURUxZEAASGAoUVFdPX0ZBX0VYUF81X01JTlVURVMQARIX",
+            "ChNUV09fRkFfRVhQXzEyX0hPVVJTEAISFwoTVFdPX0ZBX0VYUF8yNF9IT1VS",
+            "UxADEhYKElRXT19GQV9FWFBfMzBfREFZUxAEEhQKEFRXT19GQV9FWFBfTkVW",
+            "RVIQBSpACgtMaWNlbnNlVHlwZRIJCgVWQVVMVBAAEggKBENIQVQQARILCgdT",
+            "VE9SQUdFEAISDwoLQlJFQUNIV0FUQ0gQAyppCgtPYmplY3RUeXBlcxIKCgZS",
+            "RUNPUkQQABIWChJTSEFSRURfRk9MREVSX1VTRVIQARIWChJTSEFSRURfRk9M",
+            "REVSX1RFQU0QAhIPCgtVU0VSX0ZPTERFUhADEg0KCVRFQU1fVVNFUhAEQioK",
+            "GGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IOQXV0aGVudGljYXRpb25iBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Enterprise.EnterpriseReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), typeof(global::Authentication.DataKeyStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApiRequest), global::Authentication.ApiRequest.Parser, new[]{ "EncryptedTransmissionKey", "PublicKeyId", "Locale", "EncryptedPayload", "EncryptionType", "Recaptcha" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApiRequestPayload), global::Authentication.ApiRequestPayload.Parser, new[]{ "Payload", "EncryptedSessionToken", "TimeToken", "ApiVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.Transform), global::Authentication.Transform.Parser, new[]{ "Key", "EncryptedDeviceToken" }, null, null, null, null),
@@ -379,7 +388,7 @@ namespace Authentication {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.EnterpriseUserAliasRequest), global::Authentication.EnterpriseUserAliasRequest.Parser, new[]{ "EnterpriseUserId", "Alias" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.Device), global::Authentication.Device.Parser, new[]{ "EncryptedDeviceToken" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.RegisterDeviceDataKeyRequest), global::Authentication.RegisterDeviceDataKeyRequest.Parser, new[]{ "EncryptedDeviceToken", "EncryptedDeviceDataKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ValidateCreateUserVerificationCodeRequest), global::Authentication.ValidateCreateUserVerificationCodeRequest.Parser, new[]{ "Username", "ClientVersion", "VerificationCode", "MessageSessionUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ValidateCreateUserVerificationCodeRequest), global::Authentication.ValidateCreateUserVerificationCodeRequest.Parser, new[]{ "Username", "ClientVersion", "VerificationCode" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ValidateDeviceVerificationCodeRequest), global::Authentication.ValidateDeviceVerificationCodeRequest.Parser, new[]{ "Username", "ClientVersion", "VerificationCode", "MessageSessionUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SendSessionMessageRequest), global::Authentication.SendSessionMessageRequest.Parser, new[]{ "MessageSessionUid", "Command", "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.GetUserAccountsFromPartialUsernameRequest), global::Authentication.GetUserAccountsFromPartialUsernameRequest.Parser, new[]{ "PartialUsername" }, null, null, null, null),
@@ -391,9 +400,13 @@ namespace Authentication {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolChangeUsernameRequest), global::Authentication.SupportToolChangeUsernameRequest.Parser, new[]{ "Username", "NewUsername" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolDeleteUserRequest), global::Authentication.SupportToolDeleteUserRequest.Parser, new[]{ "AgentUsername", "UsernameForDelete", "Reason" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeleteUserWithVerificationCodeRequest), global::Authentication.DeleteUserWithVerificationCodeRequest.Parser, new[]{ "AgentUsername", "UsernameForDelete", "Reason", "VerificationCode", "Override" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeleteUserWithVerificationCodeResponse), global::Authentication.DeleteUserWithVerificationCodeResponse.Parser, new[]{ "DeletedUserId", "DeletedUsername", "DeletedAccountUid", "DeletedBy", "Reason", "DeleteDateTime" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolRestoreDeletedUser), global::Authentication.SupportToolRestoreDeletedUser.Parser, new[]{ "AgentUsername", "DeletedUsername" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolRestoredUser), global::Authentication.SupportToolRestoredUser.Parser, new[]{ "UserId", "Username", "AccountUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKeyRequest), global::Authentication.UserDataKeyRequest.Parser, new[]{ "EnterpriseUserId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKey), global::Authentication.UserDataKey.Parser, new[]{ "EnterpriseUserId", "EncryptedDataKey", "RoleKey", "Status" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKeyResponse), global::Authentication.UserDataKeyResponse.Parser, new[]{ "UserDataKeys" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.EnterpriseUserIdDataKeyPair), global::Authentication.EnterpriseUserIdDataKeyPair.Parser, new[]{ "EnterpriseUserId", "EncryptedDataKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKey), global::Authentication.UserDataKey.Parser, new[]{ "RoleId", "RoleKey", "PrivateKey", "EnterpriseUserIdDataKeyPairs" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKeyResponse), global::Authentication.UserDataKeyResponse.Parser, new[]{ "UserDataKeys", "AccessDenied", "NoEncryptedDataKey" }, null, null, null, null)
           }));
     }
     #endregion
@@ -654,12 +667,6 @@ namespace Authentication {
     [pbr::OriginalName("SHARED_FOLDER_TEAM")] SharedFolderTeam = 2,
     [pbr::OriginalName("USER_FOLDER")] UserFolder = 3,
     [pbr::OriginalName("TEAM_USER")] TeamUser = 4,
-  }
-
-  public enum DataKeyStatus {
-    [pbr::OriginalName("DK_OK")] DkOk = 0,
-    [pbr::OriginalName("DK_DOESNOT_EXIST")] DkDoesnotExist = 1,
-    [pbr::OriginalName("DK_ACCESS_DENIED")] DkAccessDenied = 2,
   }
 
   #endregion
@@ -14689,7 +14696,6 @@ namespace Authentication {
       username_ = other.username_;
       clientVersion_ = other.clientVersion_;
       verificationCode_ = other.verificationCode_;
-      messageSessionUid_ = other.messageSessionUid_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -14731,17 +14737,6 @@ namespace Authentication {
       }
     }
 
-    /// <summary>Field number for the "messageSessionUid" field.</summary>
-    public const int MessageSessionUidFieldNumber = 4;
-    private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString MessageSessionUid {
-      get { return messageSessionUid_; }
-      set {
-        messageSessionUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as ValidateCreateUserVerificationCodeRequest);
@@ -14758,7 +14753,6 @@ namespace Authentication {
       if (Username != other.Username) return false;
       if (ClientVersion != other.ClientVersion) return false;
       if (VerificationCode != other.VerificationCode) return false;
-      if (MessageSessionUid != other.MessageSessionUid) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -14768,7 +14762,6 @@ namespace Authentication {
       if (Username.Length != 0) hash ^= Username.GetHashCode();
       if (ClientVersion.Length != 0) hash ^= ClientVersion.GetHashCode();
       if (VerificationCode.Length != 0) hash ^= VerificationCode.GetHashCode();
-      if (MessageSessionUid.Length != 0) hash ^= MessageSessionUid.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -14794,10 +14787,6 @@ namespace Authentication {
         output.WriteRawTag(26);
         output.WriteString(VerificationCode);
       }
-      if (MessageSessionUid.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(MessageSessionUid);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -14814,9 +14803,6 @@ namespace Authentication {
       }
       if (VerificationCode.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(VerificationCode);
-      }
-      if (MessageSessionUid.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(MessageSessionUid);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -14837,9 +14823,6 @@ namespace Authentication {
       }
       if (other.VerificationCode.Length != 0) {
         VerificationCode = other.VerificationCode;
-      }
-      if (other.MessageSessionUid.Length != 0) {
-        MessageSessionUid = other.MessageSessionUid;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -14862,10 +14845,6 @@ namespace Authentication {
           }
           case 26: {
             VerificationCode = input.ReadString();
-            break;
-          }
-          case 34: {
-            MessageSessionUid = input.ReadBytes();
             break;
           }
         }
@@ -16862,6 +16841,617 @@ namespace Authentication {
 
   }
 
+  public sealed partial class DeleteUserWithVerificationCodeResponse : pb::IMessage<DeleteUserWithVerificationCodeResponse> {
+    private static readonly pb::MessageParser<DeleteUserWithVerificationCodeResponse> _parser = new pb::MessageParser<DeleteUserWithVerificationCodeResponse>(() => new DeleteUserWithVerificationCodeResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<DeleteUserWithVerificationCodeResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[80]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeleteUserWithVerificationCodeResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeleteUserWithVerificationCodeResponse(DeleteUserWithVerificationCodeResponse other) : this() {
+      deletedUserId_ = other.deletedUserId_;
+      deletedUsername_ = other.deletedUsername_;
+      deletedAccountUid_ = other.deletedAccountUid_;
+      deletedBy_ = other.deletedBy_;
+      reason_ = other.reason_;
+      deleteDateTime_ = other.deleteDateTime_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeleteUserWithVerificationCodeResponse Clone() {
+      return new DeleteUserWithVerificationCodeResponse(this);
+    }
+
+    /// <summary>Field number for the "deletedUserId" field.</summary>
+    public const int DeletedUserIdFieldNumber = 1;
+    private int deletedUserId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int DeletedUserId {
+      get { return deletedUserId_; }
+      set {
+        deletedUserId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "deletedUsername" field.</summary>
+    public const int DeletedUsernameFieldNumber = 2;
+    private string deletedUsername_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string DeletedUsername {
+      get { return deletedUsername_; }
+      set {
+        deletedUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "deletedAccountUid" field.</summary>
+    public const int DeletedAccountUidFieldNumber = 3;
+    private pb::ByteString deletedAccountUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString DeletedAccountUid {
+      get { return deletedAccountUid_; }
+      set {
+        deletedAccountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "deletedBy" field.</summary>
+    public const int DeletedByFieldNumber = 4;
+    private string deletedBy_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string DeletedBy {
+      get { return deletedBy_; }
+      set {
+        deletedBy_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "reason" field.</summary>
+    public const int ReasonFieldNumber = 5;
+    private string reason_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Reason {
+      get { return reason_; }
+      set {
+        reason_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "deleteDateTime" field.</summary>
+    public const int DeleteDateTimeFieldNumber = 6;
+    private string deleteDateTime_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string DeleteDateTime {
+      get { return deleteDateTime_; }
+      set {
+        deleteDateTime_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as DeleteUserWithVerificationCodeResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(DeleteUserWithVerificationCodeResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (DeletedUserId != other.DeletedUserId) return false;
+      if (DeletedUsername != other.DeletedUsername) return false;
+      if (DeletedAccountUid != other.DeletedAccountUid) return false;
+      if (DeletedBy != other.DeletedBy) return false;
+      if (Reason != other.Reason) return false;
+      if (DeleteDateTime != other.DeleteDateTime) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (DeletedUserId != 0) hash ^= DeletedUserId.GetHashCode();
+      if (DeletedUsername.Length != 0) hash ^= DeletedUsername.GetHashCode();
+      if (DeletedAccountUid.Length != 0) hash ^= DeletedAccountUid.GetHashCode();
+      if (DeletedBy.Length != 0) hash ^= DeletedBy.GetHashCode();
+      if (Reason.Length != 0) hash ^= Reason.GetHashCode();
+      if (DeleteDateTime.Length != 0) hash ^= DeleteDateTime.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (DeletedUserId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(DeletedUserId);
+      }
+      if (DeletedUsername.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(DeletedUsername);
+      }
+      if (DeletedAccountUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(DeletedAccountUid);
+      }
+      if (DeletedBy.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(DeletedBy);
+      }
+      if (Reason.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Reason);
+      }
+      if (DeleteDateTime.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(DeleteDateTime);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (DeletedUserId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(DeletedUserId);
+      }
+      if (DeletedUsername.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeletedUsername);
+      }
+      if (DeletedAccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(DeletedAccountUid);
+      }
+      if (DeletedBy.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeletedBy);
+      }
+      if (Reason.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reason);
+      }
+      if (DeleteDateTime.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeleteDateTime);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(DeleteUserWithVerificationCodeResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.DeletedUserId != 0) {
+        DeletedUserId = other.DeletedUserId;
+      }
+      if (other.DeletedUsername.Length != 0) {
+        DeletedUsername = other.DeletedUsername;
+      }
+      if (other.DeletedAccountUid.Length != 0) {
+        DeletedAccountUid = other.DeletedAccountUid;
+      }
+      if (other.DeletedBy.Length != 0) {
+        DeletedBy = other.DeletedBy;
+      }
+      if (other.Reason.Length != 0) {
+        Reason = other.Reason;
+      }
+      if (other.DeleteDateTime.Length != 0) {
+        DeleteDateTime = other.DeleteDateTime;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            DeletedUserId = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            DeletedUsername = input.ReadString();
+            break;
+          }
+          case 26: {
+            DeletedAccountUid = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            DeletedBy = input.ReadString();
+            break;
+          }
+          case 42: {
+            Reason = input.ReadString();
+            break;
+          }
+          case 50: {
+            DeleteDateTime = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SupportToolRestoreDeletedUser : pb::IMessage<SupportToolRestoreDeletedUser> {
+    private static readonly pb::MessageParser<SupportToolRestoreDeletedUser> _parser = new pb::MessageParser<SupportToolRestoreDeletedUser>(() => new SupportToolRestoreDeletedUser());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SupportToolRestoreDeletedUser> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[81]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SupportToolRestoreDeletedUser() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SupportToolRestoreDeletedUser(SupportToolRestoreDeletedUser other) : this() {
+      agentUsername_ = other.agentUsername_;
+      deletedUsername_ = other.deletedUsername_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SupportToolRestoreDeletedUser Clone() {
+      return new SupportToolRestoreDeletedUser(this);
+    }
+
+    /// <summary>Field number for the "agentUsername" field.</summary>
+    public const int AgentUsernameFieldNumber = 1;
+    private string agentUsername_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string AgentUsername {
+      get { return agentUsername_; }
+      set {
+        agentUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "deletedUsername" field.</summary>
+    public const int DeletedUsernameFieldNumber = 2;
+    private string deletedUsername_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string DeletedUsername {
+      get { return deletedUsername_; }
+      set {
+        deletedUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SupportToolRestoreDeletedUser);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SupportToolRestoreDeletedUser other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AgentUsername != other.AgentUsername) return false;
+      if (DeletedUsername != other.DeletedUsername) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (AgentUsername.Length != 0) hash ^= AgentUsername.GetHashCode();
+      if (DeletedUsername.Length != 0) hash ^= DeletedUsername.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (AgentUsername.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(AgentUsername);
+      }
+      if (DeletedUsername.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(DeletedUsername);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (AgentUsername.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(AgentUsername);
+      }
+      if (DeletedUsername.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeletedUsername);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SupportToolRestoreDeletedUser other) {
+      if (other == null) {
+        return;
+      }
+      if (other.AgentUsername.Length != 0) {
+        AgentUsername = other.AgentUsername;
+      }
+      if (other.DeletedUsername.Length != 0) {
+        DeletedUsername = other.DeletedUsername;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AgentUsername = input.ReadString();
+            break;
+          }
+          case 18: {
+            DeletedUsername = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SupportToolRestoredUser : pb::IMessage<SupportToolRestoredUser> {
+    private static readonly pb::MessageParser<SupportToolRestoredUser> _parser = new pb::MessageParser<SupportToolRestoredUser>(() => new SupportToolRestoredUser());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SupportToolRestoredUser> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[82]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SupportToolRestoredUser() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SupportToolRestoredUser(SupportToolRestoredUser other) : this() {
+      userId_ = other.userId_;
+      username_ = other.username_;
+      accountUid_ = other.accountUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SupportToolRestoredUser Clone() {
+      return new SupportToolRestoredUser(this);
+    }
+
+    /// <summary>Field number for the "userId" field.</summary>
+    public const int UserIdFieldNumber = 1;
+    private int userId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int UserId {
+      get { return userId_; }
+      set {
+        userId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "username" field.</summary>
+    public const int UsernameFieldNumber = 2;
+    private string username_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Username {
+      get { return username_; }
+      set {
+        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accountUid" field.</summary>
+    public const int AccountUidFieldNumber = 3;
+    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString AccountUid {
+      get { return accountUid_; }
+      set {
+        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SupportToolRestoredUser);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SupportToolRestoredUser other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (UserId != other.UserId) return false;
+      if (Username != other.Username) return false;
+      if (AccountUid != other.AccountUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (UserId != 0) hash ^= UserId.GetHashCode();
+      if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (UserId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(UserId);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Username);
+      }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(AccountUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (UserId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
+      }
+      if (Username.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      }
+      if (AccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SupportToolRestoredUser other) {
+      if (other == null) {
+        return;
+      }
+      if (other.UserId != 0) {
+        UserId = other.UserId;
+      }
+      if (other.Username.Length != 0) {
+        Username = other.Username;
+      }
+      if (other.AccountUid.Length != 0) {
+        AccountUid = other.AccountUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            UserId = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            Username = input.ReadString();
+            break;
+          }
+          case 26: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
   public sealed partial class UserDataKeyRequest : pb::IMessage<UserDataKeyRequest> {
     private static readonly pb::MessageParser<UserDataKeyRequest> _parser = new pb::MessageParser<UserDataKeyRequest>(() => new UserDataKeyRequest());
     private pb::UnknownFieldSet _unknownFields;
@@ -16870,7 +17460,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[80]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[83]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16984,15 +17574,15 @@ namespace Authentication {
 
   }
 
-  public sealed partial class UserDataKey : pb::IMessage<UserDataKey> {
-    private static readonly pb::MessageParser<UserDataKey> _parser = new pb::MessageParser<UserDataKey>(() => new UserDataKey());
+  public sealed partial class EnterpriseUserIdDataKeyPair : pb::IMessage<EnterpriseUserIdDataKeyPair> {
+    private static readonly pb::MessageParser<EnterpriseUserIdDataKeyPair> _parser = new pb::MessageParser<EnterpriseUserIdDataKeyPair>(() => new EnterpriseUserIdDataKeyPair());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<UserDataKey> Parser { get { return _parser; } }
+    public static pb::MessageParser<EnterpriseUserIdDataKeyPair> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[81]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[84]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -17001,24 +17591,22 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UserDataKey() {
+    public EnterpriseUserIdDataKeyPair() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UserDataKey(UserDataKey other) : this() {
+    public EnterpriseUserIdDataKeyPair(EnterpriseUserIdDataKeyPair other) : this() {
       enterpriseUserId_ = other.enterpriseUserId_;
       encryptedDataKey_ = other.encryptedDataKey_;
-      roleKey_ = other.roleKey_;
-      status_ = other.status_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UserDataKey Clone() {
-      return new UserDataKey(this);
+    public EnterpriseUserIdDataKeyPair Clone() {
+      return new EnterpriseUserIdDataKeyPair(this);
     }
 
     /// <summary>Field number for the "enterpriseUserId" field.</summary>
@@ -17043,35 +17631,13 @@ namespace Authentication {
       }
     }
 
-    /// <summary>Field number for the "roleKey" field.</summary>
-    public const int RoleKeyFieldNumber = 3;
-    private pb::ByteString roleKey_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString RoleKey {
-      get { return roleKey_; }
-      set {
-        roleKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "status" field.</summary>
-    public const int StatusFieldNumber = 4;
-    private global::Authentication.DataKeyStatus status_ = global::Authentication.DataKeyStatus.DkOk;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Authentication.DataKeyStatus Status {
-      get { return status_; }
-      set {
-        status_ = value;
-      }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as UserDataKey);
+      return Equals(other as EnterpriseUserIdDataKeyPair);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(UserDataKey other) {
+    public bool Equals(EnterpriseUserIdDataKeyPair other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -17080,8 +17646,6 @@ namespace Authentication {
       }
       if (EnterpriseUserId != other.EnterpriseUserId) return false;
       if (EncryptedDataKey != other.EncryptedDataKey) return false;
-      if (RoleKey != other.RoleKey) return false;
-      if (Status != other.Status) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -17090,8 +17654,6 @@ namespace Authentication {
       int hash = 1;
       if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
       if (EncryptedDataKey.Length != 0) hash ^= EncryptedDataKey.GetHashCode();
-      if (RoleKey.Length != 0) hash ^= RoleKey.GetHashCode();
-      if (Status != global::Authentication.DataKeyStatus.DkOk) hash ^= Status.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -17113,14 +17675,6 @@ namespace Authentication {
         output.WriteRawTag(18);
         output.WriteBytes(EncryptedDataKey);
       }
-      if (RoleKey.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(RoleKey);
-      }
-      if (Status != global::Authentication.DataKeyStatus.DkOk) {
-        output.WriteRawTag(32);
-        output.WriteEnum((int) Status);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -17135,12 +17689,6 @@ namespace Authentication {
       if (EncryptedDataKey.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDataKey);
       }
-      if (RoleKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RoleKey);
-      }
-      if (Status != global::Authentication.DataKeyStatus.DkOk) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -17148,7 +17696,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(UserDataKey other) {
+    public void MergeFrom(EnterpriseUserIdDataKeyPair other) {
       if (other == null) {
         return;
       }
@@ -17157,12 +17705,6 @@ namespace Authentication {
       }
       if (other.EncryptedDataKey.Length != 0) {
         EncryptedDataKey = other.EncryptedDataKey;
-      }
-      if (other.RoleKey.Length != 0) {
-        RoleKey = other.RoleKey;
-      }
-      if (other.Status != global::Authentication.DataKeyStatus.DkOk) {
-        Status = other.Status;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -17183,12 +17725,209 @@ namespace Authentication {
             EncryptedDataKey = input.ReadBytes();
             break;
           }
-          case 26: {
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class UserDataKey : pb::IMessage<UserDataKey> {
+    private static readonly pb::MessageParser<UserDataKey> _parser = new pb::MessageParser<UserDataKey>(() => new UserDataKey());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<UserDataKey> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[85]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public UserDataKey() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public UserDataKey(UserDataKey other) : this() {
+      roleId_ = other.roleId_;
+      roleKey_ = other.roleKey_;
+      privateKey_ = other.privateKey_;
+      enterpriseUserIdDataKeyPairs_ = other.enterpriseUserIdDataKeyPairs_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public UserDataKey Clone() {
+      return new UserDataKey(this);
+    }
+
+    /// <summary>Field number for the "roleId" field.</summary>
+    public const int RoleIdFieldNumber = 1;
+    private long roleId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long RoleId {
+      get { return roleId_; }
+      set {
+        roleId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "roleKey" field.</summary>
+    public const int RoleKeyFieldNumber = 2;
+    private pb::ByteString roleKey_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString RoleKey {
+      get { return roleKey_; }
+      set {
+        roleKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "privateKey" field.</summary>
+    public const int PrivateKeyFieldNumber = 3;
+    private string privateKey_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string PrivateKey {
+      get { return privateKey_; }
+      set {
+        privateKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "enterpriseUserIdDataKeyPairs" field.</summary>
+    public const int EnterpriseUserIdDataKeyPairsFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Authentication.EnterpriseUserIdDataKeyPair> _repeated_enterpriseUserIdDataKeyPairs_codec
+        = pb::FieldCodec.ForMessage(34, global::Authentication.EnterpriseUserIdDataKeyPair.Parser);
+    private readonly pbc::RepeatedField<global::Authentication.EnterpriseUserIdDataKeyPair> enterpriseUserIdDataKeyPairs_ = new pbc::RepeatedField<global::Authentication.EnterpriseUserIdDataKeyPair>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Authentication.EnterpriseUserIdDataKeyPair> EnterpriseUserIdDataKeyPairs {
+      get { return enterpriseUserIdDataKeyPairs_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as UserDataKey);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(UserDataKey other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RoleId != other.RoleId) return false;
+      if (RoleKey != other.RoleKey) return false;
+      if (PrivateKey != other.PrivateKey) return false;
+      if(!enterpriseUserIdDataKeyPairs_.Equals(other.enterpriseUserIdDataKeyPairs_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RoleId != 0L) hash ^= RoleId.GetHashCode();
+      if (RoleKey.Length != 0) hash ^= RoleKey.GetHashCode();
+      if (PrivateKey.Length != 0) hash ^= PrivateKey.GetHashCode();
+      hash ^= enterpriseUserIdDataKeyPairs_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (RoleId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(RoleId);
+      }
+      if (RoleKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(RoleKey);
+      }
+      if (PrivateKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(PrivateKey);
+      }
+      enterpriseUserIdDataKeyPairs_.WriteTo(output, _repeated_enterpriseUserIdDataKeyPairs_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (RoleId != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(RoleId);
+      }
+      if (RoleKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RoleKey);
+      }
+      if (PrivateKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(PrivateKey);
+      }
+      size += enterpriseUserIdDataKeyPairs_.CalculateSize(_repeated_enterpriseUserIdDataKeyPairs_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(UserDataKey other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RoleId != 0L) {
+        RoleId = other.RoleId;
+      }
+      if (other.RoleKey.Length != 0) {
+        RoleKey = other.RoleKey;
+      }
+      if (other.PrivateKey.Length != 0) {
+        PrivateKey = other.PrivateKey;
+      }
+      enterpriseUserIdDataKeyPairs_.Add(other.enterpriseUserIdDataKeyPairs_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            RoleId = input.ReadInt64();
+            break;
+          }
+          case 18: {
             RoleKey = input.ReadBytes();
             break;
           }
-          case 32: {
-            Status = (global::Authentication.DataKeyStatus) input.ReadEnum();
+          case 26: {
+            PrivateKey = input.ReadString();
+            break;
+          }
+          case 34: {
+            enterpriseUserIdDataKeyPairs_.AddEntriesFrom(input, _repeated_enterpriseUserIdDataKeyPairs_codec);
             break;
           }
         }
@@ -17205,7 +17944,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[82]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[86]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -17223,6 +17962,8 @@ namespace Authentication {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public UserDataKeyResponse(UserDataKeyResponse other) : this() {
       userDataKeys_ = other.userDataKeys_.Clone();
+      accessDenied_ = other.accessDenied_.Clone();
+      noEncryptedDataKey_ = other.noEncryptedDataKey_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -17241,6 +17982,26 @@ namespace Authentication {
       get { return userDataKeys_; }
     }
 
+    /// <summary>Field number for the "accessDenied" field.</summary>
+    public const int AccessDeniedFieldNumber = 2;
+    private static readonly pb::FieldCodec<long> _repeated_accessDenied_codec
+        = pb::FieldCodec.ForInt64(18);
+    private readonly pbc::RepeatedField<long> accessDenied_ = new pbc::RepeatedField<long>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<long> AccessDenied {
+      get { return accessDenied_; }
+    }
+
+    /// <summary>Field number for the "noEncryptedDataKey" field.</summary>
+    public const int NoEncryptedDataKeyFieldNumber = 3;
+    private static readonly pb::FieldCodec<long> _repeated_noEncryptedDataKey_codec
+        = pb::FieldCodec.ForInt64(26);
+    private readonly pbc::RepeatedField<long> noEncryptedDataKey_ = new pbc::RepeatedField<long>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<long> NoEncryptedDataKey {
+      get { return noEncryptedDataKey_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as UserDataKeyResponse);
@@ -17255,6 +18016,8 @@ namespace Authentication {
         return true;
       }
       if(!userDataKeys_.Equals(other.userDataKeys_)) return false;
+      if(!accessDenied_.Equals(other.accessDenied_)) return false;
+      if(!noEncryptedDataKey_.Equals(other.noEncryptedDataKey_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -17262,6 +18025,8 @@ namespace Authentication {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= userDataKeys_.GetHashCode();
+      hash ^= accessDenied_.GetHashCode();
+      hash ^= noEncryptedDataKey_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -17276,6 +18041,8 @@ namespace Authentication {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
       userDataKeys_.WriteTo(output, _repeated_userDataKeys_codec);
+      accessDenied_.WriteTo(output, _repeated_accessDenied_codec);
+      noEncryptedDataKey_.WriteTo(output, _repeated_noEncryptedDataKey_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -17285,6 +18052,8 @@ namespace Authentication {
     public int CalculateSize() {
       int size = 0;
       size += userDataKeys_.CalculateSize(_repeated_userDataKeys_codec);
+      size += accessDenied_.CalculateSize(_repeated_accessDenied_codec);
+      size += noEncryptedDataKey_.CalculateSize(_repeated_noEncryptedDataKey_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -17297,6 +18066,8 @@ namespace Authentication {
         return;
       }
       userDataKeys_.Add(other.userDataKeys_);
+      accessDenied_.Add(other.accessDenied_);
+      noEncryptedDataKey_.Add(other.noEncryptedDataKey_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -17310,6 +18081,16 @@ namespace Authentication {
             break;
           case 10: {
             userDataKeys_.AddEntriesFrom(input, _repeated_userDataKeys_codec);
+            break;
+          }
+          case 18:
+          case 16: {
+            accessDenied_.AddEntriesFrom(input, _repeated_accessDenied_codec);
+            break;
+          }
+          case 26:
+          case 24: {
+            noEncryptedDataKey_.AddEntriesFrom(input, _repeated_noEncryptedDataKey_codec);
             break;
           }
         }

@@ -72,7 +72,7 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        private static async Task SetSessionParameter(this IAuthentication auth, string name, string value)
+        public static async Task SetSessionParameter(this IAuthentication auth, string name, string value)
         {
             if (!(auth.AuthContext is AuthContextV3)) return;
             await auth.ExecuteAuthRest("setting/set_user_setting",
@@ -87,12 +87,6 @@ namespace KeeperSecurity.Sdk
         {
             return auth.SetSessionParameter("logout_timer", $"{timeoutInMinutes}");
         }
-
-        public static Task SetSessionPersistentLogin(this IAuthentication auth, bool enabled)
-        {
-            return auth.SetSessionParameter("persistent_login", enabled ? "1" : "0");
-        }
-
         public static async Task<AccountSummaryElements> LoadAccountSummary(this IAuthentication auth)
         {
             if (!(auth.AuthContext is AuthContextV3)) return null;
