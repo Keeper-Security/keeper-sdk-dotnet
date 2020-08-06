@@ -30,9 +30,11 @@ namespace KeeperSecurity.Sdk
 
     public class KeeperPostLoginErrors : Exception
     {
-        public KeeperPostLoginErrors(string message) : base(message)
+        public KeeperPostLoginErrors(string code, string message) : base(message)
         {
+            Code = code;
         }
+        public string Code { get; }
     }
 
     public class KeeperApiException : Exception

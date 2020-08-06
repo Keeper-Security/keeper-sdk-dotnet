@@ -52,7 +52,10 @@ namespace Commander
                     Console.WriteLine();
                     if (ts != null)
                     {
-                        Task.Run(() => { ts.TrySetResult(line); });
+                        Task.Run(() =>
+                        {
+                            ts.TrySetResult(line);
+                        });
 
                     }
                 }

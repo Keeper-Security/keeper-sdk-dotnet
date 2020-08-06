@@ -748,25 +748,11 @@ namespace KeeperSecurity.Sdk
             {
                 InvokeDeviceApprovalPushAction = async () =>
                 {
-                    try
-                    {
-                        await auth.RequestDeviceVerification("email");
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e);
-                    }
+                    await auth.RequestDeviceVerification("email");
                 },
                 InvokeDeviceApprovalOtpAction = async (code) =>
                 {
-                    try
-                    {
-                        await auth.ValidateDeviceVerificationCode(code);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e);
-                    }
+                    await auth.ValidateDeviceVerificationCode(code);
                 }
                 
             };

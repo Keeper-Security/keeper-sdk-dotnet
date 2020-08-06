@@ -446,6 +446,7 @@ namespace Commander
                                 break;
                         }
                     }
+
                     const string TwoFactorDurationPrefix = "2fa_duration";
                     Console.Write($"\"{TwoFactorDurationPrefix}=<duration>\" to change 2FA token persistence. ");
                     var dur = Enum
@@ -468,20 +469,19 @@ namespace Commander
                             deviceApprovalTask.SetResult(true);
                             break;
                         }
-                        
+
                         if (string.Compare(answer, "cancel", StringComparison.InvariantCultureIgnoreCase) == 0)
                         {
                             deviceApprovalTask.SetResult(false);
                             return;
                         }
 
+                        Task action = null;
                         if (answer.StartsWith($"{TwoFactorDurationPrefix}=", StringComparison.CurrentCultureIgnoreCase))
                         {
                             TryParseTextToDuration(answer.Substring(TwoFactorDurationPrefix.Length + 1), out duration);
-                            continue;
                         }
-
-                        if (answer.StartsWith("email_", StringComparison.InvariantCultureIgnoreCase))
+                        else if (answer.StartsWith("email_", StringComparison.InvariantCultureIgnoreCase))
                         {
                             var emailAction = channels
                                 .FirstOrDefault((x) => x.Channel == DeviceApprovalChannel.Email);
@@ -492,21 +492,19 @@ namespace Commander
                                     if (emailAction is IDeviceApprovalOtpInfo otp)
                                     {
                                         var code = answer.Substring("email_code=".Length);
-                                        await otp.InvokeDeviceApprovalOtpAction.Invoke(code);
+                                        action = otp.InvokeDeviceApprovalOtpAction.Invoke(code);
                                     }
                                 }
                                 else if (string.Compare(answer, "email_send", StringComparison.CurrentCultureIgnoreCase) == 0)
                                 {
                                     if (emailAction is IDeviceApprovalPushInfo push)
                                     {
-                                        await push.InvokeDeviceApprovalPushAction.Invoke();
+                                        action = push.InvokeDeviceApprovalPushAction.Invoke();
                                     }
                                 }
                             }
-                            continue;
                         }
-
-                        if (string.Compare(answer, "keeper_push", StringComparison.InvariantCultureIgnoreCase) == 0)
+                        else if (string.Compare(answer, "keeper_push", StringComparison.InvariantCultureIgnoreCase) == 0)
                         {
                             var keeperPushAction = channels
                                 .FirstOrDefault((x) => x.Channel == DeviceApprovalChannel.KeeperPush);
@@ -517,10 +515,8 @@ namespace Commander
                                     await push.InvokeDeviceApprovalPushAction.Invoke();
                                 }
                             }
-                            continue;
                         }
-
-                        if (answer.StartsWith("2fa_", StringComparison.InvariantCultureIgnoreCase))
+                        else if (answer.StartsWith("2fa_", StringComparison.InvariantCultureIgnoreCase))
                         {
                             var tfaAction = channels
                                 .FirstOrDefault((x) => x.Channel == DeviceApprovalChannel.TwoFactorAuth);
@@ -536,21 +532,33 @@ namespace Commander
                                     if (tfaAction is IDeviceApprovalOtpInfo otp)
                                     {
                                         var code = answer.Substring("2fa_code=".Length);
-                                        await otp.InvokeDeviceApprovalOtpAction.Invoke(code);
+                                        action = otp.InvokeDeviceApprovalOtpAction.Invoke(code);
                                     }
                                 }
                                 else if (string.Compare(answer, "2fa_send", StringComparison.CurrentCultureIgnoreCase) == 0)
                                 {
                                     if (tfaAction is IDeviceApprovalPushInfo push)
                                     {
-                                        await push.InvokeDeviceApprovalPushAction.Invoke();
+                                        action = push.InvokeDeviceApprovalPushAction.Invoke();
                                     }
                                 }
                             }
-                            continue;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unsupported command: {answer}");
                         }
 
-                        Console.WriteLine($"Unsupported command: {answer}");
+                        if (action == null) continue;
+                        
+                        try
+                        {
+                            await action;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
                     }
 
                     tokenReg.Dispose();

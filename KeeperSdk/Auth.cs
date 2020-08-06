@@ -20,8 +20,6 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using AccountSummary;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using SsoCloud;
 using Type = System.Type;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Tests")]
@@ -175,7 +173,7 @@ namespace KeeperSecurity.Sdk
             throw new KeeperAuthFailed();
         }
 
-        private static bool IsV3Api(string clientVersion)
+        internal static bool IsV3Api(string clientVersion)
         {
             var match = VersionPattern.Match(clientVersion);
             if (match.Groups.Count == 2)
@@ -286,19 +284,23 @@ namespace KeeperSecurity.Sdk
             {
                 if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
                 {
-                    Password = await this.ChangeMasterPassword();
-                    authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
+                    const string passwordExpiredDescription = 
+                        "Your Master Password has expired, you are required to change it before you can login.";
+                    if (await postUi.Confirmation(passwordExpiredDescription))
+                    {
+                        Password = await this.ChangeMasterPassword();
+                        authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
+                    }
                 }
-
                 if ((authContext.SessionTokenRestriction & SessionTokenRestriction.ShareAccount) != 0)
                 {
                     //expired_account_transfer_description
-                    var description =
+                    const string accountTransferDescription = 
                         "Your Keeper administrator has changed your account settings to enable the ability to transfer your vault records at a later date, " +
                         "in accordance with company operating procedures and or policies." +
                         "\nPlease acknowledge this change in account settings by clicking 'Accept' or contact your administrator to request an extension." +
                         "\nDo you accept Account Transfer policy?";
-                    if (await postUi.Confirmation(description))
+                    if (await postUi.Confirmation(accountTransferDescription))
                     {
                         var cmd = new AccountSummaryCommand
                         {
@@ -317,8 +319,12 @@ namespace KeeperSecurity.Sdk
                 }
                 else
                 {
-                    //need_vault_settings_update
-                    throw new KeeperPostLoginErrors("Please log into the web Vault to update your account settings.");
+
+                    if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
+                    {
+                        throw new KeeperPostLoginErrors("expired_master_password_description", "Your Master Password has expired, you are required to change it before you can login.");
+                    }
+                    throw new KeeperPostLoginErrors("need_vault_settings_update", "Please log into the web Vault to update your account settings.");
                 }
             }
             else
