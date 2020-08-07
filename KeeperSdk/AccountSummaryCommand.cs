@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Sdk
@@ -43,6 +44,21 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "seconds_until_storage_expiration")]
         public float SecondsUntilStorageExpiration { get; set; }
+
+        internal static AccountLicense LoadFromProtobuf(AccountSummary.License license)
+        {
+            return new AccountLicense
+            {
+                AccountType = license.AccountType,
+                ProductTypeId = license.ProductTypeId,
+                ProductTypeName = license.ProductTypeName,
+                ExpirationDate = license.ExpirationDate,
+                SecondsUntilExpiration = license.SecondsUntilExpiration,
+                FilePlanType = license.FilePlanType,
+                StorageExpirationDate = license.StorageExpirationDate,
+                SecondsUntilStorageExpiration = license.SecondsUntilStorageExpiration
+            };
+        }
     }
 
     [DataContract]
@@ -67,25 +83,46 @@ namespace KeeperSecurity.Sdk
         public string channelValue;
 
         [DataMember(Name = "email_verified")]
-        public string emailVerified;
+        public bool emailVerified;
 
         [DataMember(Name = "account_folder_key")]
         public string accountFolderKey;
 
         [DataMember(Name = "must_perform_account_share_by")]
-        public float? mustPerformAccountShareBy;
+        public double? mustPerformAccountShareBy;
 
         [DataMember(Name = "share_account_to")]
         public AccountShareTo[] shareAccountTo;
 
         [DataMember(Name = "master_password_last_modified")]
-        public float? masterPasswordLastModified;
+        public double? masterPasswordLastModified;
 
         [DataMember(Name = "theme")]
         public string theme;
 
         [DataMember(Name = "sso_user")]
         public bool? ssoUser;
+
+        internal static AccountSettings LoadFromProtobuf(AccountSummary.Settings settings)
+        {
+            return new AccountSettings
+            {
+                twoFactorRequired = settings.TwoFactorRequired,
+                channel = settings.Channel,
+                channelValue = settings.ChannelValue,
+                emailVerified = settings.EmailVerified,
+                accountFolderKey = settings.AccountFolderKey.ToByteArray().Base64UrlEncode(),
+                mustPerformAccountShareBy = settings.MustPerformAccountShareBy > 0 ? (double?) settings.MustPerformAccountShareBy : null,
+                shareAccountTo = settings.ShareAccountTo.Select(x => new AccountShareTo
+                {
+                    publicKey = x.PublicKey.ToByteArray().Base64UrlEncode(),
+                    roleId = x.RoleId
+                }).ToArray(),
+                masterPasswordLastModified = settings.MasterPasswordLastModified > 1 ? (double?) settings.MasterPasswordLastModified : null,
+                theme = settings.Theme,
+                ssoUser = settings.SsoUser
+            };
+        }
     }
 
     [DataContract]

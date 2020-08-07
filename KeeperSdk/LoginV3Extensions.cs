@@ -572,6 +572,9 @@ namespace KeeperSecurity.Sdk
                 case SessionTokenType.AcceptInvite:
                     result |= SessionTokenRestriction.AcceptInvite;
                     break;
+                case SessionTokenType.Restrict:
+                    result |= SessionTokenRestriction.AccountExpired;
+                    break;
             }
 
             return result;
