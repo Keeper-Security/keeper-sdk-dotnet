@@ -1050,6 +1050,18 @@ namespace KeeperSecurity.Sdk
                         catch (KeeperAuthFailed)
                         {
                         }
+                        catch (Exception e)
+                        {
+                            if (e is KeeperApiException kae && kae.Code == "two_factor_code_invalid")
+                            {
+                            }
+                            else
+                            {
+                                Debug.WriteLine(e.Message);
+                                tokenSource.Cancel();
+                                throw;
+                            }
+                        }
                     }
                     else
                     {
