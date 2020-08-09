@@ -441,7 +441,10 @@ namespace Commander
                 if (string.IsNullOrEmpty(record.Password))
                 {
                     Console.Write("..." + "Password: ".PadRight(16));
-                    record.Login = await Program.InputManager.ReadLine(true);
+                    record.Login = await Program.InputManager.ReadLine(new ReadLineParameters
+                    {
+                        IsSecured = true
+                    });
                 }
 
                 if (string.IsNullOrEmpty(record.Link))
@@ -679,6 +682,11 @@ namespace Commander
         private async Task DeviceCommand(OtherDevicesOptions arguments)
         {
             if (!(_auth.AuthContext is AuthContextV3 contextV3)) return;
+
+            if (arguments.Force)
+            {
+                _accountSummary = null;
+            }
 
             if (_accountSummary == null)
             {
@@ -987,6 +995,9 @@ namespace Commander
 
     class OtherDevicesOptions
     {
+        [Option('f', "force", Required = false, Default = false, HelpText = "reload device list")]
+        public bool Force { get; set; }
+
         [Value(0, Required = false, HelpText = "device command: \"approve\", \"decline\", \"list\"")]
         public string Command { get; set; }
 

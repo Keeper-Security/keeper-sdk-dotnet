@@ -7,6 +7,7 @@ using KeeperSecurity.Sdk.UI;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
+using static Commander.Program;
 
 namespace Commander
 {
@@ -62,6 +63,7 @@ namespace Commander
                 {
                     cliContext.StateContext = cliContext.StateContext.NextStateContext;
                     cliContext.StateContext.NextStateContext = null;
+                    InputManager.ClearHistory();
                 }
 
                 string command;
@@ -77,7 +79,10 @@ namespace Commander
                     }
 
                     Console.Write(cliContext.StateContext.GetPrompt() + "> ");
-                    command = await InputManager.ReadLine();
+                    command = await InputManager.ReadLine(new ReadLineParameters
+                    {
+                        IsHistory = true
+                    });
                 }
 
                 if (string.IsNullOrEmpty(command)) continue;
@@ -171,7 +176,10 @@ namespace Commander
                 if (string.IsNullOrEmpty(password))
                 {
                     Console.Write("\nEnter Master Password: ");
-                    password = await InputManager.ReadLine(true);
+                    password = await InputManager.ReadLine(new ReadLineParameters
+                    {
+                        IsSecured = true
+                    });
                 }
 
                 return password;
@@ -193,7 +201,10 @@ namespace Commander
                 {
                     Console.Write("New Master Password: ");
 
-                    password1 = await InputManager.ReadLine(true);
+                    password1 = await InputManager.ReadLine(new ReadLineParameters
+                    {
+                        IsSecured = true
+                    });
                     if (string.IsNullOrEmpty(password1)) continue;
 
                     if (matcher == null) continue;
@@ -213,7 +224,10 @@ namespace Commander
                 while (string.IsNullOrEmpty(password2))
                 {
                     Console.Write("Password Again: ");
-                    password2 = await InputManager.ReadLine(true);
+                    password2 = await InputManager.ReadLine(new ReadLineParameters
+                    {
+                        IsSecured = true
+                    });
                     if (string.CompareOrdinal(password1, password2) == 0) continue;
 
                     Console.WriteLine("Passwords do not match.");
@@ -732,7 +746,10 @@ namespace Commander
                     if (string.IsNullOrEmpty(username)) proxyTask.TrySetCanceled();
 
                     Console.Write("Proxy Password: ");
-                    password = await InputManager.ReadLine(true);
+                    password = await InputManager.ReadLine(new ReadLineParameters
+                    {
+                        IsSecured = true
+                    });
                     if (string.IsNullOrEmpty(username)) proxyTask.TrySetCanceled();
                     var cred = new NetworkCredential(username, password);
                     var myCache = new CredentialCache();

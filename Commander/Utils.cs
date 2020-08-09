@@ -2,20 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms.Layout;
 
 namespace Commander
 {
+    public class ReadLineParameters {
+        public string Text { get; set; }
+        public bool IsSecured { get; set; }
+        public bool IsHistory { get; set; }
+    }
+
     public class InputManager
     {
         private readonly StringBuilder _buffer = new StringBuilder();
         private bool _isSecured;
+        private bool _isMaskToggled;
+        private bool _isHistory;
+        private int _positionInHistory;
+        private string _savedBuffer;
         private TaskCompletionSource<string> _taskSource;
         private const char Mask = '*';
         private int _cursorPosition = 0;
         private readonly Queue<string> _yankRing = new Queue<string>();
+        private readonly List<string> _history = new List<string>();
 
         public void Run()
         {
@@ -49,6 +58,27 @@ namespace Commander
                     _buffer.Length = 0;
                     _cursorPosition = 0;
                     _yankRing.Clear();
+                    if (_isHistory && !string.IsNullOrEmpty(line))
+                    {
+                        int toDelete;
+                        if (_positionInHistory > 0 && _positionInHistory <= _history.Count)
+                        {
+                            toDelete = _history.Count - _positionInHistory;
+                        }
+                        else
+                        {
+                            toDelete = _history.FindIndex(x => x == line);
+                        }
+
+                        if (toDelete >= 0 && toDelete < _history.Count)
+                        {
+                            _history.RemoveAt(toDelete);
+                        }
+
+                        _history.Add(line);
+                        _positionInHistory = 0;
+                    }
+
                     Console.WriteLine();
                     if (ts != null)
                     {
@@ -163,6 +193,89 @@ namespace Commander
 
                     Console.SetCursorPosition(left, top);
                 }
+                else if (keyInfo.Key == ConsoleKey.UpArrow || keyInfo.Key == ConsoleKey.DownArrow)
+                {
+                    if (!_isHistory) continue;
+                    if (keyInfo.Key == ConsoleKey.UpArrow && _positionInHistory == 0)
+                    {
+                        _savedBuffer = _buffer.ToString();
+                    }
+
+                    if (keyInfo.Key == ConsoleKey.DownArrow)
+                    {
+                        if (_positionInHistory >= 0)
+                        {
+                            _positionInHistory--;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (keyInfo.Key == ConsoleKey.UpArrow)
+                    {
+                        if (_positionInHistory < _history.Count)
+                        {
+                            _positionInHistory++;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    string newBuffer = "";
+                    if (_positionInHistory > 0)
+                    {
+                        if (_positionInHistory <= _history.Count)
+                        {
+                            newBuffer = _history[_history.Count - _positionInHistory];
+                        }
+                    }
+                    else
+                    {
+                        newBuffer = _savedBuffer;
+                    }
+
+                    var left = Console.CursorLeft;
+                    var top = Console.CursorTop;
+                    left -= _cursorPosition;
+                    while (left < 0)
+                    {
+                        left += Console.BufferWidth;
+                        top--;
+                    }
+                    Console.SetCursorPosition(left, top);
+                    Console.Write(new string(' ', _buffer.Length));
+
+                    _buffer.Length = 0;
+                    _buffer.Append(newBuffer);
+                    Console.SetCursorPosition(left, top);
+                    Console.Write(newBuffer);
+                    _cursorPosition = newBuffer.Length;
+                }
+                else if (keyInfo.Key == ConsoleKey.Tab)
+                {
+                    if (!_isSecured && !_isMaskToggled) continue;
+                    _isMaskToggled = !_isMaskToggled;
+                    _isSecured = !_isSecured;
+
+                    var left = Console.CursorLeft;
+                    var top = Console.CursorTop;
+                    var origLeft = left;
+                    var origTop = top;
+                    left -= _cursorPosition;
+                    while (left < 0)
+                    {
+                        left += Console.BufferWidth;
+                        top--;
+                    }
+
+                    Console.SetCursorPosition(left, top);
+                    Console.Write(_isMaskToggled ? _buffer.ToString() : new string(Mask, _buffer.Length));
+                    Console.SetCursorPosition(origLeft, origTop);
+                }
                 else if ((keyInfo.Modifiers & ConsoleModifiers.Control) != 0)
                 {
                     var left = Console.CursorLeft;
@@ -268,7 +381,16 @@ namespace Commander
             }
         }
 
-        public Task<string> ReadLine(bool secured = false)
+        public void ClearHistory()
+        {
+            lock (this)
+            {
+                _history.Clear();
+                _positionInHistory = 0;
+            }
+        }
+
+        public Task<string> ReadLine(ReadLineParameters parameters = null)
         {
             TaskCompletionSource<string> ts;
             lock (this)
@@ -288,9 +410,22 @@ namespace Commander
             lock (this)
             {
                 _buffer.Length = 0;
+                if (string.IsNullOrEmpty(parameters?.Text))
+                {
+                    _cursorPosition = 0;
+                }
+                else
+                {
+                    Console.Write(parameters.Text);
+                    _buffer.Append(parameters.Text);
+                    _cursorPosition = parameters.Text.Length;
+                }
+
+                _isMaskToggled = false;
                 _cursorPosition = 0;
                 _yankRing.Clear();
-                _isSecured = secured;
+                _isSecured = parameters?.IsSecured ?? false;
+                _isHistory = parameters?.IsHistory ?? false;
                 _taskSource = new TaskCompletionSource<string>();
                 return _taskSource.Task;
             }
