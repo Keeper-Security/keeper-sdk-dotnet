@@ -120,6 +120,9 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "description")]
         public string description;
+
+        [DataMember(Name = "rule_type")]
+        public string ruleType;
     }
 
 

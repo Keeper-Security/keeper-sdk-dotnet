@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading;
 
 namespace KeeperSecurity.Sdk
 {
@@ -58,6 +60,32 @@ namespace KeeperSecurity.Sdk
                 StorageExpirationDate = license.StorageExpirationDate,
                 SecondsUntilStorageExpiration = license.SecondsUntilStorageExpiration
             };
+        }
+    }
+
+    [DataContract]
+    public class MasterPasswordReentry
+    {
+        [DataMember(Name = "operations")]
+        public string[] operations;
+
+        [DataMember(Name = "timeout")]
+        internal string _timeout;
+
+        public int Timeout
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_timeout))
+                {
+                    if (int.TryParse(_timeout, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i))
+                    {
+                        return i;
+                    }
+                }
+
+                return 1;
+            }
         }
     }
 
@@ -130,14 +158,27 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "encryption_params")]
         public string encryptionParams;
+
         [DataMember(Name = "encrypted_data_key")]
         public string encryptedDataKey;
+
         [DataMember(Name = "encrypted_private_key")]
         public string encryptedPrivateKey;
-        [DataMember(Name = "data_key_backup_date")]
-        public float? dataKeyBackupDate;
-    }
 
+        [DataMember(Name = "data_key_backup_date")]
+        public double? dataKeyBackupDate;
+
+        internal static AccountKeys LoadFromProtobuf(AccountSummary.KeysInfo keyInfo)
+        {
+            return new AccountKeys
+            {
+                encryptionParams = keyInfo.EncryptionParams.ToByteArray().Base64UrlEncode(),
+                encryptedPrivateKey = keyInfo.EncryptedPrivateKey.ToByteArray().Base64UrlEncode(),
+                encryptedDataKey = keyInfo.EncryptedDataKey.ToByteArray().Base64UrlEncode(),
+                dataKeyBackupDate = keyInfo.DataKeyBackupDate > 1 ? keyInfo.DataKeyBackupDate : (double?) null
+            };
+        }
+    }
 
     [DataContract]
     public class AccountSummaryResponse : KeeperApiResponse

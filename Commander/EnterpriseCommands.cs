@@ -42,45 +42,41 @@ namespace Commander
 
         private void CheckIfEnterpriseAdmin()
         {
-            _ = Task.Run(async () =>
+            if (_auth.AuthContext.IsEnterpriseAdmin)
             {
-                _accountSummary = await _auth.LoadAccountSummary();
-                if (_accountSummary.IsEnterpriseAdmin)
+                lock (Commands)
                 {
-                    lock (Commands)
-                    {
-                        _auth.AuthContext.PushNotifications.RegisterCallback(EnterpriseNotificationCallback);
+                    _auth.AuthContext.PushNotifications.RegisterCallback(EnterpriseNotificationCallback);
 
-                        Commands.Add("enterprise-node",
-                            new ParsableCommand<EnterpriseNodeOptions>
-                            {
-                                Order = 60,
-                                Description = "Display node structure ",
-                                Action = EnterpriseNodeCommand,
-                            });
+                    Commands.Add("enterprise-node",
+                        new ParsableCommand<EnterpriseNodeOptions>
+                        {
+                            Order = 60,
+                            Description = "Display node structure ",
+                            Action = EnterpriseNodeCommand,
+                        });
 
-                        Commands.Add("enterprise-user",
-                            new ParsableCommand<EnterpriseUserOptions>
-                            {
-                                Order = 61,
-                                Description = "List Enterprise Users",
-                                Action = EnterpriseUserCommand,
-                            });
+                    Commands.Add("enterprise-user",
+                        new ParsableCommand<EnterpriseUserOptions>
+                        {
+                            Order = 61,
+                            Description = "List Enterprise Users",
+                            Action = EnterpriseUserCommand,
+                        });
 
-                        Commands.Add("enterprise-device",
-                            new ParsableCommand<EnterpriseDeviceOptions>
-                            {
-                                Order = 62,
-                                Description = "Manage User Devices",
-                                Action = EnterpriseDeviceCommand,
-                            });
+                    Commands.Add("enterprise-device",
+                        new ParsableCommand<EnterpriseDeviceOptions>
+                        {
+                            Order = 62,
+                            Description = "Manage User Devices",
+                            Action = EnterpriseDeviceCommand,
+                        });
 
-                        CommandAliases["en"] = "enterprise-node";
-                        CommandAliases["eu"] = "enterprise-user";
-                        CommandAliases["ed"] = "enterprise-device";
-                    }
+                    CommandAliases["en"] = "enterprise-node";
+                    CommandAliases["eu"] = "enterprise-user";
+                    CommandAliases["ed"] = "enterprise-device";
                 }
-            });
+            }
         }
 
         class EnterpriseGenericOptions

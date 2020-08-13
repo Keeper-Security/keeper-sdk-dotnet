@@ -10,6 +10,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using KeeperSecurity.Sdk.UI;
 using System.Diagnostics;
@@ -17,8 +18,8 @@ using System.Reflection;
 using Authentication;
 using Org.BouncyCastle.Crypto.Parameters;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Text.RegularExpressions;
-using AccountSummary;
 using Google.Protobuf;
 using Type = System.Type;
 
@@ -45,7 +46,7 @@ namespace KeeperSecurity.Sdk
         bool ResumeSession { get; set; }
     }
 
-    public interface IAuthContext: IDisposable
+    public interface IAuthContext : IDisposable
     {
         string Username { get; }
         byte[] DataKey { get; }
@@ -54,6 +55,11 @@ namespace KeeperSecurity.Sdk
         byte[] ClientKey { get; }
         RsaPrivateCrtKeyParameters PrivateKey { get; }
         IFanOut<NotificationEvent> PushNotifications { get; }
+        bool CheckPasswordValid(string password);
+        AccountLicense License { get; }
+        AccountSettings Settings { get; }
+        IDictionary<string, object> Enforcements { get; }
+        bool IsEnterpriseAdmin { get; }
     }
 
     [Flags]
@@ -75,6 +81,26 @@ namespace KeeperSecurity.Sdk
         public byte[] SessionToken { get; internal set; }
         public SessionTokenRestriction SessionTokenRestriction { get; set; }
         public byte[] DeviceToken { get; internal set; }
+        public AccountLicense License { get; internal set; }
+        public AccountSettings Settings { get; internal set; }
+        public IDictionary<string, object> Enforcements { get; internal set; }
+        public bool IsEnterpriseAdmin { get; internal set; }
+
+        internal byte[] PasswordValidator { get; set; }
+
+        public bool CheckPasswordValid(string password)
+        {
+            if (PasswordValidator == null) return false;
+            try
+            {
+                var rnd = CryptoUtils.DecryptEncryptionParams(password, PasswordValidator);
+                return rnd?.Length == 32;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -239,7 +265,6 @@ namespace KeeperSecurity.Sdk
 
             Username = username.ToLowerInvariant();
             Password = null;
-
             var isV3Api = IsV3Api(Endpoint.ClientVersion);
             if (isV3Api)
             {
@@ -281,27 +306,95 @@ namespace KeeperSecurity.Sdk
 
         private async Task PostLogin(bool isV3Api)
         {
-            AccountLicense license = null;
-            AccountSettings settings = null;
+            AccountLicense license;
+            AccountSettings settings;
+            AccountKeys keys;
+            IDictionary<string, object> enforcements;
+            string clientKey = null;
+            bool isEnterpriseAdmin = false;
             if (isV3Api)
             {
                 var accountSummaryResponse = await this.LoadAccountSummary();
                 license = AccountLicense.LoadFromProtobuf(accountSummaryResponse.License);
                 settings = AccountSettings.LoadFromProtobuf(accountSummaryResponse.Settings);
+                keys = AccountKeys.LoadFromProtobuf(accountSummaryResponse.KeysInfo);
+                if (accountSummaryResponse.ClientKey?.Length > 0)
+                {
+                    clientKey = accountSummaryResponse.ClientKey.ToByteArray().Base64UrlEncode();
+                }
+                enforcements = new Dictionary<string, object>();
+                if (accountSummaryResponse.Enforcements?.Booleans != null)
+                {
+                    foreach (var kvp in accountSummaryResponse.Enforcements.Booleans)
+                    {
+                        enforcements[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                if (accountSummaryResponse.Enforcements?.Strings != null)
+                {
+                    foreach (var kvp in accountSummaryResponse.Enforcements.Strings)
+                    {
+                        enforcements[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                if (accountSummaryResponse.Enforcements?.Longs != null)
+                {
+                    foreach (var kvp in accountSummaryResponse.Enforcements.Longs)
+                    {
+                        enforcements[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                if (accountSummaryResponse.Enforcements?.Jsons != null)
+                {
+                    foreach (var kvp in accountSummaryResponse.Enforcements.Jsons)
+                    {
+                        try
+                        {
+                            switch (kvp.Key)
+                            {
+                                case "password_rules":
+                                    var rules = JsonUtils.ParseJson<PasswordRule[]>(Encoding.UTF8.GetBytes(kvp.Value));
+                                    enforcements[kvp.Key] = rules;
+                                    break;
+                                case "master_password_reentry":
+                                    var mpr = JsonUtils.ParseJson<MasterPasswordReentry>(Encoding.UTF8.GetBytes(kvp.Value));
+                                    enforcements[kvp.Key] = mpr;
+                                    break;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e.Message);
+                        }
+                    }
+                }
+
+                isEnterpriseAdmin = accountSummaryResponse.IsEnterpriseAdmin;
             }
             else
             {
                 var cmd = new AccountSummaryCommand
                 {
-                    include = new[] { "settings", "license" }
+                    include = new[] { "settings", "license", "keys", "client_key", "enforcements", "is_enterprise_admin"}
                 };
                 var accountSummaryResponse = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(cmd);
                 license = accountSummaryResponse.License;
                 settings = accountSummaryResponse.Settings;
+                keys = accountSummaryResponse.keys;
+                clientKey = accountSummaryResponse.clientKey;
+                enforcements = accountSummaryResponse.Enforcements;
+                if (accountSummaryResponse.IsEnterpriseAdmin.HasValue)
+                {
+                    isEnterpriseAdmin = accountSummaryResponse.IsEnterpriseAdmin.Value;
+                }
             }
 
             if (authContext.SessionTokenRestriction != 0 && Ui is IPostLoginTaskUI postUi)
             {
+
                 if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
                 {
                     const string accountExpiredDescription = "Your Keeper account has expired. Please open the Keeper app to renew " +
@@ -349,7 +442,8 @@ namespace KeeperSecurity.Sdk
                             throw new KeeperPostLoginErrors("free_trial_expired_please_purchase",
                                 "Your free trial has expired. Please purchase a subscription.");
                         }
-                        throw new KeeperPostLoginErrors("account_expired_warning", "Your Account is expired");
+                        throw new KeeperPostLoginErrors("expired_please_purchase", 
+                            "Your subscription has expired. Please purchase a subscription now.");
                     }
                     if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
                     {
@@ -360,48 +454,36 @@ namespace KeeperSecurity.Sdk
             }
             else
             {
-                Username = null;
-                Password = null;
-
-                if (isV3Api)
+                if (!string.IsNullOrEmpty(Password))
                 {
-                    var rq = new AccountSummaryRequest
+                    var password = Password;
+                    _ = Task.Run(() =>
                     {
-                        SummaryVersion = 1
-                    };
-                    var rs = await this.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
-                    if (rs.ClientKey?.Length > 0)
-                    {
-                        authContext.ClientKey = CryptoUtils.DecryptAesV1(rs.ClientKey.ToByteArray(), authContext.DataKey);
-                    }
 
-                    if (rs.KeysInfo?.EncryptedPrivateKey?.Length > 0)
-                    {
-                        var privateKeyData =
-                            CryptoUtils.DecryptAesV1(rs.KeysInfo.EncryptedPrivateKey.ToByteArray(), authContext.DataKey);
-                        authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
-                    }
+                        var salt = CryptoUtils.GetRandomBytes(16);
+                        authContext.PasswordValidator = 
+                            CryptoUtils.CreateEncryptionParams(password, salt, 100000, CryptoUtils.GetRandomBytes(32));
+                    });
+                    Password = null;
                 }
-                else
+
+                if (keys.encryptedPrivateKey != null)
                 {
-                    var accountSummaryRq = new AccountSummaryCommand
-                    {
-                        include = new[] { "keys", "client_key" },
-                    };
-                    var accountSummaryRs = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(accountSummaryRq);
-                    if (accountSummaryRs.keys.encryptedPrivateKey != null)
-                    {
-                        var privateKeyData =
-                            CryptoUtils.DecryptAesV1(accountSummaryRs.keys.encryptedPrivateKey.Base64UrlDecode(),
-                                authContext.DataKey);
-                        authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
-                    }
-
-                    if (!string.IsNullOrEmpty(accountSummaryRs.clientKey))
-                    {
-                        authContext.ClientKey = CryptoUtils.DecryptAesV1(accountSummaryRs.clientKey.Base64UrlDecode(), authContext.DataKey);
-                    }
+                    var privateKeyData =
+                        CryptoUtils.DecryptAesV1(keys.encryptedPrivateKey.Base64UrlDecode(),
+                            authContext.DataKey);
+                    authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
                 }
+
+                if (!string.IsNullOrEmpty(clientKey))
+                {
+                    authContext.ClientKey = CryptoUtils.DecryptAesV1(clientKey.Base64UrlDecode(), authContext.DataKey);
+                }
+
+                authContext.License = license;
+                authContext.Settings = settings;
+                authContext.Enforcements = enforcements;
+                authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
             }
         }
 
