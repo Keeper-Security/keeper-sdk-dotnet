@@ -228,10 +228,8 @@ namespace KeeperSecurity.Sdk
 
                     return await auth.AuthorizeUsingOnsiteSso(rs.SpUrl);
                 }
-                else
-                {
-                    throw new KeeperInvalidParameter("enterprise/get_sso_service_provider", "provider_name", providerName, "SSO provider not found");
-                }
+
+                throw new KeeperInvalidParameter("enterprise/get_sso_service_provider", "provider_name", providerName, "SSO provider not found");
             }
 
             throw new KeeperAuthFailed();
@@ -747,34 +745,21 @@ namespace KeeperSecurity.Sdk
         {
             var resumeLoginToken = loginToken;
             var loginTokenTaskSource = new TaskCompletionSource<bool>();
-            IDeviceApprovalChannelInfo email = new DeviceApprovalEmailResend
+
+            var email = new DeviceApprovalEmailResend();
+            email.InvokeDeviceApprovalPushAction = async () =>
             {
-                InvokeDeviceApprovalPushAction = async () =>
-                {
-                    await auth.RequestDeviceVerification("email");
-                },
-                InvokeDeviceApprovalOtpAction = async (code) =>
-                {
-                    await auth.ValidateDeviceVerificationCode(code);
-                }
-                
+                await auth.RequestDeviceVerification(email.Resend ? "email_resend" : "email");
+                email.Resend = true;
             };
-            IDeviceApprovalChannelInfo push = new DeviceApprovalKeeperPushAction
-            {
-                InvokeDeviceApprovalPushAction = async () =>
-                {
-                    await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushKeeper, loginToken);
-                }
-            };
+            email.InvokeDeviceApprovalOtpAction = async (code) => { await auth.ValidateDeviceVerificationCode(code); };
+
+            var push = new DeviceApprovalKeeperPushAction();
+            push.InvokeDeviceApprovalPushAction = async () => { await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushKeeper, loginToken); };
+
             var otp = new DeviceApprovalTwoFactorAuth();
-            otp.InvokeDeviceApprovalPushAction = async () =>
-            {
-                await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken, SdkExpirationToKeeper(otp.Duration));
-            };
-            otp.InvokeDeviceApprovalOtpAction = async (oneTimePassword) =>
-            {
-                await auth.ExecuteDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken, oneTimePassword, SdkExpirationToKeeper(otp.Duration));
-            };
+            otp.InvokeDeviceApprovalPushAction = async () => { await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken, SdkExpirationToKeeper(otp.Duration)); };
+            otp.InvokeDeviceApprovalOtpAction = async (oneTimePassword) => { await auth.ExecuteDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken, oneTimePassword, SdkExpirationToKeeper(otp.Duration)); };
 
             bool NotificationCallback(WssClientResponse rs)
             {
@@ -809,7 +794,7 @@ namespace KeeperSecurity.Sdk
             auth.WebSocketChannel?.RegisterCallback(NotificationCallback);
 
             var sdkCancellation = new CancellationTokenSource();
-            var uiTask = auth.Ui.WaitForDeviceApproval(new[] {email, push, otp}, sdkCancellation.Token);
+            var uiTask = auth.Ui.WaitForDeviceApproval(new IDeviceApprovalChannelInfo[] {email, push, otp}, sdkCancellation.Token);
             var tokenTask = loginTokenTaskSource.Task;
 
             var index = Task.WaitAny(uiTask, tokenTask);

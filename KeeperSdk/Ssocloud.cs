@@ -3639,7 +3639,7 @@ namespace SsoCloud {
   /// <summary>
   ///*
   /// For security, this structure is used to make a Cloud SSO login or logout request rather than sending the parameters in the URL or in a form.
-  /// A typical call is: https://www.keepersecurity.com/api/rest/sso/saml/login/123456789?key=BBAASSEE64KKEEYY&amp;payload=encodedEncryptedAPIRequestContainingAnSsoCloudRequest
+  /// A typical call is: https://www.keepersecurity.com/api/rest/sso/saml/login/123456789?payload=encodedEncryptedAPIRequestContainingAnSsoCloudRequest
   /// </summary>
   public sealed partial class SsoCloudRequest : pb::IMessage<SsoCloudRequest> {
     private static readonly pb::MessageParser<SsoCloudRequest> _parser = new pb::MessageParser<SsoCloudRequest>(() => new SsoCloudRequest());
@@ -4054,7 +4054,7 @@ namespace SsoCloud {
     public const int MessageSessionUidFieldNumber = 2;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     /// <summary>
-    /// Required, 16 bytes
+    /// If available, 16 bytes.  Can not be zeros.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pb::ByteString MessageSessionUid {

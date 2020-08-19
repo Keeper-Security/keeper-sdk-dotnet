@@ -22,10 +22,12 @@ namespace KeeperSecurity.Sdk.UI
         public DeviceApprovalEmailResend()
         {
             Channel = DeviceApprovalChannel.Email;
+            Resend = false;
         }
 
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
         public DeviceApprovalOtpDelegate InvokeDeviceApprovalOtpAction { get; internal set; }
+        public bool Resend { get; internal set; }
     }
 
     public class DeviceApprovalKeeperPushAction : IDeviceApprovalPushInfo
