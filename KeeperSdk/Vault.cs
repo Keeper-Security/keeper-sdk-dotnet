@@ -117,6 +117,7 @@ namespace KeeperSecurity.Sdk
 
                     if (!forEdit && !forShare && !forView)
                     {
+                        path.SharedFolderUid = sfmd.SharedFolderUid;
                         path.TeamUid = sfmd.TeamUid;
                         return rmd;
                     }
@@ -125,7 +126,8 @@ namespace KeeperSecurity.Sdk
                     if (forEdit && team.RestrictEdit) continue;
                     if (forShare && team.RestrictShare) continue;
                     if (forView && team.RestrictView) continue;
-                    
+
+                    path.SharedFolderUid = sfmd.SharedFolderUid;
                     path.TeamUid = sfmd.TeamUid;
                     return rmd;
                 }
