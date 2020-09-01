@@ -161,7 +161,7 @@ namespace Commander
         {
         }
 
-        class Ui : IAuthUI, IPostLoginTaskUI, IAuthSsoUI, IUsePassword, IHttpProxyCredentialUI
+        class Ui : IAuthUI, IAuthInfoUI, IPostLoginTaskUI, IAuthSsoUI, IUsePassword, IHttpProxyCredentialUI
         {
             public Func<string, string> UsePassword { get; set; }
 
@@ -626,6 +626,11 @@ namespace Commander
                 return ts.Task;
             }
 
+            public void SsoLogoutUrl(string url)
+            {
+                Console.WriteLine($"\nSSO Logout Url:\n\n{url}\n");
+            }
+
             public Task<bool> WaitForDataKey(IGetDataKeyChannelInfo[] channels, CancellationToken token)
             {
                 var taskSource = new TaskCompletionSource<bool>();
@@ -766,6 +771,13 @@ namespace Commander
                 });
 
                 return proxyTask.Task;
+            }
+
+            public void RegionChanged(string newRegion)
+            {
+                Console.WriteLine();
+                Console.WriteLine($"You are being redirected to the data center at: {newRegion}");
+                Console.WriteLine();
             }
         }
     }

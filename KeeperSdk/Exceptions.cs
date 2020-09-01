@@ -54,6 +54,7 @@ namespace KeeperSecurity.Sdk
             RegionHost = regionHost;
         }
 
+        public string Username { get; set; }
         public string RegionHost { get; set; }
     }
 

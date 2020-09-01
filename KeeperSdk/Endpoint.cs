@@ -407,7 +407,10 @@ namespace KeeperSecurity.Sdk
             set
             {
                 _server = value ?? DefaultKeeperServer;
-                ServerKeyId = 1;
+                if (ServerKeyId < 1 || ServerKeyId > KeeperSettings.KeeperPublicKeys.Count)
+                {
+                    ServerKeyId = 1;
+                }
                 var configuration = _storage?.Get(_server);
                 if (configuration == null) return;
                 if (configuration.ServerKeyId > 0 && configuration.ServerKeyId <= KeeperSettings.KeeperPublicKeys.Count)

@@ -94,11 +94,11 @@ namespace SsoCloud {
             "cm90b19Tc29DbG91ZF9BdXRoUHJvdG9jb2xUeXBlEAcSMAosY29tX2tlZXBl",
             "cnNlY3VyaXR5X3Byb3RvX1Nzb0Nsb3VkX1Nzb0lkcFR5cGUQCCpSChxTc29D",
             "bG91ZFNldHRpbmdPcGVyYXRpb25UeXBlEgcKA1NFVBAAEgcKA0dFVBABEgoK",
-            "BkRFTEVURRACEhQKEFJFU0VUX1RPX0RFRkFVTFQQAyppCgpTc29JZHBUeXBl",
-            "Eg0KCVhYX1VOVVNFRBAAEgsKB0dFTkVSSUMQARIGCgJGNRACEgoKBkdPT0dM",
-            "RRADEggKBE9LVEEQBBIICgRBREZTEAUSCQoFQVpVUkUQBhIMCghPTkVMT0dJ",
-            "ThAHQiQKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IIU3NvQ2xvdWRiBnBy",
-            "b3RvMw=="));
+            "BkRFTEVURRACEhQKEFJFU0VUX1RPX0RFRkFVTFQQAyqCAQoKU3NvSWRwVHlw",
+            "ZRINCglYWF9VTlVTRUQQABILCgdHRU5FUklDEAESBgoCRjUQAhIKCgZHT09H",
+            "TEUQAxIICgRPS1RBEAQSCAoEQURGUxAFEgkKBUFaVVJFEAYSDAoIT05FTE9H",
+            "SU4QBxIICgRQSU5HEAgSDQoJSlVNUENMT1VEEAlCJAoYY29tLmtlZXBlcnNl",
+            "Y3VyaXR5LnByb3RvQghTc29DbG91ZGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::SsoCloud.AuthProtocolType), typeof(global::SsoCloud.DataType), typeof(global::SsoCloud.SsoCloudSettingOperationType), typeof(global::SsoCloud.SsoIdpType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -191,6 +191,8 @@ namespace SsoCloud {
     [pbr::OriginalName("ADFS")] Adfs = 5,
     [pbr::OriginalName("AZURE")] Azure = 6,
     [pbr::OriginalName("ONELOGIN")] Onelogin = 7,
+    [pbr::OriginalName("PING")] Ping = 8,
+    [pbr::OriginalName("JUMPCLOUD")] Jumpcloud = 9,
   }
 
   #endregion

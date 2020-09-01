@@ -16,6 +16,19 @@ using TwoFactorChannel = KeeperSecurity.Sdk.UI.TwoFactorChannel;
 
 namespace KeeperSecurity.Sdk
 {
+    public enum AccountAuthType
+    {
+        Regular = 1,
+        CloudSso = 2,
+        OnsiteSso = 3
+    }
+
+    public class SsoLoginInfo
+    {
+        public string SpBaseUrl { get; set; }
+        public string IdpSessionId { get; set; }
+    }
+
     public class AuthContextV3 : AuthContext
     {
         public byte[] AccountUid { get; internal set; }
@@ -34,6 +47,9 @@ namespace KeeperSecurity.Sdk
                 WebSocketChannel = null;
             }
         }
+
+        internal AccountAuthType AccountAuthType { get; set; }
+        internal SsoLoginInfo SsoLoginInfo { get; set; }
     }
 
     public class AuthV3 : IAuth
@@ -44,9 +60,10 @@ namespace KeeperSecurity.Sdk
         {
             _auth = auth;
             MessageSessionUid = CryptoUtils.GetRandomBytes(16);
+            AccountAuthType = AccountAuthType.Regular;
         }
 
-        public bool IsSsoAccount { get; set; }
+        public AccountAuthType AccountAuthType { get; set; }
 
         public string Username
         {
@@ -80,13 +97,16 @@ namespace KeeperSecurity.Sdk
 
         internal IWebSocketChannel WebSocketChannel { get; set; }
         internal ECPrivateKeyParameters DeviceKey { get; set; }
+
         internal byte[] MessageSessionUid { get; }
         internal Queue<string> PasswordQueue { get; } = new Queue<string>();
+
+        internal SsoLoginInfo SsoLoginInfo { get; set; }
     }
 
     public static class LoginV3Extensions
     {
-        private static async Task EnsureDeviceTokenIsRegistered(this AuthV3 auth, string username)
+        internal static async Task EnsureDeviceTokenIsRegistered(this AuthV3 auth, string username)
         {
             if (string.Compare(auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
             {
@@ -137,7 +157,12 @@ namespace KeeperSecurity.Sdk
 
                 if (deviceConf == null)
                 {
-                    deviceConf = auth.Storage.Devices.List.FirstOrDefault() ?? await auth.RegisterDevice();
+                    deviceConf = auth.Storage.Devices.List.FirstOrDefault();
+                }
+
+                if (deviceConf == null)
+                {
+                    deviceConf = await auth.RegisterDevice();
                 }
 
                 try
@@ -200,7 +225,7 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        internal static async Task<AuthContextV3> LoginSsoV3(this AuthV3 auth, string providerName)
+        internal static async Task<AuthContextV3> LoginSsoV3(this AuthV3 auth, string providerName, bool forceLogin)
         {
             if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
             {
@@ -220,13 +245,13 @@ namespace KeeperSecurity.Sdk
                 {
                     var rs = SsoServiceProviderResponse.Parser.ParseFrom(rsBytes);
 
-                    auth.IsSsoAccount = true;
+                    auth.AccountAuthType = rs.IsCloud ? AccountAuthType.CloudSso : AccountAuthType.OnsiteSso;
                     if (rs.IsCloud)
                     {
-                        return await auth.AuthorizeUsingCloudSso(rs.SpUrl);
+                        return await auth.AuthorizeUsingCloudSso(rs.SpUrl, forceLogin);
                     }
 
-                    return await auth.AuthorizeUsingOnsiteSso(rs.SpUrl);
+                    return await auth.AuthorizeUsingOnsiteSso(rs.SpUrl, forceLogin);
                 }
 
                 throw new KeeperInvalidParameter("enterprise/get_sso_service_provider", "provider_name", providerName, "SSO provider not found");
@@ -243,14 +268,39 @@ namespace KeeperSecurity.Sdk
                 if (string.IsNullOrEmpty(p)) continue;
                 auth.PasswordQueue.Enqueue(p);
             }
+
             try
             {
-                return await auth.StartLogin();
+                var loginMethod = auth.AccountAuthType == AccountAuthType.Regular || auth.PasswordQueue.Count == 0 
+                    ? LoginMethod.ExistingAccount 
+                    : LoginMethod.AfterSso;
+                return await auth.StartLogin(false, loginMethod);
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e);
                 throw;
+            }
+        }
+
+        internal static async Task RedirectToRegionV3(this IAuth auth, string newRegion)
+        {
+            auth.Endpoint.Server = newRegion;
+            if (auth.Ui is IAuthInfoUI infoUi)
+            {
+                infoUi.RegionChanged(auth.Endpoint.Server);
+            }
+
+            if (auth.DeviceToken != null)
+            {
+                var token = auth.DeviceToken.Base64UrlEncode();
+                var deviceConf = auth.Storage.Devices.Get(token);
+                if (deviceConf == null) throw new KeeperInvalidDeviceToken("invalid configuration");
+
+                if (deviceConf.Servers == null || deviceConf.Servers.All(x => x != auth.Endpoint.Server))
+                {
+                    await auth.RegisterDeviceInRegion(deviceConf);
+                }
             }
         }
 
@@ -372,6 +422,7 @@ namespace KeeperSecurity.Sdk
                         DeviceToken = auth.DeviceToken,
                         MessageSessionUid = auth.MessageSessionUid,
                         DeviceKey = auth.DeviceKey,
+                        SsoLoginInfo = auth.SsoLoginInfo,
                     };
                     var encryptedDataKey = response.EncryptedDataKey.ToByteArray();
                     switch (response.EncryptedDataKeyType)
@@ -411,19 +462,19 @@ namespace KeeperSecurity.Sdk
                     break;
 
                 case LoginState.RedirectCloudSso:
-                    auth.IsSsoAccount = true;
-                    return await auth.AuthorizeUsingCloudSso(response.Url);
+                    auth.AccountAuthType = AccountAuthType.CloudSso;
+                    return await auth.AuthorizeUsingCloudSso(response.Url, request.ForceNewLogin);
 
                 case LoginState.RedirectOnsiteSso:
-                    auth.IsSsoAccount = true;
-                    return await auth.AuthorizeUsingOnsiteSso(response.Url, response.EncryptedLoginToken);
+                    auth.AccountAuthType = AccountAuthType.OnsiteSso;
+                    return await auth.AuthorizeUsingOnsiteSso(response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
 
                 case LoginState.RequiresDeviceEncryptedDataKey:
                 {
                     if (auth.Ui != null)
                     {
                         auth.CloneCode = null;
-                        if (auth.IsSsoAccount)
+                        if (auth.AccountAuthType == AccountAuthType.CloudSso)
                         {
                             return await auth.RequestDataKey(response.EncryptedLoginToken);
                         }
@@ -446,7 +497,7 @@ namespace KeeperSecurity.Sdk
                 }
 
                 case LoginState.RequiresAccountCreation:
-                    if (auth.IsSsoAccount)
+                    if (auth.AccountAuthType == AccountAuthType.CloudSso)
                     {
                         return await auth.CreateSsoUser(response.EncryptedLoginToken);
                     }
@@ -454,7 +505,10 @@ namespace KeeperSecurity.Sdk
                     break;
 
                 case LoginState.RegionRedirect:
-                    throw new KeeperRegionRedirect(response.StateSpecificValue);
+                    throw new KeeperRegionRedirect(response.StateSpecificValue)
+                    {
+                        Username = request.Username
+                    };
 
                 case LoginState.DeviceAccountLocked:
                 case LoginState.DeviceLocked:
@@ -607,6 +661,7 @@ namespace KeeperSecurity.Sdk
                 DeviceToken = auth.DeviceToken,
                 MessageSessionUid = auth.MessageSessionUid,
                 DeviceKey = auth.DeviceKey,
+                SsoLoginInfo = auth.SsoLoginInfo,
             };
             var encryptedDataKey = response.EncryptedDataKey.ToByteArray();
             switch (response.EncryptedDataKeyType)
@@ -679,6 +734,11 @@ namespace KeeperSecurity.Sdk
                 }
                 catch (KeeperAuthFailed)
                 {
+                }
+                catch
+                {
+                    auth.PasswordQueue.Enqueue(password);
+                    throw;
                 }
             }
         }
@@ -1104,7 +1164,7 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        internal static async Task<AuthContextV3> AuthorizeUsingOnsiteSso(this AuthV3 auth, string ssoBaseUrl, ByteString loginToken = null)
+        internal static async Task<AuthContextV3> AuthorizeUsingOnsiteSso(this AuthV3 auth, string ssoBaseUrl, bool forceLogin, ByteString loginToken = null)
         {
             if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
             {
@@ -1112,6 +1172,11 @@ namespace KeeperSecurity.Sdk
                 CryptoUtils.GenerateRsaKey(out var privateKey, out var publicKey);
                 queryString.Add("key", publicKey.Base64UrlEncode());
                 queryString.Add("embedded", "");
+                if (forceLogin)
+                {
+                    queryString.Add("relogin", "");
+                }
+
                 var builder = new UriBuilder(new Uri(ssoBaseUrl))
                 {
                     Query = queryString.ToString()
@@ -1143,32 +1208,34 @@ namespace KeeperSecurity.Sdk
                         var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.NewPassword.Base64UrlDecode(), pk));
                         auth.PasswordQueue.Enqueue(password);
                     }
+                    auth.SsoLoginInfo = new SsoLoginInfo
+                    {
+                        SpBaseUrl = ssoBaseUrl,
+                        IdpSessionId = token.SessionId
+                    };
 
                     if (loginToken != null)
                     {
                         return await auth.ResumeLogin(loginToken, LoginMethod.AfterSso);
                     }
-                    else
-                    {
-                        await auth.EnsureDeviceTokenIsRegistered(token.Email);
-                        return await auth.StartLogin(false, LoginMethod.AfterSso);
-                    }
+
+                    await auth.EnsureDeviceTokenIsRegistered(token.Email);
+                    return await auth.StartLogin(false, LoginMethod.AfterSso);
                 }
             }
 
             throw new KeeperAuthFailed();
         }
 
-        internal static async Task<AuthContextV3> AuthorizeUsingCloudSso(this AuthV3 auth, string ssoBaseUrl)
+        internal static async Task<AuthContextV3> AuthorizeUsingCloudSso(this AuthV3 auth, string ssoBaseUrl, bool forceLogin)
         {
             if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
             {
                 var rq = new SsoCloudRequest
                 {
                     ClientVersion = auth.Endpoint.ClientVersion,
-                    MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
                     Embedded = true,
-                    ForceLogin = false
+                    ForceLogin = forceLogin
                 };
                 var transmissionKey = CryptoUtils.GenerateEncryptionKey();
                 var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);
@@ -1197,6 +1264,11 @@ namespace KeeperSecurity.Sdk
                     var rsBytes = tokenTask.Result.Base64UrlDecode();
                     rsBytes = CryptoUtils.DecryptAesV2(rsBytes, transmissionKey);
                     var rs = SsoCloudResponse.Parser.ParseFrom(rsBytes);
+                    auth.SsoLoginInfo = new SsoLoginInfo
+                    {
+                        SpBaseUrl = ssoBaseUrl,
+                        IdpSessionId = rs.IdpSessionId
+                    };
                     await auth.EnsureDeviceTokenIsRegistered(rs.Email);
                     return await auth.ResumeLogin(rs.EncryptedLoginToken, LoginMethod.AfterSso);
                 }
@@ -1313,6 +1385,41 @@ namespace KeeperSecurity.Sdk
 
             return await auth.ResumeLogin(loginToken);
         }
+        internal static void SsoLogout(this Auth auth)
+        {
+            if (auth.AuthContext is AuthContextV3 context)
+            {
+                if (context.SsoLoginInfo != null && auth.Ui is IAuthSsoUI ssoUi)
+                {
+                    var queryString = System.Web.HttpUtility.ParseQueryString("");
+
+                    if (context.AccountAuthType == AccountAuthType.CloudSso)
+                    {
+                        var rq = new SsoCloudRequest
+                        {
+                            ClientVersion = auth.Endpoint.ClientVersion,
+                            Embedded = true,
+                            IdpSessionId = context.SsoLoginInfo.IdpSessionId,
+                            Username = context.Username
+                        };
+                        var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+                        var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);
+                        queryString.Add("payload", apiRequest.ToByteArray().Base64UrlEncode());
+                    }
+                    else
+                    {
+                        queryString.Add("embedded", "");
+                    }
+
+                    var builder = new UriBuilder(new Uri(context.SsoLoginInfo.SpBaseUrl.Replace("/login", "/logout")))
+                    {
+                        Query = queryString.ToString()
+                    };
+                    ssoUi.SsoLogoutUrl(builder.Uri.AbsoluteUri);
+                }
+            }
+        }
+
     }
 
     [DataContract]

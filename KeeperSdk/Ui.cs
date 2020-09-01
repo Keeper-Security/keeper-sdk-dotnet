@@ -71,6 +71,11 @@ namespace KeeperSecurity.Sdk.UI
         Task<bool> WaitForDeviceApproval(IDeviceApprovalChannelInfo[] channels, CancellationToken token);
     }
 
+    public interface IAuthInfoUI
+    {
+        void RegionChanged(string newRegion);
+    }
+
     public enum DataKeyShareChannel
     {
         KeeperPush = 1,
@@ -93,6 +98,7 @@ namespace KeeperSecurity.Sdk.UI
     {
         Task<string> GetSsoToken(string url, bool isCloudSso);
         Task<bool> WaitForDataKey(IGetDataKeyChannelInfo[] channels, CancellationToken token);
+        void SsoLogoutUrl(string url);
     }
 
     public interface IPostLoginTaskUI 

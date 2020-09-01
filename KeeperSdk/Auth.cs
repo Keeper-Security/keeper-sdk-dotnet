@@ -214,46 +214,58 @@ namespace KeeperSecurity.Sdk
             return false;
         }
 
-        public async Task LoginSso(string providerName)
+        public async Task LoginSso(string providerName, bool forceLogin = false)
         {
             var isV3Api = IsV3Api(Endpoint.ClientVersion);
+            var attempt = 0;
             if (isV3Api)
             {
                 var authV3 = new AuthV3(this);
-                AuthContextV3 contextV3;
-                try
+                while (attempt < 3)
                 {
-                    contextV3 = await authV3.LoginSsoV3(providerName);
+                    attempt++;
+                    try
+                    {
+                        var contextV3 = await authV3.LoginSsoV3(providerName, forceLogin);
+                        this.StoreConfigurationIfChangedV3(contextV3);
+                        authContext = contextV3;
+                        await PostLogin(true);
+                    }
+                    catch (KeeperRegionRedirect krr)
+                    {
+                        await authV3.RedirectToRegionV3(krr.RegionHost);
+                        if (string.IsNullOrEmpty(krr.Username)) continue;
+                        
+                        Username = krr.Username;
+                        await authV3.LoginV3();
+                    }
+                    return;
                 }
-                catch (KeeperRegionRedirect krr)
-                {
-                    Endpoint.Server = krr.RegionHost;
-                    contextV3 = await authV3.LoginSsoV3(providerName);
-                }
-
-                this.StoreConfigurationIfChangedV3(contextV3);
-                authContext = contextV3;
             }
             else
             {
                 var authV2 = new AuthV2(this);
-
-                AuthContextV2 contextV2;
-                try
+                while (attempt < 3)
                 {
-                    contextV2 = await authV2.LoginSsoV2(providerName);
-                }
-                catch (KeeperRegionRedirect krr)
-                {
-                    Endpoint.Server = krr.RegionHost;
-                    contextV2 = await authV2.LoginSsoV2(providerName);
-                }
+                    attempt++;
+                    try
+                    {
+                        var contextV2 = await authV2.LoginSsoV2(providerName, forceLogin);
+                        this.StoreConfigurationIfChangedV2(contextV2);
+                        authContext = contextV2;
+                        await PostLogin(false);
+                    }
+                    catch (KeeperRegionRedirect krr)
+                    {
+                        authV2.RedirectToRegionV2(krr.RegionHost);
+                        if (string.IsNullOrEmpty(krr.Username)) continue;
 
-                this.StoreConfigurationIfChangedV2(contextV2);
-                authContext = contextV2;
+                        await Login(krr.Username);
+                    }
+                    return;
+                }
             }
-
-            await PostLogin(isV3Api);
+            throw new KeeperTooManyAttempts();
         }
 
         public async Task Login(string username, params string[] passwords)
@@ -276,10 +288,10 @@ namespace KeeperSecurity.Sdk
                 }
                 catch (KeeperRegionRedirect krr)
                 {
-                    Endpoint.Server = krr.RegionHost;
+                    await authV3.RedirectToRegionV3(krr.RegionHost);
                     contextV3 = await authV3.LoginV3(passwords);
                 }
-
+                
                 this.StoreConfigurationIfChangedV3(contextV3);
                 authContext = contextV3;
             }
@@ -293,10 +305,10 @@ namespace KeeperSecurity.Sdk
                 }
                 catch (KeeperRegionRedirect krr)
                 {
-                    Endpoint.Server = krr.RegionHost;
+                    authV2.RedirectToRegionV2(krr.RegionHost);
                     contextV2 = await authV2.LoginV2(passwords);
                 }
-
+                
                 this.StoreConfigurationIfChangedV2(contextV2);
                 authContext = contextV2;
             }
@@ -531,9 +543,10 @@ namespace KeeperSecurity.Sdk
             {
                 if (this.IsAuthenticated())
                 {
-                    if (authContext is AuthContextV3)
+                    if (authContext is AuthContextV3 contextV3)
                     {
                         await ExecuteAuthRest("vault/logout_v3", null);
+                        this.SsoLogout();
                     }
                 }
             }

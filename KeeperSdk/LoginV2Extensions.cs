@@ -100,6 +100,15 @@ namespace KeeperSecurity.Sdk
             new HashSet<string>(new[] {"auth_expired", "auth_expired_transfer"});
 
 
+        internal static void RedirectToRegionV2(this IAuth auth, string newRegion)
+        {
+            auth.Endpoint.Server = newRegion;
+            if (auth.Ui is IAuthInfoUI infoUi)
+            {
+                infoUi.RegionChanged(auth.Endpoint.Server);
+            }
+        }
+
         internal static async Task RefreshSessionTokenV2(IKeeperEndpoint endpoint, AuthContextV2 context)
         {
             var command = new LoginCommand
@@ -119,7 +128,7 @@ namespace KeeperSecurity.Sdk
             context.SessionToken = loginRs.sessionToken.Base64UrlDecode();
         }
 
-        internal static async Task<AuthContextV2> LoginSsoV2(this AuthV2 auth, string providerName)
+        internal static async Task<AuthContextV2> LoginSsoV2(this AuthV2 auth, string providerName, bool forceLogin)
         {
             var rq = new GetSsoServiceProviderCommand
             {
@@ -134,7 +143,7 @@ namespace KeeperSecurity.Sdk
                 {
                     if (string.Compare(auth.Endpoint.Server, rs.RegionHost, StringComparison.InvariantCultureIgnoreCase) != 0)
                     {
-                        auth.Endpoint.Server = rs.RegionHost;
+                        throw new KeeperRegionRedirect(rs.RegionHost);
                     }
                 }
 
@@ -142,6 +151,11 @@ namespace KeeperSecurity.Sdk
                 CryptoUtils.GenerateRsaKey(out var privateKey, out var publicKey);
                 queryString.Add("key", publicKey.Base64UrlEncode());
                 queryString.Add("embedded", "");
+                if (forceLogin)
+                {
+                    queryString.Add("relogin", "");
+                }
+
                 var builder = new UriBuilder(new Uri(rs.SpUrl))
                 {
                     Query = queryString.ToString()
@@ -642,10 +656,6 @@ namespace KeeperSecurity.Sdk
                 catch (KeeperInvalidDeviceToken)
                 {
                     encryptedDeviceToken = null;
-                }
-                catch (KeeperRegionRedirect redirect)
-                {
-                    auth.Endpoint.Server = redirect.RegionHost;
                 }
             }
 
