@@ -89,6 +89,7 @@ namespace KeeperSecurity.Sdk
         public FanOut<TwoFactorCode> PushToken { get; }
 
         internal Queue<string> PasswordQueue { get; } = new Queue<string>();
+        internal SsoLoginInfo SsoLoginInfo { get; set; }
     }
 
     public static class LoginV2Extensions
@@ -189,6 +190,12 @@ namespace KeeperSecurity.Sdk
                     }
 
                     auth.Username = token.Email;
+                    auth.SsoLoginInfo = new SsoLoginInfo
+                    {
+                        SsoProvider = token.ProviderName,
+                        SpBaseUrl = rs.SpUrl,
+                        IdpSessionId = token.SessionId
+                    };
                     return await auth.LoginV2();
                 }
             }

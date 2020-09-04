@@ -127,7 +127,7 @@ namespace Tests
         {
             HasTwoFactor = false;
             var auth = GetAuthV2();
-            Assert.ThrowsAsync<KeeperApiException>(() => auth.Login("wrong.user@keepersecurity.com", "123456"));
+            Assert.ThrowsAsync<KeeperApiException>(() => auth.Login("wrong.user@company.com", "123456"));
         }
 
         private Auth GetAuthV2()

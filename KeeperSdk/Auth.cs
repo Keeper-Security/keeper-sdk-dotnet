@@ -27,6 +27,13 @@ using Type = System.Type;
 
 namespace KeeperSecurity.Sdk
 {
+    public class SsoLoginInfo
+    {
+        public string SsoProvider { get; set; }
+        public string SpBaseUrl { get; set; }
+        internal string IdpSessionId { get; set; }
+    }
+
     public interface IAuthentication
     {
         IKeeperEndpoint Endpoint { get; }
@@ -60,6 +67,8 @@ namespace KeeperSecurity.Sdk
         AccountSettings Settings { get; }
         IDictionary<string, object> Enforcements { get; }
         bool IsEnterpriseAdmin { get; }
+        SsoLoginInfo SsoLoginInfo { get; set; }
+
     }
 
     [Flags]
@@ -85,6 +94,7 @@ namespace KeeperSecurity.Sdk
         public AccountSettings Settings { get; internal set; }
         public IDictionary<string, object> Enforcements { get; internal set; }
         public bool IsEnterpriseAdmin { get; internal set; }
+        public SsoLoginInfo SsoLoginInfo { get; set; }
 
         internal byte[] PasswordValidator { get; set; }
 

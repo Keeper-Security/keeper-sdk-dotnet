@@ -23,12 +23,6 @@ namespace KeeperSecurity.Sdk
         OnsiteSso = 3
     }
 
-    public class SsoLoginInfo
-    {
-        public string SpBaseUrl { get; set; }
-        public string IdpSessionId { get; set; }
-    }
-
     public class AuthContextV3 : AuthContext
     {
         public byte[] AccountUid { get; internal set; }
@@ -49,7 +43,6 @@ namespace KeeperSecurity.Sdk
         }
 
         internal AccountAuthType AccountAuthType { get; set; }
-        internal SsoLoginInfo SsoLoginInfo { get; set; }
     }
 
     public class AuthV3 : IAuth
@@ -1210,6 +1203,7 @@ namespace KeeperSecurity.Sdk
                     }
                     auth.SsoLoginInfo = new SsoLoginInfo
                     {
+                        SsoProvider = token.ProviderName,
                         SpBaseUrl = ssoBaseUrl,
                         IdpSessionId = token.SessionId
                     };
@@ -1266,6 +1260,7 @@ namespace KeeperSecurity.Sdk
                     var rs = SsoCloudResponse.Parser.ParseFrom(rsBytes);
                     auth.SsoLoginInfo = new SsoLoginInfo
                     {
+                        SsoProvider = rs.ProviderName,
                         SpBaseUrl = ssoBaseUrl,
                         IdpSessionId = rs.IdpSessionId
                     };
