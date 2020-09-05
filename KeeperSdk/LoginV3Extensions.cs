@@ -40,9 +40,53 @@ namespace KeeperSecurity.Sdk
                 WebSocketChannel.Dispose();
                 WebSocketChannel = null;
             }
+
+            if (_timer != null)
+            {
+                _timer.Dispose();
+                _timer = null;
+            }
         }
 
         internal AccountAuthType AccountAuthType { get; set; }
+
+        private Timer _timer;
+        private long _lastRequestTime;
+
+        internal override void SetKeepAliveTimer(int timeoutInMinutes, IAuthentication auth)
+        {
+            _timer?.Dispose();
+            _timer = null;
+            if (auth == null) return;
+
+            ResetKeepAliveTimer();
+            var timeout = TimeSpan.FromMinutes(timeoutInMinutes - (timeoutInMinutes > 1 ? 1 : 0));
+            _timer = new Timer(async (_) =>
+                {
+                    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
+                    if (_lastRequestTime + timeout.TotalSeconds / 2 > now) return;
+                    try
+                    {
+                        await auth.ExecuteAuthRest("keep_alive", null);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e);
+                        _timer.Dispose();
+                        _timer = null;
+                    }
+
+                    _lastRequestTime = now;
+                },
+                null,
+                (long) timeout.TotalMilliseconds / 2,
+                (long) timeout.TotalMilliseconds / 2);
+        }
+
+        internal override void ResetKeepAliveTimer()
+        {
+            _lastRequestTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
+        }
     }
 
     public class AuthV3 : IAuth

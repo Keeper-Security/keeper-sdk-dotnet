@@ -571,13 +571,16 @@ namespace Commander
                 case null:
                 {
                     Console.WriteLine();
-                    Console.WriteLine("{0, 16}: {1}", "Device Name", device.DeviceName);
-                    Console.WriteLine("{0, 16}: {1}", "Client Version", device.ClientVersion);
-                    Console.WriteLine("{0, 16}: {1}", "Has Data Key", device.EncryptedDataKey.Length > 0);
+                    Console.WriteLine("{0, 20}: {1}", "Device Name", device.DeviceName);
+                    Console.WriteLine("{0, 20}: {1}", "Client Version", device.ClientVersion);
+                    Console.WriteLine("{0, 20}: {1}", "Has Data Key", device.EncryptedDataKey.Length > 0);
+                    Console.WriteLine("{0, 20}: {1}", "IP Auto Approve", !_accountSummary.Settings.IpDisableAutoApprove);
+                    Console.WriteLine("{0, 20}: {1}", "Persistent Login", _accountSummary.Settings.PersistentLogin);
+
                     var uc = _auth.Storage.Users.Get(_auth.AuthContext.Username);
                     if (uc?.LastDevice?.LogoutTimer != null)
                     {
-                        Console.WriteLine("{0, 16}: {1}", "Logout Timeout", uc.LastDevice.LogoutTimer);
+                        Console.WriteLine("{0, 20}: {1}", "Logout Timeout", uc.LastDevice.LogoutTimer);
                     }
 
                     Console.WriteLine();

@@ -86,7 +86,7 @@ namespace KeeperSecurity.Sdk
         public byte[] DataKey { get; internal set; }
         public byte[] ClientKey { get; internal set; }
         public RsaPrivateCrtKeyParameters PrivateKey { get; internal set; }
-        public IFanOut<NotificationEvent> PushNotifications { get; } = new FanOut<NotificationEvent>();
+        public IFanOut<NotificationEvent> PushNotifications { get; private set; } = new FanOut<NotificationEvent>();
         public byte[] SessionToken { get; internal set; }
         public SessionTokenRestriction SessionTokenRestriction { get; set; }
         public byte[] DeviceToken { get; internal set; }
@@ -95,9 +95,7 @@ namespace KeeperSecurity.Sdk
         public IDictionary<string, object> Enforcements { get; internal set; }
         public bool IsEnterpriseAdmin { get; internal set; }
         public SsoLoginInfo SsoLoginInfo { get; set; }
-
         internal byte[] PasswordValidator { get; set; }
-
         public bool CheckPasswordValid(string password)
         {
             if (PasswordValidator == null) return false;
@@ -112,9 +110,18 @@ namespace KeeperSecurity.Sdk
             }
         }
 
+        internal virtual void SetKeepAliveTimer(int timeoutInMinutes, IAuthentication auth)
+        {
+        }
+
+        internal virtual void ResetKeepAliveTimer()
+        {
+        }
+
         protected virtual void Dispose(bool disposing)
         {
-            PushNotifications.Dispose();
+            PushNotifications?.Dispose();
+            PushNotifications = null;
         }
 
         public void Dispose()
@@ -178,7 +185,11 @@ namespace KeeperSecurity.Sdk
                 try
                 {
                     var response = await Endpoint.ExecuteV2Command(command, responseType);
-                    if (response.IsSuccess) return response;
+                    if (response.IsSuccess)
+                    {
+                        authContext.ResetKeepAliveTimer();
+                        return response;
+                    }
 
                     if (response.resultCode == "auth_failed")
                     {
@@ -506,6 +517,10 @@ namespace KeeperSecurity.Sdk
                 authContext.Settings = settings;
                 authContext.Enforcements = enforcements;
                 authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
+
+                var uc = Storage.Users.Get(authContext.Username);
+                int timeout = uc?.LastDevice?.LogoutTimer ?? 30;
+                authContext.SetKeepAliveTimer(timeout,this);
             }
         }
 
@@ -533,6 +548,7 @@ namespace KeeperSecurity.Sdk
             }
 
             var rsBytes = await Endpoint.ExecuteRest(endpoint, rq);
+            authContext.ResetKeepAliveTimer();
             if (responseType == null) return null;
 
             var responseParser = responseType.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public);
