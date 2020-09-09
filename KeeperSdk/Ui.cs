@@ -147,7 +147,7 @@ namespace KeeperSecurity.Sdk.UI
         DuoTextMessage,
         DuoVoiceCall,
         TextMessage,
-        KeeperPush,
+        KeeperDna,
         Email,
     }
 

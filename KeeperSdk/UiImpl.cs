@@ -128,7 +128,7 @@ namespace KeeperSecurity.Sdk.UI
             Channel = TwoFactorChannel.KeeperDNA;
             ChannelName = "dna";
             ApplicationName = "Keeper for Mobile";
-            SupportedActions = new[] {TwoFactorPushAction.KeeperPush};
+            SupportedActions = new[] {TwoFactorPushAction.KeeperDna};
         }
 
         public TwoFactorChannel Channel { get; }
@@ -166,7 +166,7 @@ namespace KeeperSecurity.Sdk.UI
             {TwoFactorPushAction.DuoTextMessage, "duo_sms"},
             {TwoFactorPushAction.DuoVoiceCall, "duo_call"},
             {TwoFactorPushAction.TextMessage, "sms"},
-            {TwoFactorPushAction.KeeperPush, "dna"},
+            {TwoFactorPushAction.KeeperDna, "dna"},
             {TwoFactorPushAction.Email, "email"},
         };
 

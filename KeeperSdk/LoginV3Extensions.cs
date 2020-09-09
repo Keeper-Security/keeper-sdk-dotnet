@@ -662,6 +662,7 @@ namespace KeeperSecurity.Sdk
                     result |= SessionTokenRestriction.AcceptInvite;
                     break;
                 case SessionTokenType.Restrict:
+                case SessionTokenType.Purchase:
                     result |= SessionTokenRestriction.AccountExpired;
                     break;
             }
@@ -921,8 +922,8 @@ namespace KeeperSecurity.Sdk
                     return TwoFactorPushType.TwoFaPushDuoCall;
                 case TwoFactorPushAction.TextMessage:
                     return TwoFactorPushType.TwoFaPushSms;
-                case TwoFactorPushAction.KeeperPush:
-                    return TwoFactorPushType.TwoFaPushKeeper;
+                case TwoFactorPushAction.KeeperDna:
+                    return TwoFactorPushType.TwoFaPushDna;
                 default:
                     return TwoFactorPushType.TwoFaPushNone;
             }
@@ -947,8 +948,9 @@ namespace KeeperSecurity.Sdk
         {
             switch (channel)
             {
-                case TwoFactorChannel.Authenticator:
                 case TwoFactorChannel.KeeperDNA:
+                    return TwoFactorValueType.TwoFaCodeDna;
+                case TwoFactorChannel.Authenticator:
                     return TwoFactorValueType.TwoFaCodeTotp;
                 case TwoFactorChannel.DuoSecurity:
                     return TwoFactorValueType.TwoFaCodeDuo;
@@ -986,31 +988,6 @@ namespace KeeperSecurity.Sdk
             return response;
         }
 
-        private static TwoFactorPushActionDelegate GetActionDelegate(IAuth auth, TwoFactorChannelInfo info, ByteString loginToken)
-        {
-            return async (action, duration) =>
-            {
-                var rq = new TwoFactorSendPushRequest
-                {
-                    ChannelUid = info.ChannelUid,
-                    ExpireIn = SdkExpirationToKeeper(duration),
-                    EncryptedLoginToken = loginToken,
-                    PushType = SdkPushActionToKeeper(action)
-                };
-                try
-                {
-                    await auth.ExecutePushAction(rq);
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e);
-                    return false;
-                }
-
-            };
-        }
-
         private static async Task<AuthContextV3> TwoFactorValidate(this AuthV3 auth,
             ByteString loginToken,
             IEnumerable<TwoFactorChannelInfo> channels)
@@ -1018,6 +995,37 @@ namespace KeeperSecurity.Sdk
             var resumeWithToken = loginToken;
             var firstChannel = TwoFactorChannel.Other;
             var availableChannels = new List<ITwoFactorChannelInfo>();
+
+            var lastUsedDuration = TwoFactorDuration.Every30Days;
+            var lastUsedChannel = firstChannel;
+
+            TwoFactorPushActionDelegate GetActionDelegate(TwoFactorChannel channel, TwoFactorChannelInfo info)
+            {
+                return async (action, duration) =>
+                {
+                    var rq = new TwoFactorSendPushRequest
+                    {
+                        ChannelUid = info.ChannelUid,
+                        ExpireIn = SdkExpirationToKeeper(duration),
+                        EncryptedLoginToken = loginToken,
+                        PushType = SdkPushActionToKeeper(action)
+                    };
+                    try
+                    {
+                        await auth.ExecutePushAction(rq);
+                        lastUsedDuration = duration;
+                        lastUsedChannel = channel;
+                        return true;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e);
+                        return false;
+                    }
+                };
+            }
+
+
 
             foreach (var ch in channels)
             {
@@ -1035,7 +1043,7 @@ namespace KeeperSecurity.Sdk
                         availableChannels.Add(new TwoFactorSmsChannel
                         {
                             PhoneNumber =  ch.PhoneNumber,
-                            InvokeTwoFactorPushAction = GetActionDelegate(auth, ch, loginToken)
+                            InvokeTwoFactorPushAction = GetActionDelegate(TwoFactorChannel.TextMessage, ch)
                         });
                         break;
 
@@ -1043,7 +1051,7 @@ namespace KeeperSecurity.Sdk
                         var duoTfa = new TwoFactorDuoChannel
                         {
                             PhoneNumber = ch.PhoneNumber,
-                            InvokeTwoFactorPushAction = GetActionDelegate(auth, ch, loginToken),
+                            InvokeTwoFactorPushAction = GetActionDelegate(TwoFactorChannel.DuoSecurity, ch),
                             SupportedActions = (ch.Capabilities ?? Enumerable.Empty<string>())
                                 .Select<string, TwoFactorPushAction?>(x =>
                                 {
@@ -1067,13 +1075,14 @@ namespace KeeperSecurity.Sdk
                         availableChannels.Add(duoTfa);
                         break;
 
-                    case TwoFactorChannelType.TwoFaCtKeeper:
+                    case TwoFactorChannelType.TwoFaCtDna:
                         availableChannels.Add(new TwoFactorKeeperDnaChannel
                         {
-                            InvokeTwoFactorPushAction = GetActionDelegate(auth, ch, loginToken)
+                            InvokeTwoFactorPushAction = GetActionDelegate(TwoFactorChannel.KeeperDNA, ch)
                         });
                         break;
 
+                    case TwoFactorChannelType.TwoFaCtKeeper:
                     case TwoFactorChannelType.TwoFaCtU2F:
                     case TwoFactorChannelType.TwoFaCtWebauthn:
                         break;
@@ -1090,16 +1099,26 @@ namespace KeeperSecurity.Sdk
             {
 
                 var loginTaskSource = new TaskCompletionSource<bool>();
+                var codeTaskSource = new TaskCompletionSource<TwoFactorCode>();
 
                 bool NotificationCallback(WssClientResponse rs)
                 {
                     if (loginTaskSource.Task.IsCompleted) return true;
                     var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
                     if (message.Event != "received_totp") return false;
-                    if (string.IsNullOrEmpty(message.EncryptedLoginToken)) return false;
-                    resumeWithToken = ByteString.CopyFrom(message.EncryptedLoginToken.Base64UrlDecode());
-                    loginTaskSource.TrySetResult(true);
-                    return true;
+                    if (!string.IsNullOrEmpty(message.EncryptedLoginToken))
+                    {
+                        resumeWithToken = ByteString.CopyFrom(message.EncryptedLoginToken.Base64UrlDecode());
+                        loginTaskSource.TrySetResult(true);
+                        return true;
+                    }
+                    if (!string.IsNullOrEmpty(message.Passcode))
+                    {
+                        codeTaskSource.TrySetResult(new TwoFactorCode(lastUsedChannel, message.Passcode, lastUsedDuration));
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 auth.WebSocketChannel?.RegisterCallback(NotificationCallback);
@@ -1107,13 +1126,16 @@ namespace KeeperSecurity.Sdk
                 using (var tokenSource = new CancellationTokenSource())
                 {
                     var userTask = auth.Ui.GetTwoFactorCode(firstChannel, availableChannels.ToArray(), tokenSource.Token);
-                    int index = Task.WaitAny(userTask, loginTaskSource.Task);
+                    int index = Task.WaitAny(userTask, loginTaskSource.Task, codeTaskSource.Task);
                     auth.WebSocketChannel?.RemoveCallback(NotificationCallback);
-                    if (index == 0)
+                    if (index == 0 || index == 2)
                     {
-                        loginTaskSource.TrySetCanceled();
+                        var twoFaCode = await (index == 0 ? userTask : codeTaskSource.Task);
+                        if (index == 2)
+                        {
+                            tokenSource.Cancel();
+                        }
 
-                        var twoFaCode = await userTask;
                         if (twoFaCode == null || string.IsNullOrEmpty(twoFaCode.Code))
                             throw new KeeperCanceled();
 
@@ -1147,6 +1169,7 @@ namespace KeeperSecurity.Sdk
                                 throw;
                             }
                         }
+
                     }
                     else
                     {

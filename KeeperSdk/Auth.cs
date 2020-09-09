@@ -425,39 +425,41 @@ namespace KeeperSecurity.Sdk
                 }
             }
 
-            if (authContext.SessionTokenRestriction != 0 && Ui is IPostLoginTaskUI postUi)
+            if (authContext.SessionTokenRestriction != 0)
             {
-
-                if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
+                if (Ui is IPostLoginTaskUI postUi)
                 {
-                    const string accountExpiredDescription = "Your Keeper account has expired. Please open the Keeper app to renew " +
-                        "or visit the Web Vault at https://keepersecurity.com/vault";
-                    await postUi.Confirmation(accountExpiredDescription);
-                }
-                else
-                {
-                    if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
+                    if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
                     {
-                        const string passwordExpiredDescription =
-                            "Your Master Password has expired, you are required to change it before you can login.";
-                        if (await postUi.Confirmation(passwordExpiredDescription))
-                        {
-                            Password = await this.ChangeMasterPassword();
-                            authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
-                        }
+                        var accountExpiredDescription = "Your Keeper account has expired. Please open the Keeper app to renew " +
+                            $"or visit the Web Vault at https://{Endpoint.Server}/vault";
+                        await postUi.Confirmation(accountExpiredDescription);
                     }
-                    if ((authContext.SessionTokenRestriction & SessionTokenRestriction.ShareAccount) != 0)
+                    else
                     {
-                        //expired_account_transfer_description
-                        const string accountTransferDescription =
-                            "Your Keeper administrator has changed your account settings to enable the ability to transfer your vault records at a later date, " +
-                            "in accordance with company operating procedures and or policies." +
-                            "\nPlease acknowledge this change in account settings by clicking 'Accept' or contact your administrator to request an extension." +
-                            "\nDo you accept Account Transfer policy?";
-                        if (await postUi.Confirmation(accountTransferDescription))
+                        if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
                         {
-                            await this.ShareAccount(settings?.shareAccountTo);
-                            authContext.SessionTokenRestriction &= ~SessionTokenRestriction.ShareAccount;
+                            const string passwordExpiredDescription =
+                                "Your Master Password has expired, you are required to change it before you can login.";
+                            if (await postUi.Confirmation(passwordExpiredDescription))
+                            {
+                                Password = await this.ChangeMasterPassword();
+                                authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
+                            }
+                        }
+                        if ((authContext.SessionTokenRestriction & SessionTokenRestriction.ShareAccount) != 0)
+                        {
+                            //expired_account_transfer_description
+                            const string accountTransferDescription =
+                                "Your Keeper administrator has changed your account settings to enable the ability to transfer your vault records at a later date, " +
+                                "in accordance with company operating procedures and or policies." +
+                                "\nPlease acknowledge this change in account settings by clicking 'Accept' or contact your administrator to request an extension." +
+                                "\nDo you accept Account Transfer policy?";
+                            if (await postUi.Confirmation(accountTransferDescription))
+                            {
+                                await this.ShareAccount(settings?.shareAccountTo);
+                                authContext.SessionTokenRestriction &= ~SessionTokenRestriction.ShareAccount;
+                            }
                         }
                     }
                 }
@@ -468,21 +470,31 @@ namespace KeeperSecurity.Sdk
                 }
                 else
                 {
-                    if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
+                    try
                     {
-                        if (license?.AccountType == 0 && license?.ProductTypeId == 1)
+                        if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
                         {
-                            throw new KeeperPostLoginErrors("free_trial_expired_please_purchase",
-                                "Your free trial has expired. Please purchase a subscription.");
+                            if (license?.AccountType == 0 && license?.ProductTypeId == 1)
+                            {
+                                throw new KeeperPostLoginErrors("free_trial_expired_please_purchase",
+                                    "Your free trial has expired. Please purchase a subscription.");
+                            }
+
+                            throw new KeeperPostLoginErrors("expired_please_purchase",
+                                "Your subscription has expired. Please purchase a subscription now.");
                         }
-                        throw new KeeperPostLoginErrors("expired_please_purchase", 
-                            "Your subscription has expired. Please purchase a subscription now.");
+
+                        if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
+                        {
+                            throw new KeeperPostLoginErrors("expired_master_password_description", "Your Master Password has expired, you are required to change it before you can login.");
+                        }
+
+                        throw new KeeperPostLoginErrors("need_vault_settings_update", "Please log into the web Vault to update your account settings.");
                     }
-                    if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
+                    finally
                     {
-                        throw new KeeperPostLoginErrors("expired_master_password_description", "Your Master Password has expired, you are required to change it before you can login.");
+                        await Logout();
                     }
-                    throw new KeeperPostLoginErrors("need_vault_settings_update", "Please log into the web Vault to update your account settings.");
                 }
             }
             else

@@ -4,7 +4,12 @@ using namespace KeeperSecurity.Sdk
 using namespace System.Threading
 using namespace System.Threading.Tasks
 
-class TerminalUI : UI.IAuthUI {
+class TerminalUI : UI.IAuthUI, UI.IAuthInfoUI {
+    RegionChanged([string]$newRegion) 
+    {
+        Write-Host "`nRegion changed:", $newRegion
+    }
+
     [Task[string]]GetMasterPassword([string]$username) 
     {
         Write-Host "`nMaster Password`n"
@@ -27,7 +32,7 @@ class TerminalUI : UI.IAuthUI {
         Write-Host "`nTwo Factor Authentication`n"
 
 		[Task[UI.TwoFactorCode]] $source = $null
-		$code = Read-Host -Prompt 'Enter Code'
+		$code = Read-Host -Prompt 'Enter 2FA Code'
 		if ($code) {
 			$rs = New-Object -TypeName UI.TwoFactorCode($channel, $code, [UI.TwoFactorDuration]::Forever)
 			$source = [Task]::FromResult($rs)
@@ -45,60 +50,71 @@ class TerminalUI : UI.IAuthUI {
         foreach ($channelInfo in $channels) {
             [UI.DeviceApprovalChannel]$channel = $channelInfo.Channel
             if ($channel -eq [UI.DeviceApprovalChannel]::Email) {
-                Write-Host "'email' to resend email"
+                Write-Host "'email' to send email"
             }
             elseif ($channel -eq [UI.DeviceApprovalChannel]::KeeperPush) {
                 Write-Host "'push' to send Keeper Push notification"
             }
             elseif ($channel -eq [UI.DeviceApprovalChannel]::TwoFactorAuth) {
-                Write-Host "'tfa_code' to send 2FA code"
+                Write-Host "'tfa' to send 2FA code"
                 Write-Host "<code> provided by your 2FA application"
             }
         }
 
         Write-Host "<Enter> to resume, 'q' to cancel"
 
-        [bool]$cancelled = $false
         [bool]$result = $true
+        $action = Read-Host -Prompt 'Device Approval Action'
 
-        do {
-            $action = Read-Host -Prompt 'Device Approval Action'
-
-            if ($cancelled) {break}
-            if ($action -eq 'q') {
-                $result = $false
-                break
+        if ($action -eq 'q') {
+            $result = $false
+        }
+        elseif ($action -in "email", "push", "tfa") {
+            [UI.DeviceApprovalChannel]$pushChannel = [UI.DeviceApprovalChannel]::Email
+            if ($action -eq "push") {
+                $pushChannel = [UI.DeviceApprovalChannel]::KeeperPush
             }
-            if ($action.Length -eq 0) {break}
-
-            if ($action -in "email", "push", "tfa_code") {
-                [UI.DeviceApprovalChannel]$pushChannel = [UI.DeviceApprovalChannel]::Email
-                if ($action -eq "push") {
-                    $pushChannel = [UI.DeviceApprovalChannel]::KeeperPush
-                }
-                elseif ($action -eq "tfa_code") {
-                    $pushChannel = [UI.DeviceApprovalChannel]::TwoFactorAuth                    
-                }
-                foreach($channelInfo in $channels) {
-                    if ($channelInfo.Channel -eq $pushChannel) {
-                        [UI.IDeviceApprovalPushInfo] $pi = $channelInfo
-                        $_ = $pi.InvokeDeviceApprovalPushAction.Invoke([UI.TwoFactorDuration]::Forever).GetAwaiter().GetResult()        
-                        Write-Host 'Press <Enter> when device is approved'
-                        break                        
-                    }                    
-                }
+            elseif ($action -eq "tfa") {
+                $pushChannel = [UI.DeviceApprovalChannel]::TwoFactorAuth                    
             }
-            else {
-                foreach($channelInfo in $channels) {
-                    if ($channelInfo.Channel -eq [UI.DeviceApprovalChannel]::TwoFactorAuth) {
-                        [UI.IDeviceApprovalOtpInfo] $oi = $channelInfo
-                        $_ = $oi.InvokeDeviceApprovalOtpAction.Invoke($action, [UI.TwoFactorDuration]::Forever).GetAwaiter().GetResult()
-                        $cancelled = $true
-                        break                        
-                    }                    
-                }
+            foreach($channelInfo in $channels) {
+                if ($channelInfo.Channel -eq $pushChannel) {
+                    [UI.IDeviceApprovalPushInfo] $pi = $channelInfo
+                    if ( $pi -is [UI.IDeviceApprovalDuration]) {
+                        [UI.IDeviceApprovalDuration] $dur = $pi
+                        $dur.Duration = [UI.TwoFactorDuration]::Every30Days
+                    }
+                    $_ = $pi.InvokeDeviceApprovalPushAction.Invoke().GetAwaiter().GetResult()
+                    if ($channelInfo -is [UI.IDeviceApprovalOtpInfo]) {
+                        Write-Host "'<code>' provide your code"
+                    }
+                    Write-Host "<Enter> when device is approved"
+                    $code = Read-Host -Prompt 'Code'
+                    if ($code) {
+                        if ($channelInfo -is [UI.IDeviceApprovalOtpInfo]) {
+                            $oi = $channelInfo
+                            if ( $pi -is [UI.IDeviceApprovalDuration]) {
+                                [UI.IDeviceApprovalDuration] $dur = $pi
+                                $dur.Duration = [UI.TwoFactorDuration]::Every30Days
+                            }
+                            $_ = $oi.InvokeDeviceApprovalOtpAction.Invoke($code).GetAwaiter().GetResult()
+                        }
+                    }
+                }                    
             }
-        } while ($cancelled -eq $false)      
+        }
+        elseif ($action) {
+            foreach($channelInfo in $channels) {
+                if ($channelInfo.Channel -eq [UI.DeviceApprovalChannel]::TwoFactorAuth) {
+                    [UI.IDeviceApprovalOtpInfo] $oi = $channelInfo
+                    if ( $oi -is [UI.IDeviceApprovalDuration]) {
+                        [UI.IDeviceApprovalDuration] $dur = $oi
+                        $dur.Duration = [UI.TwoFactorDuration]::Every30Days
+                    }
+                    $_ = $oi.InvokeDeviceApprovalOtpAction.Invoke($action).GetAwaiter().GetResult()
+                }                    
+            }
+        }
        
         return [Task]::FromResult($result)
     }

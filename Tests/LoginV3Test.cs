@@ -546,6 +546,14 @@ namespace Tests
                         EncryptedDeviceToken = ByteString.CopyFrom(device.Token),
                         DevicePublicKey = ByteString.CopyFrom(device.PublicKey),
                     }
+                },
+                Settings = new Settings
+                {
+                    
+                },
+                License = new AccountSummary.License
+                {
+                    
                 }
             };
         }

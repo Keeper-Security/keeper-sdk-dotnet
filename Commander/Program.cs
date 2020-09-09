@@ -7,7 +7,6 @@ using KeeperSecurity.Sdk.UI;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
-using static Commander.Program;
 
 namespace Commander
 {
@@ -43,7 +42,7 @@ namespace Commander
                 var ui = new Ui();
                 var auth = new Auth(ui, storage);
                 auth.Endpoint.DeviceName = "Commander C#";
-                auth.Endpoint.ClientVersion = "w15.0.0";
+                auth.Endpoint.ClientVersion = "c15.0.0";
                 var notConnected = new NotConnectedCliContext(auth);
                 cliContext = new CliContext
                 {
