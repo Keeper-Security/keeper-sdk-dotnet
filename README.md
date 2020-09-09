@@ -11,7 +11,7 @@ The Keeper .Net and PowerShell module ("PowerCommander") provides basic vault AP
 To use the PowerShell modules, see the [PowerCommander library](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/PowerCommander).
 
 ### .Net SDK
-For integration into your .Net systems, please utilize the [KeeperSDK library](https://github.com/Keeper-Security/Commander/tree/master/dotnet-keeper-sdk/KeeperSdk).
+For integration into your .Net systems, please utilize the [KeeperSDK library](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
 
 ### Sample App
 For help with implementation of SDK features, please see the [Commander CLI Sample App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Commander).  This application contains several basic operations such as logging in, authentication with two-factor, loading and decrypting the vault and updating passwords.
