@@ -98,6 +98,7 @@ namespace KeeperSecurity.Sdk
             _auth = auth;
             MessageSessionUid = CryptoUtils.GetRandomBytes(16);
             AccountAuthType = AccountAuthType.Regular;
+            AlternatePassword = auth.AlternatePassword;
         }
 
         public AccountAuthType AccountAuthType { get; set; }
@@ -122,6 +123,8 @@ namespace KeeperSecurity.Sdk
             get => _auth.ResumeSession;
             set => _auth.ResumeSession = value;
         }
+
+        public bool AlternatePassword { get; set; }
 
         public byte[] DeviceToken
         {
@@ -588,7 +591,7 @@ namespace KeeperSecurity.Sdk
                     {
                         ClientVersion = auth.Endpoint.ClientVersion,
                         EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
-                        LoginType = LoginType.Normal,
+                        LoginType = auth.AlternatePassword ? LoginType.Alternate : LoginType.Normal,
                         LoginMethod = loginMethod,
                         MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
                         ForceNewLogin = forceNewLogin
@@ -704,6 +707,10 @@ namespace KeeperSecurity.Sdk
             var encryptedDataKey = response.EncryptedDataKey.ToByteArray();
             switch (response.EncryptedDataKeyType)
             {
+                case EncryptedDataKeyType.ByAlternate:
+                    var key = CryptoUtils.DeriveKeyV2("data_key", auth.Password, salt.Salt_.ToByteArray(), salt.Iterations);
+                    authContext.DataKey = CryptoUtils.DecryptAesV2(encryptedDataKey, key);
+                    break;
                 case EncryptedDataKeyType.ByPassword:
                     authContext.DataKey = CryptoUtils.DecryptEncryptionParams(auth.Password, encryptedDataKey);
                     break;

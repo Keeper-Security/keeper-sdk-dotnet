@@ -189,6 +189,9 @@ namespace Commander
             [Option("sso", Required = false, HelpText = "login using sso provider")]
             public bool IsSsoProvider { get; set; }
 
+            [Option("alt", Required = false, HelpText = "login using sso master password")]
+            public bool IsSsoPassword { get; set; }
+
             [Value(0, Required = true, MetaName = "email", HelpText = "account email")]
             public string Username { get; set; }
         }
@@ -278,6 +281,11 @@ namespace Commander
                 else
                 {
                     _auth.ResumeSession = options.Resume;
+                    if (options.IsSsoPassword)
+                    {
+                        _auth.AlternatePassword = true;
+                    }
+
                     await _auth.Login(username);
                 }
 

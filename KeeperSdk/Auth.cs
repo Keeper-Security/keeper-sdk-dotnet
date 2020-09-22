@@ -161,6 +161,7 @@ namespace KeeperSecurity.Sdk
         public IKeeperEndpoint Endpoint { get; }
         public byte[] DeviceToken { get; set; }
         public bool ResumeSession { get; set; }
+        public bool AlternatePassword { get; set; }
 
         public IAuthUI Ui { get; }
         public IConfigurationStorage Storage { get; }
