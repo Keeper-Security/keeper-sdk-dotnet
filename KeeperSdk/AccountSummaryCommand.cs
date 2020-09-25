@@ -131,6 +131,9 @@ namespace KeeperSecurity.Sdk
         [DataMember(Name = "sso_user")]
         public bool? ssoUser;
 
+        public bool? shareDatakeyWithEccPublicKey;
+
+
         internal static AccountSettings LoadFromProtobuf(AccountSummary.Settings settings)
         {
             return new AccountSettings
@@ -148,7 +151,8 @@ namespace KeeperSecurity.Sdk
                 }).ToArray(),
                 masterPasswordLastModified = settings.MasterPasswordLastModified > 1 ? (double?) settings.MasterPasswordLastModified : null,
                 theme = settings.Theme,
-                ssoUser = settings.SsoUser
+                ssoUser = settings.SsoUser,
+                shareDatakeyWithEccPublicKey = settings.ShareDataKeyWithEccPublicKey,
             };
         }
     }

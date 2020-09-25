@@ -23,6 +23,7 @@ namespace KeeperSecurity.Sdk.UI
         DuoSecurity,
         RSASecurID,
         KeeperDNA,
+        SecurityKey,
         Other,
     }
 
@@ -31,20 +32,6 @@ namespace KeeperSecurity.Sdk.UI
         EveryLogin = 0,
         Every30Days = 30,
         Forever = 9999,
-    }
-
-    public class TwoFactorCode
-    {
-        public TwoFactorCode(TwoFactorChannel channel, string code, TwoFactorDuration duration)
-        {
-            Channel = channel;
-            Code = code;
-            Duration = duration;
-        }
-
-        public TwoFactorChannel Channel { get; }
-        public string Code { get; }
-        public TwoFactorDuration Duration { get; }
     }
 
     public interface ITwoFactorChannelInfo
@@ -66,14 +53,15 @@ namespace KeeperSecurity.Sdk.UI
 
     public interface IAuthUI
     {
-        Task<string> GetMasterPassword(string username);
-        Task<TwoFactorCode> GetTwoFactorCode(TwoFactorChannel defaultChannel, ITwoFactorChannelInfo[] channels, CancellationToken token);
         Task<bool> WaitForDeviceApproval(IDeviceApprovalChannelInfo[] channels, CancellationToken token);
+        Task<bool> WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token);
+        Task<string> GetMasterPassword(string username);
     }
 
     public interface IAuthInfoUI
     {
         void RegionChanged(string newRegion);
+        void SelectedDevice(string deviceToken);
     }
 
     public enum DataKeyShareChannel
@@ -101,13 +89,18 @@ namespace KeeperSecurity.Sdk.UI
         void SsoLogoutUrl(string url);
     }
 
+    public interface IAuthSecurityKeyUI
+    {
+        Task<string> AuthenticateRequests(SecurityKeyAuthenticateRequest[] requests);
+    }
+
     public interface IPostLoginTaskUI 
     {
         Task<bool> Confirmation(string information);
         Task<string> GetNewPassword(PasswordRuleMatcher matcher);
     }
 
-    public interface IDeviceApprovalDuration
+    public interface ITwoFactorDurationInfo
     {
         TwoFactorDuration Duration { get; set; }
     }
@@ -124,21 +117,14 @@ namespace KeeperSecurity.Sdk.UI
         DeviceApprovalOtpDelegate InvokeDeviceApprovalOtpAction { get; }
     }
 
-    public interface ITwoFactorAppCodeInfo: ITwoFactorChannelInfo
+    public delegate Task TwoFactorCodeActionDelegate(string code);
+    public interface ITwoFactorAppCodeInfo: ITwoFactorChannelInfo, ITwoFactorDurationInfo
     {
         string ChannelName { get; }
         string ApplicationName { get; }
         string PhoneNumber { get; }
+        TwoFactorCodeActionDelegate InvokeTwoFactorCodeAction { get; }
     }
-
-    public delegate Task<bool> TwoFactorPushActionDelegate(TwoFactorPushAction pushAction, TwoFactorDuration duration);
-
-    public interface ITwoFactorPushInfo : ITwoFactorChannelInfo
-    {
-        TwoFactorPushAction[] SupportedActions { get; }
-        TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; }
-    }
-
 
     public enum TwoFactorPushAction
     {
@@ -149,6 +135,13 @@ namespace KeeperSecurity.Sdk.UI
         TextMessage,
         KeeperDna,
         Email,
+        SecurityKey,
+    }
+    public delegate Task TwoFactorPushActionDelegate(TwoFactorPushAction pushAction);
+    public interface ITwoFactorPushInfo : ITwoFactorChannelInfo
+    {
+        TwoFactorPushAction[] SupportedActions { get; }
+        TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; }
     }
 
     public interface IHttpProxyCredentialUI

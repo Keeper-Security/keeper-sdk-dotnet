@@ -124,10 +124,20 @@ namespace Tests
             HasTwoFactor = true;
             var auth = GetAuthV3();
             var mockUi = Mock.Get(auth.Ui);
-            mockUi.Setup(ui => ui.GetTwoFactorCode(It.IsAny<TwoFactorChannel>(),
-                    It.IsAny<ITwoFactorChannelInfo[]>(),
+            mockUi.Setup(ui => ui.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(TestUtils.GetTwoFactorCodeHandler(TwoFactorDuration.Every30Days, _vaultEnv.OneTimeToken));
+                .Callback<ITwoFactorChannelInfo[], CancellationToken>(async (channels, token) =>
+                {
+                    if (channels.Length > 0 && channels[0] is ITwoFactorAppCodeInfo ci)
+                    {
+                        if (ci is ITwoFactorDurationInfo dur)
+                        {
+                            dur.Duration = TwoFactorDuration.Every30Days;
+                        }
+
+                        await ci.InvokeTwoFactorCodeAction(_vaultEnv.OneTimeToken);
+                    }
+                });
 
             var userConfig = auth.Storage.Users.Get(auth.Storage.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
@@ -142,10 +152,9 @@ namespace Tests
             var auth = GetAuthV3();
             var userConfig = auth.Storage.Users.Get(auth.Storage.LastLogin);
             var authMock = Mock.Get(auth.Ui);
-            authMock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorChannel>(),
-                    It.IsAny<ITwoFactorChannelInfo[]>(),
+            authMock.Setup(x => x.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(),
                     It.IsAny<CancellationToken>()))
-                .Throws(new Exception());
+                .Returns(Task.FromResult(false));
             Assert.ThrowsAsync<Exception>(() => auth.Login(userConfig.Username, userConfig.Password));
         }
 
@@ -429,12 +438,17 @@ namespace Tests
                     return Task.FromResult(_vaultEnv.Password);
                 });
             var tfaCodeReturned = false;
-            mUi.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorChannel>(), It.IsAny<ITwoFactorChannelInfo[]>(), It.IsAny<CancellationToken>()))
-                .Returns((TwoFactorChannel channel, ITwoFactorChannelInfo[] info, CancellationToken token) =>
+            mUi.Setup(x => x.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(), It.IsAny<CancellationToken>()))
+                .Returns(async ( ITwoFactorChannelInfo[] info, CancellationToken token) =>
                 {
-                    if (tfaCodeReturned) return Task.FromException<TwoFactorCode>(new Exception());
+                    if (tfaCodeReturned) return false;
                     tfaCodeReturned = true;
-                    return Task.FromResult(new TwoFactorCode(channel, _vaultEnv.OneTimeToken, TwoFactorDuration.Every30Days));
+                    if (info?.Length > 0 && info[0] is ITwoFactorAppCodeInfo ci)
+                    {
+                        await ci.InvokeTwoFactorCodeAction(_vaultEnv.OneTimeToken);
+                    }
+
+                    return true;
                 });
 
             mEndpoint.Setup(e => e.ExecuteRest(It.IsAny<string>(), It.IsAny<ApiRequestPayload>()))

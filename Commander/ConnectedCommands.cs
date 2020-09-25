@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
+using BreachWatch;
 using CommandLine;
+using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Sdk;
 
@@ -102,6 +104,16 @@ namespace Commander
                         Description = "Current device command",
                         Action = ThisDeviceCommand,
                     });
+
+                    if (_auth.AuthContext.Settings?.shareDatakeyWithEccPublicKey == true)
+                    {
+                        Commands.Add("share-datakey", new SimpleCommand
+                        {
+                            Order = 52,
+                            Description = "Share data key with enterprise",
+                            Action = ShareDatakeyCommand,
+                        });
+                    }
                 }
 
                 Commands.Add("sync-down", new SimpleCommand
@@ -682,6 +694,40 @@ namespace Commander
             }
         }
 
+        private async Task ShareDatakeyCommand(string _)
+        {
+            if (!(_auth.AuthContext is AuthContextV3 contextV3)) return;
+            if (_auth.AuthContext.Settings?.shareDatakeyWithEccPublicKey != true) 
+            {
+                Console.WriteLine("Data key sharing is not requested.");
+                return;
+            }
+            Console.Write("Enterprise administrator requested data key to be shared. Proceed with sharing? (Yes/No) : ");
+            var answer = await Program.InputManager.ReadLine();
+            if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+            {
+                answer = "yes";
+            }
+            if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0) return;
+
+            var rs = (EnterprisePublicKeyResponse) await _auth.ExecuteAuthRest("breachwatch/get_enterprise_public_key", null, typeof(EnterprisePublicKeyResponse));
+            if (rs.EnterpriseECCPublicKey?.Length == 65)
+            {
+                var publicKey = CryptoUtils.LoadPublicEcKey(rs.EnterpriseECCPublicKey.ToByteArray());
+                var encryptedDataKey = CryptoUtils.EncryptEc(_auth.AuthContext.DataKey, publicKey);
+                var rq = new EnterpriseUserDataKey
+                {
+                    UserEncryptedDataKey = ByteString.CopyFrom(encryptedDataKey)
+                };
+                await _auth.ExecuteAuthRest("enterprise/set_enterprise_user_data_key", rq);
+                Commands.Remove("share-datakey");
+            }
+            else
+            {
+                Console.Write("Your enterprise does not have EC key pair created.");
+            }
+        }
+
         private async Task DeviceCommand(OtherDevicesOptions arguments)
         {
             if (!(_auth.AuthContext is AuthContextV3 contextV3)) return;
@@ -747,7 +793,7 @@ namespace Commander
 
                 var isDecline = arguments.Command == "decline";
                 var toApprove = devices
-                    .Where(x => x.DeviceStatus == DeviceStatus.DeviceNeedsApproval)
+                    .Where(x => ((x.DeviceStatus == DeviceStatus.DeviceNeedsApproval) || (arguments.Link && x.DeviceStatus == DeviceStatus.DeviceOk)))
                     .Where(x =>
                     {
                         if (arguments.DeviceId == "all")
@@ -771,14 +817,16 @@ namespace Commander
                     var deviceApprove = new ApproveDeviceRequest
                     {
                         EncryptedDeviceToken = device.EncryptedDeviceToken,
-                        DenyApproval = isDecline
+                        DenyApproval = isDecline,
+
                     };
-                    if (_accountSummary.Settings.SsoUser && !isDecline)
+                    if ((_accountSummary.Settings.SsoUser || arguments.Link) && !isDecline)
                     {
                         var publicKeyBytes = device.DevicePublicKey.ToByteArray();
                         var publicKey = CryptoUtils.LoadPublicEcKey(publicKeyBytes);
                         var encryptedDataKey = CryptoUtils.EncryptEc(_auth.AuthContext.DataKey, publicKey);
                         deviceApprove.EncryptedDeviceDataKey = ByteString.CopyFrom(encryptedDataKey);
+                        deviceApprove.LinkDevice = arguments.Link;
                     }
 
                     await _auth.ExecuteAuthRest("authentication/approve_device", deviceApprove);
@@ -1006,6 +1054,9 @@ namespace Commander
 
         [Value(1, Required = false, HelpText = "device id or \"all\" or \"clear\"")]
         public string DeviceId { get; set; }
+
+        [Option('l', "link", Required = false, Default = false, HelpText = "link device")]
+        public bool Link { get; set; }
     }
 
     class ThisDeviceOptions

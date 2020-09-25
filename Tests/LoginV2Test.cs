@@ -69,10 +69,9 @@ namespace Tests
             HasTwoFactor = true;
             var auth = GetAuthV2();
             var mockUi = Mock.Get(auth.Ui);
-            mockUi.Setup(ui => ui.GetTwoFactorCode(It.IsAny<TwoFactorChannel>(), 
-                    It.IsAny<ITwoFactorChannelInfo[]>(),
+            mockUi.Setup(ui => ui.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(TestUtils.GetTwoFactorCodeHandler(TwoFactorDuration.Every30Days, _vaultEnv.OneTimeToken));
+                .Returns(Task.FromResult(true));
             var userConfig = auth.Storage.Users.Get(auth.Storage.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
@@ -87,10 +86,9 @@ namespace Tests
             HasTwoFactor = true;
             var auth = GetAuthV2();
             var mockUi = Mock.Get(auth.Ui);
-            mockUi.Setup(ui => ui.GetTwoFactorCode(It.IsAny<TwoFactorChannel>(), 
-                    It.IsAny<ITwoFactorChannelInfo[]>(), 
+            mockUi.Setup(ui => ui.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(), 
                     It.IsAny<CancellationToken>()))
-                .Returns(TestUtils.GetTwoFactorCodeHandler(TwoFactorDuration.EveryLogin, _vaultEnv.OneTimeToken));
+                .Returns(Task.FromResult(true));
             var userConfig = auth.Storage.Users.Get(auth.Storage.LastLogin);
             await auth.Login(userConfig.Username, userConfig.Password);
             Assert.Equal(auth.AuthContext.SessionToken, _vaultEnv.SessionToken);
@@ -106,10 +104,9 @@ namespace Tests
             var auth = GetAuthV2();
             var userConfig = auth.Storage.Users.Get(auth.Storage.LastLogin);
             var authMock = Mock.Get(auth.Ui);
-            authMock.Setup(x => x.GetTwoFactorCode(It.IsAny<TwoFactorChannel>(), 
-                    It.IsAny<ITwoFactorChannelInfo[]>(),
+            authMock.Setup(x => x.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(),
                     It.IsAny<CancellationToken>()))
-                .Throws(new KeeperCanceled());
+                .Returns(Task.FromResult(false));
             Assert.ThrowsAsync<KeeperCanceled>(() => auth.Login(userConfig.Username, userConfig.Password));
         }
 

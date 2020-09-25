@@ -175,6 +175,20 @@ namespace Commander
     }
 
     [DataContract]
+    public class EnterpriseKeys
+    {
+        [DataMember(Name = "rsa_public_key")]
+        public string RsaPublicKey { get; set; }
+        [DataMember(Name = "rsa_encrypted_private_key")]
+        public string RsaEncryptedPrivateKey { get; set; }
+
+        [DataMember(Name = "ecc_public_key")]
+        public string EccPublicKey { get; set; }
+        [DataMember(Name = "ecc_encrypted_private_key")]
+        public string EccEncryptedPrivateKey { get; set; }
+    }
+
+    [DataContract]
     public class EnterpriseDataResponse : KeeperApiResponse
     {
         [DataMember(Name = "enterprise_name")]
@@ -212,6 +226,9 @@ namespace Commander
 
         [DataMember(Name = "devices_request_for_admin_approval")]
         public ICollection<DeviceForAdminApproval> DeviceRequestForApproval { get; set; }
+
+        [DataMember(Name = "keys")]
+        public EnterpriseKeys Keys { get; set; }
     }
 
     [DataContract]

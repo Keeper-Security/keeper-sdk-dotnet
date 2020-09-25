@@ -8,6 +8,7 @@ using CommandLine;
 using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Sdk;
+using KeyType = Enterprise.KeyType;
 
 namespace Commander
 {
@@ -18,7 +19,7 @@ namespace Commander
         private EnterpriseNode[] _nodes;
         private EnterpriseUser[] _users;
         private EnterpriseRoleKey2[] _roleKey2s = null;
-
+        private EnterpriseKeys _keys;
         private DeviceForAdminApproval[] _deviceForAdminApprovals;
         /*
         private string EnterpriseName { get; set; }
@@ -76,6 +77,31 @@ namespace Commander
                     CommandAliases["eu"] = "enterprise-user";
                     CommandAliases["ed"] = "enterprise-device";
                 }
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await GetEnterpriseData("keys");
+                        if (_keys != null)
+                        {
+                            if (string.IsNullOrEmpty(_keys.EccEncryptedPrivateKey) && _treeKey != null)
+                            {
+                                Commands.Add("enterprise-add-key",
+                                    new SimpleCommand
+                                    {
+                                        Order = 63,
+                                        Description = "Register ECC key pair",
+                                        Action = EnterpriseRegisterEcKey,
+                                    });
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e);
+                    }
+                });
             }
         }
 
@@ -188,6 +214,11 @@ namespace Commander
             if (requested.Contains("role_keys2"))
             {
                 _roleKey2s = rs.RoleKeys2 != null ? rs.RoleKeys2.ToArray() : new EnterpriseRoleKey2[0];
+            }
+
+            if (requested.Contains("keys"))
+            {
+                _keys = rs.Keys;
             }
         }
 
@@ -498,6 +529,35 @@ namespace Commander
 
                     break;
             }
+        }
+
+
+        private async Task EnterpriseRegisterEcKey(string _)
+        {
+            if (_treeKey == null)
+            {
+                await GetEnterpriseData();
+            }
+
+            if (_treeKey == null)
+            {
+                Console.WriteLine("Cannot get tree key");
+                return;
+            }
+
+            CryptoUtils.GenerateEcKey(out var privateKey, out var publicKey);
+            var exportedPublicKey = CryptoUtils.UnloadEcPublicKey(publicKey);
+            var exportedPrivateKey = CryptoUtils.UnloadEcPrivateKey(privateKey);
+            var encryptedPrivateKey = CryptoUtils.EncryptAesV2(exportedPrivateKey, _treeKey);
+            var request = new EnterpriseKeyPairRequest
+            {
+                KeyType = KeyType.Ecc,
+                EnterprisePublicKey = ByteString.CopyFrom(exportedPublicKey),
+                EncryptedEnterprisePrivateKey = ByteString.CopyFrom(encryptedPrivateKey),
+            };
+
+            await _auth.ExecuteAuthRest("enterprise/set_enterprise_key_pair", request);
+            Commands.Remove("enterprise-add-key");
         }
     }
 }

@@ -90,6 +90,10 @@
       <Project>{29b50177-f7b4-46f6-b3da-b9fef269eef2}</Project>
       <Name>KeeperSdk</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WinWebAuthn\WinWebAuthn.csproj">
+      <Project>{912a6a55-c062-42ff-aafb-13b56f74b7e5}</Project>
+      <Name>WinWebAuthn</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser">

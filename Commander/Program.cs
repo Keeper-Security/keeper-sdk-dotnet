@@ -5,6 +5,7 @@ using System.Linq;
 using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -13,12 +14,10 @@ namespace Commander
     internal class Program
     {
         internal static readonly InputManager InputManager = new InputManager();
+
         private static void Main()
         {
-            Console.CancelKeyPress += (s, e) =>
-            {
-                e.Cancel = true;
-            };
+            Console.CancelKeyPress += (s, e) => { e.Cancel = true; };
             Welcome();
 
             _ = Task.Run(async () =>
@@ -42,7 +41,7 @@ namespace Commander
                 var ui = new Ui();
                 var auth = new Auth(ui, storage);
                 auth.Endpoint.DeviceName = "Commander C#";
-                auth.Endpoint.ClientVersion = "c15.0.0";
+                auth.Endpoint.ClientVersion = "w15.0.0";
                 var notConnected = new NotConnectedCliContext(auth);
                 cliContext = new CliContext
                 {
@@ -160,7 +159,7 @@ namespace Commander
         {
         }
 
-        class Ui : IAuthUI, IAuthInfoUI, IPostLoginTaskUI, IAuthSsoUI, IUsePassword, IHttpProxyCredentialUI
+        class Ui : IAuthUI, IAuthInfoUI, IPostLoginTaskUI, IAuthSsoUI, IAuthSecurityKeyUI, IUsePassword, IHttpProxyCredentialUI
         {
             public Func<string, string> UsePassword { get; set; }
 
@@ -286,14 +285,14 @@ namespace Commander
                 return false;
             }
 
-            public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorChannel channel, ITwoFactorChannelInfo[] channels, CancellationToken token)
+            public Task<bool> WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token)
             {
-                var twoFactorTask = new TaskCompletionSource<TwoFactorCode>();
+                var twoFactorTask = new TaskCompletionSource<bool>();
                 Task.Run(async () =>
                 {
                     var cancelCallback = token.Register(() =>
                     {
-                        twoFactorTask.SetResult(null);
+                        twoFactorTask.SetResult(true);
                         CompleteReadLine();
                     });
                     var pushChannelInfo = new Dictionary<TwoFactorPushAction, ITwoFactorPushInfo>();
@@ -318,6 +317,8 @@ namespace Commander
                                 {
                                     codeChannel = aci;
                                 }
+
+                                aci.Duration = TwoFactorDuration.Every30Days;
 
                                 if (codeChannelInfo.ContainsKey(ch.Channel)) continue;
                                 codeChannelInfo.Add(ch.Channel, aci);
@@ -346,19 +347,23 @@ namespace Commander
 
                     info.Add("<Enter> to Cancel");
 
-                    var duration = TwoFactorDuration.Every30Days;
                     Console.WriteLine("\nTwo Factor Authentication");
                     Console.WriteLine(string.Join("\n", info));
                     string code;
                     while (true)
                     {
-                        Console.Write($"[{codeChannel?.ChannelName ?? ""}] ({DurationToText(duration)}) > ");
+                        if (codeChannel != null)
+                        {
+                            Console.Write($"[{codeChannel.ChannelName ?? ""}] ({DurationToText(codeChannel.Duration)})");
+                        }
+                        Console.Write(" > ");
+
                         code = await InputManager.ReadLine();
 
                         if (twoFactorTask.Task.IsCompleted) break;
                         if (string.IsNullOrEmpty(code))
                         {
-                            twoFactorTask.TrySetException(new KeeperCanceled());
+                            twoFactorTask.TrySetResult(false);
                             break;
                         }
 
@@ -382,7 +387,12 @@ namespace Commander
 
                         if (code.StartsWith("2fa="))
                         {
-                            TryParseTextToDuration(code.Substring(4), out duration);
+                            if (TryParseTextToDuration(code.Substring(4), out var duration)) {
+                                if (codeChannel != null)
+                                {
+                                    codeChannel.Duration = duration;
+                                }
+                            }
                             continue;
                         }
 
@@ -390,7 +400,8 @@ namespace Commander
                         {
                             if (pushChannelInfo.ContainsKey(action))
                             {
-                                await pushChannelInfo[action].InvokeTwoFactorPushAction(action, duration);
+
+                                await pushChannelInfo[action].InvokeTwoFactorPushAction(action);
                             }
                             else
                             {
@@ -405,7 +416,11 @@ namespace Commander
 
                     if (!twoFactorTask.Task.IsCompleted)
                     {
-                        twoFactorTask.SetResult(new TwoFactorCode(codeChannel?.Channel ?? TwoFactorChannel.Other, code, duration));
+                        if (codeChannel != null)
+                        {
+                            await codeChannel.InvokeTwoFactorCodeAction(code);
+                        }
+
                     }
 
                     cancelCallback.Dispose();
@@ -535,7 +550,7 @@ namespace Commander
                                 .FirstOrDefault((x) => x.Channel == DeviceApprovalChannel.TwoFactorAuth);
                             if (tfaAction != null)
                             {
-                                if (tfaAction is IDeviceApprovalDuration dura)
+                                if (tfaAction is ITwoFactorDurationInfo dura)
                                 {
                                     dura.Duration = duration;
                                 }
@@ -563,7 +578,7 @@ namespace Commander
                         }
 
                         if (action == null) continue;
-                        
+
                         try
                         {
                             await action;
@@ -777,6 +792,43 @@ namespace Commander
                 Console.WriteLine();
                 Console.WriteLine($"You are being redirected to the data center at: {newRegion}");
                 Console.WriteLine();
+            }
+
+            public void SelectedDevice(string deviceToken)
+            {
+            }
+
+            public async Task<string> AuthenticateRequests(SecurityKeyAuthenticateRequest[] requests)
+            {
+                if (requests == null || requests.Length == 0) throw new KeeperCanceled();
+                var cancellationSource = new CancellationTokenSource();
+                var clientData = new SecurityKeyClientData
+                {
+                    dataType = SecurityKeyClientData.U2F_SIGN,
+                    challenge = requests[0].challenge,
+                    origin = requests[0].appId,
+                };
+                var keyHandles = new List<byte[]>
+                {
+                    requests[0].keyHandle.Base64UrlDecode()
+                };
+
+                foreach (var rq in requests.Skip(1))
+                {
+                    if (rq.challenge == clientData.challenge && rq.appId == clientData.origin)
+                    {
+                        keyHandles.Add(rq.keyHandle.Base64UrlDecode());
+                    }
+                }
+
+                var u2fSignature = await WinWebAuthn.Authenticate.GetAssertion(WinWebAuthn.Authenticate.GetConsoleWindow(), clientData, keyHandles, cancellationSource.Token);
+                var signature = new SecurityKeySignature
+                {
+                    clientData = u2fSignature.clientData.Base64UrlEncode(),
+                    signatureData = u2fSignature.signatureData.Base64UrlEncode(),
+                    keyHandle = u2fSignature.keyHandle.Base64UrlEncode()
+                };
+                return Encoding.UTF8.GetString(JsonUtils.DumpJson(signature));
             }
         }
     }

@@ -147,7 +147,7 @@ namespace KeeperSecurity.Sdk
 
         private string PushServer()
         {
-            return "push.services." + (Server ?? DefaultKeeperServer);
+            return "push.services.dev.keepersecurity.com";// + (Server ?? DefaultKeeperServer);
         }
 
 

@@ -10,6 +10,7 @@
 //
 
 using System.IO;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
@@ -19,7 +20,8 @@ namespace KeeperSecurity.Sdk
     {
         public static readonly DataContractJsonSerializerSettings JsonSettings = new DataContractJsonSerializerSettings
         {
-            UseSimpleDictionaryFormat = true
+            UseSimpleDictionaryFormat = true,
+            EmitTypeInformation = EmitTypeInformation.Never,
         };
 
         public static T ParseJson<T>(byte[] json)

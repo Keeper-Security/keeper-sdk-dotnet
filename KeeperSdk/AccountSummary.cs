@@ -69,7 +69,7 @@ namespace AccountSummary {
             "YXJ5LlJlc3VsdCKjAQoFQWRkT24SFAoMbGljZW5zZUtleUlkGAEgASgFEgwK",
             "BG5hbWUYAiABKAkSFgoOZXhwaXJhdGlvbkRhdGUYAyABKAMSEwoLY3JlYXRl",
             "ZERhdGUYBCABKAMSDwoHaXNUcmlhbBgFIAEoCBIPCgdlbmFibGVkGAYgASgI",
-            "Eg8KB3NjYW5uZWQYByABKAgSFgoOZmVhdHVyZURpc2FibGUYCCABKAgiwgYK",
+            "Eg8KB3NjYW5uZWQYByABKAgSFgoOZmVhdHVyZURpc2FibGUYCCABKAgi6AYK",
             "CFNldHRpbmdzEg0KBWF1ZGl0GAEgASgIEiEKGW11c3RQZXJmb3JtQWNjb3Vu",
             "dFNoYXJlQnkYAiABKAMSPgoOc2hhcmVBY2NvdW50VG8YAyADKAsyJi5BY2Nv",
             "dW50U3VtbWFyeS5NaXNzaW5nQWNjb3VudFNoYXJlS2V5EisKBXJ1bGVzGAQg",
@@ -88,40 +88,34 @@ namespace AccountSummary {
             "ASgIEiIKGnJlc3RyaWN0U2hhcmluZ0luY29taW5nQWxsGBggASgIEikKIXJl",
             "c3RyaWN0U2hhcmluZ0luY29taW5nRW50ZXJwcmlzZRgZIAEoCBITCgtsb2dv",
             "dXRUaW1lchgaIAEoAxIXCg9wZXJzaXN0ZW50TG9naW4YGyABKAgSHAoUaXBE",
-            "aXNhYmxlQXV0b0FwcHJvdmUYHCABKAgiJgoIS2V5VmFsdWUSCwoDa2V5GAEg",
-            "ASgJEg0KBXZhbHVlGAIgASgJIi0KD0tleVZhbHVlQm9vbGVhbhILCgNrZXkY",
-            "ASABKAkSDQoFdmFsdWUYAiABKAgiKgoMS2V5VmFsdWVMb25nEgsKA2tleRgB",
-            "IAEoCRINCgV2YWx1ZRgCIAEoAyI9CgZSZXN1bHQSEgoKcmVzdWx0Q29kZRgB",
-            "IAEoCRIPCgdtZXNzYWdlGAIgASgJEg4KBnJlc3VsdBgDIAEoCSLCAQoMRW5m",
-            "b3JjZW1lbnRzEikKB3N0cmluZ3MYASADKAsyGC5BY2NvdW50U3VtbWFyeS5L",
-            "ZXlWYWx1ZRIxCghib29sZWFucxgCIAMoCzIfLkFjY291bnRTdW1tYXJ5Lktl",
-            "eVZhbHVlQm9vbGVhbhIrCgVsb25ncxgDIAMoCzIcLkFjY291bnRTdW1tYXJ5",
-            "LktleVZhbHVlTG9uZxInCgVqc29ucxgEIAMoCzIYLkFjY291bnRTdW1tYXJ5",
-            "LktleVZhbHVlIjwKFk1pc3NpbmdBY2NvdW50U2hhcmVLZXkSDwoHcm9sZV9p",
-            "ZBgBIAEoAxIRCglwdWJsaWNLZXkYAiABKAwidQoMUGFzc3dvcmRSdWxlEhAK",
-            "CHJ1bGVUeXBlGAEgASgJEg8KB3BhdHRlcm4YAiABKAkSDQoFbWF0Y2gYAyAB",
-            "KAgSDwoHbWluaW11bRgEIAEoBRITCgtkZXNjcmlwdGlvbhgFIAEoCRINCgV2",
-            "YWx1ZRgGIAEoCSKXAQoLU2VjdXJpdHlLZXkSEAoIZGV2aWNlSWQYASABKAMS",
-            "EgoKZGV2aWNlTmFtZRgCIAEoCRIRCglkYXRlQWRkZWQYAyABKAMSDwoHaXNW",
-            "YWxpZBgEIAEoCBI+ChJkZXZpY2VSZWdpc3RyYXRpb24YBSABKAsyIi5BY2Nv",
-            "dW50U3VtbWFyeS5EZXZpY2VSZWdpc3RyYXRpb24ieQoSRGV2aWNlUmVnaXN0",
-            "cmF0aW9uEhEKCWtleUhhbmRsZRgBIAEoCRIRCglwdWJsaWNLZXkYAiABKAwS",
-            "FwoPYXR0ZXN0YXRpb25DZXJ0GAMgASgJEg8KB2NvdW50ZXIYBCABKAMSEwoL",
-            "Y29tcHJvbWlzZWQYBSABKAgiyAIKBUdyb3VwEg0KBWFkbWluGAEgASgIEh0K",
-            "FWdyb3VwVmVyaWZpY2F0aW9uQ29kZRgCIAEoCRIvCg1ncm91cFNldHRpbmdz",
-            "GAMgAygLMhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUSNAoNYWRtaW5pc3Ry",
-            "YXRvchgEIAEoCzIdLkFjY291bnRTdW1tYXJ5LkFkbWluaXN0cmF0b3ISJQoF",
-            "ZXJyb3IYBSABKAsyFi5BY2NvdW50U3VtbWFyeS5SZXN1bHQSGQoRdHdvRmFj",
-            "dG9yUmVxdWlyZWQYBiABKAgSFwoPcmVzdHJpY3RTaGFyaW5nGAcgASgIEhoK",
-            "EnJlc3RyaWN0QWxsU2hhcmluZxgIIAEoCBIWCg5hdXRvQmFja3VwRGF5cxgJ",
-            "IAEoBRIbChNhZG1pbkFjY291bnRTaGFyaW5nGAogASgIIugBCg1BZG1pbmlz",
-            "dHJhdG9yEhEKCWZpcnN0TmFtZRgBIAEoCRIQCghsYXN0TmFtZRgCIAEoCRIN",
-            "CgVlbWFpbBgDIAEoCRIcChRjdXJyZW50TnVtYmVyT2ZVc2VycxgEIAEoBRIV",
-            "Cg1udW1iZXJPZlVzZXJzGAUgASgFEhcKD251bWJlck9mRGV2aWNlcxgGIAEo",
-            "BRIYChBzdWJzY3JpcHRpb25Db2RlGAcgASgJEhYKDmV4cGlyYXRpb25EYXRl",
-            "GAggASgJEhQKDHB1cmNoYXNlRGF0ZRgJIAEoCRINCgV0b3RhbBgKIAEoCUIq",
-            "Chhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CDkFjY291bnRTdW1tYXJ5YgZw",
-            "cm90bzM="));
+            "aXNhYmxlQXV0b0FwcHJvdmUYHCABKAgSJAocc2hhcmVEYXRhS2V5V2l0aEVj",
+            "Y1B1YmxpY0tleRgdIAEoCCImCghLZXlWYWx1ZRILCgNrZXkYASABKAkSDQoF",
+            "dmFsdWUYAiABKAkiLQoPS2V5VmFsdWVCb29sZWFuEgsKA2tleRgBIAEoCRIN",
+            "CgV2YWx1ZRgCIAEoCCIqCgxLZXlWYWx1ZUxvbmcSCwoDa2V5GAEgASgJEg0K",
+            "BXZhbHVlGAIgASgDIj0KBlJlc3VsdBISCgpyZXN1bHRDb2RlGAEgASgJEg8K",
+            "B21lc3NhZ2UYAiABKAkSDgoGcmVzdWx0GAMgASgJIsIBCgxFbmZvcmNlbWVu",
+            "dHMSKQoHc3RyaW5ncxgBIAMoCzIYLkFjY291bnRTdW1tYXJ5LktleVZhbHVl",
+            "EjEKCGJvb2xlYW5zGAIgAygLMh8uQWNjb3VudFN1bW1hcnkuS2V5VmFsdWVC",
+            "b29sZWFuEisKBWxvbmdzGAMgAygLMhwuQWNjb3VudFN1bW1hcnkuS2V5VmFs",
+            "dWVMb25nEicKBWpzb25zGAQgAygLMhguQWNjb3VudFN1bW1hcnkuS2V5VmFs",
+            "dWUiPAoWTWlzc2luZ0FjY291bnRTaGFyZUtleRIPCgdyb2xlX2lkGAEgASgD",
+            "EhEKCXB1YmxpY0tleRgCIAEoDCJ1CgxQYXNzd29yZFJ1bGUSEAoIcnVsZVR5",
+            "cGUYASABKAkSDwoHcGF0dGVybhgCIAEoCRINCgVtYXRjaBgDIAEoCBIPCgdt",
+            "aW5pbXVtGAQgASgFEhMKC2Rlc2NyaXB0aW9uGAUgASgJEg0KBXZhbHVlGAYg",
+            "ASgJIpcBCgtTZWN1cml0eUtleRIQCghkZXZpY2VJZBgBIAEoAxISCgpkZXZp",
+            "Y2VOYW1lGAIgASgJEhEKCWRhdGVBZGRlZBgDIAEoAxIPCgdpc1ZhbGlkGAQg",
+            "ASgIEj4KEmRldmljZVJlZ2lzdHJhdGlvbhgFIAEoCzIiLkFjY291bnRTdW1t",
+            "YXJ5LkRldmljZVJlZ2lzdHJhdGlvbiJ5ChJEZXZpY2VSZWdpc3RyYXRpb24S",
+            "EQoJa2V5SGFuZGxlGAEgASgJEhEKCXB1YmxpY0tleRgCIAEoDBIXCg9hdHRl",
+            "c3RhdGlvbkNlcnQYAyABKAkSDwoHY291bnRlchgEIAEoAxITCgtjb21wcm9t",
+            "aXNlZBgFIAEoCCJMCgVHcm91cBINCgVhZG1pbhgBIAEoCBI0Cg1hZG1pbmlz",
+            "dHJhdG9yGAQgASgLMh0uQWNjb3VudFN1bW1hcnkuQWRtaW5pc3RyYXRvciLA",
+            "AQoNQWRtaW5pc3RyYXRvchIRCglmaXJzdE5hbWUYASABKAkSEAoIbGFzdE5h",
+            "bWUYAiABKAkSDQoFZW1haWwYAyABKAkSHAoUY3VycmVudE51bWJlck9mVXNl",
+            "cnMYBCABKAUSFQoNbnVtYmVyT2ZVc2VycxgFIAEoBRIYChBzdWJzY3JpcHRp",
+            "b25Db2RlGAcgASgJEhYKDmV4cGlyYXRpb25EYXRlGAggASgJEhQKDHB1cmNo",
+            "YXNlRGF0ZRgJIAEoCUIqChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CDkFj",
+            "Y291bnRTdW1tYXJ5YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -132,7 +126,7 @@ namespace AccountSummary {
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.SyncLog), global::AccountSummary.SyncLog.Parser, new[]{ "CountryName", "SecondsAgo", "DeviceName", "CountryCode", "DeviceUID", "IpAddress" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.License), global::AccountSummary.License.Parser, new[]{ "SubscriptionCode", "ProductTypeId", "ProductTypeName", "ExpirationDate", "SecondsUntilExpiration", "MaxDevices", "FilePlanType", "BytesUsed", "BytesTotal", "SecondsUntilStorageExpiration", "StorageExpirationDate", "HasAutoRenewableAppstoreSubscription", "AccountType", "UploadsRemaining", "EnterpriseId", "ChatEnabled", "AuditAndReportingEnabled", "BreachWatchFeatureDisable", "AccountUid", "AllowPersonalLicense", "LicensedBy", "Email", "BreachWatchEnabled", "BreachWatchScanned", "BreachWatchExpiration", "BreachWatchDateCreated", "Error" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.AddOn), global::AccountSummary.AddOn.Parser, new[]{ "LicenseKeyId", "Name", "ExpirationDate", "CreatedDate", "IsTrial", "Enabled", "Scanned", "FeatureDisable" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Settings), global::AccountSummary.Settings.Parser, new[]{ "Audit", "MustPerformAccountShareBy", "ShareAccountTo", "Rules", "PasswordRulesIntro", "AutoBackupDays", "Theme", "Channel", "ChannelValue", "RsaConfigured", "EmailVerified", "MasterPasswordLastModified", "AccountFolderKey", "SecurityKeys", "KeyValues", "SsoUser", "OnlineAccessOnly", "MasterPasswordExpiry", "TwoFactorRequired", "DisallowExport", "RestrictFiles", "RestrictAllSharing", "RestrictSharing", "RestrictSharingIncomingAll", "RestrictSharingIncomingEnterprise", "LogoutTimer", "PersistentLogin", "IpDisableAutoApprove" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Settings), global::AccountSummary.Settings.Parser, new[]{ "Audit", "MustPerformAccountShareBy", "ShareAccountTo", "Rules", "PasswordRulesIntro", "AutoBackupDays", "Theme", "Channel", "ChannelValue", "RsaConfigured", "EmailVerified", "MasterPasswordLastModified", "AccountFolderKey", "SecurityKeys", "KeyValues", "SsoUser", "OnlineAccessOnly", "MasterPasswordExpiry", "TwoFactorRequired", "DisallowExport", "RestrictFiles", "RestrictAllSharing", "RestrictSharing", "RestrictSharingIncomingAll", "RestrictSharingIncomingEnterprise", "LogoutTimer", "PersistentLogin", "IpDisableAutoApprove", "ShareDataKeyWithEccPublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValue), global::AccountSummary.KeyValue.Parser, new[]{ "Key", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValueBoolean), global::AccountSummary.KeyValueBoolean.Parser, new[]{ "Key", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValueLong), global::AccountSummary.KeyValueLong.Parser, new[]{ "Key", "Value" }, null, null, null, null),
@@ -142,8 +136,8 @@ namespace AccountSummary {
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.PasswordRule), global::AccountSummary.PasswordRule.Parser, new[]{ "RuleType", "Pattern", "Match", "Minimum", "Description", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.SecurityKey), global::AccountSummary.SecurityKey.Parser, new[]{ "DeviceId", "DeviceName", "DateAdded", "IsValid", "DeviceRegistration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.DeviceRegistration), global::AccountSummary.DeviceRegistration.Parser, new[]{ "KeyHandle", "PublicKey", "AttestationCert", "Counter", "Compromised" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Group), global::AccountSummary.Group.Parser, new[]{ "Admin", "GroupVerificationCode", "GroupSettings", "Administrator", "Error", "TwoFactorRequired", "RestrictSharing", "RestrictAllSharing", "AutoBackupDays", "AdminAccountSharing" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Administrator), global::AccountSummary.Administrator.Parser, new[]{ "FirstName", "LastName", "Email", "CurrentNumberOfUsers", "NumberOfUsers", "NumberOfDevices", "SubscriptionCode", "ExpirationDate", "PurchaseDate", "Total" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Group), global::AccountSummary.Group.Parser, new[]{ "Admin", "Administrator" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Administrator), global::AccountSummary.Administrator.Parser, new[]{ "FirstName", "LastName", "Email", "CurrentNumberOfUsers", "NumberOfUsers", "SubscriptionCode", "ExpirationDate", "PurchaseDate" }, null, null, null, null)
           }));
     }
     #endregion
@@ -2855,6 +2849,7 @@ namespace AccountSummary {
       logoutTimer_ = other.logoutTimer_;
       persistentLogin_ = other.persistentLogin_;
       ipDisableAutoApprove_ = other.ipDisableAutoApprove_;
+      shareDataKeyWithEccPublicKey_ = other.shareDataKeyWithEccPublicKey_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3179,6 +3174,17 @@ namespace AccountSummary {
       }
     }
 
+    /// <summary>Field number for the "shareDataKeyWithEccPublicKey" field.</summary>
+    public const int ShareDataKeyWithEccPublicKeyFieldNumber = 29;
+    private bool shareDataKeyWithEccPublicKey_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool ShareDataKeyWithEccPublicKey {
+      get { return shareDataKeyWithEccPublicKey_; }
+      set {
+        shareDataKeyWithEccPublicKey_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as Settings);
@@ -3220,6 +3226,7 @@ namespace AccountSummary {
       if (LogoutTimer != other.LogoutTimer) return false;
       if (PersistentLogin != other.PersistentLogin) return false;
       if (IpDisableAutoApprove != other.IpDisableAutoApprove) return false;
+      if (ShareDataKeyWithEccPublicKey != other.ShareDataKeyWithEccPublicKey) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3254,6 +3261,7 @@ namespace AccountSummary {
       if (LogoutTimer != 0L) hash ^= LogoutTimer.GetHashCode();
       if (PersistentLogin != false) hash ^= PersistentLogin.GetHashCode();
       if (IpDisableAutoApprove != false) hash ^= IpDisableAutoApprove.GetHashCode();
+      if (ShareDataKeyWithEccPublicKey != false) hash ^= ShareDataKeyWithEccPublicKey.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3367,6 +3375,10 @@ namespace AccountSummary {
         output.WriteRawTag(224, 1);
         output.WriteBool(IpDisableAutoApprove);
       }
+      if (ShareDataKeyWithEccPublicKey != false) {
+        output.WriteRawTag(232, 1);
+        output.WriteBool(ShareDataKeyWithEccPublicKey);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3449,6 +3461,9 @@ namespace AccountSummary {
         size += 2 + 1;
       }
       if (IpDisableAutoApprove != false) {
+        size += 2 + 1;
+      }
+      if (ShareDataKeyWithEccPublicKey != false) {
         size += 2 + 1;
       }
       if (_unknownFields != null) {
@@ -3537,6 +3552,9 @@ namespace AccountSummary {
       }
       if (other.IpDisableAutoApprove != false) {
         IpDisableAutoApprove = other.IpDisableAutoApprove;
+      }
+      if (other.ShareDataKeyWithEccPublicKey != false) {
+        ShareDataKeyWithEccPublicKey = other.ShareDataKeyWithEccPublicKey;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3659,6 +3677,10 @@ namespace AccountSummary {
           }
           case 224: {
             IpDisableAutoApprove = input.ReadBool();
+            break;
+          }
+          case 232: {
+            ShareDataKeyWithEccPublicKey = input.ReadBool();
             break;
           }
         }
@@ -5444,15 +5466,7 @@ namespace AccountSummary {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Group(Group other) : this() {
       admin_ = other.admin_;
-      groupVerificationCode_ = other.groupVerificationCode_;
-      groupSettings_ = other.groupSettings_.Clone();
       administrator_ = other.administrator_ != null ? other.administrator_.Clone() : null;
-      error_ = other.error_ != null ? other.error_.Clone() : null;
-      twoFactorRequired_ = other.twoFactorRequired_;
-      restrictSharing_ = other.restrictSharing_;
-      restrictAllSharing_ = other.restrictAllSharing_;
-      autoBackupDays_ = other.autoBackupDays_;
-      adminAccountSharing_ = other.adminAccountSharing_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -5472,107 +5486,18 @@ namespace AccountSummary {
       }
     }
 
-    /// <summary>Field number for the "groupVerificationCode" field.</summary>
-    public const int GroupVerificationCodeFieldNumber = 2;
-    private string groupVerificationCode_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string GroupVerificationCode {
-      get { return groupVerificationCode_; }
-      set {
-        groupVerificationCode_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "groupSettings" field.</summary>
-    public const int GroupSettingsFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::AccountSummary.KeyValue> _repeated_groupSettings_codec
-        = pb::FieldCodec.ForMessage(26, global::AccountSummary.KeyValue.Parser);
-    private readonly pbc::RepeatedField<global::AccountSummary.KeyValue> groupSettings_ = new pbc::RepeatedField<global::AccountSummary.KeyValue>();
-    /// <summary>
-    ////// ?
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AccountSummary.KeyValue> GroupSettings {
-      get { return groupSettings_; }
-    }
-
     /// <summary>Field number for the "administrator" field.</summary>
     public const int AdministratorFieldNumber = 4;
     private global::AccountSummary.Administrator administrator_;
+    /// <summary>
+    /// string groupVerificationCode = 2;
+    /// repeated KeyValue groupSettings = 3; ///// ?
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::AccountSummary.Administrator Administrator {
       get { return administrator_; }
       set {
         administrator_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 5;
-    private global::AccountSummary.Result error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AccountSummary.Result Error {
-      get { return error_; }
-      set {
-        error_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "twoFactorRequired" field.</summary>
-    public const int TwoFactorRequiredFieldNumber = 6;
-    private bool twoFactorRequired_;
-    /// <summary>
-    /// could be in "groupSettings"
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool TwoFactorRequired {
-      get { return twoFactorRequired_; }
-      set {
-        twoFactorRequired_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "restrictSharing" field.</summary>
-    public const int RestrictSharingFieldNumber = 7;
-    private bool restrictSharing_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool RestrictSharing {
-      get { return restrictSharing_; }
-      set {
-        restrictSharing_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "restrictAllSharing" field.</summary>
-    public const int RestrictAllSharingFieldNumber = 8;
-    private bool restrictAllSharing_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool RestrictAllSharing {
-      get { return restrictAllSharing_; }
-      set {
-        restrictAllSharing_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "autoBackupDays" field.</summary>
-    public const int AutoBackupDaysFieldNumber = 9;
-    private int autoBackupDays_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int AutoBackupDays {
-      get { return autoBackupDays_; }
-      set {
-        autoBackupDays_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "adminAccountSharing" field.</summary>
-    public const int AdminAccountSharingFieldNumber = 10;
-    private bool adminAccountSharing_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool AdminAccountSharing {
-      get { return adminAccountSharing_; }
-      set {
-        adminAccountSharing_ = value;
       }
     }
 
@@ -5590,15 +5515,7 @@ namespace AccountSummary {
         return true;
       }
       if (Admin != other.Admin) return false;
-      if (GroupVerificationCode != other.GroupVerificationCode) return false;
-      if(!groupSettings_.Equals(other.groupSettings_)) return false;
       if (!object.Equals(Administrator, other.Administrator)) return false;
-      if (!object.Equals(Error, other.Error)) return false;
-      if (TwoFactorRequired != other.TwoFactorRequired) return false;
-      if (RestrictSharing != other.RestrictSharing) return false;
-      if (RestrictAllSharing != other.RestrictAllSharing) return false;
-      if (AutoBackupDays != other.AutoBackupDays) return false;
-      if (AdminAccountSharing != other.AdminAccountSharing) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -5606,15 +5523,7 @@ namespace AccountSummary {
     public override int GetHashCode() {
       int hash = 1;
       if (Admin != false) hash ^= Admin.GetHashCode();
-      if (GroupVerificationCode.Length != 0) hash ^= GroupVerificationCode.GetHashCode();
-      hash ^= groupSettings_.GetHashCode();
       if (administrator_ != null) hash ^= Administrator.GetHashCode();
-      if (error_ != null) hash ^= Error.GetHashCode();
-      if (TwoFactorRequired != false) hash ^= TwoFactorRequired.GetHashCode();
-      if (RestrictSharing != false) hash ^= RestrictSharing.GetHashCode();
-      if (RestrictAllSharing != false) hash ^= RestrictAllSharing.GetHashCode();
-      if (AutoBackupDays != 0) hash ^= AutoBackupDays.GetHashCode();
-      if (AdminAccountSharing != false) hash ^= AdminAccountSharing.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5632,38 +5541,9 @@ namespace AccountSummary {
         output.WriteRawTag(8);
         output.WriteBool(Admin);
       }
-      if (GroupVerificationCode.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(GroupVerificationCode);
-      }
-      groupSettings_.WriteTo(output, _repeated_groupSettings_codec);
       if (administrator_ != null) {
         output.WriteRawTag(34);
         output.WriteMessage(Administrator);
-      }
-      if (error_ != null) {
-        output.WriteRawTag(42);
-        output.WriteMessage(Error);
-      }
-      if (TwoFactorRequired != false) {
-        output.WriteRawTag(48);
-        output.WriteBool(TwoFactorRequired);
-      }
-      if (RestrictSharing != false) {
-        output.WriteRawTag(56);
-        output.WriteBool(RestrictSharing);
-      }
-      if (RestrictAllSharing != false) {
-        output.WriteRawTag(64);
-        output.WriteBool(RestrictAllSharing);
-      }
-      if (AutoBackupDays != 0) {
-        output.WriteRawTag(72);
-        output.WriteInt32(AutoBackupDays);
-      }
-      if (AdminAccountSharing != false) {
-        output.WriteRawTag(80);
-        output.WriteBool(AdminAccountSharing);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -5676,30 +5556,8 @@ namespace AccountSummary {
       if (Admin != false) {
         size += 1 + 1;
       }
-      if (GroupVerificationCode.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(GroupVerificationCode);
-      }
-      size += groupSettings_.CalculateSize(_repeated_groupSettings_codec);
       if (administrator_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Administrator);
-      }
-      if (error_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Error);
-      }
-      if (TwoFactorRequired != false) {
-        size += 1 + 1;
-      }
-      if (RestrictSharing != false) {
-        size += 1 + 1;
-      }
-      if (RestrictAllSharing != false) {
-        size += 1 + 1;
-      }
-      if (AutoBackupDays != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(AutoBackupDays);
-      }
-      if (AdminAccountSharing != false) {
-        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -5715,36 +5573,11 @@ namespace AccountSummary {
       if (other.Admin != false) {
         Admin = other.Admin;
       }
-      if (other.GroupVerificationCode.Length != 0) {
-        GroupVerificationCode = other.GroupVerificationCode;
-      }
-      groupSettings_.Add(other.groupSettings_);
       if (other.administrator_ != null) {
         if (administrator_ == null) {
           Administrator = new global::AccountSummary.Administrator();
         }
         Administrator.MergeFrom(other.Administrator);
-      }
-      if (other.error_ != null) {
-        if (error_ == null) {
-          Error = new global::AccountSummary.Result();
-        }
-        Error.MergeFrom(other.Error);
-      }
-      if (other.TwoFactorRequired != false) {
-        TwoFactorRequired = other.TwoFactorRequired;
-      }
-      if (other.RestrictSharing != false) {
-        RestrictSharing = other.RestrictSharing;
-      }
-      if (other.RestrictAllSharing != false) {
-        RestrictAllSharing = other.RestrictAllSharing;
-      }
-      if (other.AutoBackupDays != 0) {
-        AutoBackupDays = other.AutoBackupDays;
-      }
-      if (other.AdminAccountSharing != false) {
-        AdminAccountSharing = other.AdminAccountSharing;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -5761,46 +5594,11 @@ namespace AccountSummary {
             Admin = input.ReadBool();
             break;
           }
-          case 18: {
-            GroupVerificationCode = input.ReadString();
-            break;
-          }
-          case 26: {
-            groupSettings_.AddEntriesFrom(input, _repeated_groupSettings_codec);
-            break;
-          }
           case 34: {
             if (administrator_ == null) {
               Administrator = new global::AccountSummary.Administrator();
             }
             input.ReadMessage(Administrator);
-            break;
-          }
-          case 42: {
-            if (error_ == null) {
-              Error = new global::AccountSummary.Result();
-            }
-            input.ReadMessage(Error);
-            break;
-          }
-          case 48: {
-            TwoFactorRequired = input.ReadBool();
-            break;
-          }
-          case 56: {
-            RestrictSharing = input.ReadBool();
-            break;
-          }
-          case 64: {
-            RestrictAllSharing = input.ReadBool();
-            break;
-          }
-          case 72: {
-            AutoBackupDays = input.ReadInt32();
-            break;
-          }
-          case 80: {
-            AdminAccountSharing = input.ReadBool();
             break;
           }
         }
@@ -5839,11 +5637,9 @@ namespace AccountSummary {
       email_ = other.email_;
       currentNumberOfUsers_ = other.currentNumberOfUsers_;
       numberOfUsers_ = other.numberOfUsers_;
-      numberOfDevices_ = other.numberOfDevices_;
       subscriptionCode_ = other.subscriptionCode_;
       expirationDate_ = other.expirationDate_;
       purchaseDate_ = other.purchaseDate_;
-      total_ = other.total_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -5907,20 +5703,12 @@ namespace AccountSummary {
       }
     }
 
-    /// <summary>Field number for the "numberOfDevices" field.</summary>
-    public const int NumberOfDevicesFieldNumber = 6;
-    private int numberOfDevices_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int NumberOfDevices {
-      get { return numberOfDevices_; }
-      set {
-        numberOfDevices_ = value;
-      }
-    }
-
     /// <summary>Field number for the "subscriptionCode" field.</summary>
     public const int SubscriptionCodeFieldNumber = 7;
     private string subscriptionCode_ = "";
+    /// <summary>
+    ///    int32 numberOfDevices = 6;
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string SubscriptionCode {
       get { return subscriptionCode_; }
@@ -5943,22 +5731,14 @@ namespace AccountSummary {
     /// <summary>Field number for the "purchaseDate" field.</summary>
     public const int PurchaseDateFieldNumber = 9;
     private string purchaseDate_ = "";
+    /// <summary>
+    ///    string total = 10;
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string PurchaseDate {
       get { return purchaseDate_; }
       set {
         purchaseDate_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "total" field.</summary>
-    public const int TotalFieldNumber = 10;
-    private string total_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Total {
-      get { return total_; }
-      set {
-        total_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -5980,11 +5760,9 @@ namespace AccountSummary {
       if (Email != other.Email) return false;
       if (CurrentNumberOfUsers != other.CurrentNumberOfUsers) return false;
       if (NumberOfUsers != other.NumberOfUsers) return false;
-      if (NumberOfDevices != other.NumberOfDevices) return false;
       if (SubscriptionCode != other.SubscriptionCode) return false;
       if (ExpirationDate != other.ExpirationDate) return false;
       if (PurchaseDate != other.PurchaseDate) return false;
-      if (Total != other.Total) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -5996,11 +5774,9 @@ namespace AccountSummary {
       if (Email.Length != 0) hash ^= Email.GetHashCode();
       if (CurrentNumberOfUsers != 0) hash ^= CurrentNumberOfUsers.GetHashCode();
       if (NumberOfUsers != 0) hash ^= NumberOfUsers.GetHashCode();
-      if (NumberOfDevices != 0) hash ^= NumberOfDevices.GetHashCode();
       if (SubscriptionCode.Length != 0) hash ^= SubscriptionCode.GetHashCode();
       if (ExpirationDate.Length != 0) hash ^= ExpirationDate.GetHashCode();
       if (PurchaseDate.Length != 0) hash ^= PurchaseDate.GetHashCode();
-      if (Total.Length != 0) hash ^= Total.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -6034,10 +5810,6 @@ namespace AccountSummary {
         output.WriteRawTag(40);
         output.WriteInt32(NumberOfUsers);
       }
-      if (NumberOfDevices != 0) {
-        output.WriteRawTag(48);
-        output.WriteInt32(NumberOfDevices);
-      }
       if (SubscriptionCode.Length != 0) {
         output.WriteRawTag(58);
         output.WriteString(SubscriptionCode);
@@ -6049,10 +5821,6 @@ namespace AccountSummary {
       if (PurchaseDate.Length != 0) {
         output.WriteRawTag(74);
         output.WriteString(PurchaseDate);
-      }
-      if (Total.Length != 0) {
-        output.WriteRawTag(82);
-        output.WriteString(Total);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -6077,9 +5845,6 @@ namespace AccountSummary {
       if (NumberOfUsers != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(NumberOfUsers);
       }
-      if (NumberOfDevices != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(NumberOfDevices);
-      }
       if (SubscriptionCode.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(SubscriptionCode);
       }
@@ -6088,9 +5853,6 @@ namespace AccountSummary {
       }
       if (PurchaseDate.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(PurchaseDate);
-      }
-      if (Total.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Total);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -6118,9 +5880,6 @@ namespace AccountSummary {
       if (other.NumberOfUsers != 0) {
         NumberOfUsers = other.NumberOfUsers;
       }
-      if (other.NumberOfDevices != 0) {
-        NumberOfDevices = other.NumberOfDevices;
-      }
       if (other.SubscriptionCode.Length != 0) {
         SubscriptionCode = other.SubscriptionCode;
       }
@@ -6129,9 +5888,6 @@ namespace AccountSummary {
       }
       if (other.PurchaseDate.Length != 0) {
         PurchaseDate = other.PurchaseDate;
-      }
-      if (other.Total.Length != 0) {
-        Total = other.Total;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -6164,10 +5920,6 @@ namespace AccountSummary {
             NumberOfUsers = input.ReadInt32();
             break;
           }
-          case 48: {
-            NumberOfDevices = input.ReadInt32();
-            break;
-          }
           case 58: {
             SubscriptionCode = input.ReadString();
             break;
@@ -6178,10 +5930,6 @@ namespace AccountSummary {
           }
           case 74: {
             PurchaseDate = input.ReadString();
-            break;
-          }
-          case 82: {
-            Total = input.ReadString();
             break;
           }
         }

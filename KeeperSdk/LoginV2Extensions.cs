@@ -51,6 +51,20 @@ namespace KeeperSecurity.Sdk
         public TwoFactorDuration? SecondFactorDuration { get; set; }
     }
 
+    public class TwoFactorCode
+    {
+        public TwoFactorCode(TwoFactorChannel channel, string code, TwoFactorDuration duration)
+        {
+            Channel = channel;
+            Code = code;
+            Duration = duration;
+        }
+
+        public TwoFactorChannel Channel { get; }
+        public string Code { get; }
+        public TwoFactorDuration Duration { get; }
+    }
+
     public class AuthV2 : IAuth
     {
         private readonly Auth _auth;
@@ -238,24 +252,45 @@ namespace KeeperSecurity.Sdk
             auth.Password = primaryCredentials.Password;
             return context;
         }
-
+        static Task _completedTask = Task.FromResult(false);
         private static ITwoFactorChannelInfo[] PrepareTwoFactorChannels(this AuthV2 auth,
             LoginCommand loginRq,
             LoginResponse loginRs,
             CancellationToken cancellationToken)
         {
-            
+
             AuthUIExtensions.TryParseTwoFactorChannel(loginRs.channel, out var channel);
             var channels = new List<ITwoFactorChannelInfo>();
+
+            TwoFactorCodeActionDelegate GetCodeDelegate(ITwoFactorAppCodeInfo channelInfo)
+            {
+                return (code) =>
+                {
+                    auth.PushToken.Push(new TwoFactorCode(channelInfo.Channel, code, channelInfo.Duration));
+                    return _completedTask;
+                };
+            }
+
             switch (channel)
             {
                 case TwoFactorChannel.Authenticator:
-                    channels.Add(new AuthenticatorTwoFactorChannel());
-                    break;
+                {
+                    var totp = new AuthenticatorTwoFactorChannel();
+                    totp.InvokeTwoFactorCodeAction = GetCodeDelegate(totp);
+                    channels.Add(totp);
+                }
+                break;
+
                 case TwoFactorChannel.TextMessage:
-                    channels.Add(new TwoFactorSmsChannel());
-                    break;
+                {
+                    var sms = new TwoFactorSmsChannel();
+                    sms.InvokeTwoFactorCodeAction = GetCodeDelegate(sms);
+                    channels.Add(sms);
+                }
+                break;
+
                 case TwoFactorChannel.DuoSecurity:
+                {
                     ClientWebSocket ws = null;
 
                     var duoChannel = new TwoFactorDuoChannel
@@ -279,77 +314,77 @@ namespace KeeperSecurity.Sdk
                             .Where(x => x != null)
                             .Select(x => x.Value)
                             .ToArray(),
-                        InvokeTwoFactorPushAction = async (action, duration) =>
+                    };
+                    duoChannel.InvokeTwoFactorCodeAction = GetCodeDelegate(duoChannel);
+                    duoChannel.InvokeTwoFactorPushAction = async (action) =>
+                    {
+                        var duoMode = "";
+                        switch (action)
                         {
-                            var duoMode = "";
-                            switch (action)
-                            {
-                                case TwoFactorPushAction.DuoPush:
-                                    duoMode = "push";
-                                    break;
-                                case TwoFactorPushAction.DuoTextMessage:
-                                    duoMode = "sms";
-                                    break;
-                                case TwoFactorPushAction.DuoVoiceCall:
-                                    duoMode = "phone";
-                                    break;
-                            }
-
-                            if (string.IsNullOrEmpty(duoMode)) return false;
-
-                            var duoRequest = new LoginCommand
-                            {
-                                username = loginRq.username,
-                                authResponse = loginRq.authResponse,
-                                twoFactorType = "one_time",
-                                twoFactorMode = duoMode,
-                            };
-                            var duoRs = await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(duoRequest);
-                            var isSuccess = SecondFactorErrorCodes.Contains(duoRs.resultCode);
-                            if (!isSuccess || action != TwoFactorPushAction.DuoPush || ws != null) return isSuccess;
-
-                            ws = new ClientWebSocket();
-                            _ = Task.Run(async () =>
-                                {
-                                    try
-                                    {
-                                        await ws.ConnectAsync(new Uri(loginRs.url), cancellationToken);
-                                        var buffer = new byte[1024];
-                                        var segment = new ArraySegment<byte>(buffer);
-
-                                        var rs = await ws.ReceiveAsync(segment, cancellationToken);
-                                        if (rs != null && rs.Count > 0)
-                                        {
-                                            var json = new byte[rs.Count];
-                                            Array.Copy(buffer, 0, json, 0, json.Length);
-                                            var notification = JsonUtils.ParseJson<NotificationEvent>(json);
-                                            if (!string.IsNullOrEmpty(notification.Passcode))
-                                            {
-                                                auth.PushToken.Push(new TwoFactorCode(channel, notification.Passcode, duration));
-                                            }
-                                        }
-
-                                        await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
-                                    }
-                                    catch (TaskCanceledException)
-                                    {
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Debug.WriteLine(e);
-                                    }
-                                    finally
-                                    {
-                                        ws.Dispose();
-                                        ws = null;
-                                    }
-                                },
-                                cancellationToken);
-
-                            return true;
+                            case TwoFactorPushAction.DuoPush:
+                                duoMode = "push";
+                                break;
+                            case TwoFactorPushAction.DuoTextMessage:
+                                duoMode = "sms";
+                                break;
+                            case TwoFactorPushAction.DuoVoiceCall:
+                                duoMode = "phone";
+                                break;
                         }
+
+                        if (string.IsNullOrEmpty(duoMode)) return;
+
+                        var duoRequest = new LoginCommand
+                        {
+                            username = loginRq.username,
+                            authResponse = loginRq.authResponse,
+                            twoFactorType = "one_time",
+                            twoFactorMode = duoMode,
+                        };
+                        var duoRs = await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(duoRequest);
+                        var isSuccess = SecondFactorErrorCodes.Contains(duoRs.resultCode);
+                        if (!isSuccess || action != TwoFactorPushAction.DuoPush || ws != null) return;
+
+                        ws = new ClientWebSocket();
+                        _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    await ws.ConnectAsync(new Uri(loginRs.url), cancellationToken);
+                                    var buffer = new byte[1024];
+                                    var segment = new ArraySegment<byte>(buffer);
+
+                                    var rs = await ws.ReceiveAsync(segment, cancellationToken);
+                                    if (rs != null && rs.Count > 0)
+                                    {
+                                        var json = new byte[rs.Count];
+                                        Array.Copy(buffer, 0, json, 0, json.Length);
+                                        var notification = JsonUtils.ParseJson<NotificationEvent>(json);
+                                        if (!string.IsNullOrEmpty(notification.Passcode))
+                                        {
+                                            auth.PushToken.Push(new TwoFactorCode(duoChannel.Channel, notification.Passcode, duoChannel.Duration));
+                                        }
+                                    }
+
+                                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
+                                }
+                                catch (TaskCanceledException)
+                                {
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e);
+                                }
+                                finally
+                                {
+                                    ws.Dispose();
+                                    ws = null;
+                                }
+                            },
+                            cancellationToken);
                     };
                     channels.Add(duoChannel);
+                }
                     break;
             }
 
@@ -453,29 +488,32 @@ namespace KeeperSecurity.Sdk
                     var channels = auth.PrepareTwoFactorChannels(loginRq, loginRs, tokenSource.Token);
                     if (channels != null && channels.Length > 0)
                     {
-                        while (true)
+
+                        var codeTaskSource = new TaskCompletionSource<TwoFactorCode>();
+                        bool Callback(TwoFactorCode code)
                         {
-                            var duoTokenTaskSource = new TaskCompletionSource<TwoFactorCode>();
+                            codeTaskSource.TrySetResult(code);
+                            return true;
+                        }
+                        auth.PushToken?.RegisterCallback(Callback);
 
-                            bool Callback(TwoFactorCode tfaCode)
+                        using (var cancelToken = new CancellationTokenSource())
+                        {
+                            var userInputTask = auth.Ui.WaitForTwoFactorCode(channels.ToArray(), cancelToken.Token);
+                            var codeTokenTask = codeTaskSource.Task;
+                            int index = Task.WaitAny(userInputTask, codeTokenTask);
+                            auth.PushToken?.RemoveCallback(Callback);
+                            if (index == 0)
                             {
-                                duoTokenTaskSource.TrySetResult(tfaCode);
-                                return true;
-                            }
-
-                            auth.PushToken?.RegisterCallback(Callback);
-                            using (var cancelToken = new CancellationTokenSource())
-                            {
-                                var userInputTask = auth.Ui.GetTwoFactorCode(channels[0].Channel, channels.ToArray(), cancelToken.Token);
-                                var duoTokenTask = duoTokenTaskSource.Task;
-                                int index = Task.WaitAny(userInputTask, duoTokenTask);
-                                if (index == 1)
+                                if (!await userInputTask)
                                 {
-                                    cancelToken.Cancel();
+                                    throw new KeeperCanceled();
                                 }
-
-                                var code = await (index == 0 ? userInputTask : duoTokenTask);
-                                auth.PushToken?.RemoveCallback(Callback);
+                            }
+                            else if (index == 1)
+                            {
+                                cancelToken.Cancel();
+                                var code = await codeTokenTask;
                                 if (code != null && !string.IsNullOrEmpty(code.Code))
                                 {
                                     var login2faRq = new LoginCommand
@@ -493,12 +531,9 @@ namespace KeeperSecurity.Sdk
                                         return await auth.ParseLoginResponse(password, login2faRq, login2faRs);
                                     }
                                 }
-                                else
-                                {
-                                    break;
-                                }
                             }
                         }
+
                     }
                 }
             }

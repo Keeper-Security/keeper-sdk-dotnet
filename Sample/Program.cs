@@ -64,7 +64,7 @@ namespace SampleSdkConsoleApp
                             {
                                 if (channel is IDeviceApprovalPushInfo pi)
                                 {
-                                    if (channel is IDeviceApprovalDuration dur)
+                                    if (channel is ITwoFactorDurationInfo dur)
                                     {
                                         dur.Duration = TwoFactorDuration.Every30Days;
                                     }
@@ -94,7 +94,7 @@ namespace SampleSdkConsoleApp
                             {
                                 if (channel is IDeviceApprovalOtpInfo oi)
                                 {
-                                    if (channel is IDeviceApprovalDuration dur)
+                                    if (channel is ITwoFactorDurationInfo dur)
                                     {
                                         dur.Duration = TwoFactorDuration.Every30Days;
                                     }
@@ -115,16 +115,25 @@ namespace SampleSdkConsoleApp
             return result;
         }
 
-        public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorChannel defaultChannel, ITwoFactorChannelInfo[] channels, CancellationToken token)
+        public Task<bool> WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token)
         {
             Console.WriteLine("\nTwo Factor Authentication\n");
 
-            return Task.Run(() =>
-            {
-                Console.Write("Enter 2FA Code: ");
-                var code = Console.ReadLine();
-                return new TwoFactorCode(defaultChannel, code, TwoFactorDuration.Forever);
-            }, token);
+            return Task.Run(async () =>
+                {
+                    Console.Write("Enter 2FA Code: ");
+                    var code = Console.ReadLine();
+                    if (string.IsNullOrEmpty(code))
+                    {
+                        if (channels[0] is ITwoFactorAppCodeInfo ci)
+                        {
+                            await ci.InvokeTwoFactorCodeAction(code);
+                        }
+                    }
+
+                    return true;
+                },
+                token);
         }
 
         public Task<string> GetMasterPassword(string username)

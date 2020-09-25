@@ -42,12 +42,12 @@ namespace KeeperSecurity.Sdk.UI
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
     }
 
-    public class DeviceApprovalTwoFactorAuth : IDeviceApprovalPushInfo, IDeviceApprovalOtpInfo, IDeviceApprovalDuration
+    public class TwoFactorTwoFactorAuth : IDeviceApprovalPushInfo, IDeviceApprovalOtpInfo, ITwoFactorDurationInfo
     {
         public DeviceApprovalChannel Channel { get; }
         public TwoFactorDuration Duration { get; set; }
 
-        public DeviceApprovalTwoFactorAuth()
+        public TwoFactorTwoFactorAuth()
         {
             Channel = DeviceApprovalChannel.TwoFactorAuth;
         }
@@ -63,12 +63,15 @@ namespace KeeperSecurity.Sdk.UI
             Channel = TwoFactorChannel.Authenticator;
             ChannelName = "totp";
             ApplicationName = "TOTP (Google/Microsoft Authenticator)";
+            Duration = TwoFactorDuration.EveryLogin;
         }
 
         public TwoFactorChannel Channel { get; }
         public string ApplicationName { get; }
         public string PhoneNumber { get; internal set; }
         public string ChannelName { get; }
+        public TwoFactorDuration Duration { get; set; }
+        public TwoFactorCodeActionDelegate InvokeTwoFactorCodeAction { get; internal set; }
     }
 
     public class RsaSecurIdTwoFactorChannel : ITwoFactorAppCodeInfo
@@ -78,12 +81,15 @@ namespace KeeperSecurity.Sdk.UI
             Channel = TwoFactorChannel.RSASecurID;
             ChannelName = "rsa";
             ApplicationName = "RSA SecurID";
+            Duration = TwoFactorDuration.EveryLogin;
         }
 
         public TwoFactorChannel Channel { get; }
         public string ChannelName { get; }
         public string ApplicationName { get; }
         public string PhoneNumber { get; internal set; }
+        public TwoFactorDuration Duration { get; set; }
+        public TwoFactorCodeActionDelegate InvokeTwoFactorCodeAction { get; internal set; }
     }
 
     public class TwoFactorDuoChannel : ITwoFactorAppCodeInfo, ITwoFactorPushInfo
@@ -93,6 +99,7 @@ namespace KeeperSecurity.Sdk.UI
             Channel = TwoFactorChannel.DuoSecurity;
             ChannelName = "duo";
             ApplicationName = "Duo Mobile App";
+            Duration = TwoFactorDuration.EveryLogin;
         }
 
         public TwoFactorChannel Channel { get; }
@@ -101,6 +108,8 @@ namespace KeeperSecurity.Sdk.UI
         public string PhoneNumber { get; internal set; }
         public TwoFactorPushAction[] SupportedActions { get; set; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
+        public TwoFactorDuration Duration { get; set; }
+        public TwoFactorCodeActionDelegate InvokeTwoFactorCodeAction { get; internal set; }
     }
 
     public class TwoFactorSmsChannel : ITwoFactorAppCodeInfo, ITwoFactorPushInfo
@@ -111,6 +120,7 @@ namespace KeeperSecurity.Sdk.UI
             ChannelName = "sms";
             ApplicationName = "Mobile SMS App";
             SupportedActions = new[] {TwoFactorPushAction.TextMessage};
+            Duration = TwoFactorDuration.EveryLogin;
         }
 
         public TwoFactorChannel Channel { get; }
@@ -119,6 +129,8 @@ namespace KeeperSecurity.Sdk.UI
         public TwoFactorPushAction[] SupportedActions { get; }
         public string PhoneNumber { get; internal set; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
+        public TwoFactorDuration Duration { get; set; }
+        public TwoFactorCodeActionDelegate InvokeTwoFactorCodeAction { get; internal set; }
     }
 
     public class TwoFactorKeeperDnaChannel : ITwoFactorAppCodeInfo, ITwoFactorPushInfo
@@ -129,12 +141,28 @@ namespace KeeperSecurity.Sdk.UI
             ChannelName = "dna";
             ApplicationName = "Keeper for Mobile";
             SupportedActions = new[] {TwoFactorPushAction.KeeperDna};
+            Duration = TwoFactorDuration.EveryLogin;
         }
 
         public TwoFactorChannel Channel { get; }
         public string ChannelName { get; }
         public string ApplicationName { get; }
         public string PhoneNumber { get; internal set; }
+        public TwoFactorPushAction[] SupportedActions { get; }
+        public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
+        public TwoFactorDuration Duration { get; set; }
+        public TwoFactorCodeActionDelegate InvokeTwoFactorCodeAction { get; internal set; }
+    }
+
+    public class TwoFactorSecurityKeyChannel : ITwoFactorPushInfo
+    {
+        public TwoFactorSecurityKeyChannel()
+        {
+            Channel = TwoFactorChannel.SecurityKey;
+            SupportedActions = new[] {TwoFactorPushAction.SecurityKey};
+        }
+
+        public TwoFactorChannel Channel { get; }
         public TwoFactorPushAction[] SupportedActions { get; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
     }
@@ -168,6 +196,7 @@ namespace KeeperSecurity.Sdk.UI
             {TwoFactorPushAction.TextMessage, "sms"},
             {TwoFactorPushAction.KeeperDna, "dna"},
             {TwoFactorPushAction.Email, "email"},
+            {TwoFactorPushAction.SecurityKey, "key"},
         };
 
         /// <summary>

@@ -21,10 +21,13 @@ namespace KeeperSecurity.Sdk
         {
             this.command = command;
         }
+
         [DataMember(Name = "command", EmitDefaultValue = false)]
         public string command;
+
         [DataMember(Name = "locale", EmitDefaultValue = false)]
         public string locale = "en_US";
+
         [DataMember(Name = "client_version", EmitDefaultValue = false)]
         public string clientVersion;
     }
@@ -38,10 +41,13 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "result", EmitDefaultValue = false)]
         public string result;
+
         [DataMember(Name = "result_code", EmitDefaultValue = false)]
         public string resultCode;
+
         [DataMember(Name = "message", EmitDefaultValue = false)]
         public string message;
+
         [DataMember(Name = "command", EmitDefaultValue = false)]
         public string command;
 
@@ -79,22 +85,31 @@ namespace KeeperSecurity.Sdk
         public LoginCommand() : base("login")
         {
         }
+
         [DataMember(Name = "version")]
         public int version = 2;
+
         [DataMember(Name = "include")]
         public string[] include;
+
         [DataMember(Name = "auth_response")]
         public string authResponse;
+
         [DataMember(Name = "username")]
         public string username;
+
         [DataMember(Name = "2fa_type", EmitDefaultValue = false)]
         public string twoFactorType;
+
         [DataMember(Name = "2fa_token", EmitDefaultValue = false)]
         public string twoFactorToken;
+
         [DataMember(Name = "2fa_mode", EmitDefaultValue = false)]
         public string twoFactorMode;
+
         [DataMember(Name = "device_token_expire_days", EmitDefaultValue = false)]
         public int? deviceTokenExpiresInDays;
+
         [DataMember(Name = "platform_device_token", EmitDefaultValue = false)]
         public string platformDeviceToken;
     }
@@ -131,10 +146,13 @@ namespace KeeperSecurity.Sdk
     {
         [DataMember(Name = "session_token")]
         public string sessionToken;
+
         [DataMember(Name = "device_token")]
         public string deviceToken;
+
         [DataMember(Name = "dt_scope")]
         public string deviceTokenScope;
+
         /*
         "two_factor_channel_sms" - Users receive a TOTP code via text message.
         "two_factor_channel_voice" - Users receive a TOTP code via phone call.
@@ -146,8 +164,10 @@ namespace KeeperSecurity.Sdk
         */
         [DataMember(Name = "channel")]
         public string channel;
+
         [DataMember(Name = "capabilities")]
         public string[] capabilities;
+
         /*  DUO account capabilities
          *  "push"    
          *  "sms"
@@ -155,11 +175,13 @@ namespace KeeperSecurity.Sdk
          *  "mobile_otp"   ????
          */
         [DataMember(Name = "phone")]
-        public string phone;    // Phone number associated with Two Factor Method
+        public string phone; // Phone number associated with Two Factor Method
+
         [DataMember(Name = "url")]
-        public string url;      // websocket URL associated with Two Factor Method
+        public string url; // websocket URL associated with Two Factor Method
+
         [DataMember(Name = "enroll_url")]
-        public string enrollUrl;      // requires 2FA enrollment
+        public string enrollUrl; // requires 2FA enrollment
 
         [DataMember(Name = "client_key")]
         public string clientKey;
@@ -172,11 +194,13 @@ namespace KeeperSecurity.Sdk
 
         [DataMember(Name = "password_rules_intro", EmitDefaultValue = false)]
         public string passwordRulesIntro;
+
         [DataMember(Name = "password_rules", EmitDefaultValue = false)]
         public PasswordRule[] passwordRules;
 
         [DataMember(Name = "iterations")]
         public int? iterations;
+
         [DataMember(Name = "salt")]
         public string salt;
     }
@@ -184,7 +208,9 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     public class AuthenticatedCommand : KeeperApiCommand
     {
-        public AuthenticatedCommand(string command) : base(command) { }
+        public AuthenticatedCommand(string command) : base(command)
+        {
+        }
 
         [DataMember(Name = "device_id", EmitDefaultValue = false)]
         public string deviceId;
@@ -199,7 +225,9 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     public class SetClientKeyCommand : AuthenticatedCommand
     {
-        public SetClientKeyCommand() : base("set_client_key") { }
+        public SetClientKeyCommand() : base("set_client_key")
+        {
+        }
 
         [DataMember(Name = "client_key")]
         public string clientKey;
@@ -215,7 +243,9 @@ namespace KeeperSecurity.Sdk
     [DataContract]
     public class GetPushInfoCommand : AuthenticatedCommand
     {
-        public GetPushInfoCommand() : base("get_push_info") { }
+        public GetPushInfoCommand() : base("get_push_info")
+        {
+        }
 
         [DataMember(Name = "type", EmitDefaultValue = false)]
         public string type;
@@ -228,4 +258,57 @@ namespace KeeperSecurity.Sdk
         public string url;
     }
 
+    [DataContract]
+    public class SecurityKeyAuthenticateRequest
+    {
+        [DataMember(Name = "version")]
+        public string version;
+
+        [DataMember(Name = "appId")]
+        public string appId;
+
+        [DataMember(Name = "challenge")]
+        public string challenge;
+
+        [DataMember(Name = "keyHandle")]
+        public string keyHandle;
+    }
+
+    [DataContract]
+    public class SecurityKeyRequest
+    {
+        [DataMember(Name = "authenticateRequests")]
+        public SecurityKeyAuthenticateRequest[] authenticateRequests;
+    }
+
+    [DataContract]
+    public class SecurityKeyClientData
+    {
+        public const string U2F_REGISTER = "navigator.id.finishEnrollment";
+        public const string U2F_SIGN = "navigator.id.getAssertion";
+
+        [DataMember(Name = "typ", Order = 1)]
+        public string dataType;
+        [DataMember(Name = "challenge", Order = 2)]
+        public string challenge;
+        [DataMember(Name = "origin", Order = 3)]
+        public string origin;
+    }
+
+    public class SecurityKeySignature
+    {
+        [DataMember(Name = "clientData", Order = 1)]
+        public string clientData;
+        [DataMember(Name = "signatureData", Order = 2)]
+        public string signatureData;
+        [DataMember(Name = "keyHandle", Order = 3)]
+        public string keyHandle;
+    }
+
+    public class U2FSignature
+    {
+        public byte[] clientData;
+        public byte[] signatureData;
+        public byte[] keyHandle;
+    }
 }

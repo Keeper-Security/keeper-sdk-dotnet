@@ -12,6 +12,7 @@ using KeeperSecurity.Sdk.UI;
 using Org.BouncyCastle.Crypto.Parameters;
 using Push;
 using SsoCloud;
+using Exception = System.Exception;
 using TwoFactorChannel = KeeperSecurity.Sdk.UI.TwoFactorChannel;
 
 namespace KeeperSecurity.Sdk
@@ -131,6 +132,8 @@ namespace KeeperSecurity.Sdk
             get => _auth.DeviceToken;
             set => _auth.DeviceToken = value;
         }
+
+        public string V2TwoFactorToken { get; set; }
 
         public IAuthUI Ui => _auth.Ui;
         public IConfigurationStorage Storage => _auth.Storage;
@@ -520,7 +523,6 @@ namespace KeeperSecurity.Sdk
                         }
 
                         auth.ResumeSession = false;
-                        auth.CloneCode = null;
                         var newRequest = new StartLoginRequest
                         {
                             Username = auth.Username,
@@ -572,18 +574,33 @@ namespace KeeperSecurity.Sdk
                 EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
                 MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
                 Username = auth.Username,
-                LoginMethod = method
+                LoginMethod = method,
             };
+            if (auth.ResumeSession && auth.CloneCode != null)
+            {
+                request.CloneCode = ByteString.CopyFrom(auth.CloneCode);
+            }
+
             return await auth.ExecuteStartLogin(request);
         }
 
         internal static async Task<AuthContextV3> StartLogin(this AuthV3 auth, bool forceNewLogin = false, LoginMethod loginMethod = LoginMethod.ExistingAccount)
         {
             var attempt = 0;
+
             while (true)
             {
                 attempt++;
                 await auth.EnsureDeviceTokenIsRegistered(auth.Username);
+                if (auth.Ui is IAuthInfoUI infoUi)
+                {
+                    infoUi.SelectedDevice(auth.DeviceToken.Base64UrlEncode());
+                }
+
+                if (auth.ResumeSession && auth.CloneCode == null)
+                {
+                    auth.CloneCode = new byte[] { 0 };
+                }
 
                 try
                 {
@@ -594,7 +611,7 @@ namespace KeeperSecurity.Sdk
                         LoginType = auth.AlternatePassword ? LoginType.Alternate : LoginType.Normal,
                         LoginMethod = loginMethod,
                         MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
-                        ForceNewLogin = forceNewLogin
+                        ForceNewLogin = forceNewLogin,
                     };
                     if (!forceNewLogin && auth.ResumeSession && loginMethod == LoginMethod.ExistingAccount && auth.CloneCode != null)
                     {
@@ -603,6 +620,10 @@ namespace KeeperSecurity.Sdk
                     else
                     {
                         request.Username = auth.Username;
+                        if (!string.IsNullOrEmpty(auth.V2TwoFactorToken))
+                        {
+                            request.V2TwoFactorToken = auth.V2TwoFactorToken;
+                        }
                     }
 
                     var context = await auth.ExecuteStartLogin(request);
@@ -862,7 +883,7 @@ namespace KeeperSecurity.Sdk
             var push = new DeviceApprovalKeeperPushAction();
             push.InvokeDeviceApprovalPushAction = async () => { await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushKeeper, loginToken); };
 
-            var otp = new DeviceApprovalTwoFactorAuth();
+            var otp = new TwoFactorTwoFactorAuth();
             otp.InvokeDeviceApprovalPushAction = async () => { await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken, SdkExpirationToKeeper(otp.Duration)); };
             otp.InvokeDeviceApprovalOtpAction = async (oneTimePassword) => { await auth.ExecuteDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken, oneTimePassword, SdkExpirationToKeeper(otp.Duration)); };
 
@@ -951,19 +972,19 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        private static TwoFactorValueType SdkTwoFactorChannelToKeeper(TwoFactorChannel channel)
+        private static TwoFactorValueType TwoFactorChannelToValue(TwoFactorChannelType channel)
         {
             switch (channel)
             {
-                case TwoFactorChannel.KeeperDNA:
+                case TwoFactorChannelType.TwoFaCtDna:
                     return TwoFactorValueType.TwoFaCodeDna;
-                case TwoFactorChannel.Authenticator:
+                case TwoFactorChannelType.TwoFaCtTotp:
                     return TwoFactorValueType.TwoFaCodeTotp;
-                case TwoFactorChannel.DuoSecurity:
+                case TwoFactorChannelType.TwoFaCtDuo:
                     return TwoFactorValueType.TwoFaCodeDuo;
-                case TwoFactorChannel.RSASecurID:
+                case TwoFactorChannelType.TwoFaCtRsa:
                     return TwoFactorValueType.TwoFaCodeRsa;
-                case TwoFactorChannel.TextMessage:
+                case TwoFactorChannelType.TwoFaCtSms:
                     return TwoFactorValueType.TwoFaCodeSms;
                 default:
                     return TwoFactorValueType.TwoFaCodeNone;
@@ -1000,16 +1021,17 @@ namespace KeeperSecurity.Sdk
             IEnumerable<TwoFactorChannelInfo> channels)
         {
             var resumeWithToken = loginToken;
-            var firstChannel = TwoFactorChannel.Other;
-            var availableChannels = new List<ITwoFactorChannelInfo>();
 
-            var lastUsedDuration = TwoFactorDuration.Every30Days;
-            var lastUsedChannel = firstChannel;
+            ITwoFactorPushInfo lastUsedChannel = null;
 
-            TwoFactorPushActionDelegate GetActionDelegate(TwoFactorChannel channel, TwoFactorChannelInfo info)
+            var loginTaskSource = new TaskCompletionSource<bool>();
+
+            TwoFactorPushActionDelegate GetActionDelegate(ITwoFactorPushInfo channel, TwoFactorChannelInfo info)
             {
-                return async (action, duration) =>
+                return async (action) =>
                 {
+                    var duration = channel is ITwoFactorDurationInfo dur ? dur.Duration : TwoFactorDuration.EveryLogin;
+
                     var rq = new TwoFactorSendPushRequest
                     {
                         ChannelUid = info.ChannelUid,
@@ -1017,48 +1039,68 @@ namespace KeeperSecurity.Sdk
                         EncryptedLoginToken = loginToken,
                         PushType = SdkPushActionToKeeper(action)
                     };
-                    try
-                    {
-                        await auth.ExecutePushAction(rq);
-                        lastUsedDuration = duration;
-                        lastUsedChannel = channel;
-                        return true;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e);
-                        return false;
-                    }
+                    await auth.ExecutePushAction(rq);
+                    lastUsedChannel = channel;
                 };
             }
 
+            TwoFactorCodeActionDelegate GetCodeDelegate(ITwoFactorAppCodeInfo channel, TwoFactorChannelInfo info)
+            {
+                return async (code) =>
+                {
+                    var duration = channel is ITwoFactorDurationInfo dur ? dur.Duration : TwoFactorDuration.EveryLogin;
 
+                    var request = new TwoFactorValidateRequest
+                    {
+                        EncryptedLoginToken = loginToken,
+                        ExpireIn = SdkExpirationToKeeper(duration),
+                        ValueType = TwoFactorChannelToValue(info.ChannelType),
+                        Value = code,
+                    };
+                    var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
+                    resumeWithToken = validateRs.EncryptedLoginToken;
+                    loginTaskSource.TrySetResult(true);
+                };
+            }
 
+            var availableChannels = new List<ITwoFactorChannelInfo>();
             foreach (var ch in channels)
             {
                 switch (ch.ChannelType)
                 {
                     case TwoFactorChannelType.TwoFaCtTotp:
-                        availableChannels.Add(new AuthenticatorTwoFactorChannel());
-                        break;
+                    {
+                        var totp = new AuthenticatorTwoFactorChannel();
+                        totp.InvokeTwoFactorCodeAction = GetCodeDelegate(totp, ch);
+                        availableChannels.Add(totp);
+                    }
+                    break;
 
                     case TwoFactorChannelType.TwoFaCtRsa:
-                        availableChannels.Add(new RsaSecurIdTwoFactorChannel());
-                        break;
+                    {
+                        var rsa = new RsaSecurIdTwoFactorChannel();
+                        rsa.InvokeTwoFactorCodeAction = GetCodeDelegate(rsa, ch);
+                        availableChannels.Add(rsa);
+                    }
+                    break;
 
                     case TwoFactorChannelType.TwoFaCtSms:
-                        availableChannels.Add(new TwoFactorSmsChannel
+                    {
+                        var sms = new TwoFactorSmsChannel
                         {
-                            PhoneNumber =  ch.PhoneNumber,
-                            InvokeTwoFactorPushAction = GetActionDelegate(TwoFactorChannel.TextMessage, ch)
-                        });
+                            PhoneNumber = ch.PhoneNumber,
+                        };
+                        sms.InvokeTwoFactorPushAction = GetActionDelegate(sms, ch);
+                        sms.InvokeTwoFactorCodeAction = GetCodeDelegate(sms, ch);
+                        availableChannels.Add(sms);
+                    }
                         break;
 
                     case TwoFactorChannelType.TwoFaCtDuo:
+                    {
                         var duoTfa = new TwoFactorDuoChannel
                         {
                             PhoneNumber = ch.PhoneNumber,
-                            InvokeTwoFactorPushAction = GetActionDelegate(TwoFactorChannel.DuoSecurity, ch),
                             SupportedActions = (ch.Capabilities ?? Enumerable.Empty<string>())
                                 .Select<string, TwoFactorPushAction?>(x =>
                                 {
@@ -1078,111 +1120,103 @@ namespace KeeperSecurity.Sdk
                                 .Select(x => x.Value)
                                 .ToArray()
                         };
-
+                        duoTfa.InvokeTwoFactorPushAction = GetActionDelegate(duoTfa, ch);
+                        duoTfa.InvokeTwoFactorCodeAction = GetCodeDelegate(duoTfa, ch);
                         availableChannels.Add(duoTfa);
+                    }
                         break;
 
                     case TwoFactorChannelType.TwoFaCtDna:
-                        availableChannels.Add(new TwoFactorKeeperDnaChannel
-                        {
-                            InvokeTwoFactorPushAction = GetActionDelegate(TwoFactorChannel.KeeperDNA, ch)
-                        });
+                    {
+                        var dna2fa = new TwoFactorKeeperDnaChannel();
+                        dna2fa.InvokeTwoFactorPushAction = GetActionDelegate(dna2fa, ch);
+                        dna2fa.InvokeTwoFactorCodeAction = GetCodeDelegate(dna2fa, ch);
+                        availableChannels.Add(dna2fa);
+                    }
                         break;
 
-                    case TwoFactorChannelType.TwoFaCtKeeper:
                     case TwoFactorChannelType.TwoFaCtU2F:
-                    case TwoFactorChannelType.TwoFaCtWebauthn:
-                        break;
-                }
+                        if (auth.Ui is IAuthSecurityKeyUI keyUi)
+                        {
+                            try
+                            {
+                                var rqs = JsonUtils.ParseJson<SecurityKeyRequest>(Encoding.UTF8.GetBytes(ch.Challenge));
+                                var key2fa = new TwoFactorSecurityKeyChannel();
+                                key2fa.InvokeTwoFactorPushAction = (action) =>
+                                {
+                                    return Task.Run(async () =>
+                                    {
+                                        var signature = await keyUi.AuthenticateRequests(rqs.authenticateRequests);
+                                        var request = new TwoFactorValidateRequest
+                                        {
+                                            EncryptedLoginToken = loginToken,
+                                            ExpireIn = TwoFactorExpiration.TwoFaExpImmediately,
+                                            ValueType = ch.ChannelType == TwoFactorChannelType.TwoFaCtWebauthn ? TwoFactorValueType.TwoFaRespWebauthn : TwoFactorValueType.TwoFaRespU2F,
+                                            Value = signature,
+                                        };
+                                        var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
+                                        resumeWithToken = validateRs.EncryptedLoginToken;
+                                        loginTaskSource.TrySetResult(true);
+                                    });
+                                };
+                                availableChannels.Add(key2fa);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                            }
+                        }
 
-                var chi = availableChannels.FirstOrDefault(x => x.Channel != TwoFactorChannel.Other);
-                if (chi != null)
-                {
-                    firstChannel = chi.Channel;
+                        break;
+                    case TwoFactorChannelType.TwoFaCtWebauthn:
+                    case TwoFactorChannelType.TwoFaCtKeeper:
+                        break;
                 }
             }
 
-            while (true)
+            bool NotificationCallback(WssClientResponse rs)
             {
-
-                var loginTaskSource = new TaskCompletionSource<bool>();
-                var codeTaskSource = new TaskCompletionSource<TwoFactorCode>();
-
-                bool NotificationCallback(WssClientResponse rs)
+                if (loginTaskSource.Task.IsCompleted) return true;
+                var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
+                if (message.Event != "received_totp") return false;
+                if (!string.IsNullOrEmpty(message.EncryptedLoginToken))
                 {
-                    if (loginTaskSource.Task.IsCompleted) return true;
-                    var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
-                    if (message.Event != "received_totp") return false;
-                    if (!string.IsNullOrEmpty(message.EncryptedLoginToken))
-                    {
-                        resumeWithToken = ByteString.CopyFrom(message.EncryptedLoginToken.Base64UrlDecode());
-                        loginTaskSource.TrySetResult(true);
-                        return true;
-                    }
-                    if (!string.IsNullOrEmpty(message.Passcode))
-                    {
-                        codeTaskSource.TrySetResult(new TwoFactorCode(lastUsedChannel, message.Passcode, lastUsedDuration));
-                        return true;
-                    }
-
-                    return false;
+                    resumeWithToken = ByteString.CopyFrom(message.EncryptedLoginToken.Base64UrlDecode());
+                    loginTaskSource.TrySetResult(true);
+                    return true;
                 }
 
-                auth.WebSocketChannel?.RegisterCallback(NotificationCallback);
-
-                using (var tokenSource = new CancellationTokenSource())
+                if (!string.IsNullOrEmpty(message.Passcode) && lastUsedChannel is ITwoFactorAppCodeInfo codeInfo)
                 {
-                    var userTask = auth.Ui.GetTwoFactorCode(firstChannel, availableChannels.ToArray(), tokenSource.Token);
-                    int index = Task.WaitAny(userTask, loginTaskSource.Task, codeTaskSource.Task);
-                    auth.WebSocketChannel?.RemoveCallback(NotificationCallback);
-                    if (index == 0 || index == 2)
+                    Task.Run(async () =>
                     {
-                        var twoFaCode = await (index == 0 ? userTask : codeTaskSource.Task);
-                        if (index == 2)
-                        {
-                            tokenSource.Cancel();
-                        }
-
-                        if (twoFaCode == null || string.IsNullOrEmpty(twoFaCode.Code))
-                            throw new KeeperCanceled();
-
-                        var expiration = SdkExpirationToKeeper(twoFaCode.Duration);
-                        var tfaType = SdkTwoFactorChannelToKeeper(twoFaCode.Channel);
-                        var request = new TwoFactorValidateRequest
-                        {
-                            EncryptedLoginToken = loginToken,
-                            ExpireIn = expiration,
-                            ValueType = tfaType,
-                            Value = twoFaCode.Code,
-                        };
                         try
                         {
-                            var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
-                            resumeWithToken = validateRs.EncryptedLoginToken;
-                            break;
-                        }
-                        catch (KeeperAuthFailed)
-                        {
+                            await codeInfo.InvokeTwoFactorCodeAction(message.Passcode);
                         }
                         catch (Exception e)
                         {
-                            if (e is KeeperApiException kae && kae.Code == "two_factor_code_invalid")
-                            {
-                            }
-                            else
-                            {
-                                Debug.WriteLine(e.Message);
-                                tokenSource.Cancel();
-                                throw;
-                            }
+                            Debug.WriteLine(e);
                         }
+                    });
+                }
 
-                    }
-                    else
-                    {
-                        tokenSource.Cancel();
-                        break;
-                    }
+                return false;
+            }
+
+            auth.WebSocketChannel?.RegisterCallback(NotificationCallback);
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                var userTask = auth.Ui.WaitForTwoFactorCode(availableChannels.ToArray(), tokenSource.Token);
+                int index = Task.WaitAny(userTask, loginTaskSource.Task);
+                auth.WebSocketChannel?.RemoveCallback(NotificationCallback);
+                if (index == 0)
+                {
+                    if (!await userTask) throw new KeeperCanceled();
+                }
+                else
+                {
+                    tokenSource.Cancel();
                 }
             }
 
