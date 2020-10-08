@@ -145,18 +145,11 @@ namespace Commander
         private bool NotificationCallback(NotificationEvent evt)
         {
             _vault.OnNotificationReceived(evt);
-            if (string.Compare(evt.Event, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) == 0)
-            {
-                _accountSummary = null;
-                if (!string.IsNullOrEmpty(evt.EncryptedDeviceToken))
-                {
-                    Console.WriteLine($"New notification arrived for Device ID: {TokenToString(evt.EncryptedDeviceToken.Base64UrlDecode())}");
-                }
-                else
-                {
-                    Console.WriteLine("New notification arrived.");
-                }
-            }
+            if (string.Compare(evt.Event, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) != 0) return false;
+            _accountSummary = null;
+            Console.WriteLine(!string.IsNullOrEmpty(evt.EncryptedDeviceToken) 
+                ? $"New notification arrived for Device ID: {TokenToString(evt.EncryptedDeviceToken.Base64UrlDecode())}" 
+                : "New notification arrived.");
 
             return false;
         }
@@ -187,10 +180,7 @@ namespace Commander
                 _vault.TryGetFolder(_currentFolder, out node);
             }
 
-            if (node == null)
-            {
-                node = _vault.RootFolder;
-            }
+            node ??= _vault.RootFolder;
 
             if (options.Details)
             {
@@ -544,29 +534,21 @@ namespace Commander
 
         private string DeviceStatusToString(DeviceStatus status)
         {
-            switch (status)
+            return status switch
             {
-                case DeviceStatus.DeviceOk:
-                    return "OK";
-                case DeviceStatus.DeviceNeedsApproval:
-                    return "Need Approval";
-                case DeviceStatus.DeviceDisabledByUser:
-                    return "Disabled";
-                case DeviceStatus.DeviceLockedByAdmin:
-                    return "Locked";
-                default:
-                    return "";
-            }
+                DeviceStatus.DeviceOk => "OK",
+                DeviceStatus.DeviceNeedsApproval => "Need Approval",
+                DeviceStatus.DeviceDisabledByUser => "Disabled",
+                DeviceStatus.DeviceLockedByAdmin => "Locked",
+                _ => ""
+            };
         }
 
         private async Task ThisDeviceCommand(ThisDeviceOptions arguments)
         {
             if (!(_auth.AuthContext is AuthContextV3)) return;
 
-            if (_accountSummary == null)
-            {
-                _accountSummary = await _auth.LoadAccountSummary();
-            }
+            _accountSummary ??= await _auth.LoadAccountSummary();
 
             var device = _accountSummary?.Devices
                 .FirstOrDefault(x => x.EncryptedDeviceToken.ToByteArray().SequenceEqual(_auth.AuthContext.DeviceToken));
@@ -585,14 +567,12 @@ namespace Commander
                     Console.WriteLine();
                     Console.WriteLine("{0, 20}: {1}", "Device Name", device.DeviceName);
                     Console.WriteLine("{0, 20}: {1}", "Client Version", device.ClientVersion);
-                    Console.WriteLine("{0, 20}: {1}", "Has Data Key", device.EncryptedDataKey.Length > 0);
+                    Console.WriteLine("{0, 20}: {1}", "Data Key Present", device.EncryptedDataKeyPresent);
                     Console.WriteLine("{0, 20}: {1}", "IP Auto Approve", !_accountSummary.Settings.IpDisableAutoApprove);
                     Console.WriteLine("{0, 20}: {1}", "Persistent Login", _accountSummary.Settings.PersistentLogin);
-
-                    var uc = _auth.Storage.Users.Get(_auth.AuthContext.Username);
-                    if (uc?.LastDevice?.LogoutTimer != null)
+                    if (_accountSummary.Settings.LogoutTimer > 1000 * 60 * 2)
                     {
-                        Console.WriteLine("{0, 20}: {1}", "Logout Timeout", uc.LastDevice.LogoutTimer);
+                        Console.WriteLine("{0, 20}: {1} minutes", "Logout Timeout", _accountSummary.Settings.LogoutTimer / 1000 / 60);
                     }
 
                     Console.WriteLine();
@@ -621,7 +601,7 @@ namespace Commander
 
                 case "register":
                 {
-                    if (device.EncryptedDataKey.Length == 0)
+                    if (!device.EncryptedDataKeyPresent)
                     {
                         await _auth.RegisterDataKeyForDevice(device);
                     }
@@ -665,18 +645,6 @@ namespace Commander
                         if (int.TryParse(arguments.Parameter, out var timeout))
                         {
                             await _auth.SetSessionInactivityTimeout(timeout);
-                            var uc = _auth.Storage.Users.Get(_auth.AuthContext.Username);
-                            if (uc?.LastDevice != null && uc.LastDevice.LogoutTimer != timeout)
-                            {
-                                var userConf = new UserConfiguration(uc)
-                                {
-                                    LastDevice = new UserDeviceConfiguration(uc.LastDevice)
-                                    {
-                                        LogoutTimer = timeout
-                                    }
-                                };
-                                _auth.Storage.Users.Put(userConf);
-                            }
                         }
                         else
                         {
@@ -696,7 +664,7 @@ namespace Commander
 
         private async Task ShareDatakeyCommand(string _)
         {
-            if (!(_auth.AuthContext is AuthContextV3 contextV3)) return;
+            if (!(_auth.AuthContext is AuthContextV3)) return;
             if (_auth.AuthContext.Settings?.shareDatakeyWithEccPublicKey != true) 
             {
                 Console.WriteLine("Data key sharing is not requested.");
@@ -737,10 +705,7 @@ namespace Commander
                 _accountSummary = null;
             }
 
-            if (_accountSummary == null)
-            {
-                _accountSummary = await _auth.LoadAccountSummary();
-            }
+            _accountSummary ??= await _auth.LoadAccountSummary();
 
             if (_accountSummary == null)
             {
@@ -774,7 +739,7 @@ namespace Commander
                         device.ClientVersion,
                         TokenToString(device.EncryptedDeviceToken.ToByteArray()),
                         DeviceStatusToString(device.DeviceStatus),
-                        device.EncryptedDataKey.Length > 0 ? "Yes" : "No"
+                        device.EncryptedDataKeyPresent ? "Yes" : "No"
                     });
                 }
 
@@ -999,13 +964,13 @@ namespace Commander
         public string Pattern { get; set; }
     }
 
-    class TreeCommandOptions
+    internal class TreeCommandOptions
     {
         [Value(0, Required = false, MetaName = "folder", HelpText = "folder path or UID")]
         public string Folder { get; set; }
     }
 
-    class EditRecord
+    internal class EditRecord
     {
         [Option("login", Required = false, HelpText = "login name")]
         public string Login { get; set; }

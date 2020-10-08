@@ -41,7 +41,7 @@ namespace Commander
                 var ui = new Ui();
                 var auth = new Auth(ui, storage);
                 auth.Endpoint.DeviceName = "Commander C#";
-                auth.Endpoint.ClientVersion = "w15.0.0";
+                auth.Endpoint.ClientVersion = "c15.0.0";
                 var notConnected = new NotConnectedCliContext(auth);
                 cliContext = new CliContext
                 {
@@ -163,24 +163,48 @@ namespace Commander
         {
             public Func<string, string> UsePassword { get; set; }
 
-            public async Task<string> GetMasterPassword(string username)
+            public async Task<bool> WaitForUserPassword(IPasswordInfo info, CancellationToken token)
             {
                 string password = null;
                 if (UsePassword != null)
                 {
-                    password = UsePassword(username);
+                    password = UsePassword(info.Username);
                 }
 
-                if (string.IsNullOrEmpty(password))
+                if (!string.IsNullOrEmpty(password))
+                {
+                    try
+                    {
+                        await info.InvokePasswordActionDelegate(password);
+                    }
+                    catch (KeeperAuthFailed)
+                    {
+                    }
+                }
+
+                while (true)
                 {
                     Console.Write("\nEnter Master Password: ");
                     password = await InputManager.ReadLine(new ReadLineParameters
                     {
                         IsSecured = true
                     });
+                    if (string.IsNullOrEmpty(password)) return false;
+                    try
+                    {
+                        await info.InvokePasswordActionDelegate(password);
+                        break;
+                    }
+                    catch (KeeperAuthFailed)
+                    {
+                        Console.WriteLine($"Invalid password");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                 }
-
-                return password;
+                return true;
             }
 
             public async Task<bool> Confirmation(string information)
@@ -237,15 +261,12 @@ namespace Commander
 
             private static string DurationToText(TwoFactorDuration duration)
             {
-                switch (duration)
+                return duration switch
                 {
-                    case TwoFactorDuration.EveryLogin:
-                        return "never";
-                    case TwoFactorDuration.Forever:
-                        return "forever";
-                    default:
-                        return $"{(int) duration} days";
-                }
+                    TwoFactorDuration.EveryLogin => "never",
+                    TwoFactorDuration.Forever => "forever",
+                    _ => $"{(int) duration} days"
+                };
             }
 
             private static bool TryParseTextToDuration(string text, out TwoFactorDuration duration)
@@ -475,8 +496,8 @@ namespace Commander
                         }
                     }
 
-                    const string TwoFactorDurationPrefix = "2fa_duration";
-                    Console.Write($"\"{TwoFactorDurationPrefix}=<duration>\" to change 2FA token persistence. ");
+                    const string twoFactorDurationPrefix = "2fa_duration";
+                    Console.Write($"\"{twoFactorDurationPrefix}=<duration>\" to change 2FA token persistence. ");
                     var dur = Enum
                         .GetValues(typeof(TwoFactorDuration))
                         .OfType<TwoFactorDuration>()
@@ -505,9 +526,9 @@ namespace Commander
                         }
 
                         Task action = null;
-                        if (answer.StartsWith($"{TwoFactorDurationPrefix}=", StringComparison.CurrentCultureIgnoreCase))
+                        if (answer.StartsWith($"{twoFactorDurationPrefix}=", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            TryParseTextToDuration(answer.Substring(TwoFactorDurationPrefix.Length + 1), out duration);
+                            TryParseTextToDuration(answer.Substring(twoFactorDurationPrefix.Length + 1), out duration);
                         }
                         else if (answer.StartsWith("email_", StringComparison.InvariantCultureIgnoreCase))
                         {
@@ -595,47 +616,61 @@ namespace Commander
                 return deviceApprovalTask.Task;
             }
 
-            public Task<string> GetSsoToken(string url, bool isCloudSso)
+            public Task<bool> WaitForSsoToken(ISsoTokenActionInfo actionInfo, CancellationToken token)
             {
-                Console.WriteLine($"Complete {(isCloudSso ? "Cloud" : "OnSite")} SSO login");
-                Console.WriteLine($"\nLogin Url:\n\n{url}\n");
-                var ts = new TaskCompletionSource<string>();
+                Console.WriteLine($"Complete {(actionInfo.IsCloudSso ? "Cloud" : "OnSite")} SSO login");
+                Console.WriteLine($"\nLogin Url:\n\n{actionInfo.SsoLoginUrl}\n");
+                var ts = new TaskCompletionSource<bool>();
                 _ = Task.Run(async () =>
                 {
-                    while (!ts.Task.IsCompleted)
+                    Task<string> readTask = null;
+                    var registration = token.Register(() =>
                     {
-                        Console.WriteLine("Type \"clipboard\" to get token from the clipboard or \"cancel\"");
-                        Console.Write("> ");
-                        var answer = await InputManager.ReadLine();
-                        switch (answer.ToLowerInvariant())
+                        ts.SetCanceled();
+                        InputManager.InterruptReadTask(readTask);
+                    });
+                    try
+                    {
+                        while (!ts.Task.IsCompleted)
                         {
-                            case "clipboard":
-                                var token = "";
-                                var thread = new Thread(() => { token = Clipboard.GetText(); });
-                                thread.SetApartmentState(ApartmentState.STA);
-                                thread.Start();
-                                thread.Join();
-                                if (string.IsNullOrEmpty(token))
-                                {
-                                    Console.WriteLine("Clipboard is empty");
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"Token:\n{token}\n\nType \"yes\" to accept this token <Enter> to discard");
-                                    Console.Write("> ");
-                                    answer = await InputManager.ReadLine();
-                                    if (answer == "yes")
+                            Console.WriteLine("Type \"clipboard\" to get token from the clipboard or \"cancel\"");
+                            Console.Write("> ");
+                            readTask = InputManager.ReadLine();
+                            var answer = await readTask;
+                            switch (answer.ToLowerInvariant())
+                            {
+                                case "clipboard":
+                                    var ssoToken = "";
+                                    var thread = new Thread(() => { ssoToken = Clipboard.GetText(); });
+                                    thread.SetApartmentState(ApartmentState.STA);
+                                    thread.Start();
+                                    thread.Join();
+                                    if (string.IsNullOrEmpty(ssoToken))
                                     {
-                                        ts.TrySetResult(token);
+                                        Console.WriteLine("Clipboard is empty");
                                     }
-                                }
+                                    else
+                                    {
+                                        Console.WriteLine($"Token:\n{ssoToken}\n\nType \"yes\" to accept this token <Enter> to discard");
+                                        Console.Write("> ");
+                                        answer = await InputManager.ReadLine();
+                                        if (answer == "yes")
+                                        {
+                                            await actionInfo.InvokeGetSsoTokenAction(ssoToken);
+                                        }
+                                    }
 
-                                break;
-                            case "cancel":
-                                ts.TrySetException(new KeeperCanceled());
-                                break;
+                                    break;
+                                case "cancel":
+                                    ts.TrySetResult(false);
+                                    break;
+                            }
                         }
                     }
+                    finally
+                    {
+                        registration.Dispose();
+                    } 
                 });
                 return ts.Task;
             }
@@ -645,14 +680,13 @@ namespace Commander
                 Console.WriteLine($"\nSSO Logout Url:\n\n{url}\n");
             }
 
-            public Task<bool> WaitForDataKey(IGetDataKeyChannelInfo[] channels, CancellationToken token)
+            public Task<bool> WaitForDataKey(IDataKeyChannelInfo[] channels, CancellationToken token)
             {
                 var taskSource = new TaskCompletionSource<bool>();
 
                 _ = Task.Run(async () =>
                 {
                     var actions = channels
-                        .OfType<IGetDataKeyActionInfo>()
                         .Select(x => x.Channel.TryGetDataKeyShareChannelText(out var text) ? text : null)
                         .Where(x => !string.IsNullOrEmpty(x))
                         .ToArray();
@@ -683,7 +717,6 @@ namespace Commander
                         }
 
                         var action = channels
-                            .OfType<IGetDataKeyActionInfo>()
                             .Where(x =>
                             {
                                 if (x.Channel.TryGetDataKeyShareChannelText(out var text))

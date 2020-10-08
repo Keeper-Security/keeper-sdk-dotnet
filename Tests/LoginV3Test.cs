@@ -12,7 +12,6 @@ using KeeperSecurity.Sdk.UI;
 using Moq;
 using Push;
 using Xunit;
-using TwoFactorChannel = KeeperSecurity.Sdk.UI.TwoFactorChannel;
 
 namespace Tests
 {
@@ -82,22 +81,30 @@ namespace Tests
             var task = new TaskCompletionSource<bool>();
             var cancelled = false;
             mockUi.Setup(x => x.WaitForDeviceApproval(It.IsAny<IDeviceApprovalChannelInfo[]>(), It.IsAny<CancellationToken>()))
-                .Returns((IDeviceApprovalChannelInfo[] actions, CancellationToken token) =>
+                .Callback((IDeviceApprovalChannelInfo[] actions, CancellationToken token) =>
                 {
-                    token.Register(() => { cancelled = true; });
+                    var push = actions.Where(x => x.Channel == DeviceApprovalChannel.KeeperPush);
+                    if (push != null)
+                    {
+                    }
+
                     foreach (var action in actions)
                     {
                         if (action.Channel == DeviceApprovalChannel.KeeperPush)
                         {
                             if (action is IDeviceApprovalPushInfo pi)
                             {
-                                Task.Run(() =>
+                                Task.Run(async () =>
                                 {
-                                    pi.InvokeDeviceApprovalPushAction.Invoke();
+                                    await pi.InvokeDeviceApprovalPushAction();
                                 });
                             }
                         }
                     }
+                })
+                .Returns((IDeviceApprovalChannelInfo[] actions, CancellationToken token) =>
+                {
+                    token.Register(() => { cancelled = true; });
                     return task.Task;
                 });
 
@@ -124,8 +131,7 @@ namespace Tests
             HasTwoFactor = true;
             var auth = GetAuthV3();
             var mockUi = Mock.Get(auth.Ui);
-            mockUi.Setup(ui => ui.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(),
-                    It.IsAny<CancellationToken>()))
+            mockUi.Setup(ui => ui.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(),It.IsAny<CancellationToken>()))
                 .Callback<ITwoFactorChannelInfo[], CancellationToken>(async (channels, token) =>
                 {
                     if (channels.Length > 0 && channels[0] is ITwoFactorAppCodeInfo ci)
@@ -137,6 +143,16 @@ namespace Tests
 
                         await ci.InvokeTwoFactorCodeAction(_vaultEnv.OneTimeToken);
                     }
+                })
+                .Returns<ITwoFactorChannelInfo[], CancellationToken>((channels, token) =>
+                {
+                    var src = new TaskCompletionSource<bool>();
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(1), token);
+                        src.SetResult(false);
+                    });
+                    return src.Task;
                 });
 
             var userConfig = auth.Storage.Users.Get(auth.Storage.LastLogin);
@@ -424,31 +440,49 @@ namespace Tests
             var mAuth = new Mock<Auth>(mUi.Object, storage, mEndpoint.Object);
             var auth = mAuth.Object;
             mUi.Setup(x => x.WaitForDeviceApproval(It.IsAny<IDeviceApprovalChannelInfo[]>(), It.IsAny<CancellationToken>()))
-                .Returns((IDeviceApprovalChannelInfo[] x, CancellationToken y) =>
+                .Callback((IDeviceApprovalChannelInfo[] x, CancellationToken y) =>
                 {
                     AcceptDeviceVerificationRequest(auth.Username, auth.DeviceToken);
-                    return Task.FromResult(true);
-                });
+                })
+                .Returns((IDeviceApprovalChannelInfo[] x, CancellationToken y) => Task.FromResult(true));
             var passwordReturned = false;
-            mUi.Setup(x => x.GetMasterPassword(It.IsAny<string>()))
-                .Returns((string username) =>
+            mUi.Setup(x => x.WaitForUserPassword(It.IsAny<IPasswordInfo>(), It.IsAny<CancellationToken>()))
+                .Callback(async (IPasswordInfo info, CancellationToken token) =>
                 {
-                    if (passwordReturned) return Task.FromResult("");
+                    if (passwordReturned) return;
                     passwordReturned = true;
-                    return Task.FromResult(_vaultEnv.Password);
+                    await info.InvokePasswordActionDelegate(_vaultEnv.Password);
+                })
+                .Returns((IPasswordInfo info, CancellationToken token) =>
+                {
+                    var src = new TaskCompletionSource<bool>();
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(1), token);
+                        src.SetResult(false);
+                    });
+                    return src.Task;
                 });
             var tfaCodeReturned = false;
             mUi.Setup(x => x.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(), It.IsAny<CancellationToken>()))
-                .Returns(async ( ITwoFactorChannelInfo[] info, CancellationToken token) =>
+                .Callback(async (ITwoFactorChannelInfo[] info, CancellationToken token) =>
                 {
-                    if (tfaCodeReturned) return false;
+                    if (tfaCodeReturned) return;
                     tfaCodeReturned = true;
                     if (info?.Length > 0 && info[0] is ITwoFactorAppCodeInfo ci)
                     {
                         await ci.InvokeTwoFactorCodeAction(_vaultEnv.OneTimeToken);
                     }
-
-                    return true;
+                })
+                .Returns((ITwoFactorChannelInfo[] info, CancellationToken token) =>
+                {
+                    var src = new TaskCompletionSource<bool>();
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(1), token);
+                        src.SetResult(false);
+                    });
+                    return src.Task;
                 });
 
             mEndpoint.Setup(e => e.ExecuteRest(It.IsAny<string>(), It.IsAny<ApiRequestPayload>()))

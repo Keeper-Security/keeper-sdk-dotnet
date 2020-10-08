@@ -133,6 +133,8 @@ namespace KeeperSecurity.Sdk
 
         public bool? shareDatakeyWithEccPublicKey;
 
+        public long? logoutTimerInSec;
+
 
         internal static AccountSettings LoadFromProtobuf(AccountSummary.Settings settings)
         {
@@ -153,6 +155,7 @@ namespace KeeperSecurity.Sdk
                 theme = settings.Theme,
                 ssoUser = settings.SsoUser,
                 shareDatakeyWithEccPublicKey = settings.ShareDataKeyWithEccPublicKey,
+                logoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : (long?)null
             };
         }
     }

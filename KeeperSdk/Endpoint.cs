@@ -37,12 +37,11 @@ namespace KeeperSecurity.Sdk
     internal class WebSocketChannel : FanOut<WssClientResponse>, IWebSocketChannel
     {
         private ClientWebSocket _webSocket;
-        public readonly byte[] TransmissionKey;
 
         public WebSocketChannel(ClientWebSocket webSocket, byte[] transmissionKey, CancellationToken token)
         {
             _webSocket = webSocket;
-            TransmissionKey = transmissionKey;
+            var tk = transmissionKey;
             _ = Task.Run(async () =>
                 {
                     try
@@ -56,7 +55,7 @@ namespace KeeperSecurity.Sdk
                             {
                                 var responseBytes = new byte[rs.Count];
                                 Array.Copy(buffer, 0, responseBytes, 0, responseBytes.Length);
-                                responseBytes = CryptoUtils.DecryptAesV2(responseBytes, TransmissionKey);
+                                responseBytes = CryptoUtils.DecryptAesV2(responseBytes, tk);
                                 var wssRs = WssClientResponse.Parser.ParseFrom(responseBytes);
 #if DEBUG
                                 Debug.WriteLine($"REST push notification: {wssRs}");
@@ -76,7 +75,7 @@ namespace KeeperSecurity.Sdk
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine(e);
+                        Debug.WriteLine(e.Message);
                     }
 
                     _webSocket = null;
@@ -327,7 +326,9 @@ namespace KeeperSecurity.Sdk
                             case "session_token":
                             case "auth_failed":
                                 throw new KeeperAuthFailed();
-
+                            
+                            case "login_token_expired":
+                                throw new KeeperCanceled();
                         }
 
                         throw new KeeperApiException(keeperRs.Error, keeperRs.Message);

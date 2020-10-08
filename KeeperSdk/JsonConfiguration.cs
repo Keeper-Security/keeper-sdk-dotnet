@@ -105,6 +105,7 @@ namespace KeeperSecurity.Sdk
         public int WriteTimeout { get; set; }
 
         private JsonConfiguration _configuration;
+
         public JsonConfiguration Configuration
         {
             get
@@ -149,6 +150,7 @@ namespace KeeperSecurity.Sdk
                                                     u.user_password = null;
                                                 }
 
+#pragma warning disable CS0612 // Type or member is obsolete
                                                 if (u._last_device.resume_code != null)
                                                 {
                                                     try
@@ -161,6 +163,7 @@ namespace KeeperSecurity.Sdk
                                                         u._last_device.resume_code = null;
                                                     }
                                                 }
+#pragma warning restore CS0612 // Type or member is obsolete
                                             }
                                         }
 
@@ -183,6 +186,48 @@ namespace KeeperSecurity.Sdk
                                         }
                                     }
                                 }
+#pragma warning disable CS0612 // Type or member is obsolete
+                                if (_configuration.devices?.Count > 0) {
+                                    foreach (var jd in _configuration.devices) {
+                                        if (jd.servers?.Length > 0) {
+                                            foreach (var s in jd.servers) {
+                                                jd.ServerInfo.Put(new JsonDeviceServerConfiguration
+                                                {
+                                                    server = s
+                                                });
+                                            }
+                                            jd.servers = null;
+                                        }
+                                    }
+                                }
+                                if (_configuration.users?.Count > 0) {
+                                    foreach (var u in _configuration.users)
+                                    {
+                                        if (string.CompareOrdinal(u.user, _configuration.lastLogin) == 0)
+                                        {
+                                            if (!string.IsNullOrEmpty(u._last_device?.resume_code))
+                                            {
+                                                var d = _configuration.devices?.FirstOrDefault(x => x.deviceToken == u._last_device.device_token);
+                                                if (d != null)
+                                                {
+                                                    var s = d?.serverInfo?.FirstOrDefault(x => x.server == _configuration.lastServer);
+                                                    if (s != null)
+                                                    {
+                                                        s.cloneCode = u._last_device.resume_code;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (u._last_device != null)
+                                        {
+                                            u._last_device.resume_code = null;
+                                        }
+                                    }
+                                }
+                                if (!string.IsNullOrEmpty(_configuration.lastLogin) && !string.IsNullOrEmpty(_configuration.lastServer)) {
+                                    var u = _configuration.users?.FirstOrDefault(x => x.user == _configuration.lastLogin);
+                                }
+#pragma warning restore CS0612 // Type or member is obsolete
                             }
                             catch (Exception e)
                             {
@@ -258,27 +303,15 @@ namespace KeeperSecurity.Sdk
                         {
                             foreach (var user in _configuration.users)
                             {
-                                if (string.IsNullOrEmpty(user.user_password) && string.IsNullOrEmpty(user._last_device?.resume_code)) continue;
+                                if (string.IsNullOrEmpty(user.user_password)) continue;
                                 try
                                 {
                                     string encryptedPassword = null;
-                                    string encryptedResumeCode = null;
                                     if (!string.IsNullOrEmpty(user.user_password))
                                     {
                                         encryptedPassword = protector.Obscure(user.user_password);
                                     }
-
-                                    if (!string.IsNullOrEmpty(user._last_device?.resume_code))
-                                    {
-                                        encryptedResumeCode = protector.Obscure(user._last_device.resume_code);
-                                    }
-
                                     user.user_password = encryptedPassword;
-                                    if (user._last_device != null)
-                                    {
-                                        user._last_device.resume_code = encryptedResumeCode;
-                                    }
-
                                     user.secured = true;
                                 }
                                 catch (Exception e)
@@ -411,10 +444,8 @@ namespace KeeperSecurity.Sdk
         public string device_token;
 
         [DataMember(Name = "resume_code", EmitDefaultValue = false)]
+        [Obsolete]
         public string resume_code;
-
-        [DataMember(Name = "logout_timer", EmitDefaultValue = false)]
-        public int? logout_timer;
 
         public ExtensionDataObject ExtensionData { get; set; }
 
@@ -424,13 +455,9 @@ namespace KeeperSecurity.Sdk
             {
                 device_token = userDevConf.DeviceToken;
             }
-            resume_code = userDevConf.ResumeCode;
-            logout_timer = userDevConf.LogoutTimer;
         }
 
         string IUserDeviceConfiguration.DeviceToken => device_token;
-        string IUserDeviceConfiguration.ResumeCode => resume_code;
-        int? IUserDeviceConfiguration.LogoutTimer => logout_timer;
     }
 
 
@@ -470,8 +497,6 @@ namespace KeeperSecurity.Sdk
                 ? new JsonUserDeviceConfiguration
                 {
                     device_token = userConf.LastDevice.DeviceToken,
-                    resume_code = userConf.LastDevice.ResumeCode,
-                    logout_timer = userConf.LastDevice.LogoutTimer
                 }
                 : _last_device = null;
 
@@ -518,9 +543,32 @@ namespace KeeperSecurity.Sdk
     }
 
     [DataContract]
+    public class JsonDeviceServerConfiguration : IDeviceServerConfiguration, IEntityClone<IDeviceServerConfiguration>
+    {
+        [DataMember(Name = "server", EmitDefaultValue = false)]
+        public string server;
+
+        [DataMember(Name = "clone_code", EmitDefaultValue = false)]
+        public string cloneCode;
+
+        string IDeviceServerConfiguration.Server => server;
+
+        string IDeviceServerConfiguration.CloneCode => cloneCode;
+
+        string IConfigurationId.Id => server;
+
+        public void CloneFrom(IDeviceServerConfiguration entity)
+        {
+            if (string.IsNullOrEmpty(server)) {
+                server = entity.Server;
+            }
+            cloneCode = entity.CloneCode;
+        }
+    }
+
+    [DataContract]
     public class JsonDeviceConfiguration : IDeviceConfiguration, IEntityClone<IDeviceConfiguration>, IExtensibleDataObject
     {
-
         [DataMember(Name = "device_token", EmitDefaultValue = false)]
         public string deviceToken;
 
@@ -528,15 +576,33 @@ namespace KeeperSecurity.Sdk
         public string privateKey;
 
         [DataMember(Name = "servers", EmitDefaultValue = false)]
+        [Obsolete]
         public string[] servers;
+
+        [DataMember(Name = "server_info", EmitDefaultValue = false)]
+        public List<JsonDeviceServerConfiguration> serverInfo;
 
         [DataMember(Name = "secured", EmitDefaultValue = false)]
         public bool? secured;
 
         string IDeviceConfiguration.DeviceToken => deviceToken;
         byte[] IDeviceConfiguration.DeviceKey => string.IsNullOrEmpty(privateKey) ? null : privateKey.Base64UrlDecode();
-        IEnumerable<string> IDeviceConfiguration.Servers => servers;
         string IConfigurationId.Id => deviceToken;
+
+        private IConfigCollection<IDeviceServerConfiguration> _serverInfo = null;
+
+        public IConfigCollection<IDeviceServerConfiguration> ServerInfo
+        {
+            get
+            {
+                if (_serverInfo == null)
+                {
+                    _serverInfo = new ListConfigCollection<JsonDeviceServerConfiguration, IDeviceServerConfiguration>(
+                                    () => serverInfo ?? (serverInfo = new List<JsonDeviceServerConfiguration>()), null);
+                }
+                return _serverInfo;
+            }
+        }
 
         void IEntityClone<IDeviceConfiguration>.CloneFrom(IDeviceConfiguration deviceConf)
         {
@@ -547,12 +613,11 @@ namespace KeeperSecurity.Sdk
                 {
                     privateKey = deviceConf.DeviceKey.Base64UrlEncode();
                 }
-
             }
-
-            if (deviceConf.Servers != null)
-            {
-                servers = deviceConf.Servers.ToArray();
+            if (deviceConf.ServerInfo != null) {
+                foreach (var si in deviceConf.ServerInfo.List) {
+                    ServerInfo.Put(si);
+                }
             }
         }
 

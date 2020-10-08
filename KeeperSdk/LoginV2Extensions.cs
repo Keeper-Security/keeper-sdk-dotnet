@@ -38,7 +38,6 @@ namespace KeeperSecurity.Sdk
     public class PrimaryCredentials
     {
         public string Username { get; set; }
-        public string Password { get; set; }
         public byte[] Salt { get; set; }
         public int Iterations { get; set; }
     }
@@ -47,8 +46,6 @@ namespace KeeperSecurity.Sdk
     {
         public string SecondFactorType { get; set; }
         public string SecondFactorToken { get; set; }
-        public string SecondFactorMode { get; set; }
-        public TwoFactorDuration? SecondFactorDuration { get; set; }
     }
 
     public class TwoFactorCode
@@ -80,12 +77,6 @@ namespace KeeperSecurity.Sdk
             set => _auth.Username = value;
         }
 
-        public string Password
-        {
-            get => _auth.Password;
-            set => _auth.Password = value;
-        }
-
         public IKeeperEndpoint Endpoint => _auth.Endpoint;
         public byte[] DeviceToken
         {
@@ -108,10 +99,10 @@ namespace KeeperSecurity.Sdk
 
     public static class LoginV2Extensions
     {
-        private static readonly ISet<string> SecondFactorErrorCodes =
+        private static readonly ISet<string> _secondFactorErrorCodes =
             new HashSet<string>(new[] {"need_totp", "invalid_device_token", "invalid_totp"});
 
-        private static readonly ISet<string> PostLoginErrorCodes =
+        private static readonly ISet<string> _postLoginErrorCodes =
             new HashSet<string>(new[] {"auth_expired", "auth_expired_transfer"});
 
 
@@ -175,41 +166,43 @@ namespace KeeperSecurity.Sdk
                 {
                     Query = queryString.ToString()
                 };
-                var userTask = ssoUi.GetSsoToken(builder.Uri.AbsoluteUri, false);
-                var index = Task.WaitAny(userTask);
-                if (index == 0)
-                {
-                    if (userTask.IsFaulted)
-                    {
-                        throw userTask.Exception.GetBaseException();
-                    }
 
-                    if (userTask.IsCanceled)
+                var tokenSource = new TaskCompletionSource<bool>();
+                var ssoAction = new GetSsoTokenActionInfo(builder.Uri.AbsoluteUri, false)
+                {
+                    InvokeGetSsoTokenAction = (tokenStr) =>
                     {
+                        var token = JsonUtils.ParseJson<SsoToken>(Encoding.UTF8.GetBytes(tokenStr));
+                        var pk = CryptoUtils.LoadPrivateKey(privateKey);
+                        if (!string.IsNullOrEmpty(token.Password))
+                        {
+                            var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.Password.Base64UrlDecode(), pk));
+                            auth.PasswordQueue.Enqueue(password);
+                        }
+
+                        if (!string.IsNullOrEmpty(token.NewPassword))
+                        {
+                            var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.NewPassword.Base64UrlDecode(), pk));
+                            auth.PasswordQueue.Enqueue(password);
+                        }
+
+                        auth.Username = token.Email;
+                        auth.SsoLoginInfo = new SsoLoginInfo {SsoProvider = token.ProviderName, SpBaseUrl = rs.SpUrl, IdpSessionId = token.SessionId};
+                        tokenSource.TrySetResult(true);
+                        return (Task) Task.FromResult(true);
+                    }
+                };
+                using (var cancellationSource = new CancellationTokenSource())
+                {
+                    var userTask = ssoUi.WaitForSsoToken(ssoAction, cancellationSource.Token);
+                    var index = Task.WaitAny(userTask, tokenSource.Task);
+                    if (index == 0)
+                    {
+                        await userTask;
                         throw new KeeperCanceled();
                     }
-
-                    var tokenStr = userTask.Result;
-                    var token = JsonUtils.ParseJson<SsoToken>(Encoding.UTF8.GetBytes(tokenStr));
-                    var pk = CryptoUtils.LoadPrivateKey(privateKey);
-                    if (!string.IsNullOrEmpty(token.Password))
-                    {
-                        var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.Password.Base64UrlDecode(), pk));
-                        auth.PasswordQueue.Enqueue(password);
-                    }
-                    if (!string.IsNullOrEmpty(token.NewPassword))
-                    {
-                        var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.NewPassword.Base64UrlDecode(), pk));
-                        auth.PasswordQueue.Enqueue(password);
-                    }
-
-                    auth.Username = token.Email;
-                    auth.SsoLoginInfo = new SsoLoginInfo
-                    {
-                        SsoProvider = token.ProviderName,
-                        SpBaseUrl = rs.SpUrl,
-                        IdpSessionId = token.SessionId
-                    };
+                    cancellationSource.Cancel();
+                    await tokenSource.Task;
                     return await auth.LoginV2();
                 }
             }
@@ -234,43 +227,31 @@ namespace KeeperSecurity.Sdk
                 Iterations = salt.Iterations
             };
 
-            SecondaryCredentials secondaryCredentials = null;
-            {
-                var userConf = auth.Storage.Users.Get(auth.Username);
-                var storedToken = userConf?.TwoFactorToken;
-                if (!string.IsNullOrEmpty(storedToken))
-                {
-                    secondaryCredentials = new SecondaryCredentials
-                    {
-                        SecondFactorType = "device_token",
-                        SecondFactorToken = storedToken,
-                    };
-                }
-            }
-
-            var context = await auth.ExecuteLoginCommand(primaryCredentials, secondaryCredentials);
-            auth.Password = primaryCredentials.Password;
+            var userConf = auth.Storage.Users.Get(auth.Username);
+            string storedDeviceToken = userConf?.TwoFactorToken;
+            var context = await auth.ExecuteLoginCommand(primaryCredentials, storedDeviceToken);
             return context;
         }
-        static Task _completedTask = Task.FromResult(false);
+
+        private delegate Task<bool> TryLoginWithTwoFactorCodeDelegate(string code, TwoFactorDuration duration);
         private static ITwoFactorChannelInfo[] PrepareTwoFactorChannels(this AuthV2 auth,
             LoginCommand loginRq,
             LoginResponse loginRs,
+            TryLoginWithTwoFactorCodeDelegate codeAction,
             CancellationToken cancellationToken)
         {
 
-            AuthUIExtensions.TryParseTwoFactorChannel(loginRs.channel, out var channel);
-            var channels = new List<ITwoFactorChannelInfo>();
-
-            TwoFactorCodeActionDelegate GetCodeDelegate(ITwoFactorAppCodeInfo channelInfo)
+            TwoFactorCodeActionDelegate GetCodeDelegate(ITwoFactorChannelInfo info)
             {
-                return (code) =>
+                return async code =>
                 {
-                    auth.PushToken.Push(new TwoFactorCode(channelInfo.Channel, code, channelInfo.Duration));
-                    return _completedTask;
+                    var duration = info is ITwoFactorDurationInfo dur ? dur.Duration : TwoFactorDuration.EveryLogin;
+                    return await codeAction(code, duration);
                 };
             }
 
+            AuthUIExtensions.TryParseTwoFactorChannel(loginRs.channel, out var channel);
+            var channels = new List<ITwoFactorChannelInfo>();
             switch (channel)
             {
                 case TwoFactorChannel.Authenticator:
@@ -342,7 +323,7 @@ namespace KeeperSecurity.Sdk
                             twoFactorMode = duoMode,
                         };
                         var duoRs = await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(duoRequest);
-                        var isSuccess = SecondFactorErrorCodes.Contains(duoRs.resultCode);
+                        var isSuccess = _secondFactorErrorCodes.Contains(duoRs.resultCode);
                         if (!isSuccess || action != TwoFactorPushAction.DuoPush || ws != null) return;
 
                         ws = new ClientWebSocket();
@@ -438,7 +419,7 @@ namespace KeeperSecurity.Sdk
 
         public static async Task<AuthContextV2> ParseLoginResponse(this AuthV2 auth, string password, LoginCommand loginRq, LoginResponse loginRs)
         {
-            if (loginRs.IsSuccess || (auth.Ui != null && PostLoginErrorCodes.Contains(loginRs.resultCode)))
+            if (loginRs.IsSuccess || (auth.Ui != null && _postLoginErrorCodes.Contains(loginRs.resultCode)))
             {
                 var context = new AuthContextV2
                 {
@@ -447,6 +428,10 @@ namespace KeeperSecurity.Sdk
                     AuthResponse = loginRq.authResponse,
                     DeviceToken = auth.DeviceToken
                 };
+                var validatorSalt = CryptoUtils.GetRandomBytes(16);
+                context.PasswordValidator = 
+                    CryptoUtils.CreateEncryptionParams(password, validatorSalt, 100000, CryptoUtils.GetRandomBytes(32));
+
                 ParseResponseKeys(context, password, loginRs);
                 if (!string.IsNullOrEmpty(loginRs.deviceToken))
                 {
@@ -481,59 +466,64 @@ namespace KeeperSecurity.Sdk
             }
             // TODO device verification
 
-            if (auth.Ui != null && SecondFactorErrorCodes.Contains(loginRs.resultCode))
+            if (auth.Ui != null && _secondFactorErrorCodes.Contains(loginRs.resultCode))
             {
                 using (var tokenSource = new CancellationTokenSource())
                 {
-                    var channels = auth.PrepareTwoFactorChannels(loginRq, loginRs, tokenSource.Token);
+                    var login2FaRq = new LoginCommand
+                    {
+                        username = loginRq.username,
+                        authResponse = loginRq.authResponse,
+                        include = loginRq.include,
+                        twoFactorType = "one_time",
+                    };
+                    var loginResponseSource = new TaskCompletionSource<LoginResponse>();
+
+                    TryLoginWithTwoFactorCodeDelegate callback = async (code, duration) =>
+                    {
+                        login2FaRq.twoFactorToken = code;
+                        login2FaRq.deviceTokenExpiresInDays = (int) duration; 
+                        loginRs = await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(login2FaRq);
+                        if (loginRs.IsSuccess)
+                        {
+                            loginResponseSource.TrySetResult(loginRs);
+                            return true;
+                        }
+
+                        if (loginRs.resultCode != "auth_failed")
+                        {
+                            loginResponseSource.TrySetResult(loginRs);
+                        }
+                        return false;
+                    };
+                    
+                    var channels = auth.PrepareTwoFactorChannels(loginRq, loginRs, callback, tokenSource.Token);
                     if (channels != null && channels.Length > 0)
                     {
-
-                        var codeTaskSource = new TaskCompletionSource<TwoFactorCode>();
                         bool Callback(TwoFactorCode code)
                         {
-                            codeTaskSource.TrySetResult(code);
+                            Task.Run(async () =>
+                            {
+                                await callback(code.Code, code.Duration);
+                            });
                             return true;
                         }
                         auth.PushToken?.RegisterCallback(Callback);
 
                         using (var cancelToken = new CancellationTokenSource())
                         {
-                            var userInputTask = auth.Ui.WaitForTwoFactorCode(channels.ToArray(), cancelToken.Token);
-                            var codeTokenTask = codeTaskSource.Task;
-                            int index = Task.WaitAny(userInputTask, codeTokenTask);
+                            var uiTask = auth.Ui.WaitForTwoFactorCode(channels.ToArray(), cancelToken.Token);
+                            var responseTask = loginResponseSource.Task;
+                            var index = Task.WaitAny(uiTask, responseTask);
                             auth.PushToken?.RemoveCallback(Callback);
                             if (index == 0)
                             {
-                                if (!await userInputTask)
-                                {
-                                    throw new KeeperCanceled();
-                                }
+                                throw new KeeperCanceled();
                             }
-                            else if (index == 1)
-                            {
-                                cancelToken.Cancel();
-                                var code = await codeTokenTask;
-                                if (code != null && !string.IsNullOrEmpty(code.Code))
-                                {
-                                    var login2faRq = new LoginCommand
-                                    {
-                                        username = loginRq.username,
-                                        authResponse = loginRq.authResponse,
-                                        include = loginRq.include,
-                                        twoFactorToken = code.Code,
-                                        twoFactorType = "one_time",
-                                        deviceTokenExpiresInDays = (int) code.Duration,
-                                    };
-                                    var login2faRs = await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(login2faRq);
-                                    if (!SecondFactorErrorCodes.Contains(login2faRs.resultCode))
-                                    {
-                                        return await auth.ParseLoginResponse(password, login2faRq, login2faRs);
-                                    }
-                                }
-                            }
-                        }
 
+                            var login2FaRs = await responseTask;
+                            return await auth.ParseLoginResponse(password, login2FaRq, login2FaRs);
+                        }
                     }
                 }
             }
@@ -541,78 +531,83 @@ namespace KeeperSecurity.Sdk
             throw new KeeperApiException(loginRs.resultCode, loginRs.message);
         }
 
-        public static async Task<AuthContextV2> ExecuteLoginCommand(this AuthV2 auth,
+        private static async Task<AuthContextV2> ExecuteLoginCommand(this AuthV2 auth,
             PrimaryCredentials primary,
-            SecondaryCredentials secondary = null)
+            string deviceToken = null)
         {
-            var attempt = 0;
-            while (attempt < 10)
+            var loginCommand = new LoginCommand
             {
-                attempt++;
-                if (string.IsNullOrEmpty(primary.Password))
-                {
-                    if (auth.PasswordQueue.Count > 0)
-                    {
-                        primary.Password = auth.PasswordQueue.Dequeue();
-                    }
-                }
+                username = primary.Username.ToLowerInvariant(),
+                include = new[] {"keys"},
+            };
 
-                if (string.IsNullOrEmpty(primary.Password))
-                {
-                    if (auth.Ui == null) break;
-                    var passwordTask = auth.Ui.GetMasterPassword(auth.Username);
-                    var index = Task.WaitAny(passwordTask);
-                    if (index == 0)
-                    {
-                        if (passwordTask.IsFaulted)
-                        {
-                            throw passwordTask.Exception.GetBaseException();
-                        }
-
-                        if (!passwordTask.IsCanceled)
-                        {
-                            primary.Password = passwordTask.Result;
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(primary.Password)) throw new KeeperCanceled();
-                }
-
-                var authHash = CryptoUtils.DeriveV1KeyHash(primary.Password, primary.Salt, primary.Iterations)
+            async Task<LoginResponse> TryLoginWithPassword(string password)
+            {
+                var authHash = CryptoUtils.DeriveV1KeyHash(password, primary.Salt, primary.Iterations)
                     .Base64UrlEncode();
-                var command = new LoginCommand
-                {
-                    username = primary.Username.ToLowerInvariant(),
-                    authResponse = authHash,
-                    include = new[] {"keys"},
-                };
+                loginCommand.authResponse = authHash;
 
-                if (secondary != null)
+                if (!string.IsNullOrEmpty(deviceToken))
                 {
-                    command.twoFactorType = secondary.SecondFactorType;
-                    command.twoFactorToken = secondary.SecondFactorToken;
-                    command.twoFactorMode = secondary.SecondFactorMode;
-                    if (secondary.SecondFactorDuration != null)
+                    loginCommand.twoFactorType = "device_token";
+                    loginCommand.twoFactorToken = deviceToken;
+                }
+
+                return await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(loginCommand);
+            }
+
+            while (auth.PasswordQueue.Count > 0)
+            {
+                var password = auth.PasswordQueue.Dequeue();
+                var rs = await TryLoginWithPassword(password);
+                if (rs.resultCode != "auth_failed")
+                {
+                    return await auth.ParseLoginResponse(password, loginCommand, rs);
+                }
+            }
+
+            if (auth.Ui != null)
+            {
+                LoginResponse loginRs = null;
+                string loginPassword = null;
+                var rsTaskSource = new TaskCompletionSource<bool>();
+                using (var cancellationToken = new CancellationTokenSource())
+                {
+                    var passwordInfo = new MasterPasswordInfo(auth.Username)
                     {
-                        command.deviceTokenExpiresInDays = (int) secondary.SecondFactorDuration;
-                    }
-                }
+                        InvokePasswordActionDelegate = async password =>
+                        {
+                            var rs = await TryLoginWithPassword(password);
+                            if (rs.IsSuccess)
+                            {
+                                loginRs = rs;
+                                loginPassword = password;
+                                rsTaskSource.TrySetResult(true);
+                            }
 
-                var loginRs = await auth.Endpoint.ExecuteV2Command<LoginCommand, LoginResponse>(command);
-                if (loginRs.resultCode == "auth_failed")
-                {
-                    primary.Password = null;
-                }
-                else
-                {
-                    return await auth.ParseLoginResponse(primary.Password, command, loginRs);
+                            if (rs.resultCode == "auth_failed")
+                            {
+                                throw new KeeperAuthFailed();
+                            }
+                            throw new KeeperApiException(rs.resultCode, rs.message);
+                        }
+                    };
+                
+                    var uiTask = auth.Ui.WaitForUserPassword(passwordInfo, cancellationToken.Token);
+                    var index = Task.WaitAny(uiTask, rsTaskSource.Task);
+                    if (index == 1)
+                    {
+                        cancellationToken.Cancel();
+                        return await auth.ParseLoginResponse(loginPassword, loginCommand, loginRs);
+                    }
+                    throw new KeeperCanceled();
                 }
             }
 
             throw new KeeperApiException("auth_failed", "Invalid username or password");
         }
 
-        public static void ParseResponseKeys(AuthContext context, string password, LoginResponse loginRs)
+        private static void ParseResponseKeys(AuthContext context, string password, LoginResponse loginRs)
         {
             if (loginRs.keys == null) throw new Exception("Missing data key");
 
@@ -701,7 +696,7 @@ namespace KeeperSecurity.Sdk
                 }
             }
 
-            throw new KeeperTooManyAttempts();
+            throw new KeeperAuthFailed();
         }
 
         internal static void StoreConfigurationIfChangedV2(this Auth auth, AuthContextV2 context)

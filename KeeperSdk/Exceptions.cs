@@ -76,10 +76,6 @@ namespace KeeperSecurity.Sdk
     {
     }
     
-    public class KeeperTooManyAttempts : Exception
-    {
-    }
-
     public class KeeperStartLoginException : Exception
     {
         public LoginState LoginState { get; }

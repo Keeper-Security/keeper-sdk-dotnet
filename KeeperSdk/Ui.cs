@@ -51,11 +51,18 @@ namespace KeeperSecurity.Sdk.UI
         DeviceApprovalChannel Channel { get; }
     }
 
+    public delegate Task PasswordActionDelegate(string password);
+    public interface IPasswordInfo
+    {
+        string Username { get; }
+        PasswordActionDelegate InvokePasswordActionDelegate { get; }
+    }
+
     public interface IAuthUI
     {
         Task<bool> WaitForDeviceApproval(IDeviceApprovalChannelInfo[] channels, CancellationToken token);
         Task<bool> WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token);
-        Task<string> GetMasterPassword(string username);
+        Task<bool> WaitForUserPassword(IPasswordInfo passwordInfo, CancellationToken token);
     }
 
     public interface IAuthInfoUI
@@ -70,22 +77,25 @@ namespace KeeperSecurity.Sdk.UI
         AdminApproval = 2,
     }
 
-    public interface IGetDataKeyChannelInfo
+    public delegate Task GetDataKeyActionDelegate();
+    public interface IDataKeyChannelInfo
     {
         DataKeyShareChannel Channel { get; }
+        GetDataKeyActionDelegate InvokeGetDataKeyAction { get; }
     }
 
-    public delegate Task GetDataKeyActionDelegate();
-
-    public interface IGetDataKeyActionInfo : IGetDataKeyChannelInfo
+    public delegate Task GetSsoTokenActionDelegate(string token);
+    public interface ISsoTokenActionInfo
     {
-        GetDataKeyActionDelegate InvokeGetDataKeyAction { get; }
+        string SsoLoginUrl { get; }
+        bool IsCloudSso { get; }
+        GetSsoTokenActionDelegate InvokeGetSsoTokenAction { get; }
     }
 
     public interface IAuthSsoUI
     {
-        Task<string> GetSsoToken(string url, bool isCloudSso);
-        Task<bool> WaitForDataKey(IGetDataKeyChannelInfo[] channels, CancellationToken token);
+        Task<bool> WaitForSsoToken(ISsoTokenActionInfo actionInfo, CancellationToken token);
+        Task<bool> WaitForDataKey(IDataKeyChannelInfo[] channels, CancellationToken token);
         void SsoLogoutUrl(string url);
     }
 
@@ -117,7 +127,7 @@ namespace KeeperSecurity.Sdk.UI
         DeviceApprovalOtpDelegate InvokeDeviceApprovalOtpAction { get; }
     }
 
-    public delegate Task TwoFactorCodeActionDelegate(string code);
+    public delegate Task<bool> TwoFactorCodeActionDelegate(string code);
     public interface ITwoFactorAppCodeInfo: ITwoFactorChannelInfo, ITwoFactorDurationInfo
     {
         string ChannelName { get; }

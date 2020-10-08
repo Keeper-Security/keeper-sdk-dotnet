@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace KeeperSecurity.Sdk
 {
@@ -19,11 +20,17 @@ namespace KeeperSecurity.Sdk
         string Id { get; }
     }
 
+    public interface IConfigCollection<T> where T : class, IConfigurationId
+    {
+        T Get(string id);
+        void Put(T configuration);
+        void Delete(string id);
+        IEnumerable<T> List { get; }
+    }
+
     public interface IUserDeviceConfiguration
     {
         string DeviceToken { get; }
-        string ResumeCode { get; }
-        int? LogoutTimer { get; }
     }
 
     public interface IUserConfiguration: IConfigurationId
@@ -42,22 +49,18 @@ namespace KeeperSecurity.Sdk
         byte[] DeviceId { get; }
     }
 
+    public interface IDeviceServerConfiguration: IConfigurationId
+    {
+        string Server { get; }
+        string CloneCode { get; }
+    }
 
     public interface IDeviceConfiguration: IConfigurationId
     {
         string DeviceToken { get; }
         byte[] DeviceKey { get; }
-        IEnumerable<string> Servers { get; }
+        IConfigCollection<IDeviceServerConfiguration> ServerInfo { get; }
     }
-
-    public interface IConfigCollection<T> where T: class, IConfigurationId
-    {
-        T Get(string id);
-        void Put(T configuration);
-        void Delete(string id);
-        IEnumerable<T> List { get; }
-    }
-
 
     public interface IConfigurationStorage
     {
@@ -99,13 +102,10 @@ namespace KeeperSecurity.Sdk
 
         public UserDeviceConfiguration(IUserDeviceConfiguration other) : this(other.DeviceToken)
         {
-            ResumeCode = other.ResumeCode;
-            LogoutTimer = other.LogoutTimer;
         }
 
         public string DeviceToken { get; set; }
-        public string ResumeCode { get; set; }
-        public int? LogoutTimer { get; set; }
+        [Obsolete] public string ResumeCode { get; set; }
     }
 
     public class UserConfiguration : IUserConfiguration
@@ -156,28 +156,47 @@ namespace KeeperSecurity.Sdk
 
     }
 
+    public class DeviceServerConfiguration : IDeviceServerConfiguration
+    {
+        public DeviceServerConfiguration(string server)
+        {
+            Server = server;
+        }
+
+        public DeviceServerConfiguration(IDeviceServerConfiguration other): this(other.Server)
+        {
+            CloneCode = other.CloneCode;
+        }
+
+        public string Server { get; }
+        public string CloneCode { get; set; }
+        string IConfigurationId.Id => Server;
+    }
+
     public class DeviceConfiguration : IDeviceConfiguration
     {
+        private readonly IConfigCollection<IDeviceServerConfiguration> _serverInfo;
         public DeviceConfiguration(string deviceToken)
         {
             DeviceToken = deviceToken;
-            KeeperServers = new HashSet<string>();
+            _serverInfo = new InMemoryConfigCollection<IDeviceServerConfiguration>();
         }
 
         public DeviceConfiguration(IDeviceConfiguration other) : this(other.DeviceToken)
         {
             DeviceKey = other.DeviceKey;
-            if (other.Servers == null) return;
-            foreach (var server in other.Servers)
+            if (other.ServerInfo != null && other.ServerInfo.List.Any())
             {
-                KeeperServers.Add(server);
+                foreach (var serverInfo in other.ServerInfo.List)
+                {
+                    _serverInfo.Put(new DeviceServerConfiguration(serverInfo));
+                }
             }
         }
 
         public string DeviceToken { get; }
         public byte[] DeviceKey { get; set; }
-        public ISet<string> KeeperServers { get; }
-        public IEnumerable<string> Servers => KeeperServers;
+        public IConfigCollection<IDeviceServerConfiguration> ServerInfo => _serverInfo;
         string IConfigurationId.Id => DeviceToken;
 
     }

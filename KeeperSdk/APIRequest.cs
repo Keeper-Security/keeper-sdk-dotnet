@@ -205,175 +205,128 @@ namespace Authentication {
             "dWJsaWNLZXkYAyABKAwimgEKGURldmljZVZlcmlmaWNhdGlvblJlcXVlc3QS",
             "HAoUZW5jcnlwdGVkRGV2aWNlVG9rZW4YASABKAwSEAoIdXNlcm5hbWUYAiAB",
             "KAkSGwoTdmVyaWZpY2F0aW9uQ2hhbm5lbBgDIAEoCRIZChFtZXNzYWdlU2Vz",
-            "c2lvblVpZBgEIAEoDBIVCg1jbGllbnRWZXJzaW9uGAUgASgJIsgBChVEZXZp",
-            "Y2VBcHByb3ZhbFJlcXVlc3QSDQoFZW1haWwYASABKAkSGAoQdHdvRmFjdG9y",
-            "Q2hhbm5lbBgCIAEoCRIVCg1jbGllbnRWZXJzaW9uGAMgASgJEg4KBmxvY2Fs",
-            "ZRgEIAEoCRIcChRlbmNyeXB0ZWREZXZpY2VUb2tlbhgFIAEoDBIQCgh0b3Rw",
-            "Q29kZRgGIAEoCRIQCghkZXZpY2VJcBgHIAEoCRIdChVkZXZpY2VUb2tlbkV4",
-            "cGlyZURheXMYCCABKAkiOQoWRGV2aWNlQXBwcm92YWxSZXNwb25zZRIfChdl",
-            "bmNyeXB0ZWRUd29GYWN0b3JUb2tlbhgBIAEoDCJ+ChRBcHByb3ZlRGV2aWNl",
-            "UmVxdWVzdBIcChRlbmNyeXB0ZWREZXZpY2VUb2tlbhgBIAEoDBIeChZlbmNy",
-            "eXB0ZWREZXZpY2VEYXRhS2V5GAIgASgMEhQKDGRlbnlBcHByb3ZhbBgDIAEo",
-            "CBISCgpsaW5rRGV2aWNlGAQgASgIIoYBChtBcHByb3ZlRGV2aWNlSW5zdGFu",
-            "dFJlcXVlc3QSHAoUZW5jcnlwdGVkRGV2aWNlVG9rZW4YASABKAwSHgoWZW5j",
-            "cnlwdGVkRGV2aWNlRGF0YUtleRgCIAEoDBISCgpsaW5rRGV2aWNlGAMgASgI",
-            "EhUKDWNsaWVudFZlcnNpb24YBCABKAkiRQoaRW50ZXJwcmlzZVVzZXJBbGlh",
-            "c1JlcXVlc3QSGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEoAxINCgVhbGlhcxgC",
-            "IAEoCSImCgZEZXZpY2USHAoUZW5jcnlwdGVkRGV2aWNlVG9rZW4YASABKAwi",
-            "XAocUmVnaXN0ZXJEZXZpY2VEYXRhS2V5UmVxdWVzdBIcChRlbmNyeXB0ZWRE",
-            "ZXZpY2VUb2tlbhgBIAEoDBIeChZlbmNyeXB0ZWREZXZpY2VEYXRhS2V5GAIg",
-            "ASgMIm4KKVZhbGlkYXRlQ3JlYXRlVXNlclZlcmlmaWNhdGlvbkNvZGVSZXF1",
-            "ZXN0EhAKCHVzZXJuYW1lGAEgASgJEhUKDWNsaWVudFZlcnNpb24YAiABKAkS",
-            "GAoQdmVyaWZpY2F0aW9uQ29kZRgDIAEoCSKFAQolVmFsaWRhdGVEZXZpY2VW",
-            "ZXJpZmljYXRpb25Db2RlUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRIVCg1j",
-            "bGllbnRWZXJzaW9uGAIgASgJEhgKEHZlcmlmaWNhdGlvbkNvZGUYAyABKAkS",
-            "GQoRbWVzc2FnZVNlc3Npb25VaWQYBCABKAwiWQoZU2VuZFNlc3Npb25NZXNz",
-            "YWdlUmVxdWVzdBIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIPCgdjb21t",
-            "YW5kGAIgASgJEhAKCHVzZXJuYW1lGAMgASgJIkQKKUdldFVzZXJBY2NvdW50",
-            "c0Zyb21QYXJ0aWFsVXNlcm5hbWVSZXF1ZXN0EhcKD3BhcnRpYWxVc2VybmFt",
-            "ZRgBIAEoCSJNChFHbG9iYWxVc2VyQWNjb3VudBIQCgh1c2VybmFtZRgBIAEo",
-            "CRISCgphY2NvdW50VWlkGAIgASgMEhIKCnJlZ2lvbk5hbWUYAyABKAkiagoq",
-            "R2V0VXNlckFjY291bnRzRnJvbVBhcnRpYWxVc2VybmFtZVJlc3BvbnNlEjwK",
-            "EWdsb2JhbFVzZXJBY2NvdW50GAEgAygLMiEuQXV0aGVudGljYXRpb24uR2xv",
-            "YmFsVXNlckFjY291bnQiUAoZU3NvU2VydmljZVByb3ZpZGVyUmVxdWVzdBIM",
-            "CgRuYW1lGAEgASgJEhUKDWNsaWVudFZlcnNpb24YAiABKAkSDgoGbG9jYWxl",
-            "GAMgASgJImEKGlNzb1NlcnZpY2VQcm92aWRlclJlc3BvbnNlEgwKBG5hbWUY",
-            "ASABKAkSDQoFc3BVcmwYAiABKAkSDwoHaXNDbG91ZBgDIAEoCBIVCg1jbGll",
-            "bnRWZXJzaW9uGAQgASgJIjQKElVzZXJTZXR0aW5nUmVxdWVzdBIPCgdzZXR0",
-            "aW5nGAEgASgJEg0KBXZhbHVlGAIgASgJIkkKIFN1cHBvcnRUb29sQ2hhbmdl",
-            "VXNlcm5hbWVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEhMKC25ld1VzZXJu",
-            "YW1lGAIgASgJImAKHFN1cHBvcnRUb29sRGVsZXRlVXNlclJlcXVlc3QSFQoN",
-            "YWdlbnRVc2VybmFtZRgBIAEoCRIZChF1c2VybmFtZUZvckRlbGV0ZRgCIAEo",
-            "CRIOCgZyZWFzb24YAyABKAkiagogU3VwcG9ydFRvb2xDaGFuZ2VVc2VyTG9j",
-            "a1JlcXVlc3QSDgoGdXNlcklkGAEgASgFEjYKDmxvY2tSZWFzb25UeXBlGAIg",
-            "ASgOMh4uQXV0aGVudGljYXRpb24uTG9ja1JlYXNvblR5cGUiPQorU3VwcG9y",
-            "dFRvb2xHZXRVc2VyQWNjb3VudEluZm9ybWF0aW9uUmVxdWVzdBIOCgZ1c2Vy",
-            "SWQYASABKAUiZgoNVGhyb3R0bGVTdGF0ZRIqCgR0eXBlGAEgASgOMhwuQXV0",
-            "aGVudGljYXRpb24uVGhyb3R0bGVUeXBlEgsKA2tleRgCIAEoCRINCgV2YWx1",
-            "ZRgDIAEoCRINCgVzdGF0ZRgEIAEoCCKXAQoRRGV2aWNlSW5mb3JtYXRpb24S",
-            "EAoIZGV2aWNlSWQYASABKAMSEgoKZGV2aWNlTmFtZRgCIAEoCRIVCg1jbGll",
-            "bnRWZXJzaW9uGAMgASgJEhEKCWxhc3RMb2dpbhgEIAEoAxIyCgxkZXZpY2VT",
-            "dGF0dXMYBSABKA4yHC5BdXRoZW50aWNhdGlvbi5EZXZpY2VTdGF0dXMiKgoL",
-            "VXNlclNldHRpbmcSDAoEbmFtZRgBIAEoCRINCgV2YWx1ZRgCIAEoCCKzAgos",
-            "U3VwcG9ydFRvb2xHZXRVc2VyQWNjb3VudEluZm9ybWF0aW9uUmVzcG9uc2US",
-            "DwoHc3NvVXNlchgBIAEoCBJQChthbHRlcm5hdGVBdXRoZW50aWNhdGlvblR5",
-            "cGUYAiADKA4yKy5BdXRoZW50aWNhdGlvbi5BbHRlcm5hdGVBdXRoZW50aWNh",
-            "dGlvblR5cGUSNQoOdGhyb3R0bGVTdGF0ZXMYAyADKAsyHS5BdXRoZW50aWNh",
-            "dGlvbi5UaHJvdHRsZVN0YXRlEjYKC2RldmljZUluZm9zGAQgAygLMiEuQXV0",
-            "aGVudGljYXRpb24uRGV2aWNlSW5mb3JtYXRpb24SMQoMdXNlclNldHRpbmdz",
-            "GAUgAygLMhsuQXV0aGVudGljYXRpb24uVXNlclNldHRpbmcihgEKKFN1cHBv",
-            "cnRUb29sQ2hhbmdlVXNlckRldmljZVN0YXR1c1JlcXVlc3QSDgoGdXNlcklk",
-            "GAEgASgFEhAKCGRldmljZUlkGAIgASgDEjgKBmFjdGlvbhgDIAEoDjIoLkF1",
-            "dGhlbnRpY2F0aW9uLkRldmljZVVwZGF0ZVN0YXR1c0FjdGlvbiKVAQolRGVs",
-            "ZXRlVXNlcldpdGhWZXJpZmljYXRpb25Db2RlUmVxdWVzdBIVCg1hZ2VudFVz",
-            "ZXJuYW1lGAEgASgJEhkKEXVzZXJuYW1lRm9yRGVsZXRlGAIgASgJEg4KBnJl",
-            "YXNvbhgDIAEoCRIYChB2ZXJpZmljYXRpb25Db2RlGAQgASgJEhAKCG92ZXJy",
-            "aWRlGAUgASgIIq4BCiZEZWxldGVVc2VyV2l0aFZlcmlmaWNhdGlvbkNvZGVS",
-            "ZXNwb25zZRIVCg1kZWxldGVkVXNlcklkGAEgASgFEhcKD2RlbGV0ZWRVc2Vy",
-            "bmFtZRgCIAEoCRIZChFkZWxldGVkQWNjb3VudFVpZBgDIAEoDBIRCglkZWxl",
-            "dGVkQnkYBCABKAkSDgoGcmVhc29uGAUgASgJEhYKDmRlbGV0ZURhdGVUaW1l",
-            "GAYgASgJIk8KHVN1cHBvcnRUb29sUmVzdG9yZURlbGV0ZWRVc2VyEhUKDWFn",
-            "ZW50VXNlcm5hbWUYASABKAkSFwoPZGVsZXRlZFVzZXJuYW1lGAIgASgJIk8K",
-            "F1N1cHBvcnRUb29sUmVzdG9yZWRVc2VyEg4KBnVzZXJJZBgBIAEoBRIQCgh1",
-            "c2VybmFtZRgCIAEoCRISCgphY2NvdW50VWlkGAMgASgMIlUKIlN1cHBvcnRU",
-            "b29sU2VhcmNoQnlVc2VybmFtZVJlcXVlc3QSFQoNYWdlbnRVc2VybmFtZRgB",
-            "IAEoCRIYChB1c2VybmFtZVRvU2VhcmNoGAIgASgJIjcKD0FjY291bnRVc2Vy",
-            "bmFtZRIQCgh1c2VybmFtZRgBIAEoCRISCgpkYXRlQWN0aXZlGAIgASgJIq0B",
-            "CiNTdXBwb3J0VG9vbFNlYXJjaEJ5VXNlcm5hbWVSZXNwb25zZRISCgphY2Nv",
-            "dW50VWlkGAEgASgMEhIKCnJlZ2lvbk5hbWUYAiABKAkSDgoGdXNlcklkGAMg",
-            "ASgFEhQKDHByaW1hcnlFbWFpbBgEIAEoCRI4Cg9hY2NvdW50VXNlcm5hbWUY",
-            "BSADKAsyHy5BdXRoZW50aWNhdGlvbi5BY2NvdW50VXNlcm5hbWUiLgoSVXNl",
-            "ckRhdGFLZXlSZXF1ZXN0EhgKEGVudGVycHJpc2VVc2VySWQYASADKAMiUQob",
-            "RW50ZXJwcmlzZVVzZXJJZERhdGFLZXlQYWlyEhgKEGVudGVycHJpc2VVc2Vy",
-            "SWQYASABKAMSGAoQZW5jcnlwdGVkRGF0YUtleRgCIAEoDCKVAQoLVXNlckRh",
-            "dGFLZXkSDgoGcm9sZUlkGAEgASgDEg8KB3JvbGVLZXkYAiABKAwSEgoKcHJp",
-            "dmF0ZUtleRgDIAEoCRJRChxlbnRlcnByaXNlVXNlcklkRGF0YUtleVBhaXJz",
-            "GAQgAygLMisuQXV0aGVudGljYXRpb24uRW50ZXJwcmlzZVVzZXJJZERhdGFL",
-            "ZXlQYWlyInoKE1VzZXJEYXRhS2V5UmVzcG9uc2USMQoMdXNlckRhdGFLZXlz",
-            "GAEgAygLMhsuQXV0aGVudGljYXRpb24uVXNlckRhdGFLZXkSFAoMYWNjZXNz",
-            "RGVuaWVkGAIgAygDEhoKEm5vRW5jcnlwdGVkRGF0YUtleRgDIAMoAyJ1Ch1T",
-            "dXBwb3J0VG9vbDJGQVZhbGlkYXRlUmVxdWVzdBIOCgZ1c2VySWQYASABKAUS",
-            "NQoJdmFsdWVUeXBlGAIgASgOMiIuQXV0aGVudGljYXRpb24uVHdvRmFjdG9y",
-            "VmFsdWVUeXBlEg0KBXZhbHVlGAMgASgJIiwKGlN1cHBvcnRUb29sQm9vbGVh",
-            "blJlc3BvbnNlEg4KBnJlc3VsdBgBIAEoCCJBChNCaUNoZWNrb3V0U2VuZEVt",
-            "YWlsEhQKDGxpY2Vuc2VLZXlJZBgBIAEoBRIUCgxjb250YWN0RW1haWwYAiAB",
-            "KAkiVgowU3VwcG9ydFRvb2xDaGFuZ2VQcmltYXJ5RW1haWxUb0FsaWFzRW1h",
-            "aWxSZXF1ZXN0Eg4KBnVzZXJJZBgBIAEoBRISCgphbGlhc0VtYWlsGAIgASgJ",
-            "KrkCChFTdXBwb3J0ZWRMYW5ndWFnZRILCgdFTkdMSVNIEAASCgoGQVJBQklD",
-            "EAESCwoHQlJJVElTSBACEgsKB0NISU5FU0UQAxIVChFDSElORVNFX0hPTkdf",
-            "S09ORxAEEhIKDkNISU5FU0VfVEFJV0FOEAUSCQoFRFVUQ0gQBhIKCgZGUkVO",
-            "Q0gQBxIKCgZHRVJNQU4QCBIJCgVHUkVFSxAJEgoKBkhFQlJFVxAKEgsKB0lU",
-            "QUxJQU4QCxIMCghKQVBBTkVTRRAMEgoKBktPUkVBThANEgoKBlBPTElTSBAO",
-            "Eg4KClBPUlRVR1VFU0UQDxIVChFQT1JUVUdVRVNFX0JSQVpJTBAQEgwKCFJP",
-            "TUFOSUFOEBESCwoHUlVTU0lBThASEgoKBlNMT1ZBSxATEgsKB1NQQU5JU0gQ",
-            "FCpFCglMb2dpblR5cGUSCgoGTk9STUFMEAASBwoDU1NPEAESBwoDQklPEAIS",
-            "DQoJQUxURVJOQVRFEAMSCwoHT0ZGTElORRAEKnEKDERldmljZVN0YXR1cxIZ",
-            "ChVERVZJQ0VfTkVFRFNfQVBQUk9WQUwQABINCglERVZJQ0VfT0sQARIbChdE",
-            "RVZJQ0VfRElTQUJMRURfQllfVVNFUhACEhoKFkRFVklDRV9MT0NLRURfQllf",
-            "QURNSU4QAypBCg1MaWNlbnNlU3RhdHVzEgkKBU9USEVSEAASCgoGQUNUSVZF",
-            "EAESCwoHRVhQSVJFRBACEgwKCERJU0FCTEVEEAMqNwoLQWNjb3VudFR5cGUS",
-            "DAoIQ09OU1VNRVIQABIKCgZGQU1JTFkQARIOCgpFTlRFUlBSSVNFEAIqqwEK",
-            "EFNlc3Npb25Ub2tlblR5cGUSEgoOTk9fUkVTVFJJQ1RJT04QABIUChBBQ0NP",
-            "VU5UX1JFQ09WRVJZEAESEQoNU0hBUkVfQUNDT1VOVBACEgwKCFBVUkNIQVNF",
-            "EAMSDAoIUkVTVFJJQ1QQBBIRCg1BQ0NFUFRfSU5WSVRFEAUSEgoOU1VQUE9S",
-            "VF9TRVJWRVIQBhIXChNFTlRFUlBSSVNFX0NSRUFUSU9OEAcqRwoHVmVyc2lv",
-            "bhITCg9pbnZhbGlkX3ZlcnNpb24QABITCg9kZWZhdWx0X3ZlcnNpb24QARIS",
-            "Cg5zZWNvbmRfdmVyc2lvbhACKjcKH01hc3RlclBhc3N3b3JkUmVlbnRyeUFj",
-            "dGlvblR5cGUSCgoGVU5NQVNLEAASCAoEQ09QWRABKmwKC0xvZ2luTWV0aG9k",
-            "EhcKE0lOVkFMSURfTE9HSU5NRVRIT0QQABIUChBFWElTVElOR19BQ0NPVU5U",
-            "EAESDgoKU1NPX0RPTUFJThACEg0KCUFGVEVSX1NTTxADEg8KC05FV19BQ0NP",
-            "VU5UEAQqxwMKCkxvZ2luU3RhdGUSFgoSSU5WQUxJRF9MT0dJTlNUQVRFEAAS",
-            "DgoKTE9HR0VEX09VVBABEhwKGERFVklDRV9BUFBST1ZBTF9SRVFVSVJFRBAC",
-            "EhEKDURFVklDRV9MT0NLRUQQAxISCg5BQ0NPVU5UX0xPQ0tFRBAEEhkKFURF",
-            "VklDRV9BQ0NPVU5UX0xPQ0tFRBAFEgsKB1VQR1JBREUQBhITCg9MSUNFTlNF",
-            "X0VYUElSRUQQBxITCg9SRUdJT05fUkVESVJFQ1QQCBIWChJSRURJUkVDVF9D",
-            "TE9VRF9TU08QCRIXChNSRURJUkVDVF9PTlNJVEVfU1NPEAoSEAoMUkVRVUlS",
-            "RVNfMkZBEAwSFgoSUkVRVUlSRVNfQVVUSF9IQVNIEA0SFQoRUkVRVUlSRVNf",
-            "VVNFUk5BTUUQDhIZChVBRlRFUl9DTE9VRF9TU09fTE9HSU4QDxIdChlSRVFV",
-            "SVJFU19BQ0NPVU5UX0NSRUFUSU9OEBASJgoiUkVRVUlSRVNfREVWSUNFX0VO",
-            "Q1JZUFRFRF9EQVRBX0tFWRAREhcKE0xPR0lOX1RPS0VOX0VYUElSRUQQEhIN",
-            "CglMT0dHRURfSU4QYyprChRFbmNyeXB0ZWREYXRhS2V5VHlwZRIKCgZOT19L",
-            "RVkQABIYChRCWV9ERVZJQ0VfUFVCTElDX0tFWRABEg8KC0JZX1BBU1NXT1JE",
-            "EAISEAoMQllfQUxURVJOQVRFEAMSCgoGQllfQklPEAQqLQoOUGFzc3dvcmRN",
-            "ZXRob2QSCwoHRU5URVJFRBAAEg4KCkJJT01FVFJJQ1MQASq5AQoRVHdvRmFj",
-            "dG9yUHVzaFR5cGUSFAoQVFdPX0ZBX1BVU0hfTk9ORRAAEhMKD1RXT19GQV9Q",
-            "VVNIX1NNUxABEhYKElRXT19GQV9QVVNIX0tFRVBFUhACEhgKFFRXT19GQV9Q",
-            "VVNIX0RVT19QVVNIEAMSGAoUVFdPX0ZBX1BVU0hfRFVPX1RFWFQQBBIYChRU",
-            "V09fRkFfUFVTSF9EVU9fQ0FMTBAFEhMKD1RXT19GQV9QVVNIX0ROQRAGKsMB",
-            "ChJUd29GYWN0b3JWYWx1ZVR5cGUSFAoQVFdPX0ZBX0NPREVfTk9ORRAAEhQK",
-            "EFRXT19GQV9DT0RFX1RPVFAQARITCg9UV09fRkFfQ09ERV9TTVMQAhITCg9U",
-            "V09fRkFfQ09ERV9EVU8QAxITCg9UV09fRkFfQ09ERV9SU0EQBBITCg9UV09f",
-            "RkFfUkVTUF9VMkYQBRIYChRUV09fRkFfUkVTUF9XRUJBVVRIThAGEhMKD1RX",
-            "T19GQV9DT0RFX0ROQRAHKuEBChRUd29GYWN0b3JDaGFubmVsVHlwZRISCg5U",
-            "V09fRkFfQ1RfTk9ORRAAEhIKDlRXT19GQV9DVF9UT1RQEAESEQoNVFdPX0ZB",
-            "X0NUX1NNUxACEhEKDVRXT19GQV9DVF9EVU8QAxIRCg1UV09fRkFfQ1RfUlNB",
-            "EAQSFAoQVFdPX0ZBX0NUX0JBQ0tVUBAFEhEKDVRXT19GQV9DVF9VMkYQBhIW",
-            "ChJUV09fRkFfQ1RfV0VCQVVUSE4QBxIUChBUV09fRkFfQ1RfS0VFUEVSEAgS",
-            "EQoNVFdPX0ZBX0NUX0ROQRAJKqsBChNUd29GYWN0b3JFeHBpcmF0aW9uEhoK",
-            "FlRXT19GQV9FWFBfSU1NRURJQVRFTFkQABIYChRUV09fRkFfRVhQXzVfTUlO",
-            "VVRFUxABEhcKE1RXT19GQV9FWFBfMTJfSE9VUlMQAhIXChNUV09fRkFfRVhQ",
-            "XzI0X0hPVVJTEAMSFgoSVFdPX0ZBX0VYUF8zMF9EQVlTEAQSFAoQVFdPX0ZB",
-            "X0VYUF9ORVZFUhAFKkAKC0xpY2Vuc2VUeXBlEgkKBVZBVUxUEAASCAoEQ0hB",
-            "VBABEgsKB1NUT1JBR0UQAhIPCgtCUkVBQ0hXQVRDSBADKmkKC09iamVjdFR5",
-            "cGVzEgoKBlJFQ09SRBAAEhYKElNIQVJFRF9GT0xERVJfVVNFUhABEhYKElNI",
-            "QVJFRF9GT0xERVJfVEVBTRACEg8KC1VTRVJfRk9MREVSEAMSDQoJVEVBTV9V",
-            "U0VSEAQqTQoOTG9ja1JlYXNvblR5cGUSEwoPUkVBU09OX1VOTE9DS0VEEAAS",
-            "EQoNUkVBU09OX0xPQ0tFRBABEhMKD1JFQVNPTl9ESVNBQkxFRBACKmAKG0Fs",
-            "dGVybmF0ZUF1dGhlbnRpY2F0aW9uVHlwZRIdChlBTFRFUk5BVEVfTUFTVEVS",
-            "X1BBU1NXT1JEEAASDQoJQklPTUVUUklDEAESEwoPQUNDT1VOVF9SRUNPVkVS",
-            "EAIqmgIKDFRocm90dGxlVHlwZRIbChdQQVNTV09SRF9SRVRSWV9USFJPVFRM",
-            "RRAAEiIKHlBBU1NXT1JEX1JFVFJZX0xFR0FDWV9USFJPVFRMRRABEhMKD1RX",
-            "T19GQV9USFJPVFRMRRACEhoKFlRXT19GQV9MRUdBQ1lfVEhST1RUTEUQAxIV",
-            "ChFRQV9SRVRSWV9USFJPVFRMRRAEEhwKGEFDQ09VTlRfUkVDT1ZFUl9USFJP",
-            "VFRMRRAFEi4KKlZBTElEQVRFX0RFVklDRV9WRVJJRklDQVRJT05fQ09ERV9U",
-            "SFJPVFRMRRAGEjMKL1ZBTElEQVRFX0NSRUFURV9VU0VSX1ZFUklGSUNBVElP",
-            "Tl9DT0RFX1RIUk9UVExFEAcqUgoYRGV2aWNlVXBkYXRlU3RhdHVzQWN0aW9u",
-            "EhIKDkFQUFJPVkVfREVWSUNFEAASDwoLTE9DS19ERVZJQ0UQARIRCg1VTkxP",
-            "Q0tfREVWSUNFEAJCKgoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQg5BdXRo",
-            "ZW50aWNhdGlvbmIGcHJvdG8z"));
+            "c2lvblVpZBgEIAEoDBIVCg1jbGllbnRWZXJzaW9uGAUgASgJIrIBChpEZXZp",
+            "Y2VWZXJpZmljYXRpb25SZXNwb25zZRIcChRlbmNyeXB0ZWREZXZpY2VUb2tl",
+            "bhgBIAEoDBIQCgh1c2VybmFtZRgCIAEoCRIZChFtZXNzYWdlU2Vzc2lvblVp",
+            "ZBgDIAEoDBIVCg1jbGllbnRWZXJzaW9uGAQgASgJEjIKDGRldmljZVN0YXR1",
+            "cxgFIAEoDjIcLkF1dGhlbnRpY2F0aW9uLkRldmljZVN0YXR1cyLIAQoVRGV2",
+            "aWNlQXBwcm92YWxSZXF1ZXN0Eg0KBWVtYWlsGAEgASgJEhgKEHR3b0ZhY3Rv",
+            "ckNoYW5uZWwYAiABKAkSFQoNY2xpZW50VmVyc2lvbhgDIAEoCRIOCgZsb2Nh",
+            "bGUYBCABKAkSHAoUZW5jcnlwdGVkRGV2aWNlVG9rZW4YBSABKAwSEAoIdG90",
+            "cENvZGUYBiABKAkSEAoIZGV2aWNlSXAYByABKAkSHQoVZGV2aWNlVG9rZW5F",
+            "eHBpcmVEYXlzGAggASgJIjkKFkRldmljZUFwcHJvdmFsUmVzcG9uc2USHwoX",
+            "ZW5jcnlwdGVkVHdvRmFjdG9yVG9rZW4YASABKAwifgoUQXBwcm92ZURldmlj",
+            "ZVJlcXVlc3QSHAoUZW5jcnlwdGVkRGV2aWNlVG9rZW4YASABKAwSHgoWZW5j",
+            "cnlwdGVkRGV2aWNlRGF0YUtleRgCIAEoDBIUCgxkZW55QXBwcm92YWwYAyAB",
+            "KAgSEgoKbGlua0RldmljZRgEIAEoCCJFChpFbnRlcnByaXNlVXNlckFsaWFz",
+            "UmVxdWVzdBIYChBlbnRlcnByaXNlVXNlcklkGAEgASgDEg0KBWFsaWFzGAIg",
+            "ASgJIiYKBkRldmljZRIcChRlbmNyeXB0ZWREZXZpY2VUb2tlbhgBIAEoDCJc",
+            "ChxSZWdpc3RlckRldmljZURhdGFLZXlSZXF1ZXN0EhwKFGVuY3J5cHRlZERl",
+            "dmljZVRva2VuGAEgASgMEh4KFmVuY3J5cHRlZERldmljZURhdGFLZXkYAiAB",
+            "KAwibgopVmFsaWRhdGVDcmVhdGVVc2VyVmVyaWZpY2F0aW9uQ29kZVJlcXVl",
+            "c3QSEAoIdXNlcm5hbWUYASABKAkSFQoNY2xpZW50VmVyc2lvbhgCIAEoCRIY",
+            "ChB2ZXJpZmljYXRpb25Db2RlGAMgASgJIoUBCiVWYWxpZGF0ZURldmljZVZl",
+            "cmlmaWNhdGlvbkNvZGVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEhUKDWNs",
+            "aWVudFZlcnNpb24YAiABKAkSGAoQdmVyaWZpY2F0aW9uQ29kZRgDIAEoCRIZ",
+            "ChFtZXNzYWdlU2Vzc2lvblVpZBgEIAEoDCJZChlTZW5kU2Vzc2lvbk1lc3Nh",
+            "Z2VSZXF1ZXN0EhkKEW1lc3NhZ2VTZXNzaW9uVWlkGAEgASgMEg8KB2NvbW1h",
+            "bmQYAiABKAkSEAoIdXNlcm5hbWUYAyABKAkiTQoRR2xvYmFsVXNlckFjY291",
+            "bnQSEAoIdXNlcm5hbWUYASABKAkSEgoKYWNjb3VudFVpZBgCIAEoDBISCgpy",
+            "ZWdpb25OYW1lGAMgASgJIjcKD0FjY291bnRVc2VybmFtZRIQCgh1c2VybmFt",
+            "ZRgBIAEoCRISCgpkYXRlQWN0aXZlGAIgASgJIlAKGVNzb1NlcnZpY2VQcm92",
+            "aWRlclJlcXVlc3QSDAoEbmFtZRgBIAEoCRIVCg1jbGllbnRWZXJzaW9uGAIg",
+            "ASgJEg4KBmxvY2FsZRgDIAEoCSJhChpTc29TZXJ2aWNlUHJvdmlkZXJSZXNw",
+            "b25zZRIMCgRuYW1lGAEgASgJEg0KBXNwVXJsGAIgASgJEg8KB2lzQ2xvdWQY",
+            "AyABKAgSFQoNY2xpZW50VmVyc2lvbhgEIAEoCSI0ChJVc2VyU2V0dGluZ1Jl",
+            "cXVlc3QSDwoHc2V0dGluZxgBIAEoCRINCgV2YWx1ZRgCIAEoCSJmCg1UaHJv",
+            "dHRsZVN0YXRlEioKBHR5cGUYASABKA4yHC5BdXRoZW50aWNhdGlvbi5UaHJv",
+            "dHRsZVR5cGUSCwoDa2V5GAIgASgJEg0KBXZhbHVlGAMgASgJEg0KBXN0YXRl",
+            "GAQgASgIIpcBChFEZXZpY2VJbmZvcm1hdGlvbhIQCghkZXZpY2VJZBgBIAEo",
+            "AxISCgpkZXZpY2VOYW1lGAIgASgJEhUKDWNsaWVudFZlcnNpb24YAyABKAkS",
+            "EQoJbGFzdExvZ2luGAQgASgDEjIKDGRldmljZVN0YXR1cxgFIAEoDjIcLkF1",
+            "dGhlbnRpY2F0aW9uLkRldmljZVN0YXR1cyIqCgtVc2VyU2V0dGluZxIMCgRu",
+            "YW1lGAEgASgJEg0KBXZhbHVlGAIgASgIIi4KElVzZXJEYXRhS2V5UmVxdWVz",
+            "dBIYChBlbnRlcnByaXNlVXNlcklkGAEgAygDIlEKG0VudGVycHJpc2VVc2Vy",
+            "SWREYXRhS2V5UGFpchIYChBlbnRlcnByaXNlVXNlcklkGAEgASgDEhgKEGVu",
+            "Y3J5cHRlZERhdGFLZXkYAiABKAwilQEKC1VzZXJEYXRhS2V5Eg4KBnJvbGVJ",
+            "ZBgBIAEoAxIPCgdyb2xlS2V5GAIgASgMEhIKCnByaXZhdGVLZXkYAyABKAkS",
+            "UQocZW50ZXJwcmlzZVVzZXJJZERhdGFLZXlQYWlycxgEIAMoCzIrLkF1dGhl",
+            "bnRpY2F0aW9uLkVudGVycHJpc2VVc2VySWREYXRhS2V5UGFpciJ6ChNVc2Vy",
+            "RGF0YUtleVJlc3BvbnNlEjEKDHVzZXJEYXRhS2V5cxgBIAMoCzIbLkF1dGhl",
+            "bnRpY2F0aW9uLlVzZXJEYXRhS2V5EhQKDGFjY2Vzc0RlbmllZBgCIAMoAxIa",
+            "ChJub0VuY3J5cHRlZERhdGFLZXkYAyADKAMquQIKEVN1cHBvcnRlZExhbmd1",
+            "YWdlEgsKB0VOR0xJU0gQABIKCgZBUkFCSUMQARILCgdCUklUSVNIEAISCwoH",
+            "Q0hJTkVTRRADEhUKEUNISU5FU0VfSE9OR19LT05HEAQSEgoOQ0hJTkVTRV9U",
+            "QUlXQU4QBRIJCgVEVVRDSBAGEgoKBkZSRU5DSBAHEgoKBkdFUk1BThAIEgkK",
+            "BUdSRUVLEAkSCgoGSEVCUkVXEAoSCwoHSVRBTElBThALEgwKCEpBUEFORVNF",
+            "EAwSCgoGS09SRUFOEA0SCgoGUE9MSVNIEA4SDgoKUE9SVFVHVUVTRRAPEhUK",
+            "EVBPUlRVR1VFU0VfQlJBWklMEBASDAoIUk9NQU5JQU4QERILCgdSVVNTSUFO",
+            "EBISCgoGU0xPVkFLEBMSCwoHU1BBTklTSBAUKkUKCUxvZ2luVHlwZRIKCgZO",
+            "T1JNQUwQABIHCgNTU08QARIHCgNCSU8QAhINCglBTFRFUk5BVEUQAxILCgdP",
+            "RkZMSU5FEAQqcQoMRGV2aWNlU3RhdHVzEhkKFURFVklDRV9ORUVEU19BUFBS",
+            "T1ZBTBAAEg0KCURFVklDRV9PSxABEhsKF0RFVklDRV9ESVNBQkxFRF9CWV9V",
+            "U0VSEAISGgoWREVWSUNFX0xPQ0tFRF9CWV9BRE1JThADKkEKDUxpY2Vuc2VT",
+            "dGF0dXMSCQoFT1RIRVIQABIKCgZBQ1RJVkUQARILCgdFWFBJUkVEEAISDAoI",
+            "RElTQUJMRUQQAyo3CgtBY2NvdW50VHlwZRIMCghDT05TVU1FUhAAEgoKBkZB",
+            "TUlMWRABEg4KCkVOVEVSUFJJU0UQAirMAQoQU2Vzc2lvblRva2VuVHlwZRIS",
+            "Cg5OT19SRVNUUklDVElPThAAEhQKEEFDQ09VTlRfUkVDT1ZFUlkQARIRCg1T",
+            "SEFSRV9BQ0NPVU5UEAISDAoIUFVSQ0hBU0UQAxIMCghSRVNUUklDVBAEEhEK",
+            "DUFDQ0VQVF9JTlZJVEUQBRISCg5TVVBQT1JUX1NFUlZFUhAGEhcKE0VOVEVS",
+            "UFJJU0VfQ1JFQVRJT04QBxIfChtFWFBJUkVEX0JVVF9BTExPV0VEX1RPX1NZ",
+            "TkMQCCpHCgdWZXJzaW9uEhMKD2ludmFsaWRfdmVyc2lvbhAAEhMKD2RlZmF1",
+            "bHRfdmVyc2lvbhABEhIKDnNlY29uZF92ZXJzaW9uEAIqNwofTWFzdGVyUGFz",
+            "c3dvcmRSZWVudHJ5QWN0aW9uVHlwZRIKCgZVTk1BU0sQABIICgRDT1BZEAEq",
+            "bAoLTG9naW5NZXRob2QSFwoTSU5WQUxJRF9MT0dJTk1FVEhPRBAAEhQKEEVY",
+            "SVNUSU5HX0FDQ09VTlQQARIOCgpTU09fRE9NQUlOEAISDQoJQUZURVJfU1NP",
+            "EAMSDwoLTkVXX0FDQ09VTlQQBCrHAwoKTG9naW5TdGF0ZRIWChJJTlZBTElE",
+            "X0xPR0lOU1RBVEUQABIOCgpMT0dHRURfT1VUEAESHAoYREVWSUNFX0FQUFJP",
+            "VkFMX1JFUVVJUkVEEAISEQoNREVWSUNFX0xPQ0tFRBADEhIKDkFDQ09VTlRf",
+            "TE9DS0VEEAQSGQoVREVWSUNFX0FDQ09VTlRfTE9DS0VEEAUSCwoHVVBHUkFE",
+            "RRAGEhMKD0xJQ0VOU0VfRVhQSVJFRBAHEhMKD1JFR0lPTl9SRURJUkVDVBAI",
+            "EhYKElJFRElSRUNUX0NMT1VEX1NTTxAJEhcKE1JFRElSRUNUX09OU0lURV9T",
+            "U08QChIQCgxSRVFVSVJFU18yRkEQDBIWChJSRVFVSVJFU19BVVRIX0hBU0gQ",
+            "DRIVChFSRVFVSVJFU19VU0VSTkFNRRAOEhkKFUFGVEVSX0NMT1VEX1NTT19M",
+            "T0dJThAPEh0KGVJFUVVJUkVTX0FDQ09VTlRfQ1JFQVRJT04QEBImCiJSRVFV",
+            "SVJFU19ERVZJQ0VfRU5DUllQVEVEX0RBVEFfS0VZEBESFwoTTE9HSU5fVE9L",
+            "RU5fRVhQSVJFRBASEg0KCUxPR0dFRF9JThBjKmsKFEVuY3J5cHRlZERhdGFL",
+            "ZXlUeXBlEgoKBk5PX0tFWRAAEhgKFEJZX0RFVklDRV9QVUJMSUNfS0VZEAES",
+            "DwoLQllfUEFTU1dPUkQQAhIQCgxCWV9BTFRFUk5BVEUQAxIKCgZCWV9CSU8Q",
+            "BCotCg5QYXNzd29yZE1ldGhvZBILCgdFTlRFUkVEEAASDgoKQklPTUVUUklD",
+            "UxABKrkBChFUd29GYWN0b3JQdXNoVHlwZRIUChBUV09fRkFfUFVTSF9OT05F",
+            "EAASEwoPVFdPX0ZBX1BVU0hfU01TEAESFgoSVFdPX0ZBX1BVU0hfS0VFUEVS",
+            "EAISGAoUVFdPX0ZBX1BVU0hfRFVPX1BVU0gQAxIYChRUV09fRkFfUFVTSF9E",
+            "VU9fVEVYVBAEEhgKFFRXT19GQV9QVVNIX0RVT19DQUxMEAUSEwoPVFdPX0ZB",
+            "X1BVU0hfRE5BEAYqwwEKElR3b0ZhY3RvclZhbHVlVHlwZRIUChBUV09fRkFf",
+            "Q09ERV9OT05FEAASFAoQVFdPX0ZBX0NPREVfVE9UUBABEhMKD1RXT19GQV9D",
+            "T0RFX1NNUxACEhMKD1RXT19GQV9DT0RFX0RVTxADEhMKD1RXT19GQV9DT0RF",
+            "X1JTQRAEEhMKD1RXT19GQV9SRVNQX1UyRhAFEhgKFFRXT19GQV9SRVNQX1dF",
+            "QkFVVEhOEAYSEwoPVFdPX0ZBX0NPREVfRE5BEAcq4QEKFFR3b0ZhY3RvckNo",
+            "YW5uZWxUeXBlEhIKDlRXT19GQV9DVF9OT05FEAASEgoOVFdPX0ZBX0NUX1RP",
+            "VFAQARIRCg1UV09fRkFfQ1RfU01TEAISEQoNVFdPX0ZBX0NUX0RVTxADEhEK",
+            "DVRXT19GQV9DVF9SU0EQBBIUChBUV09fRkFfQ1RfQkFDS1VQEAUSEQoNVFdP",
+            "X0ZBX0NUX1UyRhAGEhYKElRXT19GQV9DVF9XRUJBVVRIThAHEhQKEFRXT19G",
+            "QV9DVF9LRUVQRVIQCBIRCg1UV09fRkFfQ1RfRE5BEAkqqwEKE1R3b0ZhY3Rv",
+            "ckV4cGlyYXRpb24SGgoWVFdPX0ZBX0VYUF9JTU1FRElBVEVMWRAAEhgKFFRX",
+            "T19GQV9FWFBfNV9NSU5VVEVTEAESFwoTVFdPX0ZBX0VYUF8xMl9IT1VSUxAC",
+            "EhcKE1RXT19GQV9FWFBfMjRfSE9VUlMQAxIWChJUV09fRkFfRVhQXzMwX0RB",
+            "WVMQBBIUChBUV09fRkFfRVhQX05FVkVSEAUqQAoLTGljZW5zZVR5cGUSCQoF",
+            "VkFVTFQQABIICgRDSEFUEAESCwoHU1RPUkFHRRACEg8KC0JSRUFDSFdBVENI",
+            "EAMqaQoLT2JqZWN0VHlwZXMSCgoGUkVDT1JEEAASFgoSU0hBUkVEX0ZPTERF",
+            "Ul9VU0VSEAESFgoSU0hBUkVEX0ZPTERFUl9URUFNEAISDwoLVVNFUl9GT0xE",
+            "RVIQAxINCglURUFNX1VTRVIQBCpgChtBbHRlcm5hdGVBdXRoZW50aWNhdGlv",
+            "blR5cGUSHQoZQUxURVJOQVRFX01BU1RFUl9QQVNTV09SRBAAEg0KCUJJT01F",
+            "VFJJQxABEhMKD0FDQ09VTlRfUkVDT1ZFUhACKpoCCgxUaHJvdHRsZVR5cGUS",
+            "GwoXUEFTU1dPUkRfUkVUUllfVEhST1RUTEUQABIiCh5QQVNTV09SRF9SRVRS",
+            "WV9MRUdBQ1lfVEhST1RUTEUQARITCg9UV09fRkFfVEhST1RUTEUQAhIaChZU",
+            "V09fRkFfTEVHQUNZX1RIUk9UVExFEAMSFQoRUUFfUkVUUllfVEhST1RUTEUQ",
+            "BBIcChhBQ0NPVU5UX1JFQ09WRVJfVEhST1RUTEUQBRIuCipWQUxJREFURV9E",
+            "RVZJQ0VfVkVSSUZJQ0FUSU9OX0NPREVfVEhST1RUTEUQBhIzCi9WQUxJREFU",
+            "RV9DUkVBVEVfVVNFUl9WRVJJRklDQVRJT05fQ09ERV9USFJPVFRMRRAHQioK",
+            "GGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IOQXV0aGVudGljYXRpb25iBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Enterprise.EnterpriseReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), typeof(global::Authentication.LockReasonType), typeof(global::Authentication.AlternateAuthenticationType), typeof(global::Authentication.ThrottleType), typeof(global::Authentication.DeviceUpdateStatusAction), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), typeof(global::Authentication.AlternateAuthenticationType), typeof(global::Authentication.ThrottleType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApiRequest), global::Authentication.ApiRequest.Parser, new[]{ "EncryptedTransmissionKey", "PublicKeyId", "Locale", "EncryptedPayload", "EncryptionType", "Recaptcha", "SubEnvironment" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApiRequestPayload), global::Authentication.ApiRequestPayload.Parser, new[]{ "Payload", "EncryptedSessionToken", "TimeToken", "ApiVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.Transform), global::Authentication.Transform.Parser, new[]{ "Key", "EncryptedDeviceToken" }, null, null, null, null),
@@ -436,46 +389,28 @@ namespace Authentication {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.MasterPasswordReentryRequest), global::Authentication.MasterPasswordReentryRequest.Parser, new[]{ "Pbkdf2Password", "Action" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeviceRegistrationRequest), global::Authentication.DeviceRegistrationRequest.Parser, new[]{ "ClientVersion", "DeviceName", "DevicePublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeviceVerificationRequest), global::Authentication.DeviceVerificationRequest.Parser, new[]{ "EncryptedDeviceToken", "Username", "VerificationChannel", "MessageSessionUid", "ClientVersion" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeviceVerificationResponse), global::Authentication.DeviceVerificationResponse.Parser, new[]{ "EncryptedDeviceToken", "Username", "MessageSessionUid", "ClientVersion", "DeviceStatus" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeviceApprovalRequest), global::Authentication.DeviceApprovalRequest.Parser, new[]{ "Email", "TwoFactorChannel", "ClientVersion", "Locale", "EncryptedDeviceToken", "TotpCode", "DeviceIp", "DeviceTokenExpireDays" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeviceApprovalResponse), global::Authentication.DeviceApprovalResponse.Parser, new[]{ "EncryptedTwoFactorToken" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApproveDeviceRequest), global::Authentication.ApproveDeviceRequest.Parser, new[]{ "EncryptedDeviceToken", "EncryptedDeviceDataKey", "DenyApproval", "LinkDevice" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApproveDeviceInstantRequest), global::Authentication.ApproveDeviceInstantRequest.Parser, new[]{ "EncryptedDeviceToken", "EncryptedDeviceDataKey", "LinkDevice", "ClientVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.EnterpriseUserAliasRequest), global::Authentication.EnterpriseUserAliasRequest.Parser, new[]{ "EnterpriseUserId", "Alias" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.Device), global::Authentication.Device.Parser, new[]{ "EncryptedDeviceToken" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.RegisterDeviceDataKeyRequest), global::Authentication.RegisterDeviceDataKeyRequest.Parser, new[]{ "EncryptedDeviceToken", "EncryptedDeviceDataKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ValidateCreateUserVerificationCodeRequest), global::Authentication.ValidateCreateUserVerificationCodeRequest.Parser, new[]{ "Username", "ClientVersion", "VerificationCode" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ValidateDeviceVerificationCodeRequest), global::Authentication.ValidateDeviceVerificationCodeRequest.Parser, new[]{ "Username", "ClientVersion", "VerificationCode", "MessageSessionUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SendSessionMessageRequest), global::Authentication.SendSessionMessageRequest.Parser, new[]{ "MessageSessionUid", "Command", "Username" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.GetUserAccountsFromPartialUsernameRequest), global::Authentication.GetUserAccountsFromPartialUsernameRequest.Parser, new[]{ "PartialUsername" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.GlobalUserAccount), global::Authentication.GlobalUserAccount.Parser, new[]{ "Username", "AccountUid", "RegionName" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.GetUserAccountsFromPartialUsernameResponse), global::Authentication.GetUserAccountsFromPartialUsernameResponse.Parser, new[]{ "GlobalUserAccount" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AccountUsername), global::Authentication.AccountUsername.Parser, new[]{ "Username", "DateActive" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SsoServiceProviderRequest), global::Authentication.SsoServiceProviderRequest.Parser, new[]{ "Name", "ClientVersion", "Locale" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SsoServiceProviderResponse), global::Authentication.SsoServiceProviderResponse.Parser, new[]{ "Name", "SpUrl", "IsCloud", "ClientVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserSettingRequest), global::Authentication.UserSettingRequest.Parser, new[]{ "Setting", "Value" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolChangeUsernameRequest), global::Authentication.SupportToolChangeUsernameRequest.Parser, new[]{ "Username", "NewUsername" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolDeleteUserRequest), global::Authentication.SupportToolDeleteUserRequest.Parser, new[]{ "AgentUsername", "UsernameForDelete", "Reason" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolChangeUserLockRequest), global::Authentication.SupportToolChangeUserLockRequest.Parser, new[]{ "UserId", "LockReasonType" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolGetUserAccountInformationRequest), global::Authentication.SupportToolGetUserAccountInformationRequest.Parser, new[]{ "UserId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ThrottleState), global::Authentication.ThrottleState.Parser, new[]{ "Type", "Key", "Value", "State" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeviceInformation), global::Authentication.DeviceInformation.Parser, new[]{ "DeviceId", "DeviceName", "ClientVersion", "LastLogin", "DeviceStatus" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserSetting), global::Authentication.UserSetting.Parser, new[]{ "Name", "Value" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolGetUserAccountInformationResponse), global::Authentication.SupportToolGetUserAccountInformationResponse.Parser, new[]{ "SsoUser", "AlternateAuthenticationType", "ThrottleStates", "DeviceInfos", "UserSettings" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolChangeUserDeviceStatusRequest), global::Authentication.SupportToolChangeUserDeviceStatusRequest.Parser, new[]{ "UserId", "DeviceId", "Action" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeleteUserWithVerificationCodeRequest), global::Authentication.DeleteUserWithVerificationCodeRequest.Parser, new[]{ "AgentUsername", "UsernameForDelete", "Reason", "VerificationCode", "Override" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.DeleteUserWithVerificationCodeResponse), global::Authentication.DeleteUserWithVerificationCodeResponse.Parser, new[]{ "DeletedUserId", "DeletedUsername", "DeletedAccountUid", "DeletedBy", "Reason", "DeleteDateTime" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolRestoreDeletedUser), global::Authentication.SupportToolRestoreDeletedUser.Parser, new[]{ "AgentUsername", "DeletedUsername" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolRestoredUser), global::Authentication.SupportToolRestoredUser.Parser, new[]{ "UserId", "Username", "AccountUid" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolSearchByUsernameRequest), global::Authentication.SupportToolSearchByUsernameRequest.Parser, new[]{ "AgentUsername", "UsernameToSearch" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.AccountUsername), global::Authentication.AccountUsername.Parser, new[]{ "Username", "DateActive" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolSearchByUsernameResponse), global::Authentication.SupportToolSearchByUsernameResponse.Parser, new[]{ "AccountUid", "RegionName", "UserId", "PrimaryEmail", "AccountUsername" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKeyRequest), global::Authentication.UserDataKeyRequest.Parser, new[]{ "EnterpriseUserId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.EnterpriseUserIdDataKeyPair), global::Authentication.EnterpriseUserIdDataKeyPair.Parser, new[]{ "EnterpriseUserId", "EncryptedDataKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKey), global::Authentication.UserDataKey.Parser, new[]{ "RoleId", "RoleKey", "PrivateKey", "EnterpriseUserIdDataKeyPairs" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKeyResponse), global::Authentication.UserDataKeyResponse.Parser, new[]{ "UserDataKeys", "AccessDenied", "NoEncryptedDataKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportTool2FAValidateRequest), global::Authentication.SupportTool2FAValidateRequest.Parser, new[]{ "UserId", "ValueType", "Value" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolBooleanResponse), global::Authentication.SupportToolBooleanResponse.Parser, new[]{ "Result" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.BiCheckoutSendEmail), global::Authentication.BiCheckoutSendEmail.Parser, new[]{ "LicenseKeyId", "ContactEmail" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.SupportToolChangePrimaryEmailToAliasEmailRequest), global::Authentication.SupportToolChangePrimaryEmailToAliasEmailRequest.Parser, new[]{ "UserId", "AliasEmail" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.UserDataKeyResponse), global::Authentication.UserDataKeyResponse.Parser, new[]{ "UserDataKeys", "AccessDenied", "NoEncryptedDataKey" }, null, null, null, null)
           }));
     }
     #endregion
@@ -570,6 +505,10 @@ namespace Authentication {
     /// user has tried to log into the console but no enterprise exists
     /// </summary>
     [pbr::OriginalName("ENTERPRISE_CREATION")] EnterpriseCreation = 7,
+    /// <summary>
+    /// for webapp
+    /// </summary>
+    [pbr::OriginalName("EXPIRED_BUT_ALLOWED_TO_SYNC")] ExpiredButAllowedToSync = 8,
   }
 
   public enum Version {
@@ -744,12 +683,6 @@ namespace Authentication {
     [pbr::OriginalName("TEAM_USER")] TeamUser = 4,
   }
 
-  public enum LockReasonType {
-    [pbr::OriginalName("REASON_UNLOCKED")] ReasonUnlocked = 0,
-    [pbr::OriginalName("REASON_LOCKED")] ReasonLocked = 1,
-    [pbr::OriginalName("REASON_DISABLED")] ReasonDisabled = 2,
-  }
-
   public enum AlternateAuthenticationType {
     [pbr::OriginalName("ALTERNATE_MASTER_PASSWORD")] AlternateMasterPassword = 0,
     [pbr::OriginalName("BIOMETRIC")] Biometric = 1,
@@ -765,12 +698,6 @@ namespace Authentication {
     [pbr::OriginalName("ACCOUNT_RECOVER_THROTTLE")] AccountRecoverThrottle = 5,
     [pbr::OriginalName("VALIDATE_DEVICE_VERIFICATION_CODE_THROTTLE")] ValidateDeviceVerificationCodeThrottle = 6,
     [pbr::OriginalName("VALIDATE_CREATE_USER_VERIFICATION_CODE_THROTTLE")] ValidateCreateUserVerificationCodeThrottle = 7,
-  }
-
-  public enum DeviceUpdateStatusAction {
-    [pbr::OriginalName("APPROVE_DEVICE")] ApproveDevice = 0,
-    [pbr::OriginalName("LOCK_DEVICE")] LockDevice = 1,
-    [pbr::OriginalName("UNLOCK_DEVICE")] UnlockDevice = 2,
   }
 
   #endregion
@@ -13796,6 +13723,247 @@ namespace Authentication {
 
   }
 
+  public sealed partial class DeviceVerificationResponse : pb::IMessage<DeviceVerificationResponse> {
+    private static readonly pb::MessageParser<DeviceVerificationResponse> _parser = new pb::MessageParser<DeviceVerificationResponse>(() => new DeviceVerificationResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<DeviceVerificationResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[62]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeviceVerificationResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeviceVerificationResponse(DeviceVerificationResponse other) : this() {
+      encryptedDeviceToken_ = other.encryptedDeviceToken_;
+      username_ = other.username_;
+      messageSessionUid_ = other.messageSessionUid_;
+      clientVersion_ = other.clientVersion_;
+      deviceStatus_ = other.deviceStatus_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DeviceVerificationResponse Clone() {
+      return new DeviceVerificationResponse(this);
+    }
+
+    /// <summary>Field number for the "encryptedDeviceToken" field.</summary>
+    public const int EncryptedDeviceTokenFieldNumber = 1;
+    private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString EncryptedDeviceToken {
+      get { return encryptedDeviceToken_; }
+      set {
+        encryptedDeviceToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "username" field.</summary>
+    public const int UsernameFieldNumber = 2;
+    private string username_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Username {
+      get { return username_; }
+      set {
+        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "messageSessionUid" field.</summary>
+    public const int MessageSessionUidFieldNumber = 3;
+    private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString MessageSessionUid {
+      get { return messageSessionUid_; }
+      set {
+        messageSessionUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "clientVersion" field.</summary>
+    public const int ClientVersionFieldNumber = 4;
+    private string clientVersion_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ClientVersion {
+      get { return clientVersion_; }
+      set {
+        clientVersion_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "deviceStatus" field.</summary>
+    public const int DeviceStatusFieldNumber = 5;
+    private global::Authentication.DeviceStatus deviceStatus_ = global::Authentication.DeviceStatus.DeviceNeedsApproval;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Authentication.DeviceStatus DeviceStatus {
+      get { return deviceStatus_; }
+      set {
+        deviceStatus_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as DeviceVerificationResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(DeviceVerificationResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (EncryptedDeviceToken != other.EncryptedDeviceToken) return false;
+      if (Username != other.Username) return false;
+      if (MessageSessionUid != other.MessageSessionUid) return false;
+      if (ClientVersion != other.ClientVersion) return false;
+      if (DeviceStatus != other.DeviceStatus) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
+      if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (MessageSessionUid.Length != 0) hash ^= MessageSessionUid.GetHashCode();
+      if (ClientVersion.Length != 0) hash ^= ClientVersion.GetHashCode();
+      if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) hash ^= DeviceStatus.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Username);
+      }
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(ClientVersion);
+      }
+      if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DeviceStatus);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (EncryptedDeviceToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceToken);
+      }
+      if (Username.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      }
+      if (MessageSessionUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(MessageSessionUid);
+      }
+      if (ClientVersion.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ClientVersion);
+      }
+      if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DeviceStatus);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(DeviceVerificationResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.EncryptedDeviceToken.Length != 0) {
+        EncryptedDeviceToken = other.EncryptedDeviceToken;
+      }
+      if (other.Username.Length != 0) {
+        Username = other.Username;
+      }
+      if (other.MessageSessionUid.Length != 0) {
+        MessageSessionUid = other.MessageSessionUid;
+      }
+      if (other.ClientVersion.Length != 0) {
+        ClientVersion = other.ClientVersion;
+      }
+      if (other.DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
+        DeviceStatus = other.DeviceStatus;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Username = input.ReadString();
+            break;
+          }
+          case 26: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 40: {
+            DeviceStatus = (global::Authentication.DeviceStatus) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
   public sealed partial class DeviceApprovalRequest : pb::IMessage<DeviceApprovalRequest> {
     private static readonly pb::MessageParser<DeviceApprovalRequest> _parser = new pb::MessageParser<DeviceApprovalRequest>(() => new DeviceApprovalRequest());
     private pb::UnknownFieldSet _unknownFields;
@@ -13804,7 +13972,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[62]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[63]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14138,7 +14306,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[63]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[64]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14267,7 +14435,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[64]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[65]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14467,222 +14635,6 @@ namespace Authentication {
           }
           case 32: {
             LinkDevice = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class ApproveDeviceInstantRequest : pb::IMessage<ApproveDeviceInstantRequest> {
-    private static readonly pb::MessageParser<ApproveDeviceInstantRequest> _parser = new pb::MessageParser<ApproveDeviceInstantRequest>(() => new ApproveDeviceInstantRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<ApproveDeviceInstantRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[65]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ApproveDeviceInstantRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ApproveDeviceInstantRequest(ApproveDeviceInstantRequest other) : this() {
-      encryptedDeviceToken_ = other.encryptedDeviceToken_;
-      encryptedDeviceDataKey_ = other.encryptedDeviceDataKey_;
-      linkDevice_ = other.linkDevice_;
-      clientVersion_ = other.clientVersion_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ApproveDeviceInstantRequest Clone() {
-      return new ApproveDeviceInstantRequest(this);
-    }
-
-    /// <summary>Field number for the "encryptedDeviceToken" field.</summary>
-    public const int EncryptedDeviceTokenFieldNumber = 1;
-    private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString EncryptedDeviceToken {
-      get { return encryptedDeviceToken_; }
-      set {
-        encryptedDeviceToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "encryptedDeviceDataKey" field.</summary>
-    public const int EncryptedDeviceDataKeyFieldNumber = 2;
-    private pb::ByteString encryptedDeviceDataKey_ = pb::ByteString.Empty;
-    /// <summary>
-    /// required for cloud sso and link
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString EncryptedDeviceDataKey {
-      get { return encryptedDeviceDataKey_; }
-      set {
-        encryptedDeviceDataKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "linkDevice" field.</summary>
-    public const int LinkDeviceFieldNumber = 3;
-    private bool linkDevice_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool LinkDevice {
-      get { return linkDevice_; }
-      set {
-        linkDevice_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "clientVersion" field.</summary>
-    public const int ClientVersionFieldNumber = 4;
-    private string clientVersion_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string ClientVersion {
-      get { return clientVersion_; }
-      set {
-        clientVersion_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as ApproveDeviceInstantRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(ApproveDeviceInstantRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (EncryptedDeviceToken != other.EncryptedDeviceToken) return false;
-      if (EncryptedDeviceDataKey != other.EncryptedDeviceDataKey) return false;
-      if (LinkDevice != other.LinkDevice) return false;
-      if (ClientVersion != other.ClientVersion) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
-      if (EncryptedDeviceDataKey.Length != 0) hash ^= EncryptedDeviceDataKey.GetHashCode();
-      if (LinkDevice != false) hash ^= LinkDevice.GetHashCode();
-      if (ClientVersion.Length != 0) hash ^= ClientVersion.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (EncryptedDeviceToken.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(EncryptedDeviceToken);
-      }
-      if (EncryptedDeviceDataKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EncryptedDeviceDataKey);
-      }
-      if (LinkDevice != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(LinkDevice);
-      }
-      if (ClientVersion.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(ClientVersion);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (EncryptedDeviceToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceToken);
-      }
-      if (EncryptedDeviceDataKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceDataKey);
-      }
-      if (LinkDevice != false) {
-        size += 1 + 1;
-      }
-      if (ClientVersion.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(ClientVersion);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(ApproveDeviceInstantRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.EncryptedDeviceToken.Length != 0) {
-        EncryptedDeviceToken = other.EncryptedDeviceToken;
-      }
-      if (other.EncryptedDeviceDataKey.Length != 0) {
-        EncryptedDeviceDataKey = other.EncryptedDeviceDataKey;
-      }
-      if (other.LinkDevice != false) {
-        LinkDevice = other.LinkDevice;
-      }
-      if (other.ClientVersion.Length != 0) {
-        ClientVersion = other.ClientVersion;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            EncryptedDeviceToken = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            EncryptedDeviceDataKey = input.ReadBytes();
-            break;
-          }
-          case 24: {
-            LinkDevice = input.ReadBool();
-            break;
-          }
-          case 34: {
-            ClientVersion = input.ReadString();
             break;
           }
         }
@@ -15717,135 +15669,6 @@ namespace Authentication {
 
   }
 
-  public sealed partial class GetUserAccountsFromPartialUsernameRequest : pb::IMessage<GetUserAccountsFromPartialUsernameRequest> {
-    private static readonly pb::MessageParser<GetUserAccountsFromPartialUsernameRequest> _parser = new pb::MessageParser<GetUserAccountsFromPartialUsernameRequest>(() => new GetUserAccountsFromPartialUsernameRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<GetUserAccountsFromPartialUsernameRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[72]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetUserAccountsFromPartialUsernameRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetUserAccountsFromPartialUsernameRequest(GetUserAccountsFromPartialUsernameRequest other) : this() {
-      partialUsername_ = other.partialUsername_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetUserAccountsFromPartialUsernameRequest Clone() {
-      return new GetUserAccountsFromPartialUsernameRequest(this);
-    }
-
-    /// <summary>Field number for the "partialUsername" field.</summary>
-    public const int PartialUsernameFieldNumber = 1;
-    private string partialUsername_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string PartialUsername {
-      get { return partialUsername_; }
-      set {
-        partialUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as GetUserAccountsFromPartialUsernameRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(GetUserAccountsFromPartialUsernameRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (PartialUsername != other.PartialUsername) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (PartialUsername.Length != 0) hash ^= PartialUsername.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (PartialUsername.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(PartialUsername);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (PartialUsername.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(PartialUsername);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(GetUserAccountsFromPartialUsernameRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.PartialUsername.Length != 0) {
-        PartialUsername = other.PartialUsername;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            PartialUsername = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   public sealed partial class GlobalUserAccount : pb::IMessage<GlobalUserAccount> {
     private static readonly pb::MessageParser<GlobalUserAccount> _parser = new pb::MessageParser<GlobalUserAccount>(() => new GlobalUserAccount());
     private pb::UnknownFieldSet _unknownFields;
@@ -15854,7 +15677,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[73]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[72]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16031,15 +15854,15 @@ namespace Authentication {
 
   }
 
-  public sealed partial class GetUserAccountsFromPartialUsernameResponse : pb::IMessage<GetUserAccountsFromPartialUsernameResponse> {
-    private static readonly pb::MessageParser<GetUserAccountsFromPartialUsernameResponse> _parser = new pb::MessageParser<GetUserAccountsFromPartialUsernameResponse>(() => new GetUserAccountsFromPartialUsernameResponse());
+  public sealed partial class AccountUsername : pb::IMessage<AccountUsername> {
+    private static readonly pb::MessageParser<AccountUsername> _parser = new pb::MessageParser<AccountUsername>(() => new AccountUsername());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<GetUserAccountsFromPartialUsernameResponse> Parser { get { return _parser; } }
+    public static pb::MessageParser<AccountUsername> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[74]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[73]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16048,54 +15871,69 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetUserAccountsFromPartialUsernameResponse() {
+    public AccountUsername() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetUserAccountsFromPartialUsernameResponse(GetUserAccountsFromPartialUsernameResponse other) : this() {
-      globalUserAccount_ = other.globalUserAccount_.Clone();
+    public AccountUsername(AccountUsername other) : this() {
+      username_ = other.username_;
+      dateActive_ = other.dateActive_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetUserAccountsFromPartialUsernameResponse Clone() {
-      return new GetUserAccountsFromPartialUsernameResponse(this);
+    public AccountUsername Clone() {
+      return new AccountUsername(this);
     }
 
-    /// <summary>Field number for the "globalUserAccount" field.</summary>
-    public const int GlobalUserAccountFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::Authentication.GlobalUserAccount> _repeated_globalUserAccount_codec
-        = pb::FieldCodec.ForMessage(10, global::Authentication.GlobalUserAccount.Parser);
-    private readonly pbc::RepeatedField<global::Authentication.GlobalUserAccount> globalUserAccount_ = new pbc::RepeatedField<global::Authentication.GlobalUserAccount>();
+    /// <summary>Field number for the "username" field.</summary>
+    public const int UsernameFieldNumber = 1;
+    private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Authentication.GlobalUserAccount> GlobalUserAccount {
-      get { return globalUserAccount_; }
+    public string Username {
+      get { return username_; }
+      set {
+        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "dateActive" field.</summary>
+    public const int DateActiveFieldNumber = 2;
+    private string dateActive_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string DateActive {
+      get { return dateActive_; }
+      set {
+        dateActive_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as GetUserAccountsFromPartialUsernameResponse);
+      return Equals(other as AccountUsername);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(GetUserAccountsFromPartialUsernameResponse other) {
+    public bool Equals(AccountUsername other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if(!globalUserAccount_.Equals(other.globalUserAccount_)) return false;
+      if (Username != other.Username) return false;
+      if (DateActive != other.DateActive) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      hash ^= globalUserAccount_.GetHashCode();
+      if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (DateActive.Length != 0) hash ^= DateActive.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -16109,7 +15947,14 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      globalUserAccount_.WriteTo(output, _repeated_globalUserAccount_codec);
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (DateActive.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(DateActive);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -16118,7 +15963,12 @@ namespace Authentication {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      size += globalUserAccount_.CalculateSize(_repeated_globalUserAccount_codec);
+      if (Username.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      }
+      if (DateActive.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DateActive);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -16126,11 +15976,16 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(GetUserAccountsFromPartialUsernameResponse other) {
+    public void MergeFrom(AccountUsername other) {
       if (other == null) {
         return;
       }
-      globalUserAccount_.Add(other.globalUserAccount_);
+      if (other.Username.Length != 0) {
+        Username = other.Username;
+      }
+      if (other.DateActive.Length != 0) {
+        DateActive = other.DateActive;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -16143,7 +15998,11 @@ namespace Authentication {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            globalUserAccount_.AddEntriesFrom(input, _repeated_globalUserAccount_codec);
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            DateActive = input.ReadString();
             break;
           }
         }
@@ -16164,7 +16023,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[75]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[74]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16359,7 +16218,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[76]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[75]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16575,7 +16434,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[77]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[76]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16724,634 +16583,6 @@ namespace Authentication {
 
   }
 
-  public sealed partial class SupportToolChangeUsernameRequest : pb::IMessage<SupportToolChangeUsernameRequest> {
-    private static readonly pb::MessageParser<SupportToolChangeUsernameRequest> _parser = new pb::MessageParser<SupportToolChangeUsernameRequest>(() => new SupportToolChangeUsernameRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolChangeUsernameRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[78]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUsernameRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUsernameRequest(SupportToolChangeUsernameRequest other) : this() {
-      username_ = other.username_;
-      newUsername_ = other.newUsername_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUsernameRequest Clone() {
-      return new SupportToolChangeUsernameRequest(this);
-    }
-
-    /// <summary>Field number for the "username" field.</summary>
-    public const int UsernameFieldNumber = 1;
-    private string username_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Username {
-      get { return username_; }
-      set {
-        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "newUsername" field.</summary>
-    public const int NewUsernameFieldNumber = 2;
-    private string newUsername_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string NewUsername {
-      get { return newUsername_; }
-      set {
-        newUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolChangeUsernameRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolChangeUsernameRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (Username != other.Username) return false;
-      if (NewUsername != other.NewUsername) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (Username.Length != 0) hash ^= Username.GetHashCode();
-      if (NewUsername.Length != 0) hash ^= NewUsername.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (Username.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Username);
-      }
-      if (NewUsername.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(NewUsername);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (Username.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
-      }
-      if (NewUsername.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(NewUsername);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolChangeUsernameRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.Username.Length != 0) {
-        Username = other.Username;
-      }
-      if (other.NewUsername.Length != 0) {
-        NewUsername = other.NewUsername;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            Username = input.ReadString();
-            break;
-          }
-          case 18: {
-            NewUsername = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolDeleteUserRequest : pb::IMessage<SupportToolDeleteUserRequest> {
-    private static readonly pb::MessageParser<SupportToolDeleteUserRequest> _parser = new pb::MessageParser<SupportToolDeleteUserRequest>(() => new SupportToolDeleteUserRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolDeleteUserRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[79]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolDeleteUserRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolDeleteUserRequest(SupportToolDeleteUserRequest other) : this() {
-      agentUsername_ = other.agentUsername_;
-      usernameForDelete_ = other.usernameForDelete_;
-      reason_ = other.reason_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolDeleteUserRequest Clone() {
-      return new SupportToolDeleteUserRequest(this);
-    }
-
-    /// <summary>Field number for the "agentUsername" field.</summary>
-    public const int AgentUsernameFieldNumber = 1;
-    private string agentUsername_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string AgentUsername {
-      get { return agentUsername_; }
-      set {
-        agentUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "usernameForDelete" field.</summary>
-    public const int UsernameForDeleteFieldNumber = 2;
-    private string usernameForDelete_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string UsernameForDelete {
-      get { return usernameForDelete_; }
-      set {
-        usernameForDelete_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "reason" field.</summary>
-    public const int ReasonFieldNumber = 3;
-    private string reason_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Reason {
-      get { return reason_; }
-      set {
-        reason_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolDeleteUserRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolDeleteUserRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (AgentUsername != other.AgentUsername) return false;
-      if (UsernameForDelete != other.UsernameForDelete) return false;
-      if (Reason != other.Reason) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (AgentUsername.Length != 0) hash ^= AgentUsername.GetHashCode();
-      if (UsernameForDelete.Length != 0) hash ^= UsernameForDelete.GetHashCode();
-      if (Reason.Length != 0) hash ^= Reason.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (AgentUsername.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(AgentUsername);
-      }
-      if (UsernameForDelete.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(UsernameForDelete);
-      }
-      if (Reason.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Reason);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (AgentUsername.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(AgentUsername);
-      }
-      if (UsernameForDelete.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(UsernameForDelete);
-      }
-      if (Reason.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reason);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolDeleteUserRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.AgentUsername.Length != 0) {
-        AgentUsername = other.AgentUsername;
-      }
-      if (other.UsernameForDelete.Length != 0) {
-        UsernameForDelete = other.UsernameForDelete;
-      }
-      if (other.Reason.Length != 0) {
-        Reason = other.Reason;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            AgentUsername = input.ReadString();
-            break;
-          }
-          case 18: {
-            UsernameForDelete = input.ReadString();
-            break;
-          }
-          case 26: {
-            Reason = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolChangeUserLockRequest : pb::IMessage<SupportToolChangeUserLockRequest> {
-    private static readonly pb::MessageParser<SupportToolChangeUserLockRequest> _parser = new pb::MessageParser<SupportToolChangeUserLockRequest>(() => new SupportToolChangeUserLockRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolChangeUserLockRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[80]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUserLockRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUserLockRequest(SupportToolChangeUserLockRequest other) : this() {
-      userId_ = other.userId_;
-      lockReasonType_ = other.lockReasonType_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUserLockRequest Clone() {
-      return new SupportToolChangeUserLockRequest(this);
-    }
-
-    /// <summary>Field number for the "userId" field.</summary>
-    public const int UserIdFieldNumber = 1;
-    private int userId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int UserId {
-      get { return userId_; }
-      set {
-        userId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "lockReasonType" field.</summary>
-    public const int LockReasonTypeFieldNumber = 2;
-    private global::Authentication.LockReasonType lockReasonType_ = global::Authentication.LockReasonType.ReasonUnlocked;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Authentication.LockReasonType LockReasonType {
-      get { return lockReasonType_; }
-      set {
-        lockReasonType_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolChangeUserLockRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolChangeUserLockRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (UserId != other.UserId) return false;
-      if (LockReasonType != other.LockReasonType) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (UserId != 0) hash ^= UserId.GetHashCode();
-      if (LockReasonType != global::Authentication.LockReasonType.ReasonUnlocked) hash ^= LockReasonType.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (UserId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(UserId);
-      }
-      if (LockReasonType != global::Authentication.LockReasonType.ReasonUnlocked) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) LockReasonType);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (UserId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
-      }
-      if (LockReasonType != global::Authentication.LockReasonType.ReasonUnlocked) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) LockReasonType);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolChangeUserLockRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.UserId != 0) {
-        UserId = other.UserId;
-      }
-      if (other.LockReasonType != global::Authentication.LockReasonType.ReasonUnlocked) {
-        LockReasonType = other.LockReasonType;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            UserId = input.ReadInt32();
-            break;
-          }
-          case 16: {
-            LockReasonType = (global::Authentication.LockReasonType) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolGetUserAccountInformationRequest : pb::IMessage<SupportToolGetUserAccountInformationRequest> {
-    private static readonly pb::MessageParser<SupportToolGetUserAccountInformationRequest> _parser = new pb::MessageParser<SupportToolGetUserAccountInformationRequest>(() => new SupportToolGetUserAccountInformationRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolGetUserAccountInformationRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[81]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolGetUserAccountInformationRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolGetUserAccountInformationRequest(SupportToolGetUserAccountInformationRequest other) : this() {
-      userId_ = other.userId_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolGetUserAccountInformationRequest Clone() {
-      return new SupportToolGetUserAccountInformationRequest(this);
-    }
-
-    /// <summary>Field number for the "userId" field.</summary>
-    public const int UserIdFieldNumber = 1;
-    private int userId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int UserId {
-      get { return userId_; }
-      set {
-        userId_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolGetUserAccountInformationRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolGetUserAccountInformationRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (UserId != other.UserId) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (UserId != 0) hash ^= UserId.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (UserId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(UserId);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (UserId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolGetUserAccountInformationRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.UserId != 0) {
-        UserId = other.UserId;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            UserId = input.ReadInt32();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   public sealed partial class ThrottleState : pb::IMessage<ThrottleState> {
     private static readonly pb::MessageParser<ThrottleState> _parser = new pb::MessageParser<ThrottleState>(() => new ThrottleState());
     private pb::UnknownFieldSet _unknownFields;
@@ -17360,7 +16591,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[82]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[77]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -17573,7 +16804,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[83]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[78]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -17817,7 +17048,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[84]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[79]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -17966,1812 +17197,6 @@ namespace Authentication {
 
   }
 
-  public sealed partial class SupportToolGetUserAccountInformationResponse : pb::IMessage<SupportToolGetUserAccountInformationResponse> {
-    private static readonly pb::MessageParser<SupportToolGetUserAccountInformationResponse> _parser = new pb::MessageParser<SupportToolGetUserAccountInformationResponse>(() => new SupportToolGetUserAccountInformationResponse());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolGetUserAccountInformationResponse> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[85]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolGetUserAccountInformationResponse() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolGetUserAccountInformationResponse(SupportToolGetUserAccountInformationResponse other) : this() {
-      ssoUser_ = other.ssoUser_;
-      alternateAuthenticationType_ = other.alternateAuthenticationType_.Clone();
-      throttleStates_ = other.throttleStates_.Clone();
-      deviceInfos_ = other.deviceInfos_.Clone();
-      userSettings_ = other.userSettings_.Clone();
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolGetUserAccountInformationResponse Clone() {
-      return new SupportToolGetUserAccountInformationResponse(this);
-    }
-
-    /// <summary>Field number for the "ssoUser" field.</summary>
-    public const int SsoUserFieldNumber = 1;
-    private bool ssoUser_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool SsoUser {
-      get { return ssoUser_; }
-      set {
-        ssoUser_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "alternateAuthenticationType" field.</summary>
-    public const int AlternateAuthenticationTypeFieldNumber = 2;
-    private static readonly pb::FieldCodec<global::Authentication.AlternateAuthenticationType> _repeated_alternateAuthenticationType_codec
-        = pb::FieldCodec.ForEnum(18, x => (int) x, x => (global::Authentication.AlternateAuthenticationType) x);
-    private readonly pbc::RepeatedField<global::Authentication.AlternateAuthenticationType> alternateAuthenticationType_ = new pbc::RepeatedField<global::Authentication.AlternateAuthenticationType>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Authentication.AlternateAuthenticationType> AlternateAuthenticationType {
-      get { return alternateAuthenticationType_; }
-    }
-
-    /// <summary>Field number for the "throttleStates" field.</summary>
-    public const int ThrottleStatesFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::Authentication.ThrottleState> _repeated_throttleStates_codec
-        = pb::FieldCodec.ForMessage(26, global::Authentication.ThrottleState.Parser);
-    private readonly pbc::RepeatedField<global::Authentication.ThrottleState> throttleStates_ = new pbc::RepeatedField<global::Authentication.ThrottleState>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Authentication.ThrottleState> ThrottleStates {
-      get { return throttleStates_; }
-    }
-
-    /// <summary>Field number for the "deviceInfos" field.</summary>
-    public const int DeviceInfosFieldNumber = 4;
-    private static readonly pb::FieldCodec<global::Authentication.DeviceInformation> _repeated_deviceInfos_codec
-        = pb::FieldCodec.ForMessage(34, global::Authentication.DeviceInformation.Parser);
-    private readonly pbc::RepeatedField<global::Authentication.DeviceInformation> deviceInfos_ = new pbc::RepeatedField<global::Authentication.DeviceInformation>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Authentication.DeviceInformation> DeviceInfos {
-      get { return deviceInfos_; }
-    }
-
-    /// <summary>Field number for the "userSettings" field.</summary>
-    public const int UserSettingsFieldNumber = 5;
-    private static readonly pb::FieldCodec<global::Authentication.UserSetting> _repeated_userSettings_codec
-        = pb::FieldCodec.ForMessage(42, global::Authentication.UserSetting.Parser);
-    private readonly pbc::RepeatedField<global::Authentication.UserSetting> userSettings_ = new pbc::RepeatedField<global::Authentication.UserSetting>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Authentication.UserSetting> UserSettings {
-      get { return userSettings_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolGetUserAccountInformationResponse);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolGetUserAccountInformationResponse other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (SsoUser != other.SsoUser) return false;
-      if(!alternateAuthenticationType_.Equals(other.alternateAuthenticationType_)) return false;
-      if(!throttleStates_.Equals(other.throttleStates_)) return false;
-      if(!deviceInfos_.Equals(other.deviceInfos_)) return false;
-      if(!userSettings_.Equals(other.userSettings_)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (SsoUser != false) hash ^= SsoUser.GetHashCode();
-      hash ^= alternateAuthenticationType_.GetHashCode();
-      hash ^= throttleStates_.GetHashCode();
-      hash ^= deviceInfos_.GetHashCode();
-      hash ^= userSettings_.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (SsoUser != false) {
-        output.WriteRawTag(8);
-        output.WriteBool(SsoUser);
-      }
-      alternateAuthenticationType_.WriteTo(output, _repeated_alternateAuthenticationType_codec);
-      throttleStates_.WriteTo(output, _repeated_throttleStates_codec);
-      deviceInfos_.WriteTo(output, _repeated_deviceInfos_codec);
-      userSettings_.WriteTo(output, _repeated_userSettings_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (SsoUser != false) {
-        size += 1 + 1;
-      }
-      size += alternateAuthenticationType_.CalculateSize(_repeated_alternateAuthenticationType_codec);
-      size += throttleStates_.CalculateSize(_repeated_throttleStates_codec);
-      size += deviceInfos_.CalculateSize(_repeated_deviceInfos_codec);
-      size += userSettings_.CalculateSize(_repeated_userSettings_codec);
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolGetUserAccountInformationResponse other) {
-      if (other == null) {
-        return;
-      }
-      if (other.SsoUser != false) {
-        SsoUser = other.SsoUser;
-      }
-      alternateAuthenticationType_.Add(other.alternateAuthenticationType_);
-      throttleStates_.Add(other.throttleStates_);
-      deviceInfos_.Add(other.deviceInfos_);
-      userSettings_.Add(other.userSettings_);
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            SsoUser = input.ReadBool();
-            break;
-          }
-          case 18:
-          case 16: {
-            alternateAuthenticationType_.AddEntriesFrom(input, _repeated_alternateAuthenticationType_codec);
-            break;
-          }
-          case 26: {
-            throttleStates_.AddEntriesFrom(input, _repeated_throttleStates_codec);
-            break;
-          }
-          case 34: {
-            deviceInfos_.AddEntriesFrom(input, _repeated_deviceInfos_codec);
-            break;
-          }
-          case 42: {
-            userSettings_.AddEntriesFrom(input, _repeated_userSettings_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolChangeUserDeviceStatusRequest : pb::IMessage<SupportToolChangeUserDeviceStatusRequest> {
-    private static readonly pb::MessageParser<SupportToolChangeUserDeviceStatusRequest> _parser = new pb::MessageParser<SupportToolChangeUserDeviceStatusRequest>(() => new SupportToolChangeUserDeviceStatusRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolChangeUserDeviceStatusRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[86]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUserDeviceStatusRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUserDeviceStatusRequest(SupportToolChangeUserDeviceStatusRequest other) : this() {
-      userId_ = other.userId_;
-      deviceId_ = other.deviceId_;
-      action_ = other.action_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangeUserDeviceStatusRequest Clone() {
-      return new SupportToolChangeUserDeviceStatusRequest(this);
-    }
-
-    /// <summary>Field number for the "userId" field.</summary>
-    public const int UserIdFieldNumber = 1;
-    private int userId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int UserId {
-      get { return userId_; }
-      set {
-        userId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "deviceId" field.</summary>
-    public const int DeviceIdFieldNumber = 2;
-    private long deviceId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long DeviceId {
-      get { return deviceId_; }
-      set {
-        deviceId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "action" field.</summary>
-    public const int ActionFieldNumber = 3;
-    private global::Authentication.DeviceUpdateStatusAction action_ = global::Authentication.DeviceUpdateStatusAction.ApproveDevice;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Authentication.DeviceUpdateStatusAction Action {
-      get { return action_; }
-      set {
-        action_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolChangeUserDeviceStatusRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolChangeUserDeviceStatusRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (UserId != other.UserId) return false;
-      if (DeviceId != other.DeviceId) return false;
-      if (Action != other.Action) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (UserId != 0) hash ^= UserId.GetHashCode();
-      if (DeviceId != 0L) hash ^= DeviceId.GetHashCode();
-      if (Action != global::Authentication.DeviceUpdateStatusAction.ApproveDevice) hash ^= Action.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (UserId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(UserId);
-      }
-      if (DeviceId != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(DeviceId);
-      }
-      if (Action != global::Authentication.DeviceUpdateStatusAction.ApproveDevice) {
-        output.WriteRawTag(24);
-        output.WriteEnum((int) Action);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (UserId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
-      }
-      if (DeviceId != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(DeviceId);
-      }
-      if (Action != global::Authentication.DeviceUpdateStatusAction.ApproveDevice) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Action);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolChangeUserDeviceStatusRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.UserId != 0) {
-        UserId = other.UserId;
-      }
-      if (other.DeviceId != 0L) {
-        DeviceId = other.DeviceId;
-      }
-      if (other.Action != global::Authentication.DeviceUpdateStatusAction.ApproveDevice) {
-        Action = other.Action;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            UserId = input.ReadInt32();
-            break;
-          }
-          case 16: {
-            DeviceId = input.ReadInt64();
-            break;
-          }
-          case 24: {
-            Action = (global::Authentication.DeviceUpdateStatusAction) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class DeleteUserWithVerificationCodeRequest : pb::IMessage<DeleteUserWithVerificationCodeRequest> {
-    private static readonly pb::MessageParser<DeleteUserWithVerificationCodeRequest> _parser = new pb::MessageParser<DeleteUserWithVerificationCodeRequest>(() => new DeleteUserWithVerificationCodeRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<DeleteUserWithVerificationCodeRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[87]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public DeleteUserWithVerificationCodeRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public DeleteUserWithVerificationCodeRequest(DeleteUserWithVerificationCodeRequest other) : this() {
-      agentUsername_ = other.agentUsername_;
-      usernameForDelete_ = other.usernameForDelete_;
-      reason_ = other.reason_;
-      verificationCode_ = other.verificationCode_;
-      override_ = other.override_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public DeleteUserWithVerificationCodeRequest Clone() {
-      return new DeleteUserWithVerificationCodeRequest(this);
-    }
-
-    /// <summary>Field number for the "agentUsername" field.</summary>
-    public const int AgentUsernameFieldNumber = 1;
-    private string agentUsername_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string AgentUsername {
-      get { return agentUsername_; }
-      set {
-        agentUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "usernameForDelete" field.</summary>
-    public const int UsernameForDeleteFieldNumber = 2;
-    private string usernameForDelete_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string UsernameForDelete {
-      get { return usernameForDelete_; }
-      set {
-        usernameForDelete_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "reason" field.</summary>
-    public const int ReasonFieldNumber = 3;
-    private string reason_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Reason {
-      get { return reason_; }
-      set {
-        reason_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "verificationCode" field.</summary>
-    public const int VerificationCodeFieldNumber = 4;
-    private string verificationCode_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string VerificationCode {
-      get { return verificationCode_; }
-      set {
-        verificationCode_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "override" field.</summary>
-    public const int OverrideFieldNumber = 5;
-    private bool override_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Override {
-      get { return override_; }
-      set {
-        override_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as DeleteUserWithVerificationCodeRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(DeleteUserWithVerificationCodeRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (AgentUsername != other.AgentUsername) return false;
-      if (UsernameForDelete != other.UsernameForDelete) return false;
-      if (Reason != other.Reason) return false;
-      if (VerificationCode != other.VerificationCode) return false;
-      if (Override != other.Override) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (AgentUsername.Length != 0) hash ^= AgentUsername.GetHashCode();
-      if (UsernameForDelete.Length != 0) hash ^= UsernameForDelete.GetHashCode();
-      if (Reason.Length != 0) hash ^= Reason.GetHashCode();
-      if (VerificationCode.Length != 0) hash ^= VerificationCode.GetHashCode();
-      if (Override != false) hash ^= Override.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (AgentUsername.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(AgentUsername);
-      }
-      if (UsernameForDelete.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(UsernameForDelete);
-      }
-      if (Reason.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Reason);
-      }
-      if (VerificationCode.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(VerificationCode);
-      }
-      if (Override != false) {
-        output.WriteRawTag(40);
-        output.WriteBool(Override);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (AgentUsername.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(AgentUsername);
-      }
-      if (UsernameForDelete.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(UsernameForDelete);
-      }
-      if (Reason.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reason);
-      }
-      if (VerificationCode.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(VerificationCode);
-      }
-      if (Override != false) {
-        size += 1 + 1;
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(DeleteUserWithVerificationCodeRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.AgentUsername.Length != 0) {
-        AgentUsername = other.AgentUsername;
-      }
-      if (other.UsernameForDelete.Length != 0) {
-        UsernameForDelete = other.UsernameForDelete;
-      }
-      if (other.Reason.Length != 0) {
-        Reason = other.Reason;
-      }
-      if (other.VerificationCode.Length != 0) {
-        VerificationCode = other.VerificationCode;
-      }
-      if (other.Override != false) {
-        Override = other.Override;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            AgentUsername = input.ReadString();
-            break;
-          }
-          case 18: {
-            UsernameForDelete = input.ReadString();
-            break;
-          }
-          case 26: {
-            Reason = input.ReadString();
-            break;
-          }
-          case 34: {
-            VerificationCode = input.ReadString();
-            break;
-          }
-          case 40: {
-            Override = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class DeleteUserWithVerificationCodeResponse : pb::IMessage<DeleteUserWithVerificationCodeResponse> {
-    private static readonly pb::MessageParser<DeleteUserWithVerificationCodeResponse> _parser = new pb::MessageParser<DeleteUserWithVerificationCodeResponse>(() => new DeleteUserWithVerificationCodeResponse());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<DeleteUserWithVerificationCodeResponse> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[88]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public DeleteUserWithVerificationCodeResponse() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public DeleteUserWithVerificationCodeResponse(DeleteUserWithVerificationCodeResponse other) : this() {
-      deletedUserId_ = other.deletedUserId_;
-      deletedUsername_ = other.deletedUsername_;
-      deletedAccountUid_ = other.deletedAccountUid_;
-      deletedBy_ = other.deletedBy_;
-      reason_ = other.reason_;
-      deleteDateTime_ = other.deleteDateTime_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public DeleteUserWithVerificationCodeResponse Clone() {
-      return new DeleteUserWithVerificationCodeResponse(this);
-    }
-
-    /// <summary>Field number for the "deletedUserId" field.</summary>
-    public const int DeletedUserIdFieldNumber = 1;
-    private int deletedUserId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int DeletedUserId {
-      get { return deletedUserId_; }
-      set {
-        deletedUserId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "deletedUsername" field.</summary>
-    public const int DeletedUsernameFieldNumber = 2;
-    private string deletedUsername_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string DeletedUsername {
-      get { return deletedUsername_; }
-      set {
-        deletedUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "deletedAccountUid" field.</summary>
-    public const int DeletedAccountUidFieldNumber = 3;
-    private pb::ByteString deletedAccountUid_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString DeletedAccountUid {
-      get { return deletedAccountUid_; }
-      set {
-        deletedAccountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "deletedBy" field.</summary>
-    public const int DeletedByFieldNumber = 4;
-    private string deletedBy_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string DeletedBy {
-      get { return deletedBy_; }
-      set {
-        deletedBy_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "reason" field.</summary>
-    public const int ReasonFieldNumber = 5;
-    private string reason_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Reason {
-      get { return reason_; }
-      set {
-        reason_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "deleteDateTime" field.</summary>
-    public const int DeleteDateTimeFieldNumber = 6;
-    private string deleteDateTime_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string DeleteDateTime {
-      get { return deleteDateTime_; }
-      set {
-        deleteDateTime_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as DeleteUserWithVerificationCodeResponse);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(DeleteUserWithVerificationCodeResponse other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (DeletedUserId != other.DeletedUserId) return false;
-      if (DeletedUsername != other.DeletedUsername) return false;
-      if (DeletedAccountUid != other.DeletedAccountUid) return false;
-      if (DeletedBy != other.DeletedBy) return false;
-      if (Reason != other.Reason) return false;
-      if (DeleteDateTime != other.DeleteDateTime) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (DeletedUserId != 0) hash ^= DeletedUserId.GetHashCode();
-      if (DeletedUsername.Length != 0) hash ^= DeletedUsername.GetHashCode();
-      if (DeletedAccountUid.Length != 0) hash ^= DeletedAccountUid.GetHashCode();
-      if (DeletedBy.Length != 0) hash ^= DeletedBy.GetHashCode();
-      if (Reason.Length != 0) hash ^= Reason.GetHashCode();
-      if (DeleteDateTime.Length != 0) hash ^= DeleteDateTime.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (DeletedUserId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(DeletedUserId);
-      }
-      if (DeletedUsername.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(DeletedUsername);
-      }
-      if (DeletedAccountUid.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(DeletedAccountUid);
-      }
-      if (DeletedBy.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(DeletedBy);
-      }
-      if (Reason.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(Reason);
-      }
-      if (DeleteDateTime.Length != 0) {
-        output.WriteRawTag(50);
-        output.WriteString(DeleteDateTime);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (DeletedUserId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(DeletedUserId);
-      }
-      if (DeletedUsername.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeletedUsername);
-      }
-      if (DeletedAccountUid.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(DeletedAccountUid);
-      }
-      if (DeletedBy.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeletedBy);
-      }
-      if (Reason.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reason);
-      }
-      if (DeleteDateTime.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeleteDateTime);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(DeleteUserWithVerificationCodeResponse other) {
-      if (other == null) {
-        return;
-      }
-      if (other.DeletedUserId != 0) {
-        DeletedUserId = other.DeletedUserId;
-      }
-      if (other.DeletedUsername.Length != 0) {
-        DeletedUsername = other.DeletedUsername;
-      }
-      if (other.DeletedAccountUid.Length != 0) {
-        DeletedAccountUid = other.DeletedAccountUid;
-      }
-      if (other.DeletedBy.Length != 0) {
-        DeletedBy = other.DeletedBy;
-      }
-      if (other.Reason.Length != 0) {
-        Reason = other.Reason;
-      }
-      if (other.DeleteDateTime.Length != 0) {
-        DeleteDateTime = other.DeleteDateTime;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            DeletedUserId = input.ReadInt32();
-            break;
-          }
-          case 18: {
-            DeletedUsername = input.ReadString();
-            break;
-          }
-          case 26: {
-            DeletedAccountUid = input.ReadBytes();
-            break;
-          }
-          case 34: {
-            DeletedBy = input.ReadString();
-            break;
-          }
-          case 42: {
-            Reason = input.ReadString();
-            break;
-          }
-          case 50: {
-            DeleteDateTime = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolRestoreDeletedUser : pb::IMessage<SupportToolRestoreDeletedUser> {
-    private static readonly pb::MessageParser<SupportToolRestoreDeletedUser> _parser = new pb::MessageParser<SupportToolRestoreDeletedUser>(() => new SupportToolRestoreDeletedUser());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolRestoreDeletedUser> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[89]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolRestoreDeletedUser() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolRestoreDeletedUser(SupportToolRestoreDeletedUser other) : this() {
-      agentUsername_ = other.agentUsername_;
-      deletedUsername_ = other.deletedUsername_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolRestoreDeletedUser Clone() {
-      return new SupportToolRestoreDeletedUser(this);
-    }
-
-    /// <summary>Field number for the "agentUsername" field.</summary>
-    public const int AgentUsernameFieldNumber = 1;
-    private string agentUsername_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string AgentUsername {
-      get { return agentUsername_; }
-      set {
-        agentUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "deletedUsername" field.</summary>
-    public const int DeletedUsernameFieldNumber = 2;
-    private string deletedUsername_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string DeletedUsername {
-      get { return deletedUsername_; }
-      set {
-        deletedUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolRestoreDeletedUser);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolRestoreDeletedUser other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (AgentUsername != other.AgentUsername) return false;
-      if (DeletedUsername != other.DeletedUsername) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (AgentUsername.Length != 0) hash ^= AgentUsername.GetHashCode();
-      if (DeletedUsername.Length != 0) hash ^= DeletedUsername.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (AgentUsername.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(AgentUsername);
-      }
-      if (DeletedUsername.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(DeletedUsername);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (AgentUsername.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(AgentUsername);
-      }
-      if (DeletedUsername.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeletedUsername);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolRestoreDeletedUser other) {
-      if (other == null) {
-        return;
-      }
-      if (other.AgentUsername.Length != 0) {
-        AgentUsername = other.AgentUsername;
-      }
-      if (other.DeletedUsername.Length != 0) {
-        DeletedUsername = other.DeletedUsername;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            AgentUsername = input.ReadString();
-            break;
-          }
-          case 18: {
-            DeletedUsername = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolRestoredUser : pb::IMessage<SupportToolRestoredUser> {
-    private static readonly pb::MessageParser<SupportToolRestoredUser> _parser = new pb::MessageParser<SupportToolRestoredUser>(() => new SupportToolRestoredUser());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolRestoredUser> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[90]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolRestoredUser() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolRestoredUser(SupportToolRestoredUser other) : this() {
-      userId_ = other.userId_;
-      username_ = other.username_;
-      accountUid_ = other.accountUid_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolRestoredUser Clone() {
-      return new SupportToolRestoredUser(this);
-    }
-
-    /// <summary>Field number for the "userId" field.</summary>
-    public const int UserIdFieldNumber = 1;
-    private int userId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int UserId {
-      get { return userId_; }
-      set {
-        userId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "username" field.</summary>
-    public const int UsernameFieldNumber = 2;
-    private string username_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Username {
-      get { return username_; }
-      set {
-        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "accountUid" field.</summary>
-    public const int AccountUidFieldNumber = 3;
-    private pb::ByteString accountUid_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString AccountUid {
-      get { return accountUid_; }
-      set {
-        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolRestoredUser);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolRestoredUser other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (UserId != other.UserId) return false;
-      if (Username != other.Username) return false;
-      if (AccountUid != other.AccountUid) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (UserId != 0) hash ^= UserId.GetHashCode();
-      if (Username.Length != 0) hash ^= Username.GetHashCode();
-      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (UserId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(UserId);
-      }
-      if (Username.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Username);
-      }
-      if (AccountUid.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(AccountUid);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (UserId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
-      }
-      if (Username.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
-      }
-      if (AccountUid.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolRestoredUser other) {
-      if (other == null) {
-        return;
-      }
-      if (other.UserId != 0) {
-        UserId = other.UserId;
-      }
-      if (other.Username.Length != 0) {
-        Username = other.Username;
-      }
-      if (other.AccountUid.Length != 0) {
-        AccountUid = other.AccountUid;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            UserId = input.ReadInt32();
-            break;
-          }
-          case 18: {
-            Username = input.ReadString();
-            break;
-          }
-          case 26: {
-            AccountUid = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolSearchByUsernameRequest : pb::IMessage<SupportToolSearchByUsernameRequest> {
-    private static readonly pb::MessageParser<SupportToolSearchByUsernameRequest> _parser = new pb::MessageParser<SupportToolSearchByUsernameRequest>(() => new SupportToolSearchByUsernameRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolSearchByUsernameRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[91]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolSearchByUsernameRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolSearchByUsernameRequest(SupportToolSearchByUsernameRequest other) : this() {
-      agentUsername_ = other.agentUsername_;
-      usernameToSearch_ = other.usernameToSearch_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolSearchByUsernameRequest Clone() {
-      return new SupportToolSearchByUsernameRequest(this);
-    }
-
-    /// <summary>Field number for the "agentUsername" field.</summary>
-    public const int AgentUsernameFieldNumber = 1;
-    private string agentUsername_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string AgentUsername {
-      get { return agentUsername_; }
-      set {
-        agentUsername_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "usernameToSearch" field.</summary>
-    public const int UsernameToSearchFieldNumber = 2;
-    private string usernameToSearch_ = "";
-    /// <summary>
-    ///Can be primary username or alias
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string UsernameToSearch {
-      get { return usernameToSearch_; }
-      set {
-        usernameToSearch_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolSearchByUsernameRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolSearchByUsernameRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (AgentUsername != other.AgentUsername) return false;
-      if (UsernameToSearch != other.UsernameToSearch) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (AgentUsername.Length != 0) hash ^= AgentUsername.GetHashCode();
-      if (UsernameToSearch.Length != 0) hash ^= UsernameToSearch.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (AgentUsername.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(AgentUsername);
-      }
-      if (UsernameToSearch.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(UsernameToSearch);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (AgentUsername.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(AgentUsername);
-      }
-      if (UsernameToSearch.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(UsernameToSearch);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolSearchByUsernameRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.AgentUsername.Length != 0) {
-        AgentUsername = other.AgentUsername;
-      }
-      if (other.UsernameToSearch.Length != 0) {
-        UsernameToSearch = other.UsernameToSearch;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            AgentUsername = input.ReadString();
-            break;
-          }
-          case 18: {
-            UsernameToSearch = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class AccountUsername : pb::IMessage<AccountUsername> {
-    private static readonly pb::MessageParser<AccountUsername> _parser = new pb::MessageParser<AccountUsername>(() => new AccountUsername());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<AccountUsername> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[92]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public AccountUsername() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public AccountUsername(AccountUsername other) : this() {
-      username_ = other.username_;
-      dateActive_ = other.dateActive_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public AccountUsername Clone() {
-      return new AccountUsername(this);
-    }
-
-    /// <summary>Field number for the "username" field.</summary>
-    public const int UsernameFieldNumber = 1;
-    private string username_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Username {
-      get { return username_; }
-      set {
-        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "dateActive" field.</summary>
-    public const int DateActiveFieldNumber = 2;
-    private string dateActive_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string DateActive {
-      get { return dateActive_; }
-      set {
-        dateActive_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as AccountUsername);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(AccountUsername other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (Username != other.Username) return false;
-      if (DateActive != other.DateActive) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (Username.Length != 0) hash ^= Username.GetHashCode();
-      if (DateActive.Length != 0) hash ^= DateActive.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (Username.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Username);
-      }
-      if (DateActive.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(DateActive);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (Username.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
-      }
-      if (DateActive.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(DateActive);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(AccountUsername other) {
-      if (other == null) {
-        return;
-      }
-      if (other.Username.Length != 0) {
-        Username = other.Username;
-      }
-      if (other.DateActive.Length != 0) {
-        DateActive = other.DateActive;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            Username = input.ReadString();
-            break;
-          }
-          case 18: {
-            DateActive = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolSearchByUsernameResponse : pb::IMessage<SupportToolSearchByUsernameResponse> {
-    private static readonly pb::MessageParser<SupportToolSearchByUsernameResponse> _parser = new pb::MessageParser<SupportToolSearchByUsernameResponse>(() => new SupportToolSearchByUsernameResponse());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolSearchByUsernameResponse> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[93]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolSearchByUsernameResponse() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolSearchByUsernameResponse(SupportToolSearchByUsernameResponse other) : this() {
-      accountUid_ = other.accountUid_;
-      regionName_ = other.regionName_;
-      userId_ = other.userId_;
-      primaryEmail_ = other.primaryEmail_;
-      accountUsername_ = other.accountUsername_.Clone();
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolSearchByUsernameResponse Clone() {
-      return new SupportToolSearchByUsernameResponse(this);
-    }
-
-    /// <summary>Field number for the "accountUid" field.</summary>
-    public const int AccountUidFieldNumber = 1;
-    private pb::ByteString accountUid_ = pb::ByteString.Empty;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString AccountUid {
-      get { return accountUid_; }
-      set {
-        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "regionName" field.</summary>
-    public const int RegionNameFieldNumber = 2;
-    private string regionName_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string RegionName {
-      get { return regionName_; }
-      set {
-        regionName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "userId" field.</summary>
-    public const int UserIdFieldNumber = 3;
-    private int userId_;
-    /// <summary>
-    ///is 0 for a remote user
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int UserId {
-      get { return userId_; }
-      set {
-        userId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "primaryEmail" field.</summary>
-    public const int PrimaryEmailFieldNumber = 4;
-    private string primaryEmail_ = "";
-    /// <summary>
-    ///empty string for a remote user
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string PrimaryEmail {
-      get { return primaryEmail_; }
-      set {
-        primaryEmail_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "accountUsername" field.</summary>
-    public const int AccountUsernameFieldNumber = 5;
-    private static readonly pb::FieldCodec<global::Authentication.AccountUsername> _repeated_accountUsername_codec
-        = pb::FieldCodec.ForMessage(42, global::Authentication.AccountUsername.Parser);
-    private readonly pbc::RepeatedField<global::Authentication.AccountUsername> accountUsername_ = new pbc::RepeatedField<global::Authentication.AccountUsername>();
-    /// <summary>
-    ///primary email excluded unless it's a remote user
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Authentication.AccountUsername> AccountUsername {
-      get { return accountUsername_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolSearchByUsernameResponse);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolSearchByUsernameResponse other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (AccountUid != other.AccountUid) return false;
-      if (RegionName != other.RegionName) return false;
-      if (UserId != other.UserId) return false;
-      if (PrimaryEmail != other.PrimaryEmail) return false;
-      if(!accountUsername_.Equals(other.accountUsername_)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
-      if (RegionName.Length != 0) hash ^= RegionName.GetHashCode();
-      if (UserId != 0) hash ^= UserId.GetHashCode();
-      if (PrimaryEmail.Length != 0) hash ^= PrimaryEmail.GetHashCode();
-      hash ^= accountUsername_.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (AccountUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(AccountUid);
-      }
-      if (RegionName.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(RegionName);
-      }
-      if (UserId != 0) {
-        output.WriteRawTag(24);
-        output.WriteInt32(UserId);
-      }
-      if (PrimaryEmail.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(PrimaryEmail);
-      }
-      accountUsername_.WriteTo(output, _repeated_accountUsername_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (AccountUid.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
-      }
-      if (RegionName.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(RegionName);
-      }
-      if (UserId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
-      }
-      if (PrimaryEmail.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(PrimaryEmail);
-      }
-      size += accountUsername_.CalculateSize(_repeated_accountUsername_codec);
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolSearchByUsernameResponse other) {
-      if (other == null) {
-        return;
-      }
-      if (other.AccountUid.Length != 0) {
-        AccountUid = other.AccountUid;
-      }
-      if (other.RegionName.Length != 0) {
-        RegionName = other.RegionName;
-      }
-      if (other.UserId != 0) {
-        UserId = other.UserId;
-      }
-      if (other.PrimaryEmail.Length != 0) {
-        PrimaryEmail = other.PrimaryEmail;
-      }
-      accountUsername_.Add(other.accountUsername_);
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            AccountUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            RegionName = input.ReadString();
-            break;
-          }
-          case 24: {
-            UserId = input.ReadInt32();
-            break;
-          }
-          case 34: {
-            PrimaryEmail = input.ReadString();
-            break;
-          }
-          case 42: {
-            accountUsername_.AddEntriesFrom(input, _repeated_accountUsername_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   public sealed partial class UserDataKeyRequest : pb::IMessage<UserDataKeyRequest> {
     private static readonly pb::MessageParser<UserDataKeyRequest> _parser = new pb::MessageParser<UserDataKeyRequest>(() => new UserDataKeyRequest());
     private pb::UnknownFieldSet _unknownFields;
@@ -19780,7 +17205,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[94]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[80]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -19902,7 +17327,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[95]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[81]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -20059,7 +17484,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[96]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[82]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -20264,7 +17689,7 @@ namespace Authentication {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[97]; }
+      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[83]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -20411,634 +17836,6 @@ namespace Authentication {
           case 26:
           case 24: {
             noEncryptedDataKey_.AddEntriesFrom(input, _repeated_noEncryptedDataKey_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportTool2FAValidateRequest : pb::IMessage<SupportTool2FAValidateRequest> {
-    private static readonly pb::MessageParser<SupportTool2FAValidateRequest> _parser = new pb::MessageParser<SupportTool2FAValidateRequest>(() => new SupportTool2FAValidateRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportTool2FAValidateRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[98]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportTool2FAValidateRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportTool2FAValidateRequest(SupportTool2FAValidateRequest other) : this() {
-      userId_ = other.userId_;
-      valueType_ = other.valueType_;
-      value_ = other.value_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportTool2FAValidateRequest Clone() {
-      return new SupportTool2FAValidateRequest(this);
-    }
-
-    /// <summary>Field number for the "userId" field.</summary>
-    public const int UserIdFieldNumber = 1;
-    private int userId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int UserId {
-      get { return userId_; }
-      set {
-        userId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "valueType" field.</summary>
-    public const int ValueTypeFieldNumber = 2;
-    private global::Authentication.TwoFactorValueType valueType_ = global::Authentication.TwoFactorValueType.TwoFaCodeNone;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Authentication.TwoFactorValueType ValueType {
-      get { return valueType_; }
-      set {
-        valueType_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "value" field.</summary>
-    public const int ValueFieldNumber = 3;
-    private string value_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Value {
-      get { return value_; }
-      set {
-        value_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportTool2FAValidateRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportTool2FAValidateRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (UserId != other.UserId) return false;
-      if (ValueType != other.ValueType) return false;
-      if (Value != other.Value) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (UserId != 0) hash ^= UserId.GetHashCode();
-      if (ValueType != global::Authentication.TwoFactorValueType.TwoFaCodeNone) hash ^= ValueType.GetHashCode();
-      if (Value.Length != 0) hash ^= Value.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (UserId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(UserId);
-      }
-      if (ValueType != global::Authentication.TwoFactorValueType.TwoFaCodeNone) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) ValueType);
-      }
-      if (Value.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Value);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (UserId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
-      }
-      if (ValueType != global::Authentication.TwoFactorValueType.TwoFaCodeNone) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ValueType);
-      }
-      if (Value.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Value);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportTool2FAValidateRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.UserId != 0) {
-        UserId = other.UserId;
-      }
-      if (other.ValueType != global::Authentication.TwoFactorValueType.TwoFaCodeNone) {
-        ValueType = other.ValueType;
-      }
-      if (other.Value.Length != 0) {
-        Value = other.Value;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            UserId = input.ReadInt32();
-            break;
-          }
-          case 16: {
-            ValueType = (global::Authentication.TwoFactorValueType) input.ReadEnum();
-            break;
-          }
-          case 26: {
-            Value = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolBooleanResponse : pb::IMessage<SupportToolBooleanResponse> {
-    private static readonly pb::MessageParser<SupportToolBooleanResponse> _parser = new pb::MessageParser<SupportToolBooleanResponse>(() => new SupportToolBooleanResponse());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolBooleanResponse> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[99]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolBooleanResponse() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolBooleanResponse(SupportToolBooleanResponse other) : this() {
-      result_ = other.result_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolBooleanResponse Clone() {
-      return new SupportToolBooleanResponse(this);
-    }
-
-    /// <summary>Field number for the "result" field.</summary>
-    public const int ResultFieldNumber = 1;
-    private bool result_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Result {
-      get { return result_; }
-      set {
-        result_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolBooleanResponse);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolBooleanResponse other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (Result != other.Result) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (Result != false) hash ^= Result.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (Result != false) {
-        output.WriteRawTag(8);
-        output.WriteBool(Result);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (Result != false) {
-        size += 1 + 1;
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolBooleanResponse other) {
-      if (other == null) {
-        return;
-      }
-      if (other.Result != false) {
-        Result = other.Result;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            Result = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class BiCheckoutSendEmail : pb::IMessage<BiCheckoutSendEmail> {
-    private static readonly pb::MessageParser<BiCheckoutSendEmail> _parser = new pb::MessageParser<BiCheckoutSendEmail>(() => new BiCheckoutSendEmail());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<BiCheckoutSendEmail> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[100]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BiCheckoutSendEmail() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BiCheckoutSendEmail(BiCheckoutSendEmail other) : this() {
-      licenseKeyId_ = other.licenseKeyId_;
-      contactEmail_ = other.contactEmail_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BiCheckoutSendEmail Clone() {
-      return new BiCheckoutSendEmail(this);
-    }
-
-    /// <summary>Field number for the "licenseKeyId" field.</summary>
-    public const int LicenseKeyIdFieldNumber = 1;
-    private int licenseKeyId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int LicenseKeyId {
-      get { return licenseKeyId_; }
-      set {
-        licenseKeyId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "contactEmail" field.</summary>
-    public const int ContactEmailFieldNumber = 2;
-    private string contactEmail_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string ContactEmail {
-      get { return contactEmail_; }
-      set {
-        contactEmail_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as BiCheckoutSendEmail);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(BiCheckoutSendEmail other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (LicenseKeyId != other.LicenseKeyId) return false;
-      if (ContactEmail != other.ContactEmail) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (LicenseKeyId != 0) hash ^= LicenseKeyId.GetHashCode();
-      if (ContactEmail.Length != 0) hash ^= ContactEmail.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (LicenseKeyId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(LicenseKeyId);
-      }
-      if (ContactEmail.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(ContactEmail);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (LicenseKeyId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(LicenseKeyId);
-      }
-      if (ContactEmail.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(ContactEmail);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(BiCheckoutSendEmail other) {
-      if (other == null) {
-        return;
-      }
-      if (other.LicenseKeyId != 0) {
-        LicenseKeyId = other.LicenseKeyId;
-      }
-      if (other.ContactEmail.Length != 0) {
-        ContactEmail = other.ContactEmail;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            LicenseKeyId = input.ReadInt32();
-            break;
-          }
-          case 18: {
-            ContactEmail = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SupportToolChangePrimaryEmailToAliasEmailRequest : pb::IMessage<SupportToolChangePrimaryEmailToAliasEmailRequest> {
-    private static readonly pb::MessageParser<SupportToolChangePrimaryEmailToAliasEmailRequest> _parser = new pb::MessageParser<SupportToolChangePrimaryEmailToAliasEmailRequest>(() => new SupportToolChangePrimaryEmailToAliasEmailRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SupportToolChangePrimaryEmailToAliasEmailRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[101]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangePrimaryEmailToAliasEmailRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangePrimaryEmailToAliasEmailRequest(SupportToolChangePrimaryEmailToAliasEmailRequest other) : this() {
-      userId_ = other.userId_;
-      aliasEmail_ = other.aliasEmail_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SupportToolChangePrimaryEmailToAliasEmailRequest Clone() {
-      return new SupportToolChangePrimaryEmailToAliasEmailRequest(this);
-    }
-
-    /// <summary>Field number for the "userId" field.</summary>
-    public const int UserIdFieldNumber = 1;
-    private int userId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int UserId {
-      get { return userId_; }
-      set {
-        userId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "aliasEmail" field.</summary>
-    public const int AliasEmailFieldNumber = 2;
-    private string aliasEmail_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string AliasEmail {
-      get { return aliasEmail_; }
-      set {
-        aliasEmail_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SupportToolChangePrimaryEmailToAliasEmailRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SupportToolChangePrimaryEmailToAliasEmailRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (UserId != other.UserId) return false;
-      if (AliasEmail != other.AliasEmail) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (UserId != 0) hash ^= UserId.GetHashCode();
-      if (AliasEmail.Length != 0) hash ^= AliasEmail.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (UserId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(UserId);
-      }
-      if (AliasEmail.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(AliasEmail);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (UserId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(UserId);
-      }
-      if (AliasEmail.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(AliasEmail);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SupportToolChangePrimaryEmailToAliasEmailRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.UserId != 0) {
-        UserId = other.UserId;
-      }
-      if (other.AliasEmail.Length != 0) {
-        AliasEmail = other.AliasEmail;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            UserId = input.ReadInt32();
-            break;
-          }
-          case 18: {
-            AliasEmail = input.ReadString();
             break;
           }
         }

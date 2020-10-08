@@ -156,8 +156,6 @@ namespace KeeperSecurity.Sdk
         }
 
         public string Username { get; set; }
-        internal string Password { get; set; }
-
         public IKeeperEndpoint Endpoint { get; }
         public byte[] DeviceToken { get; set; }
         public bool ResumeSession { get; set; }
@@ -287,7 +285,7 @@ namespace KeeperSecurity.Sdk
                     return;
                 }
             }
-            throw new KeeperTooManyAttempts();
+            throw new KeeperAuthFailed();
         }
 
         public async Task Login(string username, params string[] passwords)
@@ -298,7 +296,6 @@ namespace KeeperSecurity.Sdk
             }
 
             Username = username.ToLowerInvariant();
-            Password = null;
             var isV3Api = IsV3Api(Endpoint.ClientVersion);
             if (isV3Api)
             {
@@ -444,7 +441,12 @@ namespace KeeperSecurity.Sdk
                                 "Your Master Password has expired, you are required to change it before you can login.";
                             if (await postUi.Confirmation(passwordExpiredDescription))
                             {
-                                Password = await this.ChangeMasterPassword();
+                                var newPassword = await this.ChangeMasterPassword();
+                                
+                                var validatorSalt = CryptoUtils.GetRandomBytes(16);
+                                authContext.PasswordValidator = 
+                                    CryptoUtils.CreateEncryptionParams(newPassword, validatorSalt, 100000, CryptoUtils.GetRandomBytes(32));
+
                                 authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
                             }
                         }
@@ -467,7 +469,8 @@ namespace KeeperSecurity.Sdk
 
                 if (authContext.SessionTokenRestriction == 0)
                 {
-                    await Login(Username, Password);
+                    // ???? relogin
+                    await Login(Username);
                 }
                 else
                 {
@@ -500,19 +503,6 @@ namespace KeeperSecurity.Sdk
             }
             else
             {
-                if (!string.IsNullOrEmpty(Password))
-                {
-                    var password = Password;
-                    _ = Task.Run(() =>
-                    {
-
-                        var salt = CryptoUtils.GetRandomBytes(16);
-                        authContext.PasswordValidator = 
-                            CryptoUtils.CreateEncryptionParams(password, salt, 100000, CryptoUtils.GetRandomBytes(32));
-                    });
-                    Password = null;
-                }
-
                 if (keys.encryptedPrivateKey != null)
                 {
                     var privateKeyData =
@@ -531,9 +521,10 @@ namespace KeeperSecurity.Sdk
                 authContext.Enforcements = enforcements;
                 authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
 
-                var uc = Storage.Users.Get(authContext.Username);
-                int timeout = uc?.LastDevice?.LogoutTimer ?? 30;
-                authContext.SetKeepAliveTimer(timeout,this);
+                if (authContext.Settings.logoutTimerInSec > 120)
+                {
+                    authContext.SetKeepAliveTimer((int)(authContext.Settings.logoutTimerInSec / 60), this);
+                }
             }
         }
 
@@ -582,7 +573,7 @@ namespace KeeperSecurity.Sdk
             {
                 if (this.IsAuthenticated())
                 {
-                    if (authContext is AuthContextV3 contextV3)
+                    if (authContext is AuthContextV3)
                     {
                         await ExecuteAuthRest("vault/logout_v3", null);
                         this.SsoLogout();

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Commander
@@ -387,6 +389,19 @@ namespace Commander
             {
                 _history.Clear();
                 _positionInHistory = 0;
+            }
+        }
+
+        public void InterruptReadTask(Task<string> task)
+        {
+            lock (this)
+            {
+                if (_taskSource == null || task == null) return;
+                if (ReferenceEquals(task, _taskSource.Task))
+                {
+                    _taskSource.TrySetCanceled();
+                    _taskSource = null;
+                }
             }
         }
 

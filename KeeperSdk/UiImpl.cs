@@ -4,7 +4,20 @@ using System.Collections.Generic;
 namespace KeeperSecurity.Sdk.UI
 {
 
-    public class GetDataKeyActionInfo : IGetDataKeyActionInfo
+    public class GetSsoTokenActionInfo : ISsoTokenActionInfo
+    {
+        public GetSsoTokenActionInfo(string url, bool isCloudSso)
+        {
+            SsoLoginUrl = url;
+            IsCloudSso = isCloudSso;
+        }
+
+        public string SsoLoginUrl { get; }
+        public bool IsCloudSso { get; }
+        public GetSsoTokenActionDelegate InvokeGetSsoTokenAction { get; internal set; }
+    }
+
+    public class GetDataKeyActionInfo : IDataKeyChannelInfo
     {
         public GetDataKeyActionInfo(DataKeyShareChannel channel)
         {
@@ -165,6 +178,17 @@ namespace KeeperSecurity.Sdk.UI
         public TwoFactorChannel Channel { get; }
         public TwoFactorPushAction[] SupportedActions { get; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
+    }
+
+    public class MasterPasswordInfo : IPasswordInfo
+    {
+        internal MasterPasswordInfo(string username)
+        {
+            Username = username;
+        }
+
+        public string Username { get; }
+        public PasswordActionDelegate InvokePasswordActionDelegate { get; internal set; }
     }
 
     public static class AuthUIExtensions

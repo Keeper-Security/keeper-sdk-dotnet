@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using KeeperSecurity.Sdk;
 using KeeperSecurity.Sdk.UI;
 
-namespace SampleSdkConsoleApp
+namespace Sample
 {
     class AuthUi : IAuthUI
     {
@@ -28,6 +28,7 @@ namespace SampleSdkConsoleApp
                         break;
                 }
             }
+
             Console.WriteLine("<Enter> to resume, 'q' to cancel");
 
             var result = true;
@@ -48,17 +49,13 @@ namespace SampleSdkConsoleApp
                         {
                             var channel = channels.FirstOrDefault(x =>
                             {
-                                switch (x.Channel)
+                                return x.Channel switch
                                 {
-                                    case DeviceApprovalChannel.Email:
-                                        return action == "email";
-                                    case DeviceApprovalChannel.KeeperPush:
-                                        return action == "push";
-                                    case DeviceApprovalChannel.TwoFactorAuth:
-                                        return action == "tfa";
-                                }
-
-                                return false;
+                                    DeviceApprovalChannel.Email => action == "email",
+                                    DeviceApprovalChannel.KeeperPush => action == "push",
+                                    DeviceApprovalChannel.TwoFactorAuth => action == "tfa",
+                                    _ => false,
+                                };
                             });
                             if (channel != null)
                             {
@@ -118,16 +115,62 @@ namespace SampleSdkConsoleApp
         public Task<bool> WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token)
         {
             Console.WriteLine("\nTwo Factor Authentication\n");
-
             return Task.Run(async () =>
                 {
                     Console.Write("Enter 2FA Code: ");
                     var code = Console.ReadLine();
-                    if (string.IsNullOrEmpty(code))
+                    if (!string.IsNullOrEmpty(code)) return false;
+                    if (!(channels[0] is ITwoFactorAppCodeInfo ci)) return true;
+                    try
                     {
-                        if (channels[0] is ITwoFactorAppCodeInfo ci)
+                        await ci.InvokeTwoFactorCodeAction(code);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                    return true;
+
+                },
+                token);
+        }
+
+        public Task<bool> WaitForUserPassword(IPasswordInfo info, CancellationToken token)
+        {
+            Console.WriteLine("\nMaster Password\n");
+            return Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        var password = "";
+                        Console.Write("Enter Master Password: ");
+                        while (true)
                         {
-                            await ci.InvokeTwoFactorCodeAction(code);
+                            var key = Console.ReadKey(true);
+
+                            if (key.Key == ConsoleKey.Enter) break;
+
+                            if (char.IsControl(key.KeyChar))
+                            {
+                                password = password.Remove(password.Length - 1);
+                                Console.Write("\b \b");
+                            }
+                            else
+                            {
+                                password += key.KeyChar;
+                                Console.Write("*");
+                            }
+                        }
+
+                        if (string.IsNullOrEmpty(password)) break;
+                        try
+                        {
+                            await info.InvokePasswordActionDelegate(password);
+                            break;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
                         }
                     }
 
@@ -135,41 +178,9 @@ namespace SampleSdkConsoleApp
                 },
                 token);
         }
-
-        public Task<string> GetMasterPassword(string username)
-        {
-            Console.WriteLine("\nMaster Password\n");
-            return Task.Run(() =>
-            {
-                var password = "";
-                Console.Write("Enter Master Password: ");
-                while (true)
-                {
-                    var key = Console.ReadKey(true);
-
-                    if (key.Key == ConsoleKey.Enter)
-                    {
-                        break;
-                    }
-
-                    if (char.IsControl(key.KeyChar))
-                    {
-                        password = password.Remove(password.Length - 1);
-                        Console.Write("\b \b");
-                    }
-                    else
-                    {
-                        password += key.KeyChar;
-                        Console.Write("*");
-                    }
-                }
-
-                return password;
-            });
-        }
     }
 
-    internal class Program
+    internal static class Program
     {
         private static async Task Main()
         {
