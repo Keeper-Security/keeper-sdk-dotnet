@@ -763,7 +763,7 @@ namespace KeeperSecurity.Sdk
             var saltInfo = masterSalt ?? firstSalt;
             if (saltInfo == null)
             {
-                throw new KeeperStartLoginException(LoginState.RequiresAuthHash, "can not find salt");
+                throw new KeeperStartLoginException(LoginState.RequiresAuthHash, "Master Password has not been created.");
             }
 
             while (auth.PasswordQueue.Count > 0)
