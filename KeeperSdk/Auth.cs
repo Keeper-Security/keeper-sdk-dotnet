@@ -521,7 +521,7 @@ namespace KeeperSecurity.Sdk
                 authContext.Enforcements = enforcements;
                 authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
 
-                if (authContext.Settings.logoutTimerInSec > 120)
+                if (authContext.Settings.logoutTimerInSec > 120 && authContext.Settings.logoutTimerInSec < 60 * 24 * 2)
                 {
                     authContext.SetKeepAliveTimer((int)(authContext.Settings.logoutTimerInSec / 60), this);
                 }
