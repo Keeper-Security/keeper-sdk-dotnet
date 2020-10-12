@@ -896,6 +896,7 @@ namespace KeeperSecurity.Sdk
                 try
                 {
                     await auth.ValidateDeviceVerificationCode(code);
+                    loginTokenTaskSource.TrySetResult(true);
                 }
                 catch (KeeperCanceled kc)
                 {

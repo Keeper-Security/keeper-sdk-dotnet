@@ -68,6 +68,7 @@ namespace KeeperSecurity.Sdk
                         {
                             await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", token);
                         }
+
                         webSocket.Dispose();
                     }
                     catch (OperationCanceledException)
@@ -146,7 +147,7 @@ namespace KeeperSecurity.Sdk
 
         private string PushServer()
         {
-            return "push.services.dev.keepersecurity.com";// + (Server ?? DefaultKeeperServer);
+            return "push.services." + (Server ?? DefaultKeeperServer);
         }
 
 

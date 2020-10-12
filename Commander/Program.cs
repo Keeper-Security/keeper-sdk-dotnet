@@ -432,16 +432,21 @@ namespace Commander
                             continue;
                         }
 
-                        break;
-                    }
-
-                    if (!twoFactorTask.Task.IsCompleted)
-                    {
                         if (codeChannel != null)
                         {
-                            await codeChannel.InvokeTwoFactorCodeAction(code);
+                            try
+                            {
+                                await codeChannel.InvokeTwoFactorCodeAction(code);
+                            }
+                            catch (KeeperAuthFailed)
+                            {
+                                Console.WriteLine("Code is invalid");
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.Message);
+                            }
                         }
-
                     }
 
                     cancelCallback.Dispose();
