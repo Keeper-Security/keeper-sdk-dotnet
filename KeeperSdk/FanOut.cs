@@ -12,22 +12,9 @@ namespace KeeperSecurity.Sdk
         void RemoveCallback(NotificationCallback<T> callback);
         void Push(T message);
         bool IsCompleted { get; }
+        void Shutdown();
     }
-    /*
-    class CallbackDisposable : IDisposable
-    {
-        private readonly Action Unregister;
-        public CallbackDisposable(Action unregister = null)
-        {
-            Unregister = unregister;
-        }
 
-        public void Dispose()
-        {
-            Unregister?.Invoke();
-        }
-    }
-    */
     public class FanOut<T>: IFanOut<T>
     {
         private readonly List<NotificationCallback<T>> _callbacks = new List<NotificationCallback<T>>();
@@ -57,6 +44,16 @@ namespace KeeperSecurity.Sdk
             }
         }
 
+        public virtual void Shutdown()
+        {
+            IsCompleted = true;
+
+            lock (_callbacks)
+            {
+                _callbacks.Clear();
+            }
+        }
+
         public void Push(T item)
         {
             if (IsCompleted) return;
@@ -81,12 +78,7 @@ namespace KeeperSecurity.Sdk
 
         protected virtual void Dispose(bool disposing)
         {
-            if (IsCompleted) return;
-            IsCompleted = true;
-            lock (_callbacks)
-            {
-                _callbacks.Clear();
-            }
+            Shutdown();
         }
 
         public void Dispose()

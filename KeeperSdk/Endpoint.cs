@@ -79,9 +79,21 @@ namespace KeeperSecurity.Sdk
                         Debug.WriteLine(e.Message);
                     }
 
+                    base.Shutdown();
                     _webSocket = null;
                 },
                 token);
+        }
+
+        public override void Shutdown()
+        {
+            base.Shutdown();
+            if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+            {
+                _webSocket.Abort();
+            }
+
+            _webSocket = null;
         }
 
         protected override void Dispose(bool disposing)
@@ -89,6 +101,7 @@ namespace KeeperSecurity.Sdk
             base.Dispose(disposing);
             _webSocket?.Dispose();
         }
+
 
         public async Task SendToWebSocket(byte[] payload, bool encrypted)
         {
