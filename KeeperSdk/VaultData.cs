@@ -333,8 +333,13 @@ namespace KeeperSecurity.Sdk
                             : FolderType.SharedFolder;
                         if (keeperSharedFolders.TryGetValue(folder.SharedFolderUid, out var sf))
                         {
-                            if (folder.FolderType == "shared_folder_folder")
+                            if (node.FolderType == FolderType.SharedFolderFolder)
                             {
+                                if (string.IsNullOrEmpty(node.ParentUid))
+                                {
+                                    node.ParentUid = node.SharedFolderUid;
+                                }
+
                                 var key = CryptoUtils.DecryptAesV1(folder.FolderKey.Base64UrlDecode(),
                                     sf.SharedFolderKey);
                                 data = CryptoUtils.DecryptAesV1(folder.Data.Base64UrlDecode(), key);

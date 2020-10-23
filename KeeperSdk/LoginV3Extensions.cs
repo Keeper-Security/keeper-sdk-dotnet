@@ -1358,6 +1358,11 @@ namespace KeeperSecurity.Sdk
                 dc.ServerInfo.Put(si);
                 auth.Storage.Devices.Put(dc);
             }
+
+            if (auth.Storage is JsonConfigurationStorage jcs)
+            {
+                jcs.Cache.Flush();
+            }
         }
 
         private static async Task<AuthContextV3> AuthorizeUsingOnsiteSso(this AuthV3 auth, string ssoBaseUrl, bool forceLogin, ByteString loginToken = null)

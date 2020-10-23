@@ -335,6 +335,7 @@ namespace KeeperSecurity.Sdk
                                 throw new KeeperRegionRedirect(keeperRs.RegionHost);
 
                             case "bad_request":
+                            case "device_not_registered":
                                 throw new KeeperInvalidDeviceToken(keeperRs.AdditionalInfo);
 
                             case "session_token":
