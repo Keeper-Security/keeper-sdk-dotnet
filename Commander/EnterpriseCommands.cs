@@ -47,7 +47,7 @@ namespace Commander
             {
                 lock (Commands)
                 {
-                    _auth.AuthContext.PushNotifications.RegisterCallback(EnterpriseNotificationCallback);
+                    _auth.PushNotifications?.RegisterCallback(EnterpriseNotificationCallback);
 
                     Commands.Add("enterprise-node",
                         new ParsableCommand<EnterpriseNodeOptions>
@@ -165,17 +165,12 @@ namespace Commander
             if (_treeKey == null)
             {
                 var encTreeKey = rs.TreeKey.Base64UrlDecode();
-                switch (rs.KeyTypeId)
+                _treeKey = rs.KeyTypeId switch
                 {
-                    case 1:
-                        _treeKey = CryptoUtils.DecryptAesV1(encTreeKey, _auth.AuthContext.DataKey);
-                        break;
-                    case 2:
-                        _treeKey = CryptoUtils.DecryptRsa(encTreeKey, _auth.AuthContext.PrivateKey);
-                        break;
-                    default:
-                        throw new Exception("cannot decrypt tree key");
-                }
+                    1 => CryptoUtils.DecryptAesV1(encTreeKey, _auth.AuthContext.DataKey),
+                    2 => CryptoUtils.DecryptRsa(encTreeKey, _auth.AuthContext.PrivateKey),
+                    _ => throw new Exception("cannot decrypt tree key")
+                };
             }
 
             if (requested.Contains("nodes") && rs.Nodes != null)

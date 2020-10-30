@@ -428,17 +428,17 @@ namespace Tests
             var server = DataVault.DefaultEnvironment;
             mEndpoint.SetupGet(e => e.Server).Returns(server);
             mEndpoint.SetupSet(e => e.Server = It.IsAny<string>()).Callback((string value) => { server = value; });
-            mEndpoint.Setup(e => e.ExecuteV2Command(It.IsAny<AccountSummaryCommand>(), typeof(AccountSummaryResponse)))
-                .Returns((KeeperApiCommand cmd, Type _) =>
-                    Task.FromResult((KeeperApiResponse) LoginV2Test.ProcessAccountSummaryCommand(_vaultEnv, (AccountSummaryCommand) cmd)));
-
-            IWebSocketChannel webSocket = new TestWebSocket();
-            mEndpoint.Setup(x => x.ConnectToPushServer(It.IsAny<WssConnectionRequest>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(webSocket));
 
             var mUi = new Mock<IAuthUI>();
+
             var mAuth = new Mock<Auth>(mUi.Object, storage, mEndpoint.Object);
             var auth = mAuth.Object;
+
+            var webSocket = new TestWebSocket();
+            mAuth.Setup(x => x.ConnectToPushServer(It.IsAny<WssConnectionRequest>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult<IFanOut<NotificationEvent>>(webSocket));
+
+
             mUi.Setup(x => x.WaitForDeviceApproval(It.IsAny<IDeviceApprovalChannelInfo[]>(), It.IsAny<CancellationToken>()))
                 .Callback((IDeviceApprovalChannelInfo[] x, CancellationToken y) =>
                 {
@@ -540,15 +540,10 @@ namespace Tests
                                 if (loginToken.LoginState == LoginState.DeviceApprovalRequired)
                                 {
                                     AcceptDeviceVerificationRequest(loginToken.Username, loginToken.DeviceToken);
-                                    var evt = new NotificationEvent
+                                    webSocket.Push(new NotificationEvent
                                     {
                                         Approved = true,
                                         Message = "device_approved"
-                                    };
-                                    webSocket.Push(new WssClientResponse
-                                    {
-                                        MessageType = MessageType.Device,
-                                        Message = Encoding.UTF8.GetString(JsonUtils.DumpJson(evt))
                                     });
                                 }
 
@@ -607,7 +602,7 @@ namespace Tests
         }
     }
 
-    public class TestWebSocket : FanOut<WssClientResponse>, IWebSocketChannel
+    public class TestWebSocket : FanOut<NotificationEvent>, IPushNotificationChannel
     {
         public Task SendToWebSocket(byte[] payload, bool encrypted)
         {

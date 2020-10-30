@@ -12,10 +12,9 @@ namespace KeeperSecurity.Sdk
         void RemoveCallback(NotificationCallback<T> callback);
         void Push(T message);
         bool IsCompleted { get; }
-        void Shutdown();
     }
 
-    public class FanOut<T>: IFanOut<T>
+    public class FanOut<T> : IFanOut<T>
     {
         private readonly List<NotificationCallback<T>> _callbacks = new List<NotificationCallback<T>>();
 

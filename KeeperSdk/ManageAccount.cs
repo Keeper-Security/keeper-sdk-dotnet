@@ -113,33 +113,15 @@ namespace KeeperSecurity.Sdk
 
         public static async Task<NewUserMinimumParams> GetNewUserParams(this Auth auth)
         {
-            var userName = auth.AuthContext.Username;
-            IMessage authRequest;
-            string endpoint;
-            if (Auth.IsV3Api(auth.Endpoint.ClientVersion))
+            var authRequest = new DomainPasswordRulesRequest
             {
-                authRequest = new DomainPasswordRulesRequest
-                {
-                    Username = userName.ToLowerInvariant()
-                };
-                endpoint = "authentication/get_domain_password_rules";
-            }
-            else
-            {
-                authRequest = new AuthRequest()
-                {
-                    ClientVersion = auth.Endpoint.ClientVersion,
-                    Username = userName.ToLowerInvariant(),
-                    EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken)
-                };
-                endpoint = "authentication/get_new_user_params";
-
-            }
+                Username = auth.Username
+            };
             var payload = new ApiRequestPayload
             {
                 Payload = ByteString.CopyFrom(authRequest.ToByteArray()),
             };
-            var rs = await auth.Endpoint.ExecuteRest(endpoint, payload);
+            var rs = await auth.Endpoint.ExecuteRest("authentication/get_domain_password_rules", payload);
             return NewUserMinimumParams.Parser.ParseFrom(rs);
         }
 
@@ -147,13 +129,6 @@ namespace KeeperSecurity.Sdk
         {
             if (auth.Ui is IPostLoginTaskUI postUi )
             {
-                var preLogin = await auth.GetPreLogin();
-                var salt = preLogin.Salt.FirstOrDefault(x => x.Name.Equals("Master", StringComparison.InvariantCultureIgnoreCase));
-                if (salt == null)
-                {
-                    throw new Exception("Account does not have master password.");
-                }
-
                 var userParams = await auth.GetNewUserParams();
 
                 var rules = userParams.PasswordMatchDescription
@@ -171,7 +146,7 @@ namespace KeeperSecurity.Sdk
                 var failedRules = ruleMatcher.MatchFailedRules(newPassword);
                 if (failedRules.Length != 0) throw new KeeperApiException("password_rule_failed", failedRules[0]);
 
-                var iterations = Math.Max(salt.Iterations, userParams.MinimumIterations);
+                var iterations = 100000;
                 var authSalt = CryptoUtils.GetRandomBytes(16);
                 var authVerifier = CryptoUtils.CreateAuthVerifier(newPassword, authSalt, iterations);
                 var keySalt = CryptoUtils.GetRandomBytes(16);

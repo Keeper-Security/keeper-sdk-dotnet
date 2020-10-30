@@ -22,115 +22,23 @@ namespace KeeperSecurity.Sdk
         OnsiteSso = 3
     }
 
-    public class AuthContextV3 : AuthContext
+    public class AuthV3Wrapper
     {
-        public byte[] AccountUid { get; internal set; }
-        internal IWebSocketChannel WebSocketChannel { get; set; }
-        public byte[] CloneCode { get; internal set; }
+        public readonly Auth Auth;
 
-        internal ECPrivateKeyParameters DeviceKey { get; set; }
-        internal byte[] MessageSessionUid { get; set; }
-
-        protected override void Dispose(bool disposing)
+        public AuthV3Wrapper(Auth auth)
         {
-            base.Dispose(disposing);
-            if (WebSocketChannel != null)
-            {
-                WebSocketChannel.Dispose();
-                WebSocketChannel = null;
-            }
-
-            if (_timer != null)
-            {
-                _timer.Dispose();
-                _timer = null;
-            }
-        }
-
-        internal AccountAuthType AccountAuthType { get; set; }
-
-        private Timer _timer;
-        private long _lastRequestTime;
-
-        internal override void SetKeepAliveTimer(int timeoutInMinutes, IAuthentication auth)
-        {
-            _timer?.Dispose();
-            _timer = null;
-            if (auth == null) return;
-
-            ResetKeepAliveTimer();
-            var timeout = TimeSpan.FromMinutes(timeoutInMinutes - (timeoutInMinutes > 1 ? 1 : 0));
-            _timer = new Timer(async (_) =>
-                {
-                    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
-                    if (_lastRequestTime + timeout.TotalSeconds / 2 > now) return;
-                    try
-                    {
-                        await auth.ExecuteAuthRest("keep_alive", null);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e.Message);
-                        _timer.Dispose();
-                        _timer = null;
-                    }
-
-                    _lastRequestTime = now;
-                },
-                null,
-                (long) timeout.TotalMilliseconds / 2,
-                (long) timeout.TotalMilliseconds / 2);
-        }
-
-        internal override void ResetKeepAliveTimer()
-        {
-            _lastRequestTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
-        }
-    }
-
-    public class AuthV3 : IAuth
-    {
-        private readonly Auth _auth;
-
-        public AuthV3(Auth auth)
-        {
-            _auth = auth;
+            Auth = auth;
             MessageSessionUid = CryptoUtils.GetRandomBytes(16);
             AccountAuthType = AccountAuthType.Regular;
-            AlternatePassword = auth.AlternatePassword;
         }
 
         public AccountAuthType AccountAuthType { get; set; }
 
-        public string Username
-        {
-            get => _auth.Username;
-            set => _auth.Username = value;
-        }
-
         public byte[] CloneCode { get; set; }
-
-        public IKeeperEndpoint Endpoint => _auth.Endpoint;
-        public bool ResumeSession
-        {
-            get => _auth.ResumeSession;
-            set => _auth.ResumeSession = value;
-        }
-
-        public bool AlternatePassword { get; set; }
-
-        public byte[] DeviceToken
-        {
-            get => _auth.DeviceToken;
-            set => _auth.DeviceToken = value;
-        }
 
         public string V2TwoFactorToken { get; set; }
 
-        public IAuthUI Ui => _auth.Ui;
-        public IConfigurationStorage Storage => _auth.Storage;
-
-        internal IWebSocketChannel WebSocketChannel { get; set; }
         internal ECPrivateKeyParameters DeviceKey { get; set; }
 
         internal byte[] MessageSessionUid { get; }
@@ -141,50 +49,50 @@ namespace KeeperSecurity.Sdk
 
     public static class LoginV3Extensions
     {
-        internal static async Task EnsureDeviceTokenIsRegistered(this AuthV3 auth, string username)
+        internal static async Task EnsureDeviceTokenIsRegistered(this AuthV3Wrapper v3, string username)
         {
-            if (string.Compare(auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
+            if (string.Compare(v3.Auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
             {
-                auth.Username = username;
-                auth.DeviceToken = null;
-                auth.DeviceKey = null;
-                auth.CloneCode = null;
+                v3.Auth.Username = username;
+                v3.Auth.DeviceToken = null;
+                v3.DeviceKey = null;
+                v3.CloneCode = null;
             }
 
             IDeviceConfiguration deviceConf = null;
-            if (auth.DeviceToken != null)
+            if (v3.Auth.DeviceToken != null)
             {
-                var token = auth.DeviceToken.Base64UrlEncode();
-                deviceConf = auth.Storage.Devices.Get(token);
+                var token = v3.Auth.DeviceToken.Base64UrlEncode();
+                deviceConf = v3.Auth.Storage.Devices.Get(token);
                 if (deviceConf == null)
                 {
-                    auth.DeviceToken = null;
-                    auth.DeviceKey = null;
-                    auth.CloneCode = null;
+                    v3.Auth.DeviceToken = null;
+                    v3.DeviceKey = null;
+                    v3.CloneCode = null;
                 }
             }
 
-            var userConf = auth.Storage.Users.Get(auth.Username);
+            var userConf = v3.Auth.Storage.Users.Get(v3.Auth.Username);
             var lastDevice = userConf?.LastDevice;
             var attempt = 0;
-            while (auth.DeviceToken == null || auth.DeviceKey == null)
+            while (v3.Auth.DeviceToken == null || v3.DeviceKey == null)
             {
                 attempt++;
                 if (attempt > 10) throw new KeeperInvalidDeviceToken("too many attempts");
 
-                auth.DeviceToken = null;
-                auth.DeviceKey = null;
-                auth.CloneCode = null;
+                v3.Auth.DeviceToken = null;
+                v3.DeviceKey = null;
+                v3.CloneCode = null;
 
                 if (lastDevice != null)
                 {
-                    deviceConf = auth.Storage.Devices.Get(lastDevice.DeviceToken);
+                    deviceConf = v3.Auth.Storage.Devices.Get(lastDevice.DeviceToken);
                     if (deviceConf != null)
                     {
-                        var serverInfo = deviceConf.ServerInfo?.Get(auth.Endpoint.Server);
+                        var serverInfo = deviceConf.ServerInfo?.Get(v3.Auth.Endpoint.Server);
                         if (serverInfo != null)
                         {
-                            auth.CloneCode = serverInfo.CloneCode.Base64UrlDecode();
+                            v3.CloneCode = serverInfo.CloneCode.Base64UrlDecode();
                         }
                     }
                     lastDevice = null;
@@ -192,45 +100,45 @@ namespace KeeperSecurity.Sdk
 
                 if (deviceConf == null)
                 {
-                    deviceConf = auth.Storage.Devices.List.FirstOrDefault();
+                    deviceConf = v3.Auth.Storage.Devices.List.FirstOrDefault();
                 }
 
                 if (deviceConf == null)
                 {
-                    deviceConf = await auth.RegisterDevice();
+                    deviceConf = await v3.Auth.RegisterDevice();
                 }
 
                 try
                 {
                     if (!(deviceConf.DeviceKey?.Length > 0)) throw new KeeperInvalidDeviceToken("invalid configuration");
-                    auth.DeviceToken = deviceConf.DeviceToken.Base64UrlDecode();
-                    auth.DeviceKey = CryptoUtils.LoadPrivateEcKey(deviceConf.DeviceKey);
+                    v3.Auth.DeviceToken = deviceConf.DeviceToken.Base64UrlDecode();
+                    v3.DeviceKey = CryptoUtils.LoadPrivateEcKey(deviceConf.DeviceKey);
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine(e.Message);
-                    auth.Storage.Devices.Delete(deviceConf.DeviceToken);
+                    v3.Auth.Storage.Devices.Delete(deviceConf.DeviceToken);
                     deviceConf = null;
                 }
             }
 
             {
-                var token = auth.DeviceToken.Base64UrlEncode();
-                deviceConf = auth.Storage.Devices.Get(token);
+                var token = v3.Auth.DeviceToken.Base64UrlEncode();
+                deviceConf = v3.Auth.Storage.Devices.Get(token);
                 if (deviceConf == null) throw new KeeperInvalidDeviceToken("invalid configuration");
-                if (deviceConf.ServerInfo?.Get(auth.Endpoint.Server) == null)
+                if (deviceConf.ServerInfo?.Get(v3.Auth.Endpoint.Server) == null)
                 {
-                    await auth.RegisterDeviceInRegion(deviceConf);
+                    await v3.Auth.RegisterDeviceInRegion(deviceConf);
                 }
             }
 
             {
-                if (attempt > 0 && auth.WebSocketChannel != null)
+                if (attempt > 0 && v3.Auth.PushNotifications != null)
                 {
                     try
                     {
-                        auth.WebSocketChannel.Dispose();
-                        auth.WebSocketChannel = null;
+                        v3.Auth.PushNotifications.Dispose();
+                        v3.Auth.PushNotifications = null;
                     }
                     catch (Exception e)
                     {
@@ -238,18 +146,18 @@ namespace KeeperSecurity.Sdk
                     }
                 }
 
-                if (auth.WebSocketChannel == null)
+                if (v3.Auth.PushNotifications == null)
                 {
                     var cancellationTokenSource = new CancellationTokenSource();
                     try
                     {
                         var connectRequest = new WssConnectionRequest
                         {
-                            EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
-                            MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
+                            EncryptedDeviceToken = ByteString.CopyFrom(v3.Auth.DeviceToken),
+                            MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
                             DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                         };
-                        auth.WebSocketChannel = await auth.Endpoint.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
+                        v3.Auth.PushNotifications = await v3.Auth.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
                     }
                     catch (Exception e)
                     {
@@ -259,33 +167,33 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        internal static async Task<AuthContextV3> LoginSsoV3(this AuthV3 auth, string providerName, bool forceLogin)
+        internal static async Task<AuthContext> LoginSsoV3(this AuthV3Wrapper v3, string providerName, bool forceLogin)
         {
-            if (auth.Ui != null && auth.Ui is IAuthSsoUI)
+            if (v3.Auth.Ui != null && v3.Auth.Ui is IAuthSsoUI)
             {
                 var payload = new ApiRequestPayload
                 {
                     ApiVersion = 3,
                     Payload = new SsoServiceProviderRequest
                     {
-                        ClientVersion = auth.Endpoint.ClientVersion,
-                        Locale = auth.Endpoint.Locale,
+                        ClientVersion = v3.Auth.Endpoint.ClientVersion,
+                        Locale = v3.Auth.Endpoint.Locale,
                         Name = providerName
                     }.ToByteString()
                 };
 
-                var rsBytes = await auth.Endpoint.ExecuteRest("enterprise/get_sso_service_provider", payload);
+                var rsBytes = await v3.Auth.Endpoint.ExecuteRest("enterprise/get_sso_service_provider", payload);
                 if (rsBytes?.Length > 0)
                 {
                     var rs = SsoServiceProviderResponse.Parser.ParseFrom(rsBytes);
 
-                    auth.AccountAuthType = rs.IsCloud ? AccountAuthType.CloudSso : AccountAuthType.OnsiteSso;
+                    v3.AccountAuthType = rs.IsCloud ? AccountAuthType.CloudSso : AccountAuthType.OnsiteSso;
                     if (rs.IsCloud)
                     {
-                        return await auth.AuthorizeUsingCloudSso(rs.SpUrl, forceLogin);
+                        return await v3.AuthorizeUsingCloudSso(rs.SpUrl, forceLogin);
                     }
 
-                    return await auth.AuthorizeUsingOnsiteSso(rs.SpUrl, forceLogin);
+                    return await v3.AuthorizeUsingOnsiteSso(rs.SpUrl, forceLogin);
                 }
 
                 throw new KeeperInvalidParameter("enterprise/get_sso_service_provider", "provider_name", providerName, "SSO provider not found");
@@ -295,20 +203,20 @@ namespace KeeperSecurity.Sdk
         }
 
 
-        internal static async Task<AuthContextV3> LoginV3(this AuthV3 auth, params string[] passwords)
+        internal static async Task<AuthContext> LoginV3(this AuthV3Wrapper v3, params string[] passwords)
         {
             foreach (var p in passwords)
             {
                 if (string.IsNullOrEmpty(p)) continue;
-                auth.PasswordQueue.Enqueue(p);
+                v3.PasswordQueue.Enqueue(p);
             }
 
             try
             {
-                var loginMethod = auth.AccountAuthType == AccountAuthType.Regular || auth.PasswordQueue.Count == 0 
+                var loginMethod = v3.AccountAuthType == AccountAuthType.Regular || v3.PasswordQueue.Count == 0 
                     ? LoginMethod.ExistingAccount 
                     : LoginMethod.AfterSso;
-                return await auth.StartLogin(false, loginMethod);
+                return await v3.StartLogin(false, loginMethod);
             }
             catch (Exception e)
             {
@@ -399,46 +307,46 @@ namespace KeeperSecurity.Sdk
             return dc;
         }
 
-        private static async Task RequestDeviceVerification(this AuthV3 auth, string channel)
+        private static async Task RequestDeviceVerification(this AuthV3Wrapper v3, string channel)
         {
             var request = new DeviceVerificationRequest
             {
-                Username = auth.Username,
-                ClientVersion = auth.Endpoint.ClientVersion,
-                MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
-                EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+                Username = v3.Auth.Username,
+                ClientVersion = v3.Auth.Endpoint.ClientVersion,
+                MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
+                EncryptedDeviceToken = ByteString.CopyFrom(v3.Auth.DeviceToken),
                 VerificationChannel = channel
             };
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"request_device_verification\": {request}");
 #endif
-            await auth.Endpoint.ExecuteRest("authentication/request_device_verification",
+            await v3.Auth.Endpoint.ExecuteRest("authentication/request_device_verification",
                 new ApiRequestPayload {Payload = request.ToByteString()});
         }
 
-        internal static async Task ValidateDeviceVerificationCode(this AuthV3 auth, string code)
+        internal static async Task ValidateDeviceVerificationCode(this AuthV3Wrapper v3, string code)
         {
             var request = new ValidateDeviceVerificationCodeRequest
             {
-                Username = auth.Username,
-                ClientVersion = auth.Endpoint.ClientVersion,
-                MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
+                Username = v3.Auth.Username,
+                ClientVersion = v3.Auth.Endpoint.ClientVersion,
+                MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
                 VerificationCode = code
             };
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"validate_device_verification_code\": {request}");
 #endif
-            await auth.Endpoint.ExecuteRest("authentication/validate_device_verification_code",
+            await v3.Auth.Endpoint.ExecuteRest("authentication/validate_device_verification_code",
                 new ApiRequestPayload { Payload = request.ToByteString() });
         }
 
-        private static async Task<AuthContextV3> ExecuteStartLogin(this AuthV3 auth, StartLoginRequest request)
+        private static async Task<AuthContext> ExecuteStartLogin(this AuthV3Wrapper v3, StartLoginRequest request)
         {
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"start_login\": {request}");
 #endif
 
-            var rs = await auth.Endpoint.ExecuteRest("authentication/start_login", new ApiRequestPayload {Payload = request.ToByteString()});
+            var rs = await v3.Auth.Endpoint.ExecuteRest("authentication/start_login", new ApiRequestPayload {Payload = request.ToByteString()});
             var response = Authentication.LoginResponse.Parser.ParseFrom(rs);
 #if DEBUG
             Debug.WriteLine($"REST Response: endpoint \"start_login\": {response}");
@@ -446,93 +354,88 @@ namespace KeeperSecurity.Sdk
             switch (response.LoginState)
             {
                 case LoginState.LoggedIn:
-                    var authContext = new AuthContextV3
+                    v3.Auth.Username = response.PrimaryUsername;
+                    v3.CloneCode = response.CloneCode.ToByteArray();
+                    var authContext = new AuthContext
                     {
-                        Username = response.PrimaryUsername,
-                        AccountUid = response.AccountUid.ToByteArray(),
                         SessionToken = response.EncryptedSessionToken.ToByteArray(),
                         SessionTokenRestriction = GetSessionTokenScope(response.SessionTokenType),
-                        CloneCode = response.CloneCode.ToByteArray(),
-                        DeviceToken = auth.DeviceToken,
-                        MessageSessionUid = auth.MessageSessionUid,
-                        DeviceKey = auth.DeviceKey,
-                        SsoLoginInfo = auth.SsoLoginInfo,
+                        SsoLoginInfo = v3.SsoLoginInfo,
                     };
                     var encryptedDataKey = response.EncryptedDataKey.ToByteArray();
                     switch (response.EncryptedDataKeyType)
                     {
                         case EncryptedDataKeyType.ByDevicePublicKey:
-                            authContext.DataKey = CryptoUtils.DecryptEc(encryptedDataKey, auth.DeviceKey);
+                            authContext.DataKey = CryptoUtils.DecryptEc(encryptedDataKey, v3.DeviceKey);
                             break;
                     }
 
-                    authContext.WebSocketChannel = auth.WebSocketChannel;
                     return authContext;
 
                 case LoginState.RequiresUsername:
-                    return await auth.ResumeLogin(response.EncryptedLoginToken);
+                    return await v3.ResumeLogin(response.EncryptedLoginToken);
 
                 case LoginState.Requires2Fa:
-                    if (auth.Ui != null)
+                    if (v3.Auth.Ui != null)
                     {
-                        return await auth.TwoFactorValidate(response.EncryptedLoginToken, response.Channels);
+                        return await v3.TwoFactorValidate(response.EncryptedLoginToken, response.Channels);
                     }
 
                     break;
                 case LoginState.RequiresAuthHash:
-                    if (auth.Ui != null)
+                    if (v3.Auth.Ui != null)
                     {
-                        return await auth.ValidateAuthHash(response.EncryptedLoginToken, response.Salt);
+                        return await v3.ValidateAuthHash(response.EncryptedLoginToken, response.Salt);
                     }
 
                     break;
 
                 case LoginState.DeviceApprovalRequired:
-                    if (auth.Ui != null)
+                    if (v3.Auth.Ui != null)
                     {
-                        return await auth.ApproveDevice(response.EncryptedLoginToken);
+                        return await v3.ApproveDevice(response.EncryptedLoginToken);
                     }
 
                     break;
 
                 case LoginState.RedirectCloudSso:
-                    auth.AccountAuthType = AccountAuthType.CloudSso;
-                    return await auth.AuthorizeUsingCloudSso(response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
+                    v3.AccountAuthType = AccountAuthType.CloudSso;
+                    return await v3.AuthorizeUsingCloudSso(response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
 
                 case LoginState.RedirectOnsiteSso:
-                    auth.AccountAuthType = AccountAuthType.OnsiteSso;
-                    return await auth.AuthorizeUsingOnsiteSso(response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
+                    v3.AccountAuthType = AccountAuthType.OnsiteSso;
+                    return await v3.AuthorizeUsingOnsiteSso(response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
 
                 case LoginState.RequiresDeviceEncryptedDataKey:
                 {
-                    if (auth.Ui != null)
+                    if (v3.Auth.Ui != null)
                     {
-                        auth.CloneCode = null;
-                        if (auth.AccountAuthType == AccountAuthType.CloudSso)
+                        v3.CloneCode = null;
+                        if (v3.AccountAuthType == AccountAuthType.CloudSso)
                         {
-                            return await auth.RequestDataKey(response.EncryptedLoginToken);
+                            return await v3.RequestDataKey(response.EncryptedLoginToken);
                         }
 
-                        auth.ResumeSession = false;
+                        v3.Auth.ResumeSession = false;
                         var newRequest = new StartLoginRequest
                         {
-                            Username = auth.Username,
-                            ClientVersion = auth.Endpoint.ClientVersion,
-                            EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+                            Username = v3.Auth.Username,
+                            ClientVersion = v3.Auth.Endpoint.ClientVersion,
+                            EncryptedDeviceToken = ByteString.CopyFrom(v3.Auth.DeviceToken),
                             LoginType = LoginType.Normal,
                             LoginMethod = LoginMethod.ExistingAccount,
-                            MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
+                            MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
                         };
-                        return await auth.ExecuteStartLogin(newRequest);
+                        return await v3.ExecuteStartLogin(newRequest);
                     }
 
                     break;
                 }
 
                 case LoginState.RequiresAccountCreation:
-                    if (auth.AccountAuthType == AccountAuthType.CloudSso)
+                    if (v3.AccountAuthType == AccountAuthType.CloudSso)
                     {
-                        return await auth.CreateSsoUser(response.EncryptedLoginToken);
+                        return await v3.CreateSsoUser(response.EncryptedLoginToken);
                     }
 
                     break;
@@ -556,103 +459,84 @@ namespace KeeperSecurity.Sdk
             throw new KeeperStartLoginException(response.LoginState, response.Message);
         }
 
-        private static async Task<AuthContextV3> ResumeLogin(this AuthV3 auth, ByteString loginToken, LoginMethod method = LoginMethod.ExistingAccount)
+        private static async Task<AuthContext> ResumeLogin(this AuthV3Wrapper v3, ByteString loginToken, LoginMethod method = LoginMethod.ExistingAccount)
         {
             var request = new StartLoginRequest
             {
-                ClientVersion = auth.Endpoint.ClientVersion,
+                ClientVersion = v3.Auth.Endpoint.ClientVersion,
                 EncryptedLoginToken = loginToken,
-                EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
-                MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
-                Username = auth.Username,
+                EncryptedDeviceToken = ByteString.CopyFrom(v3.Auth.DeviceToken),
+                MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
+                Username = v3.Auth.Username,
                 LoginMethod = method,
             };
-            if (auth.ResumeSession && auth.CloneCode != null)
+            if (v3.Auth.ResumeSession && v3.CloneCode != null)
             {
-                request.CloneCode = ByteString.CopyFrom(auth.CloneCode);
+                request.CloneCode = ByteString.CopyFrom(v3.CloneCode);
             }
 
-            return await auth.ExecuteStartLogin(request);
+            return await v3.ExecuteStartLogin(request);
         }
 
-        internal static async Task<AuthContextV3> StartLogin(this AuthV3 auth, bool forceNewLogin = false, LoginMethod loginMethod = LoginMethod.ExistingAccount)
+        internal static async Task<AuthContext> StartLogin(this AuthV3Wrapper v3, bool forceNewLogin = false, LoginMethod loginMethod = LoginMethod.ExistingAccount)
         {
             var attempt = 0;
 
             while (true)
             {
                 attempt++;
-                await auth.EnsureDeviceTokenIsRegistered(auth.Username);
-                if (auth.Ui is IAuthInfoUI infoUi)
+                await v3.EnsureDeviceTokenIsRegistered(v3.Auth.Username);
+                if (v3.Auth.Ui is IAuthInfoUI infoUi)
                 {
-                    infoUi.SelectedDevice(auth.DeviceToken.Base64UrlEncode());
+                    infoUi.SelectedDevice(v3.Auth.DeviceToken.Base64UrlEncode());
                 }
 
-                if (auth.ResumeSession && auth.CloneCode == null)
+                if (v3.Auth.ResumeSession && v3.CloneCode == null)
                 {
-                    auth.CloneCode = new byte[0];
+                    v3.CloneCode = new byte[0];
                 }
 
                 try
                 {
                     var request = new StartLoginRequest
                     {
-                        ClientVersion = auth.Endpoint.ClientVersion,
-                        EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
-                        LoginType = auth.AlternatePassword ? LoginType.Alternate : LoginType.Normal,
+                        ClientVersion = v3.Auth.Endpoint.ClientVersion,
+                        EncryptedDeviceToken = ByteString.CopyFrom(v3.Auth.DeviceToken),
+                        LoginType = v3.Auth.AlternatePassword ? LoginType.Alternate : LoginType.Normal,
                         LoginMethod = loginMethod,
-                        MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
+                        MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
                         ForceNewLogin = forceNewLogin,
                     };
-                    if (!forceNewLogin && auth.ResumeSession && loginMethod == LoginMethod.ExistingAccount && auth.CloneCode != null)
+                    if (!forceNewLogin && v3.Auth.ResumeSession && loginMethod == LoginMethod.ExistingAccount && v3.CloneCode != null)
                     {
-                        request.CloneCode = ByteString.CopyFrom(auth.CloneCode);
+                        request.CloneCode = ByteString.CopyFrom(v3.CloneCode);
                     }
                     else
                     {
-                        request.Username = auth.Username;
-                        if (!string.IsNullOrEmpty(auth.V2TwoFactorToken))
+                        request.Username = v3.Auth.Username;
+                        if (!string.IsNullOrEmpty(v3.V2TwoFactorToken))
                         {
-                            request.V2TwoFactorToken = auth.V2TwoFactorToken;
+                            request.V2TwoFactorToken = v3.V2TwoFactorToken;
                         }
                     }
 
-                    var context = await auth.ExecuteStartLogin(request);
-                    if (context.SessionTokenRestriction == 0 && auth.WebSocketChannel != null)
+                    var context = await v3.ExecuteStartLogin(request);
+                    if (context.SessionTokenRestriction == 0 && v3.Auth.PushNotifications is IPushNotificationChannel push)
                     {
-                        context.WebSocketChannel = auth.WebSocketChannel;
-                        await context.WebSocketChannel.SendToWebSocket(context.SessionToken, false);
-                        context.WebSocketChannel.RegisterCallback(wssResponse =>
-                        {
-                            try
-                            {
-                                var notificationEvent = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(wssResponse.Message));
-                                context.PushNotifications.Push(notificationEvent);
-                                return false;
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.Message);
-                            }
-
-                            return false;
-                        });
+                        await push.SendToWebSocket(context.SessionToken, false);
                     }
 
                     return context;
                 }
                 catch (Exception e)
                 {
-                    if (auth.WebSocketChannel != null)
-                    {
-                        auth.WebSocketChannel.Dispose();
-                        auth.WebSocketChannel = null;
-                    }
+                    v3.Auth.PushNotifications?.Dispose();
+                    v3.Auth.PushNotifications = null;
                     if (attempt < 3 && e is KeeperInvalidDeviceToken)
                     {
-                        auth.Storage.Devices.Delete(auth.DeviceToken.Base64UrlEncode());
-                        auth.DeviceToken = null;
-                        auth.DeviceKey = null;
+                        v3.Auth.Storage.Devices.Delete(v3.Auth.DeviceToken.Base64UrlEncode());
+                        v3.Auth.DeviceToken = null;
+                        v3.DeviceKey = null;
                         continue;
                     }
 
@@ -685,7 +569,7 @@ namespace KeeperSecurity.Sdk
             return result;
         }
 
-        private static async Task<AuthContextV3> ExecuteValidateAuthHash(this AuthV3 auth, ByteString loginToken, string password, Salt salt)
+        private static async Task<AuthContext> ExecuteValidateAuthHash(this AuthV3Wrapper v3, ByteString loginToken, string password, Salt salt)
         {
             var request = new ValidateAuthHashRequest
             {
@@ -697,23 +581,19 @@ namespace KeeperSecurity.Sdk
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"validate_auth_hash\": {request}");
 #endif
-            var rs = await auth.Endpoint.ExecuteRest("authentication/validate_auth_hash",
+            var rs = await v3.Auth.Endpoint.ExecuteRest("authentication/validate_auth_hash",
                 new ApiRequestPayload {Payload = request.ToByteString()});
             var response = Authentication.LoginResponse.Parser.ParseFrom(rs);
 #if DEBUG
             Debug.WriteLine($"REST response: endpoint \"validate_auth_hash\": {response}");
 #endif
-            var authContext = new AuthContextV3
+            v3.Auth.Username = response.PrimaryUsername;
+            v3.CloneCode = response.CloneCode.ToByteArray();
+            var authContext = new AuthContext
             {
-                Username = response.PrimaryUsername,
-                AccountUid = response.AccountUid.ToByteArray(),
                 SessionToken = response.EncryptedSessionToken.ToByteArray(),
                 SessionTokenRestriction = GetSessionTokenScope(response.SessionTokenType),
-                CloneCode = response.CloneCode.ToByteArray(),
-                DeviceToken = auth.DeviceToken,
-                MessageSessionUid = auth.MessageSessionUid,
-                DeviceKey = auth.DeviceKey,
-                SsoLoginInfo = auth.SsoLoginInfo,
+                SsoLoginInfo = v3.SsoLoginInfo,
             };
             
             var validatorSalt = CryptoUtils.GetRandomBytes(16);
@@ -731,14 +611,14 @@ namespace KeeperSecurity.Sdk
                     authContext.DataKey = CryptoUtils.DecryptEncryptionParams(password, encryptedDataKey);
                     break;
                 case EncryptedDataKeyType.ByDevicePublicKey:
-                    authContext.DataKey = CryptoUtils.DecryptEc(encryptedDataKey, auth.DeviceKey);
+                    authContext.DataKey = CryptoUtils.DecryptEc(encryptedDataKey, v3.DeviceKey);
                     break;
             }
 
             return authContext;
         }
 
-        private static async Task<AuthContextV3> ValidateAuthHash(this AuthV3 auth, ByteString loginToken, IEnumerable<Salt> salts)
+        private static async Task<AuthContext> ValidateAuthHash(this AuthV3Wrapper v3, ByteString loginToken, IEnumerable<Salt> salts)
         {
             Salt masterSalt = null;
             Salt firstSalt = null;
@@ -766,33 +646,33 @@ namespace KeeperSecurity.Sdk
                 throw new KeeperStartLoginException(LoginState.RequiresAuthHash, "Master Password has not been created.");
             }
 
-            while (auth.PasswordQueue.Count > 0)
+            while (v3.PasswordQueue.Count > 0)
             {
-                var password = auth.PasswordQueue.Dequeue();
+                var password = v3.PasswordQueue.Dequeue();
                 try
                 {
-                    return await auth.ExecuteValidateAuthHash(loginToken, password, saltInfo);
+                    return await v3.ExecuteValidateAuthHash(loginToken, password, saltInfo);
                 }
                 catch (KeeperAuthFailed)
                 {
                 }
                 catch
                 {
-                    auth.PasswordQueue.Enqueue(password);
+                    v3.PasswordQueue.Enqueue(password);
                     throw;
                 }
             }
 
             using (var cancellationToken = new CancellationTokenSource())
             {
-                var contextTask = new TaskCompletionSource<AuthContextV3>();
-                var passwordInfo = new MasterPasswordInfo(auth.Username)
+                var contextTask = new TaskCompletionSource<AuthContext>();
+                var passwordInfo = new MasterPasswordInfo(v3.Auth.Username)
                 {
                     InvokePasswordActionDelegate = async password =>
                     {
                         try
                         {
-                            var context = await auth.ExecuteValidateAuthHash(loginToken, password, saltInfo);
+                            var context = await v3.ExecuteValidateAuthHash(loginToken, password, saltInfo);
                             contextTask.TrySetResult(context);
                         }
                         catch (KeeperCanceled kc)
@@ -802,13 +682,13 @@ namespace KeeperSecurity.Sdk
                     }
                 };
 
-                var uiTask = auth.Ui.WaitForUserPassword(passwordInfo, cancellationToken.Token);
+                var uiTask = v3.Auth.Ui.WaitForUserPassword(passwordInfo, cancellationToken.Token);
                 var index = Task.WaitAny(uiTask, contextTask.Task);
                 if (index == 1) return await contextTask.Task;
                 var result = await uiTask;
                 if (result)
                 {
-                    return await auth.ResumeLogin(loginToken);
+                    return await v3.ResumeLogin(loginToken);
                 }
 
                 throw new KeeperCanceled();
@@ -838,7 +718,7 @@ namespace KeeperSecurity.Sdk
         }
 
         private static async Task ExecuteDeviceApproveOtpAction(
-            this AuthV3 auth,
+            this AuthV3Wrapper v3,
             TwoFactorValueType type,
             ByteString loginToken,
             string otp,
@@ -853,19 +733,14 @@ namespace KeeperSecurity.Sdk
             };
             try
             {
-                var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
+                var validateRs = await v3.Auth.ExecuteTwoFactorValidateCode(request);
                 var resumeToken = validateRs.EncryptedLoginToken.ToByteArray();
                 var notification = new NotificationEvent
                 {
                     Event = "received_totp",
                     EncryptedLoginToken = resumeToken.Base64UrlEncode(),
                 };
-                var wssRs = new WssClientResponse
-                {
-                    MessageType = MessageType.Dna,
-                    Message = Encoding.UTF8.GetString(JsonUtils.DumpJson(notification)),
-                };
-                auth.WebSocketChannel.Push(wssRs);
+                v3.Auth.PushNotifications.Push(notification);
             }
             catch (Exception e)
             {
@@ -873,7 +748,7 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        private static async Task<AuthContextV3> ApproveDevice(this AuthV3 auth, ByteString loginToken)
+        private static async Task<AuthContext> ApproveDevice(this AuthV3Wrapper v3, ByteString loginToken)
         {
             var resumeLoginToken = loginToken;
             var loginTokenTaskSource = new TaskCompletionSource<bool>();
@@ -883,7 +758,7 @@ namespace KeeperSecurity.Sdk
             {
                 try
                 {
-                    await auth.RequestDeviceVerification(email.Resend ? "email_resend" : "email");
+                    await v3.RequestDeviceVerification(email.Resend ? "email_resend" : "email");
                     email.Resend = true;
                 }
                 catch (KeeperCanceled kc)
@@ -895,7 +770,7 @@ namespace KeeperSecurity.Sdk
             {
                 try
                 {
-                    await auth.ValidateDeviceVerificationCode(code);
+                    await v3.ValidateDeviceVerificationCode(code);
                     loginTokenTaskSource.TrySetResult(true);
                 }
                 catch (KeeperCanceled kc)
@@ -909,7 +784,7 @@ namespace KeeperSecurity.Sdk
             {
                 try
                 {
-                    await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushKeeper, loginToken);
+                    await v3.Auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushKeeper, loginToken);
                 }
                 catch (KeeperCanceled kc)
                 {
@@ -922,7 +797,7 @@ namespace KeeperSecurity.Sdk
             {
                 try
                 {
-                    await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken, SdkExpirationToKeeper(otp.Duration));
+                    await v3.Auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken, SdkExpirationToKeeper(otp.Duration));
                 }
                 catch (KeeperCanceled kc)
                 {
@@ -933,7 +808,7 @@ namespace KeeperSecurity.Sdk
             {
                 try
                 {
-                    await auth.ExecuteDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken, oneTimePassword, SdkExpirationToKeeper(otp.Duration));
+                    await v3.ExecuteDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken, oneTimePassword, SdkExpirationToKeeper(otp.Duration));
                 }
                 catch (KeeperCanceled kc)
                 {
@@ -941,10 +816,9 @@ namespace KeeperSecurity.Sdk
                 }
             };
 
-            bool NotificationCallback(WssClientResponse rs)
+            bool NotificationCallback(NotificationEvent message)
             {
                 if (loginTokenTaskSource.Task.IsCompleted) return true;
-                var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
                 if (string.CompareOrdinal(message.Event, "received_totp") == 0)
                 {
                     if (!string.IsNullOrEmpty(message.EncryptedLoginToken))
@@ -971,16 +845,16 @@ namespace KeeperSecurity.Sdk
                 return false;
             }
 
-            auth.WebSocketChannel?.RegisterCallback(NotificationCallback);
+            v3.Auth.PushNotifications?.RegisterCallback(NotificationCallback);
 
             var sdkCancellation = new CancellationTokenSource();
-            var uiTask = auth.Ui.WaitForDeviceApproval(new IDeviceApprovalChannelInfo[] {email, push, otp}, sdkCancellation.Token);
+            var uiTask = v3.Auth.Ui.WaitForDeviceApproval(new IDeviceApprovalChannelInfo[] {email, push, otp}, sdkCancellation.Token);
             var tokenTask = loginTokenTaskSource.Task;
 
             var index = Task.WaitAny(uiTask, tokenTask);
             if (index == 0)
             {
-                auth.WebSocketChannel?.RemoveCallback(NotificationCallback);
+                v3.Auth.PushNotifications?.RemoveCallback(NotificationCallback);
                 var resume = await uiTask;
                 if (!resume) throw new KeeperCanceled();
             }
@@ -990,7 +864,7 @@ namespace KeeperSecurity.Sdk
                 sdkCancellation.Cancel();
             }
 
-            return await auth.ResumeLogin(resumeLoginToken);
+            return await v3.ResumeLogin(resumeLoginToken);
         }
 
         private static TwoFactorPushType SdkPushActionToKeeper(TwoFactorPushAction sdkPush)
@@ -1071,7 +945,7 @@ namespace KeeperSecurity.Sdk
             return response;
         }
 
-        private static async Task<AuthContextV3> TwoFactorValidate(this AuthV3 auth,
+        private static async Task<AuthContext> TwoFactorValidate(this AuthV3Wrapper v3,
             ByteString loginToken,
             IEnumerable<TwoFactorChannelInfo> channels)
         {
@@ -1096,7 +970,7 @@ namespace KeeperSecurity.Sdk
                     };
                     try
                     {
-                        await auth.ExecutePushAction(rq);
+                        await v3.Auth.ExecutePushAction(rq);
                         lastUsedChannel = channel;
                     }
                     catch (KeeperCanceled kc)
@@ -1121,7 +995,7 @@ namespace KeeperSecurity.Sdk
                     };
                     try
                     {
-                        var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
+                        var validateRs = await v3.Auth.ExecuteTwoFactorValidateCode(request);
                         resumeWithToken = validateRs.EncryptedLoginToken;
                         loginTaskSource.TrySetResult(true);
                         return true;
@@ -1213,7 +1087,7 @@ namespace KeeperSecurity.Sdk
                         break;
 
                     case TwoFactorChannelType.TwoFaCtU2F:
-                        if (auth.Ui is IAuthSecurityKeyUI keyUi)
+                        if (v3.Auth.Ui is IAuthSecurityKeyUI keyUi)
                         {
                             try
                             {
@@ -1233,7 +1107,7 @@ namespace KeeperSecurity.Sdk
                                         };
                                         try
                                         {
-                                            var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
+                                            var validateRs = await v3.Auth.ExecuteTwoFactorValidateCode(request);
                                             resumeWithToken = validateRs.EncryptedLoginToken;
                                             loginTaskSource.TrySetResult(true);
                                         }
@@ -1258,10 +1132,9 @@ namespace KeeperSecurity.Sdk
                 }
             }
 
-            bool NotificationCallback(WssClientResponse rs)
+            bool NotificationCallback(NotificationEvent message)
             {
                 if (loginTaskSource.Task.IsCompleted) return true;
-                var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(rs.Message));
                 if (message.Event != "received_totp") return false;
                 if (!string.IsNullOrEmpty(message.EncryptedLoginToken))
                 {
@@ -1288,12 +1161,12 @@ namespace KeeperSecurity.Sdk
                 return false;
             }
 
-            auth.WebSocketChannel?.RegisterCallback(NotificationCallback);
+            v3.Auth.PushNotifications?.RegisterCallback(NotificationCallback);
             using (var tokenSource = new CancellationTokenSource())
             {
-                var userTask = auth.Ui.WaitForTwoFactorCode(availableChannels.ToArray(), tokenSource.Token);
+                var userTask = v3.Auth.Ui.WaitForTwoFactorCode(availableChannels.ToArray(), tokenSource.Token);
                 int index = Task.WaitAny(userTask, loginTaskSource.Task);
-                auth.WebSocketChannel?.RemoveCallback(NotificationCallback);
+                v3.Auth.PushNotifications?.RemoveCallback(NotificationCallback);
                 if (index == 0)
                 {
                     if (!await userTask) throw new KeeperCanceled();
@@ -1305,14 +1178,14 @@ namespace KeeperSecurity.Sdk
                 }
             }
 
-            return await auth.ResumeLogin(resumeWithToken);
+            return await v3.ResumeLogin(resumeWithToken);
         }
 
-        internal static void StoreConfigurationIfChangedV3(this Auth auth, AuthContextV3 context)
+        internal static void StoreConfigurationIfChangedV3(this Auth auth, byte[] cloneCode)
         {
-            if (string.CompareOrdinal(auth.Storage.LastLogin ?? "", context.Username) != 0)
+            if (string.CompareOrdinal(auth.Storage.LastLogin ?? "", auth.Username) != 0)
             {
-                auth.Storage.LastLogin = context.Username;
+                auth.Storage.LastLogin = auth.Username;
             }
 
             if (string.CompareOrdinal(auth.Storage.LastServer ?? "", auth.Endpoint.Server) != 0)
@@ -1328,13 +1201,13 @@ namespace KeeperSecurity.Sdk
                 auth.Storage.Servers.Put(serverConf);
             }
 
-            var existingUser = auth.Storage.Users.Get(context.Username);
-            var deviceToken = context.DeviceToken.Base64UrlEncode();
+            var existingUser = auth.Storage.Users.Get(auth.Username);
+            var deviceToken = auth.DeviceToken.Base64UrlEncode();
             if (existingUser?.LastDevice?.DeviceToken != deviceToken)
             {
                 var uc = existingUser != null
                     ? new UserConfiguration(existingUser)
-                    : new UserConfiguration(context.Username)
+                    : new UserConfiguration(auth.Username)
                     {
                         Server = auth.Endpoint.Server
                     };
@@ -1349,12 +1222,12 @@ namespace KeeperSecurity.Sdk
             }
 
             var deviceConf = auth.Storage.Devices.Get(deviceToken);
-            if (deviceConf != null && context.CloneCode != null)
+            if (deviceConf != null && cloneCode != null)
             {
                 var dc = new DeviceConfiguration(deviceConf);
                 var serverInfo = dc.ServerInfo.Get(auth.Endpoint.Server);
                 var si = serverInfo != null ? new DeviceServerConfiguration(serverInfo) : new DeviceServerConfiguration(auth.Endpoint.Server);
-                si.CloneCode = context.CloneCode.Base64UrlEncode();
+                si.CloneCode = cloneCode.Base64UrlEncode();
                 dc.ServerInfo.Put(si);
                 auth.Storage.Devices.Put(dc);
             }
@@ -1365,9 +1238,9 @@ namespace KeeperSecurity.Sdk
             }
         }
 
-        private static async Task<AuthContextV3> AuthorizeUsingOnsiteSso(this AuthV3 auth, string ssoBaseUrl, bool forceLogin, ByteString loginToken = null)
+        private static async Task<AuthContext> AuthorizeUsingOnsiteSso(this AuthV3Wrapper v3, string ssoBaseUrl, bool forceLogin, ByteString loginToken = null)
         {
-            if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
+            if (v3.Auth.Ui != null && v3.Auth.Ui is IAuthSsoUI ssoUi)
             {
                 var queryString = System.Web.HttpUtility.ParseQueryString("");
                 CryptoUtils.GenerateRsaKey(out var privateKey, out var publicKey);
@@ -1389,20 +1262,20 @@ namespace KeeperSecurity.Sdk
                     {
                         var token = JsonUtils.ParseJson<SsoToken>(Encoding.UTF8.GetBytes(tokenStr));
                         var pk = CryptoUtils.LoadPrivateKey(privateKey);
-                        auth.Username = token.Email;
+                        v3.Auth.Username = token.Email;
                         if (!string.IsNullOrEmpty(token.Password))
                         {
                             var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.Password.Base64UrlDecode(), pk));
-                            auth.PasswordQueue.Enqueue(password);
+                            v3.PasswordQueue.Enqueue(password);
                         }
 
                         if (!string.IsNullOrEmpty(token.NewPassword))
                         {
                             var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.NewPassword.Base64UrlDecode(), pk));
-                            auth.PasswordQueue.Enqueue(password);
+                            v3.PasswordQueue.Enqueue(password);
                         }
 
-                        auth.SsoLoginInfo = new SsoLoginInfo
+                        v3.SsoLoginInfo = new SsoLoginInfo
                         {
                             SsoProvider = token.ProviderName,
                             SpBaseUrl = ssoBaseUrl,
@@ -1421,7 +1294,7 @@ namespace KeeperSecurity.Sdk
                         var result = await userTask;
                         if (result && loginToken != null)
                         {
-                            return await auth.ResumeLogin(loginToken);
+                            return await v3.ResumeLogin(loginToken);
                         }
 
                         throw new KeeperCanceled();
@@ -1431,29 +1304,29 @@ namespace KeeperSecurity.Sdk
                     cancellationSource.Cancel();
                     if (loginToken != null)
                     {
-                        return await auth.ResumeLogin(loginToken, LoginMethod.AfterSso);
+                        return await v3.ResumeLogin(loginToken, LoginMethod.AfterSso);
                     }
 
-                    await auth.EnsureDeviceTokenIsRegistered(auth.Username);
-                    return await auth.StartLogin(false, LoginMethod.AfterSso);
+                    await v3.EnsureDeviceTokenIsRegistered(v3.Auth.Username);
+                    return await v3.StartLogin(false, LoginMethod.AfterSso);
                 }
             }
 
             throw new KeeperAuthFailed();
         }
 
-        private static async Task<AuthContextV3> AuthorizeUsingCloudSso(this AuthV3 auth, string ssoBaseUrl, bool forceLogin, ByteString loginToken = null)
+        private static async Task<AuthContext> AuthorizeUsingCloudSso(this AuthV3Wrapper v3, string ssoBaseUrl, bool forceLogin, ByteString loginToken = null)
         {
-            if (auth.Ui != null && auth.Ui is IAuthSsoUI ssoUi)
+            if (v3.Auth.Ui != null && v3.Auth.Ui is IAuthSsoUI ssoUi)
             {
                 var rq = new SsoCloudRequest
                 {
-                    ClientVersion = auth.Endpoint.ClientVersion,
+                    ClientVersion = v3.Auth.Endpoint.ClientVersion,
                     Embedded = true,
                     ForceLogin = forceLogin
                 };
                 var transmissionKey = CryptoUtils.GenerateEncryptionKey();
-                var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);
+                var apiRequest = v3.Auth.Endpoint.PrepareApiRequest(rq, transmissionKey);
 
                 var queryString = System.Web.HttpUtility.ParseQueryString("");
                 queryString.Add("payload", apiRequest.ToByteArray().Base64UrlEncode());
@@ -1470,8 +1343,8 @@ namespace KeeperSecurity.Sdk
                         var rsBytes = tokenStr.Base64UrlDecode();
                         rsBytes = CryptoUtils.DecryptAesV2(rsBytes, transmissionKey);
                         var rs = SsoCloudResponse.Parser.ParseFrom(rsBytes);
-                        auth.Username = rs.Email;
-                        auth.SsoLoginInfo = new SsoLoginInfo
+                        v3.Auth.Username = rs.Email;
+                        v3.SsoLoginInfo = new SsoLoginInfo
                         {
                             SsoProvider = rs.ProviderName,
                             SpBaseUrl = ssoBaseUrl,
@@ -1493,71 +1366,71 @@ namespace KeeperSecurity.Sdk
                         var result = await tokenTask;
                         if (result && loginToken != null)
                         {
-                            return await auth.ResumeLogin(loginToken);
+                            return await v3.ResumeLogin(loginToken);
                         }
 
                         throw new KeeperCanceled();
                     }
                     await tokenSource.Task;
                     cancellationSource.Cancel();
-                    await auth.EnsureDeviceTokenIsRegistered(auth.Username);
-                    return await auth.ResumeLogin(loginToken, LoginMethod.AfterSso);
+                    await v3.EnsureDeviceTokenIsRegistered(v3.Auth.Username);
+                    return await v3.ResumeLogin(loginToken, LoginMethod.AfterSso);
                 }
             }
 
             throw new KeeperAuthFailed();
         }
 
-        private static async Task<AuthContextV3> CreateSsoUser(this AuthV3 auth, ByteString loginToken)
+        private static async Task<AuthContext> CreateSsoUser(this AuthV3Wrapper v3, ByteString loginToken)
         {
             var dataKey = CryptoUtils.GenerateEncryptionKey();
             var clientKey = CryptoUtils.GenerateEncryptionKey();
             CryptoUtils.GenerateEcKey(out var ecPrivateKey, out var ecPublicKey);
             CryptoUtils.GenerateRsaKey(out var rsaPrivateKey, out var rsaPublicKey);
-            var devicePublicKey = CryptoUtils.GetPublicEcKey(auth.DeviceKey);
+            var devicePublicKey = CryptoUtils.GetPublicEcKey(v3.DeviceKey);
             var request = new CreateUserRequest
             {
-                Username = auth.Username,
+                Username = v3.Auth.Username,
                 RsaPublicKey = ByteString.CopyFrom(rsaPublicKey),
                 RsaEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(rsaPrivateKey, dataKey)),
                 EccPublicKey = ByteString.CopyFrom(CryptoUtils.UnloadEcPublicKey(ecPublicKey)),
                 EccEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(CryptoUtils.UnloadEcPrivateKey(ecPrivateKey), dataKey)),
-                EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+                EncryptedDeviceToken = ByteString.CopyFrom(v3.Auth.DeviceToken),
                 EncryptedClientKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(clientKey, dataKey)),
-                ClientVersion = auth.Endpoint.ClientVersion,
+                ClientVersion = v3.Auth.Endpoint.ClientVersion,
                 EncryptedDeviceDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(dataKey, devicePublicKey)),
                 EncryptedLoginToken = loginToken,
-                MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
+                MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
             };
             var apiRequest = new ApiRequestPayload
             {
                 Payload = request.ToByteString()
             };
-            await auth.Endpoint.ExecuteRest("authentication/create_user_sso", apiRequest);
+            await v3.Auth.Endpoint.ExecuteRest("authentication/create_user_sso", apiRequest);
 
-            return await auth.ResumeLogin(loginToken);
+            return await v3.ResumeLogin(loginToken);
         }
 
-        private static async Task RequestDeviceAdminApproval(this AuthV3 auth)
+        private static async Task RequestDeviceAdminApproval(this AuthV3Wrapper v3)
         {
             var request = new DeviceVerificationRequest
             {
-                Username = auth.Username,
-                ClientVersion = auth.Endpoint.ClientVersion,
-                MessageSessionUid = ByteString.CopyFrom(auth.MessageSessionUid),
-                EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+                Username = v3.Auth.Username,
+                ClientVersion = v3.Auth.Endpoint.ClientVersion,
+                MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
+                EncryptedDeviceToken = ByteString.CopyFrom(v3.Auth.DeviceToken),
             };
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"request_device_admin_approval\": {request}");
 #endif
-            await auth.Endpoint.ExecuteRest("authentication/request_device_admin_approval",
+            await v3.Auth.Endpoint.ExecuteRest("authentication/request_device_admin_approval",
                 new ApiRequestPayload { Payload = request.ToByteString() });
         }
 
 
-        private static async Task<AuthContextV3> RequestDataKey(this AuthV3 auth, ByteString loginToken)
+        private static async Task<AuthContext> RequestDataKey(this AuthV3Wrapper v3, ByteString loginToken)
         {
-            if (!(auth.Ui is IAuthSsoUI ssoUi)) throw new KeeperCanceled();
+            if (!(v3.Auth.Ui is IAuthSsoUI ssoUi)) throw new KeeperCanceled();
 
             var completeToken = new CancellationTokenSource();
             var completeTask = new TaskCompletionSource<bool>();
@@ -1573,7 +1446,7 @@ namespace KeeperSecurity.Sdk
                     };
                     try
                     {
-                        await auth.ExecutePushAction(rq);
+                        await v3.Auth.ExecutePushAction(rq);
                     }
                     catch (KeeperCanceled kc)
                     {
@@ -1588,7 +1461,7 @@ namespace KeeperSecurity.Sdk
                 {
                     try
                     {
-                        await auth.RequestDeviceAdminApproval();
+                        await v3.RequestDeviceAdminApproval();
                     }
                     catch (KeeperCanceled kc)
                     {
@@ -1597,10 +1470,9 @@ namespace KeeperSecurity.Sdk
                 }
             };
 
-            bool ProcessDataKeyRequest(WssClientResponse wssRs)
+            bool ProcessDataKeyRequest(NotificationEvent message)
             {
                 if (completeTask.Task.IsCompleted) return true;
-                var message = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(wssRs.Message));
                 if (string.CompareOrdinal(message.Message, "device_approved") == 0)
                 {
                     completeTask.TrySetResult(message.Approved);
@@ -1614,10 +1486,10 @@ namespace KeeperSecurity.Sdk
                 return false;
             }
 
-            auth.WebSocketChannel.RegisterCallback(ProcessDataKeyRequest);
+            v3.Auth.PushNotifications.RegisterCallback(ProcessDataKeyRequest);
             var uiTask = ssoUi.WaitForDataKey(new IDataKeyChannelInfo[] {pushChannel, adminChannel}, completeToken.Token);
             var index = Task.WaitAny(uiTask, completeTask.Task);
-            auth.WebSocketChannel.RemoveCallback(ProcessDataKeyRequest);
+            v3.Auth.PushNotifications.RemoveCallback(ProcessDataKeyRequest);
             if (index == 0)
             {
                 var result = await uiTask;
@@ -1629,12 +1501,12 @@ namespace KeeperSecurity.Sdk
                 completeToken.Cancel();
             }
 
-            return await auth.ResumeLogin(loginToken);
+            return await v3.ResumeLogin(loginToken);
         }
         
         internal static void SsoLogout(this Auth auth)
         {
-            if (auth.AuthContext is AuthContextV3 context)
+            if (auth.AuthContext is AuthContext context)
             {
                 if (context.SsoLoginInfo != null && auth.Ui is IAuthSsoUI ssoUi)
                 {
@@ -1647,7 +1519,7 @@ namespace KeeperSecurity.Sdk
                             ClientVersion = auth.Endpoint.ClientVersion,
                             Embedded = true,
                             IdpSessionId = context.SsoLoginInfo.IdpSessionId,
-                            Username = context.Username
+                            Username = auth.Username
                         };
                         var transmissionKey = CryptoUtils.GenerateEncryptionKey();
                         var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);

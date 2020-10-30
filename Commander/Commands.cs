@@ -162,7 +162,7 @@ namespace Commander
         public Queue<string> CommandQueue { get; } = new Queue<string>();
     }
 
-    public abstract class StateContext : CliCommands
+    public abstract class StateContext : CliCommands, IDisposable
     {
         public abstract string GetPrompt();
 
@@ -172,6 +172,20 @@ namespace Commander
         }
 
         public StateContext NextStateContext { get; set; }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                NextStateContext = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 
     public class NotConnectedCliContext : StateContext

@@ -14,13 +14,15 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using KeeperSecurity.Sdk.UI;
 using System.Diagnostics;
+using System.Net.WebSockets;
 using System.Reflection;
 using Authentication;
 using Org.BouncyCastle.Crypto.Parameters;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.RegularExpressions;
+using System.Threading;
 using Google.Protobuf;
+using Push;
 using Type = System.Type;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Tests")]
@@ -34,41 +36,37 @@ namespace KeeperSecurity.Sdk
         internal string IdpSessionId { get; set; }
     }
 
-    public interface IAuthentication
+    public interface IAuth
     {
         IKeeperEndpoint Endpoint { get; }
+        IAuthUI Ui { get; }
+        IConfigurationStorage Storage { get; }
+        IFanOut<NotificationEvent> PushNotifications { get; }
+        string Username { get; }
+        bool ResumeSession { get; set; }
+        byte[] DeviceToken { get; set; }
+    }
+
+    public interface IAuthentication : IAuth
+    {
         IAuthContext AuthContext { get; }
         Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType);
         Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null);
         Task Logout();
     }
 
-    public interface IAuth
+    public interface IAuthContext
     {
-        string Username { get; }
-        IKeeperEndpoint Endpoint { get; }
-        byte[] DeviceToken { get; set; }
-        IAuthUI Ui { get; }
-        IConfigurationStorage Storage { get; }
-        bool ResumeSession { get; set; }
-    }
-
-    public interface IAuthContext : IDisposable
-    {
-        string Username { get; }
         byte[] DataKey { get; }
         byte[] SessionToken { get; }
-        byte[] DeviceToken { get; }
         byte[] ClientKey { get; }
         RsaPrivateCrtKeyParameters PrivateKey { get; }
-        IFanOut<NotificationEvent> PushNotifications { get; }
         bool CheckPasswordValid(string password);
         AccountLicense License { get; }
         AccountSettings Settings { get; }
         IDictionary<string, object> Enforcements { get; }
         bool IsEnterpriseAdmin { get; }
         SsoLoginInfo SsoLoginInfo { get; set; }
-
     }
 
     [Flags]
@@ -82,18 +80,16 @@ namespace KeeperSecurity.Sdk
 
     public class AuthContext : IAuthContext
     {
-        public string Username { get; internal set; }
         public byte[] DataKey { get; internal set; }
         public byte[] ClientKey { get; internal set; }
         public RsaPrivateCrtKeyParameters PrivateKey { get; internal set; }
-        public IFanOut<NotificationEvent> PushNotifications { get; private set; } = new FanOut<NotificationEvent>();
         public byte[] SessionToken { get; internal set; }
         public SessionTokenRestriction SessionTokenRestriction { get; set; }
-        public byte[] DeviceToken { get; internal set; }
         public AccountLicense License { get; internal set; }
         public AccountSettings Settings { get; internal set; }
         public IDictionary<string, object> Enforcements { get; internal set; }
         public bool IsEnterpriseAdmin { get; internal set; }
+        internal AccountAuthType AccountAuthType { get; set; }
         public SsoLoginInfo SsoLoginInfo { get; set; }
         internal byte[] PasswordValidator { get; set; }
         public bool CheckPasswordValid(string password)
@@ -109,40 +105,10 @@ namespace KeeperSecurity.Sdk
                 return false;
             }
         }
-
-        internal virtual void SetKeepAliveTimer(int timeoutInMinutes, IAuthentication auth)
-        {
-        }
-
-        internal virtual void ResetKeepAliveTimer()
-        {
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            PushNotifications?.Dispose();
-            PushNotifications = null;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~AuthContext()
-        {
-            Dispose(false);
-        }
     }
 
-    public class Auth : IAuth, IAuthentication
+    public class Auth : IAuthentication, IDisposable
     {
-        private static readonly Regex VersionPattern;
-        static Auth() {
-            VersionPattern = new Regex(@"^[a-z]+(\d{2})\.\d{1,2}\.\d{1,2}$");
-        }
-
         public Auth(IAuthUI authUi, IConfigurationStorage storage, IKeeperEndpoint endpoint = null)
         {
             Storage = storage ?? new InMemoryConfigurationStorage();
@@ -166,6 +132,9 @@ namespace KeeperSecurity.Sdk
 
         internal AuthContext authContext;
         public IAuthContext AuthContext => authContext;
+
+        public IFanOut<NotificationEvent> PushNotifications { get;  set; }
+
         public Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType = null)
         {
             return ExecuteAuthCommand(command, responseType, true);
@@ -173,117 +142,51 @@ namespace KeeperSecurity.Sdk
 
         public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType, bool throwOnError = true)
         {
-            var attempt = 0;
-            while (attempt < 2)
+            command.username = Username;
+            command.sessionToken = authContext.SessionToken.Base64UrlEncode();
+            var response = await Endpoint.ExecuteV2Command(command, responseType);
+            if (response.IsSuccess)
             {
-                attempt++;
-                if (!this.IsAuthenticated()) break;
-
-                command.username = authContext.Username;
-                command.sessionToken = authContext.SessionToken.Base64UrlEncode();
-                try
-                {
-                    var response = await Endpoint.ExecuteV2Command(command, responseType);
-                    if (response.IsSuccess)
-                    {
-                        authContext.ResetKeepAliveTimer();
-                        return response;
-                    }
-
-                    if (response.resultCode == "auth_failed")
-                    {
-                        throw new KeeperAuthFailed();
-                    }
-
-                    if (throwOnError)
-                    {
-                        throw new KeeperApiException(response.resultCode, response.message);
-                    }
-
-                    return response;
-                }
-                catch (KeeperAuthFailed)
-                {
-                    Debug.WriteLine("Refresh Session Token");
-                    authContext.SessionToken = null;
-                    await RefreshSessionToken();
-                    if (this.IsAuthenticated())
-                    {
-                        continue;
-                    }
-                    await Logout();
-                }
-
-                break;
+                this.ResetKeepAliveTimer();
+                return response;
             }
 
-            throw new KeeperAuthFailed();
-        }
-
-        internal static bool IsV3Api(string clientVersion)
-        {
-            var match = VersionPattern.Match(clientVersion);
-            if (match.Groups.Count == 2)
+            if (response.resultCode == "auth_failed")
             {
-                if (int.TryParse(match.Groups[1].Value, out var version))
-                {
-                    return version >= 15;
-                }
+                throw new KeeperAuthFailed();
             }
 
-            return false;
+            if (throwOnError)
+            {
+                throw new KeeperApiException(response.resultCode, response.message);
+            }
+
+            return response;
         }
 
         public async Task LoginSso(string providerName, bool forceLogin = false)
         {
-            var isV3Api = IsV3Api(Endpoint.ClientVersion);
+            var authV3 = new AuthV3Wrapper(this);
             var attempt = 0;
-            if (isV3Api)
+            while (attempt < 3)
             {
-                var authV3 = new AuthV3(this);
-                while (attempt < 3)
+                attempt++;
+                try
                 {
-                    attempt++;
-                    try
-                    {
-                        var contextV3 = await authV3.LoginSsoV3(providerName, forceLogin);
-                        this.StoreConfigurationIfChangedV3(contextV3);
-                        authContext = contextV3;
-                        await PostLogin(true);
-                    }
-                    catch (KeeperRegionRedirect krr)
-                    {
-                        await authV3.RedirectToRegionV3(krr.RegionHost);
-                        if (string.IsNullOrEmpty(krr.Username)) continue;
-                        
-                        Username = krr.Username;
-                        await authV3.LoginV3();
-                    }
-                    return;
+                    var contextV3 = await authV3.LoginSsoV3(providerName, forceLogin);
+                    this.StoreConfigurationIfChangedV3(authV3.CloneCode);
+                    authContext = contextV3;
+                    await PostLogin();
                 }
-            }
-            else
-            {
-                var authV2 = new AuthV2(this);
-                while (attempt < 3)
+                catch (KeeperRegionRedirect krr)
                 {
-                    attempt++;
-                    try
-                    {
-                        var contextV2 = await authV2.LoginSsoV2(providerName, forceLogin);
-                        this.StoreConfigurationIfChangedV2(contextV2);
-                        authContext = contextV2;
-                        await PostLogin(false);
-                    }
-                    catch (KeeperRegionRedirect krr)
-                    {
-                        authV2.RedirectToRegionV2(krr.RegionHost);
-                        if (string.IsNullOrEmpty(krr.Username)) continue;
+                    await this.RedirectToRegionV3(krr.RegionHost);
+                    if (string.IsNullOrEmpty(krr.Username)) continue;
 
-                        await Login(krr.Username);
-                    }
-                    return;
+                    Username = krr.Username;
+                    await authV3.LoginV3();
                 }
+                return;
             }
             throw new KeeperAuthFailed();
         }
@@ -296,46 +199,23 @@ namespace KeeperSecurity.Sdk
             }
 
             Username = username.ToLowerInvariant();
-            var isV3Api = IsV3Api(Endpoint.ClientVersion);
-            if (isV3Api)
+            var authV3 = new AuthV3Wrapper(this);
+            try
             {
-                var authV3 = new AuthV3(this);
-                AuthContextV3 contextV3;
-                try
-                {
-                    contextV3 = await authV3.LoginV3(passwords);
-                }
-                catch (KeeperRegionRedirect krr)
-                {
-                    await authV3.RedirectToRegionV3(krr.RegionHost);
-                    contextV3 = await authV3.LoginV3(passwords);
-                }
-                
-                this.StoreConfigurationIfChangedV3(contextV3);
-                authContext = contextV3;
+                authContext = await authV3.LoginV3(passwords);
             }
-            else
+            catch (KeeperRegionRedirect krr)
             {
-                var authV2 = new AuthV2(this);
-                AuthContextV2 contextV2;
-                try
-                {
-                    contextV2 = await authV2.LoginV2(passwords);
-                }
-                catch (KeeperRegionRedirect krr)
-                {
-                    authV2.RedirectToRegionV2(krr.RegionHost);
-                    contextV2 = await authV2.LoginV2(passwords);
-                }
-                
-                this.StoreConfigurationIfChangedV2(contextV2);
-                authContext = contextV2;
+                await this.RedirectToRegionV3(krr.RegionHost);
+                authContext = await authV3.LoginV3(passwords);
             }
 
-            await PostLogin(isV3Api);
+            this.StoreConfigurationIfChangedV3(authV3.CloneCode);
+
+            await PostLogin();
         }
 
-        private async Task PostLogin(bool isV3Api)
+        private async Task PostLogin()
         {
             AccountLicense license;
             AccountSettings settings;
@@ -343,85 +223,66 @@ namespace KeeperSecurity.Sdk
             IDictionary<string, object> enforcements;
             string clientKey = null;
             bool isEnterpriseAdmin = false;
-            if (isV3Api)
+            var accountSummaryResponse = await this.LoadAccountSummary();
+            license = AccountLicense.LoadFromProtobuf(accountSummaryResponse.License);
+            settings = AccountSettings.LoadFromProtobuf(accountSummaryResponse.Settings);
+            keys = AccountKeys.LoadFromProtobuf(accountSummaryResponse.KeysInfo);
+            if (accountSummaryResponse.ClientKey?.Length > 0)
             {
-                var accountSummaryResponse = await this.LoadAccountSummary();
-                license = AccountLicense.LoadFromProtobuf(accountSummaryResponse.License);
-                settings = AccountSettings.LoadFromProtobuf(accountSummaryResponse.Settings);
-                keys = AccountKeys.LoadFromProtobuf(accountSummaryResponse.KeysInfo);
-                if (accountSummaryResponse.ClientKey?.Length > 0)
-                {
-                    clientKey = accountSummaryResponse.ClientKey.ToByteArray().Base64UrlEncode();
-                }
-                enforcements = new Dictionary<string, object>();
-                if (accountSummaryResponse.Enforcements?.Booleans != null)
-                {
-                    foreach (var kvp in accountSummaryResponse.Enforcements.Booleans)
-                    {
-                        enforcements[kvp.Key] = kvp.Value;
-                    }
-                }
-
-                if (accountSummaryResponse.Enforcements?.Strings != null)
-                {
-                    foreach (var kvp in accountSummaryResponse.Enforcements.Strings)
-                    {
-                        enforcements[kvp.Key] = kvp.Value;
-                    }
-                }
-
-                if (accountSummaryResponse.Enforcements?.Longs != null)
-                {
-                    foreach (var kvp in accountSummaryResponse.Enforcements.Longs)
-                    {
-                        enforcements[kvp.Key] = kvp.Value;
-                    }
-                }
-
-                if (accountSummaryResponse.Enforcements?.Jsons != null)
-                {
-                    foreach (var kvp in accountSummaryResponse.Enforcements.Jsons)
-                    {
-                        try
-                        {
-                            switch (kvp.Key)
-                            {
-                                case "password_rules":
-                                    var rules = JsonUtils.ParseJson<PasswordRule[]>(Encoding.UTF8.GetBytes(kvp.Value));
-                                    enforcements[kvp.Key] = rules;
-                                    break;
-                                case "master_password_reentry":
-                                    var mpr = JsonUtils.ParseJson<MasterPasswordReentry>(Encoding.UTF8.GetBytes(kvp.Value));
-                                    enforcements[kvp.Key] = mpr;
-                                    break;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine(e.Message);
-                        }
-                    }
-                }
-
-                isEnterpriseAdmin = accountSummaryResponse.IsEnterpriseAdmin;
+                clientKey = accountSummaryResponse.ClientKey.ToByteArray().Base64UrlEncode();
             }
-            else
+
+            enforcements = new Dictionary<string, object>();
+            if (accountSummaryResponse.Enforcements?.Booleans != null)
             {
-                var cmd = new AccountSummaryCommand
+                foreach (var kvp in accountSummaryResponse.Enforcements.Booleans)
                 {
-                    include = new[] { "settings", "license", "keys", "client_key", "enforcements", "is_enterprise_admin"}
-                };
-                var accountSummaryResponse = await this.ExecuteAuthCommand<AccountSummaryCommand, AccountSummaryResponse>(cmd);
-                license = accountSummaryResponse.License;
-                settings = accountSummaryResponse.Settings;
-                keys = accountSummaryResponse.keys;
-                clientKey = accountSummaryResponse.clientKey;
-                enforcements = accountSummaryResponse.Enforcements;
-                if (accountSummaryResponse.IsEnterpriseAdmin.HasValue)
-                {
-                    isEnterpriseAdmin = accountSummaryResponse.IsEnterpriseAdmin.Value;
+                    enforcements[kvp.Key] = kvp.Value;
                 }
             }
+
+            if (accountSummaryResponse.Enforcements?.Strings != null)
+            {
+                foreach (var kvp in accountSummaryResponse.Enforcements.Strings)
+                {
+                    enforcements[kvp.Key] = kvp.Value;
+                }
+            }
+
+            if (accountSummaryResponse.Enforcements?.Longs != null)
+            {
+                foreach (var kvp in accountSummaryResponse.Enforcements.Longs)
+                {
+                    enforcements[kvp.Key] = kvp.Value;
+                }
+            }
+
+            if (accountSummaryResponse.Enforcements?.Jsons != null)
+            {
+                foreach (var kvp in accountSummaryResponse.Enforcements.Jsons)
+                {
+                    try
+                    {
+                        switch (kvp.Key)
+                        {
+                            case "password_rules":
+                                var rules = JsonUtils.ParseJson<PasswordRule[]>(Encoding.UTF8.GetBytes(kvp.Value));
+                                enforcements[kvp.Key] = rules;
+                                break;
+                            case "master_password_reentry":
+                                var mpr = JsonUtils.ParseJson<MasterPasswordReentry>(Encoding.UTF8.GetBytes(kvp.Value));
+                                enforcements[kvp.Key] = mpr;
+                                break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
+                    }
+                }
+            }
+
+            isEnterpriseAdmin = accountSummaryResponse.IsEnterpriseAdmin;
 
             if (authContext.SessionTokenRestriction != 0)
             {
@@ -442,14 +303,15 @@ namespace KeeperSecurity.Sdk
                             if (await postUi.Confirmation(passwordExpiredDescription))
                             {
                                 var newPassword = await this.ChangeMasterPassword();
-                                
+
                                 var validatorSalt = CryptoUtils.GetRandomBytes(16);
-                                authContext.PasswordValidator = 
+                                authContext.PasswordValidator =
                                     CryptoUtils.CreateEncryptionParams(newPassword, validatorSalt, 100000, CryptoUtils.GetRandomBytes(32));
 
                                 authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
                             }
                         }
+
                         if ((authContext.SessionTokenRestriction & SessionTokenRestriction.ShareAccount) != 0)
                         {
                             //expired_account_transfer_description
@@ -525,19 +387,66 @@ namespace KeeperSecurity.Sdk
                 {
                     if (authContext.Settings.logoutTimerInSec > TimeSpan.FromMinutes(10).TotalSeconds && authContext.Settings.logoutTimerInSec < TimeSpan.FromHours(12).TotalSeconds)
                     {
-                        authContext.SetKeepAliveTimer((int) TimeSpan.FromSeconds(authContext.Settings.logoutTimerInSec.Value).TotalMinutes, this);
+                        SetKeepAliveTimer((int) TimeSpan.FromSeconds(authContext.Settings.logoutTimerInSec.Value).TotalMinutes, this);
                     }
                 }
             }
         }
 
-        internal async Task RefreshSessionToken()
+        internal async Task<IFanOut<NotificationEvent>> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token)
         {
-            if (AuthContext is AuthContextV2 contextV2)
+            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+            var apiRequest = Endpoint.PrepareApiRequest(connectionRequest, transmissionKey);
+            var builder = new UriBuilder
             {
-                await LoginV2Extensions.RefreshSessionTokenV2(Endpoint, contextV2);
-            }
+                Scheme = "wss",
+                Host = Endpoint.PushServer(),
+                Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode()
+            };
+            var ws = new ClientWebSocket();
+            await ws.ConnectAsync(builder.Uri, token);
+
+            return new WebSocketChannel(ws, transmissionKey, token);
         }
+
+        private Timer _timer;
+        private long _lastRequestTime;
+
+        internal void SetKeepAliveTimer(int timeoutInMinutes, IAuthentication auth)
+        {
+            _timer?.Dispose();
+            _timer = null;
+            if (auth == null) return;
+
+            ResetKeepAliveTimer();
+            var timeout = TimeSpan.FromMinutes(timeoutInMinutes - (timeoutInMinutes > 1 ? 1 : 0));
+            _timer = new Timer(async (_) =>
+                {
+                    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
+                    if (_lastRequestTime + timeout.TotalSeconds / 2 > now) return;
+                    try
+                    {
+                        await auth.ExecuteAuthRest("keep_alive", null);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
+                        _timer.Dispose();
+                        _timer = null;
+                    }
+
+                    _lastRequestTime = now;
+                },
+                null,
+                (long) timeout.TotalMilliseconds / 2,
+                (long) timeout.TotalMilliseconds / 2);
+        }
+
+        internal void ResetKeepAliveTimer()
+        {
+            _lastRequestTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
+        }
+
 
         public async Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null)
         {
@@ -555,7 +464,7 @@ namespace KeeperSecurity.Sdk
             }
 
             var rsBytes = await Endpoint.ExecuteRest(endpoint, rq);
-            authContext.ResetKeepAliveTimer();
+            this.ResetKeepAliveTimer();
             if (responseType == null) return null;
 
             var responseParser = responseType.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public);
@@ -576,18 +485,23 @@ namespace KeeperSecurity.Sdk
             {
                 if (this.IsAuthenticated())
                 {
-                    if (authContext is AuthContextV3)
-                    {
-                        await ExecuteAuthRest("vault/logout_v3", null);
-                        this.SsoLogout();
-                    }
+                    await ExecuteAuthRest("vault/logout_v3", null);
+                    this.SsoLogout();
                 }
             }
             finally
             {
-                authContext?.Dispose();
                 authContext = null;
+                _timer?.Dispose();
+                _timer = null;
             }
+        }
+
+        public void Dispose()
+        {
+            authContext = null;
+            PushNotifications?.Dispose();
+            _timer?.Dispose();
         }
     }
 

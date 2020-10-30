@@ -309,7 +309,7 @@ namespace KeeperSecurity.Sdk
 
             var command = new RecordUpdateCommand
             {
-                deviceId = Auth.AuthContext.DeviceToken.Base64UrlEncode(), 
+                deviceId = Auth.DeviceToken.Base64UrlEncode(), 
                 UpdateRecords = new[] {updateRecord}
             };
 
@@ -328,7 +328,7 @@ namespace KeeperSecurity.Sdk
             };
             var command = new RecordUpdateCommand
             {
-                deviceId = Auth.AuthContext.DeviceToken.Base64UrlEncode(),
+                deviceId = Auth.DeviceToken.Base64UrlEncode(),
                 UpdateRecords = new[] {updateRecord}
             };
             await Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
@@ -343,7 +343,7 @@ namespace KeeperSecurity.Sdk
                 if (TryGetSharedFolder(path.SharedFolderUid, out var sf))
                 {
                     var permissions = sf.UsersPermissions
-                        .Where(x => (x.UserType == UserType.User && x.UserId == Auth.AuthContext.Username) ||
+                        .Where(x => (x.UserType == UserType.User && x.UserId == Auth.Username) ||
                                     (x.UserType == UserType.Team && keeperTeams.ContainsKey(x.UserId)))
                         .Where(x => (!forManageUsers || x.ManageUsers) && (!forManageRecords || x.ManageRecords))
                         .ToArray();

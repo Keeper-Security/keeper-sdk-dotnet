@@ -142,8 +142,6 @@ namespace Tests
         public IAuthentication GetConnectedAuthContext()
         {
             var context = new Mock<IAuthContext>();
-            context.Setup(x => x.Username).Returns(_vaultEnv.User);
-            context.Setup(x => x.DeviceToken).Returns(_vaultEnv.DeviceId);
             context.Setup(x => x.SessionToken).Returns(_vaultEnv.SessionToken);
             context.Setup(x => x.ClientKey).Returns(_vaultEnv.ClientKey);
             context.Setup(x => x.DataKey).Returns(_vaultEnv.DataKey);

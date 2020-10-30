@@ -59,8 +59,18 @@ namespace Commander
                 if (cliContext.StateContext == null) break;
                 if (cliContext.StateContext.NextStateContext != null)
                 {
-                    cliContext.StateContext = cliContext.StateContext.NextStateContext;
-                    cliContext.StateContext.NextStateContext = null;
+                    if (!ReferenceEquals(cliContext.StateContext, cliContext.StateContext.NextStateContext))
+                    {
+                        var oldContext = cliContext.StateContext;
+                        cliContext.StateContext = oldContext.NextStateContext;
+                        oldContext.NextStateContext = null;
+                        oldContext.Dispose();
+                    }
+                    else
+                    {
+                        cliContext.StateContext.NextStateContext = null;
+                    }
+
                     InputManager.ClearHistory();
                 }
 

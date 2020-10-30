@@ -16,7 +16,7 @@ namespace KeeperSecurity.Sdk
         public static async Task<KeeperApiResponse> ExecuteAuthCommand(this IAuthentication auth, AuthenticatedCommand command, Type responseType)
         {
             var context = auth.AuthContext;
-            command.username = context.Username;
+            command.username = auth.Username;
             command.sessionToken = context.SessionToken.Base64UrlEncode();
 
             return await auth.Endpoint.ExecuteV2Command(command, responseType);
@@ -50,8 +50,6 @@ namespace KeeperSecurity.Sdk
 
         public static async Task<bool> RegisterDataKeyForDevice(this IAuthentication auth, DeviceInfo device)
         {
-            if (!(auth.AuthContext is AuthContextV3)) return false;
-
             var publicKeyBytes = device.DevicePublicKey.ToByteArray();
             var publicKey = CryptoUtils.LoadPublicEcKey(publicKeyBytes);
             var encryptedDataKey = CryptoUtils.EncryptEc(auth.AuthContext.DataKey, publicKey);
@@ -74,7 +72,6 @@ namespace KeeperSecurity.Sdk
 
         public static async Task SetSessionParameter(this IAuthentication auth, string name, string value)
         {
-            if (!(auth.AuthContext is AuthContextV3)) return;
             await auth.ExecuteAuthRest("setting/set_user_setting",
                 new UserSettingRequest
                 {
@@ -89,7 +86,6 @@ namespace KeeperSecurity.Sdk
         }
         public static async Task<AccountSummaryElements> LoadAccountSummary(this IAuthentication auth)
         {
-            if (!(auth.AuthContext is AuthContextV3)) return null;
             var rq = new AccountSummaryRequest
             {
                 SummaryVersion = 1

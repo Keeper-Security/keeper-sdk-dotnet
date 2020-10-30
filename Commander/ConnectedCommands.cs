@@ -20,6 +20,7 @@ namespace Commander
         private readonly Auth _auth;
 
         private AccountSummaryElements _accountSummary;
+
         public ConnectedContext(Auth auth)
         {
             _auth = auth;
@@ -40,99 +41,108 @@ namespace Commander
 
             lock (Commands)
             {
-                Commands.Add("list", new ParsableCommand<ListCommandOptions>
-                {
-                    Order = 10,
-                    Description = "List folder content",
-                    Action = ListCommand
-                });
+                Commands.Add("list",
+                    new ParsableCommand<ListCommandOptions>
+                    {
+                        Order = 10,
+                        Description = "List folder content",
+                        Action = ListCommand
+                    });
 
-                Commands.Add("cd", new SimpleCommand
-                {
-                    Order = 11,
-                    Description = "Change current folder",
-                    Action = ChangeDirectoryCommand
-                });
+                Commands.Add("cd",
+                    new SimpleCommand
+                    {
+                        Order = 11,
+                        Description = "Change current folder",
+                        Action = ChangeDirectoryCommand
+                    });
 
-                Commands.Add("tree", new ParsableCommand<TreeCommandOptions>
-                {
-                    Order = 12,
-                    Description = "Display folder structure",
-                    Action = TreeCommand
-                });
+                Commands.Add("tree",
+                    new ParsableCommand<TreeCommandOptions>
+                    {
+                        Order = 12,
+                        Description = "Display folder structure",
+                        Action = TreeCommand
+                    });
 
-                Commands.Add("get", new SimpleCommand
-                {
-                    Order = 13,
-                    Description = "Display specified Keeper record/folder/team",
-                    Action = GetCommand
-                });
+                Commands.Add("get",
+                    new SimpleCommand
+                    {
+                        Order = 13,
+                        Description = "Display specified Keeper record/folder/team",
+                        Action = GetCommand
+                    });
 
-                Commands.Add("add-record", new ParsableCommand<AddRecordOptions>
-                {
-                    Order = 20,
-                    Description = "Add record",
-                    Action = AddRecordCommand
-                });
+                Commands.Add("add-record",
+                    new ParsableCommand<AddRecordOptions>
+                    {
+                        Order = 20,
+                        Description = "Add record",
+                        Action = AddRecordCommand
+                    });
 
-                Commands.Add("update-record", new ParsableCommand<UpdateRecordOptions>
-                {
-                    Order = 21,
-                    Description = "Update record",
-                    Action = UpdateRecordCommand
-                });
+                Commands.Add("update-record",
+                    new ParsableCommand<UpdateRecordOptions>
+                    {
+                        Order = 21,
+                        Description = "Update record",
+                        Action = UpdateRecordCommand
+                    });
 
-                Commands.Add("list-sf", new SimpleCommand
-                {
-                    Order = 22,
-                    Description = "List shared folders",
-                    Action = ListSharedFoldersCommand
-                });
+                Commands.Add("list-sf",
+                    new SimpleCommand
+                    {
+                        Order = 22,
+                        Description = "List shared folders",
+                        Action = ListSharedFoldersCommand
+                    });
 
-                if (_auth.AuthContext is AuthContextV3)
-                {
-                    Commands.Add("devices", new ParsableCommand<OtherDevicesOptions>
+                Commands.Add("devices",
+                    new ParsableCommand<OtherDevicesOptions>
                     {
                         Order = 50,
                         Description = "Devices (other than current) commands",
                         Action = DeviceCommand,
                     });
 
-                    Commands.Add("this-device", new ParsableCommand<ThisDeviceOptions>
+                Commands.Add("this-device",
+                    new ParsableCommand<ThisDeviceOptions>
                     {
                         Order = 51,
                         Description = "Current device command",
                         Action = ThisDeviceCommand,
                     });
 
-                    if (_auth.AuthContext.Settings?.shareDatakeyWithEccPublicKey == true)
-                    {
-                        Commands.Add("share-datakey", new SimpleCommand
+                if (_auth.AuthContext.Settings?.shareDatakeyWithEccPublicKey == true)
+                {
+                    Commands.Add("share-datakey",
+                        new SimpleCommand
                         {
                             Order = 52,
                             Description = "Share data key with enterprise",
                             Action = ShareDatakeyCommand,
                         });
-                    }
                 }
 
-                Commands.Add("sync-down", new SimpleCommand
-                {
-                    Order = 100,
-                    Description = "Download & decrypt data",
-                    Action = async _ =>
+                Commands.Add("sync-down",
+                    new SimpleCommand
                     {
-                        Console.WriteLine("Syncing...");
-                        await _vault.SyncDown();
-                    }
-                });
+                        Order = 100,
+                        Description = "Download & decrypt data",
+                        Action = async _ =>
+                        {
+                            Console.WriteLine("Syncing...");
+                            await _vault.SyncDown();
+                        }
+                    });
 
-                Commands.Add("logout", new SimpleCommand
-                {
-                    Order = 200,
-                    Description = "Logout",
-                    Action = LogoutCommand,
-                });
+                Commands.Add("logout",
+                    new ParsableCommand<LogoutOptions>
+                    {
+                        Order = 200,
+                        Description = "Logout",
+                        Action = LogoutCommand,
+                    });
 
                 CommandAliases.Add("ls", "list");
                 CommandAliases.Add("d", "sync-down");
@@ -156,19 +166,23 @@ namespace Commander
 
         private void SubscribeToNotifications()
         {
-            _auth.AuthContext.PushNotifications.RegisterCallback(NotificationCallback);
+            _auth.PushNotifications?.RegisterCallback(NotificationCallback);
         }
 
         private void UnsubscribeFromNotifications()
         {
-            _auth.AuthContext?.PushNotifications.RemoveCallback(NotificationCallback);
-            _auth.AuthContext?.PushNotifications.RemoveCallback(EnterpriseNotificationCallback);
+            _auth.PushNotifications?.RemoveCallback(NotificationCallback);
+            _auth.PushNotifications?.RemoveCallback(EnterpriseNotificationCallback);
         }
 
-        private async Task LogoutCommand(string _)
+        private async Task LogoutCommand(LogoutOptions options)
         {
             UnsubscribeFromNotifications();
-            await _auth.Logout();
+            if (!options.Resume)
+            {
+                await _auth.Logout();
+            }
+
             NextStateContext = new NotConnectedCliContext(_auth);
         }
 
@@ -546,12 +560,10 @@ namespace Commander
 
         private async Task ThisDeviceCommand(ThisDeviceOptions arguments)
         {
-            if (!(_auth.AuthContext is AuthContextV3)) return;
-
             _accountSummary ??= await _auth.LoadAccountSummary();
 
             var device = _accountSummary?.Devices
-                .FirstOrDefault(x => x.EncryptedDeviceToken.ToByteArray().SequenceEqual(_auth.AuthContext.DeviceToken));
+                .FirstOrDefault(x => x.EncryptedDeviceToken.ToByteArray().SequenceEqual(_auth.DeviceToken));
             if (device == null)
             {
                 Console.WriteLine("???????????????");
@@ -664,7 +676,6 @@ namespace Commander
 
         private async Task ShareDatakeyCommand(string _)
         {
-            if (!(_auth.AuthContext is AuthContextV3)) return;
             if (_auth.AuthContext.Settings?.shareDatakeyWithEccPublicKey != true) 
             {
                 Console.WriteLine("Data key sharing is not requested.");
@@ -698,8 +709,6 @@ namespace Commander
 
         private async Task DeviceCommand(OtherDevicesOptions arguments)
         {
-            if (!(_auth.AuthContext is AuthContextV3 contextV3)) return;
-
             if (arguments.Force)
             {
                 _accountSummary = null;
@@ -714,7 +723,7 @@ namespace Commander
             }
 
             var devices = _accountSummary.Devices
-                .Where(x => !x.EncryptedDeviceToken.SequenceEqual(contextV3.DeviceToken))
+                .Where(x => !x.EncryptedDeviceToken.SequenceEqual(_auth.DeviceToken))
                 .OrderBy(x => (int) x.DeviceStatus)
                 .ToArray();
 
@@ -913,9 +922,9 @@ namespace Commander
         public override async Task<bool> ProcessException(Exception e)
         {
             if (!(e is KeeperAuthFailed)) return await base.ProcessException(e);
-            
+
             Console.WriteLine("Session is expired. Disconnecting...");
-            await LogoutCommand("");
+            await LogoutCommand(new LogoutOptions {Resume = true});
             return true;
         }
 
@@ -923,7 +932,7 @@ namespace Commander
         {
             if (!_auth.IsAuthenticated())
             {
-                _ = LogoutCommand("");
+                _ = LogoutCommand(new LogoutOptions { Resume = true });
                 return "";
             }
 
@@ -953,6 +962,18 @@ namespace Commander
 
             return _vault.RootFolder.Name;
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            _auth?.Dispose();
+        }
+    }
+
+    class LogoutOptions
+    {
+        [Option("resume", Required = false, HelpText = "resume last login")]
+        public bool Resume { get; set; }
     }
 
     class ListCommandOptions

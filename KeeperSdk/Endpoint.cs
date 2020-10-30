@@ -29,14 +29,14 @@ using Push;
 
 namespace KeeperSecurity.Sdk
 {
-    public interface IWebSocketChannel : IFanOut<WssClientResponse>
+    public interface IPushNotificationChannel: IFanOut<NotificationEvent>
     {
         Task SendToWebSocket(byte[] payload, bool encrypted);
     }
 
-    internal class WebSocketChannel : FanOut<WssClientResponse>, IWebSocketChannel
+    public class WebSocketChannel : FanOut<NotificationEvent>, IPushNotificationChannel
     {
-        private ClientWebSocket _webSocket;
+        private readonly ClientWebSocket _webSocket;
 
         public WebSocketChannel(ClientWebSocket webSocket, byte[] transmissionKey, CancellationToken token)
         {
@@ -60,7 +60,15 @@ namespace KeeperSecurity.Sdk
 #if DEBUG
                                 Debug.WriteLine($"REST push notification: {wssRs}");
 #endif
-                                Push(wssRs);
+                                try
+                                {
+                                    var notification = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(wssRs.Message));
+                                    Push(notification);
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e.Message);
+                                }
                             }
                         }
 
@@ -68,8 +76,6 @@ namespace KeeperSecurity.Sdk
                         {
                             await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", token);
                         }
-
-                        webSocket.Dispose();
                     }
                     catch (OperationCanceledException)
                     {
@@ -79,29 +85,21 @@ namespace KeeperSecurity.Sdk
                         Debug.WriteLine(e.Message);
                     }
 
-                    base.Shutdown();
-                    _webSocket = null;
+                    Debug.WriteLine($"Websocket: Exited");
                 },
                 token);
-        }
-
-        public override void Shutdown()
-        {
-            base.Shutdown();
-            if (_webSocket != null && _webSocket.State == WebSocketState.Open)
-            {
-                _webSocket.Abort();
-            }
-
-            _webSocket = null;
         }
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+            if (_webSocket.State == WebSocketState.Open)
+            {
+                _webSocket.Abort();
+            }
+
             _webSocket?.Dispose();
         }
-
 
         public async Task SendToWebSocket(byte[] payload, bool encrypted)
         {
@@ -124,8 +122,8 @@ namespace KeeperSecurity.Sdk
 
         Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload);
         Task<KeeperApiResponse> ExecuteV2Command(KeeperApiCommand command, Type responseType);
-        Task<IWebSocketChannel> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token);
         ApiRequest PrepareApiRequest(IMessage request, byte[] transmissionKey, byte[] sessionToken = null);
+        string PushServer();
     }
 
     public static class KeeperEndpointUtils
@@ -158,7 +156,7 @@ namespace KeeperSecurity.Sdk
             Server = server;
         }
 
-        private string PushServer()
+        public string PushServer()
         {
             return "push.services." + (Server ?? DefaultKeeperServer);
         }
@@ -189,22 +187,6 @@ namespace KeeperSecurity.Sdk
                 Locale = Locale,
                 EncryptedPayload = ByteString.CopyFrom(encPayload)
             };
-        }
-
-        public async Task<IWebSocketChannel> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token)
-        {
-            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
-            var apiRequest = PrepareApiRequest(connectionRequest, transmissionKey);
-            var builder = new UriBuilder
-            {
-                Scheme = "wss",
-                Host = PushServer(),
-                Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode()
-            };
-            var ws = new ClientWebSocket();
-            await ws.ConnectAsync(builder.Uri, token);
-
-            return new WebSocketChannel(ws, transmissionKey, token);
         }
 
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
