@@ -4,77 +4,86 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Authentication;
 using CommandLine;
 using Enterprise;
 using Google.Protobuf;
-using KeeperSecurity.Sdk;
+using KeeperSecurity.Authentication;
+using KeeperSecurity.Commands;
+using KeeperSecurity.Enterprise;
+using KeeperSecurity.Utils;
+using Org.BouncyCastle.Crypto.Parameters;
 using KeyType = Enterprise.KeyType;
 
 namespace Commander
 {
     public partial class ConnectedContext
     {
-        private byte[] _treeKey;
+        private EnterpriseData _enterprise;
 
-        private EnterpriseNode[] _nodes;
-        private EnterpriseUser[] _users;
-        private EnterpriseRoleKey2[] _roleKey2s = null;
-        private EnterpriseKeys _keys;
-        private DeviceForAdminApproval[] _deviceForAdminApprovals;
-        /*
-        private string EnterpriseName { get; set; }
-        private EnterpriseRole[] _roles = null;
-        private EnterpriseRoleUser[] _roleUsers = null;
-        private EnterpriseRoleKey[] _roleKeys = null;
-        private EnterpriseTeam[] _teams = null;
-        private EnterpriseTeamUser[] _teamUsers = null;
-        */
+        private readonly Dictionary<long, byte[]> _userDataKeys = new Dictionary<long, byte[]>();
+        private GetDeviceForAdminApproval[] _deviceForAdminApprovals;
 
-        private bool EnterpriseNotificationCallback(NotificationEvent evt)
-        {
-            if (evt.Event == "request_device_admin_approval")
-            {
-                _deviceForAdminApprovals = null;
-                Console.WriteLine($"\n{evt.Email} requested Device Approval\nIP Address: {evt.IPAddress}\nDevice Name: {evt.DeviceName}");
-            }
-
-            return false;
-        }
+        private bool _autoApproveAdminRequests;
+        private ECPrivateKeyParameters _enterprisePrivateKey;
 
         private void CheckIfEnterpriseAdmin()
         {
             if (_auth.AuthContext.IsEnterpriseAdmin)
             {
+                _enterprise = new EnterpriseData(_auth);
+
                 lock (Commands)
                 {
                     _auth.PushNotifications?.RegisterCallback(EnterpriseNotificationCallback);
 
+                    Commands.Add("enterprise-sync-down",
+                        new SimpleCommand
+                        {
+                            Order = 60,
+                            Description = "Retrieve enterprise data",
+                            Action = async (_) =>
+                            {
+                                await _enterprise.GetEnterpriseData();
+                            },
+                        });
+
                     Commands.Add("enterprise-node",
                         new ParsableCommand<EnterpriseNodeOptions>
                         {
-                            Order = 60,
-                            Description = "Display node structure ",
+                            Order = 61,
+                            Description = "Display node structure",
                             Action = EnterpriseNodeCommand,
                         });
 
                     Commands.Add("enterprise-user",
                         new ParsableCommand<EnterpriseUserOptions>
                         {
-                            Order = 61,
+                            Order = 62,
                             Description = "List Enterprise Users",
                             Action = EnterpriseUserCommand,
+                        });
+
+                    Commands.Add("enterprise-team",
+                        new ParsableCommand<EnterpriseTeamOptions>
+                        {
+                            Order = 63,
+                            Description = "List Enterprise Teams",
+                            Action = EnterpriseTeamCommand,
                         });
 
                     Commands.Add("enterprise-device",
                         new ParsableCommand<EnterpriseDeviceOptions>
                         {
-                            Order = 62,
+                            Order = 64,
                             Description = "Manage User Devices",
                             Action = EnterpriseDeviceCommand,
                         });
 
+                    CommandAliases["esd"] = "enterprise-sync-down";
                     CommandAliases["en"] = "enterprise-node";
                     CommandAliases["eu"] = "enterprise-user";
+                    CommandAliases["et"] = "enterprise-team";
                     CommandAliases["ed"] = "enterprise-device";
                 }
 
@@ -82,19 +91,27 @@ namespace Commander
                 {
                     try
                     {
-                        await GetEnterpriseData("keys");
-                        if (_keys != null)
+                        await _enterprise.GetEnterpriseData();
+
+                        var keysRq = new GetEnterpriseDataCommand
                         {
-                            if (string.IsNullOrEmpty(_keys.EccEncryptedPrivateKey) && _treeKey != null)
-                            {
-                                Commands.Add("enterprise-add-key",
-                                    new SimpleCommand
-                                    {
-                                        Order = 63,
-                                        Description = "Register ECC key pair",
-                                        Action = EnterpriseRegisterEcKey,
-                                    });
-                            }
+                            include = new[] {"keys"}
+                        };
+                        var keysRs = await _auth.ExecuteAuthCommand<GetEnterpriseDataCommand, GetEnterpriseDataResponse>(keysRq);
+                        if (string.IsNullOrEmpty(keysRs.Keys?.EccEncryptedPrivateKey))
+                        {
+                            Commands.Add("enterprise-add-key",
+                                new SimpleCommand
+                                {
+                                    Order = 63,
+                                    Description = "Register ECC key pair",
+                                    Action = EnterpriseRegisterEcKey,
+                                });
+                        }
+                        else
+                        {
+                            var privateKeyData = CryptoUtils.DecryptAesV2(keysRs.Keys.EccEncryptedPrivateKey.Base64UrlDecode(), _enterprise.TreeKey);
+                            _enterprisePrivateKey = CryptoUtils.LoadPrivateEcKey(privateKeyData);
                         }
                     }
                     catch (Exception e)
@@ -119,15 +136,43 @@ namespace Commander
 
         class EnterpriseUserOptions : EnterpriseGenericOptions
         {
-            [Value(0, Required = false, HelpText = "enterprise-node command: \"list\"")]
+            [Option("team", Required = false, HelpText = "team name or UID")]
+            public string Team { get; set; }
+
+            [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"team-add\", \"team-remove\"")]
             public string Command { get; set; }
 
-            [Option("match", Required = false, HelpText = "Filter matching user information")]
-            public string Match { get; set; }
+            [Value(1, Required = false, HelpText = "enterprise user email, ID, list match")]
+            public string Name { get; set; }
         }
+
+        class EnterpriseTeamOptions : EnterpriseGenericOptions
+        {
+            [Option("node", Required = false, HelpText = "node name or ID. \"add\", \"delete\", \"update\"")]
+            public string Node { get; set; }
+
+            [Option("restrict-edit", Required = false, HelpText = "ON | OFF:  disable record edits. \"add\", \"update\"")]
+            public string RestrictEdit { get; set; }
+
+            [Option("restrict-share", Required = false, HelpText = "ON | OFF:  disable record re-shares. \"add\", \"update\"")]
+            public string RestrictShare { get; set; }
+
+            [Option("restrict-view", Required = false, HelpText = "ON | OFF:  disable view/copy passwords. \"add\", \"update\"")]
+            public string RestrictView { get; set; }
+
+            [Value(0, Required = false, HelpText = "enterprise-team command: \"list\", \"view\", \"add\", \"delete\", \"update\"")]
+            public string Command { get; set; }
+
+            [Value(1, Required = false, HelpText = "enterprise team Name, UID, list match")]
+            public string Name { get; set; }
+        }
+
 
         class EnterpriseDeviceOptions : EnterpriseGenericOptions
         {
+            [Option("auto-approve", Required = false, Default = null, HelpText = "auto approve devices")]
+            public bool? AutoApprove { get; set; }
+
             [Value(0, Required = false, HelpText = "enterprise-device command: \"list\", \"approve\", \"decline\"")]
             public string Command { get; set; }
 
@@ -135,85 +180,17 @@ namespace Commander
             public string Match { get; set; }
         }
 
-        private void DecryptData(IEncryptedData encrypted)
-        {
-            if (string.IsNullOrEmpty(encrypted.EncryptedData)) return;
-            if (encrypted.EncryptedData.Length < 30) return;
-            try
-            {
-                var decryptedData = CryptoUtils.DecryptAesV1(encrypted.EncryptedData.Base64UrlDecode(), _treeKey);
-                var data = JsonUtils.ParseJson<EncryptedData>(decryptedData);
-                if (encrypted is IDisplayName dn)
-                {
-                    dn.DisplayName = data.DisplayName;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e);
-            }
-        }
-
         public async Task GetEnterpriseData(params string[] includes)
         {
             var requested = new HashSet<string>(includes);
-            var rq = new EnterpriseDataCommand
+            var rq = new GetEnterpriseDataCommand
             {
                 include = requested.ToArray()
             };
-            var rs = await _auth.ExecuteAuthCommand<EnterpriseDataCommand, EnterpriseDataResponse>(rq);
-            if (_treeKey == null)
-            {
-                var encTreeKey = rs.TreeKey.Base64UrlDecode();
-                _treeKey = rs.KeyTypeId switch
-                {
-                    1 => CryptoUtils.DecryptAesV1(encTreeKey, _auth.AuthContext.DataKey),
-                    2 => CryptoUtils.DecryptRsa(encTreeKey, _auth.AuthContext.PrivateKey),
-                    _ => throw new Exception("cannot decrypt tree key")
-                };
-            }
-
-            if (requested.Contains("nodes") && rs.Nodes != null)
-            {
-                foreach (var node in rs.Nodes)
-                {
-                    DecryptData(node);
-                }
-
-                _nodes = rs.Nodes.ToArray();
-            }
-
-            if (requested.Contains("users"))
-            {
-                if (rs.Users != null)
-                {
-                    foreach (var user in rs.Users)
-                    {
-                        DecryptData(user);
-                    }
-
-                    _users = rs.Users.ToArray();
-                }
-                else
-                {
-                    _users = new EnterpriseUser[0];
-                }
-
-            }
-
+            var rs = await _auth.ExecuteAuthCommand<GetEnterpriseDataCommand, GetEnterpriseDataResponse>(rq);
             if (requested.Contains("devices_request_for_admin_approval"))
             {
-                _deviceForAdminApprovals = rs.DeviceRequestForApproval != null ? rs.DeviceRequestForApproval.ToArray() : new DeviceForAdminApproval[0];
-            }
-
-            if (requested.Contains("role_keys2"))
-            {
-                _roleKey2s = rs.RoleKeys2 != null ? rs.RoleKeys2.ToArray() : new EnterpriseRoleKey2[0];
-            }
-
-            if (requested.Contains("keys"))
-            {
-                _keys = rs.Keys;
+                _deviceForAdminApprovals = rs.DeviceRequestForApproval != null ? rs.DeviceRequestForApproval.ToArray() : new GetDeviceForAdminApproval[0];
             }
         }
 
@@ -222,7 +199,11 @@ namespace Commander
             var isRoot = string.IsNullOrEmpty(indent);
             Console.WriteLine(indent + (isRoot ? "" : "+-- ") + eNode.DisplayName);
             indent += isRoot ? " " : (last ? "    " : "|   ");
-            var subNodes = _nodes.Where(x => x.ParentId == eNode.NodeId).Where(x => !string.IsNullOrEmpty(x.DisplayName)).ToArray();
+            var subNodes = eNode.Subnodes
+                .Select(x => _enterprise.TryGetNode(x, out var node) ? node : null)
+                .Where(x => x != null)
+                .OrderBy(x => x.DisplayName ?? "")
+                .ToArray();
             for (var i = 0; i < subNodes.Length; i++)
             {
                 PrintNodeTree(subNodes[i], indent, i == subNodes.Length - 1);
@@ -233,21 +214,17 @@ namespace Commander
         {
             if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "tree";
 
-            if (arguments.Force || _nodes == null)
+            if (arguments.Force)
             {
-                await GetEnterpriseData("nodes");
+                await _enterprise.GetEnterpriseData();
             }
 
-            if (_nodes == null) throw new Exception("Enterprise data: cannot get nodes");
+            if (_enterprise.RootNode == null) throw new Exception("Enterprise data: cannot get root node");
             switch (arguments.Command.ToLowerInvariant())
             {
                 case "tree":
                 {
-                    var rootNode = _nodes.FirstOrDefault(x => x.ParentId == 0);
-                    if (rootNode != null)
-                    {
-                        PrintNodeTree(rootNode, "", true);
-                    }
+                    PrintNodeTree(_enterprise.RootNode, "", true);
                 }
                     break;
                 default:
@@ -256,116 +233,500 @@ namespace Commander
             }
         }
 
-        private string GetUserStatus(EnterpriseUser user)
-        {
-            switch (user.Status)
-            {
-                case "active":
-                    switch (user.Lock)
-                    {
-                        case 0:
-                        {
-                            if (user.AccountShareExpiration.HasValue)
-                            {
-                                var ts = (long) user.AccountShareExpiration.Value;
-                                if (ts > 0)
-                                {
-                                    var tsNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                                    if (tsNow > ts)
-                                    {
-                                        return "Blocked";
-                                    }
-                                }
-                            }
-
-                            return "Active";
-                        }
-                        case 1: return "Locked";
-                        case 2: return "Disabled";
-                        default: return user.Status;
-                    }
-
-                case "invited":
-                    return "Invited";
-
-                default:
-                    return user.Status;
-
-            }
-        }
-
         private async Task EnterpriseUserCommand(EnterpriseUserOptions arguments)
         {
             if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "list";
 
-            if (arguments.Force || _users == null)
+            if (arguments.Force)
             {
-                await GetEnterpriseData("users");
+                await _enterprise.GetEnterpriseData();
             }
 
-            if (_users == null) throw new Exception("Enterprise data: cannot get users");
-            switch (arguments.Command.ToLowerInvariant())
+            if (string.Compare(arguments.Command, "list", StringComparison.InvariantCultureIgnoreCase) == 0)
             {
-                case "list":
-                {
-                    var users = _users
-                        .Where(x =>
+                var users = _enterprise.Users
+                    .Where(x =>
+                    {
+                        if (string.IsNullOrEmpty(arguments.Name)) return true;
+                        var m = Regex.Match(x.Email, arguments.Name, RegexOptions.IgnoreCase);
+                        if (m.Success) return true;
+                        if (!string.IsNullOrEmpty(x.DisplayName))
                         {
-                            if (string.IsNullOrEmpty(arguments.Match)) return true;
-                            var m = Regex.Match(x.Username, arguments.Match, RegexOptions.IgnoreCase);
+                            m = Regex.Match(x.DisplayName, arguments.Name, RegexOptions.IgnoreCase);
                             if (m.Success) return true;
-                            if (!string.IsNullOrEmpty(x.DisplayName))
-                            {
-                                m = Regex.Match(x.DisplayName, arguments.Match, RegexOptions.IgnoreCase);
-                                if (m.Success) return true;
-                            }
+                        }
 
-                            var status = GetUserStatus(x);
-                            m = Regex.Match(status, arguments.Match, RegexOptions.IgnoreCase);
-                            if (m.Success) return true;
+                        var status = x.UserStatus.ToString();
+                        m = Regex.Match(status, arguments.Name, RegexOptions.IgnoreCase);
+                        return m.Success;
+                    })
+                    .ToArray();
 
-                            return false;
-                        })
-                        .ToArray();
+                var tab = new Tabulate(4)
+                {
+                    DumpRowNo = true
+                };
+                tab.AddHeader(new[] { "Email", "Display Name", "Status", "Teams" });
+                foreach (var user in users)
+                {
+                    tab.AddRow(user.Email, user.DisplayName, user.UserStatus.ToString(), user.Teams.Count);
+                }
 
-                    var tab = new Tabulate(3)
+                tab.Sort(1);
+                tab.Dump();
+            }
+            else if (string.Compare(arguments.Command, "view", StringComparison.InvariantCultureIgnoreCase) == 0)
+            {
+                var user = _enterprise.Users
+                    .FirstOrDefault(x =>
                     {
-                        DumpRowNo = true
-                    };
-                    tab.AddHeader(new[] {"Email", "Display Name", "Status"});
-                    foreach (var user in users)
+                        if (string.Compare(x.DisplayName, arguments.Name, StringComparison.CurrentCultureIgnoreCase) == 0) return true;
+                        if (string.Compare(x.Email, arguments.Name, StringComparison.InvariantCulture) == 0) return true;
+                        return true;
+                    });
+                if (user == null)
+                {
+                    Console.WriteLine($"Enterprise user \"{arguments.Name}\" not found");
+                    return;
+                }
+                var tab = new Tabulate(2)
+                {
+                    DumpRowNo = false
+                };
+                tab.SetColumnRightAlign(0, true);
+                tab.AddRow(" User Email:", user.Email);
+                tab.AddRow(" User Name:", user.DisplayName);
+                tab.AddRow(" User ID:", user.Id.ToString());
+                tab.AddRow(" Status:", user.UserStatus.ToString());
+
+                var teams = user.Teams
+                    .Select(x => _enterprise.TryGetTeam(x, out var team) ? team.Name : null)
+                    .Where(x => !string.IsNullOrEmpty(x))
+                    .ToArray();
+                Array.Sort(teams);
+                tab.AddRow(" Teams:", teams.Length > 0 ? teams[0] : "");
+                for (var i = 1; i < teams.Length; i++)
+                {
+                    tab.AddRow("", teams[i]);
+                }
+
+                if (_enterprise.TryGetNode(user.ParentNodeId, out var node))
+                {
+                    var nodes = GetNodePath(node).ToArray();
+                    Array.Reverse(nodes);
+                    tab.AddRow(" Node:", string.Join(" -> ", nodes));
+                }
+
+                tab.Dump();
+            }
+            else if (string.Compare(arguments.Command, "team-add", StringComparison.InvariantCultureIgnoreCase) == 0 || string.Compare(arguments.Command, "team-remove", StringComparison.InvariantCultureIgnoreCase) == 0)
+            {
+                var user = _enterprise.Users
+                    .FirstOrDefault(x =>
                     {
-                        tab.AddRow(new[] {user.Username, user.DisplayName, GetUserStatus(user)});
+                        if (string.Compare(x.DisplayName, arguments.Name, StringComparison.CurrentCultureIgnoreCase) == 0) return true;
+                        if (string.Compare(x.Email, arguments.Name, StringComparison.InvariantCulture) == 0) return true;
+                        return true;
+                    });
+                if (user == null)
+                {
+                    Console.WriteLine($"Enterprise user \"{arguments.Name}\" not found");
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(arguments.Team))
+                {
+                    Console.WriteLine($"Team name parameter is mandatory.");
+                    return;
+                }
+
+                var team = _enterprise.Teams
+                    .FirstOrDefault(x =>
+                    {
+                        if (string.CompareOrdinal(x.Uid, arguments.Team) == 0) return true;
+                        return string.Compare(x.Name, arguments.Team, StringComparison.CurrentCultureIgnoreCase) == 0;
+                    });
+                if (team == null)
+                {
+                    Console.WriteLine($"Team {arguments.Team} cannot be found.");
+                    return;
+                }
+
+                if (string.Compare(arguments.Command, "team-add", StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    await _enterprise.AddUsersToTeams(new[] {user.Email}, new[] {team.Uid}, Console.WriteLine);
+                }
+                else
+                {
+                    await _enterprise.RemoveUsersFromTeams(new[] {user.Email}, new[] {team.Uid}, Console.WriteLine);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Unsupported command \"{arguments.Command}\". Commands are \"list\", \"view\", \"team-add\", \"team-remove\"");
+            }
+        }
+
+        private IEnumerable<string> GetNodePath(EnterpriseNode node)
+        {
+            while (true)
+            {
+                yield return node.DisplayName;
+                if (node.Id <= 0) yield break;
+                if (!_enterprise.TryGetNode(node.ParentNodeId, out var parent)) yield break;
+                node = parent;
+            }
+        }
+
+        private async Task EnterpriseTeamCommand(EnterpriseTeamOptions arguments)
+        {
+            if (arguments.Force)
+            {
+                await _enterprise.GetEnterpriseData();
+            }
+
+            if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "list";
+            if (string.CompareOrdinal(arguments.Command, "list") == 0)
+            {
+                var teams = _enterprise.Teams
+                    .Where(x =>
+                    {
+                        if (string.IsNullOrEmpty(arguments.Name)) return true;
+                        if (arguments.Name == x.Uid) return true;
+                        var m = Regex.Match(x.Name, arguments.Name, RegexOptions.IgnoreCase);
+                        return m.Success;
+                    })
+                    .ToArray();
+                var tab = new Tabulate(7)
+                {
+                    DumpRowNo = true
+                };
+                tab.AddHeader(new[] {"Team Name", "Team UID", "Node Name", "Restrict Edit", "Restrict Share", "Restrict View", "Users"});
+                foreach (var team in teams)
+                {
+                    EnterpriseNode node = null;
+                    if (team.ParentNodeId > 0)
+                    {
+                        _enterprise.TryGetNode(team.ParentNodeId, out node);
+                    }
+                    else
+                    {
+                        node = _enterprise.RootNode;
                     }
 
-                    tab.Sort(1);
+                    tab.AddRow(new[]
+                    {
+                        team.Name, team.Uid, node != null ? node.DisplayName : "",
+                        team.RestrictEdit ? "X" : "-",
+                        team.RestrictSharing ? "X" : "-",
+                        team.RestrictView ? "X" : "-",
+                        team.Users.Count.ToString()
+                    });
+                }
+
+                tab.Sort(1);
+                tab.Dump();
+            }
+            else
+            {
+                var team = _enterprise.Teams
+                    .FirstOrDefault(x =>
+                    {
+                        if (string.IsNullOrEmpty(arguments.Name)) return true;
+                        if (arguments.Name == x.Uid) return true;
+                        return string.Compare(x.Name, arguments.Name, StringComparison.CurrentCultureIgnoreCase) == 0;
+                    });
+                if (string.CompareOrdinal(arguments.Command, "delete") == 0)
+                {
+                    if (team == null)
+                    {
+                        Console.WriteLine($"Team \"{arguments.Name}\" not found");
+                        return;
+                    }
+
+                    await _enterprise.DeleteTeam(team.Uid);
+                }
+                else if (string.CompareOrdinal(arguments.Command, "view") == 0)
+                {
+                    if (team == null)
+                    {
+                        Console.WriteLine($"Team \"{arguments.Name}\" not found");
+                        return;
+                    }
+
+                    var tab = new Tabulate(2)
+                    {
+                        DumpRowNo = false
+                    };
+                    tab.SetColumnRightAlign(0, true);
+                    tab.AddRow(" Team Name:", team.Name);
+                    tab.AddRow(" Team UID:", team.Uid);
+                    tab.AddRow(" Restrict Edit:", team.RestrictEdit ? "Yes" : "No");
+                    tab.AddRow(" Restrict Share:", team.RestrictSharing ? "Yes" : "No");
+                    tab.AddRow(" Restrict View:", team.RestrictView ? "Yes" : "No");
+                    var users = team.Users
+                        .Select(x => _enterprise.TryGetUserById(x, out var user) ? user.Email : null)
+                        .Where(x => !string.IsNullOrEmpty(x))
+                        .ToArray();
+                    Array.Sort(users);
+                    tab.AddRow(" Users:", users.Length > 0 ? users[0] : "");
+                    for (var i = 1; i < users.Length; i++)
+                    {
+                        tab.AddRow("", users[i]);
+                    }
+
+                    if (_enterprise.TryGetNode(team.ParentNodeId, out var node))
+                    {
+                        var nodes = GetNodePath(node).ToArray();
+                        Array.Reverse(nodes);
+                        tab.AddRow(" Node:", string.Join(" -> ", nodes));
+                    }
+
                     tab.Dump();
                 }
-                    break;
-                default:
-                    Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"list\"");
-                    break;
+                else if (string.CompareOrdinal(arguments.Command, "update") == 0 || string.CompareOrdinal(arguments.Command, "add") == 0)
+                {
+                    if (team == null)
+                    {
+                        if (string.CompareOrdinal(arguments.Command, "update") == 0 ||
+                            string.CompareOrdinal(arguments.Command, "view") == 0)
+                        {
+                            Console.WriteLine($"Team \"{arguments.Name}\" not found");
+                            return;
+                        }
+
+                        team = new EnterpriseTeam
+                        {
+                            ParentNodeId = _enterprise.RootNode.Id
+                        };
+                    }
+                    else
+                    {
+                        if (string.CompareOrdinal(arguments.Command, "add") == 0)
+                        {
+                            Console.WriteLine($"Team with name \"{arguments.Name}\" already exists.\nDo you want to create a new one? Yes/No");
+                            var answer = await Program.GetInputManager().ReadLine();
+                            if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+                            {
+                                answer = "yes";
+                            }
+
+                            if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0)
+                            {
+                                return;
+                            }
+                        }
+                    }
+
+                    team.Name = arguments.Name;
+                    if (ParseBoolOption(arguments.RestrictEdit, out var b))
+                    {
+                        team.RestrictEdit = b;
+                    }
+
+                    if (ParseBoolOption(arguments.RestrictShare, out b))
+                    {
+                        team.RestrictSharing = b;
+                    }
+
+                    if (ParseBoolOption(arguments.RestrictView, out b))
+                    {
+                        team.RestrictView = b;
+                    }
+
+                    if (!string.IsNullOrEmpty(arguments.Node))
+                    {
+                        long? asId = null;
+                        if (arguments.Node.All(char.IsDigit))
+                        {
+                            if (long.TryParse(arguments.Node, out var l))
+                            {
+                                asId = l;
+                            }
+                        }
+
+                        var node = _enterprise.Nodes
+                            .FirstOrDefault(x =>
+                            {
+                                if (asId.HasValue && asId.Value == x.Id) return true;
+                                return string.Compare(x.DisplayName, arguments.Node, StringComparison.CurrentCultureIgnoreCase) == 0;
+                            });
+                        if (node != null)
+                        {
+                            team.ParentNodeId = node.Id;
+                        }
+                    }
+
+                    await _enterprise.UpdateTeam(team);
+                }
+                else
+                {
+                    Console.WriteLine($"Unsupported command \"{arguments.Command}\". Valid commands are  \"list\", \"view\", \"add\", \"delete\", \"update\"");
+                }
+            }
+        }
+
+        private bool EnterpriseNotificationCallback(NotificationEvent evt)
+        {
+            if (evt.Event == "request_device_admin_approval")
+            {
+                if (_autoApproveAdminRequests)
+                {
+                    Task.Run(async () =>
+                    {
+                        await GetEnterpriseData("devices_request_for_admin_approval");
+                        if (!_enterprise.TryGetUserByEmail(evt.Email, out var user))
+                        {
+                            await _enterprise.GetEnterpriseData();
+                            if (!_enterprise.TryGetUserByEmail(evt.Email, out user)) return;
+                        }
+
+                        var devices = _deviceForAdminApprovals
+                            .Where(x => x.EnterpriseUserId == user.Id)
+                            .ToArray();
+                        await ApproveAdminDeviceRequests(devices);
+                        Console.WriteLine($"Auto approved {evt.Email} at IP Address {evt.IPAddress}.");
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"\n{evt.Email} requested Device Approval\nIP Address: {evt.IPAddress}\nDevice Name: {evt.DeviceName}");
+                    _deviceForAdminApprovals = null;
+                }
+            }
+
+            return false;
+        }
+
+        private async Task DenyAdminDeviceRequests(GetDeviceForAdminApproval[] devices)
+        {
+            var rq = new ApproveUserDevicesRequest();
+            foreach (var device in devices)
+            {
+                var deviceRq = new ApproveUserDeviceRequest
+                {
+                    EnterpriseUserId = device.EnterpriseUserId,
+                    EncryptedDeviceToken = ByteString.CopyFrom(device.EncryptedDeviceToken.Base64UrlDecode()),
+                    DenyApproval = true,
+                };
+                rq.DeviceRequests.Add(deviceRq);
+                if (rq.DeviceRequests.Count == 0)
+                {
+                    Console.WriteLine($"No device to approve/deny");
+                }
+                else
+                {
+                    var rs = await _auth
+                        .ExecuteAuthRest<ApproveUserDevicesRequest, ApproveUserDevicesResponse>("enterprise/approve_user_devices", rq);
+                    if (rs.DeviceResponses?.Count > 0)
+                    {
+                        foreach (var approveRs in rs.DeviceResponses)
+                        {
+                            if (!approveRs.Failed) continue;
+                            if (_enterprise.TryGetUserById(approveRs.EnterpriseUserId, out var user))
+                            {
+                                Console.WriteLine($"Failed to approve {user.Email}: {approveRs.Message}");
+                            }
+                        }
+                    }
+
+                    _deviceForAdminApprovals = null;
+                }
+            }
+        }
+
+        private async Task ApproveAdminDeviceRequests(GetDeviceForAdminApproval[] devices)
+        {
+            var dataKeys = new Dictionary<long, byte[]>();
+            foreach (var device in devices)
+            {
+                if (!dataKeys.ContainsKey(device.EnterpriseUserId))
+                {
+                    dataKeys[device.EnterpriseUserId] = _userDataKeys.TryGetValue(device.EnterpriseUserId, out var dk) ? dk : null;
+                }
+            }
+
+            var toLoad = dataKeys.Where(x => x.Value == null).Select(x => x.Key).ToArray();
+            if (toLoad.Any() && _enterprisePrivateKey != null)
+            {
+                var dataKeyRq = new UserDataKeyRequest();
+                dataKeyRq.EnterpriseUserId.AddRange(toLoad);
+                var dataKeyRs = await _auth.ExecuteAuthRest<UserDataKeyRequest, EnterpriseUserDataKeys>("enterprise/get_enterprise_user_data_key", dataKeyRq);
+                foreach (var key in dataKeyRs.Keys)
+                {
+                    if (key.UserEncryptedDataKey.IsEmpty) continue;
+                    try
+                    {
+                        var userDataKey = CryptoUtils.DecryptEc(key.UserEncryptedDataKey.ToByteArray(), _enterprisePrivateKey);
+                        _userDataKeys[key.EnterpriseUserId] = userDataKey;
+                        dataKeys[key.EnterpriseUserId] = userDataKey;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"Data key decrypt error: {e.Message}");
+                    }
+                }
+            }
+
+            var rq = new ApproveUserDevicesRequest();
+            foreach (var device in devices)
+            {
+                if (!dataKeys.TryGetValue(device.EnterpriseUserId, out var dk)) continue;
+                if (string.IsNullOrEmpty(device.DevicePublicKey)) continue;
+                var devicePublicKey = CryptoUtils.LoadPublicEcKey(device.DevicePublicKey.Base64UrlDecode());
+
+                try
+                {
+                    var deviceRq = new ApproveUserDeviceRequest
+                    {
+                        EnterpriseUserId = device.EnterpriseUserId,
+                        EncryptedDeviceToken = ByteString.CopyFrom(device.EncryptedDeviceToken.Base64UrlDecode()),
+                        EncryptedDeviceDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(dk, devicePublicKey))
+                    };
+                    rq.DeviceRequests.Add(deviceRq);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            }
+            if (rq.DeviceRequests.Count == 0)
+            {
+                Console.WriteLine($"No device to approve/deny");
+            }
+            else
+            {
+                var rs = await
+                    _auth.ExecuteAuthRest<ApproveUserDevicesRequest, ApproveUserDevicesResponse>("enterprise/approve_user_devices", rq);
+                if (rs.DeviceResponses?.Count > 0)
+                {
+                    foreach (var approveRs in rs.DeviceResponses)
+                    {
+                        if (!approveRs.Failed) continue;
+
+                        if (_enterprise.TryGetUserById(approveRs.EnterpriseUserId, out var user))
+                        {
+                            Console.WriteLine($"Failed to approve {user.Email}: {approveRs.Message}");
+                        }
+                    }
+                }
+                _deviceForAdminApprovals = null;
             }
         }
 
         private async Task EnterpriseDeviceCommand(EnterpriseDeviceOptions arguments)
         {
+            if (arguments.AutoApprove.HasValue)
+            {
+                _autoApproveAdminRequests = arguments.AutoApprove.Value;
+                Console.WriteLine($"Automatic Admin Device Approval is {(_autoApproveAdminRequests ? "ON" : "OFF")}");
+            }
+
             if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "list";
 
             if (arguments.Force || _deviceForAdminApprovals == null)
             {
-                var includes = new List<string> {"devices_request_for_admin_approval"};
-                if (_users == null)
-                {
-                    includes.Add("users");
-                }
-
-                if (_roleKey2s == null)
-                {
-                    includes.Add("role_keys2");
-                }
-
-                await GetEnterpriseData(includes.ToArray());
+                await GetEnterpriseData("devices_request_for_admin_approval");
             }
 
             if (_deviceForAdminApprovals.Length == 0)
@@ -386,11 +747,9 @@ namespace Commander
                     tab.AddHeader(new[] {"Email", "Device ID", "Device Name", "Client Version"});
                     foreach (var device in _deviceForAdminApprovals)
                     {
-                        var user = _users.FirstOrDefault(x => x.EnterpriseUserId == device.EnterpriseUserId);
-                        if (user != null)
-                        {
-                            tab.AddRow(new[] {user.Username, TokenToString(device.EncryptedDeviceToken.Base64UrlDecode()), device.DeviceName, device.ClientVersion});
-                        }
+                        if (!_enterprise.TryGetUserById(device.EnterpriseUserId, out var user)) continue;
+
+                        tab.AddRow(new[] {user.Email, TokenToString(device.EncryptedDeviceToken.Base64UrlDecode()), device.DeviceName, device.ClientVersion});
                     }
 
                     tab.Sort(1);
@@ -411,109 +770,21 @@ namespace Commander
                                 if (arguments.Match == "all") return true;
                                 var deviceId = TokenToString(x.EncryptedDeviceToken.Base64UrlDecode());
                                 if (deviceId.StartsWith(arguments.Match)) return true;
-                                var user = _users.FirstOrDefault(y => y.EnterpriseUserId == x.EnterpriseUserId);
-                                if (user != null)
-                                {
-                                    if (user.Username == arguments.Match) return true;
-                                }
 
-                                return false;
+                                if (!_enterprise.TryGetUserById(x.EnterpriseUserId, out var user)) return false;
+                                return user.Email == arguments.Match;
 
                             }).ToArray();
 
                         if (devices.Length > 0)
                         {
-                            var userDataKeys = new Dictionary<string, byte[]>();
-                            var rq = new ApproveUserDevicesRequest();
-                            foreach (var device in devices)
+                            if (cmd == "approve")
                             {
-                                var deviceRq = new ApproveUserDeviceRequest
-                                {
-                                    EnterpriseUserId = device.EnterpriseUserId,
-                                    EncryptedDeviceToken = ByteString.CopyFrom(device.EncryptedDeviceToken.Base64UrlDecode()),
-                                    DenyApproval = cmd == "deny"
-                                };
-                                if (cmd == "approve" && device.DevicePublicKey?.Length > 0)
-                                {
-                                    byte[] userDataKey = null;
-                                    var user = _users.FirstOrDefault(x => x.EnterpriseUserId == device.EnterpriseUserId);
-                                    if (user == null) continue;
-                                    if (!userDataKeys.ContainsKey(user.Username))
-                                    {
-                                        var transferRq = new PreAccountTransferCommand
-                                        {
-                                            TargetUsername = user.Username
-                                        };
-                                        var transferRs = await _auth.ExecuteAuthCommand<PreAccountTransferCommand, PreAccountTransferDataResponse>(transferRq, false);
-                                        if (transferRs.IsSuccess)
-                                        {
-                                            byte[] roleKey = null;
-                                            if (transferRs.RoleKeyId.HasValue)
-                                            {
-                                                var roleKey2 = _roleKey2s.FirstOrDefault(x => x.RoleId == transferRs.RoleKeyId.Value);
-                                                if (roleKey2 != null)
-                                                {
-                                                    roleKey = CryptoUtils.DecryptAesV2(roleKey2.RoleKey.Base64UrlDecode(), _treeKey);
-                                                }
-                                            }
-                                            else if (!string.IsNullOrEmpty(transferRs.RoleKey))
-                                            {
-                                                roleKey = CryptoUtils.DecryptRsa(transferRs.RoleKey.Base64UrlDecode(), _auth.AuthContext.PrivateKey);
-                                            }
-
-                                            if (roleKey != null)
-                                            {
-                                                var rolePk = CryptoUtils.DecryptAesV1(transferRs.RolePrivateKey.Base64UrlDecode(), roleKey);
-                                                var pk = CryptoUtils.LoadPrivateKey(rolePk);
-                                                userDataKey = CryptoUtils.DecryptRsa(transferRs.TransferKey.Base64UrlDecode(), pk);
-                                            }
-                                        }
-
-                                        userDataKeys[user.Username] = userDataKey;
-                                        if (userDataKey == null)
-                                        {
-                                            Console.WriteLine($"Cannot resolve data key for user {user.Username}: ({transferRs.resultCode}) - {transferRs.message}");
-                                        }
-                                    }
-
-                                    if (userDataKeys.TryGetValue(user.Username, out userDataKey))
-                                    {
-                                        if (userDataKey != null)
-                                        {
-                                            var devicePublicKey = CryptoUtils.LoadPublicEcKey(device.DevicePublicKey.Base64UrlDecode());
-                                            deviceRq.EncryptedDeviceDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(userDataKey, devicePublicKey));
-                                        }
-                                    }
-                                }
-
-                                rq.DeviceRequests.Add(deviceRq);
-                            }
-
-                            if (rq.DeviceRequests.Count == 0)
-                            {
-                                Console.WriteLine($"No device to approve/deny");
+                                await ApproveAdminDeviceRequests(devices);
                             }
                             else
                             {
-                                var rs = await _auth.ExecuteAuthRest<ApproveUserDevicesRequest, ApproveUserDevicesResponse>(
-                                    "enterprise/approve_user_devices",
-                                    rq);
-                                if (rs.DeviceResponses?.Count > 0)
-                                {
-                                    foreach (var approveRs in rs.DeviceResponses)
-                                    {
-                                        if (approveRs.Failed)
-                                        {
-                                            var user = _users.FirstOrDefault(x => x.EnterpriseUserId == approveRs.EnterpriseUserId);
-                                            if (user != null)
-                                            {
-                                                Console.WriteLine($"Failed to approve {user.Username}: {approveRs.Message}");
-                                            }
-                                        }
-                                    }
-                                }
-
-                                _deviceForAdminApprovals = null;
+                                await DenyAdminDeviceRequests(devices);
                             }
                         }
                         else
@@ -526,15 +797,9 @@ namespace Commander
             }
         }
 
-
         private async Task EnterpriseRegisterEcKey(string _)
         {
-            if (_treeKey == null)
-            {
-                await GetEnterpriseData();
-            }
-
-            if (_treeKey == null)
+            if (_enterprise.TreeKey == null)
             {
                 Console.WriteLine("Cannot get tree key");
                 return;
@@ -543,7 +808,7 @@ namespace Commander
             CryptoUtils.GenerateEcKey(out var privateKey, out var publicKey);
             var exportedPublicKey = CryptoUtils.UnloadEcPublicKey(publicKey);
             var exportedPrivateKey = CryptoUtils.UnloadEcPrivateKey(privateKey);
-            var encryptedPrivateKey = CryptoUtils.EncryptAesV2(exportedPrivateKey, _treeKey);
+            var encryptedPrivateKey = CryptoUtils.EncryptAesV2(exportedPrivateKey, _enterprise.TreeKey);
             var request = new EnterpriseKeyPairRequest
             {
                 KeyType = KeyType.Ecc,

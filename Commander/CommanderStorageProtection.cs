@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using KeeperSecurity.Sdk;
+﻿using System.Text;
 using System.Security.Cryptography;
+using KeeperSecurity.Configuration;
+using KeeperSecurity.Utils;
 
 namespace Commander
 {
-    public class CommanderStorageProtection: IStorageProtectionFactory
+    public class CommanderConfigurationProtection: IConfigurationProtectionFactory
     {
-        public IStorageProtection Resolve(string protection)
+        public IConfigurationProtection Resolve(string protection)
         {
             if (string.IsNullOrEmpty(protection)) return null;
             var index = protection.IndexOf(':');
@@ -25,23 +22,23 @@ namespace Commander
             switch (method.ToLowerInvariant())
             {
                 case "dpapi":
-                    return new DpApiStorageProtection(Encoding.UTF8.GetBytes(parameters));
+                    return new DpApiConfigurationProtection(Encoding.UTF8.GetBytes(parameters));
             }
 
             return null;
         }
     }
 
-    internal class DpApiStorageProtection : IStorageProtection
+    internal class DpApiConfigurationProtection : IConfigurationProtection
     {
         private readonly byte[] _entropy;
         private readonly DataProtectionScope _scope;
 
-        public DpApiStorageProtection(byte[] entropy) : this(entropy, DataProtectionScope.CurrentUser)
+        public DpApiConfigurationProtection(byte[] entropy) : this(entropy, DataProtectionScope.CurrentUser)
         {
         }
 
-        public DpApiStorageProtection(byte[] entropy, DataProtectionScope scope)
+        public DpApiConfigurationProtection(byte[] entropy, DataProtectionScope scope)
         {
             _entropy = entropy;
             _scope = DataProtectionScope.CurrentUser;

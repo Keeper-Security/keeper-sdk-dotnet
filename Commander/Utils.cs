@@ -457,13 +457,13 @@ namespace Commander
         public Tabulate(int columns)
         {
             _columns = columns;
-            _rightAlignColumn = Enumerable.Repeat(true, columns).ToArray();
+            _rightAlignColumn = Enumerable.Repeat(false, columns).ToArray();
             _maxChars = Enumerable.Repeat(0, columns).ToArray();
         }
 
         private string[] _header;
 
-        public void AddHeader(IEnumerable<string> header)
+        public void AddHeader(params string[] header)
         {
             _header = header.Take(_columns).ToArray();
         }
@@ -490,32 +490,23 @@ namespace Commander
                    || value is decimal;
         }
 
-        public void AddRow(IEnumerable<object> fields)
+        public void AddRow(params object[] fields)
         {
             var row = Enumerable.Repeat("", _columns).ToArray();
             var colNo = 0;
             foreach (var o in fields)
             {
                 var text = "";
-                var isNum = false;
                 if (o != null)
                 {
                     text = o.ToString();
-                    isNum = IsNumber(o);
+                    var isNum = IsNumber(o);
                     if (isNum)
                     {
                         if (IsDecimal(o))
                         {
                             text = $"{o:0.00}";
                         }
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(text))
-                {
-                    if (!isNum)
-                    {
-                        _rightAlignColumn[colNo] = false;
                     }
                 }
 
@@ -565,7 +556,7 @@ namespace Commander
             for (var i = 0; i < _maxChars.Length; i++)
             {
                 var len = 0;
-                if (DumpRowNo)
+                if (DumpRowNo && _header != null)
                 {
                     if (i < _header.Length)
                     {

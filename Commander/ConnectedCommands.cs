@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
@@ -10,21 +11,29 @@ using BreachWatch;
 using CommandLine;
 using Enterprise;
 using Google.Protobuf;
-using KeeperSecurity.Sdk;
+using KeeperSecurity;
+using KeeperSecurity.Authentication;
+using KeeperSecurity.Utils;
+using KeeperSecurity.Vault;
 
 namespace Commander
 {
     public partial class ConnectedContext : StateContext
     {
-        private readonly Vault _vault;
+        private readonly VaultOnline _vault;
         private readonly Auth _auth;
+
+        private TeamInfo[] _teamCache;
 
         private AccountSummaryElements _accountSummary;
 
         public ConnectedContext(Auth auth)
         {
             _auth = auth;
-            _vault = new Vault(_auth);
+            _vault = new VaultOnline(_auth)
+            {
+                VaultUi = new VaultUi()
+            };
             SubscribeToNotifications();
             CheckIfEnterpriseAdmin();
             Task.Run(async () =>
@@ -89,12 +98,60 @@ namespace Commander
                         Action = UpdateRecordCommand
                     });
 
-                Commands.Add("list-sf",
-                    new SimpleCommand
+                Commands.Add("mkdir",
+                    new ParsableCommand<MakeFolderOptions>
                     {
                         Order = 22,
+                        Description = "Make folder",
+                        Action = MakeFolderCommand
+                    });
+
+                Commands.Add("rmdir",
+                    new ParsableCommand<FolderOptions>
+                    {
+                        Order = 22,
+                        Description = "Remove folder",
+                        Action = RemoveFolderCommand
+                    });
+
+                Commands.Add("mv",
+                    new ParsableCommand<MoveOptions>
+                    {
+                        Order = 23,
+                        Description = "Move record or folder",
+                        Action = MoveCommand
+                    });
+
+                Commands.Add("rm",
+                    new ParsableCommand<RemoveRecordOptions>
+                    {
+                        Order = 24,
+                        Description = "Remove record(s)",
+                        Action = RemoveRecordCommand
+                    });
+
+                Commands.Add("sf-list",
+                    new SimpleCommand
+                    {
+                        Order = 30,
                         Description = "List shared folders",
                         Action = ListSharedFoldersCommand
+                    });
+
+                Commands.Add("sf-user",
+                    new ParsableCommand<ShareFolderUserPermissionOptions>
+                    {
+                        Order = 31,
+                        Description = "Change shared folder user permissions",
+                        Action = ShareFolderUserPermissionCommand
+                    });
+
+                Commands.Add("sf-record",
+                    new ParsableCommand<ShareFolderRecordPermissionOptions>
+                    {
+                        Order = 32,
+                        Description = "Change shared folder record permissions",
+                        Action = ShareFolderRecordPermissionCommand
                     });
 
                 Commands.Add("devices",
@@ -113,7 +170,7 @@ namespace Commander
                         Action = ThisDeviceCommand,
                     });
 
-                if (_auth.AuthContext.Settings?.shareDatakeyWithEccPublicKey == true)
+                if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise == true)
                 {
                     Commands.Add("share-datakey",
                         new SimpleCommand
@@ -152,9 +209,8 @@ namespace Commander
         }
 
         private string _currentFolder;
-        private bool NotificationCallback(NotificationEvent evt)
+        private bool DeviceApprovalRequestCallback(NotificationEvent evt)
         {
-            _vault.OnNotificationReceived(evt);
             if (string.Compare(evt.Event, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) != 0) return false;
             _accountSummary = null;
             Console.WriteLine(!string.IsNullOrEmpty(evt.EncryptedDeviceToken) 
@@ -166,13 +222,23 @@ namespace Commander
 
         private void SubscribeToNotifications()
         {
-            _auth.PushNotifications?.RegisterCallback(NotificationCallback);
+            _auth.PushNotifications?.RegisterCallback(DeviceApprovalRequestCallback);
         }
 
         private void UnsubscribeFromNotifications()
         {
-            _auth.PushNotifications?.RemoveCallback(NotificationCallback);
+            _auth.PushNotifications?.RemoveCallback(DeviceApprovalRequestCallback);
             _auth.PushNotifications?.RemoveCallback(EnterpriseNotificationCallback);
+        }
+
+        private async Task<TeamInfo[]> GetAvailableTeams()
+        {
+            if (_teamCache == null)
+            {
+                _teamCache = (await _vault.GetAvailableTeams()).ToArray();
+            }
+
+            return _teamCache;
         }
 
         private async Task LogoutCommand(LogoutOptions options)
@@ -451,13 +517,13 @@ namespace Commander
                 if (string.IsNullOrEmpty(record.Login))
                 {
                     Console.Write("..." + "Login: ".PadRight(16));
-                    record.Login = await Program.InputManager.ReadLine();
+                    record.Login = await Program.GetInputManager().ReadLine();
                 }
 
                 if (string.IsNullOrEmpty(record.Password))
                 {
                     Console.Write("..." + "Password: ".PadRight(16));
-                    record.Login = await Program.InputManager.ReadLine(new ReadLineParameters
+                    record.Login = await Program.GetInputManager().ReadLine(new ReadLineParameters
                     {
                         IsSecured = true
                     });
@@ -466,11 +532,11 @@ namespace Commander
                 if (string.IsNullOrEmpty(record.Link))
                 {
                     Console.Write("..." + "Login URL: ".PadRight(16));
-                    record.Link = await Program.InputManager.ReadLine();
+                    record.Link = await Program.GetInputManager().ReadLine();
                 }
             }
 
-            await _vault.AddRecord(record, node.FolderUid);
+            await _vault.CreateRecord(record, node.FolderUid);
         }
 
         private async Task UpdateRecordCommand(UpdateRecordOptions options)
@@ -528,8 +594,170 @@ namespace Commander
                 record.Notes = options.Notes;
             }
 
-            await _vault.PutRecord(record);
+            await _vault.UpdateRecord(record);
         }
+
+        private async Task MakeFolderCommand(MakeFolderOptions options)
+        {
+            var sfOptions = options.Shared
+                ? new SharedFolderOptions
+                {
+                    ManageRecords = options.ManageRecords,
+                    ManageUsers = options.ManageUsers,
+                    CanEdit = options.CanEdit,
+                    CanShare = options.CanShare,
+                }
+                : null;
+            _ = await _vault.CreateFolder(options.FolderName, _currentFolder, sfOptions);
+        }
+
+        private async Task RemoveRecordCommand(RemoveRecordOptions options)
+        {
+            if (string.IsNullOrEmpty(options.RecordName))
+            {
+                return;
+            }
+
+            if (_vault.TryGetRecord(options.RecordName, out var record))
+            {
+                var folders = Enumerable.Repeat(_vault.RootFolder, 1).Concat(_vault.Folders).Where(x => x.Records.Contains(record.Uid)).ToArray();
+                if (folders.Length == 0)
+                {
+                    Console.WriteLine("not expected");
+                    return;
+                }
+
+                var folder = folders.Length == 1
+                    ? folders[0]
+                    : folders.FirstOrDefault(x => x.FolderUid == _currentFolder)
+                    ?? folders.FirstOrDefault(x => string.IsNullOrEmpty(x.FolderUid))
+                    ?? folders.FirstOrDefault(x => x.FolderType == FolderType.UserFolder)
+                    ?? folders[0];
+
+                await _vault.DeleteRecords(new[] {new RecordPath {FolderUid = folder.FolderUid, RecordUid = record.Uid,}});
+            }
+            else
+            {
+                if (!TryResolvePath(options.RecordName, out var folder, out string recordTitle))
+                {
+                    Console.WriteLine($"Invalid record path: {options.RecordName}");
+                    return;
+                }
+
+                var sb = new StringBuilder();
+                sb.Append(recordTitle);
+                sb = sb.Replace("*", ".*");
+                sb = sb.Replace("?", @".");
+                sb = sb.Replace("#", @"[0-9]");
+                sb.Insert(0, "^");
+                sb.Append("$");
+                var pattern = sb.ToString();
+
+                var records = new List<RecordPath>();
+                foreach (var recordUid in folder.Records)
+                {
+                    if (!_vault.TryGetRecord(recordUid, out record)) continue;
+
+                    var m = Regex.Match(record.Title, pattern, RegexOptions.IgnoreCase);
+                    if (m.Success)
+                    {
+                        records.Add(new RecordPath { FolderUid = folder.FolderUid, RecordUid = recordUid });
+                    }
+                }
+
+                await _vault.DeleteRecords(records.ToArray());
+            }
+        }
+
+        private async Task MoveCommand(MoveOptions options)
+        {
+            if (!_vault.TryGetFolder(options.DestinationName, out var dstFolder))
+            {
+                if (!TryResolvePath(options.DestinationName, out dstFolder))
+                {
+                    Console.WriteLine($"Invalid destination folder path: {options.DestinationName}");
+                    return;
+                }
+            }
+
+            if (_vault.TryGetFolder(options.SourceName, out var srcFolder))
+            {
+                await _vault.MoveFolder(srcFolder.FolderUid, dstFolder.FolderUid, options.Link);
+            }
+            else if (_vault.TryGetRecord(options.SourceName, out var record))
+            {
+                var folders = Enumerable.Repeat(_vault.RootFolder, 1).Concat(_vault.Folders).Where(x => x.Records.Contains(record.Uid)).ToArray();
+                if (folders.Length == 0)
+                {
+                    Console.WriteLine("not expected");
+                    return;
+                }
+
+                var folder = folders.Length == 1 ? folders[0] :
+                    folders.FirstOrDefault(x => x.FolderUid == _currentFolder)
+                    ?? folders.FirstOrDefault(x => string.IsNullOrEmpty(x.FolderUid))
+                    ?? folders.FirstOrDefault(x => x.FolderType == FolderType.UserFolder)
+                    ?? folders[0];
+
+                await _vault.MoveRecords(new [] {new RecordPath {FolderUid = folder.FolderUid, RecordUid = record.Uid}}, dstFolder.FolderUid, options.Link);
+            }
+            else
+            {
+                if (!TryResolvePath(options.SourceName, out srcFolder, out string recordTitle))
+                {
+                    Console.WriteLine($"Invalid source path: {options.SourceName}");
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(recordTitle))
+                {
+                    await _vault.MoveFolder(srcFolder.FolderUid, dstFolder.FolderUid, options.Link);
+                }
+                else
+                {
+                    var sb = new StringBuilder();
+                    sb.Append(recordTitle);
+                    sb = sb.Replace("*", ".*");
+                    sb = sb.Replace("?", @".");
+                    sb = sb.Replace("#", @"[0-9]");
+                    sb.Insert(0, "^");
+                    sb.Append("$");
+                    var pattern = sb.ToString();
+
+                    var records = new List<RecordPath>();
+                    foreach (var recordUid in srcFolder.Records)
+                    {
+                        if (!_vault.TryGetRecord(recordUid, out record)) continue;
+
+                        var m = Regex.Match(record.Title, pattern, RegexOptions.IgnoreCase);
+                        if (m.Success)
+                        {
+                            records.Add(new RecordPath { FolderUid = srcFolder.FolderUid, RecordUid = recordUid });
+                        }
+                    }
+
+                    if (records.Count == 0)
+                    {
+                        throw new Exception($"Folder {srcFolder.Name} does not contain any record matching {recordTitle}");
+                    }
+
+                    await _vault.MoveRecords(records.ToArray(), dstFolder.FolderUid, options.Link);
+                }
+            }
+        }
+
+        private async Task RemoveFolderCommand(FolderOptions options)
+        {
+            if (TryResolvePath(options.FolderName, out var folder))
+            {
+                await _vault.DeleteFolder(folder.FolderUid);
+            }
+            else
+            {
+                Console.WriteLine($"Invalid folder path: {options.FolderName}");
+            }
+        }
+
 
         private string TokenToString(byte[] token)
         {
@@ -582,9 +810,24 @@ namespace Commander
                     Console.WriteLine("{0, 20}: {1}", "Data Key Present", device.EncryptedDataKeyPresent);
                     Console.WriteLine("{0, 20}: {1}", "IP Auto Approve", !_accountSummary.Settings.IpDisableAutoApprove);
                     Console.WriteLine("{0, 20}: {1}", "Persistent Login", _accountSummary.Settings.PersistentLogin);
-                    if (_accountSummary.Settings.LogoutTimer > 1000 * 60 * 2)
+                    if (_accountSummary.Settings.LogoutTimer > 0)
                     {
-                        Console.WriteLine("{0, 20}: {1} minutes", "Logout Timeout", _accountSummary.Settings.LogoutTimer / 1000 / 60);
+                        if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromDays(1).TotalMilliseconds)
+                        {
+                            Console.WriteLine("{0, 20}: {1} day(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalDays);
+                        }
+                        else if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromHours(1).TotalMilliseconds)
+                        {
+                            Console.WriteLine("{0, 20}: {1} hour(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalHours);
+                        }
+                        else if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromSeconds(1).TotalMilliseconds)
+                        {
+                            Console.WriteLine("{0, 20}: {1} minute(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalMinutes);
+                        }
+                        else
+                        {
+                            Console.WriteLine("{0, 20}: {1} second(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalSeconds);
+                        }
                     }
 
                     Console.WriteLine();
@@ -676,13 +919,13 @@ namespace Commander
 
         private async Task ShareDatakeyCommand(string _)
         {
-            if (_auth.AuthContext.Settings?.shareDatakeyWithEccPublicKey != true) 
+            if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise != true) 
             {
                 Console.WriteLine("Data key sharing is not requested.");
                 return;
             }
             Console.Write("Enterprise administrator requested data key to be shared. Proceed with sharing? (Yes/No) : ");
-            var answer = await Program.InputManager.ReadLine();
+            var answer = await Program.GetInputManager().ReadLine();
             if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
                 answer = "yes";
@@ -831,6 +1074,247 @@ namespace Commander
             return Task.FromResult(true);
         }
 
+        private const string EmailPattern = @"(?i)^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,}$";
+
+        private async Task ShareFolderUserPermissionCommand(ShareFolderUserPermissionOptions options)
+        {
+            if (!_vault.TryGetSharedFolder(options.FolderName, out var sf))
+            {
+                var sfs = _vault.SharedFolders
+                    .Where(x => string.Compare(x.Name, options.FolderName, StringComparison.CurrentCultureIgnoreCase) == 0)
+                    .ToArray();
+                if (sfs.Length == 1)
+                {
+                    sf = sfs[0];
+                }
+            }
+
+            if (sf == null)
+            {
+                if (!_vault.TryGetFolder(options.FolderName, out var folder))
+                {
+                    if (!TryResolvePath(options.FolderName, out folder))
+                    {
+                        Console.WriteLine($"Folder \'{options.FolderName}\' not found");
+                        return;
+                    }
+                }
+
+                if (folder.FolderType == FolderType.UserFolder)
+                {
+                    Console.WriteLine($"Folder \'{folder.Name}\' is not Shared Folder");
+                    return;
+                }
+
+                sf = _vault.GetSharedFolder(folder.FolderType == FolderType.SharedFolder ? folder.FolderUid : folder.SharedFolderUid);
+            }
+
+            if (string.IsNullOrEmpty(options.User))
+            {
+                var teams = await  GetAvailableTeams();
+                var tab = new Tabulate(4)
+                {
+                    DumpRowNo = true
+                };
+                tab.SetColumnRightAlign(2, true);
+                tab.SetColumnRightAlign(3, true);
+                tab.AddHeader(new[] {"User ID", "User Type", "Manage Records", "Manage Users"});
+                foreach (var p in sf.UsersPermissions.OrderBy(x => $"{(int) x.UserType} {x.UserId.ToLowerInvariant()}"))
+                {
+                    if (p.UserType == UserType.User)
+                    {
+                        tab.AddRow(new[] {p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-", p.ManageUsers ? "X" : "="});
+                    }
+                    else
+                    {
+                        var team = teams.FirstOrDefault(x => x.TeamUid == p.UserId);
+                        tab.AddRow(new[] { team?.Name ?? p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-", p.ManageUsers ? "X" : "-" });
+                    }
+                }
+                tab.Dump();
+            }
+            else
+            {
+                var userType = UserType.User;
+                string userId = null;
+                var rx = new Regex(EmailPattern);
+                if (rx.IsMatch(options.User))
+                {
+                    userId = options.User.ToLowerInvariant();
+                }
+                else
+                {
+                    userType = UserType.Team;
+                    if (_vault.TryGetTeam(options.User, out var team))
+                    {
+                        userId = team.TeamUid;
+                    }
+                    else
+                    {
+                        team = _vault.Teams.FirstOrDefault(x => string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0);
+                        if (team != null)
+                        {
+                            userId = team.TeamUid;
+                        }
+                        else
+                        {
+                            var teams = await GetAvailableTeams();
+                            var teamInfo = teams.FirstOrDefault(x =>
+                                string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0 ||
+                                string.CompareOrdinal(x.TeamUid, options.User) == 0
+                            );
+                            if (teamInfo != null)
+                            {
+                                userId = teamInfo.TeamUid;
+                            }
+                        }
+                    }
+
+                    if (userId == null)
+                    {
+                        Console.WriteLine($"User {options.User} cannot be resolved as email or team");
+                        return;
+                    }
+                }
+
+                var userPermission = sf.UsersPermissions.FirstOrDefault(x => x.UserType == userType && x.UserId == userId);
+
+                if (options.Delete)
+                {
+                    if (userPermission != null)
+                    {
+                        await _vault.RemoveUserFromSharedFolder(sf.Uid, userId, userType);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder {sf.Name}");
+                    }
+                }
+                else if (options.ManageUsers.HasValue || options.ManageRecords.HasValue)
+                {
+                    await _vault.PutUserToSharedFolder(sf.Uid, userId, userType, new SharedFolderUserOptions
+                    {
+                        ManageUsers = options.ManageUsers ?? sf.DefaultManageUsers,
+                        ManageRecords = options.ManageRecords ?? sf.DefaultManageRecords,
+                    });
+                }
+                else
+                {
+                    if (userPermission != null)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("{0, 20}: {1}", "User Type", userPermission.UserType.ToString());
+                        Console.WriteLine("{0, 20}: {1}", "User ID", userPermission.UserId);
+                        Console.WriteLine("{0, 20}: {1}", "Manage Records", userPermission.ManageRecords ? "Yes" : "No");
+                        Console.WriteLine("{0, 20}: {1}", "Manage Users", userPermission.ManageUsers ? "Yes" : "No");
+                        Console.WriteLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder {sf.Name}");
+                    }
+                }
+            }
+        }
+
+        private async Task ShareFolderRecordPermissionCommand(ShareFolderRecordPermissionOptions options)
+        {
+            if (!_vault.TryGetSharedFolder(options.FolderName, out var sf))
+            {
+                var sfs = _vault.SharedFolders
+                    .Where(x => string.Compare(x.Name, options.FolderName, StringComparison.CurrentCultureIgnoreCase) == 0)
+                    .ToArray();
+                if (sfs.Length == 1)
+                {
+                    sf = sfs[0];
+                }
+            }
+
+            if (sf == null)
+            {
+                if (!_vault.TryGetFolder(options.FolderName, out var folder))
+                {
+                    if (!TryResolvePath(options.FolderName, out folder))
+                    {
+                        Console.WriteLine($"Folder \'{options.FolderName}\'");
+                        return;
+                    }
+                }
+
+                if (folder.FolderType == FolderType.UserFolder)
+                {
+                    Console.WriteLine($"Folder \'{folder.Name}\' is not Shared Folder");
+                    return;
+                }
+
+                sf = _vault.GetSharedFolder(folder.FolderType == FolderType.SharedFolder ? folder.FolderUid : folder.SharedFolderUid);
+            }
+
+            if (string.IsNullOrEmpty(options.Record))
+            {
+                var tab = new Tabulate(4)
+                {
+                    DumpRowNo = true
+                };
+                tab.AddHeader(new[] { "Record Title", "Record UID", "Can Edit", "Can Share" });
+                foreach (var p in sf.RecordPermissions)
+                {
+                    if (_vault.TryGetRecord(p.RecordUid, out var record))
+                    {
+                        tab.AddRow(new[] { record.Title, p.RecordUid, p.CanEdit ? "X" : "-", p.CanShare ? "X" : "-" });
+                    }
+                }
+                tab.Sort(0);
+                tab.Dump();
+            }
+            else
+            {
+                string recordUid = null;
+                if (_vault.TryGetRecord(options.Record, out var record))
+                {
+                    recordUid = record.Uid;
+                }
+                else
+                {
+                    if (TryResolvePath(options.Record, out var folder, out var title))
+                    {
+                        recordUid = folder.Records.Select(x => _vault.GetRecord(x)).FirstOrDefault(x => string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0)?.Uid;
+
+                    }
+                }
+                if (string.IsNullOrEmpty(recordUid))
+                {
+                    Console.WriteLine($"\'{options.Record}\' cannot be resolved as record");
+                    return;
+                }
+
+                var recordPermission = sf.RecordPermissions.FirstOrDefault(x => x.RecordUid == recordUid);
+                if (recordPermission == null)
+                {
+                    Console.WriteLine($"Record \'{options.Record}\' is not a part of Shared Folder {sf.Name}");
+                    return;
+                }
+
+                if (options.CanShare.HasValue || options.CanEdit.HasValue)
+                {
+                    await _vault.ChangeRecordInSharedFolder(sf.Uid, recordUid, new SharedFolderRecordOptions
+                    {
+                        CanEdit = options.CanEdit ?? recordPermission.CanEdit,
+                        CanShare = options.CanShare ?? recordPermission.CanShare,
+                    });
+                }
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("{0, 20}: {1}", "Record UID", record.Uid);
+                    Console.WriteLine("{0, 20}: {1}", "Record Title", record.Title);
+                    Console.WriteLine("{0, 20}: {1}", "Can Edit", recordPermission.CanEdit ? "Yes" : "No");
+                    Console.WriteLine("{0, 20}: {1}", "Can Share", recordPermission.CanShare ? "Yes" : "No");
+                    Console.WriteLine();
+                }
+            }
+        }
+
         private bool TryResolvePath(string path, out FolderNode node)
         {
             var res = TryResolvePath(path, out node, out var text);
@@ -896,7 +1380,7 @@ namespace Commander
                         {
                             if (!_vault.TryGetFolder(subFolder, out var subNode)) return false;
 
-                            if (string.CompareOrdinal(folder, subNode.Name) != 0) continue;
+                            if (string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0) continue;
 
                             found = true;
                             node = subNode;
@@ -966,6 +1450,7 @@ namespace Commander
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+            _vault?.Dispose();
             _auth?.Dispose();
         }
     }
@@ -1028,6 +1513,76 @@ namespace Commander
 
         [Value(0, Required = true, MetaName = "title", HelpText = "record path or UID")]
         public string RecordId { get; set; }
+    }
+
+    class ShareFolderRecordPermissionOptions : FolderOptions
+    {
+        [Option('r', "record", Required = false, Default = null, HelpText = "record name or record uid")]
+        public string Record { get; set; }
+
+        [Option('s', "can-share", Required = false, Default = null, HelpText = "record permission: can be shared.")]
+        public bool? CanShare { get; set; }
+
+        [Option('e', "can-edit", Required = false, Default = null, HelpText = "record permission: can be edited.")]
+        public bool? CanEdit { get; set; }
+    }
+
+    class ShareFolderUserPermissionOptions : FolderOptions
+    {
+
+        [Option('u', "user", Required = false, Default = null, HelpText = "account email, team name, or team uid")]
+        public string User { get; set; }
+
+        [Option('d', "delete", Required = false, Default = false, SetName = "delete", HelpText = "delete user from shared folder")]
+        public bool Delete { get; set; }
+
+        [Option('r', "manage-records", Required = false, Default = null, SetName = "set", HelpText = "account permission: can manage records.")]
+        public bool? ManageRecords { get; set; }
+
+        [Option('u', "manage-users", Required = false, Default = null, SetName = "set", HelpText = "account permission: can manage users.")]
+        public bool? ManageUsers { get; set; }
+    }
+
+    class RemoveRecordOptions
+    {
+        [Value(0, Required = true, MetaName = "record title, uid, or pattern", HelpText = "remove records")]
+        public string RecordName { get; set; }
+    }
+
+    class MoveOptions
+    {
+        [Option("link", Required = false, HelpText = "do not delete source")]
+        public bool Link { get; set; }
+
+        [Value(0, Required = true, MetaName = "source record or folder", HelpText = "source record or folder")]
+        public string SourceName { get; set; }
+
+        [Value(1, Required = true, MetaName = "destination folder", HelpText = "destination folder")]
+        public string DestinationName { get; set; }
+    }
+
+    class FolderOptions
+    {
+        [Value(0, Required = true, MetaName = "folder name", HelpText = "folder name")]
+        public string FolderName { get; set; }
+    }
+
+    class MakeFolderOptions : FolderOptions
+    {
+        [Option('s', "shared", Required = false, Default = false, HelpText = "shared folder")]
+        public bool Shared { get; set; }
+
+        [Option("manage-users", Required = false, Default = null, HelpText = "default manage users")]
+        public bool? ManageUsers { get; set; }
+
+        [Option("manage-records", Required = false, Default = null, HelpText = "default manage records")]
+        public bool? ManageRecords { get; set; }
+
+        [Option("can-share", Required = false, Default = null, HelpText = "default can share")]
+        public bool? CanShare { get; set; }
+
+        [Option("can-edit", Required = false, Default = null, HelpText = "default can edit")]
+        public bool? CanEdit { get; set; }
     }
 
     class OtherDevicesOptions

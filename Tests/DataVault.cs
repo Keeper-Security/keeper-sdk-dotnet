@@ -5,9 +5,10 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
-using Authentication;
-using Google.Protobuf;
-using KeeperSecurity.Sdk;
+using KeeperSecurity.Commands;
+using KeeperSecurity.Configuration;
+using KeeperSecurity.Utils;
+using KeeperSecurity.Vault;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -248,7 +249,7 @@ fwIDAQAB
         }
 
         private SyncDownSharedFolder GenerateSharedFolder(SharedFolder sharedFolder, long revision,
-            IEnumerable<PasswordRecord> records, IEnumerable<EnterpriseTeam> teams)
+            IEnumerable<PasswordRecord> records, IEnumerable<Team> teams)
         {
             var sf = new SyncDownSharedFolder
             {
@@ -300,7 +301,7 @@ fwIDAQAB
             return sf;
         }
 
-        private SyncDownTeam GenerateTeam(EnterpriseTeam team, KeyType keyType, IEnumerable<SharedFolder> sharedFolders)
+        private SyncDownTeam GenerateTeam(Team team, KeyType keyType, IEnumerable<SharedFolder> sharedFolders)
         {
             var encryptedTeamKey = keyType == KeyType.DataKey
                 ? CryptoUtils.EncryptAesV1(team.TeamKey, DataKey)
@@ -407,7 +408,7 @@ fwIDAQAB
                 Name = "Shared Folder 1",
             };
 
-            var team1 = new EnterpriseTeam
+            var team1 = new Team
             {
                 TeamUid = CryptoUtils.GenerateUid(),
                 TeamKey = CryptoUtils.GenerateEncryptionKey(),
@@ -455,53 +456,6 @@ fwIDAQAB
 
 
             return sdr;
-        }
-
-        internal Task<PreLoginResponse> ProcessPreLogin(string username)
-        {
-            var rs = new PreLoginResponse
-            {
-                DeviceStatus = DeviceStatus.DeviceOk
-            };
-            rs.Salt.Add(new Salt
-            {
-                Iterations = Iterations,
-                Salt_ = ByteString.CopyFrom(Salt),
-                Algorithm = 2,
-                Name = "Master password"
-            });
-            return Task.FromResult(rs);
-        }
-
-        internal Task<KeeperSecurity.Sdk.LoginResponse> LoginSuccessResponse(LoginCommand command)
-        {
-            var rs = new KeeperSecurity.Sdk.LoginResponse
-            {
-                result = "success",
-                resultCode = "auth_success",
-                sessionToken = SessionToken.Base64UrlEncode()
-            };
-            if (command.include != null)
-            {
-                foreach (var inc in command.include)
-                {
-                    switch (inc)
-                    {
-                        case "keys":
-                            rs.keys = new AccountKeys
-                            {
-                                encryptedPrivateKey = EncryptedPrivateKey,
-                                encryptionParams = EncryptionParams
-                            };
-                            break;
-                        case "client_key":
-                            rs.clientKey = ClientKey.Base64UrlEncode();
-                            break;
-                    }
-                }
-            }
-
-            return Task.FromResult(rs);
         }
     }
 }

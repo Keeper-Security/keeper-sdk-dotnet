@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
-using KeeperSecurity.Sdk;
+using KeeperSecurity;
+using KeeperSecurity.Authentication;
 
 namespace Commander
 {
@@ -125,6 +126,22 @@ namespace Commander
     {
         public IDictionary<string, ICommand> Commands { get; } = new Dictionary<string, ICommand>();
         public IDictionary<string, string> CommandAliases { get; } = new Dictionary<string, string>();
+        protected bool ParseBoolOption(string text, out bool value)
+        {
+            if (string.Compare(text, "on", StringComparison.InvariantCultureIgnoreCase) == 0)
+            {
+                value = true;
+                return true;
+            }
+            if (string.Compare(text, "off", StringComparison.InvariantCultureIgnoreCase) == 0)
+            {
+                value = false;
+                return true;
+            }
+
+            value = false;
+            return false;
+        }
     }
 
     public sealed class CliContext : CliCommands
@@ -229,10 +246,10 @@ namespace Commander
                 {
                     if (!string.IsNullOrEmpty(args))
                     {
-                        _auth.Endpoint.Server = args.AdjustServerName();
+                        _auth.Endpoint.Server = args;
                     }
 
-                    Console.WriteLine($"Keeper Server: {_auth.Endpoint.Server.AdjustServerName()}");
+                    Console.WriteLine($"Keeper Server: {_auth.Endpoint.Server}");
                     return Task.FromResult(true);
                 }
             });
@@ -247,7 +264,7 @@ namespace Commander
                 if (string.IsNullOrEmpty(username))
                 {
                     Console.Write("Enter SSO Provider: ");
-                    username = await Program.InputManager.ReadLine();
+                    username = await Program.GetInputManager().ReadLine();
                 }
             }
             else
@@ -255,7 +272,7 @@ namespace Commander
                 if (string.IsNullOrEmpty(username))
                 {
                     Console.Write("Enter Username: ");
-                    username = await Program.InputManager.ReadLine();
+                    username = await Program.GetInputManager().ReadLine();
                 }
                 else
                 {

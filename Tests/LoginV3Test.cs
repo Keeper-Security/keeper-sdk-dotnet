@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
 using Google.Protobuf;
-using KeeperSecurity.Sdk;
-using KeeperSecurity.Sdk.UI;
+using KeeperSecurity;
+using KeeperSecurity.Authentication;
+using KeeperSecurity.Utils;
 using Moq;
 using Push;
 using Xunit;
