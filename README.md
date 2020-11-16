@@ -9,8 +9,7 @@ The Keeper .Net and PowerShell module ("PowerCommander") provides vault and admi
 * Customize integration into your backend systems
 * Update/Rotate passwords in the vault
 
-### PowerShell Module
-To use the PowerShell modules, see the [PowerCommander library](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/PowerCommander).
+The Keeper .Net SDK is compatible with the new [Keeper Login V3 API](https://docs.keeper.io/enterprise-guide/login-api) which was released in October 2020.
 
 ### .Net SDK
 For integration into your .Net systems, please utilize the [KeeperSDK library](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
@@ -28,14 +27,16 @@ For help with implementation of SDK features, please see the
 * .Net Core 2.1
 * .Net Standard 2.0
 
+### PowerShell Module
+To use the PowerShell modules, see the [PowerCommander library](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/PowerCommander).
+
+### Contact Us
 If you need any assistance or require specific functionality not supported in Commander yet, please contact us at commander@keepersecurity.com.
 
 ### About Keeper Security
-
 Keeper Security develops the world's most downloaded password manager and encrypted digital vault with millions of individual customers and thousands of enterprise customers worldwide.  Keeper is a zero-knowledge, native and cloud-based solution available on every mobile and desktop device platform. Learn more about Keeper by visiting the [Keeper Security](https://keepersecurity.com) website.
 
 ### Security
-
 Keeper is a Zero Knowledge security provider. Zero Knowledge is a system architecture that guarantees the highest levels of security and privacy by adhering to the following principles:
 
 - Data is encrypted and decrypted at the device level (not on the server)
