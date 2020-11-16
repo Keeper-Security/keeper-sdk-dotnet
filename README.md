@@ -1,9 +1,11 @@
 ### .Net and PowerShell SDK for Keeper Password Manager
 
-The Keeper .Net and PowerShell module ("PowerCommander") provides basic vault API access. The current features of the .Net and PowerShell library include the following:
+The Keeper .Net and PowerShell module ("PowerCommander") provides vault and administrative level automation. The current features of the .Net and PowerShell library include the following:
 
-* Access your Keeper vault (records, folders, shared folders)
-* Manage records (Retrieve/Add/Edit)
+* Authenticate to Keeper
+* Access the Keeper vault (records, folders, shared folders)
+* Manage records (CRUD operations for Records, Attachments, Folders, Shared Folders)
+* Administrative functions (Team Management)
 * Customize integration into your backend systems
 * Update/Rotate passwords in the vault
 
