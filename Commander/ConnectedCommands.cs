@@ -260,7 +260,9 @@ namespace Commander
                 _vault.TryGetFolder(_currentFolder, out node);
             }
 
-            node ??= _vault.RootFolder;
+            if (node == null) {
+                node = _vault.RootFolder;
+            }
 
             if (options.Details)
             {
@@ -776,19 +778,20 @@ namespace Commander
 
         private string DeviceStatusToString(DeviceStatus status)
         {
-            return status switch
-            {
-                DeviceStatus.DeviceOk => "OK",
-                DeviceStatus.DeviceNeedsApproval => "Need Approval",
-                DeviceStatus.DeviceDisabledByUser => "Disabled",
-                DeviceStatus.DeviceLockedByAdmin => "Locked",
-                _ => ""
-            };
+            switch (status) {
+                case DeviceStatus.DeviceOk: return "OK";
+                case DeviceStatus.DeviceNeedsApproval: return "Need Approval";
+                case DeviceStatus.DeviceDisabledByUser: return "Disabled";
+                case DeviceStatus.DeviceLockedByAdmin: return "Locked";
+                default: return "";
+            }
         }
 
         private async Task ThisDeviceCommand(ThisDeviceOptions arguments)
         {
-            _accountSummary ??= await _auth.LoadAccountSummary();
+            if (_accountSummary == null) {
+                _accountSummary = await _auth.LoadAccountSummary();
+            }
 
             var device = _accountSummary?.Devices
                 .FirstOrDefault(x => x.EncryptedDeviceToken.ToByteArray().SequenceEqual(_auth.DeviceToken));
@@ -957,7 +960,9 @@ namespace Commander
                 _accountSummary = null;
             }
 
-            _accountSummary ??= await _auth.LoadAccountSummary();
+            if (_accountSummary == null) {
+                _accountSummary = await _auth.LoadAccountSummary();
+            }
 
             if (_accountSummary == null)
             {

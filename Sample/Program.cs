@@ -52,12 +52,12 @@ namespace Sample
                         {
                             var channel = channels.FirstOrDefault(x =>
                             {
-                                return x.Channel switch
+                                switch (x.Channel)
                                 {
-                                    DeviceApprovalChannel.Email => action == "email",
-                                    DeviceApprovalChannel.KeeperPush => action == "push",
-                                    DeviceApprovalChannel.TwoFactorAuth => action == "tfa",
-                                    _ => false,
+                                    case DeviceApprovalChannel.Email: return action == "email";
+                                    case DeviceApprovalChannel.KeeperPush: return action == "push";
+                                    case DeviceApprovalChannel.TwoFactorAuth: return action == "tfa";
+                                    default: return false;
                                 };
                             });
                             if (channel != null)
@@ -261,8 +261,9 @@ namespace Sample
                 else
                 {
                     // Download attachment into local file "google.txt"
-                    await using var stream = File.OpenWrite("google.txt");
-                    await vault.DownloadAttachment(search, attachment.Id, stream);
+                    using (var stream = File.OpenWrite("google.txt")) {
+                        await vault.DownloadAttachment(search, attachment.Id, stream);
+                    }
 
                     // Delete attachment. Remove it from the record 
                     search.Attachments.Remove(attachment);

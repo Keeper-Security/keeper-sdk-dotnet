@@ -276,12 +276,14 @@ namespace Commander
 
         private static string DurationToText(TwoFactorDuration duration)
         {
-            return duration switch
-            {
-                TwoFactorDuration.EveryLogin => "never",
-                TwoFactorDuration.Forever => "forever",
-                _ => $"{(int) duration} days"
-            };
+            switch (duration) {
+                case TwoFactorDuration.EveryLogin:
+                    return "never";
+                case TwoFactorDuration.Forever:
+                    return "forever";
+                default:
+                    return $"{(int) duration} days";
+            }
         }
 
         private static bool TryParseTextToDuration(string text, out TwoFactorDuration duration)
