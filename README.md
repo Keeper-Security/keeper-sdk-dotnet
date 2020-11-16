@@ -12,7 +12,7 @@ The Keeper .Net and PowerShell module ("PowerCommander") provides vault and admi
 The Keeper .Net SDK is compatible with the new [Keeper Login V3 API](https://docs.keeper.io/enterprise-guide/login-api) which was released in October 2020.
 
 ### .Net SDK
-For integration into your .Net systems, please utilize the [KeeperSDK library](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
+For source integration into your .Net code, please utilize the [KeeperSDK Library source code](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
 
 [API documentation] (https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/index.html)
 
