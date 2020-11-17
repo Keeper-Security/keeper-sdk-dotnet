@@ -125,9 +125,9 @@ namespace KeeperSecurity.Vault
             return this.AddRecordToFolder(record, folderUid);
         }
 
-        public Task<PasswordRecord> UpdateRecord(PasswordRecord record)
+        public Task<PasswordRecord> UpdateRecord(PasswordRecord record, bool skipExtra = true)
         {
-            return this.PutRecord(record);
+            return this.PutRecord(record, false, skipExtra);
         }
 
         public Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedDataData

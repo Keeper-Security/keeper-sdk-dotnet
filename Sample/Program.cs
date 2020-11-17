@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
@@ -58,7 +59,9 @@ namespace Sample
                                     case DeviceApprovalChannel.KeeperPush: return action == "push";
                                     case DeviceApprovalChannel.TwoFactorAuth: return action == "tfa";
                                     default: return false;
-                                };
+                                }
+
+                                ;
                             });
                             if (channel != null)
                             {
@@ -69,7 +72,11 @@ namespace Sample
                                         dur.Duration = TwoFactorDuration.Every30Days;
                                     }
 
-                                    await pi.InvokeDeviceApprovalPushAction();
+                                    try
+                                    {
+                                        await pi.InvokeDeviceApprovalPushAction();
+                                    }
+                                    catch (Exception e) { Console.WriteLine(e.Message); }
                                 }
 
                                 if (channel is IDeviceApprovalOtpInfo)
@@ -81,7 +88,11 @@ namespace Sample
                                 var code = Console.ReadLine();
                                 if (channel is IDeviceApprovalOtpInfo oi && !string.IsNullOrEmpty(code))
                                 {
-                                    await oi.InvokeDeviceApprovalOtpAction(code);
+                                    try
+                                    {
+                                        await oi.InvokeDeviceApprovalOtpAction(code);
+                                    }
+                                    catch (Exception e) { Console.WriteLine(e.Message); }
                                 }
 
                             }
@@ -99,7 +110,11 @@ namespace Sample
                                         dur.Duration = TwoFactorDuration.Every30Days;
                                     }
 
-                                    await oi.InvokeDeviceApprovalOtpAction(action);
+                                    try
+                                    {
+                                        await oi.InvokeDeviceApprovalOtpAction(action);
+                                    }
+                                    catch (Exception e) { Console.WriteLine(e.Message); }
                                 }
                             }
                         }
@@ -122,11 +137,20 @@ namespace Sample
                 {
                     Console.Write("Enter 2FA Code: ");
                     var code = Console.ReadLine();
-                    if (!string.IsNullOrEmpty(code)) return false;
+                    if (string.IsNullOrEmpty(code)) return false;
                     if (!(channels[0] is ITwoFactorAppCodeInfo ci)) return true;
                     try
                     {
-                        await ci.InvokeTwoFactorCodeAction(code);
+                        if (channels[0] is ITwoFactorDurationInfo dur)
+                        {
+                            dur.Duration = TwoFactorDuration.Every30Days;
+                        }
+
+                        try
+                        {
+                            await ci.InvokeTwoFactorCodeAction(code);
+                        }
+                        catch (Exception e) { Console.WriteLine(e.Message); }
                     }
                     catch (Exception e)
                     {
@@ -152,7 +176,11 @@ namespace Sample
                         {
                             var key = Console.ReadKey(true);
 
-                            if (key.Key == ConsoleKey.Enter) break;
+                            if (key.Key == ConsoleKey.Enter)
+                            {
+                                Console.WriteLine();
+                                break;
+                            }
 
                             if (char.IsControl(key.KeyChar))
                             {
@@ -171,6 +199,10 @@ namespace Sample
                         {
                             await info.InvokePasswordActionDelegate(password);
                             break;
+                        }
+                        catch (KeeperAuthFailed)
+                        {
+                            Console.WriteLine("Invalid password");
                         }
                         catch (Exception e)
                         {
@@ -251,23 +283,34 @@ namespace Sample
 
                 if (attachment == null)
                 {
-                    // Upload local file "google.txt"
-                    var uploadTask = new FileAttachmentUploadTask("google.txt")
+                    // Upload local file "google.txt". 
+                    // var uploadTask = new FileAttachmentUploadTask("google.txt")
+                    var fileContent = Encoding.UTF8.GetBytes("Google");
+                    using (var stream = new MemoryStream(fileContent))
                     {
-                        Title = "Google",
-                    };
-                    await vault.UploadAttachment(search, uploadTask);
+                        var uploadTask = new AttachmentUploadTask(stream)
+                        {
+                            Title = "Google",
+                            Name = "google.txt",
+                            MimeType = "text/plain"
+                        };
+                        await vault.UploadAttachment(search, uploadTask);
+                        await vault.UpdateRecord(search, false);
+                    }
                 }
                 else
                 {
-                    // Download attachment into local file "google.txt"
-                    using (var stream = File.OpenWrite("google.txt")) {
+                    // Download attachment into the stream
+                    // The stream could be a local file "google.txt"
+                    // using (var stream = File.OpenWrite("google.txt"))
+                    using (var stream = new MemoryStream())
+                    {
                         await vault.DownloadAttachment(search, attachment.Id, stream);
                     }
 
                     // Delete attachment. Remove it from the record 
                     search.Attachments.Remove(attachment);
-                    await vault.UpdateRecord(search);
+                    await vault.UpdateRecord(search, false);
                 }
 
                 // Find shared folder with name "Google".
@@ -289,14 +332,22 @@ namespace Sample
                 }
 
                 // Add user to shared folder.
-                await vault.PutUserToSharedFolder(sharedFolder.Uid,
-                    "user@google.com",
-                    UserType.User,
-                    new SharedFolderUserOptions
-                    {
-                        ManageRecords = false,
-                        ManageUsers = false,
-                    });
+                try
+                {
+                    await vault.PutUserToSharedFolder(sharedFolder.Uid,
+                        "user@google.com",
+                        UserType.User,
+                        new SharedFolderUserOptions
+                        {
+                            ManageRecords = false,
+                            ManageUsers = false,
+                        });
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Add user to Shared Folder error: {e.Message}");
+                }
+
 
                 // Add record to shared folder.
                 await vault.MoveRecords(new[] {new RecordPath {RecordUid = search.Uid}}, sharedFolder.Uid, true);

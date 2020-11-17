@@ -14,20 +14,47 @@ This folder is a sample Commander CLI application using the .NET SDK.  Below is 
 
 * ```cd``` Change current folder
 
-* ```get``` Retrieve and display specified Keeper Record/Folder/Team in printable or JSON format.
+* ```get``` Retrieve and display specified Keeper Record/Folder/Team in printable or JSON format
 
-* ```list-sf``` Display all shared folders
+* ```mkdir``` Create a regular or shared folder in the vault
 
-** Device Management Commands**
+* ```rmdir``` Delete folder and its content
 
-* ```devices``` device management: list, approve
+* ```mv``` Move record or folder to another location
 
-**Record Management Commands**
+* ```rm``` Remove record
+
+** Shared Folder Commands **
+
+* ```sf-list``` Display all shared folders
+
+* ```sf-user``` Manage user or team access for shared folder
+
+* ```sf-record``` Change record permissions. Use `mv` or `rm` commands to add/remove record to/from shared folder
+
+** Device Management Commands **
+
+* ```devices``` Manage device approval queue
+
+* ```this-device``` Display or modify current device settings
+
+** Record Management Commands **
 
 * ```add-record``` Add a record to the vault
 
 * ```update-record``` Update a record contents such as the password
 
+** Enterprise Commands **
+
+* ```enterprise-sync-down``` Retrieve enterprise data structure
+
+* ```enterprise-node``` Display enterprise node tree
+
+* ```enterprise-user``` Display a list of enterprise users
+
+* ```enterprise-team``` Display a list of enterprise users, manage team users
+
+* ```enterprise-device``` Manage admin approval queue. Cloud SSO only.
 
 ### Sample C# .Net Core application
 

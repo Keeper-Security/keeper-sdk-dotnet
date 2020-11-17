@@ -29,18 +29,57 @@ namespace KeeperSecurity
     namespace Vault
     {
         /// <summary>
+        /// Creates an attachment upload task.
+        /// </summary>
+        public class AttachmentUploadTask : IAttachmentUploadTask
+        {
+            /// <summary>
+            /// Initializes a new instance of <see cref="AttachmentUploadTask"/> class.
+            /// </summary>
+            /// <param name="attachmentStream"></param>
+            /// <param name="thumbnail"></param>
+            public AttachmentUploadTask(Stream attachmentStream, IThumbnailUploadTask thumbnail = null)
+            {
+                Thumbnail = thumbnail;
+                Stream = attachmentStream;
+            }
+
+            /// <summary>
+            /// Attachment name.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Attachment title.
+            /// </summary>
+            public string Title { get; set; }
+
+            /// <summary>
+            /// Attachment MIME type.
+            /// </summary>
+            public string MimeType { get; set; }
+
+            /// <summary>
+            /// Attachment input stream.
+            /// </summary>
+            public Stream Stream { get; protected set; }
+
+            public IThumbnailUploadTask Thumbnail { get; protected set; }
+        }
+
+        /// <summary>
         /// Creates a file attachment upload task.
         /// </summary>
-        public class FileAttachmentUploadTask : IAttachmentUploadTask, IDisposable
+        public class FileAttachmentUploadTask : AttachmentUploadTask, IDisposable
         {
             /// <summary>
             /// Initializes a new instance of <see cref="FileAttachmentUploadTask"/> class.
             /// </summary>
             /// <param name="fileName">File name.</param>
             /// <param name="thumbnail">Thumbnail upload task. Optional.</param>
-            public FileAttachmentUploadTask(string fileName, IThumbnailUploadTask thumbnail = null)
+            public FileAttachmentUploadTask(string fileName, IThumbnailUploadTask thumbnail = null) 
+                : base(null, thumbnail)
             {
-                Thumbnail = thumbnail;
                 if (File.Exists(fileName))
                 {
                     Name = Path.GetFileName(fileName);
@@ -54,7 +93,7 @@ namespace KeeperSecurity
                         // ignored
                     }
 
-                    _fileStream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    Stream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
                 }
                 else
                 {
@@ -62,27 +101,9 @@ namespace KeeperSecurity
                 }
             }
 
-            private FileStream _fileStream;
-
-            public string Name { get; set; }
-            public string Title { get; set; }
-            public string MimeType { get; set; }
-            public Stream Stream => _fileStream;
-            public IThumbnailUploadTask Thumbnail { get; }
-
             public void Dispose()
             {
-                if (_fileStream != null)
-                {
-                    _fileStream.Dispose();
-                    _fileStream = null;
-                }
-
-                if (Thumbnail == null) return;
-                if (Thumbnail is IDisposable disp)
-                {
-                    disp.Dispose();
-                }
+                Stream?.Dispose();
             }
         }
 

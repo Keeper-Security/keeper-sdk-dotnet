@@ -187,9 +187,10 @@ namespace KeeperSecurity.Vault
         /// Modifies a password record.
         /// </summary>
         /// <param name="record">Password Record.</param>
+        /// <param name="skipExtra">Do not update file attachment information on the record.</param>
         /// <returns>A task returning created password record.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
-        Task<PasswordRecord> UpdateRecord(PasswordRecord record);
+        Task<PasswordRecord> UpdateRecord(PasswordRecord record, bool skipExtra = true);
 
         /// <summary>
         /// Deletes password records.
