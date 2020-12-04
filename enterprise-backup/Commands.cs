@@ -6,13 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.XPath;
 using CommandLine;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.OfflineStorage.Sqlite;
 using KeeperSecurity.Utils;
-using Org.BouncyCastle.Tsp;
 
 namespace EnterpriseBackup
 {
