@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 
 namespace EnterpriseBackup
@@ -12,9 +13,25 @@ namespace EnterpriseBackup
             return InputManager;
         }
 
+        static void Welcome()
+        {
+            Console.WriteLine();
+            Console.WriteLine(@" _  __                      ");
+            Console.WriteLine(@"| |/ /___ ___ _ __  ___ _ _ ");
+            Console.WriteLine(@"| ' </ -_) -_) '_ \/ -_) '_|");
+            Console.WriteLine(@"|_|\_\___\___| .__/\___|_|  ");
+            Console.WriteLine(@"             |_|            ");
+            Console.WriteLine(@"password manager & digital vault");
+            Console.WriteLine();
+            Console.WriteLine("Type \"?\" for command help");
+            Console.WriteLine();
+        }
         static void Main()
         {
-            ;
+            Console.Clear();
+            Console.SetCursorPosition(0, 0);
+            Welcome();
+
             var mainLoop = new MainLoop
             {
                 StateContext = new MainMenuCliContext()

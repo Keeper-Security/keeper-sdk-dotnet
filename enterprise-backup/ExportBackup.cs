@@ -408,6 +408,12 @@ namespace EnterpriseBackup
                 {
                     if (string.IsNullOrEmpty(x)) return "";
                     var shouldQuote = x.Contains(',');
+                    if (x.Contains('\r'))
+                    {
+                        x = x.Replace("\r\n", "\n");
+                        x = x.Replace("\r", "\n");
+                    }
+                    shouldQuote = shouldQuote || x.Contains('\n');
                     if (x.Contains('"'))
                     {
                         shouldQuote = true;
@@ -493,7 +499,6 @@ namespace EnterpriseBackup
         {
             await DisposeAsyncCore();
             Dispose(false);
-            // Suppress finalization.
             GC.SuppressFinalize(this);
         }
 
