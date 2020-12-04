@@ -36,7 +36,9 @@ namespace EnterpriseBackup
             {
                 StateContext = new MainMenuCliContext()
             };
-            Task.WaitAny(Task.Run(() => { InputManager.Run(); }), mainLoop.Run());
+
+            _ = mainLoop.Run();
+            InputManager.Run();
         }
     }
 }

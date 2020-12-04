@@ -147,12 +147,34 @@ namespace EnterpriseBackup
         private KeysToUnlock Keys { get; }
         private Dictionary<int, BackupUser> Users { get; }
 
+        private string ExportFilePath { get; }
+
         public UnlockedBackupCommands(string backupFileName, KeysToUnlock keys, Dictionary<int, BackupUser> users)
         {
             BackupFileName = backupFileName;
             Keys = keys;
             Users = users;
             _fileName = Path.GetFileNameWithoutExtension(BackupFileName);
+            ExportFilePath = Path.GetDirectoryName(backupFileName) ?? "";
+            if (!string.IsNullOrEmpty(ExportFilePath))
+            {
+                var path = Directory.GetParent(ExportFilePath);
+                if (path != null)
+                {
+                    ExportFilePath = Path.Combine(path.FullName, "Exports");
+                    if (!Directory.Exists(ExportFilePath))
+                    {
+                        Directory.CreateDirectory(ExportFilePath);
+                    }
+                }
+            }
+
+            ExportFilePath = Path.Combine(ExportFilePath, _fileName);
+            if (!Directory.Exists(ExportFilePath))
+            {
+                Directory.CreateDirectory(ExportFilePath);
+            }
+
 
             Commands.Add("user-list",
                 new ParsableCommand<UserListOptions>
@@ -297,7 +319,7 @@ namespace EnterpriseBackup
                 }
 
                 var fileName = $"{user.Username}.csv";
-                await using var exporter = new CsvExporter(fileName, zipFileName);
+                await using var exporter = new CsvExporter(ExportFilePath, fileName, zipFileName);
                 var recordStorage = new BackupDataReader<BackupRecord>(() => connection);
                 var privateKey = CryptoUtils.LoadPrivateKey(user.DecryptedPrivateKey);
                 var recordNo = 0;
@@ -333,17 +355,13 @@ namespace EnterpriseBackup
 
                 if (recordNo > 0)
                 {
-                    if (string.IsNullOrEmpty(zipFileName))
+                    var info = $"Exported {recordNo} record(s) to file {fileName}";
+                    if (!string.IsNullOrEmpty(zipFileName))
                     {
-                        Console.WriteLine($"Exported {recordNo} record(s) to file {fileName}");
+                        info = $"{info} inside archive {zipFileName}";
                     }
-                    else
-                    {
-                        Console.WriteLine($"Exported {recordNo} record(s) to file {fileName} in archive {zipFileName}");
-                    }
-
+                    Console.WriteLine($"{info} located in \"{ExportFilePath}\" folder.");
                 }
-
             }
 
             connection.Close();
@@ -381,11 +399,12 @@ namespace EnterpriseBackup
 
         private bool _createHeader;
 
-        public CsvExporter(string fileName, string zipName = null)
+        public CsvExporter(string path, string fileName, string zipName = null)
         {
             if (!string.IsNullOrEmpty(zipName))
             {
-                var fileStream = File.Open(zipName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                var fullPath = Path.Combine(path, zipName);
+                var fileStream = File.Open(fullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Update, false);
                 var entry = zipArchive.CreateEntry(fileName, CompressionLevel.Fastest);
                 _writer = new StreamWriter(entry.Open(), Encoding.UTF8, -1, false);
@@ -393,6 +412,7 @@ namespace EnterpriseBackup
             }
             else
             {
+                var fullPath = Path.Combine(path, fileName);
                 var fileStream = File.OpenWrite(fileName);
                 _writer = new StreamWriter(fileStream, Encoding.UTF8, -1, false);
             }

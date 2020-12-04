@@ -12,6 +12,7 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.OfflineStorage.Sqlite;
 using KeeperSecurity.Utils;
+using Org.BouncyCastle.Tsp;
 
 namespace EnterpriseBackup
 {
@@ -119,8 +120,7 @@ namespace EnterpriseBackup
         {
             var res = Parser.Default.ParseArguments<T>(args.TokenizeArguments());
             T options = null;
-            res
-                .WithParsed(o => { options = o; });
+            res.WithParsed(o => { options = o; });
             if (options != null)
             {
                 await Action(options);
@@ -142,7 +142,7 @@ namespace EnterpriseBackup
                 new SimpleCommand
                 {
                     Order = 1000,
-                    Description = "Clear the screen",
+                    Description = "Clears the screen",
                     Action = (args) =>
                     {
                         Console.Clear();
@@ -159,6 +159,7 @@ namespace EnterpriseBackup
                     {
                         Finished = true;
                         StateContext = null;
+                        Environment.Exit(0);
                         return Task.FromResult(true);
                     }
                 });
@@ -199,11 +200,6 @@ namespace EnterpriseBackup
                 }
                 else
                 {
-                    if (Console.CursorLeft != 0)
-                    {
-                        Console.WriteLine();
-                    }
-
                     Console.Write(StateContext.GetPrompt() + "> ");
                     command = await Program.GetInputManager().ReadLine(new ReadLineParameters
                     {
@@ -257,12 +253,27 @@ namespace EnterpriseBackup
                     {
                         Console.WriteLine($"Invalid command: {command}");
                     }
-
+                    var tab = new Tabulate(3);
+                    tab.AddHeader("Command", "Alias", "Description");
                     foreach (var c in (Commands.Concat(StateContext.Commands))
                         .OrderBy(x => x.Value.Order))
                     {
-                        Console.WriteLine("    " + c.Key.PadRight(24) + c.Value.Description);
+                        var alias = CommandAliases
+                            .Where(x => x.Value == c.Key)
+                            .Select(x => x.Key)
+                            .FirstOrDefault();
+                        if (alias == null)
+                        {
+                            alias = StateContext.CommandAliases
+                                .Where(x => x.Value == c.Key)
+                                .Select(x => x.Key)
+                                .FirstOrDefault();
+                        }
+                        tab.AddRow(c.Key, alias ?? "", c.Value.Description);
                     }
+                    tab.DumpRowNo = false;
+                    tab.LeftPadding = 1;
+                    tab.Dump();
                 }
 
                 Console.WriteLine();
