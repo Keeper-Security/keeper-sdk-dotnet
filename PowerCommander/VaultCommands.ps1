@@ -1,6 +1,6 @@
 #requires -Version 5.0
 
-using namespace KeeperSecurity
+using namespace KeeperSecurity.Sdk
 
 $Script:PathDelimiter = [System.IO.Path]::DirectorySeparatorChar
 

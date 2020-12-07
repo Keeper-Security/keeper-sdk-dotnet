@@ -75,7 +75,6 @@ function Connect-Keeper {
         $_ = $task.GetAwaiter().GetResult()
         [KeeperSecurity.Sdk.VaultData]$vault = $Script:Vault
         Write-Information -MessageData "Decrypted $($vault.RecordCount) record(s)"
-		$_ = Set-KeeperLocation -Path '\'
     }
 }
 
