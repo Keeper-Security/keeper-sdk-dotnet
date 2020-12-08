@@ -191,12 +191,19 @@ namespace KeeperSecurity.Authentication
         public PasswordActionDelegate InvokePasswordActionDelegate { get; internal set; }
     }
 
+    internal class HttpProxyInfo : IHttpProxyInfo
+    {
+        public Uri ProxyUri { get; internal set; }
+        public string[] ProxyAuthenticationMethods { get; internal set; }
+        public HttpProxyCredentialsDelegate InvokeHttpProxyCredentialsDelegate { get; internal set; }
+    }
+
     /// <exclude/>
     public static class AuthUIExtensions
     {
-        public static bool TryGetPushActionText(this TwoFactorPushAction pushAction, out string text)
+        public static string GetPushActionText(this TwoFactorPushAction pushAction)
         {
-            return PushActions.TryGetValue(pushAction, out text);
+            return PushActions.TryGetValue(pushAction, out var text) ? text : pushAction.ToString();
         }
 
         public static bool TryParsePushAction(string text, out TwoFactorPushAction pushAction)
@@ -237,9 +244,9 @@ namespace KeeperSecurity.Authentication
                 {TwoFactorChannel.KeeperDNA, "two_factor_channel_push"},
             };
 
-        public static bool TryGetTwoFactorChannelText(this TwoFactorChannel channel, out string text)
+        public static string GetTwoFactorChannelText(this TwoFactorChannel channel)
         {
-            return TwoFactorChannels.TryGetValue(channel, out text);
+            return TwoFactorChannels.TryGetValue(channel, out var text) ? text : channel.ToString();
         }
 
         public static bool TryParseTwoFactorChannel(string text, out TwoFactorChannel channel)
@@ -267,9 +274,9 @@ namespace KeeperSecurity.Authentication
             {DeviceApprovalChannel.TwoFactorAuth, "device_approve_tfa"},
         };
 
-        public static bool TryGetDeviceApprovalChannelText(this DeviceApprovalChannel channel, out string text)
+        public static string DeviceApprovalChannelText(this DeviceApprovalChannel channel)
         {
-            return DeviceApproveChannels.TryGetValue(channel, out text);
+            return DeviceApproveChannels.TryGetValue(channel, out var text) ? text : channel.ToString();
         }
 
         public static bool TryParseDeviceApprovalChannel(string text, out DeviceApprovalChannel channel)

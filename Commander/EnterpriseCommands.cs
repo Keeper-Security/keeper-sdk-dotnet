@@ -14,6 +14,7 @@ using KeeperSecurity.Enterprise;
 using KeeperSecurity.Utils;
 using Org.BouncyCastle.Crypto.Parameters;
 using KeyType = Enterprise.KeyType;
+using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
 
 namespace Commander
 {

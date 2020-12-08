@@ -34,7 +34,7 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     public class KeeperPostLoginErrors : Exception
     {
-        internal KeeperPostLoginErrors(string code, string message) : base(message)
+        public KeeperPostLoginErrors(string code, string message) : base(message)
         {
             Code = code;
         }

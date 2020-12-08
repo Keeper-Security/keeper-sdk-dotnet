@@ -31,7 +31,7 @@ namespace KeeperSecurity.Configuration
     /// Provides a base entity access interface. 
     /// </summary>
     /// <typeparam name="T">Entity type</typeparam>
-    public interface IConfigCollection<T> where T : class, IConfigurationId
+    public interface IConfigCollection<T> where T : IConfigurationId
     {
         /// <summary>
         /// Return entity by ID.
@@ -108,8 +108,6 @@ namespace KeeperSecurity.Configuration
         /// Server Key ID.
         /// </summary>
         int ServerKeyId { get; }
-        /// <exclude/>
-        byte[] DeviceId { get; }
     }
 
     /// <summary>
@@ -144,6 +142,12 @@ namespace KeeperSecurity.Configuration
         /// Device's server collection.
         /// </summary>
         IConfigCollection<IDeviceServerConfiguration> ServerInfo { get; }
+    }
+
+    /// <exclude/>
+    public interface IConfigurationFlush
+    {
+        void Flush();
     }
 
     /// <summary>
@@ -285,12 +289,10 @@ namespace KeeperSecurity.Configuration
         public ServerConfiguration(IServerConfiguration other) : this(other.Server)
         {
             ServerKeyId = other.ServerKeyId;
-            DeviceId = other.DeviceId;
         }
 
         public string Server { get; }
         public int ServerKeyId { get; set; } = 1;
-        public byte[] DeviceId { get; set; }
 
         /// <exclude/>
         string IConfigurationId.Id => Server;

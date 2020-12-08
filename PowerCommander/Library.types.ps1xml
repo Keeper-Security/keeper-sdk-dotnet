@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Types>
   <Type>
-    <Name>KeeperSecurity.Sdk.Auth</Name>
+    <Name>KeeperSecurity.Authentication.Auth</Name>
     <Members>
       <ScriptProperty>
         <Name>ConfigurationInfo</Name>
         <GetScriptBlock>
           $conf = @()
-          if ($this.Storage -is [KeeperSecurity.Sdk.JsonConfigurationStorage]) {
+          if ($this.Storage -is [KeeperSecurity.Configuration.JsonConfigurationStorage]) {
           $conf += $this.Storage.FilePath
           }
           $c = $this.Storage.Get()
@@ -20,7 +20,7 @@
   </Type>
 
   <Type>
-    <Name>KeeperSecurity.Sdk.PasswordRecord</Name>
+    <Name>KeeperSecurity.Vault.PasswordRecord</Name>
     <Members>
       <ScriptProperty>
         <Name>DisplayedPassword</Name>
@@ -80,7 +80,7 @@
   </Type>
 
   <Type>
-    <Name>KeeperSecurity.Sdk.SharedFolder</Name>
+    <Name>KeeperSecurity.Vault.SharedFolder</Name>
     <Members>
       <ScriptProperty>
         <Name>Users</Name>
@@ -111,7 +111,7 @@
   </Type>
 
   <Type>
-    <Name>KeeperSecurity.Sdk.EnterpriseTeam</Name>
+    <Name>KeeperSecurity.Vault.EnterpriseTeam</Name>
     <Members>
       <MemberSet>
         <Name>PSStandardMembers</Name>
@@ -132,7 +132,7 @@
   </Type>
 
   <Type>
-    <Name>KeeperSecurity.Sdk.SharedFolderPermission</Name>
+    <Name>KeeperSecurity.Vault.SharedFolderPermission</Name>
     <Members>
       <ScriptProperty>
         <Name>Name</Name>
@@ -162,7 +162,7 @@
   </Type>
 
   <Type>
-    <Name>KeeperSecurity.Sdk.SharedFolderRecord</Name>
+    <Name>KeeperSecurity.Vault.SharedFolderRecord</Name>
     <Members>
       <ScriptProperty>
         <Name>RecordTitle</Name>

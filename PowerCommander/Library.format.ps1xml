@@ -2,9 +2,9 @@
 <Configuration>
   <ViewDefinitions>
     <View>
-      <Name>KeeperSecurity.Sdk.Auth</Name>
+      <Name>KeeperSecurity.Authentication.Auth</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Sdk.Auth</TypeName>
+        <TypeName>KeeperSecurity.Authentication.Auth</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -16,9 +16,6 @@
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Keeper Endpoint</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Last Login</Label>
           </TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -34,9 +31,6 @@
               <TableColumnItem>
                 <ScriptBlock>$_.Endpoint.Server</ScriptBlock>
               </TableColumnItem>
-              <TableColumnItem>
-                <ScriptBlock>$conf = $_.Storage.Get(); $conf.LastLogin;</ScriptBlock>
-              </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>
@@ -44,9 +38,9 @@
     </View>
     
     <View>
-      <Name>KeeperSecurity.Sdk.Auth</Name>
+      <Name>KeeperSecurity.Authentication.Auth</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Sdk.Auth</TypeName>
+        <TypeName>KeeperSecurity.Authentication.Auth</TypeName>
       </ViewSelectedBy>
       <ListControl>
         <ListEntries>
@@ -80,9 +74,9 @@
     </View>
 
     <View>
-      <Name>KeeperSecurity.Sdk.Vault</Name>
+      <Name>KeeperSecurity.Vault.VaultOnline</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Sdk.Vault</TypeName>
+        <TypeName>KeeperSecurity.Vault.VaultOnline</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -125,9 +119,9 @@
     </View>
 
     <View>
-      <Name>KeeperSecurity.Sdk.Vault</Name>
+      <Name>KeeperSecurity.Vault.Vault</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Sdk.Vault</TypeName>
+        <TypeName>KeeperSecurity.Vault.Vault</TypeName>
       </ViewSelectedBy>
       <ListControl>
         <ListEntries>
@@ -156,9 +150,9 @@
     </View>
 
     <View>
-      <Name>KeeperSecurity.Sdk.PasswordRecord</Name>
+      <Name>KeeperSecurity.Vault.PasswordRecord</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Sdk.PasswordRecord</TypeName>
+        <TypeName>KeeperSecurity.Vault.PasswordRecord</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -199,9 +193,9 @@
     </View>
 
     <View>
-      <Name>KeeperSecurity.Sdk.PasswordRecord</Name>
+      <Name>KeeperSecurity.Vault.PasswordRecord</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Sdk.PasswordRecord</TypeName>
+        <TypeName>KeeperSecurity.Vault.PasswordRecord</TypeName>
       </ViewSelectedBy>
       <ListControl>
         <ListEntries>
@@ -242,9 +236,9 @@
     </View>
 
     <View>
-      <Name>KeeperSecurity.Sdk.SharedFolder</Name>
+      <Name>KeeperSecurity.Vault.SharedFolder</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Sdk.SharedFolder</TypeName>
+        <TypeName>KeeperSecurity.Vault.SharedFolder</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -293,9 +287,9 @@
     </View>
 
     <View>
-      <Name>KeeperSecurity.Sdk.SharedFolder</Name>
+      <Name>KeeperSecurity.Vault.SharedFolder</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Sdk.SharedFolder</TypeName>
+        <TypeName>KeeperSecurity.Vault.SharedFolder</TypeName>
       </ViewSelectedBy>
       <ListControl>
         <ListEntries>

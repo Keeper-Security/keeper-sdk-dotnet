@@ -1,61 +1,85 @@
 #requires -Version 5.0
 
-using namespace KeeperSecurity.Sdk 
+using namespace KeeperSecurity 
 using namespace System.Threading
 using namespace System.Threading.Tasks
 
-class TerminalUI : UI.IAuthUI, UI.IAuthInfoUI {
+class TerminalUI : Authentication.IAuthUI, Authentication.IAuthInfoUI {
     RegionChanged([string]$newRegion) 
     {
         Write-Host "`nRegion changed:", $newRegion
     }
 
-    [Task[string]]GetMasterPassword([string]$username) 
+    SelectedDevice([string]$deviceToken)
+    {}
+
+    [Task[bool]]WaitForUserPassword([Authentication.IPasswordInfo]$passwordInfo, [CancellationToken]$token) 
     {
         Write-Host "`nMaster Password`n"
-
+		[bool]$result = $true
         [string] $masterPassword = ''
+
         $securedPassword = Read-Host -Prompt 'Enter Master Password' -AsSecureString 
         if ($securedPassword.Length -gt 0) {
             $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedPassword)
 			$masterPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        }
-
-        return [Task]::FromResult($masterPassword)
+			try {
+				$_ = $passwordInfo.InvokePasswordActionDelegate.Invoke($masterPassword).GetAwaiter().GetResult()
+                $_ = [Task]::Delay(1000, $token).GetAwaiter().GetResult()
+			}
+			catch  {
+		        Write-Host "Invalid password"
+			}
+        } else {
+			$result = $false
+		}
+        return [Task]::FromResult($result)
     }
 
-	[Task[UI.TwoFactorCode]]GetTwoFactorCode(
-        [UI.TwoFactorChannel]$channel, 
-        [UI.ITwoFactorChannelInfo[]]$channels, 
-        [CancellationToken]$token ) 
+	[Task[bool]]WaitForTwoFactorCode([Authentication.ITwoFactorChannelInfo[]]$channels, [CancellationToken]$token ) 
     {
         Write-Host "`nTwo Factor Authentication`n"
 
-		[Task[UI.TwoFactorCode]] $source = $null
+		[bool]$result = $true
+		[Authentication.ITwoFactorChannelInfo] $channel = $channels
+        if ( $channel -is [Authentication.ITwoFactorPushInfo]) {
+			if ($channel.SupportedActions.Length -eq 1) {
+				try {
+					$_ = $channel.InvokeTwoFactorPushAction.Invoke($channel.SupportedActions[0]).GetAwaiter().GetResult()
+				}
+				catch {
+					Write-Debug $PSItem.Exception.Message
+				}
+			}
+		}
+
 		$code = Read-Host -Prompt 'Enter 2FA Code'
 		if ($code) {
-			$rs = New-Object -TypeName UI.TwoFactorCode($channel, $code, [UI.TwoFactorDuration]::Forever)
-			$source = [Task]::FromResult($rs)
+			try {
+				$_ = $channel.InvokeTwoFactorCodeAction.Invoke().GetAwaiter().GetResult()
+			}
+			catch {
+		        Write-Host $PSItem.Exception.Message
+			}
+		} else {
+	        $result = $false
 		}
-		
-		return $source
+        return [Task]::FromResult($result)
 	}
 
-    [Task[bool]] WaitForDeviceApproval(
-        [UI.IDeviceApprovalChannelInfo[]]$channels,
-        [CancellationToken]$token) 
+    [Task[bool]] WaitForDeviceApproval([Authentication.IDeviceApprovalChannelInfo[]]$channels, [CancellationToken]$token) 
     {
         Write-Host "`nDevice Approval`n"
 
         foreach ($channelInfo in $channels) {
-            [UI.DeviceApprovalChannel]$channel = $channelInfo.Channel
-            if ($channel -eq [UI.DeviceApprovalChannel]::Email) {
+            [Authentication.DeviceApprovalChannel]$channel = $channelInfo.Channel
+            if ($channel -eq [Authentication.DeviceApprovalChannel]::Email) {
                 Write-Host "'email' to send email"
             }
-            elseif ($channel -eq [UI.DeviceApprovalChannel]::KeeperPush) {
+            elseif ($channel -eq [Authentication.DeviceApprovalChannel]::KeeperPush) {
                 Write-Host "'push' to send Keeper Push notification"
             }
-            elseif ($channel -eq [UI.DeviceApprovalChannel]::TwoFactorAuth) {
+            elseif ($channel -eq [Authentication.DeviceApprovalChannel]::TwoFactorAuth) {
                 Write-Host "'tfa' to send 2FA code"
                 Write-Host "<code> provided by your 2FA application"
             }
@@ -70,32 +94,32 @@ class TerminalUI : UI.IAuthUI, UI.IAuthInfoUI {
             $result = $false
         }
         elseif ($action -in "email", "push", "tfa") {
-            [UI.DeviceApprovalChannel]$pushChannel = [UI.DeviceApprovalChannel]::Email
+            [Authentication.DeviceApprovalChannel]$pushChannel = [Authentication.DeviceApprovalChannel]::Email
             if ($action -eq "push") {
-                $pushChannel = [UI.DeviceApprovalChannel]::KeeperPush
+                $pushChannel = [Authentication.DeviceApprovalChannel]::KeeperPush
             }
             elseif ($action -eq "tfa") {
-                $pushChannel = [UI.DeviceApprovalChannel]::TwoFactorAuth                    
+                $pushChannel = [Authentication.DeviceApprovalChannel]::TwoFactorAuth                    
             }
             foreach($channelInfo in $channels) {
                 if ($channelInfo.Channel -eq $pushChannel) {
-                    [UI.IDeviceApprovalPushInfo] $pi = $channelInfo
-                    if ( $pi -is [UI.IDeviceApprovalDuration]) {
-                        [UI.IDeviceApprovalDuration] $dur = $pi
-                        $dur.Duration = [UI.TwoFactorDuration]::Every30Days
+                    [Authentication.IDeviceApprovalPushInfo] $pi = $channelInfo
+                    if ( $pi -is [Authentication.ITwoFactorDurationInfo]) {
+                        [Authentication.ITwoFactorDurationInfo] $dur = $pi
+                        $dur.Duration = [Authentication.TwoFactorDuration]::Every30Days
                     }
                     $_ = $pi.InvokeDeviceApprovalPushAction.Invoke().GetAwaiter().GetResult()
-                    if ($channelInfo -is [UI.IDeviceApprovalOtpInfo]) {
+                    if ($channelInfo -is [Authentication.IDeviceApprovalOtpInfo]) {
                         Write-Host "'<code>' provide your code"
                     }
                     Write-Host "<Enter> when device is approved"
                     $code = Read-Host -Prompt 'Code'
                     if ($code) {
-                        if ($channelInfo -is [UI.IDeviceApprovalOtpInfo]) {
+                        if ($channelInfo -is [Authentication.IDeviceApprovalOtpInfo]) {
                             $oi = $channelInfo
-                            if ( $pi -is [UI.IDeviceApprovalDuration]) {
-                                [UI.IDeviceApprovalDuration] $dur = $pi
-                                $dur.Duration = [UI.TwoFactorDuration]::Every30Days
+                            if ( $pi -is [Authentication.ITwoFactorDurationInfo]) {
+                                [Authentication.ITwoFactorDurationInfo] $dur = $pi
+                                $dur.Duration = [Authentication.TwoFactorDuration]::Every30Days
                             }
                             $_ = $oi.InvokeDeviceApprovalOtpAction.Invoke($code).GetAwaiter().GetResult()
                         }
@@ -105,11 +129,11 @@ class TerminalUI : UI.IAuthUI, UI.IAuthInfoUI {
         }
         elseif ($action) {
             foreach($channelInfo in $channels) {
-                if ($channelInfo.Channel -eq [UI.DeviceApprovalChannel]::TwoFactorAuth) {
-                    [UI.IDeviceApprovalOtpInfo] $oi = $channelInfo
-                    if ( $oi -is [UI.IDeviceApprovalDuration]) {
-                        [UI.IDeviceApprovalDuration] $dur = $oi
-                        $dur.Duration = [UI.TwoFactorDuration]::Every30Days
+                if ($channelInfo.Channel -eq [Authentication.DeviceApprovalChannel]::TwoFactorAuth) {
+                    [Authentication.IDeviceApprovalOtpInfo] $oi = $channelInfo
+                    if ( $oi -is [Authentication.ITwoFactorDurationInfo]) {
+                        [Authentication.ITwoFactorDurationInfo] $dur = $oi
+                        $dur.Duration = [Authentication.TwoFactorDuration]::Every30Days
                     }
                     $_ = $oi.InvokeDeviceApprovalOtpAction.Invoke($action).GetAwaiter().GetResult()
                 }                    
@@ -121,8 +145,6 @@ class TerminalUI : UI.IAuthUI, UI.IAuthInfoUI {
 }
 
 function initialize {
-	$storage = New-Object JsonConfigurationStorage
-	$ui = New-Object TerminalUI
-	$Script:Auth = New-Object Auth($ui, $storage)
+	$Script:Auth = $null
 }
 initialize

@@ -201,7 +201,7 @@ namespace KeeperSecurity.Vault
                     }
 
                     var scope = sourceFolder.FolderType != FolderType.UserFolder
-                        ? sourceFolder.FolderType == FolderType.SharedFolderFolder ? sourceFolder.SharedFolderUid : destinationFolder.FolderUid
+                        ? sourceFolder.FolderType == FolderType.SharedFolderFolder ? sourceFolder.SharedFolderUid : sourceFolder.FolderUid
                         : "";
 
                     if (scope != destinationFolderScope && !keyObjects.ContainsKey(mo.RecordUid))
@@ -242,7 +242,7 @@ namespace KeeperSecurity.Vault
             IPasswordRecord existingRecord = null;
             if (!string.IsNullOrEmpty(record.Uid))
             {
-                existingRecord = vault.Storage.Records.Get(record.Uid);
+                existingRecord = vault.Storage.Records.GetEntity(record.Uid);
             }
 
             if (existingRecord == null)
@@ -358,10 +358,14 @@ namespace KeeperSecurity.Vault
             return vault.TryGetRecord(record.Uid, out var r) ? r : record;
         }
 
-        public static async Task PutNonSharedData<T>(this VaultOnline vault, string recordUid, T nonSharedData) where T : RecordNonSharedDataData
+        public static async Task PutNonSharedData<T>(this VaultOnline vault, string recordUid, T nonSharedData) 
+            where T : RecordNonSharedData, new()
         {
-            var existingRecord = vault.Storage.Records.Get(recordUid);
+            var existingData = vault.LoadNonSharedData<T>(recordUid) ?? new T();
+            nonSharedData.ExtensionData = existingData.ExtensionData;
             var data = JsonUtils.DumpJson(nonSharedData);
+
+            var existingRecord = vault.Storage.Records.GetEntity(recordUid);
             var updateRecord = new RecordUpdateRecord
             {
                 RecordUid = recordUid,
@@ -473,7 +477,7 @@ namespace KeeperSecurity.Vault
                 SharedFolderUid = string.IsNullOrEmpty(folder.SharedFolderUid) ? null : folder.SharedFolderUid,
             };
 
-            var existingRecord = vault.Storage.Folders.Get(folderUid);
+            var existingRecord = vault.Storage.Folders.GetEntity(folderUid);
             var data = string.IsNullOrEmpty(existingRecord?.Data)
                 ? new FolderData()
                 : JsonUtils.ParseJson<FolderData>(existingRecord.Data.Base64UrlDecode());

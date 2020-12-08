@@ -325,26 +325,22 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="uid">Entity UID.</param>
         /// <returns>Entity instance.</returns>
-        T Get(string uid);
+        T GetEntity(string uid);
         /// <summary>
-        /// Stores entity.
+        /// Stores entities.
         /// </summary>
-        /// <param name="data">Entity instance.</param>
-        void Put(T data);
+        /// <param name="entities">List of entities.</param>
+        void PutEntities(IEnumerable<T> entities);
         /// <summary>
         /// Deletes entity by entity UID.
         /// </summary>
-        /// <param name="uid">Entity UID.</param>
-        void Delete(string uid);
+        /// <param name="uids">List of Entity UIDs to delete.</param>
+        void DeleteUids(IEnumerable<string> uids);
         /// <summary>
         /// Gets all entities in the storage.
         /// </summary>
         /// <returns></returns>
         IEnumerable<T> GetAll();
-        /// <summary>
-        /// Deletes all entities in the storage.
-        /// </summary>
-        void Clear();
     }
 
     /// <summary>
@@ -354,25 +350,35 @@ namespace KeeperSecurity.Vault
     public interface IPredicateStorage<T> where T : IUidLink
     {
         /// <summary>
-        /// Stores entity link
+        /// Stores entity links
         /// </summary>
-        /// <param name="data">Entity link.</param>
-        void Put(T data);
+        /// <param name="entities">List of entity links.</param>
+        void PutLinks(IEnumerable<T> entities);
         /// <summary>
         /// Deletes entity link.
         /// </summary>
-        /// <param name="link">Entity link.</param>
-        void Delete(IUidLink link);
+        /// <param name="links">List links to delete.</param>
+        void DeleteLinks(IEnumerable<IUidLink> links);
+        /// <summary>
+        /// Delete all links for subject entity UIDs
+        /// </summary>
+        /// <param name="subjectUids">List of Subject UIDs to delete.</param>
+        void DeleteLinksForSubjects(IEnumerable<string> subjectUids);
+        /// <summary>
+        /// Delete all links for object entity UID
+        /// </summary>
+        /// <param name="objectUid">List of Object UIDs to delete.</param>
+        void DeleteLinksForObjects(IEnumerable<string> objectUids);
         /// <summary>
         /// Gets all entity links for subject entity UID.
         /// </summary>
-        /// <param name="subjectUid">Subject entity UID.</param>
+        /// <param name="subjectUid">Subject UID.</param>
         /// <returns>A list of entity links.</returns>
         IEnumerable<T> GetLinksForSubject(string subjectUid);
         /// <summary>
         /// Gets all entity links for object entity UID.
         /// </summary>
-        /// <param name="objectUid">Object entity UID.</param>
+        /// <param name="objectUid">Object UID.</param>
         /// <returns>A list of entity links.</returns>
         IEnumerable<T> GetLinksForObject(string objectUid);
         /// <summary>
@@ -380,10 +386,6 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <returns>A list of entity links.</returns>
         IEnumerable<T> GetAllLinks();
-        /// <summary>
-        /// Deletes all entity links.
-        /// </summary>
-        void Clear();
     }
 
     /// <summary>
@@ -477,12 +479,15 @@ namespace KeeperSecurity.Vault
     {
         private readonly Dictionary<string, T> _items = new Dictionary<string, T>();
 
-        public void Delete(string uid)
+        public void DeleteUids(IEnumerable<string> uids)
         {
-            _items.Remove(uid);
+            foreach (var uid in uids)
+            {
+                _items.Remove(uid);
+            }
         }
 
-        public T Get(string uid)
+        public T GetEntity(string uid)
         {
             if (_items.TryGetValue(uid, out T item))
             {
@@ -497,14 +502,12 @@ namespace KeeperSecurity.Vault
             return _items.Values;
         }
 
-        public void Put(T data)
+        public void PutEntities(IEnumerable<T> data)
         {
-            _items[data.Uid] = data;
-        }
-
-        public void Clear()
-        {
-            _items.Clear();
+            foreach (var entity in data)
+            {
+                _items[entity.Uid] = entity;
+            }
         }
     }
 
@@ -513,16 +516,33 @@ namespace KeeperSecurity.Vault
         private readonly Dictionary<string, IDictionary<string, T>> _links =
             new Dictionary<string, IDictionary<string, T>>();
 
-        public void Clear()
+        public void DeleteLinks(IEnumerable<IUidLink> links)
         {
-            _links.Clear();
+            foreach (var link in links)
+            {
+                if (_links.TryGetValue(link.SubjectUid, out IDictionary<string, T> dict))
+                {
+                    dict.Remove(link.ObjectUid ?? "");
+                }
+            }
         }
 
-        public void Delete(IUidLink link)
+        public void DeleteLinksForSubjects(IEnumerable<string> subjectUids)
         {
-            if (_links.TryGetValue(link.SubjectUid, out IDictionary<string, T> dict))
+            foreach (var subjectUid in subjectUids)
             {
-                dict.Remove(link.ObjectUid ?? "");
+                _links.Remove(subjectUid ?? "");
+            }
+        }
+
+        public void DeleteLinksForObjects(IEnumerable<string> objectUids)
+        {
+            foreach (var objectUid in objectUids)
+            {
+                foreach (var pair in _links)
+                {
+                    pair.Value?.Remove(objectUid ?? "");
+                }
             }
         }
 
@@ -558,25 +578,28 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public void Put(T data)
+        public void PutLinks(IEnumerable<T> links)
         {
-            if (!_links.TryGetValue(data.SubjectUid, out IDictionary<string, T> dict))
+            foreach (var link in links)
             {
-                dict = new Dictionary<string, T>();
-                _links.Add(data.SubjectUid, dict);
-            }
-
-            var objectId = data.ObjectUid ?? "";
-            if (dict.TryGetValue(objectId, out T elem))
-            {
-                if (!ReferenceEquals(elem, data))
+                if (!_links.TryGetValue(link.SubjectUid, out IDictionary<string, T> dict))
                 {
-                    dict[objectId] = data;
+                    dict = new Dictionary<string, T>();
+                    _links.Add(link.SubjectUid, dict);
                 }
-            }
-            else
-            {
-                dict.Add(objectId, data);
+
+                var objectId = link.ObjectUid ?? "";
+                if (dict.TryGetValue(objectId, out var elem))
+                {
+                    if (!ReferenceEquals(elem, link))
+                    {
+                        dict[objectId] = link;
+                    }
+                }
+                else
+                {
+                    dict.Add(objectId, link);
+                }
             }
         }
     }
@@ -586,41 +609,37 @@ namespace KeeperSecurity.Vault
     /// </summary>
     public class InMemoryKeeperStorage : IKeeperStorage
     {
+        public InMemoryKeeperStorage()
+        {
+            Clear();
+        }
+
         public string PersonalScopeUid { get; } = "PersonalScopeUid";
 
         public long Revision { get; set; }
 
-        public IEntityStorage<IPasswordRecord> Records { get; } = new InMemoryItemStorage<IPasswordRecord>();
-        public IEntityStorage<ISharedFolder> SharedFolders { get; } = new InMemoryItemStorage<ISharedFolder>();
-        public IEntityStorage<IEnterpriseTeam> Teams { get; } = new InMemoryItemStorage<IEnterpriseTeam>();
-        public IEntityStorage<INonSharedData> NonSharedData { get; } = new InMemoryItemStorage<INonSharedData>();
-
-        public IPredicateStorage<IRecordMetadata> RecordKeys { get; } = new InMemorySentenceStorage<IRecordMetadata>();
-
-        public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; } =
-            new InMemorySentenceStorage<ISharedFolderKey>();
-
-        public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; } =
-            new InMemorySentenceStorage<ISharedFolderPermission>();
-
-        public IEntityStorage<IFolder> Folders { get; } = new InMemoryItemStorage<IFolder>();
-
-        public IPredicateStorage<IFolderRecordLink> FolderRecords { get; } =
-            new InMemorySentenceStorage<IFolderRecordLink>();
+        public IEntityStorage<IPasswordRecord> Records { get; private set; }
+        public IEntityStorage<ISharedFolder> SharedFolders { get; private set; }
+        public IEntityStorage<IEnterpriseTeam> Teams { get; private set; }
+        public IEntityStorage<INonSharedData> NonSharedData { get; private set; }
+        public IPredicateStorage<IRecordMetadata> RecordKeys { get; private set; }
+        public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; private set; }
+        public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; private set; }
+        public IEntityStorage<IFolder> Folders { get; private set; }
+        public IPredicateStorage<IFolderRecordLink> FolderRecords { get; private set; }
 
         public void Clear()
         {
-            Records.Clear();
-            SharedFolders.Clear();
-            Teams.Clear();
-            NonSharedData.Clear();
-
-            RecordKeys.Clear();
-            SharedFolderKeys.Clear();
-            SharedFolderPermissions.Clear();
-
-            Folders.Clear();
-            FolderRecords.Clear();
+            Records = new InMemoryItemStorage<IPasswordRecord>();
+            SharedFolders = new InMemoryItemStorage<ISharedFolder>();
+            Teams = new InMemoryItemStorage<IEnterpriseTeam>();
+            NonSharedData = new InMemoryItemStorage<INonSharedData>();
+            RecordKeys = new InMemorySentenceStorage<IRecordMetadata>();
+            SharedFolderKeys = new InMemorySentenceStorage<ISharedFolderKey>();
+            SharedFolderPermissions = new InMemorySentenceStorage<ISharedFolderPermission>();
+            Folders = new InMemoryItemStorage<IFolder>();
+            FolderRecords = new InMemorySentenceStorage<IFolderRecordLink>();
+            Revision = 0;
         }
     }
 
@@ -637,30 +656,5 @@ namespace KeeperSecurity.Vault
 
         string IUidLink.SubjectUid => Item1;
         string IUidLink.ObjectUid => Item2;
-    }
-
-    internal static class StorageExtensions
-    {
-        public static void Delete<T>(this IPredicateStorage<T> table, string objectUid, string subjectUid)
-            where T : IUidLink
-        {
-            table.Delete(UidLink.Create(objectUid, subjectUid));
-        }
-
-        public static void DeleteSubject<T>(this IPredicateStorage<T> table, string subjectUid) where T : IUidLink
-        {
-            foreach (var link in table.GetLinksForSubject(subjectUid).ToArray())
-            {
-                table.Delete(link);
-            }
-        }
-
-        public static void DeleteObject<T>(this IPredicateStorage<T> table, string objectUid) where T : IUidLink
-        {
-            foreach (var link in table.GetLinksForObject(objectUid).ToArray())
-            {
-                table.Delete(link);
-            }
-        }
     }
 }

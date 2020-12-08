@@ -307,7 +307,7 @@ namespace KeeperSecurity.Vault
 
             await ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
-
+        /*
         public async Task RemoveRecordFromSharedFolder(string sharedFolderUid, string recordUid)
         {
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);
@@ -344,5 +344,6 @@ namespace KeeperSecurity.Vault
 
             await ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
+        */
     }
 }

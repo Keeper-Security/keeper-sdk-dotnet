@@ -317,6 +317,31 @@ namespace KeeperSecurity.Authentication
     }
 
     /// <summary>
+    /// Http Proxy credentials action
+    /// </summary>
+    /// <returns></returns>
+    public delegate void HttpProxyCredentialsDelegate(string username, string password);
+
+    /// <summary>
+    /// Defines methods and properties for http proxy authentication.
+    /// </summary>
+    public interface IHttpProxyInfo
+    {
+        /// <summary>
+        /// Gets HTTP proxy URI
+        /// </summary>
+        Uri ProxyUri { get; }
+        /// <summary>
+        /// Gets Proxy-Authentication header
+        /// </summary>
+        string[] ProxyAuthenticationMethods { get; }
+        /// <summary>
+        /// Accepts HTTP proxy credentials
+        /// </summary>
+        HttpProxyCredentialsDelegate InvokeHttpProxyCredentialsDelegate { get; }
+    }
+
+    /// <summary>
     /// Defines a method that returns HTTP Web proxy credentials. Optional.
     /// </summary>
     /// <remarks>
@@ -324,15 +349,14 @@ namespace KeeperSecurity.Authentication
     /// Clients requests HTTP proxy credentials from the user and return them to the library.
     /// </remarks>
     /// <seealso cref="IAuthUI"/>
-    public interface IHttpProxyCredentialUI
+    public interface IHttpProxyCredentialUi
     {
         /// <summary>
         /// Requests HTTP Proxy credentials.
         /// </summary>
-        /// <param name="proxyUri">HTTP Proxy URL</param>
-        /// <param name="proxyAuthentication">Proxy-Authentication header.</param>
-        /// <returns>A task that returns HTTP proxy credentials. </returns>
-        Task<IWebProxy> GetHttpProxyCredentials(Uri proxyUri, string proxyAuthentication);
+        /// <param name="proxyInfo">HTTP Proxy information</param>
+        /// <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
+        Task<bool> WaitForHttpProxyCredentials(IHttpProxyInfo proxyInfo);
     }
 
     /// <summary>
