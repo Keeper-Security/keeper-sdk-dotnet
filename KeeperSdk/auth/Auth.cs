@@ -14,22 +14,26 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Authentication;
 using Org.BouncyCastle.Crypto.Parameters;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
+using AccountSummary;
 using Google.Protobuf;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using Push;
+using PasswordRule = KeeperSecurity.Commands.PasswordRule;
 using Type = System.Type;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Tests")]
-
+[assembly: InternalsVisibleTo("Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace KeeperSecurity.Authentication
 {
     /// <summary>
@@ -115,10 +119,11 @@ namespace KeeperSecurity.Authentication
         /// Executes Keeper JSON command.
         /// </summary>
         /// <param name="command">Keeper JSON command.</param>
-        /// <param name="responseType">Expected response type</param>
+        /// <param name="responseType">Type of response.</param>
+        /// <param name="throwOnError">throws exception on error.</param>
         /// <returns>Task returning JSON response.</returns>
         /// <seealso cref="Auth.ExecuteAuthCommand(AuthenticatedCommand,System.Type)"/>
-        Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType);
+        Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType, bool throwOnError);
 
         /// <summary>
         /// Executes Keeper Protofuf request.
@@ -173,6 +178,11 @@ namespace KeeperSecurity.Authentication
         AccountSettings Settings { get; }
 
         /// <summary>
+        /// Gets device information.
+        /// </summary>
+        DeviceInfo DeviceInfo { get; }
+
+        /// <summary>
         /// Gets user's enterprise enforcements.
         /// </summary>
         IDictionary<string, object> Enforcements { get; }
@@ -181,6 +191,14 @@ namespace KeeperSecurity.Authentication
         /// Gets enterprise administrator flag.
         /// </summary>
         bool IsEnterpriseAdmin { get; }
+        
+        /// <summary>
+        /// Gets SSO provider information
+        /// </summary>
+        SsoLoginInfo SsoLoginInfo { get; }
+
+        /// <exclude/>
+        bool CheckPasswordValid(string password);
     }
 
     [Flags]
@@ -192,11 +210,20 @@ namespace KeeperSecurity.Authentication
         AccountExpired = 1 << 3,
     }
 
-    internal class SsoLoginInfo
+    /// <summary>
+    /// Describes SSO Provider connection parameters
+    /// </summary>
+    public class SsoLoginInfo
     {
-        public string SsoProvider { get; set; }
-        public string SpBaseUrl { get; set; }
-        public string IdpSessionId { get; set; }
+        /// <summary>
+        /// Gets SSO Provider name
+        /// </summary>
+        public string SsoProvider { get; internal set; }
+        /// <summary>
+        /// Gets SSO Provider base URL
+        /// </summary>
+        public string SpBaseUrl { get; internal set; }
+        internal string IdpSessionId { get; set; }
     }
 
     internal class AuthContext : IAuthContext
@@ -208,10 +235,11 @@ namespace KeeperSecurity.Authentication
         public SessionTokenRestriction SessionTokenRestriction { get; set; }
         public AccountLicense License { get; internal set; }
         public AccountSettings Settings { get; internal set; }
+        public DeviceInfo DeviceInfo { get; internal set; }
         public IDictionary<string, object> Enforcements { get; internal set; }
         public bool IsEnterpriseAdmin { get; internal set; }
         internal AccountAuthType AccountAuthType { get; set; }
-        internal SsoLoginInfo SsoLoginInfo { get; set; }
+        public SsoLoginInfo SsoLoginInfo { get; internal set; }
         internal byte[] PasswordValidator { get; set; }
         public bool CheckPasswordValid(string password)
         {
@@ -247,7 +275,7 @@ namespace KeeperSecurity.Authentication
             Endpoint = endpoint ?? new KeeperEndpoint(Storage.LastServer, Storage.Servers);
 
             Ui = authUi;
-            if (Endpoint is KeeperEndpoint ep && Ui is IHttpProxyCredentialUI proxyUi)
+            if (Endpoint is KeeperEndpoint ep && Ui is IHttpProxyCredentialUi proxyUi)
             {
                 ep.ProxyUi = proxyUi;
             }
@@ -291,7 +319,7 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude/>
         public IFanOut<NotificationEvent> PushNotifications { get;  set; }
-
+        /*
         /// <summary>
         /// Executes Keeper JSON command.
         /// </summary>
@@ -302,23 +330,23 @@ namespace KeeperSecurity.Authentication
         {
             return ExecuteAuthCommand(command, responseType, true);
         }
-
+        */
         /// <summary>
         /// Executes Keeper JSON command.
         /// </summary>
         /// <param name="command">JSON command.</param>
         /// <param name="responseType">Type of response.</param>
-        /// <param name="throwOnError">throws exception on error.</param>
+        /// <param name="throwOnError">if <c>True</c> throw exception on Keeper error.</param>
         /// <returns>JSON response.</returns>
         /// <exception cref="KeeperApiException">Keeper JSON API Exception</exception>
-        public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType, bool throwOnError = true)
+        public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType, bool throwOnError)
         {
             command.username = Username;
             command.sessionToken = authContext.SessionToken.Base64UrlEncode();
             var response = await Endpoint.ExecuteV2Command(command, responseType);
             if (response.IsSuccess)
             {
-                this.ResetKeepAliveTimer();
+                ResetKeepAliveTimer();
                 return response;
             }
 
@@ -336,7 +364,7 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <summary>
-        /// Executes Keeper Protofuf request.
+        /// Executes Keeper Protobuf request.
         /// </summary>
         /// <param name="endpoint">Request endpoint.</param>
         /// <param name="request">Protobuf request.</param>
@@ -475,6 +503,7 @@ namespace KeeperSecurity.Authentication
             var license = AccountLicense.LoadFromProtobuf(accountSummaryResponse.License);
             var settings = AccountSettings.LoadFromProtobuf(accountSummaryResponse.Settings);
             var keys = AccountKeys.LoadFromProtobuf(accountSummaryResponse.KeysInfo);
+
             if (accountSummaryResponse.ClientKey?.Length > 0)
             {
                 clientKey = accountSummaryResponse.ClientKey.ToByteArray().Base64UrlEncode();
@@ -630,6 +659,14 @@ namespace KeeperSecurity.Authentication
                 authContext.Settings = settings;
                 authContext.Enforcements = enforcements;
                 authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
+                foreach (var device in accountSummaryResponse.Devices)
+                {
+                    if (DeviceToken.SequenceEqual(device.EncryptedDeviceToken))
+                    {
+                        authContext.DeviceInfo = device;
+                        break;
+                    }
+                }
 
                 if (authContext.Settings.LogoutTimerInSec.HasValue)
                 {
@@ -703,8 +740,9 @@ namespace KeeperSecurity.Authentication
         }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class MasterPasswordReentry
+    public class MasterPasswordReentry
     {
         [DataMember(Name = "operations")]
         public string[] operations;

@@ -330,10 +330,7 @@ namespace KeeperSecurity.Configuration
             }
         }
 
-        /// <summary>
-        /// Stores configuration immediately.
-        /// </summary>
-        public void Flush()
+        internal void Flush()
         {
             lock (this)
             {
@@ -403,7 +400,7 @@ namespace KeeperSecurity.Configuration
     /// <summary>
     /// Provides implementation of <see cref="IConfigurationStorage"/> stored in JSON format.
     /// </summary>
-    public sealed class JsonConfigurationStorage : IConfigurationStorage
+    public sealed class JsonConfigurationStorage : IConfigurationStorage, IConfigurationFlush
     {
         /// <summary>
         /// Creates instance with default settings.
@@ -462,6 +459,11 @@ namespace KeeperSecurity.Configuration
                 Cache.Configuration.lastServer = value;
                 Cache.Save();
             }
+        }
+
+        public void Flush()
+        {
+            Cache.Flush();
         }
     }
 
@@ -633,12 +635,8 @@ namespace KeeperSecurity.Configuration
         [DataMember(Name = "server_key_id", EmitDefaultValue = false)]
         public int serverKeyId;
 
-        [DataMember(Name = "device_id", EmitDefaultValue = false)]
-        public string deviceId;
-
         string IServerConfiguration.Server => server;
         int IServerConfiguration.ServerKeyId => serverKeyId;
-        byte[] IServerConfiguration.DeviceId => string.IsNullOrEmpty(deviceId) ? null : deviceId.Base64UrlDecode();
         string IConfigurationId.Id => server;
 
         void IEntityClone<IServerConfiguration>.CloneFrom(IServerConfiguration serverConf)
@@ -648,7 +646,6 @@ namespace KeeperSecurity.Configuration
                 server = serverConf.Server;
             }
             serverKeyId = serverConf.ServerKeyId;
-            deviceId = serverConf.DeviceId?.Base64UrlEncode();
         }
 
         public ExtensionDataObject ExtensionData { get; set; }

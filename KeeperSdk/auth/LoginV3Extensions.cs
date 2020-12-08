@@ -686,7 +686,12 @@ namespace KeeperSecurity.Authentication
 
                 var uiTask = v3.Auth.Ui.WaitForUserPassword(passwordInfo, cancellationToken.Token);
                 var index = Task.WaitAny(uiTask, contextTask.Task);
-                if (index == 1) return await contextTask.Task;
+                if (index == 1)
+                {
+                    cancellationToken.Cancel();
+                    return await contextTask.Task;
+                }
+
                 var result = await uiTask;
                 if (result)
                 {
@@ -1234,9 +1239,9 @@ namespace KeeperSecurity.Authentication
                 auth.Storage.Devices.Put(dc);
             }
 
-            if (auth.Storage is JsonConfigurationStorage jcs)
+            if (auth.Storage is IConfigurationFlush hasFlush)
             {
-                jcs.Cache.Flush();
+                hasFlush.Flush();
             }
         }
 
@@ -1413,7 +1418,7 @@ namespace KeeperSecurity.Authentication
             return await v3.ResumeLogin(loginToken);
         }
 
-        private static async Task RequestDeviceAdminApproval(this AuthV3Wrapper v3)
+        private static async Task<DeviceVerificationResponse> RequestDeviceAdminApproval(this AuthV3Wrapper v3)
         {
             var request = new DeviceVerificationRequest
             {
@@ -1425,8 +1430,15 @@ namespace KeeperSecurity.Authentication
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"request_device_admin_approval\": {request}");
 #endif
-            await v3.Auth.Endpoint.ExecuteRest("authentication/request_device_admin_approval",
-                new ApiRequestPayload { Payload = request.ToByteString() });
+            var payload = new ApiRequestPayload {Payload = request.ToByteString()};
+            var rs = await v3.Auth.Endpoint.ExecuteRest("authentication/request_device_admin_approval", payload);
+            DeviceVerificationResponse response = null;
+            if (rs?.Length > 0)
+            {
+                response = DeviceVerificationResponse.Parser.ParseFrom(rs);
+            }
+
+            return response;
         }
 
 
@@ -1463,7 +1475,11 @@ namespace KeeperSecurity.Authentication
                 {
                     try
                     {
-                        await v3.RequestDeviceAdminApproval();
+                        var rs = await v3.RequestDeviceAdminApproval();
+                        if (rs != null && rs.DeviceStatus == DeviceStatus.DeviceOk)
+                        {
+                            completeTask.TrySetResult(true);
+                        }
                     }
                     catch (KeeperCanceled kc)
                     {
@@ -1480,11 +1496,13 @@ namespace KeeperSecurity.Authentication
                     completeTask.TrySetResult(message.Approved);
                     return true;
                 }
+
                 if (string.CompareOrdinal(message.Command, "device_verified") == 0)
                 {
                     completeTask.TrySetResult(true);
                     return true;
                 }
+
                 return false;
             }
 
@@ -1505,7 +1523,7 @@ namespace KeeperSecurity.Authentication
 
             return await v3.ResumeLogin(loginToken);
         }
-        
+
         internal static void SsoLogout(this Auth auth)
         {
             if (auth.AuthContext is AuthContext context)

@@ -37,8 +37,8 @@ namespace Tests
 
             var authMock = Mock.Get(vault.Auth);
             authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>()))
-                .Returns<SyncDownCommand, Type>((a, c) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
+                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
+                .Returns<SyncDownCommand, Type, bool>((a, c, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
                 {
                     result = "success",
                     fullSync = false,
@@ -58,8 +58,8 @@ namespace Tests
 
             var authMock = Mock.Get(vault.Auth);
             authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>()))
-                .Returns<SyncDownCommand, Type>((c, t) => Task.FromResult((KeeperApiResponse) new SyncDownResponse
+                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
+                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse) new SyncDownResponse
                 {
                     result = "success",
                     fullSync = false,
@@ -84,8 +84,8 @@ namespace Tests
             var links = vault.Storage.SharedFolderKeys.GetLinksForSubject(sfUids[0]).Count();
             Assert.Equal(2, links);
             authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>()))
-                .Returns<SyncDownCommand, Type>((c, t) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
+                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
+                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
                 {
                     result = "success",
                     fullSync = false,
@@ -102,8 +102,8 @@ namespace Tests
 
             var teamUids = vault.Teams.Select(x => x.TeamUid).ToArray();
             authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>()))
-                .Returns<SyncDownCommand, Type>((c, t) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
+                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
+                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
                 {
                     result = "success",
                     fullSync = false,
@@ -125,8 +125,8 @@ namespace Tests
             var teamUids = vault.Teams.Select(x => x.TeamUid).ToArray();
 
             authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>()))
-                .Returns<SyncDownCommand, Type>((c, t) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
+                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
+                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
                 {
                     result = "success",
                     fullSync = false,
@@ -157,8 +157,8 @@ namespace Tests
             var auth = new Mock<IAuthentication>();
             auth.Setup(x => x.AuthContext).Returns(context.Object);
             auth.Setup(x => x.Endpoint).Returns(endpoint.Object);
-            auth.Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>()))
-                .Returns<SyncDownCommand, Type>((command, _) =>
+            auth.Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
+                .Returns<SyncDownCommand, Type, bool>((command, _, __) =>
                 {
                     try
                     {
@@ -176,8 +176,8 @@ namespace Tests
             var auth = GetConnectedAuthContext();
             var authMock = Mock.Get(auth);
             authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>()))
-                .Returns<SyncDownCommand, Type>((c, t) => Task.FromResult((KeeperApiResponse)_vaultEnv.GetSyncDownResponse()));
+                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
+                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)_vaultEnv.GetSyncDownResponse()));
 
             var vault = new VaultOnline(auth);
             await vault.SyncDown();

@@ -84,7 +84,7 @@ namespace KeeperSecurity.Authentication
     }
 
     /// <exclude/>
-    internal class WebSocketChannel : FanOut<NotificationEvent>, IPushNotificationChannel
+    public class WebSocketChannel : FanOut<NotificationEvent>, IPushNotificationChannel
     {
         private readonly ClientWebSocket _webSocket;
 
@@ -200,7 +200,7 @@ namespace KeeperSecurity.Authentication
             _storage = storage;
             ClientVersion = DefaultClientVersion;
             DeviceName = DefaultDeviceName;
-            Locale = KeeperSettings.DefaultLocale();
+            Locale = DefaultLocale();
             Server = server;
         }
 
@@ -294,6 +294,7 @@ namespace KeeperSecurity.Authentication
 
                     if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
                     {
+                        WebProxy = null;
                         if (ProxyUi != null)
                         {
                             var authHeader = response.Headers.AllKeys
@@ -302,7 +303,33 @@ namespace KeeperSecurity.Authentication
                                     0);
                             var sysProxy = WebRequest.GetSystemWebProxy();
                             var directUri = sysProxy.GetProxy(uri);
-                            WebProxy = await ProxyUi.GetHttpProxyCredentials(directUri, authHeader);
+                            var proxyInfo = new HttpProxyInfo
+                            {
+                                ProxyUri = directUri,
+                                ProxyAuthenticationMethods = KeeperSettings.ParseProxyAuthentication(authHeader).ToArray(),
+                            };
+                            var credentialsTask = new TaskCompletionSource<bool>();
+                            proxyInfo.InvokeHttpProxyCredentialsDelegate = (username, password) =>
+                            {
+                                var cred = new NetworkCredential(username, password);
+                                var myCache = new CredentialCache();
+                                foreach (var method in proxyInfo.ProxyAuthenticationMethods)
+                                {
+                                    myCache.Add(proxyInfo.ProxyUri, method.TrimEnd(), cred);
+                                }
+
+                                WebProxy = new WebProxy(proxyInfo.ProxyUri.DnsSafeHost, proxyInfo.ProxyUri.Port)
+                                {
+                                    UseDefaultCredentials = false,
+                                    Credentials = myCache
+                                };
+                                credentialsTask.TrySetResult(true);
+                            };
+
+                            var uiTask = ProxyUi.WaitForHttpProxyCredentials(proxyInfo);
+                            var index = Task.WaitAny(uiTask, credentialsTask.Task);
+                            var result = await (index == 0 ? uiTask : credentialsTask.Task);
+                            if (!result) throw new KeeperCanceled();
                         }
 
                         if (WebProxy != null)
@@ -472,22 +499,44 @@ namespace KeeperSecurity.Authentication
         public string DeviceName { get; set; }
         public string Locale { get; set; }
 
-        public IHttpProxyCredentialUI ProxyUi { get; set; }
+        public IHttpProxyCredentialUi ProxyUi { get; set; }
         public IWebProxy WebProxy { get; private set; }
-    }
 
-    internal static class KeeperSettings
-    {
+        /// <summary>
+        /// Returns language supported by Keeper.
+        /// </summary>
+        /// <returns>locale in format xx_YY where xx - 2 character language code, YY - 2 character country code</returns>
         public static string DefaultLocale()
         {
             var culture = System.Globalization.CultureInfo.CurrentCulture;
 
-            if (KeeperLanguages.TryGetValue(culture.Name, out var locale))
+            if (KeeperSettings.KeeperLanguages.TryGetValue(culture.Name, out var locale))
             {
                 return locale;
             }
 
-            return KeeperLanguages.TryGetValue(culture.TwoLetterISOLanguageName, out locale) ? locale : "en_US";
+            return KeeperSettings.KeeperLanguages.TryGetValue(culture.TwoLetterISOLanguageName, out locale) ? locale : "en_US";
+        }
+    }
+
+    internal static class KeeperSettings
+    {
+        public static IEnumerable<string> ParseProxyAuthentication(string authentication)
+        {
+            if (!string.IsNullOrEmpty(authentication))
+            {
+                var pos = authentication.IndexOf(' ');
+                if (pos > 0)
+                {
+                    var methods = authentication.Substring(0, pos).Trim();
+                    if (!string.IsNullOrEmpty(methods))
+                    {
+                        return methods.Split(',').Select(x => x.Trim());
+                    }
+                }
+            }
+
+            return new[] { "Basic" };
         }
 
 
@@ -507,7 +556,7 @@ namespace KeeperSecurity.Authentication
             KeeperPublicKeys = new ConcurrentDictionary<int, RsaKeyParameters>(list);
         }
 
-        private static readonly IDictionary<string, string> KeeperLanguages = new Dictionary<string, string>()
+        internal static readonly IDictionary<string, string> KeeperLanguages = new Dictionary<string, string>()
         {
             {"ar", "ar_AE"},
             {"de", "de_DE"},

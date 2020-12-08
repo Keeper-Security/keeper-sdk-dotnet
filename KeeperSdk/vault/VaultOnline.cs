@@ -33,13 +33,30 @@ namespace KeeperSecurity.Vault
             : base(auth.AuthContext.ClientKey, storage ?? new InMemoryKeeperStorage())
         {
             Auth = auth;
-            Auth.PushNotifications.RegisterCallback(OnNotificationReceived);
         }
 
         /// <summary>
         /// Gets Keeper authentication.
         /// </summary>
         public IAuthentication Auth { get; }
+
+        private bool _autoSync;
+        public bool AutoSync
+        {
+            get => _autoSync;
+            set
+            {
+                _autoSync = value;
+                if (_autoSync)
+                {
+                    Auth.PushNotifications.RegisterCallback(OnNotificationReceived);
+                }
+                else
+                {
+                    Auth.PushNotifications.RemoveCallback(OnNotificationReceived);
+                }
+            }
+        }
 
         /// <summary>
         /// Gets User Interaction interface.
@@ -84,7 +101,7 @@ namespace KeeperSecurity.Vault
                     if (myTask == syncDownTask)
                     {
                         scheduledAt = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 1000;
-                        await this.SyncDown();
+                        await this.RunSyncDown();
                     }
                 }
                 finally
@@ -99,6 +116,11 @@ namespace KeeperSecurity.Vault
             scheduledAt = now + (long) delay.TotalMilliseconds;
             syncDownTask = myTask;
             return myTask;
+        }
+
+        public async Task SyncDown()
+        {
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
 
         internal bool OnNotificationReceived(NotificationEvent evt)
@@ -116,8 +138,8 @@ namespace KeeperSecurity.Vault
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
             Auth.PushNotifications.RemoveCallback(OnNotificationReceived);
+            base.Dispose(disposing);
         }
 
         public Task<PasswordRecord> CreateRecord(PasswordRecord record, string folderUid = null)
@@ -130,7 +152,7 @@ namespace KeeperSecurity.Vault
             return this.PutRecord(record, false, skipExtra);
         }
 
-        public Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedDataData
+        public Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedData, new()
         {
             return this.PutNonSharedData(recordUid, nonSharedData);
         }
@@ -163,7 +185,7 @@ namespace KeeperSecurity.Vault
                 var srcFolder = this.GetFolder(path.FolderUid);
                 if (srcFolder.Records.All(x => x != path.RecordUid))
                 {
-                    throw new VaultException($"Record {path.RecordUid} not found the folder {srcFolder.Name} ({srcFolder.FolderUid})");
+                    throw new VaultException($"Record {path.RecordUid} not found in the folder {srcFolder.Name} ({srcFolder.FolderUid})");
                 }
             }
 

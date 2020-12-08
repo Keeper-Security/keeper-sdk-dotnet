@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample", "Sample\Sample.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinWebAuthn", "WinWebAuthn\WinWebAuthn.csproj", "{912A6A55-C062-42FF-AAFB-13B56F74B7E5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OfflineStorageSqlite", "OfflineStorageSqlite\OfflineStorageSqlite.csproj", "{D306EE2A-1B22-404D-A85E-8F3AD439E769}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,7 +40,6 @@ Global
 		{5B4AC1F3-3FEF-4701-9DF1-D20AFEF588AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5B4AC1F3-3FEF-4701-9DF1-D20AFEF588AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B4AC1F3-3FEF-4701-9DF1-D20AFEF588AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5B4AC1F3-3FEF-4701-9DF1-D20AFEF588AA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8CB5CA92-64AD-47E7-AE6A-AE71249755EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8CB5CA92-64AD-47E7-AE6A-AE71249755EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8CB5CA92-64AD-47E7-AE6A-AE71249755EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -59,6 +60,10 @@ Global
 		{912A6A55-C062-42FF-AAFB-13B56F74B7E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{912A6A55-C062-42FF-AAFB-13B56F74B7E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{912A6A55-C062-42FF-AAFB-13B56F74B7E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D306EE2A-1B22-404D-A85E-8F3AD439E769}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D306EE2A-1B22-404D-A85E-8F3AD439E769}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D306EE2A-1B22-404D-A85E-8F3AD439E769}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D306EE2A-1B22-404D-A85E-8F3AD439E769}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

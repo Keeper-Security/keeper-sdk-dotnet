@@ -167,6 +167,10 @@ namespace KeeperSecurity.Authentication
         /// Enterprise administrator requested data key sharing.
         /// </summary>
         public bool? ShareDatakeyWithEnterprise { get; internal set; }
+        /// <summary>
+        /// Persistent login.
+        /// </summary>
+        public bool PersistentLogin { get; internal set; }
         internal string AccountFolderKey { get; set; }
         internal AccountShareTo[] ShareAccountTo { get; set; }
 
@@ -189,7 +193,8 @@ namespace KeeperSecurity.Authentication
                 Theme = settings.Theme,
                 SsoUser = settings.SsoUser,
                 ShareDatakeyWithEnterprise = settings.ShareDataKeyWithEccPublicKey,
-                LogoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : (long?) null
+                LogoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : (long?) null,
+                PersistentLogin = settings.PersistentLogin,
             };
         }
     }

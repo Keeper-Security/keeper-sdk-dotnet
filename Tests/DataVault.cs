@@ -136,7 +136,6 @@ fwIDAQAB
             IConfigurationStorage storage = new InMemoryConfigurationStorage();
             var serverConf = new ServerConfiguration(DefaultEnvironment)
             {
-                DeviceId = DeviceId,
                 ServerKeyId = 2
             };
             storage.Servers.Put(serverConf);

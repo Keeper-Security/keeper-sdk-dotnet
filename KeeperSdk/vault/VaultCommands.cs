@@ -67,7 +67,7 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
-    public class RecordNonSharedDataData : IExtensibleDataObject
+    public class RecordNonSharedData : IExtensibleDataObject
     {
         public ExtensionDataObject ExtensionData { get; set; }
     }

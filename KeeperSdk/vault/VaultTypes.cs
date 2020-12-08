@@ -101,6 +101,14 @@ namespace KeeperSecurity.Vault
         /// <param name="team">When this method returns <c>true</c>, contains requested team; otherwise <c>null</c>.</param>
         /// <returns><c>true</c> in the vault contains a team with specified UID; otherwise, <c>false</c>.</returns>
         bool TryGetTeam(string teamUid, out Team team);
+
+        /// <summary>
+        /// Loads non shared (or per user) data associated with the record.
+        /// </summary>
+        /// <typeparam name="T">App specific per-user data type</typeparam>
+        /// <param name="recordUid">Record UID</param>
+        /// <returns>Non shared data associated with the record</returns>
+        T LoadNonSharedData<T>(string recordUid) where T : RecordNonSharedData, new();
     }
 
     /// <summary>
@@ -175,6 +183,11 @@ namespace KeeperSecurity.Vault
         IVaultUi VaultUi { get; }
 
         /// <summary>
+        /// Gets or Sets automatic sync down flag.
+        /// </summary>
+        bool AutoSync { get; set; }
+
+        /// <summary>
         /// Creates a password record.
         /// </summary>
         /// <param name="record">Password Record.</param>
@@ -209,15 +222,16 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable task.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task MoveRecords(RecordPath[] records, string dstFolderUid, bool link = false);
+
         /// <summary>
         /// Stores non shared (or per user) data associated with the record.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="recordUid"></param>
-        /// <param name="nonSharedData"></param>
+        /// <typeparam name="T">App specific per-user data type</typeparam>
+        /// <param name="recordUid">Record UID</param>
+        /// <param name="nonSharedData">Non shared data</param>
         /// <returns>Awaitable task.</returns>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
-        Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedDataData;
+        /// <exception cref="Authentication.KeeperApiException">Keeper API error</exception>
+        Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedData, new();
 
         /// <summary>
         /// Creates a folder.

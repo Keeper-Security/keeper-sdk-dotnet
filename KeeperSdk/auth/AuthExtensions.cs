@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
 using Google.Protobuf;
@@ -24,20 +23,15 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <summary>
-        /// Executes JSON authenticated command.
+        /// Executes JSON authenticated command that does not return data.
         /// </summary>
         /// <param name="auth">The authenticated connection.</param>
         /// <param name="command">JSON authenticated command.</param>
-        /// <param name="responseType">JSON response type.</param>
-        /// <returns>A Task returning JSON response.</returns>
+        /// <returns>A Task returning basic JSON response.</returns>
         /// <seealso cref="IKeeperEndpoint.ExecuteV2Command"/>
-        public static async Task<KeeperApiResponse> ExecuteAuthCommand(this IAuthentication auth, AuthenticatedCommand command, Type responseType)
+        public static async Task<KeeperApiResponse> ExecuteAuthCommand(this IAuthentication auth, AuthenticatedCommand command)
         {
-            var context = auth.AuthContext;
-            command.username = auth.Username;
-            command.sessionToken = context.SessionToken.Base64UrlEncode();
-
-            return await auth.Endpoint.ExecuteV2Command(command, responseType);
+            return await auth.ExecuteAuthCommand(command, typeof(KeeperApiResponse), true);
         }
 
         /// <summary>
@@ -55,13 +49,7 @@ namespace KeeperSecurity.Authentication
             where TC : AuthenticatedCommand
             where TR : KeeperApiResponse
         {
-            var response = (TR) await auth.ExecuteAuthCommand(command, typeof(TR));
-            if (!response.IsSuccess && throwOnError)
-            {
-                throw new KeeperApiException(response.resultCode, response.message);
-            }
-
-            return response;
+            return (TR) await auth.ExecuteAuthCommand(command, typeof(TR), throwOnError);
         }
 
         /// <summary>

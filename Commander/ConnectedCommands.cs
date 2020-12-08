@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,7 +10,6 @@ using BreachWatch;
 using CommandLine;
 using Enterprise;
 using Google.Protobuf;
-using KeeperSecurity;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
@@ -30,24 +28,13 @@ namespace Commander
         public ConnectedContext(Auth auth)
         {
             _auth = auth;
-            _vault = new VaultOnline(_auth)
+            var storage = Program.CommanderStorage.GetKeeperStorage(auth.Username);
+            _vault = new VaultOnline(_auth, storage)
             {
                 VaultUi = new VaultUi()
             };
             SubscribeToNotifications();
             CheckIfEnterpriseAdmin();
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await _vault.SyncDown();
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
-            });
-
             lock (Commands)
             {
                 Commands.Add("list",
@@ -170,8 +157,8 @@ namespace Commander
                         Action = ThisDeviceCommand,
                     });
 
-                if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise == true)
-                {
+//                if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise == true)
+//                {
                     Commands.Add("share-datakey",
                         new SimpleCommand
                         {
@@ -179,17 +166,29 @@ namespace Commander
                             Description = "Share data key with enterprise",
                             Action = ShareDatakeyCommand,
                         });
-                }
+//                }
 
                 Commands.Add("sync-down",
-                    new SimpleCommand
+                    new ParsableCommand<SyncDownOptions>
                     {
                         Order = 100,
                         Description = "Download & decrypt data",
-                        Action = async _ =>
+                        Action = async (options) =>
                         {
+                            if (options.Reset)
+                            {
+                                Console.WriteLine("Resetting offline storage.");
+                                _vault.Storage.Clear();
+                            }
+
+                            var fullSync = _vault.Storage.Revision == 0;
                             Console.WriteLine("Syncing...");
-                            await _vault.SyncDown();
+                            await _vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
+
+                            if (fullSync)
+                            {
+                                Console.WriteLine($"Decrypted {_vault.RecordCount} record(s)");
+                            }
                         }
                     });
 
@@ -206,6 +205,8 @@ namespace Commander
                 CommandAliases.Add("add", "add-record");
                 CommandAliases.Add("upd", "update-record");
             }
+
+            Program.EnqueueCommand("sync-down");
         }
 
         private string _currentFolder;
@@ -922,11 +923,13 @@ namespace Commander
 
         private async Task ShareDatakeyCommand(string _)
         {
+            /*
             if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise != true) 
             {
                 Console.WriteLine("Data key sharing is not requested.");
                 return;
             }
+            */
             Console.Write("Enterprise administrator requested data key to be shared. Proceed with sharing? (Yes/No) : ");
             var answer = await Program.GetInputManager().ReadLine();
             if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
@@ -1612,5 +1615,11 @@ namespace Commander
 
         [Value(1, Required = false, HelpText = "sub-command parameter")]
         public string Parameter { get; set; }
+    }
+
+    class SyncDownOptions
+    {
+        [Option("reset", Required = false, Default = false, HelpText = "resets on-disk storage")]
+        public bool Reset { get; set; }
     }
 }

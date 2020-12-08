@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
 using Google.Protobuf;
-using KeeperSecurity;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 using Moq;
