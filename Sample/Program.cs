@@ -148,7 +148,7 @@ namespace Sample
             _hideInput = step is PasswordStep;
         }
 
-        private static void ProcessCommand(AuthSyncFlow authFlow, string command)
+        private static async Task ProcessCommand(AuthSyncFlow authFlow, string command)
         {
             if (command == "?")
             {
@@ -173,11 +173,11 @@ namespace Sample
                 }
                 else if (string.Compare(command, PushCommand, StringComparison.InvariantCultureIgnoreCase) == 0)
                 {
-                    das.SendPush(das.DefaultChannel);
+                    await das.SendPush(das.DefaultChannel);
                 }
                 else
                 {
-                    das.SendCode(das.DefaultChannel, command);
+                    await das.SendCode(das.DefaultChannel, command);
                 }
             }
 
@@ -212,17 +212,17 @@ namespace Sample
                         .FirstOrDefault(x => x.GetPushActionText() == command);
                     if (push != default)
                     {
-                        tfs.SendPush(push);
+                        await tfs.SendPush(push);
                     }
                     else
                     {
-                        tfs.SendCode(tfs.DefaultChannel, command);
+                        await tfs.SendCode(tfs.DefaultChannel, command);
                     }
                 }
             }
             else if (authFlow.Step is PasswordStep ps)
             {
-                ps.VerifyPassword(command);
+                await ps.VerifyPassword(command);
             }
             else
             {
@@ -314,7 +314,7 @@ namespace Sample
             if (authFlow.Step is LoginStep ls)
             {
                 Console.WriteLine("Logging in...");
-                ls.Login(username);
+                await ls.Login(username);
             }
 
             var lastState = AuthState.Login;
@@ -334,7 +334,7 @@ namespace Sample
 
                 try
                 {
-                    ProcessCommand(authFlow, cmd);
+                    await ProcessCommand(authFlow, cmd);
                 }
                 catch (Exception e)
                 {

@@ -120,7 +120,7 @@ class AuthFlowCallback : Authentication.IAuthFlowCallback {
     [void]ExecuteStepAction($step, $action) {
         if ($step -is [Authentication.DeviceApprovalStep]) {
             if ($action -eq 'push') {
-                $step.SendPush($step.DefaultChannel)
+                $_ = $step.SendPush($step.DefaultChannel).GetAwaiter().GetResult()
             }
             elseif ($action -match 'channel\s*=\s*(.*)') {
                 $ch = $Matches.1
@@ -129,7 +129,7 @@ class AuthFlowCallback : Authentication.IAuthFlowCallback {
                     $step.DefaultChannel = $cha
                 }
             } else {
-                $step.SencCode($action)
+                $_ = $step.SendCode($action).GetAwaiter().GetResult()
             }
         }
         elseif ($step -is [Authentication.TwoFactorStep]) {
@@ -152,13 +152,13 @@ class AuthFlowCallback : Authentication.IAuthFlowCallback {
                     if ($pushes -ne $null) {
                         foreach($push in $pushes) {
                             if ($action -eq [Authentication.AuthUIExtensions]::GetPushActionText($push)) {
-                                $step.SendPush($push)
+                                $_ = $step.SendPush($push).GetAwaiter().GetResult()
                                 return
                             }
                         }
                     }
                     Try {
-                        $step.SendCode($step.DefaultChannel, $action)
+                        $_ = $step.SendCode($step.DefaultChannel, $action).GetAwaiter().GetResult()
                     }
                     Catch {
                         Write-Host $_ -ForegroundColor Red
@@ -168,7 +168,7 @@ class AuthFlowCallback : Authentication.IAuthFlowCallback {
         }
         elseif ($step -is [Authentication.PasswordStep]) {
             Try {
-                $step.VerifyPassword($action);
+                $_ = $step.VerifyPassword($action).GetAwaiter().GetResult()
             }
             Catch [KeeperSecurity.Authentication.KeeperAuthFailed]{
                 Write-Host 'Invalid password' -ForegroundColor Red
@@ -304,7 +304,7 @@ function Connect-Keeper {
         }    
     }
 
-    $_ = $authFlow.Step.Login($Username)
+    $_ = $authFlow.Step.Login($Username).GetAwaiter().GetResult()
     $lastState = $null
     while(-not $authFlow.IsCompleted) {
         if ($lastStep -ne $authFlow.Step.State) {

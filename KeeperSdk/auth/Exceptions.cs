@@ -32,17 +32,11 @@ namespace KeeperSecurity.Authentication
     /// <summary>
     /// User is not allowed to login.
     /// </summary>
-    public class KeeperPostLoginErrors : Exception
+    public class KeeperPostLoginErrors : KeeperApiException
     {
-        public KeeperPostLoginErrors(string code, string message) : base(message)
+        public KeeperPostLoginErrors(string code, string message) : base(code, message)
         {
-            Code = code;
         }
-
-        /// <summary>
-        /// Error code.
-        /// </summary>
-        public string Code { get; }
     }
 
     /// <summary>

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using KeeperSecurity.Configuration;
@@ -50,24 +49,24 @@ namespace KeeperSecurity.Authentication
         public bool ResumeSession { get; set; }
         public bool UseAlternatePassword { get; set; }
 
-        internal Action<string, string[]> OnLogin;
+        internal Func<string, string[], Task> onLogin;
 
-        public void Login(string username, params string[] passwords)
+        public Task Login(string username, params string[] passwords)
         {
-            OnLogin?.Invoke(username, passwords);
+            return onLogin?.Invoke(username, passwords);
         }
 
-        internal Action<string> onLoginSso;
+        internal Func<string, Task> onLoginSso;
 
-        public void LoginSSO(string providerName)
+        public Task LoginSSO(string providerName)
         {
-            onLoginSso?.Invoke(providerName);
+            return onLoginSso?.Invoke(providerName);
         }
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            OnLogin = null;
+            onLogin = null;
             onLoginSso = null;
         }
     }
@@ -83,16 +82,16 @@ namespace KeeperSecurity.Authentication
 
         internal Func<DeviceApprovalChannel, Task> OnSendPush;
 
-        public void SendPush(DeviceApprovalChannel channel)
+        public Task SendPush(DeviceApprovalChannel channel)
         {
-            OnSendPush?.Invoke(channel).GetAwaiter().GetResult();
+            return OnSendPush?.Invoke(channel);
         }
 
         internal Func<DeviceApprovalChannel, string, Task> OnSendCode;
 
-        public void SendCode(DeviceApprovalChannel channel, string code)
+        public Task SendCode(DeviceApprovalChannel channel, string code)
         {
-            OnSendCode?.Invoke(channel, code).GetAwaiter().GetResult();
+            return OnSendCode?.Invoke(channel, code);
         }
     }
 
@@ -117,16 +116,16 @@ namespace KeeperSecurity.Authentication
 
         internal Func<TwoFactorPushAction, Task> OnSendPush;
 
-        public void SendPush(TwoFactorPushAction action)
+        public Task SendPush(TwoFactorPushAction action)
         {
-            OnSendPush?.Invoke(action).GetAwaiter().GetResult();
+            return OnSendPush?.Invoke(action);
         }
 
         internal Func<TwoFactorChannel, string, Task> OnSendCode;
 
-        public void SendCode(TwoFactorChannel channel, string code)
+        public Task SendCode(TwoFactorChannel channel, string code)
         {
-            OnSendCode?.Invoke(channel, code).GetAwaiter().GetResult();
+            return OnSendCode?.Invoke(channel, code);
         }
 
     }
@@ -139,9 +138,9 @@ namespace KeeperSecurity.Authentication
 
         internal Func<string, Task> OnPassword;
 
-        public void VerifyPassword(string password)
+        public Task VerifyPassword(string password)
         {
-            OnPassword?.Invoke(password).GetAwaiter().GetResult();
+            return OnPassword?.Invoke(password);
         }
     }
 
@@ -172,9 +171,9 @@ namespace KeeperSecurity.Authentication
 
         internal Func<string, Task> OnSetSsoToken;
 
-        public void SetSsoToken(string ssoToken)
+        public Task SetSsoToken(string ssoToken)
         {
-            OnSetSsoToken?.Invoke(ssoToken).GetAwaiter().GetResult();
+            return OnSetSsoToken?.Invoke(ssoToken);
         }
     }
 
@@ -188,9 +187,9 @@ namespace KeeperSecurity.Authentication
 
         internal Func<DataKeyShareChannel, Task> OnRequestDataKey { get; set; }
 
-        public void RequestDataKey(DataKeyShareChannel channel)
+        public Task RequestDataKey(DataKeyShareChannel channel)
         {
-            OnRequestDataKey?.Invoke(channel).GetAwaiter().GetResult();
+            return OnRequestDataKey?.Invoke(channel);
         }
     }
 
@@ -257,7 +256,7 @@ namespace KeeperSecurity.Authentication
 
             Step = new LoginStep
             {
-                OnLogin = LoginAction,
+                onLogin = LoginAction,
                 onLoginSso = LoginSSOAction,
             };
         }
@@ -270,16 +269,20 @@ namespace KeeperSecurity.Authentication
             get => _stateChangeTask;
             set
             {
-                if (_stateChangeTask != null && !_stateChangeTask.Task.IsCompleted)
+                var task = _stateChangeTask;
+                if (task != null && !task.Task.IsCompleted)
                 {
-                    _stateChangeTask.TrySetResult(false);
+                    Task.Run(() =>
+                    {
+                        task.TrySetResult(false);
+                    });
                 }
 
                 _stateChangeTask = value;
             }
         }
 
-        private void LoginAction(string username, string[] passwords)
+        private async Task LoginAction(string username, string[] passwords)
         {
             if (Step.State != AuthState.Login)
             {
@@ -291,7 +294,7 @@ namespace KeeperSecurity.Authentication
             var alternatePassword = loginStep?.UseAlternatePassword ?? false;
 
             StateChangeTask = new TaskCompletionSource<bool>();
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 var auth = new Auth(this, Storage, Endpoint)
                 {
@@ -305,7 +308,7 @@ namespace KeeperSecurity.Authentication
                     await auth.Login(username, passwords);
                     Auth = auth;
                     Step = new ConnectedStep();
-                    StateChangeTask.TrySetResult(true);
+                    StateChangeTask?.TrySetResult(true);
                 }
                 catch (Exception e)
                 {
@@ -314,17 +317,17 @@ namespace KeeperSecurity.Authentication
                         Step = new ErrorStep($"Login Error: {e.Message}");
                     }
 
-                    StateChangeTask.TrySetException(e);
+                    StateChangeTask?.TrySetException(e);
                 }
                 finally
                 {
                     StateChangeTask = null;
                 }
             });
-            StateChangeTask.Task.GetAwaiter().GetResult();
+            await StateChangeTask.Task;
         }
 
-        private void LoginSSOAction(string providerName)
+        private async Task LoginSSOAction(string providerName)
         {
             if (Step.State != AuthState.Login)
             {
@@ -332,7 +335,7 @@ namespace KeeperSecurity.Authentication
             }
 
             StateChangeTask = new TaskCompletionSource<bool>();
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 var auth = new Auth(this, Storage, Endpoint);
                 var attempt = Interlocked.Increment(ref _loginAttempt);
@@ -352,7 +355,7 @@ namespace KeeperSecurity.Authentication
                     }
                 }
             });
-            StateChangeTask.Task.GetAwaiter().GetResult();
+            await StateChangeTask.Task;
         }
 
         private TaskCompletionSource<bool> StepTask
