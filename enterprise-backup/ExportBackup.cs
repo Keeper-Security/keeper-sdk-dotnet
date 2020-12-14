@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -55,6 +56,17 @@ namespace EnterpriseBackup
             foreach (var user in userStorage.GetAll())
             {
                 users[user.UserId] = user;
+            }
+
+            var recordStorage = new BackupDataReader<BackupRecord>(() => connection);
+            foreach (var tup in recordStorage.GetCountsByIndex1())
+            {
+                if (!(tup.Item2 is IConvertible conv)) continue;
+                var userId = conv.ToInt32(NumberFormatInfo.CurrentInfo);
+                if (users.TryGetValue(userId, out var u))
+                {
+                    u.RecordCount = tup.Item1;
+                }
             }
 
             byte[] treeKey = null;
@@ -193,21 +205,18 @@ namespace EnterpriseBackup
                 });
             CommandAliases.Add("ue", "user-export");
 
-            if (ParentCommands != null)
-            {
-                Commands.Add("exit",
-                    new SimpleCommand
+            Commands.Add("exit",
+                new SimpleCommand
+                {
+                    Order = 41,
+                    Description = "Locks the backup file and returns back to the main menu.",
+                    Action = _ =>
                     {
-                        Order = 41,
-                        Description = "Locks the backup file and returns back to the main menu.",
-                        Action = _ =>
-                        {
-                            NextStateCommands = ParentCommands;
-                            return Task.CompletedTask;
-                        },
-                    });
-                CommandAliases.Add("e", "exit");
-            }
+                        NextStateCommands = ParentCommands;
+                        return Task.CompletedTask;
+                    },
+                });
+            CommandAliases.Add("e", "exit");
         }
 
         private Task DisplayUserList(UserListOptions options)
@@ -217,15 +226,18 @@ namespace EnterpriseBackup
                 .Where(x => pattern == null || pattern.IsMatch(x.Username))
                 .ToArray();
 
+
             if (toShow.Length > 0)
             {
-                var tab = new Tabulate(2);
-                tab.AddHeader("Username", "Need password");
+                var tab = new Tabulate(3);
+                tab.SetColumnRightAlign(2, true);
+                tab.AddHeader("Username", "Need password", "Records");
                 foreach (var user in toShow)
                 {
                     tab.AddRow(
                         user.Username, 
-                        (user.DecryptedDataKey == null && user.DataKeyType == (int) BackupUserDataKeyType.Own) ? "Yes" : "No");
+                        (user.DecryptedDataKey == null && user.DataKeyType == (int) BackupUserDataKeyType.Own) ? "Yes" : "No",
+                        user.RecordCount);
                 }
                 tab.Sort(0);
                 tab.DumpRowNo = true;
@@ -405,14 +417,14 @@ namespace EnterpriseBackup
                 var fullPath = Path.Combine(path, zipName);
                 var fileStream = File.Open(fullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Update, false);
-                var entry = zipArchive.CreateEntry(fileName, CompressionLevel.Fastest);
+                var entry = zipArchive.GetEntry(fileName) ?? zipArchive.CreateEntry(fileName, CompressionLevel.Fastest);
                 _writer = new StreamWriter(entry.Open(), Encoding.UTF8, -1, false);
                 _toDispose = zipArchive;
             }
             else
             {
                 var fullPath = Path.Combine(path, fileName);
-                var fileStream = File.OpenWrite(fileName);
+                var fileStream = File.OpenWrite(fullPath);
                 _writer = new StreamWriter(fileStream, Encoding.UTF8, -1, false);
             }
 

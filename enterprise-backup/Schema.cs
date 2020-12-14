@@ -52,6 +52,7 @@ namespace EnterpriseBackup
 
         internal byte[] DecryptedDataKey { get; set; }
         internal byte[] DecryptedPrivateKey { get; set; }
+        internal int RecordCount { get; set; }
 
     }
 
@@ -198,6 +199,17 @@ namespace EnterpriseBackup
             cmd.Parameters.Add(userParameter);
             using var reader = cmd.ExecuteReader(CommandBehavior.Default);
             return this.PopulateDataObjects<TD>(reader).ToArray();
+        }
+
+        public IEnumerable<Tuple<int, object>> GetCountsByIndex1()
+        {
+            var cmd = GetConnection().CreateCommand();
+            cmd.CommandText = $"SELECT count(*), {Index1[0]} FROM {TableName} GROUP BY {Index1[0]}";
+            using var reader = cmd.ExecuteReader(CommandBehavior.Default);
+            while (reader.Read())
+            {
+                yield return Tuple.Create(reader.GetInt32(0), reader.GetValue(1));
+            }
         }
 
         public IEnumerable<TD> GetAll()
