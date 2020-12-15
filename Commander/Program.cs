@@ -21,8 +21,6 @@ namespace Commander
             return InputManager;
         }
 
-
-
         public static IExternalLoader CommanderStorage { get; private set; }
 
         private static void Main()
@@ -64,34 +62,11 @@ namespace Commander
                 throw new Exception("Database is invalid.");
             }
 
-            var ui = new AuthUi(InputManager);
-            var storage = CommanderStorage.GetConfigurationStorage(null, new CommanderConfigurationProtection());
+            _cliContext = new CliContext();
 
-            var auth = new Auth(ui, storage);
-            auth.Endpoint.DeviceName = "Commander C#";
-            auth.Endpoint.ClientVersion = "c15.0.0";
-            if (string.IsNullOrEmpty(storage.LastServer))
-            {
-                Console.WriteLine($"You are connected to the default Keeper server \"{auth.Endpoint.Server}\".");
-                Console.WriteLine($"Please use \"server <keeper host name for your region>\" command to choose a different region.");
-            }
-            else
-            {
-                Console.WriteLine($"Connected to \"{auth.Endpoint.Server}\".");
-            }
+            var notConnected = new NotConnectedCliContext(true);
 
-            Console.WriteLine();
-
-            var notConnected = new NotConnectedCliContext(auth);
-            _cliContext = new CliContext
-            {
-                StateContext = notConnected
-            };
-            var lastLogin = storage.LastLogin;
-            if (!string.IsNullOrEmpty(lastLogin))
-            {
-                EnqueueCommand($"login --resume {lastLogin}");
-            }
+            _cliContext.StateContext = notConnected;
 
             while (!_cliContext.Finished)
             {
@@ -358,7 +333,7 @@ namespace Commander
             _ = Task.Run(async () =>
             {
                 var actions = channels
-                    .Select(x => x.Channel.TryGetDataKeyShareChannelText(out var text) ? text : null)
+                    .Select(x => x.Channel.SsoDataKeyShareChannelText())
                     .Where(x => !string.IsNullOrEmpty(x))
                     .ToArray();
 
@@ -387,16 +362,7 @@ namespace Commander
                     }
 
                     var action = channels
-                        .Where(x =>
-                        {
-                            if (x.Channel.TryGetDataKeyShareChannelText(out var text))
-                            {
-                                return text == answer;
-                            }
-
-                            return false;
-                        })
-                        .FirstOrDefault();
+                        .FirstOrDefault(x => x.Channel.SsoDataKeyShareChannelText() == answer);
                     if (action != null)
                     {
                         await action.InvokeGetDataKeyAction.Invoke();

@@ -13,11 +13,11 @@ using KeeperSecurity.Vault;
 
 namespace Sample
 {
-    public class AuthFlowCallback : IAuthFlowCallback
+    public class AuthSyncCallback : IAuthSyncCallback
     {
         private readonly Action _onNextStep;
         private readonly Action<string> _onMessage;
-        public AuthFlowCallback(Action onNextStep, Action<string> onMessage)
+        public AuthSyncCallback(Action onNextStep, Action<string> onMessage)
         {
             _onNextStep = onNextStep;
             _onMessage = onMessage;
@@ -26,10 +26,6 @@ namespace Sample
         public void OnNextStep()
         {
             _onNextStep?.Invoke();
-        }
-        public void OnMessage(string message)
-        {
-            _onMessage?.Invoke(message);
         }
     }
 
@@ -130,7 +126,7 @@ namespace Sample
             {
                 Console.WriteLine("Http Proxy login is not supported yet.");
             }
-            else if (step is SsoTokenStep || step is SsoDataKey)
+            else if (step is SsoTokenStep || step is SsoDataKeyStep)
             {
                 Console.WriteLine("SSO login is not supported yet.");
             }
@@ -148,15 +144,15 @@ namespace Sample
             _hideInput = step is PasswordStep;
         }
 
-        private static async Task ProcessCommand(AuthSyncFlow authFlow, string command)
+        private static async Task ProcessCommand(AuthSync auth, string command)
         {
             if (command == "?")
             {
-                PrintStepHelp(authFlow.Step);
+                PrintStepHelp(auth.Step);
                 return;
             }
 
-            if (authFlow.Step is DeviceApprovalStep das)
+            if (auth.Step is DeviceApprovalStep das)
             {
                 if (command.StartsWith($"{ChannelCommand}=", StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -181,7 +177,7 @@ namespace Sample
                 }
             }
 
-            else if (authFlow.Step is TwoFactorStep tfs)
+            else if (auth.Step is TwoFactorStep tfs)
             {
                 if (command.StartsWith($"{ChannelCommand}=", StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -220,7 +216,7 @@ namespace Sample
                     }
                 }
             }
-            else if (authFlow.Step is PasswordStep ps)
+            else if (auth.Step is PasswordStep ps)
             {
                 await ps.VerifyPassword(command);
             }
@@ -294,8 +290,8 @@ namespace Sample
 
             var inReadLine = false;
 
-            var authFlow = new AuthSyncFlow(configuration);
-            authFlow.UiCallback = new AuthFlowCallback(() =>
+            var authFlow = new AuthSync(configuration);
+            authFlow.UiCallback = new AuthSyncCallback(() =>
                 {
                     if (!inReadLine) return;
                     if (authFlow.Step.State == AuthState.Connected || authFlow.Step.State == AuthState.Error)
@@ -311,11 +307,8 @@ namespace Sample
                 Console.WriteLine);
 
             // Login to Keeper
-            if (authFlow.Step is LoginStep ls)
-            {
-                Console.WriteLine("Logging in...");
-                await ls.Login(username);
-            }
+            Console.WriteLine("Logging in...");
+            await authFlow.Login(username);
 
             var lastState = AuthState.Login;
             while (authFlow.Step.State != AuthState.Connected)
@@ -342,7 +335,7 @@ namespace Sample
                 }
             }
 
-            var auth = authFlow.Auth;
+            var auth = authFlow;
             if (!auth.IsAuthenticated()) return;
             var vault = new VaultOnline(auth);
             Console.WriteLine("\nRetrieving records...");
@@ -350,7 +343,7 @@ namespace Sample
 
             Console.WriteLine($"Hello {username}!");
             Console.WriteLine($"Vault has {vault.RecordCount} records.");
-
+            return;
             // Find record with title "Google"
             var search = vault.Records.FirstOrDefault(x => string.Compare(x.Title, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
             // Create a record if it does not exist.

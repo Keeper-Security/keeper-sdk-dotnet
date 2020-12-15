@@ -2,16 +2,19 @@
 
 using namespace KeeperSecurity
 
-class AuthFlowCallback : Authentication.IAuthFlowCallback {
+class AuthFlowCallback : Authentication.IAuthSyncCallback, Authentication.IAuthInfoUI {
     [bool]$ReadingInput = $false
 
-    [void]OnMessage([string]$message) {
-        Write-Information -MessageData $message
+    [void]RegionChanged([string]$newRegion) {
+        Write-Information -MessageData "Region changed: $newRegion"
+    }
+
+    [void]SelectedDevice([string]$deviceToken) {
     }
 
     [void]OnNextStep() {
         if ($this.ReadingInput) {
-            Write-Host "Press <Enter> to continue."
+            [Console]::WriteLine("`nPress <Enter> to resume.");
         }
     }
 
@@ -279,16 +282,21 @@ function Connect-Keeper {
     $_ = Disconnect-Keeper -Resume
 
 	$storage = New-Object Configuration.JsonConfigurationStorage
-    if ($Server) {
-        Write-Debug "Using Keeper Server: $Server"
-    } else {
+    if (-not $Server) {
         $Server = $storage.LastServer
+        if ($Server) {
+            Write-Information -MessageData "`nUsing Keeper Server: $(Server)`n"
+        } else {
+            Write-Information -MessageData "`nUsing Default Keeper Server: $([Authentication.KeeperEndpoint]::DefaultKeeperServer)`n"
+        }
     }
+    
+
 	$endpoint = New-Object Authentication.KeeperEndpoint($Server, $storage.Servers)
-    $authFlow = New-Object Authentication.AuthSyncFlow($storage, $endpoint)
+    $authFlow = New-Object Authentication.AuthSync($storage, $endpoint)
 
     $authFlow.UiCallback = New-Object AuthFlowCallback
-    $authFlow.Step.ResumeSession = $true
+    $authFlow.ResumeSession = $true
 
     if (-not $NewLogin.IsPresent) {
         if (-not $Username) {
@@ -304,7 +312,7 @@ function Connect-Keeper {
         }    
     }
 
-    $_ = $authFlow.Step.Login($Username).GetAwaiter().GetResult()
+    $_ = $authFlow.Login($Username).GetAwaiter().GetResult()
     $lastState = $null
     while(-not $authFlow.IsCompleted) {
         if ($lastStep -ne $authFlow.Step.State) {
@@ -344,7 +352,7 @@ function Connect-Keeper {
         return
     }
 
-    $auth = $authFlow.Auth
+    $auth = $authFlow
     if ([Authentication.AuthExtensions]::IsAuthenticated($auth)) {
         $Script:Auth = $auth
         Write-Debug -Message "Connected to Keeper as $Username"

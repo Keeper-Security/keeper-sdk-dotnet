@@ -143,10 +143,10 @@ namespace KeeperSecurity.Authentication
     /// Defines the user interface methods required for authentication with Keeper.
     /// </summary>
     /// <seealso cref="IAuthSsoUI"/>
-    /// <seealso cref="IHttpProxyCredentialUI"/>
+    /// <seealso cref="IHttpProxyCredentialUi"/>
     /// <seealso cref="IAuthSecurityKeyUI"/>
     /// <seealso cref="IPostLoginTaskUI"/>
-    public interface IAuthUI
+    public interface IAuthUI: IAuthUi
     {
         /// <summary>
         /// Device Approval is required.
@@ -217,6 +217,18 @@ namespace KeeperSecurity.Authentication
         void SelectedDevice(string deviceToken);
     }
 
+    public interface ISsoLogoutCallback
+    {
+        /// <summary>
+        /// Notifies the client that SSO user logged out.
+        /// </summary>
+        /// <param name="url">SSO Logout URL</param>
+        /// <remarks>
+        /// Client opens the browser windows and navigates to SSO Logout URL.
+        /// </remarks>
+        void SsoLogoutUrl(string url);
+    }
+
     /// <summary>
     /// Defines the methods required completing SSO Login. Optional.
     /// </summary>
@@ -228,7 +240,7 @@ namespace KeeperSecurity.Authentication
     /// Client implements this interface to support SSO login. This interface will be called in response
     /// of <see cref="IAuth.Login"/> if username is SSO user or <see cref="IAuth.LoginSso"/>
     /// </remarks>
-    public interface IAuthSsoUI
+    public interface IAuthSsoUI: ISsoLogoutCallback
     {
         /// <summary>
         /// SSO Login is required.
@@ -257,15 +269,6 @@ namespace KeeperSecurity.Authentication
         /// When user picks a channel, client invokes channel's action <see cref="IDataKeyChannelInfo.InvokeGetDataKeyAction">channels.InvokeGetDataKeyAction</see>
         /// </remarks>
         Task<bool> WaitForDataKey(IDataKeyChannelInfo[] channels, CancellationToken token);
-
-        /// <summary>
-        /// Notifies the client that SSO user logged out.
-        /// </summary>
-        /// <param name="url">SSO Logout URL</param>
-        /// <remarks>
-        /// Client opens the browser windows and navigates to SSO Logout URL.
-        /// </remarks>
-        void SsoLogoutUrl(string url);
     }
 
     /// <summary>
@@ -514,7 +517,7 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     /// <param name="code">2FA code</param>
     /// <returns>Awaitable task.</returns>
-    public delegate Task<bool> TwoFactorCodeActionDelegate(string code);
+    public delegate Task TwoFactorCodeActionDelegate(string code);
 
     /// <summary>
     /// Defines properties for 2FA by code action.

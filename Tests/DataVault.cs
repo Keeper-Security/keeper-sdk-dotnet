@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Threading.Tasks;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
@@ -72,6 +71,8 @@ fwIDAQAB
         public static byte[] SessionToken = CryptoUtils.GetRandomBytes(64);
         public static byte[] DeviceId = CryptoUtils.GetRandomBytes(64);
 
+        public static string DeviceVerificationEmailCode = "1234567890";
+
         public static string TwoFactorOneTimeToken = "123456";
         public static string TwoFactorDeviceToken = CryptoUtils.GetRandomBytes(32).Base64UrlEncode();
 
@@ -86,8 +87,7 @@ fwIDAQAB
         public static byte[] V2DerivedKey = CryptoUtils.DeriveKeyV2("data_key", UserPassword, UserSalt, UserIterations);
         public static string EncryptedDataKey = CryptoUtils.EncryptAesV2(UserDataKey, V2DerivedKey).Base64UrlEncode();
 
-        public static string EncryptionParams = CryptoUtils
-            .CreateEncryptionParams(UserPassword, UserSalt, UserIterations, UserDataKey).Base64UrlEncode();
+        public static byte[] EncryptionParams = CryptoUtils.CreateEncryptionParams(UserPassword, UserSalt, UserIterations, UserDataKey);
 
         public static long Revision = 100;
 
@@ -179,7 +179,7 @@ fwIDAQAB
         public RsaPrivateCrtKeyParameters PrivateKey { get; } = DataVault.ImportedPrivateKey;
         public string EncryptedPrivateKey { get; } = DataVault.EncryptedPrivateKey.Base64UrlEncode();
         public string EncryptedDataKey { get; } = DataVault.EncryptedDataKey;
-        public string EncryptionParams { get; } = DataVault.EncryptionParams;
+        public byte[] EncryptionParams { get; } = DataVault.EncryptionParams;
         public byte[] ClientKey { get; } = DataVault.UserClientKey;
         public long Revision { get; } = DataVault.Revision;
         public string TwoFactorOneTimeToken { get; } = DataVault.TwoFactorOneTimeToken;

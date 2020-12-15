@@ -54,6 +54,10 @@ namespace KeeperSecurity.Authentication
         string Server { get; set; }
         /// <exclude/>
         int ServerKeyId { get; }
+        /// <summary>
+        /// Gets / sets HTTP Proxy
+        /// </summary>
+        IWebProxy WebProxy { get; set; }
 
         /// <summary>
         /// Executes Protobuf request.
@@ -63,19 +67,14 @@ namespace KeeperSecurity.Authentication
         /// <returns>Task returning serialized response.</returns>
         Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload);
 
-        /// <summary>
-        /// Executes JSON request.
-        /// </summary>
-        /// <param name="command">Keeper JSON command.</param>
-        /// <param name="responseType">Keeper JSON response type.</param>
-        /// <returns>Task returning Keeper JSON response.</returns>
-        Task<KeeperApiResponse> ExecuteV2Command(KeeperApiCommand command, Type responseType);
-
         /// <exclude/>
         ApiRequest PrepareApiRequest(IMessage request, byte[] transmissionKey, byte[] sessionToken = null);
 
         /// <exclude/>
         string PushServer();
+
+        /// <exclude/>
+        Task<IFanOut<NotificationEvent>> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token);
     }
 
     internal interface IPushNotificationChannel: IFanOut<NotificationEvent>
@@ -168,11 +167,11 @@ namespace KeeperSecurity.Authentication
     public static class KeeperEndpointExtensions
     {
         /// <summary>
-        /// Executes Keeper Protobuf command.
+        /// Executes Keeper JSON command. Generic version.
         /// </summary>
         /// <typeparam name="TC">Keeper Protobuf Request Type.</typeparam>
         /// <typeparam name="TR">Keeper Protobuf Response Type.</typeparam>
-        /// <param name="endpoint">URL path for request.</param>
+        /// <param name="endpoint">Keeper endpoint interface.</param>
         /// <param name="request">Keeper Protobuf Request.</param>
         /// <returns>Task returning Protobuf Response.</returns>
         public static async Task<TR> ExecuteV2Command<TC, TR>(this IKeeperEndpoint endpoint, TC request)
@@ -180,6 +179,54 @@ namespace KeeperSecurity.Authentication
         {
             return (TR) await endpoint.ExecuteV2Command(request, typeof(TR));
         }
+
+        /// <summary>
+        /// Executes JSON request.
+        /// </summary>
+        /// <param name="endpoint">Keeper endpoint interface.</param>
+        /// <param name="command">Keeper JSON command.</param>
+        /// <param name="responseType">Keeper JSON response type.</param>
+        /// <returns>Task returning Keeper JSON response.</returns>
+        public static async Task<KeeperApiResponse> ExecuteV2Command(this IKeeperEndpoint endpoint, KeeperApiCommand command, Type responseType)
+        {
+            if (responseType == null)
+            {
+                responseType = typeof(KeeperApiResponse);
+            }
+            else if (!typeof(KeeperApiResponse).IsAssignableFrom(responseType))
+            {
+                responseType = typeof(KeeperApiResponse);
+            }
+
+            command.locale = endpoint.Locale;
+            command.clientVersion = endpoint.ClientVersion;
+
+            byte[] rq;
+            using (var ms = new MemoryStream())
+            {
+                var cmdSerializer = new DataContractJsonSerializer(command.GetType(), JsonUtils.JsonSettings);
+                cmdSerializer.WriteObject(ms, command);
+                rq = ms.ToArray();
+            }
+
+            var apiPayload = new ApiRequestPayload()
+            {
+                Payload = ByteString.CopyFrom(rq)
+            };
+#if DEBUG
+            Debug.WriteLine("Request: " + Encoding.UTF8.GetString(rq));
+#endif
+            var rs = await endpoint.ExecuteRest("vault/execute_v2_command", apiPayload);
+#if DEBUG
+            Debug.WriteLine("Response: " + Encoding.UTF8.GetString(rs));
+#endif
+            using (var ms = new MemoryStream(rs))
+            {
+                var rsSerializer = new DataContractJsonSerializer(responseType, JsonUtils.JsonSettings);
+                return (KeeperApiResponse) rsSerializer.ReadObject(ms);
+            }
+        }
+
     }
 
     /// <exclude/>
@@ -237,9 +284,26 @@ namespace KeeperSecurity.Authentication
             };
         }
 
+        public async Task<IFanOut<NotificationEvent>> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token)
+        {
+            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+
+            var apiRequest = PrepareApiRequest(connectionRequest, transmissionKey);
+            var builder = new UriBuilder
+            {
+                Scheme = "wss",
+                Host = PushServer(),
+                Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode()
+            };
+            var ws = new ClientWebSocket();
+            await ws.ConnectAsync(builder.Uri, token);
+
+            return new WebSocketChannel(ws, transmissionKey, token);
+        }
+
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
         {
-            var builder = new UriBuilder(Server ?? DefaultKeeperServer)
+            var builder = new UriBuilder(string.IsNullOrEmpty(Server) ? DefaultKeeperServer : Server)
             {
                 Path = "/api/rest/",
                 Scheme = "https",
@@ -413,46 +477,6 @@ namespace KeeperSecurity.Authentication
             throw new Exception("Keeper Api error");
         }
 
-        public async Task<KeeperApiResponse> ExecuteV2Command(KeeperApiCommand command, Type responseType)
-        {
-            if (responseType == null)
-            {
-                responseType = typeof(KeeperApiResponse);
-            }
-            else if (!typeof(KeeperApiResponse).IsAssignableFrom(responseType))
-            {
-                responseType = typeof(KeeperApiResponse);
-            }
-
-            command.locale = Locale;
-            command.clientVersion = ClientVersion;
-
-            byte[] rq;
-            using (var ms = new MemoryStream())
-            {
-                var cmdSerializer = new DataContractJsonSerializer(command.GetType(), JsonUtils.JsonSettings);
-                cmdSerializer.WriteObject(ms, command);
-                rq = ms.ToArray();
-            }
-
-            var apiPayload = new ApiRequestPayload()
-            {
-                Payload = ByteString.CopyFrom(rq)
-            };
-#if DEBUG
-            Debug.WriteLine("Request: " + Encoding.UTF8.GetString(rq));
-#endif
-            var rs = await ExecuteRest("vault/execute_v2_command", apiPayload);
-#if DEBUG
-            Debug.WriteLine("Response: " + Encoding.UTF8.GetString(rs));
-#endif
-            using (var ms = new MemoryStream(rs))
-            {
-                var rsSerializer = new DataContractJsonSerializer(responseType, JsonUtils.JsonSettings);
-                return (KeeperApiResponse) rsSerializer.ReadObject(ms);
-            }
-        }
-
         private readonly byte[] _transmissionKey = CryptoUtils.GetRandomBytes(32);
 
         private readonly IConfigCollection<IServerConfiguration> _storage;
@@ -500,7 +524,7 @@ namespace KeeperSecurity.Authentication
         public string Locale { get; set; }
 
         public IHttpProxyCredentialUi ProxyUi { get; set; }
-        public IWebProxy WebProxy { get; private set; }
+        public IWebProxy WebProxy { get; set; }
 
         /// <summary>
         /// Returns language supported by Keeper.

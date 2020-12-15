@@ -300,9 +300,9 @@ namespace KeeperSecurity.Authentication
             {DataKeyShareChannel.AdminApproval, "data_key_share_admin"},
         };
 
-        public static bool TryGetDataKeyShareChannelText(this DataKeyShareChannel channel, out string text)
+        public static string SsoDataKeyShareChannelText(this DataKeyShareChannel channel)
         {
-            return DataKeyShareChannels.TryGetValue(channel, out text);
+            return DataKeyShareChannels[channel];
         }
 
         public static bool TryParseDataKeyShareChannel(string text, out DataKeyShareChannel channel)

@@ -106,7 +106,7 @@ namespace KeeperSecurity
                 return NewUserMinimumParams.Parser.ParseFrom(rs);
             }
 
-            public static async Task ShareAccount(this Auth auth, AccountShareTo[] shareAccountTo)
+            public static async Task ShareAccount(this IAuthentication auth, AccountShareTo[] shareAccountTo)
             {
                 if (shareAccountTo != null)
                     foreach (var shareTo in shareAccountTo)
@@ -121,7 +121,7 @@ namespace KeeperSecurity
                     }
             }
 
-            public static async Task<NewUserMinimumParams> GetNewUserParams(this Auth auth)
+            public static async Task<NewUserMinimumParams> GetNewUserParams(this IAuth auth)
             {
                 var authRequest = new DomainPasswordRulesRequest
                 {
@@ -135,9 +135,9 @@ namespace KeeperSecurity
                 return NewUserMinimumParams.Parser.ParseFrom(rs);
             }
 
-            public static async Task<string> ChangeMasterPassword(this Auth auth)
+            public static async Task<string> ChangeMasterPassword(this IAuthentication auth)
             {
-                if (auth.Ui is IPostLoginTaskUI postUi)
+                if (auth.AuthUi is IPostLoginTaskUI postUi)
                 {
                     var userParams = await auth.GetNewUserParams();
 

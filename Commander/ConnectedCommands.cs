@@ -250,7 +250,7 @@ namespace Commander
                 await _auth.Logout();
             }
 
-            NextStateContext = new NotConnectedCliContext(_auth);
+            NextStateContext = new NotConnectedCliContext(false);
         }
 
         private Task ListCommand(ListCommandOptions options)

@@ -35,7 +35,7 @@ namespace Tests
         private bool HasTwoFactor { get; set; }
         private readonly Dictionary<string, LoginTokenState> _loginTokens = new Dictionary<string, LoginTokenState>();
 
-        private const string TestClientVersion = "c15.0.0";
+        internal const string TestClientVersion = "c15.0.0";
         public LoginV3Test()
         {
             _vaultEnv = new VaultEnvironment();
@@ -370,7 +370,7 @@ namespace Tests
             return new Authentication.LoginResponse
             {
                 PrimaryUsername = username,
-                EncryptedDataKey = ByteString.CopyFrom(_vaultEnv.EncryptionParams.Base64UrlDecode()),
+                EncryptedDataKey = ByteString.CopyFrom(_vaultEnv.EncryptionParams),
                 EncryptedDataKeyType = EncryptedDataKeyType.ByPassword,
                 EncryptedSessionToken = ByteString.CopyFrom(_vaultEnv.SessionToken),
                 SessionTokenType = SessionTokenType.NoRestriction,
@@ -418,7 +418,7 @@ namespace Tests
             kInfo?.ApprovedUser.Add(username);
         }
 
-        private Auth GetAuthV3()
+        internal Auth GetAuthV3()
         {
             var storage = DataVault.GetConfigurationStorage();
             var mEndpoint = new Mock<IKeeperEndpoint>();
@@ -428,14 +428,14 @@ namespace Tests
             mEndpoint.SetupGet(e => e.Server).Returns(server);
             mEndpoint.SetupSet(e => e.Server = It.IsAny<string>()).Callback((string value) => { server = value; });
 
+            var webSocket = new TestWebSocket();
+            mEndpoint.Setup(x => x.ConnectToPushServer(It.IsAny<WssConnectionRequest>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult<IFanOut<NotificationEvent>>(webSocket));
+
             var mUi = new Mock<IAuthUI>();
 
             var mAuth = new Mock<Auth>(mUi.Object, storage, mEndpoint.Object);
             var auth = mAuth.Object;
-
-            var webSocket = new TestWebSocket();
-            mAuth.Setup(x => x.ConnectToPushServer(It.IsAny<WssConnectionRequest>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IFanOut<NotificationEvent>>(webSocket));
 
 
             mUi.Setup(x => x.WaitForDeviceApproval(It.IsAny<IDeviceApprovalChannelInfo[]>(), It.IsAny<CancellationToken>()))
@@ -575,7 +575,7 @@ namespace Tests
                 IsEnterpriseAdmin = false,
                 KeysInfo = new KeysInfo
                 {
-                    EncryptionParams = ByteString.CopyFrom(_vaultEnv.EncryptionParams.Base64UrlDecode()),
+                    EncryptionParams = ByteString.CopyFrom(_vaultEnv.EncryptionParams),
                     EncryptedPrivateKey = ByteString.CopyFrom(_vaultEnv.EncryptedPrivateKey.Base64UrlDecode()),
                 },
                 Devices =

@@ -226,9 +226,15 @@ namespace Commander
             public string Username { get; set; }
         }
 
-        public NotConnectedCliContext(Auth auth)
+        public NotConnectedCliContext(bool autologin)
         {
-            _auth = auth;
+            var ui = new AuthUi(Program.GetInputManager());
+            var storage = Program.CommanderStorage.GetConfigurationStorage(null, new CommanderConfigurationProtection());
+
+            _auth = new Auth(ui, storage)
+            {
+                Endpoint = {DeviceName = "Commander C#", ClientVersion = "c15.0.0"}
+            };
 
             Commands.Add("login", new ParsableCommand<LoginOptions>
             {
@@ -252,6 +258,25 @@ namespace Commander
                     return Task.FromResult(true);
                 }
             });
+            if (autologin)
+            {
+                if (string.IsNullOrEmpty(storage.LastServer))
+                {
+                    Console.WriteLine($"You are connected to the default Keeper server \"{_auth.Endpoint.Server}\".");
+                    Console.WriteLine($"Please use \"server <keeper host name for your region>\" command to choose a different region.");
+                }
+                else
+                {
+                    Console.WriteLine($"Connected to \"{_auth.Endpoint.Server}\".");
+                }
+                Console.WriteLine();
+
+                var lastLogin = storage.LastLogin;
+                if (!string.IsNullOrEmpty(lastLogin))
+                {
+                    Program.EnqueueCommand($"login --resume {lastLogin}");
+                }
+            }
         }
 
         private async Task DoLogin(LoginOptions options)
