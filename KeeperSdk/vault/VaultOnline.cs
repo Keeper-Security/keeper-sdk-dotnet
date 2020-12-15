@@ -41,19 +41,20 @@ namespace KeeperSecurity.Vault
         public IAuthentication Auth { get; }
 
         private bool _autoSync;
+
         public bool AutoSync
         {
             get => _autoSync;
             set
             {
-                _autoSync = value;
+                _autoSync = value && Auth.PushNotifications != null;
                 if (_autoSync)
                 {
-                    Auth.PushNotifications.RegisterCallback(OnNotificationReceived);
+                    Auth.PushNotifications?.RegisterCallback(OnNotificationReceived);
                 }
                 else
                 {
-                    Auth.PushNotifications.RemoveCallback(OnNotificationReceived);
+                    Auth.PushNotifications?.RemoveCallback(OnNotificationReceived);
                 }
             }
         }
@@ -138,7 +139,7 @@ namespace KeeperSecurity.Vault
 
         protected override void Dispose(bool disposing)
         {
-            Auth.PushNotifications.RemoveCallback(OnNotificationReceived);
+            Auth.PushNotifications?.RemoveCallback(OnNotificationReceived);
             base.Dispose(disposing);
         }
 

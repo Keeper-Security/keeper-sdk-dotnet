@@ -100,7 +100,7 @@ namespace KeeperSecurity.Authentication
                         while (_webSocket.State == WebSocketState.Open)
                         {
                             var rs = await _webSocket.ReceiveAsync(segment, token);
-                            if (rs != null && rs.Count > 0)
+                            if (rs?.Count > 0)
                             {
                                 var responseBytes = new byte[rs.Count];
                                 Array.Copy(buffer, 0, responseBytes, 0, responseBytes.Length);

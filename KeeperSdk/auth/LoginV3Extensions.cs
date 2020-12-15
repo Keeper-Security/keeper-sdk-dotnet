@@ -458,7 +458,7 @@ namespace KeeperSecurity.Authentication
             ByteString loginToken,
             IEnumerable<Salt> salts)
         {
-            Salt masterSalt = null;
+            Salt passwordSalt = null;
             Salt firstSalt = null;
             foreach (var salt in salts)
             {
@@ -467,18 +467,18 @@ namespace KeeperSecurity.Authentication
                     firstSalt = salt;
                 }
 
-                if (salt.Name == "Master")
+                if (string.Compare(salt.Name, auth.AlternatePassword ? "alternate" : "master", StringComparison.InvariantCultureIgnoreCase) == 0)
                 {
-                    masterSalt = salt;
+                    passwordSalt = salt;
                 }
 
-                if (masterSalt != null)
+                if (passwordSalt != null)
                 {
                     break;
                 }
             }
 
-            var saltInfo = masterSalt ?? firstSalt;
+            var saltInfo = passwordSalt ?? firstSalt;
             if (saltInfo == null)
             {
                 throw new KeeperStartLoginException(LoginState.RequiresAuthHash, "Master Password has not been created.");
@@ -539,7 +539,7 @@ namespace KeeperSecurity.Authentication
                     Event = "received_totp",
                     EncryptedLoginToken = resumeToken.Base64UrlEncode(),
                 };
-                auth.PushNotifications.Push(notification);
+                auth.PushNotifications?.Push(notification);
             }
             catch (Exception e)
             {
@@ -1139,11 +1139,11 @@ namespace KeeperSecurity.Authentication
                 return false;
             }
 
-            auth.PushNotifications.RegisterCallback(ProcessDataKeyRequest);
+            auth.PushNotifications?.RegisterCallback(ProcessDataKeyRequest);
 
             return Tuple.Create<IDataKeyChannelInfo[], Action>(
                 new IDataKeyChannelInfo[] {pushChannel, adminChannel},
-                () => { auth.PushNotifications.RemoveCallback(ProcessDataKeyRequest); }
+                () => { auth.PushNotifications?.RemoveCallback(ProcessDataKeyRequest); }
             );
         }
 

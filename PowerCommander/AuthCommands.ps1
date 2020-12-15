@@ -132,7 +132,15 @@ class AuthFlowCallback : Authentication.IAuthSyncCallback, Authentication.IAuthI
                     $step.DefaultChannel = $cha
                 }
             } else {
-                $_ = $step.SendCode($action).GetAwaiter().GetResult()
+                Try {
+                    $_ = $step.SendCode($step.DefaultChannel, $action).GetAwaiter().GetResult()
+                }
+                Catch [Authentication.KeeperApiException]{
+                    Write-Host $_ -ForegroundColor Red
+                }
+                Catch {
+                    Write-Host $_ -ForegroundColor Red
+                }
             }
         }
         elseif ($step -is [Authentication.TwoFactorStep]) {
@@ -173,7 +181,7 @@ class AuthFlowCallback : Authentication.IAuthSyncCallback, Authentication.IAuthI
             Try {
                 $_ = $step.VerifyPassword($action).GetAwaiter().GetResult()
             }
-            Catch [KeeperSecurity.Authentication.KeeperAuthFailed]{
+            Catch [Authentication.KeeperAuthFailed]{
                 Write-Host 'Invalid password' -ForegroundColor Red
             }
             Catch {
@@ -183,7 +191,7 @@ class AuthFlowCallback : Authentication.IAuthSyncCallback, Authentication.IAuthI
     }
 
     [string]GetStepPrompt($step) {
-        $prompt = '?'
+        $prompt = "`nUnsupported ($($step.State.ToString()))"
         if ($step -is [Authentication.DeviceApprovalStep]) {
             $prompt = "`nDevice Approval ($($this.DeviceApprovalChannelToText($step.DefaultChannel)))"
         }
@@ -269,6 +277,9 @@ function Connect-Keeper {
     .Parameter NewLogin
     Do not use Last Login information
 
+    .Parameter SsoPassword
+    Use Master Password for SSO account
+
     .Parameter Server
     Change default keeper server
 #>
@@ -276,6 +287,7 @@ function Connect-Keeper {
     Param(
         [Parameter(Position = 0)][string] $Username,
         [Parameter()][switch] $NewLogin,
+        [Parameter()][switch] $SsoPassword,
         [Parameter()][string] $Server
     )
 
@@ -297,6 +309,7 @@ function Connect-Keeper {
 
     $authFlow.UiCallback = New-Object AuthFlowCallback
     $authFlow.ResumeSession = $true
+    $authFlow.AlternatePassword = $SsoPassword.IsPresent
 
     if (-not $NewLogin.IsPresent) {
         if (-not $Username) {
@@ -368,16 +381,6 @@ function Connect-Keeper {
         $_ = Set-KeeperLocation -Path '\'
     }
 }
-
-$Keeper_ConfigUsernameCompleter = {
-    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-    [Authentication.Auth] $auth = $Script:Auth
-    [Configuration.IConfigurationStorage]$storage = $auth.Storage
-    [Configuration.IConfiguration]$config = $storage.Get()
-    $config.Users | Select-Object -ExpandProperty Username | Where {$_.StartsWith($wordToComplete)}
-}
-Register-ArgumentCompleter -Command Connect-Keeper -ParameterName Username -ScriptBlock $Keeper_ConfigUsernameCompleter
 
 $Keeper_ConfigServerCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
