@@ -285,7 +285,7 @@ function Connect-Keeper {
     if (-not $Server) {
         $Server = $storage.LastServer
         if ($Server) {
-            Write-Information -MessageData "`nUsing Keeper Server: $(Server)`n"
+            Write-Information -MessageData "`nUsing Keeper Server: $Server`n"
         } else {
             Write-Information -MessageData "`nUsing Default Keeper Server: $([Authentication.KeeperEndpoint]::DefaultKeeperServer)`n"
         }
@@ -408,7 +408,7 @@ function Disconnect-Keeper {
     }
     $Script:Vault = $null
 
-    [Authentication.Auth] $auth = $Script:Auth
+    [Authentication.IAuthentication] $auth = $Script:Auth
     if ($auth -ne $null) {
         if (-not $Resume.IsPresent) {
             $_ = $auth.Logout().GetAwaiter().GetResult()
