@@ -192,6 +192,79 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
+    public class EnterpriseMspPool
+    {
+        [DataMember(Name = "product_id")]
+        public string ProductId { get; set; }
+        [DataMember(Name = "availableSeats")]
+        public int AvailableSeats { get; set; }
+        [DataMember(Name = "seats")]
+        public int Seats { get; set; }
+    }
+
+    [DataContract]
+    public class GetEnterpriseLicenses
+    {
+        [DataMember(Name = "enterprise_license_id")]
+        public long EnterpriseLicenseId { get; set; }
+        [DataMember(Name = "expiration")]
+        public string Expiration { get; set; }
+        [DataMember(Name = "file_plan")]
+        public int FilePlan { get; set; }
+        [DataMember(Name = "max_gb")]
+        public int MaxGb { get; set; }
+
+        [DataMember(Name = "lic_status")]
+        public string LicStatus { get; set; }
+        [DataMember(Name = "tier")]
+        public int Tier { get; set; }
+        [DataMember(Name = "paid")]
+        public bool Paid { get; set; }
+        [DataMember(Name = "number_of_seats")]
+        public int NumberOfSeats { get; set; }
+        [DataMember(Name = "seats_allocated")]
+        public int SeatsAllocated { get; set; }
+        [DataMember(Name = "seats_pending")]
+        public int SeatsPending { get; set; }
+        [DataMember(Name = "msp_pool")]
+        public ICollection<EnterpriseMspPool> MspPool { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseManagedCompany
+    {
+        [DataMember(Name = "mc_enterprise_id")]
+        public int McEnterpriseId { get; set; }
+        [DataMember(Name = "mc_enterprise_name")]
+        public string McEnterpriseName { get; set; }
+        [DataMember(Name = "number_of_seats")]
+        public int NumberOfSeats { get; set; }
+        [DataMember(Name = "number_of_users")]
+        public int NumberOfUsers { get; set; }
+        [DataMember(Name = "product_id")]
+        public string ProductId { get; set; }
+        [DataMember(Name = "paused")]
+        public bool Paused { get; set; }
+        [DataMember(Name = "tree_key")]
+        public string TreeKey { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseBridge
+    {
+        [DataMember(Name = "bridge_id")]
+        public int BridgeId { get; set; }
+        [DataMember(Name = "node_id")]
+        public int NodeId { get; set; }
+        [DataMember(Name = "wan_ip_enforcement")]
+        public string WanIpEnforcement { get; set; }
+        [DataMember(Name = "lan_ip_enforcement")]
+        public string LanIpEnforcement { get; set; }
+        [DataMember(Name = "status")]
+        public string Status { get; set; }
+    }
+
+    [DataContract]
     public class GetEnterpriseDataResponse : KeeperApiResponse
     {
         [DataMember(Name = "enterprise_name")]
@@ -232,6 +305,15 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "keys")]
         public GetEnterpriseKeys Keys { get; set; }
+
+        [DataMember(Name = "licenses")]
+        public ICollection<GetEnterpriseLicenses> Licenses { get; set; }
+
+        [DataMember(Name = "managed_companies")]
+        public ICollection<EnterpriseManagedCompany> ManagedCompanies { get; set; }
+
+        [DataMember(Name = "bridges")]
+        public ICollection<EnterpriseBridge> Bridges { get; set; }
     }
 
     [DataContract]

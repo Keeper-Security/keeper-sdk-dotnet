@@ -1,321 +1,222 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Authentication;
 using Google.Protobuf;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
-using static System.Diagnostics.Debug;
 
-namespace KeeperSecurity.Authentication
+namespace KeeperSecurity.Authentication.Sync
 {
-    public enum AuthState
-    {
-        Login,
-        ProxyAuth,
-        DeviceApproval,
-        TwoFactor,
-        Password,
-        SsoToken,
-        SsoDataKey,
-        Connected,
-        Error,
-    }
-
-    public abstract class AuthStep : IDisposable
-    {
-        protected AuthStep(AuthState state)
-        {
-            State = state;
-        }
-
-        public AuthState State { get; }
-
-        protected virtual void Dispose(bool disposing)
-        {
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-    }
-
-    public class LoginStep : AuthStep
-    {
-        public LoginStep() : base(AuthState.Login)
-        {
-        }
-    }
-
-    public class DeviceApprovalStep : AuthStep
-    {
-        public DeviceApprovalStep() : base(AuthState.DeviceApproval)
-        {
-        }
-
-        public DeviceApprovalChannel DefaultChannel { get; set; }
-        public DeviceApprovalChannel[] Channels { get; internal set; }
-
-        internal Func<DeviceApprovalChannel, Task> OnSendPush;
-
-        public Task SendPush(DeviceApprovalChannel channel)
-        {
-            return OnSendPush?.Invoke(channel);
-        }
-
-        internal Func<DeviceApprovalChannel, string, Task> OnSendCode;
-
-        public Task SendCode(DeviceApprovalChannel channel, string code)
-        {
-            return OnSendCode?.Invoke(channel, code);
-        }
-
-        internal Action onDispose;
-
-        protected override void Dispose(bool disposing)
-        {
-            onDispose?.Invoke();
-            base.Dispose(disposing);
-        }
-    }
-
-    public class TwoFactorStep : AuthStep
-    {
-        public TwoFactorStep() : base(AuthState.TwoFactor)
-        {
-        }
-
-        public TwoFactorChannel DefaultChannel { get; set; }
-
-        public TwoFactorChannel[] Channels { get; internal set; }
-
-        public TwoFactorDuration Duration { get; set; }
-
-        internal Func<TwoFactorChannel, TwoFactorPushAction[]> OnGetChannelPushActions;
-
-        public TwoFactorPushAction[] GetChannelPushActions(TwoFactorChannel channel)
-        {
-            return OnGetChannelPushActions != null ? OnGetChannelPushActions(channel) : new TwoFactorPushAction[] { };
-        }
-
-        internal Func<TwoFactorChannel, bool> OnIsCodeChannel;
-
-        public bool IsCodeChannel(TwoFactorChannel channel)
-        {
-            return OnIsCodeChannel?.Invoke(channel) ?? false;
-        }
-
-        internal Func<TwoFactorChannel, string> OnGetPhoneNumber;
-
-        public string GetPhoneNumber(TwoFactorChannel channel)
-        {
-            return OnGetPhoneNumber?.Invoke(channel);
-        }
-
-        internal Func<TwoFactorPushAction, Task> OnSendPush;
-
-        public Task SendPush(TwoFactorPushAction action)
-        {
-            return OnSendPush?.Invoke(action);
-        }
-
-        internal Func<TwoFactorChannel, string, Task> OnSendCode;
-
-        public Task SendCode(TwoFactorChannel channel, string code)
-        {
-            return OnSendCode?.Invoke(channel, code);
-        }
-
-        internal Action OnDispose;
-
-        protected override void Dispose(bool disposing)
-        {
-            OnDispose?.Invoke();
-            base.Dispose(disposing);
-        }
-    }
-
-    public class PasswordStep : AuthStep
-    {
-        public PasswordStep() : base(AuthState.Password)
-        {
-        }
-
-        internal Func<string, Task> OnPassword;
-
-        public Task VerifyPassword(string password)
-        {
-            return OnPassword?.Invoke(password);
-        }
-    }
-
-    public class HttpProxyStep : AuthStep
-    {
-        public HttpProxyStep() : base(AuthState.ProxyAuth)
-        {
-        }
-
-        public Uri ProxyUri { get; internal set; }
-
-        internal Action<string, string> OnSetProxyCredentials;
-
-        public void SetProxyCredentials(string username, string password)
-        {
-            OnSetProxyCredentials?.Invoke(username, password);
-        }
-    }
-
-    public class SsoTokenStep : AuthStep
-    {
-        public SsoTokenStep() : base(AuthState.SsoToken)
-        {
-        }
-
-        public string SsoLoginUrl { get; internal set; }
-        public bool IsCloudSso { get; internal set; }
-
-        internal Func<string, Task> OnSetSsoToken;
-
-        public Task SetSsoToken(string ssoToken)
-        {
-            return OnSetSsoToken?.Invoke(ssoToken);
-        }
-    }
-
-    public class SsoDataKeyStep : AuthStep
-    {
-        public SsoDataKeyStep() : base(AuthState.SsoDataKey)
-        {
-        }
-
-        public DataKeyShareChannel[] Channels { get; internal set; }
-
-        internal Func<DataKeyShareChannel, Task> OnRequestDataKey { get; set; }
-
-        public Task RequestDataKey(DataKeyShareChannel channel)
-        {
-            return OnRequestDataKey?.Invoke(channel);
-        }
-    }
-
-    public class ConnectedStep : AuthStep
-    {
-        public ConnectedStep() : base(AuthState.Connected)
-        {
-        }
-    }
-
-    public class ErrorStep : AuthStep
-    {
-        public ErrorStep(string code, string message) : base(AuthState.Error)
-        {
-            Code = code;
-            Message = message;
-        }
-
-        public string Code { get; }
-        public string Message { get; }
-    }
-
-    public interface IAuthSyncCallback : IAuthUi
+    /// <summary>
+    /// Defines the user interface methods required for authentication with Keeper (sync).
+    /// </summary>
+    /// <seealso cref="ISsoLogoutCallback"/>
+    /// <seealso cref="IPostLoginTaskUI"/>
+    public interface IAuthSyncCallback : IAuthCallback
     {
         void OnNextStep();
     }
 
-    public class AuthSync : AuthCommon, IHttpProxyCredentialUi
+    /// <summary>
+    /// Represents Keeper authentication. (sync)
+    /// </summary>
+    /// <seealso cref="Async.Auth"/>
+    /// <seealso cref="IAuth"/>
+    /// <seealso cref="IAuthentication"/>
+    public class AuthSync : AuthCommon, IAuth
     {
+        /// <summary>
+        /// Gets User interaction interface.
+        /// </summary>
         public IAuthSyncCallback UiCallback { get; set; }
-        public override IAuthUi AuthUi => UiCallback;
 
-        public AuthSync(IConfigurationStorage storage, IKeeperEndpoint endpoint = null) : base(storage, endpoint)
+        /// <exclude/>
+        public override IAuthCallback AuthCallback => UiCallback;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="storage">Configuration storage.</param>
+        /// <param name="endpoint">Keeper Endpoint.</param>
+        public AuthSync(IConfigurationStorage storage, IKeeperEndpoint endpoint = null) 
         {
-            if (endpoint is KeeperEndpoint ke && ke.ProxyUi == null)
-            {
-                ke.ProxyUi = this;
-            }
+            Storage = storage ?? new InMemoryConfigurationStorage();
+            Endpoint = endpoint ?? new KeeperEndpoint(Storage.LastServer, Storage.Servers);
 
             Cancel();
         }
 
-        public Task<bool> WaitForHttpProxyCredentials(IHttpProxyInfo proxyInfo)
+        /// <summary>
+        /// Gets configuration storage.
+        /// </summary>
+        public IConfigurationStorage Storage { get; }
+
+        public bool ResumeSession { get; set; }
+        public bool AlternatePassword { get; set; }
+
+        public new string Username
         {
-            return Task.FromResult(false);
+            get => base.Username;
+            set => base.Username = value;
         }
 
+        public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
+        {
+            PushNotifications = pushNotifications;
+        }
+        public new byte[] DeviceToken
+        {
+            get => base.DeviceToken;
+            set => base.DeviceToken = value;
+        }
+
+
+        /// <summary>
+        /// Gets a value that indicates whether login to Keeper has completed.
+        /// </summary>
         public bool IsCompleted => Step.State == AuthState.Connected || Step.State == AuthState.Error;
 
         private AuthStep _step;
 
+        /// <summary>
+        /// Gets a current login step
+        /// </summary>
         public AuthStep Step
         {
             get => _step;
             private set
             {
-                var notifyStateChanged = _step != null;
+                if (value == null) return;
                 _step?.Dispose();
                 _step = value;
-                if (notifyStateChanged)
+                Task.Run(() =>
                 {
-                    Task.Run(() => { UiCallback?.OnNextStep(); });
-                }
+                    UiCallback?.OnNextStep();
+                });
             }
         }
 
+        /// <summary>
+        /// Cancels Keeper login
+        /// </summary>
         public void Cancel()
         {
-            Step = new LoginStep();
+            Step = new ReadyToLoginStep();
         }
 
-        private V3LoginContext _loginContext;
+        private LoginContext _loginContext;
 
-        public override async Task Login(string username, params string[] passwords)
+        private async Task DetectProxySync(Func<Task> resumeWhenDone)
         {
-            if (string.IsNullOrEmpty(username))
+            var keeperUri = new Uri($"https://{Endpoint.Server}/api/rest/ping");
+            var proxyStep = await DetectProxy(keeperUri,
+                (proxyUri, proxyAuth) =>
+                {
+                    return new HttpProxyStep
+                    {
+                        ProxyUri = proxyUri,
+                        OnSetProxyCredentials = async (proxyUsername, proxyPassword) =>
+                        {
+                            var proxy = AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyAuth, proxyUsername, proxyPassword);
+                            await PingKeeperServer(keeperUri, proxy);
+                            Endpoint.WebProxy = proxy;
+                            await resumeWhenDone.Invoke();
+                        },
+                    };
+                });
+            if (proxyStep != null)
             {
-                throw new KeeperStartLoginException(LoginState.RequiresUsername, "Username is required.");
+                Step = proxyStep;
             }
+            else
+            {
+                await resumeWhenDone.Invoke();
+            }
+        }
 
-            Cancel();
+        private async Task DoLogin(string username)
+        {
             Username = username.ToLowerInvariant();
-            _loginContext = new V3LoginContext();
-            await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
-
-            foreach (var password in passwords)
-            {
-                _loginContext.PasswordQueue.Enqueue(password);
-            }
-
             try
             {
+                await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
                 Step = await this.StartLogin(_loginContext, StartLoginSync);
             }
             catch (KeeperRegionRedirect krr)
             {
-                await this.RedirectToRegionV3(krr.RegionHost);
+                await this.RedirectToRegionV3(_loginContext, krr.RegionHost);
+                await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
                 Step = await this.StartLogin(_loginContext, StartLoginSync);
             }
         }
 
-        // TODO
-        public override async Task LoginSso(string providerName, bool forceLogin = false)
+        /// <summary>
+        /// Login to Keeper account with email.
+        /// </summary>
+        /// <param name="username">Keeper account email address.</param>
+        /// <param name="passwords">Master password(s)</param>
+        /// <returns>Awaitable task</returns>
+        /// <seealso cref="LoginSso(string, bool)"/>
+        public async Task Login(string username, params string[] passwords)
         {
-            Cancel();
-            _loginContext = new V3LoginContext();
+            await DetectProxySync(async () =>
+            {
+                Cancel();
+
+                if (string.IsNullOrEmpty(username))
+                {
+                    throw new KeeperStartLoginException(LoginState.RequiresUsername, "Username is required.");
+                }
+
+                _loginContext = new LoginContext();
+                foreach (var password in passwords)
+                {
+                    _loginContext.PasswordQueue.Enqueue(password);
+                }
+
+                await DoLogin(username);
+            });
+        }
+
+        private async Task DoLoginSso(string providerName, bool forceLogin)
+        {
+            var serviceProvider = await this.GetSsoServiceProvider(_loginContext, providerName);
+            var step = AuthorizeUsingSso(serviceProvider.IsCloud, serviceProvider.SpUrl, forceLogin, null);
+            step.LoginAsUser = providerName;
+            step.LoginAsProvider = true;
+            Step = step;
+        }
+
+        /// <summary>
+        /// Login to Keeper account with SSO provider.
+        /// </summary>
+        /// <param name="providerName">SSO provider name.</param>
+        /// <param name="forceLogin">Force new login with SSO IdP.</param>
+        /// <returns>Awaitable task.</returns>
+        /// <seealso cref="Login(string, string[])"/>
+        public async Task LoginSso(string providerName, bool forceLogin = false)
+        {
+            await DetectProxySync(async () =>
+            {
+                Cancel();
+                _loginContext = new LoginContext();
+                await DoLoginSso(providerName, forceLogin);
+            });
         }
 
         private async Task<AuthStep> StartLoginSync(StartLoginRequest request)
         {
 #if DEBUG
-            WriteLine($"REST Request: endpoint \"start_login\": {request}");
+            Debug.WriteLine($"REST Request: endpoint \"start_login\": {request}");
 #endif
 
             var rs = await Endpoint.ExecuteRest("authentication/start_login", new ApiRequestPayload {Payload = request.ToByteString()});
             var response = LoginResponse.Parser.ParseFrom(rs);
 #if DEBUG
-            WriteLine($"REST Response: endpoint \"start_login\": {response}");
+            Debug.WriteLine($"REST Response: endpoint \"start_login\": {response}");
 #endif
             switch (response.LoginState)
             {
@@ -351,12 +252,20 @@ namespace KeeperSecurity.Authentication
                     return ApproveDevice(response.EncryptedLoginToken);
 
                 case LoginState.RedirectCloudSso:
-                    _loginContext.AccountAuthType = AccountAuthType.CloudSso;
-                    return AuthorizeUsingCloudSso(response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
+                {
+                    var step = AuthorizeUsingSso(true, response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
+                    step.LoginAsUser = Username;
+                    step.LoginAsProvider = false;
+                    return step;
+                }
 
                 case LoginState.RedirectOnsiteSso:
-                    _loginContext.AccountAuthType = AccountAuthType.OnsiteSso;
-                    return AuthorizeUsingOnsiteSso(response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
+                {
+                    var step = AuthorizeUsingSso(false, response.Url, request.ForceNewLogin, response.EncryptedLoginToken);
+                    step.LoginAsUser = Username;
+                    step.LoginAsProvider = false;
+                    return step;
+                }
 
                 case LoginState.RequiresDeviceEncryptedDataKey:
                 {
@@ -405,7 +314,7 @@ namespace KeeperSecurity.Authentication
                 await push.SendToWebSocket(authContext.SessionToken, false);
             }
 
-            this.StoreConfigurationIfChangedV3(_loginContext.CloneCode);
+            this.StoreConfigurationIfChangedV3(_loginContext);
             await PostLogin();
 
             return new ConnectedStep();
@@ -484,7 +393,6 @@ namespace KeeperSecurity.Authentication
                     }
 
                     await otp.InvokeTwoFactorCodeAction.Invoke(code);
-                    Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
                 }
             };
             return tfaStep;
@@ -493,10 +401,31 @@ namespace KeeperSecurity.Authentication
         private PasswordStep ValidateAuthHash(ByteString loginToken, Salt[] salts)
         {
             var passwordInfo = this.ValidateAuthHashPrepare(_loginContext,
-                context => { Step = OnConnected(context).GetAwaiter().GetResult(); },
+                async context => { Step = await OnConnected(context); },
                 loginToken,
                 salts
             );
+
+            while (_loginContext.PasswordQueue.Count > 0)
+            {
+                var password = _loginContext.PasswordQueue.Dequeue();
+                try
+                {
+                    passwordInfo.InvokePasswordActionDelegate.Invoke(password).GetAwaiter().GetResult();
+                    if (Step.State == AuthState.Connected)
+                    {
+                        return null;
+                    }
+                }
+                catch (KeeperAuthFailed)
+                {
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            }
+
             var step = new PasswordStep
             {
                 OnPassword = async password => { await passwordInfo.InvokePasswordActionDelegate.Invoke(password); }
@@ -548,51 +477,40 @@ namespace KeeperSecurity.Authentication
             return deviceApprovalStep;
         }
 
-        private SsoTokenStep AuthorizeUsingCloudSso(string ssoBaseUrl, bool forceLogin, ByteString loginToken)
+        private SsoTokenStep AuthorizeUsingSso(bool isCloudSso, string ssoBaseUrl, bool forceLogin, ByteString loginToken)
         {
-            var ssoAction = this.AuthorizeUsingCloudSsoPrepare(_loginContext,
-                (token) => { Task.Run(async () => { Step = await this.ResumeLogin(_loginContext, StartLoginSync, token); }); },
-                ssoBaseUrl,
-                forceLogin,
-                loginToken);
+            Task<AuthStep> ResumeAfterSso(ByteString ssoLoginToken)
+            {
+                return ssoLoginToken == null
+                    ? this.StartLogin(_loginContext, StartLoginSync, false, LoginMethod.AfterSso)
+                    : this.ResumeLogin(_loginContext, StartLoginSync, ssoLoginToken, LoginMethod.AfterSso);
+            }
+
+            _loginContext.AccountAuthType = isCloudSso ? AccountAuthType.CloudSso : AccountAuthType.OnsiteSso;
+
+            var ssoAction = isCloudSso
+                ? this.AuthorizeUsingCloudSsoPrepare(_loginContext,
+                    (token) => { Step = ResumeAfterSso(token).GetAwaiter().GetResult(); },
+                    ssoBaseUrl,
+                    forceLogin)
+                : this.AuthorizeUsingOnsiteSsoPrepare(_loginContext,
+                    () => { Step = ResumeAfterSso(loginToken).GetAwaiter().GetResult(); },
+                    ssoBaseUrl,
+                    forceLogin);
 
             var ssoTokenStep = new SsoTokenStep
             {
                 SsoLoginUrl = ssoAction.SsoLoginUrl,
                 IsCloudSso = ssoAction.IsCloudSso,
-                OnSetSsoToken = (ssoToken) => ssoAction.InvokeSsoTokenAction.Invoke(ssoToken)
+                OnSetSsoToken = ssoToken => ssoAction.InvokeSsoTokenAction.Invoke(ssoToken),
+                OnLoginWithPassword = async () =>
+                {
+                    AlternatePassword = true;
+                    _loginContext.AccountAuthType = AccountAuthType.Regular;
+                    Step = await this.StartLogin(_loginContext, StartLoginSync);
+                }
             };
             return ssoTokenStep;
-        }
-
-        SsoTokenStep AuthorizeUsingOnsiteSso(string ssoBaseUrl, bool forceLogin, ByteString loginToken)
-        {
-            var ssoAction = this.AuthorizeUsingOnsiteSsoPrepare(_loginContext,
-                () =>
-                {
-                    Task.Run(async () =>
-                    {
-                        if (loginToken != null)
-                        {
-                            Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken, LoginMethod.AfterSso);
-                        }
-                        else
-                        {
-                            await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
-                            Step = await this.StartLogin(_loginContext, StartLoginSync, false, LoginMethod.AfterSso);
-                        }
-                    });
-                },
-                ssoBaseUrl,
-                forceLogin,
-                loginToken);
-
-            return new SsoTokenStep
-            {
-                SsoLoginUrl = ssoAction.SsoLoginUrl,
-                IsCloudSso = ssoAction.IsCloudSso,
-                OnSetSsoToken = (ssoToken) => ssoAction.InvokeSsoTokenAction.Invoke(ssoToken)
-            };
         }
 
         private SsoDataKeyStep RequestDataKey(ByteString loginToken)
@@ -613,7 +531,6 @@ namespace KeeperSecurity.Authentication
                 },
                 loginToken);
             var channels = t.Item1;
-            var onApproved = t.Item2;
 
             dataKeyStep.Channels = channels.Select(x => x.Channel).ToArray();
             dataKeyStep.OnRequestDataKey = async (channel) =>
@@ -625,11 +542,6 @@ namespace KeeperSecurity.Authentication
                 }
             };
             return dataKeyStep;
-        }
-
-        public void SsoLogoutUrl(string url)
-        {
-            // TODO
         }
     }
 }

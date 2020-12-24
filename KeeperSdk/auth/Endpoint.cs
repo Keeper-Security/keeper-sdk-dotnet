@@ -40,20 +40,25 @@ namespace KeeperSecurity.Authentication
         /// Gets / sets Client version.
         /// </summary>
         string ClientVersion { get; set; }
+
         /// <summary>
         /// Gets / sets device name.
         /// </summary>
         string DeviceName { get; set; }
+
         /// <summary>
         /// Gets / sets user locale / interface language.
         /// </summary>
         string Locale { get; set; }
+
         /// <summary>
         /// Gets / sets Keeper server host name.
         /// </summary>
         string Server { get; set; }
+
         /// <exclude/>
         int ServerKeyId { get; }
+
         /// <summary>
         /// Gets / sets HTTP Proxy
         /// </summary>
@@ -77,7 +82,7 @@ namespace KeeperSecurity.Authentication
         Task<IFanOut<NotificationEvent>> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token);
     }
 
-    internal interface IPushNotificationChannel: IFanOut<NotificationEvent>
+    internal interface IPushNotificationChannel : IFanOut<NotificationEvent>
     {
         Task SendToWebSocket(byte[] payload, bool encrypted);
     }
@@ -156,7 +161,7 @@ namespace KeeperSecurity.Authentication
             if (_webSocket.State == WebSocketState.Open)
             {
                 var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(payload.Base64UrlEncode()));
-                await  _webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                await _webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
     }
@@ -253,7 +258,7 @@ namespace KeeperSecurity.Authentication
 
         public string PushServer()
         {
-            return "push.services." + (Server ?? DefaultKeeperServer);
+            return $"push.services.{Server}";
         }
 
 
@@ -273,6 +278,7 @@ namespace KeeperSecurity.Authentication
             {
                 payload.EncryptedSessionToken = ByteString.CopyFrom(sessionToken);
             }
+
             var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
             var encKey = CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperPublicKeys[ServerKeyId]);
             return new ApiRequest()
@@ -303,7 +309,7 @@ namespace KeeperSecurity.Authentication
 
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
         {
-            var builder = new UriBuilder(string.IsNullOrEmpty(Server) ? DefaultKeeperServer : Server)
+            var builder = new UriBuilder(Server)
             {
                 Path = "/api/rest/",
                 Scheme = "https",
@@ -348,9 +354,9 @@ namespace KeeperSecurity.Authentication
                         var p = apiRequest.ToByteArray();
                         await requestStream.WriteAsync(p, 0, p.Length);
                     }
-
                     response = (HttpWebResponse) request.GetResponse();
                 }
+
                 catch (WebException e)
                 {
                     response = (HttpWebResponse) e.Response;
@@ -358,49 +364,6 @@ namespace KeeperSecurity.Authentication
 
                     if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
                     {
-                        WebProxy = null;
-                        if (ProxyUi != null)
-                        {
-                            var authHeader = response.Headers.AllKeys
-                                .FirstOrDefault(x =>
-                                    string.Compare(x, "Proxy-Authenticate", StringComparison.OrdinalIgnoreCase) ==
-                                    0);
-                            var sysProxy = WebRequest.GetSystemWebProxy();
-                            var directUri = sysProxy.GetProxy(uri);
-                            var proxyInfo = new HttpProxyInfo
-                            {
-                                ProxyUri = directUri,
-                                ProxyAuthenticationMethods = KeeperSettings.ParseProxyAuthentication(authHeader).ToArray(),
-                            };
-                            var credentialsTask = new TaskCompletionSource<bool>();
-                            proxyInfo.InvokeHttpProxyCredentialsDelegate = (username, password) =>
-                            {
-                                var cred = new NetworkCredential(username, password);
-                                var myCache = new CredentialCache();
-                                foreach (var method in proxyInfo.ProxyAuthenticationMethods)
-                                {
-                                    myCache.Add(proxyInfo.ProxyUri, method.TrimEnd(), cred);
-                                }
-
-                                WebProxy = new WebProxy(proxyInfo.ProxyUri.DnsSafeHost, proxyInfo.ProxyUri.Port)
-                                {
-                                    UseDefaultCredentials = false,
-                                    Credentials = myCache
-                                };
-                                credentialsTask.TrySetResult(true);
-                            };
-
-                            var uiTask = ProxyUi.WaitForHttpProxyCredentials(proxyInfo);
-                            var index = Task.WaitAny(uiTask, credentialsTask.Task);
-                            var result = await (index == 0 ? uiTask : credentialsTask.Task);
-                            if (!result) throw new KeeperCanceled();
-                        }
-
-                        if (WebProxy != null)
-                        {
-                            continue;
-                        }
-
                         throw;
                     }
                 }
@@ -462,7 +425,7 @@ namespace KeeperSecurity.Authentication
                             case "session_token":
                             case "auth_failed":
                                 throw new KeeperAuthFailed();
-                            
+
                             case "login_token_expired":
                                 throw new KeeperCanceled();
                         }
@@ -481,8 +444,6 @@ namespace KeeperSecurity.Authentication
 
         private readonly IConfigCollection<IServerConfiguration> _storage;
 
-        private string _server;
-
         private void SetConfigurationValid(int keyId)
         {
             if (keyId != ServerKeyId)
@@ -490,24 +451,27 @@ namespace KeeperSecurity.Authentication
                 ServerKeyId = keyId;
                 if (_storage != null)
                 {
-                    var sc = _storage.Get(_server);
-                    var configuration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(_server);
+                    var sc = _storage.Get(Server);
+                    var configuration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(Server);
                     configuration.ServerKeyId = ServerKeyId;
                     _storage.Put(configuration);
                 }
             }
         }
 
+        private string _server;
+
         public string Server
         {
-            get => _server;
+            get => string.IsNullOrEmpty(_server) ? DefaultKeeperServer : _server;
             set
             {
-                _server = value ?? DefaultKeeperServer;
+                _server = string.IsNullOrEmpty(value) ? DefaultKeeperServer : value;
                 if (ServerKeyId < 1 || ServerKeyId > KeeperSettings.KeeperPublicKeys.Count)
                 {
                     ServerKeyId = 1;
                 }
+
                 var configuration = _storage?.Get(_server);
                 if (configuration == null) return;
                 if (configuration.ServerKeyId > 0 && configuration.ServerKeyId <= KeeperSettings.KeeperPublicKeys.Count)
@@ -523,7 +487,6 @@ namespace KeeperSecurity.Authentication
         public string DeviceName { get; set; }
         public string Locale { get; set; }
 
-        public IHttpProxyCredentialUi ProxyUi { get; set; }
         public IWebProxy WebProxy { get; set; }
 
         /// <summary>
@@ -560,7 +523,7 @@ namespace KeeperSecurity.Authentication
                 }
             }
 
-            return new[] { "Basic" };
+            return new[] {"Basic"};
         }
 
 

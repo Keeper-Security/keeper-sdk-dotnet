@@ -64,7 +64,6 @@
   <ItemGroup>
     <Compile Include="Commands.cs" />
     <Compile Include="ConnectedCommands.cs" />
-    <Compile Include="CredentialManager.cs" />
     <Compile Include="CommanderStorageProtection.cs" />
     <Compile Include="EnterpriseCommands.cs" />
     <Compile Include="StorageUtils.cs" />

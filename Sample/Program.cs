@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication.Sync;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Enterprise;
@@ -16,11 +17,9 @@ namespace Sample
     public class AuthSyncCallback : IAuthSyncCallback
     {
         private readonly Action _onNextStep;
-        private readonly Action<string> _onMessage;
         public AuthSyncCallback(Action onNextStep, Action<string> onMessage)
         {
             _onNextStep = onNextStep;
-            _onMessage = onMessage;
         }
 
         public void OnNextStep()
@@ -86,6 +85,14 @@ namespace Sample
             {
                 prompt = "Master Password";
             }
+            else if (step is SsoTokenStep)
+            {
+                prompt = "SSO Token";
+            }
+            else if (step is SsoDataKeyStep)
+            {
+                prompt = "SSO Login Approval";
+            }
 
             Console.Write($"\n{prompt} > ");
         }
@@ -122,13 +129,25 @@ namespace Sample
             {
                 commands.Add("<password>");
             }
+            else if (step is SsoTokenStep sts)
+            {
+                commands.Add("SSO Login URL");
+                commands.Add(sts.SsoLoginUrl);
+                commands.Add("");
+
+                commands.Add("\"password\" to login using master password");
+                commands.Add("<sso token> paste sso token");
+            }
+            else if (step is SsoDataKeyStep sdks)
+            {
+                foreach (var channel in sdks.Channels)
+                {
+                    commands.Add($"\"{channel.SsoDataKeyShareChannelText()}\"");
+                }
+            }
             else if (step is HttpProxyStep)
             {
                 Console.WriteLine("Http Proxy login is not supported yet.");
-            }
-            else if (step is SsoTokenStep || step is SsoDataKeyStep)
-            {
-                Console.WriteLine("SSO login is not supported yet.");
             }
 
             Console.WriteLine();
@@ -220,6 +239,28 @@ namespace Sample
             {
                 await ps.VerifyPassword(command);
             }
+            else if (auth.Step is SsoTokenStep sts)
+            {
+                if (string.Compare(command, "password", StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    await sts.LoginWithPassword();
+                }
+                else
+                {
+                    await sts.SetSsoToken(command);
+                }
+            }
+            else if (auth.Step is SsoDataKeyStep sdks)
+            {
+                if (AuthUIExtensions.TryParseDataKeyShareChannel(command, out var channel))
+                {
+                    await sdks.RequestDataKey(channel);
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid data key share channel: {command}");
+                }
+            }
             else
             {
                 Console.WriteLine($"Invalid command. Type \"?\" to list available commands.");
@@ -265,8 +306,7 @@ namespace Sample
 
             // Keeper SDK needs a storage to save configuration
             // such as: last login name, device token, etc
-            var jsonFile = new JsonConfigurationCache(new JsonConfigurationFileLoader("test.json"));
-            IConfigurationStorage configuration = new JsonConfigurationStorage(jsonFile);
+            var configuration = new JsonConfigurationStorage("test.json");
 
 
             var prompt = "Enter Email Address: ";
@@ -308,9 +348,9 @@ namespace Sample
 
             // Login to Keeper
             Console.WriteLine("Logging in...");
+            
+            var lastState = authFlow.Step.State;
             await authFlow.Login(username);
-
-            var lastState = AuthState.Login;
             while (authFlow.Step.State != AuthState.Connected)
             {
                 if (authFlow.Step.State != lastState)
@@ -329,6 +369,10 @@ namespace Sample
                 {
                     await ProcessCommand(authFlow, cmd);
                 }
+                catch (KeeperAuthFailed)
+                {
+                    Console.WriteLine("Invalid username or password");
+                }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
@@ -343,7 +387,7 @@ namespace Sample
 
             Console.WriteLine($"Hello {username}!");
             Console.WriteLine($"Vault has {vault.RecordCount} records.");
-            return;
+
             // Find record with title "Google"
             var search = vault.Records.FirstOrDefault(x => string.Compare(x.Title, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
             // Create a record if it does not exist.

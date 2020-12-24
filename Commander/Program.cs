@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication.Async;
 
 namespace Commander
 {
@@ -71,18 +72,25 @@ namespace Commander
             while (!_cliContext.Finished)
             {
                 if (_cliContext.StateContext == null) break;
-                if (_cliContext.StateContext.NextStateContext != null)
+                if (_cliContext.StateContext.NextState != null)
                 {
-                    if (!ReferenceEquals(_cliContext.StateContext, _cliContext.StateContext.NextStateContext))
+                    if (!ReferenceEquals(_cliContext.StateContext, _cliContext.StateContext.NextState))
                     {
                         var oldContext = _cliContext.StateContext;
-                        _cliContext.StateContext = oldContext.NextStateContext;
-                        oldContext.NextStateContext = null;
-                        oldContext.Dispose();
+                        _cliContext.StateContext = oldContext.NextState;
+                        oldContext.NextState = null;
+                        if (_cliContext.StateContext is BackStateContext bsc)
+                        {
+                            bsc.BackState = oldContext;
+                        }
+                        else
+                        {
+                            oldContext.Dispose();
+                        }
                     }
                     else
                     {
-                        _cliContext.StateContext.NextStateContext = null;
+                        _cliContext.StateContext.NextState = null;
                     }
 
                     InputManager.ClearHistory();
@@ -180,34 +188,10 @@ namespace Commander
 
     }
 
-    class AuthUi : ConsoleAuthUi, IAuthUI, IAuthInfoUI, IPostLoginTaskUI, IAuthSsoUI, IAuthSecurityKeyUI, IUsePassword, IHttpProxyCredentialUi
+    class AuthUi : ConsoleAuthUi, IPostLoginTaskUI, IAuthSsoUI, IAuthSecurityKeyUI
     {
         public AuthUi(InputManager inputManager): base(inputManager)
         {
-        }
-
-        public Func<string, string> UsePassword { get; set; }
-
-        public override async Task<bool> WaitForUserPassword(IPasswordInfo info, CancellationToken token)
-        {
-            string password = null;
-            if (UsePassword != null)
-            {
-                password = UsePassword(info.Username);
-            }
-
-            if (!string.IsNullOrEmpty(password))
-            {
-                try
-                {
-                    await info.InvokePasswordActionDelegate(password);
-                }
-                catch (KeeperAuthFailed)
-                {
-                }
-            }
-
-            return await base.WaitForUserPassword(info, token);
         }
 
         public async Task<bool> Confirmation(string information)
@@ -439,10 +423,5 @@ namespace Commander
             var answer = await Program.GetInputManager().ReadLine();
             return string.Compare(answer, "yes", StringComparison.OrdinalIgnoreCase) == 0;
         }
-    }
-
-    public interface IUsePassword
-    {
-        Func<string, string> UsePassword { get; set; }
     }
 }

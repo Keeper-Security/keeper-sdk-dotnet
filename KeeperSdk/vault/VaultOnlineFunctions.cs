@@ -348,7 +348,7 @@ namespace KeeperSecurity.Vault
 
             var command = new RecordUpdateCommand
             {
-                deviceId = vault.Auth.DeviceToken.Base64UrlEncode(),
+                deviceId = vault.Auth.Endpoint.DeviceName,
                 UpdateRecords = new[] {updateRecord}
             };
 
@@ -374,7 +374,7 @@ namespace KeeperSecurity.Vault
             };
             var command = new RecordUpdateCommand
             {
-                deviceId = vault.Auth.DeviceToken.Base64UrlEncode(),
+                deviceId = vault.Auth.Endpoint.DeviceName,
                 UpdateRecords = new[] {updateRecord}
             };
             await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace KeeperSecurity.Authentication
 {
@@ -201,6 +202,34 @@ namespace KeeperSecurity.Authentication
     /// <exclude/>
     public static class AuthUIExtensions
     {
+        /// <summary>
+        /// Creates IWebProxy instance for provided credentials.
+        /// </summary>
+        /// <param name="proxyUri">Proxy URI</param>
+        /// <param name="proxyMethods">Proxy Authentication Methods</param>
+        /// <param name="proxyUsername">Proxy Username</param>
+        /// <param name="proxyPassword">Proxy Password</param>
+        /// <returns></returns>
+        public static IWebProxy GetWebProxyForCredentials(
+            Uri proxyUri, 
+            string[] proxyMethods, 
+            string proxyUsername, 
+            string proxyPassword)
+        {
+            var cred = new NetworkCredential(proxyUsername, proxyPassword);
+            var myCache = new CredentialCache();
+            foreach (var method in proxyMethods)
+            {
+                myCache.Add(proxyUri, method.TrimEnd(), cred);
+            }
+
+            return new WebProxy(proxyUri.DnsSafeHost, proxyUri.Port)
+            {
+                UseDefaultCredentials = false,
+                Credentials = myCache
+            };
+        }
+
         public static string GetPushActionText(this TwoFactorPushAction pushAction)
         {
             return PushActions.TryGetValue(pushAction, out var text) ? text : pushAction.ToString();

@@ -43,7 +43,7 @@ namespace KeeperSecurity.Vault
                 revision = storage.Revision,
                 include = new[] {"sfheaders", "sfrecords", "sfusers", "teams", "folders"},
                 deviceName = vault.Auth.Endpoint.DeviceName,
-                deviceId = vault.Auth.DeviceToken.Base64UrlEncode()
+                deviceId = vault.Auth.Endpoint.DeviceName
             };
 
             var rs = await vault.Auth.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(command);

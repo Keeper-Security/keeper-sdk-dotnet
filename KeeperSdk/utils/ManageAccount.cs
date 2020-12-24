@@ -88,24 +88,6 @@ namespace KeeperSecurity
 
         internal static class ManageAccountExtension
         {
-            public static async Task<NewUserMinimumParams> GetNewUserParams(this IAuth auth, string userName)
-            {
-                var authRequest = new AuthRequest
-                {
-                    ClientVersion = auth.Endpoint.ClientVersion,
-                    Username = userName.ToLowerInvariant(),
-                    EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken)
-                };
-
-                var payload = new ApiRequestPayload
-                {
-                    Payload = ByteString.CopyFrom(authRequest.ToByteArray())
-                };
-
-                var rs = await auth.Endpoint.ExecuteRest("authentication/get_new_user_params", payload);
-                return NewUserMinimumParams.Parser.ParseFrom(rs);
-            }
-
             public static async Task ShareAccount(this IAuthentication auth, AccountShareTo[] shareAccountTo)
             {
                 if (shareAccountTo != null)
@@ -121,25 +103,25 @@ namespace KeeperSecurity
                     }
             }
 
-            public static async Task<NewUserMinimumParams> GetNewUserParams(this IAuth auth)
+            public static async Task<NewUserMinimumParams> GetNewUserParams(this IKeeperEndpoint endpoint, string username)
             {
                 var authRequest = new DomainPasswordRulesRequest
                 {
-                    Username = auth.Username
+                    Username = username
                 };
                 var payload = new ApiRequestPayload
                 {
                     Payload = ByteString.CopyFrom(authRequest.ToByteArray())
                 };
-                var rs = await auth.Endpoint.ExecuteRest("authentication/get_domain_password_rules", payload);
+                var rs = await endpoint.ExecuteRest("authentication/get_domain_password_rules", payload);
                 return NewUserMinimumParams.Parser.ParseFrom(rs);
             }
 
             public static async Task<string> ChangeMasterPassword(this IAuthentication auth)
             {
-                if (auth.AuthUi is IPostLoginTaskUI postUi)
+                if (auth.AuthCallback is IPostLoginTaskUI postUi)
                 {
-                    var userParams = await auth.GetNewUserParams();
+                    var userParams = await auth.Endpoint.GetNewUserParams(auth.Username);
 
                     var rules = userParams.PasswordMatchDescription
                         .Zip(userParams.PasswordMatchRegex,

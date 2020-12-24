@@ -36,7 +36,7 @@ namespace KeeperSecurity.Enterprise
                 EncryptedTeamKey = CryptoUtils.EncryptAesV2(teamKey, TreeKey).Base64UrlEncode()
             };
             await Auth.ExecuteAuthCommand(rq);
-            await GetEnterpriseData();
+            await PopulateEnterprise();
             TryGetTeam(teamUid, out team);
             return team;
         }
@@ -62,7 +62,7 @@ namespace KeeperSecurity.Enterprise
                 NodeId = team.ParentNodeId
             };
             await Auth.ExecuteAuthCommand(rq);
-            await GetEnterpriseData();
+            await PopulateEnterprise();
             TryGetTeam(team.Uid, out team);
             return team;
         }
@@ -79,7 +79,7 @@ namespace KeeperSecurity.Enterprise
                 TeamUid = teamUid
             };
             await Auth.ExecuteAuthCommand(rq);
-            await GetEnterpriseData();
+            await PopulateEnterprise();
         }
 
         /// <summary>
@@ -192,7 +192,7 @@ namespace KeeperSecurity.Enterprise
                     if (!last.IsSuccess) warnings?.Invoke(last.message);
                 }
 
-                await GetEnterpriseData();
+                await PopulateEnterprise();
             }
         }
 
@@ -250,7 +250,7 @@ namespace KeeperSecurity.Enterprise
                     if (!last.IsSuccess) warnings?.Invoke(last.message);
                 }
 
-                await GetEnterpriseData();
+                await PopulateEnterprise();
             }
         }
     }

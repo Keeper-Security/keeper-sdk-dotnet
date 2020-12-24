@@ -417,6 +417,15 @@ namespace KeeperSecurity.Configuration
         /// <summary>
         /// Creates using provided configuration cache object.
         /// </summary>
+        /// <param name="fileName">Configuration file name.</param>
+        public JsonConfigurationStorage(string fileName) 
+            : this(new JsonConfigurationCache(new JsonConfigurationFileLoader(fileName)))
+        {
+        }
+
+        /// <summary>
+        /// Creates using provided configuration cache object.
+        /// </summary>
         /// <param name="cache">Configuration cache.</param>
         public JsonConfigurationStorage(JsonConfigurationCache cache)
         {
@@ -723,10 +732,19 @@ namespace KeeperSecurity.Configuration
                     privateKey = deviceConf.DeviceKey.Base64UrlEncode();
                 }
             }
-            if (deviceConf.ServerInfo != null) {
-                foreach (var si in deviceConf.ServerInfo.List) {
-                    ServerInfo.Put(si);
-                }
+
+            if (deviceConf.ServerInfo == null) return;
+
+            var existing = new HashSet<string>();
+            existing.UnionWith(ServerInfo.List.Select(x => x.Id));
+            foreach (var si in deviceConf.ServerInfo.List)
+            {
+                existing.Remove(si.Id);
+                ServerInfo.Put(si);
+            }
+            foreach (var id in existing)
+            {
+                ServerInfo.Delete(id);
             }
         }
 

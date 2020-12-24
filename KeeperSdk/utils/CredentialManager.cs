@@ -1,16 +1,19 @@
-﻿using System;
+﻿#if NET45
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
-using System.Text;
 using Microsoft.Win32.SafeHandles;
+#endif
 
-namespace Commander
+namespace KeeperSecurity.Utils
 {
+    /// <exclude />
     public static class CredentialManager
     {
         public static bool GetCredentials(string target, out string username, out string password)
         {
+#if NET45
             try
             {
                 var permissions = new SecurityPermission(SecurityPermissionFlag.UnmanagedCode);
@@ -36,17 +39,21 @@ namespace Commander
                 Debug.WriteLine(e.ToString());
             }
 
+#endif
             username = null;
             password = null;
             return false;
         }
+
+#if NET45
 
         [DllImport("Advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]
         static extern bool CredRead(string target, int credentialType, int reservedFlag, out IntPtr credentialPtr);
 
         [DllImport("Advapi32.dll", EntryPoint = "CredWriteW", CharSet = CharSet.Unicode, SetLastError = true)]
         static extern bool CredWrite([In]
-            ref CREDENTIAL userCredential, [In]
+            ref CREDENTIAL userCredential,
+            [In]
             uint flags);
 
         [DllImport("Advapi32.dll", EntryPoint = "CredFree", SetLastError = true)]
@@ -108,5 +115,6 @@ namespace Commander
                 return true;
             }
         }
+#endif
     }
 }

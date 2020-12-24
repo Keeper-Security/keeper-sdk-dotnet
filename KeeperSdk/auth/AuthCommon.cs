@@ -1,51 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
 using Google.Protobuf;
+using KeeperSecurity.Authentication.Async;
+using KeeperSecurity.Authentication.Sync;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using Org.BouncyCastle.Crypto.Parameters;
-using SsoCloud;
 using PasswordRule = KeeperSecurity.Commands.PasswordRule;
 
 namespace KeeperSecurity.Authentication
 {
+    /// <summary>
+    /// Specifies login type
+    /// </summary>
+    public enum AccountAuthType
+    {
+        /// <summary>
+        /// Regular account
+        /// </summary>
+        Regular = 1,
+        /// <summary>
+        /// Cloud SSO account
+        /// </summary>
+        CloudSso = 2,
+        /// <summary>
+        /// On-Premises SSO account
+        /// </summary>
+        OnsiteSso = 3,
+        /// <summary>
+        /// MSP logged in to MC
+        /// </summary>
+        ManagedCompany = 4
+    }
 
-    public interface IAuthUi
+    /// <exclude/>
+    public interface IAuthCallback
     {
     }
 
-    /// <summary>
-    /// Defines the basic properties of Keeper authentication object.
-    /// </summary>
-    /// <remarks>
-    /// Keeper authentication object ....
-    /// </remarks>
-    public interface IAuth
+    public interface IAuthEndpoint
     {
-        /// <summary>
-        /// Gets User interaction interface.
-        /// </summary>
-        IAuthUi AuthUi { get; }
+        /// <exclude/>
+        IAuthCallback AuthCallback { get; }
 
         /// <summary>
         /// Gets a keeper server endpoint
         /// </summary>
         IKeeperEndpoint Endpoint { get; }
-
-        /// <summary>
-        /// Gets configuration storage 
-        /// </summary>
-        IConfigurationStorage Storage { get; }
-
         /// <exclude/>
         IFanOut<NotificationEvent> PushNotifications { get; }
 
@@ -61,11 +74,33 @@ namespace KeeperSecurity.Authentication
         /// Gets device token
         /// </summary>
         byte[] DeviceToken { get; }
+    }
+
+    /// <summary>
+    /// Defines the basic properties of Keeper authentication object.
+    /// </summary>
+    public interface IAuth: IAuthEndpoint
+    {
+        new string Username { get; set; }
+
+        void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications);
+
+        new byte[] DeviceToken { get; set; }
+
+        /// <summary>
+        /// Gets configuration storage 
+        /// </summary>
+        IConfigurationStorage Storage { get; }
 
         /// <summary>
         /// Gets or sets session resumption flag
         /// </summary>
         bool ResumeSession { get; set; }
+
+        /// <summary>
+        /// Forces master password login for SSO accounts.
+        /// </summary>
+        bool AlternatePassword { get; set; }
 
         /// <summary>
         /// Login to Keeper account with email.
@@ -95,7 +130,7 @@ namespace KeeperSecurity.Authentication
     /// <summary>
     /// Defines properties and methods of connected Keeper authentication object.
     /// </summary>
-    public interface IAuthentication : IAuth
+    public interface IAuthentication : IAuthEndpoint
     {
         /// <summary>
         /// Gets authentication context
@@ -165,11 +200,6 @@ namespace KeeperSecurity.Authentication
         AccountSettings Settings { get; }
 
         /// <summary>
-        /// Gets device information.
-        /// </summary>
-        DeviceInfo DeviceInfo { get; }
-
-        /// <summary>
         /// Gets user's enterprise enforcements.
         /// </summary>
         IDictionary<string, object> Enforcements { get; }
@@ -178,6 +208,11 @@ namespace KeeperSecurity.Authentication
         /// Gets enterprise administrator flag.
         /// </summary>
         bool IsEnterpriseAdmin { get; }
+
+        /// <summary>
+        /// Gets account login type
+        /// </summary>
+        AccountAuthType AccountAuthType { get; }
 
         /// <summary>
         /// Gets SSO provider information
@@ -225,7 +260,7 @@ namespace KeeperSecurity.Authentication
         public DeviceInfo DeviceInfo { get; internal set; }
         public IDictionary<string, object> Enforcements { get; internal set; }
         public bool IsEnterpriseAdmin { get; internal set; }
-        internal AccountAuthType AccountAuthType { get; set; }
+        public AccountAuthType AccountAuthType { get; set; }
         public SsoLoginInfo SsoLoginInfo { get; internal set; }
         internal byte[] PasswordValidator { get; set; }
         public bool CheckPasswordValid(string password)
@@ -243,53 +278,40 @@ namespace KeeperSecurity.Authentication
         }
     }
 
+    /// <summary>
+    /// Represents base authentication class
+    /// </summary>
+    /// <seealso cref="Auth"/>
+    /// <seealso cref="AuthSync"/>
     public abstract class AuthCommon : IAuthentication, IDisposable
     {
-        protected AuthCommon(IConfigurationStorage storage, IKeeperEndpoint endpoint = null)
-        {
-            Storage = storage ?? new InMemoryConfigurationStorage();
-            Endpoint = endpoint ?? new KeeperEndpoint(Storage.LastServer, Storage.Servers);
-        }
-
-        /// <summary>
-        /// Gets configuration storage.
-        /// </summary>
-        public IConfigurationStorage Storage { get; protected set; }
-
         /// <summary>
         /// Gets Keeper endpoint.
         /// </summary>
-        
+
         public IKeeperEndpoint Endpoint { get; protected set; }
-        /// <summary>
-        /// Gets device token
-        /// </summary>
-        public byte[] DeviceToken { get; internal set; }
 
         /// <summary>
         /// Gets user email address.
         /// </summary>
-        public string Username { get; internal set; }
+        public string Username { get; protected set; }
+
+        /// <summary>
+        /// Gets device token
+        /// </summary>
+        public byte[] DeviceToken { get; protected set; }
 
         internal AuthContext authContext;
+
         /// <summary>
         /// Gets connected user context.
         /// </summary>
         public IAuthContext AuthContext => authContext;
 
-        /// <summary>
-        /// Gets or sets session resumption flag.
-        /// </summary>
-        public bool ResumeSession { get; set; }
-        /// <summary>
-        /// Forces master password login for SSO accounts.
-        /// </summary>
-        public bool AlternatePassword { get; set; }
-
         /// <exclude/>
-        public IFanOut<NotificationEvent> PushNotifications { get; set; }
+        public IFanOut<NotificationEvent> PushNotifications { get; internal set; }
 
-        public abstract IAuthUi AuthUi { get; }
+        public abstract IAuthCallback AuthCallback { get; }
 
         internal void ResetKeepAliveTimer()
         {
@@ -399,9 +421,84 @@ namespace KeeperSecurity.Authentication
             return response;
         }
 
-        public abstract Task Login(string username, params string[] passwords);
-        public abstract Task LoginSso(string providerName, bool forceLogin = false);
+        private bool _storeProxyReturned;
+        protected virtual IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
+        {
+            if (_storeProxyReturned) return null;
+            _storeProxyReturned = true;
+#if NET45
+            if (CredentialManager.GetCredentials(proxyUri.DnsSafeHost, out var username, out var password))
+            {
+                return AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyAuth, username, password);
+            }
+#endif
+            return null;
+        }
 
+        protected async Task<T> DetectProxy<T>(Uri uri, Func<Uri, string[], T> onProxyDetected)
+            where T : class
+        {
+            IWebProxy proxy = Endpoint.WebProxy;
+            do
+            {
+                try
+                {
+                    await PingKeeperServer(uri, proxy);
+                    if (proxy != null)
+                    {
+                        Endpoint.WebProxy = proxy;
+                    }
+
+                    return null;
+                }
+                catch (WebException e)
+                {
+                    var response = (HttpWebResponse) e.Response;
+                    if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) throw;
+
+                    var authHeader = response.Headers.AllKeys
+                        .FirstOrDefault(x =>
+                            string.Compare(x, "Proxy-Authenticate", StringComparison.OrdinalIgnoreCase) ==
+                            0);
+                    var systemProxy = WebRequest.GetSystemWebProxy();
+                    var directUri = systemProxy.GetProxy(uri);
+                    var proxyAuthenticate = KeeperSettings.ParseProxyAuthentication(authHeader).ToArray();
+
+
+                    var storedProxy = GetStoredProxy(directUri, proxyAuthenticate);
+                    if (storedProxy != null && ReferenceEquals(proxy, storedProxy))
+                    {
+                        storedProxy = null;
+                    }
+
+                    proxy = storedProxy;
+                    if (proxy != null) continue;
+
+                    return onProxyDetected?.Invoke(directUri, proxyAuthenticate);
+                }
+            } while (true);
+        }
+
+        internal virtual async Task<bool> PingKeeperServer(Uri serverUri, IWebProxy proxy)
+        {
+            var request = (HttpWebRequest) WebRequest.Create(serverUri);
+            if (proxy != null)
+            {
+                request.Proxy = proxy;
+            }
+            using (var response = (HttpWebResponse) await request.GetResponseAsync())
+            {
+                if (response.StatusCode != HttpStatusCode.OK) return false;
+                var rs = response.GetResponseStream();
+                if (rs == null) return false;
+                using (var sr = new StreamReader(rs, Encoding.UTF8))
+                {
+                    var status = await sr.ReadLineAsync();
+                    return status == "alive";
+                }
+            }
+        }
+        
         protected async Task PostLogin()
         {
             string clientKey = null;
@@ -469,7 +566,7 @@ namespace KeeperSecurity.Authentication
 
             if (authContext.SessionTokenRestriction != 0)
             {
-                if (AuthUi is IPostLoginTaskUI postUi)
+                if (AuthCallback is IPostLoginTaskUI postUi)
                 {
                     if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
                     {
@@ -515,7 +612,6 @@ namespace KeeperSecurity.Authentication
                 if (authContext.SessionTokenRestriction == 0)
                 {
                     // ???? relogin
-                    await Login(Username);
                 }
                 else
                 {
@@ -565,15 +661,6 @@ namespace KeeperSecurity.Authentication
                 authContext.Settings = settings;
                 authContext.Enforcements = enforcements;
                 authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
-                foreach (var device in accountSummaryResponse.Devices)
-                {
-                    if (DeviceToken.SequenceEqual(device.EncryptedDeviceToken))
-                    {
-                        authContext.DeviceInfo = device;
-                        break;
-                    }
-                }
-
                 if (authContext.Settings.LogoutTimerInSec.HasValue)
                 {
                     if (authContext.Settings.LogoutTimerInSec > TimeSpan.FromMinutes(10).TotalSeconds && authContext.Settings.LogoutTimerInSec < TimeSpan.FromHours(12).TotalSeconds)
@@ -608,6 +695,7 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        /// <exclude/>
         public virtual void Dispose()
         {
             authContext = null;
@@ -615,4 +703,72 @@ namespace KeeperSecurity.Authentication
             _timer?.Dispose();
         }
     }
+#pragma warning disable 0649
+    /// <exclude/>
+    [DataContract]
+    public class NotificationEvent
+    {
+        [DataMember(Name = "command")]
+        public string Command { get; set; }
+
+        [DataMember(Name = "event")]
+        public string Event
+        {
+            get => Command;
+            set => Command = value;
+        }
+
+        [DataMember(Name = "message")]
+        public string Message
+        {
+            get => Command;
+            set => Command = value;
+        }
+
+        [DataMember(Name = "email")]
+        public string Email { get; set; }
+
+        [DataMember(Name = "username")]
+        public string Username
+        {
+            get => Email;
+            set => Email = value;
+        }
+
+        [DataMember(Name = "approved")]
+        public bool Approved { get; set; }
+
+        [DataMember(Name = "sync")]
+        public bool Sync
+        {
+            get => Approved;
+            set => Approved = value;
+        }
+
+        [DataMember(Name = "passcode")]
+        public string Passcode { get; set; }
+
+        [DataMember(Name = "deviceName")]
+        public string DeviceName
+        {
+            get => Passcode;
+            set => Passcode = value;
+        }
+
+        [DataMember(Name = "encryptedLoginToken")]
+        public string EncryptedLoginToken { get; set; }
+
+        [DataMember(Name = "encryptedDeviceToken")]
+        public string EncryptedDeviceToken
+        {
+            get => EncryptedLoginToken;
+            set => EncryptedLoginToken = value;
+        }
+
+        [DataMember(Name = "ipAddress")]
+        public string IPAddress { get; set; }
+
+    }
+#pragma warning restore 0649
+
 }

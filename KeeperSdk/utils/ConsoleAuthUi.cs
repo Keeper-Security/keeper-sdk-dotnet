@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using KeeperSecurity.Authentication;
+using KeeperSecurity.Utils;
 
-namespace KeeperSecurity.Utils
+namespace KeeperSecurity.Authentication.Async
 {
     /// <exclude/>
     public class ConsoleAuthUi : IAuthUI, IAuthInfoUI, IHttpProxyCredentialUi
@@ -423,7 +423,7 @@ namespace KeeperSecurity.Utils
                     IsSecured = true
                 });
                 if (string.IsNullOrEmpty(username)) proxyTask.TrySetResult(false);
-                proxyInfo.InvokeHttpProxyCredentialsDelegate.Invoke(username, password);
+                await proxyInfo.InvokeHttpProxyCredentialsDelegate.Invoke(username, password);
                 return proxyTask.TrySetResult(true);
             });
 

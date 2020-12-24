@@ -16,16 +16,9 @@ using SsoCloud;
 
 namespace KeeperSecurity.Authentication
 {
-    public enum AccountAuthType
+    public class LoginContext
     {
-        Regular = 1,
-        CloudSso = 2,
-        OnsiteSso = 3
-    }
-
-    public class V3LoginContext
-    {
-        public V3LoginContext()
+        public LoginContext()
         {
             MessageSessionUid = CryptoUtils.GetRandomBytes(16);
             AccountAuthType = AccountAuthType.Regular;
@@ -35,11 +28,11 @@ namespace KeeperSecurity.Authentication
 
         public byte[] CloneCode { get; set; }
 
-        public string V2TwoFactorToken { get; set; }
+        internal string V2TwoFactorToken { get; set; }
 
-        internal ECPrivateKeyParameters DeviceKey { get; set; }
+       internal ECPrivateKeyParameters DeviceKey { get; set; }
 
-        internal byte[] MessageSessionUid { get; }
+        public byte[] MessageSessionUid { get; }
         internal Queue<string> PasswordQueue { get; } = new Queue<string>();
 
         internal SsoLoginInfo SsoLoginInfo { get; set; }
@@ -47,7 +40,7 @@ namespace KeeperSecurity.Authentication
 
     internal static class LoginV3Extensions
     {
-        internal static async Task EnsureDeviceTokenIsRegistered(this AuthCommon auth, V3LoginContext v3, string username)
+        internal static async Task EnsureDeviceTokenIsRegistered(this IAuth auth, LoginContext v3, string username)
         {
             if (string.Compare(auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
             {
@@ -137,7 +130,7 @@ namespace KeeperSecurity.Authentication
                     try
                     {
                         auth.PushNotifications.Dispose();
-                        auth.PushNotifications = null;
+                        auth.SetPushNotifications(null);
                     }
                     catch (Exception e)
                     {
@@ -156,7 +149,8 @@ namespace KeeperSecurity.Authentication
                             MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
                             DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                         };
-                        auth.PushNotifications = await auth.Endpoint.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
+                        var pushes = await auth.Endpoint.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
+                        auth.SetPushNotifications(pushes);
                     }
                     catch (Exception e)
                     {
@@ -166,10 +160,10 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        internal static async Task RedirectToRegionV3(this IAuth auth, string newRegion)
+        internal static async Task RedirectToRegionV3(this IAuth auth, LoginContext v3, string newRegion)
         {
             auth.Endpoint.Server = newRegion;
-            if (auth.AuthUi is IAuthInfoUI infoUi)
+            if (auth.AuthCallback is IAuthInfoUI infoUi)
             {
                 infoUi.RegionChanged(auth.Endpoint.Server);
             }
@@ -254,7 +248,7 @@ namespace KeeperSecurity.Authentication
             return dc;
         }
 
-        private static async Task RequestDeviceVerification(this IAuth auth, V3LoginContext v3, string channel)
+        private static async Task RequestDeviceVerification(this IAuth auth, LoginContext v3, string channel)
         {
             var request = new DeviceVerificationRequest
             {
@@ -271,7 +265,7 @@ namespace KeeperSecurity.Authentication
                 new ApiRequestPayload {Payload = request.ToByteString()});
         }
 
-        internal static async Task ValidateDeviceVerificationCode(this IAuth auth, V3LoginContext v3, string code)
+        internal static async Task ValidateDeviceVerificationCode(this IAuth auth, LoginContext v3, string code)
         {
             var request = new ValidateDeviceVerificationCodeRequest
             {
@@ -289,8 +283,8 @@ namespace KeeperSecurity.Authentication
         }
 
         internal static Task<T> ResumeLogin<T>(
-            this AuthCommon auth,
-            V3LoginContext v3,
+            this IAuth auth,
+            LoginContext v3,
             Func<StartLoginRequest, Task<T>> onContinue,
             ByteString loginToken,
             LoginMethod method = LoginMethod.ExistingAccount)
@@ -313,8 +307,8 @@ namespace KeeperSecurity.Authentication
         }
 
         internal static async Task<T> StartLogin<T>(
-            this AuthCommon auth,
-            V3LoginContext v3,
+            this IAuth auth,
+            LoginContext v3,
             Func<StartLoginRequest, Task<T>> onComplete,
             bool forceNewLogin = false,
             LoginMethod loginMethod = LoginMethod.ExistingAccount)
@@ -325,7 +319,7 @@ namespace KeeperSecurity.Authentication
             {
                 attempt++;
                 await auth.EnsureDeviceTokenIsRegistered(v3, auth.Username);
-                if (auth.AuthUi is IAuthInfoUI infoUi)
+                if (auth.AuthCallback is IAuthInfoUI infoUi)
                 {
                     infoUi.SelectedDevice(auth.DeviceToken.Base64UrlEncode());
                 }
@@ -364,7 +358,7 @@ namespace KeeperSecurity.Authentication
                 catch (Exception e)
                 {
                     auth.PushNotifications?.Dispose();
-                    auth.PushNotifications = null;
+                    auth.SetPushNotifications(null);
                     if (attempt < 3 && e is KeeperInvalidDeviceToken)
                     {
                         auth.Storage.Devices.Delete(auth.DeviceToken.Base64UrlEncode());
@@ -402,7 +396,7 @@ namespace KeeperSecurity.Authentication
             return result;
         }
 
-        private static async Task<AuthContext> ExecuteValidateAuthHash(this AuthCommon auth, V3LoginContext v3, ByteString loginToken, string password, Salt salt)
+        private static async Task<AuthContext> ExecuteValidateAuthHash(this IAuth auth, LoginContext v3, ByteString loginToken, string password, Salt salt)
         {
             var request = new ValidateAuthHashRequest
             {
@@ -452,9 +446,9 @@ namespace KeeperSecurity.Authentication
         }
 
         internal static MasterPasswordInfo ValidateAuthHashPrepare(
-            this AuthCommon auth,
-            V3LoginContext v3,
-            Action<AuthContext> onAuthHashValidated,
+            this IAuth auth,
+            LoginContext v3,
+            Func<AuthContext, Task> onAuthHashValidated,
             ByteString loginToken,
             IEnumerable<Salt> salts)
         {
@@ -489,7 +483,7 @@ namespace KeeperSecurity.Authentication
                 InvokePasswordActionDelegate = async password =>
                 {
                     var context = await auth.ExecuteValidateAuthHash(v3, loginToken, password, saltInfo);
-                    onAuthHashValidated.Invoke(context);
+                    await onAuthHashValidated.Invoke(context);
                 }
             };
         }
@@ -548,8 +542,8 @@ namespace KeeperSecurity.Authentication
         }
 
         internal static Tuple<IDeviceApprovalChannelInfo[], Action> ApproveDevicePrepare(
-            this AuthCommon auth,
-            V3LoginContext v3,
+            this IAuth auth,
+            LoginContext v3,
             Action<ByteString> onLoginToken,
             ByteString loginToken)
         {
@@ -692,7 +686,7 @@ namespace KeeperSecurity.Authentication
         }
 
         internal static Tuple<ITwoFactorChannelInfo[], Action> TwoFactorValidatePrepare(
-            this AuthCommon auth,
+            this IAuth auth,
             Action<ByteString> onLoginToken,
             ByteString loginToken,
             IEnumerable<TwoFactorChannelInfo> channels)
@@ -813,7 +807,7 @@ namespace KeeperSecurity.Authentication
                         break;
 
                     case TwoFactorChannelType.TwoFaCtU2F:
-                        if (auth.AuthUi is IAuthSecurityKeyUI keyUi)
+                        if (auth.AuthCallback is IAuthSecurityKeyUI keyUi)
                         {
                             try
                             {
@@ -884,7 +878,7 @@ namespace KeeperSecurity.Authentication
                 () => { auth.PushNotifications?.RemoveCallback(NotificationCallback); });
         }
 
-        internal static void StoreConfigurationIfChangedV3(this IAuth auth, byte[] cloneCode)
+        internal static void StoreConfigurationIfChangedV3(this IAuth auth, LoginContext v3)
         {
             if (string.CompareOrdinal(auth.Storage.LastLogin ?? "", auth.Username) != 0)
             {
@@ -906,31 +900,26 @@ namespace KeeperSecurity.Authentication
 
             var existingUser = auth.Storage.Users.Get(auth.Username);
             var deviceToken = auth.DeviceToken.Base64UrlEncode();
-            if (existingUser?.LastDevice?.DeviceToken != deviceToken)
+            if (existingUser?.LastDevice?.DeviceToken != deviceToken ||
+                string.IsNullOrEmpty(existingUser?.Server))
             {
                 var uc = existingUser != null
                     ? new UserConfiguration(existingUser)
-                    : new UserConfiguration(auth.Username)
-                    {
-                        Server = auth.Endpoint.Server
-                    };
-                var lastDevice = existingUser?.LastDevice != null
-                    ? new UserDeviceConfiguration(existingUser.LastDevice)
-                    {
-                        DeviceToken = deviceToken
-                    }
-                    : new UserDeviceConfiguration(deviceToken);
+                    : new UserConfiguration(auth.Username);
+                uc.Server = auth.Endpoint.Server;
+
+                var lastDevice = new UserDeviceConfiguration(deviceToken);
                 uc.LastDevice = lastDevice;
                 auth.Storage.Users.Put(uc);
             }
 
             var deviceConf = auth.Storage.Devices.Get(deviceToken);
-            if (deviceConf != null && cloneCode != null)
+            if (deviceConf != null && v3.CloneCode != null)
             {
                 var dc = new DeviceConfiguration(deviceConf);
                 var serverInfo = dc.ServerInfo.Get(auth.Endpoint.Server);
                 var si = serverInfo != null ? new DeviceServerConfiguration(serverInfo) : new DeviceServerConfiguration(auth.Endpoint.Server);
-                si.CloneCode = cloneCode.Base64UrlEncode();
+                si.CloneCode = v3.CloneCode.Base64UrlEncode();
                 dc.ServerInfo.Put(si);
                 auth.Storage.Devices.Put(dc);
             }
@@ -942,12 +931,11 @@ namespace KeeperSecurity.Authentication
         }
 
         internal static GetSsoTokenActionInfo AuthorizeUsingOnsiteSsoPrepare(
-            this AuthCommon auth,
-            V3LoginContext v3,
+            this IAuth auth,
+            LoginContext v3,
             Action onSsoToken,
             string ssoBaseUrl,
-            bool forceLogin,
-            ByteString loginToken)
+            bool forceLogin)
         {
             var queryString = System.Web.HttpUtility.ParseQueryString("");
             CryptoUtils.GenerateRsaKey(out var privateKey, out var publicKey);
@@ -964,11 +952,14 @@ namespace KeeperSecurity.Authentication
             };
             var ssoAction = new GetSsoTokenActionInfo(builder.Uri.AbsoluteUri, false)
             {
-                InvokeSsoTokenAction = tokenStr =>
+                InvokeSsoTokenAction = async tokenStr =>
                 {
                     var token = JsonUtils.ParseJson<SsoToken>(Encoding.UTF8.GetBytes(tokenStr));
                     var pk = CryptoUtils.LoadPrivateKey(privateKey);
+
                     auth.Username = token.Email;
+                    await auth.EnsureDeviceTokenIsRegistered(v3, auth.Username);
+
                     if (!string.IsNullOrEmpty(token.Password))
                     {
                         var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.Password.Base64UrlDecode(), pk));
@@ -987,8 +978,8 @@ namespace KeeperSecurity.Authentication
                         SpBaseUrl = ssoBaseUrl,
                         IdpSessionId = token.SessionId
                     };
+
                     onSsoToken();
-                    return (Task) Task.FromResult(true);
                 }
             };
 
@@ -996,12 +987,11 @@ namespace KeeperSecurity.Authentication
         }
 
         internal static GetSsoTokenActionInfo AuthorizeUsingCloudSsoPrepare(
-            this AuthCommon auth,
-            V3LoginContext v3,
+            this IAuth auth,
+            LoginContext v3,
             Action<ByteString> onSsoLogin,
             string ssoBaseUrl,
-            bool forceLogin,
-            ByteString loginToken)
+            bool forceLogin)
         {
             var rq = new SsoCloudRequest
             {
@@ -1040,7 +1030,7 @@ namespace KeeperSecurity.Authentication
             return ssoAction;
         }
 
-        internal static async Task CreateSsoUser(this IAuth auth, V3LoginContext v3, ByteString loginToken)
+        internal static async Task CreateSsoUser(this IAuth auth, LoginContext v3, ByteString loginToken)
         {
             var dataKey = CryptoUtils.GenerateEncryptionKey();
             var clientKey = CryptoUtils.GenerateEncryptionKey();
@@ -1068,7 +1058,7 @@ namespace KeeperSecurity.Authentication
             await auth.Endpoint.ExecuteRest("authentication/create_user_sso", apiRequest);
         }
 
-        private static async Task<DeviceVerificationResponse> RequestDeviceAdminApproval(this IAuth auth, V3LoginContext v3)
+        private static async Task<DeviceVerificationResponse> RequestDeviceAdminApproval(this IAuth auth, LoginContext v3)
         {
             var request = new DeviceVerificationRequest
             {
@@ -1092,8 +1082,8 @@ namespace KeeperSecurity.Authentication
         }
 
         internal static Tuple<IDataKeyChannelInfo[], Action> RequestDataKeyPrepare(
-            this AuthCommon auth,
-            V3LoginContext v3,
+            this IAuth auth,
+            LoginContext v3,
             Action<bool> onApproved,
             ByteString loginToken)
         {
@@ -1147,39 +1137,72 @@ namespace KeeperSecurity.Authentication
             );
         }
 
+        internal static async Task<SsoServiceProviderResponse> GetSsoServiceProvider(this IAuth auth, LoginContext v3, string providerName)
+        {
+            var payload = new ApiRequestPayload
+            {
+                ApiVersion = 3,
+                Payload = new SsoServiceProviderRequest
+                {
+                    ClientVersion = auth.Endpoint.ClientVersion,
+                    Locale = auth.Endpoint.Locale,
+                    Name = providerName
+                }.ToByteString()
+            };
+
+#if DEBUG
+            Debug.WriteLine($"REST Request: endpoint \"get_sso_service_provider\": {payload}");
+#endif
+            byte[] rsBytes;
+            try
+            {
+                rsBytes = await auth.Endpoint.ExecuteRest("enterprise/get_sso_service_provider", payload);
+            }
+            catch (KeeperRegionRedirect krr)
+            {
+                await auth.RedirectToRegionV3(v3, krr.RegionHost);
+                rsBytes = await auth.Endpoint.ExecuteRest("enterprise/get_sso_service_provider", payload);
+            }
+
+            if (!(rsBytes?.Length > 0))
+                throw new KeeperInvalidParameter("enterprise/get_sso_service_provider", "provider_name", providerName, "SSO provider not found");
+
+            var rs = SsoServiceProviderResponse.Parser.ParseFrom(rsBytes);
+#if DEBUG
+            Debug.WriteLine($"REST Response: endpoint \"get_sso_service_provider\": {rs}");
+#endif
+            return rs;
+        }
+
+
         internal static void SsoLogout(this IAuthentication auth)
         {
-            if (auth.AuthContext is AuthContext context)
+            if (auth.AuthContext.SsoLoginInfo == null || !(auth.AuthCallback is ISsoLogoutCallback ssoLogout)) return;
+
+            var queryString = System.Web.HttpUtility.ParseQueryString("");
+            if (auth.AuthContext.AccountAuthType == AccountAuthType.CloudSso)
             {
-                if (context.SsoLoginInfo != null && auth.AuthUi is IAuthSsoUI ssoUi)
+                var rq = new SsoCloudRequest
                 {
-                    var queryString = System.Web.HttpUtility.ParseQueryString("");
-
-                    if (context.AccountAuthType == AccountAuthType.CloudSso)
-                    {
-                        var rq = new SsoCloudRequest
-                        {
-                            ClientVersion = auth.Endpoint.ClientVersion,
-                            Embedded = true,
-                            IdpSessionId = context.SsoLoginInfo.IdpSessionId,
-                            Username = auth.Username
-                        };
-                        var transmissionKey = CryptoUtils.GenerateEncryptionKey();
-                        var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);
-                        queryString.Add("payload", apiRequest.ToByteArray().Base64UrlEncode());
-                    }
-                    else
-                    {
-                        queryString.Add("embedded", "");
-                    }
-
-                    var builder = new UriBuilder(new Uri(context.SsoLoginInfo.SpBaseUrl.Replace("/login", "/logout")))
-                    {
-                        Query = queryString.ToString()
-                    };
-                    ssoUi.SsoLogoutUrl(builder.Uri.AbsoluteUri);
-                }
+                    ClientVersion = auth.Endpoint.ClientVersion,
+                    Embedded = true,
+                    IdpSessionId = auth.AuthContext.SsoLoginInfo.IdpSessionId,
+                    Username = auth.Username
+                };
+                var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+                var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);
+                queryString.Add("payload", apiRequest.ToByteArray().Base64UrlEncode());
             }
+            else
+            {
+                queryString.Add("embedded", "");
+            }
+
+            var builder = new UriBuilder(new Uri(auth.AuthContext.SsoLoginInfo.SpBaseUrl.Replace("/login", "/logout")))
+            {
+                Query = queryString.ToString()
+            };
+            ssoLogout.SsoLogoutUrl(builder.Uri.AbsoluteUri);
         }
     }
 

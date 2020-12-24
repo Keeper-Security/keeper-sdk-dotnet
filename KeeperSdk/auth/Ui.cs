@@ -10,8 +10,6 @@
 //
 
 using System;
-using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 
@@ -139,65 +137,6 @@ namespace KeeperSecurity.Authentication
         SecurityKey,
     }
 
-    /// <summary>
-    /// Defines the user interface methods required for authentication with Keeper.
-    /// </summary>
-    /// <seealso cref="IAuthSsoUI"/>
-    /// <seealso cref="IHttpProxyCredentialUi"/>
-    /// <seealso cref="IAuthSecurityKeyUI"/>
-    /// <seealso cref="IPostLoginTaskUI"/>
-    public interface IAuthUI: IAuthUi
-    {
-        /// <summary>
-        /// Device Approval is required.
-        /// </summary>
-        /// <param name="channels">List of available device approval channels.</param>
-        /// <param name="token">Cancellation token. Keeper SDK notifies the client when device is successfully approved.</param>
-        /// <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-        /// <remarks>
-        /// Clients to display the list of available device approval channels.
-        /// When user picks one clients to check if channel implements <see cref="IDeviceApprovalPushInfo">push interface</see>
-        /// then invoke <see cref="IDeviceApprovalPushInfo.InvokeDeviceApprovalPushAction">push action</see>
-        /// If channel implements <see cref="ITwoFactorDurationInfo">2FA duration interface</see> clients may show 2FA expiration picker.
-        /// </remarks>
-        Task<bool> WaitForDeviceApproval(IDeviceApprovalChannelInfo[] channels, CancellationToken token);
-
-        /// <summary>
-        /// Two Factor Authentication is required.
-        /// </summary>
-        /// <param name="channels">List of available 2FA channels.</param>
-        /// <param name="token">Cancellation token. Keeper SDK notifies the client passed 2FA.</param>
-        /// <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-        /// <remarks>
-        /// Clients to display the list of available 2FA channels.
-        /// When user picks one clients to check
-        /// <list type="number">
-        /// <item><description>
-        /// if channel implements <see cref="ITwoFactorPushInfo">push interface</see> clients displays an button for each <see cref="ITwoFactorPushInfo.SupportedActions">push action</see>
-        /// </description></item>
-        /// <item><description>
-        /// If channel implements <see cref="ITwoFactorDurationInfo">2FA duration interface</see> clients may show 2FA expiration picker.
-        /// </description></item>
-        /// <item><description>
-        /// If channel implements <see cref="ITwoFactorAppCodeInfo">2FA code interface</see> clients displays 2FA code input.
-        /// </description></item>
-        /// </list>
-        /// When customer enters the code and click Next clients returns the code to <see cref="ITwoFactorAppCodeInfo.InvokeTwoFactorCodeAction">the SDK</see>.
-        /// </remarks>
-        Task<bool> WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token);
-
-        /// <summary>
-        /// Master Password is required.
-        /// </summary>
-        /// <param name="passwordInfo">Enter Password interface</param>
-        /// <param name="token">Cancellation token. Keeper SDK notifies the client successfully authorized. Can be ignored.</param>
-        /// <returns>Awaitable boolean result. <c>True</c>True resumes login, <c>False</c> cancels.</returns>
-        /// <remarks>
-        /// Client displays Enter password dialog.
-        /// When customer clicks Next client returns the password to <see cref="IPasswordInfo.InvokePasswordActionDelegate">the SDK</see>.
-        /// </remarks>
-        Task<bool> WaitForUserPassword(IPasswordInfo passwordInfo, CancellationToken token);
-    }
 
     /// <summary>
     /// Various methods that notify client about IAuth object state changes. Optional.
@@ -229,65 +168,6 @@ namespace KeeperSecurity.Authentication
         void SsoLogoutUrl(string url);
     }
 
-    /// <summary>
-    /// Defines the methods required completing SSO Login. Optional.
-    /// </summary>
-    /// <remarks>If client supports SSO Login this interface needs to be implemented
-    /// along with <see cref="IAuthUI">Auth UI</see>
-    /// </remarks>
-    /// <seealso cref="IAuthUI"/>
-    /// <remarks>
-    /// Client implements this interface to support SSO login. This interface will be called in response
-    /// of <see cref="IAuth.Login"/> if username is SSO user or <see cref="IAuth.LoginSso"/>
-    /// </remarks>
-    public interface IAuthSsoUI: ISsoLogoutCallback
-    {
-        /// <summary>
-        /// SSO Login is required.
-        /// </summary>
-        /// <param name="actionInfo"></param>
-        /// <param name="token">Cancellation token. Keeper SDK notifies the client successfully logged in with SSO.</param>
-        /// <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-        /// <remarks>
-        /// When this method is called client opens embedded web browser and navigates to URL specified in
-        /// <see cref="ISsoTokenActionInfo.SsoLoginUrl">actionInfo.SsoLoginUrl</see>
-        /// then monitors embedded web browser navigation.
-        /// When it finds the page that contains <c>window.token</c> object it passes this object to
-        /// <see cref="ISsoTokenActionInfo.InvokeSsoTokenAction">actionInfo.InvokeSsoTokenAction</see>
-        /// </remarks>
-        Task<bool> WaitForSsoToken(ISsoTokenActionInfo actionInfo, CancellationToken token);
-
-        /// <summary>
-        /// Data Key needs to be shared. 
-        /// </summary>
-        /// <param name="channels">List of available data key sharing channels.</param>
-        /// <param name="token">Cancellation token. Keeper SDK notifies the client that data key is shared.</param>
-        /// <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-        /// <remarks>
-        /// Cloud SSO login may require user data key to be shared if the device is used for the first time.
-        /// Client displays the list of available data key sharing channels.
-        /// When user picks a channel, client invokes channel's action <see cref="IDataKeyChannelInfo.InvokeGetDataKeyAction">channels.InvokeGetDataKeyAction</see>
-        /// </remarks>
-        Task<bool> WaitForDataKey(IDataKeyChannelInfo[] channels, CancellationToken token);
-    }
-
-    /// <summary>
-    /// Defines the method that starts U2F Security Key 2FA. Optional.
-    /// </summary>
-    /// <remarks>
-    /// Implement this interface along with <see cref="IAuthUI">Auth UI</see>
-    /// if you plan to support Security Key (Yubikey and any other U2F compatible keys).
-    /// </remarks>
-    /// <seealso cref="IAuthUI"/>
-    public interface IAuthSecurityKeyUI
-    {
-        /// <summary>
-        /// U2F key authentications required.
-        /// </summary>
-        /// <param name="requests">a list of registered U2F key requests.</param>
-        /// <returns>A task that returns U2F signature.</returns>
-        Task<string> AuthenticateRequests(SecurityKeyAuthenticateRequest[] requests);
-    }
 
     /// <summary>
     /// Defines the methods required to complete post login tasks. Optional.
@@ -323,7 +203,7 @@ namespace KeeperSecurity.Authentication
     /// Http Proxy credentials action
     /// </summary>
     /// <returns></returns>
-    public delegate void HttpProxyCredentialsDelegate(string username, string password);
+    public delegate Task HttpProxyCredentialsDelegate(string username, string password);
 
     /// <summary>
     /// Defines methods and properties for http proxy authentication.
@@ -342,24 +222,6 @@ namespace KeeperSecurity.Authentication
         /// Accepts HTTP proxy credentials
         /// </summary>
         HttpProxyCredentialsDelegate InvokeHttpProxyCredentialsDelegate { get; }
-    }
-
-    /// <summary>
-    /// Defines a method that returns HTTP Web proxy credentials. Optional.
-    /// </summary>
-    /// <remarks>
-    /// Keeper SDK calls this interface if it detects that access to the Internet is protected with HTTP Proxy.
-    /// Clients requests HTTP proxy credentials from the user and return them to the library.
-    /// </remarks>
-    /// <seealso cref="IAuthUI"/>
-    public interface IHttpProxyCredentialUi
-    {
-        /// <summary>
-        /// Requests HTTP Proxy credentials.
-        /// </summary>
-        /// <param name="proxyInfo">HTTP Proxy information</param>
-        /// <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-        Task<bool> WaitForHttpProxyCredentials(IHttpProxyInfo proxyInfo);
     }
 
     /// <summary>
@@ -562,5 +424,23 @@ namespace KeeperSecurity.Authentication
         /// Gets 2FA push action endpoint.
         /// </summary>
         TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; }
+    }
+
+    /// <summary>
+    /// Defines the method that starts U2F Security Key 2FA. Optional.
+    /// </summary>
+    /// <remarks>
+    /// Implement this interface along with <see cref="IAuthUI">Auth UI</see>
+    /// if you plan to support Security Key (Yubikey and any other U2F compatible keys).
+    /// </remarks>
+    /// <seealso cref="IAuthUI"/>
+    public interface IAuthSecurityKeyUI
+    {
+        /// <summary>
+        /// U2F key authentications required.
+        /// </summary>
+        /// <param name="requests">a list of registered U2F key requests.</param>
+        /// <returns>A task that returns U2F signature.</returns>
+        Task<string> AuthenticateRequests(SecurityKeyAuthenticateRequest[] requests);
     }
 }

@@ -216,6 +216,7 @@
                 <PropertyName>DisplayedPassword</PropertyName>
               </ListItem>
               <ListItem>
+                <Label>Website Address</Label>
                 <PropertyName>Link</PropertyName>
               </ListItem>
               <ListItem>

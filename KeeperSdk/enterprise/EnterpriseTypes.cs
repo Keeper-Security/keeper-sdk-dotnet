@@ -17,6 +17,11 @@ namespace KeeperSecurity.Enterprise
         IAuthentication Auth { get; }
 
         /// <summary>
+        /// Gets enterprise name
+        /// </summary>
+        string EnterpriseName { get; }
+
+        /// <summary>
         ///     Gets Enterprise Tree encryption key.
         /// </summary>
         byte[] TreeKey { get; }
@@ -59,8 +64,9 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         ///     Retrieves from Keeper and decrypts Enterprise Data structure.
         /// </summary>
-        /// <returns></returns>
-        Task GetEnterpriseData();
+        /// <param name="nodesOnly">Retrieve node information only</param>
+        /// <returns>Awaitable task</returns>
+        Task PopulateEnterprise(bool nodesOnly);
 
         /// <summary>
         ///     Gets the enterprise node associated with the specified ID.

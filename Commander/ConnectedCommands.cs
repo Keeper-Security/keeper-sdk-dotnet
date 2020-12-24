@@ -11,6 +11,7 @@ using CommandLine;
 using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication.Async;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
@@ -157,8 +158,8 @@ namespace Commander
                         Action = ThisDeviceCommand,
                     });
 
-//                if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise == true)
-//                {
+                if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise == true)
+                {
                     Commands.Add("share-datakey",
                         new SimpleCommand
                         {
@@ -166,7 +167,7 @@ namespace Commander
                             Description = "Share data key with enterprise",
                             Action = ShareDatakeyCommand,
                         });
-//                }
+                }
 
                 Commands.Add("sync-down",
                     new ParsableCommand<SyncDownOptions>
@@ -250,7 +251,7 @@ namespace Commander
                 await _auth.Logout();
             }
 
-            NextStateContext = new NotConnectedCliContext(false);
+            NextState = new NotConnectedCliContext(false);
         }
 
         private Task ListCommand(ListCommandOptions options)
@@ -762,7 +763,7 @@ namespace Commander
         }
 
 
-        private string TokenToString(byte[] token)
+        public static string TokenToString(byte[] token)
         {
             var sb = new StringBuilder();
             foreach (var b in token)
@@ -1458,8 +1459,8 @@ namespace Commander
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            _vault?.Dispose();
-            _auth?.Dispose();
+            _vault.Dispose();
+            _auth.Dispose();
         }
     }
 

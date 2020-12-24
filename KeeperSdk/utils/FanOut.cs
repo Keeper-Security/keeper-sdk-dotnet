@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace KeeperSecurity.Utils
 {
@@ -45,40 +47,32 @@ namespace KeeperSecurity.Utils
     /// <exclude />
     public class FanOut<T> : IFanOut<T>
     {
-        private readonly List<NotificationCallback<T>> _callbacks = new List<NotificationCallback<T>>();
+        private readonly ConcurrentDictionary<int, NotificationCallback<T>> _callbacks = 
+            new ConcurrentDictionary<int, NotificationCallback<T>>();
 
         public void RegisterCallback(NotificationCallback<T> callback)
         {
             if (IsCompleted) return;
-            lock (_callbacks)
-            {
-                foreach (var cb in _callbacks)
-                    if (ReferenceEquals(cb, callback))
-                        return;
-
-                _callbacks.Add(callback);
-            }
+            var id = callback.GetHashCode();
+            _callbacks.TryAdd(id, callback);
         }
 
         public void RemoveCallback(NotificationCallback<T> callback)
         {
-            lock (_callbacks)
-            {
-                if (_callbacks.Count != 0) _callbacks.Remove(callback);
-            }
+            if (IsCompleted) return;
+            _callbacks.TryRemove(callback.GetHashCode(), out _);
         }
 
         public void Push(T item)
         {
             if (IsCompleted) return;
-            lock (_callbacks)
+            var ids = _callbacks.Keys.ToArray();
+            foreach (var id in ids)
             {
-                var toRemove = new List<NotificationCallback<T>>();
-                foreach (var cb in _callbacks)
-                    if (cb.Invoke(item))
-                        toRemove.Add(cb);
+                if (!_callbacks.TryGetValue(id, out var cb)) continue;
 
-                foreach (var cb in toRemove) _callbacks.Remove(cb);
+                if (cb.Invoke(item))
+                    _callbacks.TryRemove(id, out _);
             }
         }
 
@@ -93,11 +87,7 @@ namespace KeeperSecurity.Utils
         public virtual void Shutdown()
         {
             IsCompleted = true;
-
-            lock (_callbacks)
-            {
-                _callbacks.Clear();
-            }
+            _callbacks.Clear();
         }
 
         protected virtual void Dispose(bool disposing)

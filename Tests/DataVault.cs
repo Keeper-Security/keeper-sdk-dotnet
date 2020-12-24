@@ -4,6 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Threading.Tasks;
+using AccountSummary;
+using Authentication;
+using Google.Protobuf;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
@@ -16,12 +21,194 @@ using Org.BouncyCastle.Pkcs;
 
 namespace Tests
 {
+    public class TestWebSocket : FanOut<NotificationEvent>, IPushNotificationChannel
+    {
+        public Task SendToWebSocket(byte[] payload, bool encrypted)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    public class AuthMockParameters
+    {
+        public bool StopAtDeviceApproval { get; set; }
+        public bool StopAtTwoFactor { get; set; }
+        public bool StopAtPassword { get; set; }
+
+        public void ResetStops()
+        {
+            StopAtDeviceApproval = false;
+            StopAtTwoFactor = false;
+            StopAtPassword = false;
+        }
+
+        protected Task<byte[]> MockExecuteRest(string endpoint, ApiRequestPayload payload, IAuth auth)
+        {
+            if (auth.Endpoint.Server != DataVault.DefaultEnvironment)
+            {
+                return Task.FromException<byte[]>(new KeeperRegionRedirect(DataVault.DefaultEnvironment));
+            }
+
+            byte[] response = null;
+            switch (endpoint)
+            {
+                case "authentication/register_device":
+                {
+                    var device = new Device()
+                    {
+                        EncryptedDeviceToken = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(64)),
+                    };
+                    response = device.ToByteArray();
+                }
+                break;
+                case "authentication/start_login":
+                {
+                    var lrs = new LoginResponse
+                    {
+                        EncryptedLoginToken = ByteString.CopyFrom(DataVault.EncryptedLoginToken),
+
+                    };
+                    if (StopAtDeviceApproval)
+                    {
+                        lrs.LoginState = LoginState.DeviceApprovalRequired;
+                    }
+                    else if (StopAtTwoFactor)
+                    {
+                        lrs.LoginState = LoginState.Requires2Fa;
+                        lrs.Channels.Add(new TwoFactorChannelInfo
+                        {
+                            ChannelType = TwoFactorChannelType.TwoFaCtTotp,
+                            ChannelUid = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(8)),
+                            ChannelName = "Mock",
+                        });
+                    }
+                    else if (StopAtPassword)
+                    {
+                        lrs.LoginState = LoginState.RequiresAuthHash;
+                        lrs.Salt.Add(new Salt
+                        {
+                            Iterations = DataVault.UserIterations,
+                            Salt_ = ByteString.CopyFrom(DataVault.UserSalt),
+                            Name = "Mock",
+                            Uid = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(8)),
+                        });
+                    }
+                    else
+                    {
+                        lrs.LoginState = LoginState.LoggedIn;
+                        lrs.AccountUid = ByteString.CopyFrom(DataVault.AccountUid);
+                        lrs.PrimaryUsername = DataVault.UserName;
+                        lrs.CloneCode = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(8));
+                        lrs.EncryptedSessionToken = ByteString.CopyFrom(DataVault.SessionToken);
+                        var device = auth.Storage.Devices.List.FirstOrDefault();
+                        var devicePrivateKey = CryptoUtils.LoadPrivateEcKey(device.DeviceKey);
+                        var devicePublicKey = CryptoUtils.GetPublicEcKey(devicePrivateKey);
+                        lrs.EncryptedDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(DataVault.UserDataKey, devicePublicKey));
+                        lrs.EncryptedDataKeyType = EncryptedDataKeyType.ByDevicePublicKey;
+                    }
+
+                    response = lrs.ToByteArray();
+                }
+                break;
+
+                case "authentication/validate_auth_hash":
+                {
+                    var request = ValidateAuthHashRequest.Parser.ParseFrom(payload.Payload);
+                    var expectedPassword = CryptoUtils.DeriveV1KeyHash(DataVault.UserPassword, DataVault.UserSalt, DataVault.UserIterations);
+                    if (request.AuthResponse.SequenceEqual(expectedPassword))
+                    {
+                        var lrs = new LoginResponse
+                        {
+                            LoginState = LoginState.LoggedIn,
+                            EncryptedLoginToken = ByteString.CopyFrom(DataVault.EncryptedLoginToken),
+                            AccountUid = ByteString.CopyFrom(DataVault.AccountUid),
+                            PrimaryUsername = DataVault.UserName,
+                            CloneCode = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(8)),
+                            EncryptedSessionToken = ByteString.CopyFrom(DataVault.SessionToken),
+                            EncryptedDataKey = ByteString.CopyFrom(DataVault.EncryptionParams),
+                            EncryptedDataKeyType = EncryptedDataKeyType.ByPassword,
+                        };
+                        response = lrs.ToByteArray();
+                    }
+                    else
+                    {
+                        return Task.FromException<byte[]>(new KeeperAuthFailed());
+                    }
+
+                }
+                break;
+
+                case "authentication/request_device_verification":
+                    StopAtDeviceApproval = false;
+                    response = new byte[0];
+                    break;
+
+                case "authentication/2fa_send_push":
+                    if (StopAtDeviceApproval)
+                    {
+                        StopAtDeviceApproval = false;
+                    }
+
+                    response = new byte[0];
+                    break;
+
+                case "authentication/2fa_validate":
+                    var tfvr = TwoFactorValidateRequest.Parser.ParseFrom(payload.Payload);
+                    if (tfvr.Value == DataVault.TwoFactorOneTimeToken)
+                    {
+                        StopAtTwoFactor = false;
+                        var tfars = new TwoFactorValidateResponse
+                        {
+                            EncryptedLoginToken = tfvr.EncryptedLoginToken
+                        };
+                        response = tfars.ToByteArray();
+                    }
+                    else
+                    {
+                        return Task.FromException<byte[]>(new KeeperAuthFailed());
+                    }
+                    break;
+
+                case "vault/execute_v2_command":
+                    break;
+
+                case "authentication/validate_device_verification_code":
+                    var vdvcr = ValidateDeviceVerificationCodeRequest.Parser.ParseFrom(payload.Payload);
+                    if (vdvcr.VerificationCode == DataVault.DeviceVerificationEmailCode)
+                    {
+                        StopAtDeviceApproval = false;
+                        response = new byte[0];
+                    }
+                    else
+                    {
+                        return Task.FromException<byte[]>(new KeeperAuthFailed());
+                    }
+
+                    break;
+                case "login/account_summary":
+                {
+                    response = auth.ProcessAccountSummary().ToByteArray();
+                }
+                break;
+            }
+
+            if (response != null)
+            {
+                return Task.FromResult(response);
+            }
+
+            return Task.FromException<byte[]>(new KeeperCanceled());
+        }
+    }
+
     public static class DataVault
     {
-        public static string DefaultEnvironment = "env.company.com";
+        internal const string TestClientVersion = "c15.0.0";
+
+        public const string DefaultEnvironment = "env.company.com";
 
         public static byte[] AccountUid = CryptoUtils.GetRandomBytes(16);
-        public static string UserName = "some_fake_user@company.com";
+        public const string UserName = "some_fake_user@company.com";
 
         public static string UserPassword = CryptoUtils.GetRandomBytes(8).Base64UrlEncode();
         public static int UserIterations = 1000;
@@ -71,6 +258,8 @@ fwIDAQAB
         public static byte[] SessionToken = CryptoUtils.GetRandomBytes(64);
         public static byte[] DeviceId = CryptoUtils.GetRandomBytes(64);
 
+        public static byte[] EncryptedLoginToken = CryptoUtils.GetRandomBytes(64);
+
         public static string DeviceVerificationEmailCode = "1234567890";
 
         public static string TwoFactorOneTimeToken = "123456";
@@ -103,7 +292,7 @@ fwIDAQAB
             var publicKeyInfo = new RsaPublicKeyStructure(publicKey.Modulus, publicKey.Exponent);
             return publicKeyInfo.GetDerEncoded();
         }
-
+        /*
         public class PasswordFinder : IPasswordFinder
         {
             private readonly char[] _password;
@@ -118,7 +307,7 @@ fwIDAQAB
                 return _password;
             }
         }
-
+        */
         private static RsaPrivateCrtKeyParameters LoadPrivateKey(string privateKey)
         {
             var pemReader = new PemReader(new StringReader(privateKey));
@@ -149,7 +338,54 @@ fwIDAQAB
             storage.LastLogin = UserName;
             return storage;
         }
+
+        internal static AccountSummaryElements ProcessAccountSummary(this IAuth auth)
+        {
+            var device = auth.Storage.Devices.List.FirstOrDefault();
+            return new AccountSummaryElements
+            {
+                ClientKey = ByteString.CopyFrom(
+                    CryptoUtils.EncryptAesV1(
+                        CryptoUtils.GetRandomBytes(16),
+                        DataVault.UserDataKey)),
+                IsEnterpriseAdmin = false,
+                KeysInfo = new KeysInfo
+                {
+                    EncryptionParams = ByteString.CopyFrom(DataVault.EncryptionParams),
+                    EncryptedPrivateKey = ByteString.CopyFrom(DataVault.EncryptedPrivateKey),
+                },
+                Devices =
+                {
+                    new DeviceInfo
+                    {
+                        ClientVersion = DataVault.TestClientVersion,
+                        DeviceName = "Test Device",
+                        DeviceStatus = DeviceStatus.DeviceOk,
+                        EncryptedDeviceToken = ByteString.CopyFrom(device.DeviceToken.Base64UrlDecode()),
+                        DevicePublicKey = ByteString.CopyFrom(device.DeviceKey),
+                    }
+                },
+                Settings = new Settings
+                {
+
+                },
+                License = new AccountSummary.License
+                {
+
+                }
+            };
+        }
     }
+
+
+
+
+
+
+
+
+
+
 
     public class KInfoDevice
     {

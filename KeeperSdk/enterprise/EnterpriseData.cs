@@ -16,6 +16,11 @@ namespace KeeperSecurity.Enterprise
     public partial class EnterpriseData: IEnterprise
     {
         /// <summary>
+        /// Gets enterprise data
+        /// </summary>
+        public string EnterpriseName { get; private set; }
+
+        /// <summary>
         /// Gets Enterprise Tree encryption key.
         /// </summary>
         public byte[] TreeKey { get; private set; }
@@ -24,9 +29,11 @@ namespace KeeperSecurity.Enterprise
         /// Instantiates <see cref="EnterpriseData"/> instance.
         /// </summary>
         /// <param name="auth">Keeper authentication.</param>
-        public EnterpriseData(IAuthentication auth)
+        /// <param name="treeKey">Enterprise tree key. Optional.</param>
+        public EnterpriseData(IAuthentication auth, byte[] treeKey = null)
         {
             Auth = auth;
+            TreeKey = treeKey;
         }
 
         internal readonly Dictionary<string, byte[]> UserPublicKeyCache = new Dictionary<string, byte[]>(StringComparer.InvariantCultureIgnoreCase);
@@ -35,193 +42,232 @@ namespace KeeperSecurity.Enterprise
         private readonly ConcurrentDictionary<long, EnterpriseUser> _users = new ConcurrentDictionary<long, EnterpriseUser>();
         private readonly ConcurrentDictionary<string, EnterpriseTeam> _teams = new ConcurrentDictionary<string, EnterpriseTeam>();
         private readonly ConcurrentDictionary<string, long> _userNames = new ConcurrentDictionary<string, long>(1, 100, StringComparer.InvariantCultureIgnoreCase);
-        
-        /// <summary>
-        /// Retrieves Enterprise data structure.
-        /// </summary>
-        /// <returns>Awaitable task.</returns>
-        public async Task GetEnterpriseData()
+
+        public async Task<GetEnterpriseDataResponse> GetEnterpriseData(params string[] includes)
         {
             var rq = new GetEnterpriseDataCommand
             {
-                include = new [] {"nodes", "users", "teams", "team_users" }
+                include = includes
             };
-            var rs = await Auth.ExecuteAuthCommand<GetEnterpriseDataCommand, GetEnterpriseDataResponse>(rq);
+            var rs =  await Auth.ExecuteAuthCommand<GetEnterpriseDataCommand, GetEnterpriseDataResponse>(rq);
 
-            var encTreeKey = rs.TreeKey.Base64UrlDecode();
-            switch (rs.KeyTypeId)
+            EnterpriseName = rs.EnterpriseName;
+
+            if (TreeKey == null)
             {
-                case 1:
-                    TreeKey = CryptoUtils.DecryptAesV1(encTreeKey, Auth.AuthContext.DataKey);
-                    break;
-                case 2:
-                    TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateKey);
-                    break;
-                default:
-                    throw new Exception("cannot decrypt tree key");
-            }
-
-            var ids = new HashSet<long>(_nodes.Keys);
-            foreach (var n in rs.Nodes)
-            {
-                if (_nodes.TryGetValue(n.NodeId, out var node))
+                var encTreeKey = rs.TreeKey.Base64UrlDecode();
+                switch (rs.KeyTypeId)
                 {
-                    ids.Remove(n.NodeId);
-                    node.Subnodes.Clear();
-                }
-                else
-                {
-                    node = new EnterpriseNode {Id = n.NodeId};
-                    _nodes.TryAdd(n.NodeId, node);
-                }
-
-                EnterpriseUtils.DecryptEncryptedData(n, TreeKey, node);
-
-                if (n.ParentId.HasValue && n.ParentId.Value > 0)
-                {
-                    node.ParentNodeId = n.ParentId.Value;
-                }
-                else
-                {
-                    RootNode = node;
-                    RootNode.DisplayName = rs.EnterpriseName;
-                    node.ParentNodeId = 0;
-                }
-            }
-            foreach (var id in ids)
-            {
-                _nodes.TryRemove(id, out _);
-            }
-
-            foreach (var node in _nodes.Values)
-            {
-                if (node.ParentNodeId <= 0) continue;
-                if (_nodes.TryGetValue(node.ParentNodeId, out var parent))
-                {
-                    parent.Subnodes.Add(node.Id);
+                    case 1:
+                        TreeKey = CryptoUtils.DecryptAesV1(encTreeKey, Auth.AuthContext.DataKey);
+                        break;
+                    case 2:
+                        if (encTreeKey.Length > 60)
+                        {
+                            TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateKey);
+                        }
+                        break;
+                    default:
+                        throw new Exception("cannot decrypt tree key");
                 }
             }
 
-            if (rs.Users != null)
+            return rs;
+        }
+
+        /// <summary>
+        /// Retrieves Enterprise node structure.
+        /// </summary>
+        /// <returns>Awaitable task.</returns>
+        public async Task PopulateEnterprise(bool nodesOnly = false)
+        {
+            var includes = new HashSet<string>();
+            includes.Add("nodes");
+            if (!nodesOnly)
+            {
+                includes.Add("users");
+                includes.Add("teams");
+                includes.Add("team_users");
+            }
+
+            var rs = await GetEnterpriseData(includes.ToArray());
+            var ids = new HashSet<long>();
+            if (includes.Contains("nodes"))
             {
                 ids.Clear();
-                ids.UnionWith(_users.Keys);
-                foreach (var u in rs.Users)
+                ids.UnionWith(_nodes.Keys);
+                foreach (var n in rs.Nodes)
                 {
-                    if (_users.TryGetValue(u.EnterpriseUserId, out var user))
+                    if (_nodes.TryGetValue(n.NodeId, out var node))
                     {
-                        ids.Remove(u.EnterpriseUserId);
-                        user.Teams.Clear();
+                        ids.Remove(n.NodeId);
+                        node.Subnodes.Clear();
                     }
                     else
                     {
-                        user = new EnterpriseUser
-                        {
-                            Id = u.EnterpriseUserId
-                        };
-                        _users.TryAdd(u.EnterpriseUserId, user);
+                        node = new EnterpriseNode { Id = n.NodeId };
+                        _nodes.TryAdd(n.NodeId, node);
                     }
 
-                    user.ParentNodeId = u.NodeId;
-                    user.Email = u.Username;
-                    EnterpriseUtils.DecryptEncryptedData(u, TreeKey, user);
+                    EnterpriseUtils.DecryptEncryptedData(n, TreeKey, node);
 
-                    if (u.Status == "active")
+                    if (n.ParentId.HasValue && n.ParentId.Value > 0)
                     {
-                        switch (u.Lock)
+                        node.ParentNodeId = n.ParentId.Value;
+                    }
+                    else
+                    {
+                        RootNode = node;
+                        RootNode.DisplayName = rs.EnterpriseName;
+                        node.ParentNodeId = 0;
+                    }
+                }
+                foreach (var id in ids)
+                {
+                    _nodes.TryRemove(id, out _);
+                }
+
+                foreach (var node in _nodes.Values)
+                {
+                    if (node.ParentNodeId <= 0) continue;
+                    if (_nodes.TryGetValue(node.ParentNodeId, out var parent))
+                    {
+                        parent.Subnodes.Add(node.Id);
+                    }
+                }
+            }
+
+            if (includes.Contains("users"))
+            {
+                if (rs.Users != null)
+                {
+                    ids.Clear();
+                    ids.UnionWith(_users.Keys);
+                    foreach (var u in rs.Users)
+                    {
+                        if (_users.TryGetValue(u.EnterpriseUserId, out var user))
                         {
-                            case 0:
-                                user.UserStatus = UserStatus.Active;
-                                break;
-                            case 1:
-                                user.UserStatus = UserStatus.Locked;
-                                break;
-                            case 2:
-                                user.UserStatus = UserStatus.Disabled;
-                                break;
-                            default:
-                                user.UserStatus = UserStatus.Active;
-                                break;
+                            ids.Remove(u.EnterpriseUserId);
+                            user.Teams.Clear();
                         }
-                        if (u.AccountShareExpiration.HasValue && u.AccountShareExpiration.Value > 0)
+                        else
                         {
-                            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                            if (now > (long) u.AccountShareExpiration.Value)
+                            user = new EnterpriseUser
                             {
-                                user.UserStatus = UserStatus.Blocked;
+                                Id = u.EnterpriseUserId
+                            };
+                            _users.TryAdd(u.EnterpriseUserId, user);
+                        }
+
+                        user.ParentNodeId = u.NodeId;
+                        user.Email = u.Username;
+                        EnterpriseUtils.DecryptEncryptedData(u, TreeKey, user);
+
+                        if (u.Status == "active")
+                        {
+                            switch (u.Lock)
+                            {
+                                case 0:
+                                    user.UserStatus = UserStatus.Active;
+                                    break;
+                                case 1:
+                                    user.UserStatus = UserStatus.Locked;
+                                    break;
+                                case 2:
+                                    user.UserStatus = UserStatus.Disabled;
+                                    break;
+                                default:
+                                    user.UserStatus = UserStatus.Active;
+                                    break;
+                            }
+
+                            if (u.AccountShareExpiration.HasValue && u.AccountShareExpiration.Value > 0)
+                            {
+                                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                                if (now > (long) u.AccountShareExpiration.Value)
+                                {
+                                    user.UserStatus = UserStatus.Blocked;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            user.UserStatus = UserStatus.Inactive;
+                        }
+                    }
+
+                    foreach (var id in ids)
+                    {
+                        _users.TryRemove(id, out _);
+                    }
+
+                    _userNames.Clear();
+                    foreach (var u in rs.Users)
+                    {
+                        _userNames.TryAdd(u.Username, u.EnterpriseUserId);
+                    }
+                }
+            }
+
+            if (includes.Contains("teams"))
+            {
+                if (rs.Teams != null)
+                {
+                    var uids = new HashSet<string>();
+                    uids.UnionWith(_teams.Keys);
+                    foreach (var t in rs.Teams)
+                    {
+                        if (_teams.TryGetValue(t.TeamUid, out var team))
+                        {
+                            uids.Remove(t.TeamUid);
+                            team.Users.Clear();
+                        }
+                        else
+                        {
+                            team = new EnterpriseTeam
+                            {
+                                Uid = t.TeamUid
+                            };
+                            _teams.TryAdd(t.TeamUid, team);
+                        }
+
+                        team.Name = t.Name;
+
+                        team.ParentNodeId = t.NodeId;
+                        team.RestrictEdit = t.RestrictEdit;
+                        team.RestrictSharing = t.RestrictSharing;
+                        team.RestrictView = t.RestrictView;
+                        if (!string.IsNullOrEmpty(t.EncryptedTeamKey))
+                        {
+                            try
+                            {
+                                team.TeamKey = CryptoUtils.DecryptAesV2(t.EncryptedTeamKey.Base64UrlDecode(), TreeKey);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e.Message);
                             }
                         }
                     }
-                    else
-                    {
-                        user.UserStatus = UserStatus.Inactive;
-                    }
-                }
 
-                foreach (var id in ids)
-                {
-                    _users.TryRemove(id, out _);
-                }
-                _userNames.Clear();
-                foreach (var u in rs.Users)
-                {
-                    _userNames.TryAdd(u.Username, u.EnterpriseUserId);
+                    foreach (var uid in uids)
+                    {
+                        _teams.TryRemove(uid, out _);
+                    }
                 }
             }
 
-            if (rs.Teams != null)
+            if (includes.Contains("team_users"))
             {
-                var uids = new HashSet<string>();
-                uids.UnionWith(_teams.Keys);
-                foreach (var t in rs.Teams)
+                if (rs.TeamUsers != null)
                 {
-                    if (_teams.TryGetValue(t.TeamUid, out var team))
+                    foreach (var tu in rs.TeamUsers)
                     {
-                        uids.Remove(t.TeamUid);
-                        team.Users.Clear();
-                    }
-                    else
-                    {
-                        team = new EnterpriseTeam
+                        if (_users.TryGetValue(tu.EnterpriseUserId, out var user) && _teams.TryGetValue(tu.TeamUid, out var team))
                         {
-                            Uid = t.TeamUid
-                        };
-                        _teams.TryAdd(t.TeamUid, team);
-                    }
-
-                    team.Name = t.Name;
-
-                    team.ParentNodeId = t.NodeId;
-                    team.RestrictEdit = t.RestrictEdit;
-                    team.RestrictSharing = t.RestrictSharing;
-                    team.RestrictView = t.RestrictView;
-                    if (!string.IsNullOrEmpty(t.EncryptedTeamKey))
-                    {
-                        try
-                        {
-                            team.TeamKey = CryptoUtils.DecryptAesV2(t.EncryptedTeamKey.Base64UrlDecode(), TreeKey);
+                            team.Users.Add(user.Id);
+                            user.Teams.Add(team.Uid);
                         }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine(e.Message);
-                        }
-                    }
-                }
-
-                foreach (var uid in uids)
-                {
-                    _teams.TryRemove(uid, out _);
-                }
-            }
-
-            if (rs.TeamUsers != null)
-            {
-                foreach (var tu in rs.TeamUsers)
-                {
-                    if (_users.TryGetValue(tu.EnterpriseUserId, out var user) && _teams.TryGetValue(tu.TeamUid, out var team))
-                    {
-                        team.Users.Add(user.Id);
-                        user.Teams.Add(team.Uid);
                     }
                 }
             }
@@ -309,6 +355,5 @@ namespace KeeperSecurity.Enterprise
         /// Gets the number of all teams in the enterprise.
         /// </summary>
         public int TeamCount => _teams.Count;
-
     }
 }

@@ -79,122 +79,114 @@ namespace Enterprise {
             "ZXlzGAEgAygLMiEuRW50ZXJwcmlzZS5FbnRlcnByaXNlVXNlckRhdGFLZXki",
             "MgoVRW50ZXJwcmlzZURhdGFSZXF1ZXN0EhkKEWNvbnRpbnVhdGlvblRva2Vu",
             "GAEgASgMIjAKE1NwZWNpYWxQcm92aXNpb25pbmcSCwoDdXJsGAEgASgJEgwK",
-            "BG5hbWUYAiABKAkiKgoGTXNwS2V5Eg8KB3RyZWVLZXkYASABKAkSDwoHa2V5",
-            "VHlwZRgCIAEoCSKxAQoRR2VuZXJhbERhdGFFbnRpdHkSFgoOZW50ZXJwcmlz",
-            "ZU5hbWUYASABKAkSDwoHdHJlZUtleRgCIAEoCRIRCglrZXlUeXBlSWQYAyAB",
-            "KAUSPAoTc3BlY2lhbFByb3Zpc2lvbmluZxgEIAEoCzIfLkVudGVycHJpc2Uu",
-            "U3BlY2lhbFByb3Zpc2lvbmluZxIiCgZtc3BLZXkYBSABKAsyEi5FbnRlcnBy",
-            "aXNlLk1zcEtleSK6AQoETm9kZRIOCgZub2RlSWQYASABKAMSEAoIcGFyZW50",
-            "SWQYAiABKAMSEAoIYnJpZGdlSWQYAyABKAMSDgoGc2NpbUlkGAQgASgDEhEK",
-            "CWxpY2Vuc2VJZBgFIAEoAxIVCg1lbmNyeXB0ZWREYXRhGAYgASgJEhIKCmR1",
-            "b0VuYWJsZWQYByABKAgSEgoKcnNhRW5hYmxlZBgIIAEoCBIcChRzc29TZXJ2",
-            "aWNlUHJvdmlkZXJJZBgJIAEoAyKOAQoEUm9sZRIOCgZyb2xlSWQYASABKAMS",
-            "DgoGbm9kZUlkGAIgASgDEhUKDWVuY3J5cHRlZERhdGEYAyABKAkSDwoHa2V5",
-            "VHlwZRgEIAEoCRIUCgx2aXNpYmxlQmVsb3cYBSABKAgSFgoObmV3VXNlcklu",
-            "aGVyaXQYBiABKAgSEAoIcm9sZVR5cGUYByABKAkiuAEKBFVzZXISGAoQZW50",
-            "ZXJwcmlzZVVzZXJJZBgBIAEoAxIOCgZub2RlSWQYAiABKAMSFQoNZW5jcnlw",
-            "dGVkRGF0YRgDIAEoCRIPCgdrZXlUeXBlGAQgASgJEhAKCHVzZXJuYW1lGAUg",
-            "ASgJEg4KBnN0YXR1cxgGIAEoCRIMCgRsb2NrGAcgASgFEg4KBnVzZXJJZBgI",
-            "IAEoBRIeChZhY2NvdW50U2hhcmVFeHBpcmF0aW9uGAkgASgDIlMKC01hbmFn",
-            "ZWROb2RlEg4KBnJvbGVJZBgBIAEoAxIVCg1tYW5hZ2VkTm9kZUlkGAIgASgD",
-            "Eh0KFWNhc2NhZGVOb2RlTWFuYWdlbWVudBgDIAEoCCKDAQoNVXNlclByaXZp",
-            "bGVnZRIOCgZub2RlSWQYASABKAMSHQoVY2FzY2FkZU5vZGVNYW5hZ2VtZW50",
-            "GAIgASgIEhIKCnByaXZpbGVnZXMYAyADKAkSGAoQZW50ZXJwcmlzZVVzZXJJ",
-            "ZBgEIAEoAxIVCg1lbmNyeXB0ZWREYXRhGAUgASgJIjQKCFJvbGVVc2VyEg4K",
-            "BnJvbGVJZBgBIAEoAxIYChBlbnRlcnByaXNlVXNlcklkGAIgASgDIkAKB1Jv",
-            "bGVLZXkSDgoGcm9sZUlkGAEgASgDEhQKDGVuY3J5cHRlZEtleRgCIAEoCRIP",
-            "CgdrZXlUeXBlGAMgASgJIk0KDVJvbGVQcml2aWxlZ2USFQoNbWFuYWdlZE5v",
-            "ZGVJZBgBIAEoAxIOCgZyb2xlSWQYAiABKAMSFQoNcHJpdmlsZWdlVHlwZRgD",
-            "IAEoCSI1CgtFbmZvcmNlbWVudBIXCg9lbmZvcmNlbWVudFR5cGUYASABKAkS",
-            "DQoFdmFsdWUYAiABKAkiUAoPUm9sZUVuZm9yY2VtZW50Eg4KBnJvbGVJZBgB",
-            "IAEoAxItCgxlbmZvcmNlbWVudHMYAiADKAsyFy5FbnRlcnByaXNlLkVuZm9y",
-            "Y2VtZW50IqkBCgRUZWFtEg8KB3RlYW1VaWQYASABKAwSDAoEbmFtZRgCIAEo",
-            "CRIOCgZub2RlSWQYAyABKAMSFAoMcmVzdHJpY3RFZGl0GAQgASgIEhUKDXJl",
-            "c3RyaWN0U2hhcmUYBSABKAgSFAoMcmVzdHJpY3RWaWV3GAYgASgIEhUKDWVu",
-            "Y3J5cHRlZERhdGEYByABKAkSGAoQZW5jcnlwdGVkVGVhbUtleRgIIAEoCSJH",
-            "CghUZWFtVXNlchIPCgd0ZWFtVWlkGAEgASgMEhgKEGVudGVycHJpc2VVc2Vy",
-            "SWQYAiABKAMSEAoIdXNlclR5cGUYAyABKAki0QEKDk1hbmFnZWRDb21wYW55",
-            "EhYKDm1jRW50ZXJwcmlzZUlkGAEgASgFEhgKEG1jRW50ZXJwcmlzZU5hbWUY",
-            "AiABKAkSEQoJbXNwTm9kZUlkGAMgASgDEhUKDW51bWJlck9mU2VhdHMYBCAB",
-            "KAUSFQoNbnVtYmVyT2ZVc2VycxgFIAEoBRIRCglwcm9kdWN0SWQYBiABKAkS",
-            "EQoJaXNFeHBpcmVkGAcgASgIEg8KB3RyZWVLZXkYCCABKAkSFQoNdHJlZV9r",
-            "ZXlfcm9sZRgJIAEoAyJSCgdNU1BQb29sEhEKCXByb2R1Y3RJZBgBIAEoBRIN",
-            "CgVzZWF0cxgCIAEoBRIWCg5hdmFpbGFibGVTZWF0cxgDIAEoBRINCgVzdGFz",
-            "aBgEIAEoBSI6CgpNU1BDb250YWN0EhQKDGVudGVycHJpc2VJZBgBIAEoBRIW",
-            "Cg5lbnRlcnByaXNlTmFtZRgCIAEoCSJjCgxMaWNlbnNlQWRkT24SDAoEbmFt",
-            "ZRgBIAEoCRIPCgdlbmFibGVkGAIgASgIEg8KB2lzVHJpYWwYAyABKAgSEgoK",
-            "ZXhwaXJhdGlvbhgEIAEoAxIPCgdjcmVhdGVkGAUgASgDIq4DCgdMaWNlbnNl",
-            "EgwKBHBhaWQYASABKAgSFQoNbnVtYmVyT2ZTZWF0cxgCIAEoBRISCgpleHBp",
-            "cmF0aW9uGAMgASgDEhQKDGxpY2Vuc2VLZXlJZBgEIAEoBRIVCg1wcm9kdWN0",
-            "VHlwZUlkGAUgASgFEgwKBG5hbWUYBiABKAkSGwoTZW50ZXJwcmlzZUxpY2Vu",
-            "c2VJZBgHIAEoAxIWCg5zZWF0c0FsbG9jYXRlZBgIIAEoBRIUCgxzZWF0c1Bl",
-            "bmRpbmcYCSABKAUSDAoEdGllchgKIAEoBRIWCg5maWxlUGxhblR5cGVJZBgL",
-            "IAEoBRIQCghtYXhCeXRlcxgMIAEoAxIZChFzdG9yYWdlRXhwaXJhdGlvbhgN",
-            "IAEoAxIVCg1saWNlbnNlU3RhdHVzGA4gASgJEiQKB21zcFBvb2wYDyABKAsy",
-            "Ey5FbnRlcnByaXNlLk1TUFBvb2wSKgoKbXNwQ29udGFjdBgQIAEoCzIWLkVu",
-            "dGVycHJpc2UuTVNQQ29udGFjdBIoCgZhZGRPbnMYESADKAsyGC5FbnRlcnBy",
-            "aXNlLkxpY2Vuc2VBZGRPbiJuCgZCcmlkZ2USEAoIYnJpZGdlSWQYASABKAMS",
-            "DgoGbm9kZUlkGAIgASgDEhgKEHdhbklwRW5mb3JjZW1lbnQYAyABKAkSGAoQ",
-            "bGFuSXBFbmZvcmNlbWVudBgEIAEoCRIOCgZzdGF0dXMYBSABKAkiXgoEU2Np",
-            "bRIOCgZzY2ltSWQYASABKAMSDgoGbm9kZUlkGAIgASgDEg4KBnN0YXR1cxgD",
-            "IAEoCRISCgpsYXN0U3luY2VkGAQgASgDEhIKCnJvbGVQcmVmaXgYBSABKAki",
-            "TAoORW1haWxQcm92aXNpb24SCgoCaWQYASABKAUSDgoGbm9kZUlkGAIgASgD",
-            "Eg4KBmRvbWFpbhgDIAEoCRIOCgZtZXRob2QYBCABKAkiKwoIUm9sZUtleTIS",
-            "DgoGcm9sZUlkGAEgASgDEg8KB3JvbGVLZXkYAiABKAkiUgoKUXVldWVkVGVh",
+            "BG5hbWUYAiABKAkimwEKEUdlbmVyYWxEYXRhRW50aXR5EhYKDmVudGVycHJp",
+            "c2VOYW1lGAEgASgJEjwKE3NwZWNpYWxQcm92aXNpb25pbmcYBCABKAsyHy5F",
+            "bnRlcnByaXNlLlNwZWNpYWxQcm92aXNpb25pbmcSMAoNdXNlclByaXZpbGVn",
+            "ZRgHIAEoCzIZLkVudGVycHJpc2UuVXNlclByaXZpbGVnZSK6AQoETm9kZRIO",
+            "CgZub2RlSWQYASABKAMSEAoIcGFyZW50SWQYAiABKAMSEAoIYnJpZGdlSWQY",
+            "AyABKAMSDgoGc2NpbUlkGAQgASgDEhEKCWxpY2Vuc2VJZBgFIAEoAxIVCg1l",
+            "bmNyeXB0ZWREYXRhGAYgASgJEhIKCmR1b0VuYWJsZWQYByABKAgSEgoKcnNh",
+            "RW5hYmxlZBgIIAEoCBIcChRzc29TZXJ2aWNlUHJvdmlkZXJJZBgJIAEoAyKO",
+            "AQoEUm9sZRIOCgZyb2xlSWQYASABKAMSDgoGbm9kZUlkGAIgASgDEhUKDWVu",
+            "Y3J5cHRlZERhdGEYAyABKAkSDwoHa2V5VHlwZRgEIAEoCRIUCgx2aXNpYmxl",
+            "QmVsb3cYBSABKAgSFgoObmV3VXNlckluaGVyaXQYBiABKAgSEAoIcm9sZVR5",
+            "cGUYByABKAkiuAEKBFVzZXISGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEoAxIO",
+            "CgZub2RlSWQYAiABKAMSFQoNZW5jcnlwdGVkRGF0YRgDIAEoCRIPCgdrZXlU",
+            "eXBlGAQgASgJEhAKCHVzZXJuYW1lGAUgASgJEg4KBnN0YXR1cxgGIAEoCRIM",
+            "CgRsb2NrGAcgASgFEg4KBnVzZXJJZBgIIAEoBRIeChZhY2NvdW50U2hhcmVF",
+            "eHBpcmF0aW9uGAkgASgDIlMKC01hbmFnZWROb2RlEg4KBnJvbGVJZBgBIAEo",
+            "AxIVCg1tYW5hZ2VkTm9kZUlkGAIgASgDEh0KFWNhc2NhZGVOb2RlTWFuYWdl",
+            "bWVudBgDIAEoCCJUCg9Vc2VyTWFuYWdlZE5vZGUSDgoGbm9kZUlkGAEgASgD",
+            "Eh0KFWNhc2NhZGVOb2RlTWFuYWdlbWVudBgCIAEoCBISCgpwcml2aWxlZ2Vz",
+            "GAMgAygJIncKDVVzZXJQcml2aWxlZ2USNQoQdXNlck1hbmFnZWROb2RlcxgB",
+            "IAMoCzIbLkVudGVycHJpc2UuVXNlck1hbmFnZWROb2RlEhgKEGVudGVycHJp",
+            "c2VVc2VySWQYAiABKAMSFQoNZW5jcnlwdGVkRGF0YRgDIAEoCSI0CghSb2xl",
+            "VXNlchIOCgZyb2xlSWQYASABKAMSGAoQZW50ZXJwcmlzZVVzZXJJZBgCIAEo",
+            "AyJNCg1Sb2xlUHJpdmlsZWdlEhUKDW1hbmFnZWROb2RlSWQYASABKAMSDgoG",
+            "cm9sZUlkGAIgASgDEhUKDXByaXZpbGVnZVR5cGUYAyABKAkiNQoLRW5mb3Jj",
+            "ZW1lbnQSFwoPZW5mb3JjZW1lbnRUeXBlGAEgASgJEg0KBXZhbHVlGAIgASgJ",
+            "IlAKD1JvbGVFbmZvcmNlbWVudBIOCgZyb2xlSWQYASABKAMSLQoMZW5mb3Jj",
+            "ZW1lbnRzGAIgAygLMhcuRW50ZXJwcmlzZS5FbmZvcmNlbWVudCKpAQoEVGVh",
             "bRIPCgd0ZWFtVWlkGAEgASgMEgwKBG5hbWUYAiABKAkSDgoGbm9kZUlkGAMg",
-            "ASgDEhUKDWVuY3J5cHRlZERhdGEYBCABKAkiMAoOUXVldWVkVGVhbVVzZXIS",
-            "DwoHdGVhbVVpZBgBIAEoDBINCgV1c2VycxgCIAMoAyKRAQoKU3NvU2Vydmlj",
-            "ZRIcChRzc29TZXJ2aWNlUHJvdmlkZXJJZBgBIAEoAxIOCgZub2RlSWQYAiAB",
-            "KAMSDAoEbmFtZRgDIAEoCRIOCgZzcF91cmwYBCABKAkSFgoOaW52aXRlTmV3",
-            "VXNlcnMYBSABKAgSDgoGYWN0aXZlGAYgASgIEg8KB2lzQ2xvdWQYByABKAgi",
-            "MQoQUmVwb3J0RmlsdGVyVXNlchIOCgZ1c2VySWQYASABKAUSDQoFZW1haWwY",
-            "AiABKAki9AEKHURldmljZVJlcXVlc3RGb3JBZG1pbkFwcHJvdmFsEhAKCGRl",
-            "dmljZUlkGAEgASgDEhgKEGVudGVycHJpc2VVc2VySWQYAiABKAMSHAoUZW5j",
-            "cnlwdGVkRGV2aWNlVG9rZW4YAyABKAwSFwoPZGV2aWNlUHVibGljS2V5GAQg",
-            "ASgMEhIKCmRldmljZU5hbWUYBSABKAkSFQoNY2xpZW50VmVyc2lvbhgGIAEo",
-            "CRISCgpkZXZpY2VUeXBlGAcgASgJEgwKBGRhdGUYCCABKAMSEQoJaXBBZGRy",
-            "ZXNzGAkgASgJEhAKCGxvY2F0aW9uGAogASgJInEKA0tleRIUCgxyc2FQdWJs",
-            "aWNLZXkYASABKAkSHgoWcnNhRW5jcnlwdGVkUHJpdmF0ZUtleRgCIAEoCRIU",
-            "CgxlY2NQdWJsaWNLZXkYAyABKAkSHgoWZWNjRW5jcnlwdGVkUHJpdmF0ZUtl",
-            "eRgEIAEoCSJiCg1Vbk1hbmFnZWRVc2VyEhgKEGVudGVycHJpc2VVc2VySWQY",
-            "ASABKAMSFQoNZW5jcnlwdGVkRGF0YRgCIAEoCRIQCgh1c2VybmFtZRgDIAEo",
-            "CRIOCgZzdGF0dXMYBCABKAkijgEKDkVudGVycHJpc2VEYXRhEjAKBmVudGl0",
-            "eRgBIAEoDjIgLkVudGVycHJpc2UuRW50ZXJwcmlzZURhdGFFbnRpdHkSLAoL",
-            "Y2FjaGVTdGF0dXMYAiABKA4yFy5FbnRlcnByaXNlLkNhY2hlU3RhdHVzEg4K",
-            "BmRlbGV0ZRgDIAEoCBIMCgRkYXRhGAQgAygMIm4KFkVudGVycHJpc2VEYXRh",
-            "UmVzcG9uc2USGQoRY29udGludWF0aW9uVG9rZW4YASABKAwSDwoHaGFzTW9y",
-            "ZRgCIAEoCBIoCgRkYXRhGAMgAygLMhouRW50ZXJwcmlzZS5FbnRlcnByaXNl",
-            "RGF0YSIqCg1CYWNrdXBSZXF1ZXN0EhkKEWNvbnRpbnVhdGlvblRva2VuGAEg",
-            "ASgMIpgBCgxCYWNrdXBSZWNvcmQSDgoGdXNlcklkGAEgASgFEhEKCXJlY29y",
-            "ZFVpZBgCIAEoDBILCgNrZXkYAyABKAwSKgoHa2V5VHlwZRgEIAEoDjIZLkVu",
-            "dGVycHJpc2UuQmFja3VwS2V5VHlwZRIPCgd2ZXJzaW9uGAUgASgFEgwKBGRh",
-            "dGEYBiABKAwSDQoFZXh0cmEYByABKAwi3wEKCkJhY2t1cFVzZXISDgoGdXNl",
-            "cklkGAEgASgFEhAKCHVzZXJOYW1lGAIgASgJEg8KB2RhdGFLZXkYAyABKAwS",
-            "NgoLZGF0YUtleVR5cGUYBCABKA4yIS5FbnRlcnByaXNlLkJhY2t1cFVzZXJE",
-            "YXRhS2V5VHlwZRISCgpwcml2YXRlS2V5GAUgASgMEg8KB3RyZWVLZXkYBiAB",
-            "KAwSLgoLdHJlZUtleVR5cGUYByABKA4yGS5FbnRlcnByaXNlLkJhY2t1cEtl",
-            "eVR5cGUSEQoJYmFja3VwS2V5GAggASgMIp4BCg5CYWNrdXBSZXNwb25zZRIf",
-            "ChdlbnRlcnByaXNlRWNjUHJpdmF0ZUtleRgBIAEoDBIlCgV1c2VycxgCIAMo",
-            "CzIWLkVudGVycHJpc2UuQmFja3VwVXNlchIpCgdyZWNvcmRzGAMgAygLMhgu",
-            "RW50ZXJwcmlzZS5CYWNrdXBSZWNvcmQSGQoRY29udGludWF0aW9uVG9rZW4Y",
-            "BCABKAwqGwoHS2V5VHlwZRIHCgNSU0EQABIHCgNFQ0MQASo9Cg5FbnRlcnBy",
-            "aXNlVHlwZRIXChNFTlRFUlBSSVNFX1NUQU5EQVJEEAASEgoORU5URVJQUklT",
-            "RV9NU1AQASrLAwoURW50ZXJwcmlzZURhdGFFbnRpdHkSCQoFTk9ERVMQABIJ",
-            "CgVST0xFUxABEgkKBVVTRVJTEAISEwoPVVNFUl9QUklWSUxFR0VTEAMSEQoN",
-            "TUFOQUdFRF9OT0RFUxAEEg4KClJPTEVfVVNFUlMQBRITCg9ST0xFX1BSSVZJ",
-            "TEVHRVMQBhIVChFST0xFX0VORk9SQ0VNRU5UUxAHEg4KClJPTEVfVEVBTVMQ",
-            "CBIJCgVURUFNUxAJEg4KClRFQU1fVVNFUlMQChIVChFNQU5BR0VEX0NPTVBB",
-            "TklFUxALEgwKCExJQ0VOU0VTEAwSCwoHQlJJREdFUxANEgkKBVNDSU1TEA4S",
-            "EwoPRU1BSUxfUFJPVklTSU9OEA8SDgoKUk9MRV9LRVlTMhAQEg0KCVJPTEVf",
-            "S0VZUxAREgwKCE1TUF9LRVlTEBISEAoMUVVFVUVEX1RFQU1TEBMSFQoRUVVF",
-            "VUVEX1RFQU1fVVNFUlMQFBIQCgxTU09fU0VSVklDRVMQFRIXChNSRVBPUlRf",
-            "RklMVEVSX1VTRVJTEBYSJgoiREVWSUNFU19SRVFVRVNUX0ZPUl9BRE1JTl9B",
-            "UFBST1ZBTBAXEggKBEtFWVMQGCoiCgtDYWNoZVN0YXR1cxIICgRLRUVQEAAS",
-            "CQoFQ0xFQVIQASpTCg1CYWNrdXBLZXlUeXBlEgoKBk5PX0tFWRAAEhkKFUVO",
-            "Q1JZUFRFRF9CWV9EQVRBX0tFWRABEhsKF0VOQ1JZUFRFRF9CWV9QVUJMSUNf",
-            "S0VZEAIqOgoVQmFja3VwVXNlckRhdGFLZXlUeXBlEgcKA09XThAAEhgKFFNI",
-            "QVJFRF9UT19FTlRFUlBSSVNFEAFCJgoYY29tLmtlZXBlcnNlY3VyaXR5LnBy",
-            "b3RvQgpFbnRlcnByaXNlYgZwcm90bzM="));
+            "ASgDEhQKDHJlc3RyaWN0RWRpdBgEIAEoCBIVCg1yZXN0cmljdFNoYXJlGAUg",
+            "ASgIEhQKDHJlc3RyaWN0VmlldxgGIAEoCBIVCg1lbmNyeXB0ZWREYXRhGAcg",
+            "ASgJEhgKEGVuY3J5cHRlZFRlYW1LZXkYCCABKAkiRwoIVGVhbVVzZXISDwoH",
+            "dGVhbVVpZBgBIAEoDBIYChBlbnRlcnByaXNlVXNlcklkGAIgASgDEhAKCHVz",
+            "ZXJUeXBlGAMgASgJItEBCg5NYW5hZ2VkQ29tcGFueRIWCg5tY0VudGVycHJp",
+            "c2VJZBgBIAEoBRIYChBtY0VudGVycHJpc2VOYW1lGAIgASgJEhEKCW1zcE5v",
+            "ZGVJZBgDIAEoAxIVCg1udW1iZXJPZlNlYXRzGAQgASgFEhUKDW51bWJlck9m",
+            "VXNlcnMYBSABKAUSEQoJcHJvZHVjdElkGAYgASgJEhEKCWlzRXhwaXJlZBgH",
+            "IAEoCBIPCgd0cmVlS2V5GAggASgJEhUKDXRyZWVfa2V5X3JvbGUYCSABKAMi",
+            "UgoHTVNQUG9vbBIRCglwcm9kdWN0SWQYASABKAkSDQoFc2VhdHMYAiABKAUS",
+            "FgoOYXZhaWxhYmxlU2VhdHMYAyABKAUSDQoFc3Rhc2gYBCABKAUiOgoKTVNQ",
+            "Q29udGFjdBIUCgxlbnRlcnByaXNlSWQYASABKAUSFgoOZW50ZXJwcmlzZU5h",
+            "bWUYAiABKAkiYwoMTGljZW5zZUFkZE9uEgwKBG5hbWUYASABKAkSDwoHZW5h",
+            "YmxlZBgCIAEoCBIPCgdpc1RyaWFsGAMgASgIEhIKCmV4cGlyYXRpb24YBCAB",
+            "KAMSDwoHY3JlYXRlZBgFIAEoAyKtAwoHTGljZW5zZRIMCgRwYWlkGAEgASgI",
+            "EhUKDW51bWJlck9mU2VhdHMYAiABKAUSEgoKZXhwaXJhdGlvbhgDIAEoAxIU",
+            "CgxsaWNlbnNlS2V5SWQYBCABKAUSFQoNcHJvZHVjdFR5cGVJZBgFIAEoBRIM",
+            "CgRuYW1lGAYgASgJEhsKE2VudGVycHJpc2VMaWNlbnNlSWQYByABKAMSFgoO",
+            "c2VhdHNBbGxvY2F0ZWQYCCABKAUSFAoMc2VhdHNQZW5kaW5nGAkgASgFEgwK",
+            "BHRpZXIYCiABKAUSFgoOZmlsZVBsYW5UeXBlSWQYCyABKAUSEAoIbWF4Qnl0",
+            "ZXMYDCABKAMSGQoRc3RvcmFnZUV4cGlyYXRpb24YDSABKAMSFQoNbGljZW5z",
+            "ZVN0YXR1cxgOIAEoCRIkCgdtc3BQb29sGA8gAygLMhMuRW50ZXJwcmlzZS5N",
+            "U1BQb29sEikKCW1hbmFnZWRCeRgQIAEoCzIWLkVudGVycHJpc2UuTVNQQ29u",
+            "dGFjdBIoCgZhZGRPbnMYESADKAsyGC5FbnRlcnByaXNlLkxpY2Vuc2VBZGRP",
+            "biJuCgZCcmlkZ2USEAoIYnJpZGdlSWQYASABKAMSDgoGbm9kZUlkGAIgASgD",
+            "EhgKEHdhbklwRW5mb3JjZW1lbnQYAyABKAkSGAoQbGFuSXBFbmZvcmNlbWVu",
+            "dBgEIAEoCRIOCgZzdGF0dXMYBSABKAkiXgoEU2NpbRIOCgZzY2ltSWQYASAB",
+            "KAMSDgoGbm9kZUlkGAIgASgDEg4KBnN0YXR1cxgDIAEoCRISCgpsYXN0U3lu",
+            "Y2VkGAQgASgDEhIKCnJvbGVQcmVmaXgYBSABKAkiTAoORW1haWxQcm92aXNp",
+            "b24SCgoCaWQYASABKAUSDgoGbm9kZUlkGAIgASgDEg4KBmRvbWFpbhgDIAEo",
+            "CRIOCgZtZXRob2QYBCABKAkiUgoKUXVldWVkVGVhbRIPCgd0ZWFtVWlkGAEg",
+            "ASgMEgwKBG5hbWUYAiABKAkSDgoGbm9kZUlkGAMgASgDEhUKDWVuY3J5cHRl",
+            "ZERhdGEYBCABKAkiMAoOUXVldWVkVGVhbVVzZXISDwoHdGVhbVVpZBgBIAEo",
+            "DBINCgV1c2VycxgCIAMoAyKRAQoKU3NvU2VydmljZRIcChRzc29TZXJ2aWNl",
+            "UHJvdmlkZXJJZBgBIAEoAxIOCgZub2RlSWQYAiABKAMSDAoEbmFtZRgDIAEo",
+            "CRIOCgZzcF91cmwYBCABKAkSFgoOaW52aXRlTmV3VXNlcnMYBSABKAgSDgoG",
+            "YWN0aXZlGAYgASgIEg8KB2lzQ2xvdWQYByABKAgiMQoQUmVwb3J0RmlsdGVy",
+            "VXNlchIOCgZ1c2VySWQYASABKAUSDQoFZW1haWwYAiABKAki9AEKHURldmlj",
+            "ZVJlcXVlc3RGb3JBZG1pbkFwcHJvdmFsEhAKCGRldmljZUlkGAEgASgDEhgK",
+            "EGVudGVycHJpc2VVc2VySWQYAiABKAMSHAoUZW5jcnlwdGVkRGV2aWNlVG9r",
+            "ZW4YAyABKAwSFwoPZGV2aWNlUHVibGljS2V5GAQgASgMEhIKCmRldmljZU5h",
+            "bWUYBSABKAkSFQoNY2xpZW50VmVyc2lvbhgGIAEoCRISCgpkZXZpY2VUeXBl",
+            "GAcgASgJEgwKBGRhdGUYCCABKAMSEQoJaXBBZGRyZXNzGAkgASgJEhAKCGxv",
+            "Y2F0aW9uGAogASgJImAKDkVudGVycHJpc2VEYXRhEjAKBmVudGl0eRgBIAEo",
+            "DjIgLkVudGVycHJpc2UuRW50ZXJwcmlzZURhdGFFbnRpdHkSDgoGZGVsZXRl",
+            "GAIgASgIEgwKBGRhdGEYAyADKAwi0AEKFkVudGVycHJpc2VEYXRhUmVzcG9u",
+            "c2USGQoRY29udGludWF0aW9uVG9rZW4YASABKAwSDwoHaGFzTW9yZRgCIAEo",
+            "CBIsCgtjYWNoZVN0YXR1cxgDIAEoDjIXLkVudGVycHJpc2UuQ2FjaGVTdGF0",
+            "dXMSKAoEZGF0YRgEIAMoCzIaLkVudGVycHJpc2UuRW50ZXJwcmlzZURhdGES",
+            "MgoLZ2VuZXJhbERhdGEYBSABKAsyHS5FbnRlcnByaXNlLkdlbmVyYWxEYXRh",
+            "RW50aXR5IioKDUJhY2t1cFJlcXVlc3QSGQoRY29udGludWF0aW9uVG9rZW4Y",
+            "ASABKAwimAEKDEJhY2t1cFJlY29yZBIOCgZ1c2VySWQYASABKAUSEQoJcmVj",
+            "b3JkVWlkGAIgASgMEgsKA2tleRgDIAEoDBIqCgdrZXlUeXBlGAQgASgOMhku",
+            "RW50ZXJwcmlzZS5CYWNrdXBLZXlUeXBlEg8KB3ZlcnNpb24YBSABKAUSDAoE",
+            "ZGF0YRgGIAEoDBINCgVleHRyYRgHIAEoDCLfAQoKQmFja3VwVXNlchIOCgZ1",
+            "c2VySWQYASABKAUSEAoIdXNlck5hbWUYAiABKAkSDwoHZGF0YUtleRgDIAEo",
+            "DBI2CgtkYXRhS2V5VHlwZRgEIAEoDjIhLkVudGVycHJpc2UuQmFja3VwVXNl",
+            "ckRhdGFLZXlUeXBlEhIKCnByaXZhdGVLZXkYBSABKAwSDwoHdHJlZUtleRgG",
+            "IAEoDBIuCgt0cmVlS2V5VHlwZRgHIAEoDjIZLkVudGVycHJpc2UuQmFja3Vw",
+            "S2V5VHlwZRIRCgliYWNrdXBLZXkYCCABKAwingEKDkJhY2t1cFJlc3BvbnNl",
+            "Eh8KF2VudGVycHJpc2VFY2NQcml2YXRlS2V5GAEgASgMEiUKBXVzZXJzGAIg",
+            "AygLMhYuRW50ZXJwcmlzZS5CYWNrdXBVc2VyEikKB3JlY29yZHMYAyADKAsy",
+            "GC5FbnRlcnByaXNlLkJhY2t1cFJlY29yZBIZChFjb250aW51YXRpb25Ub2tl",
+            "bhgEIAEoDCobCgdLZXlUeXBlEgcKA1JTQRAAEgcKA0VDQxABKj0KDkVudGVy",
+            "cHJpc2VUeXBlEhcKE0VOVEVSUFJJU0VfU1RBTkRBUkQQABISCg5FTlRFUlBS",
+            "SVNFX01TUBABKv8CChRFbnRlcnByaXNlRGF0YUVudGl0eRIJCgVOT0RFUxAA",
+            "EgkKBVJPTEVTEAESCQoFVVNFUlMQAhIJCgVURUFNUxADEg4KClRFQU1fVVNF",
+            "UlMQBBIOCgpST0xFX1VTRVJTEAUSEwoPUk9MRV9QUklWSUxFR0VTEAYSFQoR",
+            "Uk9MRV9FTkZPUkNFTUVOVFMQBxIOCgpST0xFX1RFQU1TEAgSDAoITElDRU5T",
+            "RVMQCRIRCg1NQU5BR0VEX05PREVTEAoSFQoRTUFOQUdFRF9DT01QQU5JRVMQ",
+            "CxILCgdCUklER0VTEAwSCQoFU0NJTVMQDRITCg9FTUFJTF9QUk9WSVNJT04Q",
+            "DhIQCgxRVUVVRURfVEVBTVMQDxIVChFRVUVVRURfVEVBTV9VU0VSUxAQEhAK",
+            "DFNTT19TRVJWSUNFUxAREhcKE1JFUE9SVF9GSUxURVJfVVNFUlMQEhImCiJE",
+            "RVZJQ0VTX1JFUVVFU1RfRk9SX0FETUlOX0FQUFJPVkFMEBMqIgoLQ2FjaGVT",
+            "dGF0dXMSCAoES0VFUBAAEgkKBUNMRUFSEAEqUwoNQmFja3VwS2V5VHlwZRIK",
+            "CgZOT19LRVkQABIZChVFTkNSWVBURURfQllfREFUQV9LRVkQARIbChdFTkNS",
+            "WVBURURfQllfUFVCTElDX0tFWRACKjoKFUJhY2t1cFVzZXJEYXRhS2V5VHlw",
+            "ZRIHCgNPV04QABIYChRTSEFSRURfVE9fRU5URVJQUklTRRABQiYKGGNvbS5r",
+            "ZWVwZXJzZWN1cml0eS5wcm90b0IKRW50ZXJwcmlzZWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Enterprise.KeyType), typeof(global::Enterprise.EnterpriseType), typeof(global::Enterprise.EnterpriseDataEntity), typeof(global::Enterprise.CacheStatus), typeof(global::Enterprise.BackupKeyType), typeof(global::Enterprise.BackupUserDataKeyType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -222,15 +214,14 @@ namespace Enterprise {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseUserDataKeys), global::Enterprise.EnterpriseUserDataKeys.Parser, new[]{ "Keys" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseDataRequest), global::Enterprise.EnterpriseDataRequest.Parser, new[]{ "ContinuationToken" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.SpecialProvisioning), global::Enterprise.SpecialProvisioning.Parser, new[]{ "Url", "Name" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.MspKey), global::Enterprise.MspKey.Parser, new[]{ "TreeKey", "KeyType" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.GeneralDataEntity), global::Enterprise.GeneralDataEntity.Parser, new[]{ "EnterpriseName", "TreeKey", "KeyTypeId", "SpecialProvisioning", "MspKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.GeneralDataEntity), global::Enterprise.GeneralDataEntity.Parser, new[]{ "EnterpriseName", "SpecialProvisioning", "UserPrivilege" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.Node), global::Enterprise.Node.Parser, new[]{ "NodeId", "ParentId", "BridgeId", "ScimId", "LicenseId", "EncryptedData", "DuoEnabled", "RsaEnabled", "SsoServiceProviderId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.Role), global::Enterprise.Role.Parser, new[]{ "RoleId", "NodeId", "EncryptedData", "KeyType", "VisibleBelow", "NewUserInherit", "RoleType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.User), global::Enterprise.User.Parser, new[]{ "EnterpriseUserId", "NodeId", "EncryptedData", "KeyType", "Username", "Status", "Lock", "UserId", "AccountShareExpiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ManagedNode), global::Enterprise.ManagedNode.Parser, new[]{ "RoleId", "ManagedNodeId", "CascadeNodeManagement" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.UserPrivilege), global::Enterprise.UserPrivilege.Parser, new[]{ "NodeId", "CascadeNodeManagement", "Privileges", "EnterpriseUserId", "EncryptedData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.UserManagedNode), global::Enterprise.UserManagedNode.Parser, new[]{ "NodeId", "CascadeNodeManagement", "Privileges" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.UserPrivilege), global::Enterprise.UserPrivilege.Parser, new[]{ "UserManagedNodes", "EnterpriseUserId", "EncryptedData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.RoleUser), global::Enterprise.RoleUser.Parser, new[]{ "RoleId", "EnterpriseUserId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.RoleKey), global::Enterprise.RoleKey.Parser, new[]{ "RoleId", "EncryptedKey", "KeyType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.RolePrivilege), global::Enterprise.RolePrivilege.Parser, new[]{ "ManagedNodeId", "RoleId", "PrivilegeType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.Enforcement), global::Enterprise.Enforcement.Parser, new[]{ "EnforcementType", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.RoleEnforcement), global::Enterprise.RoleEnforcement.Parser, new[]{ "RoleId", "Enforcements" }, null, null, null, null),
@@ -240,20 +231,17 @@ namespace Enterprise {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.MSPPool), global::Enterprise.MSPPool.Parser, new[]{ "ProductId", "Seats", "AvailableSeats", "Stash" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.MSPContact), global::Enterprise.MSPContact.Parser, new[]{ "EnterpriseId", "EnterpriseName" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.LicenseAddOn), global::Enterprise.LicenseAddOn.Parser, new[]{ "Name", "Enabled", "IsTrial", "Expiration", "Created" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.License), global::Enterprise.License.Parser, new[]{ "Paid", "NumberOfSeats", "Expiration", "LicenseKeyId", "ProductTypeId", "Name", "EnterpriseLicenseId", "SeatsAllocated", "SeatsPending", "Tier", "FilePlanTypeId", "MaxBytes", "StorageExpiration", "LicenseStatus", "MspPool", "MspContact", "AddOns" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.License), global::Enterprise.License.Parser, new[]{ "Paid", "NumberOfSeats", "Expiration", "LicenseKeyId", "ProductTypeId", "Name", "EnterpriseLicenseId", "SeatsAllocated", "SeatsPending", "Tier", "FilePlanTypeId", "MaxBytes", "StorageExpiration", "LicenseStatus", "MspPool", "ManagedBy", "AddOns" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.Bridge), global::Enterprise.Bridge.Parser, new[]{ "BridgeId", "NodeId", "WanIpEnforcement", "LanIpEnforcement", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.Scim), global::Enterprise.Scim.Parser, new[]{ "ScimId", "NodeId", "Status", "LastSynced", "RolePrefix" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EmailProvision), global::Enterprise.EmailProvision.Parser, new[]{ "Id", "NodeId", "Domain", "Method" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.RoleKey2), global::Enterprise.RoleKey2.Parser, new[]{ "RoleId", "RoleKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.QueuedTeam), global::Enterprise.QueuedTeam.Parser, new[]{ "TeamUid", "Name", "NodeId", "EncryptedData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.QueuedTeamUser), global::Enterprise.QueuedTeamUser.Parser, new[]{ "TeamUid", "Users" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.SsoService), global::Enterprise.SsoService.Parser, new[]{ "SsoServiceProviderId", "NodeId", "Name", "SpUrl", "InviteNewUsers", "Active", "IsCloud" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.ReportFilterUser), global::Enterprise.ReportFilterUser.Parser, new[]{ "UserId", "Email" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.DeviceRequestForAdminApproval), global::Enterprise.DeviceRequestForAdminApproval.Parser, new[]{ "DeviceId", "EnterpriseUserId", "EncryptedDeviceToken", "DevicePublicKey", "DeviceName", "ClientVersion", "DeviceType", "Date", "IpAddress", "Location" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.Key), global::Enterprise.Key.Parser, new[]{ "RsaPublicKey", "RsaEncryptedPrivateKey", "EccPublicKey", "EccEncryptedPrivateKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.UnManagedUser), global::Enterprise.UnManagedUser.Parser, new[]{ "EnterpriseUserId", "EncryptedData", "Username", "Status" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseData), global::Enterprise.EnterpriseData.Parser, new[]{ "Entity", "CacheStatus", "Delete", "Data" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseDataResponse), global::Enterprise.EnterpriseDataResponse.Parser, new[]{ "ContinuationToken", "HasMore", "Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseData), global::Enterprise.EnterpriseData.Parser, new[]{ "Entity", "Delete", "Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseDataResponse), global::Enterprise.EnterpriseDataResponse.Parser, new[]{ "ContinuationToken", "HasMore", "CacheStatus", "Data", "GeneralData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.BackupRequest), global::Enterprise.BackupRequest.Parser, new[]{ "ContinuationToken" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.BackupRecord), global::Enterprise.BackupRecord.Parser, new[]{ "UserId", "RecordUid", "Key", "KeyType", "Version", "Data", "Extra" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.BackupUser), global::Enterprise.BackupUser.Parser, new[]{ "UserId", "UserName", "DataKey", "DataKeyType", "PrivateKey", "TreeKey", "TreeKeyType", "BackupKey" }, null, null, null, null),
@@ -278,28 +266,23 @@ namespace Enterprise {
     [pbr::OriginalName("NODES")] Nodes = 0,
     [pbr::OriginalName("ROLES")] Roles = 1,
     [pbr::OriginalName("USERS")] Users = 2,
-    [pbr::OriginalName("USER_PRIVILEGES")] UserPrivileges = 3,
-    [pbr::OriginalName("MANAGED_NODES")] ManagedNodes = 4,
+    [pbr::OriginalName("TEAMS")] Teams = 3,
+    [pbr::OriginalName("TEAM_USERS")] TeamUsers = 4,
     [pbr::OriginalName("ROLE_USERS")] RoleUsers = 5,
     [pbr::OriginalName("ROLE_PRIVILEGES")] RolePrivileges = 6,
     [pbr::OriginalName("ROLE_ENFORCEMENTS")] RoleEnforcements = 7,
     [pbr::OriginalName("ROLE_TEAMS")] RoleTeams = 8,
-    [pbr::OriginalName("TEAMS")] Teams = 9,
-    [pbr::OriginalName("TEAM_USERS")] TeamUsers = 10,
+    [pbr::OriginalName("LICENSES")] Licenses = 9,
+    [pbr::OriginalName("MANAGED_NODES")] ManagedNodes = 10,
     [pbr::OriginalName("MANAGED_COMPANIES")] ManagedCompanies = 11,
-    [pbr::OriginalName("LICENSES")] Licenses = 12,
-    [pbr::OriginalName("BRIDGES")] Bridges = 13,
-    [pbr::OriginalName("SCIMS")] Scims = 14,
-    [pbr::OriginalName("EMAIL_PROVISION")] EmailProvision = 15,
-    [pbr::OriginalName("ROLE_KEYS2")] RoleKeys2 = 16,
-    [pbr::OriginalName("ROLE_KEYS")] RoleKeys = 17,
-    [pbr::OriginalName("MSP_KEYS")] MspKeys = 18,
-    [pbr::OriginalName("QUEUED_TEAMS")] QueuedTeams = 19,
-    [pbr::OriginalName("QUEUED_TEAM_USERS")] QueuedTeamUsers = 20,
-    [pbr::OriginalName("SSO_SERVICES")] SsoServices = 21,
-    [pbr::OriginalName("REPORT_FILTER_USERS")] ReportFilterUsers = 22,
-    [pbr::OriginalName("DEVICES_REQUEST_FOR_ADMIN_APPROVAL")] DevicesRequestForAdminApproval = 23,
-    [pbr::OriginalName("KEYS")] Keys = 24,
+    [pbr::OriginalName("BRIDGES")] Bridges = 12,
+    [pbr::OriginalName("SCIMS")] Scims = 13,
+    [pbr::OriginalName("EMAIL_PROVISION")] EmailProvision = 14,
+    [pbr::OriginalName("QUEUED_TEAMS")] QueuedTeams = 15,
+    [pbr::OriginalName("QUEUED_TEAM_USERS")] QueuedTeamUsers = 16,
+    [pbr::OriginalName("SSO_SERVICES")] SsoServices = 17,
+    [pbr::OriginalName("REPORT_FILTER_USERS")] ReportFilterUsers = 18,
+    [pbr::OriginalName("DEVICES_REQUEST_FOR_ADMIN_APPROVAL")] DevicesRequestForAdminApproval = 19,
   }
 
   public enum CacheStatus {
@@ -4462,169 +4445,6 @@ namespace Enterprise {
 
   }
 
-  /// <summary>
-  ///possible values for keyType
-  ///NO_KEY(0)
-  ///ENCRYPTED_BY_DATA_KEY(1)
-  ///ENCRYPTED_BY_PUBLIC_KEY(2)
-  /// </summary>
-  public sealed partial class MspKey : pb::IMessage<MspKey> {
-    private static readonly pb::MessageParser<MspKey> _parser = new pb::MessageParser<MspKey>(() => new MspKey());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<MspKey> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[24]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MspKey() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MspKey(MspKey other) : this() {
-      treeKey_ = other.treeKey_;
-      keyType_ = other.keyType_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MspKey Clone() {
-      return new MspKey(this);
-    }
-
-    /// <summary>Field number for the "treeKey" field.</summary>
-    public const int TreeKeyFieldNumber = 1;
-    private string treeKey_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string TreeKey {
-      get { return treeKey_; }
-      set {
-        treeKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "keyType" field.</summary>
-    public const int KeyTypeFieldNumber = 2;
-    private string keyType_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string KeyType {
-      get { return keyType_; }
-      set {
-        keyType_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as MspKey);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(MspKey other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (TreeKey != other.TreeKey) return false;
-      if (KeyType != other.KeyType) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (TreeKey.Length != 0) hash ^= TreeKey.GetHashCode();
-      if (KeyType.Length != 0) hash ^= KeyType.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (TreeKey.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(TreeKey);
-      }
-      if (KeyType.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(KeyType);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (TreeKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(TreeKey);
-      }
-      if (KeyType.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(KeyType);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(MspKey other) {
-      if (other == null) {
-        return;
-      }
-      if (other.TreeKey.Length != 0) {
-        TreeKey = other.TreeKey;
-      }
-      if (other.KeyType.Length != 0) {
-        KeyType = other.KeyType;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            TreeKey = input.ReadString();
-            break;
-          }
-          case 18: {
-            KeyType = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   public sealed partial class GeneralDataEntity : pb::IMessage<GeneralDataEntity> {
     private static readonly pb::MessageParser<GeneralDataEntity> _parser = new pb::MessageParser<GeneralDataEntity>(() => new GeneralDataEntity());
     private pb::UnknownFieldSet _unknownFields;
@@ -4633,7 +4453,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[25]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4651,10 +4471,8 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public GeneralDataEntity(GeneralDataEntity other) : this() {
       enterpriseName_ = other.enterpriseName_;
-      treeKey_ = other.treeKey_;
-      keyTypeId_ = other.keyTypeId_;
       specialProvisioning_ = other.specialProvisioning_ != null ? other.specialProvisioning_.Clone() : null;
-      mspKey_ = other.mspKey_ != null ? other.mspKey_.Clone() : null;
+      userPrivilege_ = other.userPrivilege_ != null ? other.userPrivilege_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4674,28 +4492,6 @@ namespace Enterprise {
       }
     }
 
-    /// <summary>Field number for the "treeKey" field.</summary>
-    public const int TreeKeyFieldNumber = 2;
-    private string treeKey_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string TreeKey {
-      get { return treeKey_; }
-      set {
-        treeKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "keyTypeId" field.</summary>
-    public const int KeyTypeIdFieldNumber = 3;
-    private int keyTypeId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int KeyTypeId {
-      get { return keyTypeId_; }
-      set {
-        keyTypeId_ = value;
-      }
-    }
-
     /// <summary>Field number for the "specialProvisioning" field.</summary>
     public const int SpecialProvisioningFieldNumber = 4;
     private global::Enterprise.SpecialProvisioning specialProvisioning_;
@@ -4707,14 +4503,14 @@ namespace Enterprise {
       }
     }
 
-    /// <summary>Field number for the "mspKey" field.</summary>
-    public const int MspKeyFieldNumber = 5;
-    private global::Enterprise.MspKey mspKey_;
+    /// <summary>Field number for the "userPrivilege" field.</summary>
+    public const int UserPrivilegeFieldNumber = 7;
+    private global::Enterprise.UserPrivilege userPrivilege_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Enterprise.MspKey MspKey {
-      get { return mspKey_; }
+    public global::Enterprise.UserPrivilege UserPrivilege {
+      get { return userPrivilege_; }
       set {
-        mspKey_ = value;
+        userPrivilege_ = value;
       }
     }
 
@@ -4732,10 +4528,8 @@ namespace Enterprise {
         return true;
       }
       if (EnterpriseName != other.EnterpriseName) return false;
-      if (TreeKey != other.TreeKey) return false;
-      if (KeyTypeId != other.KeyTypeId) return false;
       if (!object.Equals(SpecialProvisioning, other.SpecialProvisioning)) return false;
-      if (!object.Equals(MspKey, other.MspKey)) return false;
+      if (!object.Equals(UserPrivilege, other.UserPrivilege)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -4743,10 +4537,8 @@ namespace Enterprise {
     public override int GetHashCode() {
       int hash = 1;
       if (EnterpriseName.Length != 0) hash ^= EnterpriseName.GetHashCode();
-      if (TreeKey.Length != 0) hash ^= TreeKey.GetHashCode();
-      if (KeyTypeId != 0) hash ^= KeyTypeId.GetHashCode();
       if (specialProvisioning_ != null) hash ^= SpecialProvisioning.GetHashCode();
-      if (mspKey_ != null) hash ^= MspKey.GetHashCode();
+      if (userPrivilege_ != null) hash ^= UserPrivilege.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -4764,21 +4556,13 @@ namespace Enterprise {
         output.WriteRawTag(10);
         output.WriteString(EnterpriseName);
       }
-      if (TreeKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(TreeKey);
-      }
-      if (KeyTypeId != 0) {
-        output.WriteRawTag(24);
-        output.WriteInt32(KeyTypeId);
-      }
       if (specialProvisioning_ != null) {
         output.WriteRawTag(34);
         output.WriteMessage(SpecialProvisioning);
       }
-      if (mspKey_ != null) {
-        output.WriteRawTag(42);
-        output.WriteMessage(MspKey);
+      if (userPrivilege_ != null) {
+        output.WriteRawTag(58);
+        output.WriteMessage(UserPrivilege);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -4791,17 +4575,11 @@ namespace Enterprise {
       if (EnterpriseName.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(EnterpriseName);
       }
-      if (TreeKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(TreeKey);
-      }
-      if (KeyTypeId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(KeyTypeId);
-      }
       if (specialProvisioning_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(SpecialProvisioning);
       }
-      if (mspKey_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MspKey);
+      if (userPrivilege_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(UserPrivilege);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -4817,23 +4595,17 @@ namespace Enterprise {
       if (other.EnterpriseName.Length != 0) {
         EnterpriseName = other.EnterpriseName;
       }
-      if (other.TreeKey.Length != 0) {
-        TreeKey = other.TreeKey;
-      }
-      if (other.KeyTypeId != 0) {
-        KeyTypeId = other.KeyTypeId;
-      }
       if (other.specialProvisioning_ != null) {
         if (specialProvisioning_ == null) {
           SpecialProvisioning = new global::Enterprise.SpecialProvisioning();
         }
         SpecialProvisioning.MergeFrom(other.SpecialProvisioning);
       }
-      if (other.mspKey_ != null) {
-        if (mspKey_ == null) {
-          MspKey = new global::Enterprise.MspKey();
+      if (other.userPrivilege_ != null) {
+        if (userPrivilege_ == null) {
+          UserPrivilege = new global::Enterprise.UserPrivilege();
         }
-        MspKey.MergeFrom(other.MspKey);
+        UserPrivilege.MergeFrom(other.UserPrivilege);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -4850,14 +4622,6 @@ namespace Enterprise {
             EnterpriseName = input.ReadString();
             break;
           }
-          case 18: {
-            TreeKey = input.ReadString();
-            break;
-          }
-          case 24: {
-            KeyTypeId = input.ReadInt32();
-            break;
-          }
           case 34: {
             if (specialProvisioning_ == null) {
               SpecialProvisioning = new global::Enterprise.SpecialProvisioning();
@@ -4865,11 +4629,11 @@ namespace Enterprise {
             input.ReadMessage(SpecialProvisioning);
             break;
           }
-          case 42: {
-            if (mspKey_ == null) {
-              MspKey = new global::Enterprise.MspKey();
+          case 58: {
+            if (userPrivilege_ == null) {
+              UserPrivilege = new global::Enterprise.UserPrivilege();
             }
-            input.ReadMessage(MspKey);
+            input.ReadMessage(UserPrivilege);
             break;
           }
         }
@@ -4886,7 +4650,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[26]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5239,7 +5003,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[27]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5536,7 +5300,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[28]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5889,7 +5653,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[29]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6066,15 +5830,15 @@ namespace Enterprise {
 
   }
 
-  public sealed partial class UserPrivilege : pb::IMessage<UserPrivilege> {
-    private static readonly pb::MessageParser<UserPrivilege> _parser = new pb::MessageParser<UserPrivilege>(() => new UserPrivilege());
+  public sealed partial class UserManagedNode : pb::IMessage<UserManagedNode> {
+    private static readonly pb::MessageParser<UserManagedNode> _parser = new pb::MessageParser<UserManagedNode>(() => new UserManagedNode());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<UserPrivilege> Parser { get { return _parser; } }
+    public static pb::MessageParser<UserManagedNode> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[30]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6083,25 +5847,23 @@ namespace Enterprise {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UserPrivilege() {
+    public UserManagedNode() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UserPrivilege(UserPrivilege other) : this() {
+    public UserManagedNode(UserManagedNode other) : this() {
       nodeId_ = other.nodeId_;
       cascadeNodeManagement_ = other.cascadeNodeManagement_;
       privileges_ = other.privileges_.Clone();
-      enterpriseUserId_ = other.enterpriseUserId_;
-      encryptedData_ = other.encryptedData_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UserPrivilege Clone() {
-      return new UserPrivilege(this);
+    public UserManagedNode Clone() {
+      return new UserManagedNode(this);
     }
 
     /// <summary>Field number for the "nodeId" field.</summary>
@@ -6136,35 +5898,13 @@ namespace Enterprise {
       get { return privileges_; }
     }
 
-    /// <summary>Field number for the "enterpriseUserId" field.</summary>
-    public const int EnterpriseUserIdFieldNumber = 4;
-    private long enterpriseUserId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long EnterpriseUserId {
-      get { return enterpriseUserId_; }
-      set {
-        enterpriseUserId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "encryptedData" field.</summary>
-    public const int EncryptedDataFieldNumber = 5;
-    private string encryptedData_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string EncryptedData {
-      get { return encryptedData_; }
-      set {
-        encryptedData_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as UserPrivilege);
+      return Equals(other as UserManagedNode);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(UserPrivilege other) {
+    public bool Equals(UserManagedNode other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -6174,8 +5914,6 @@ namespace Enterprise {
       if (NodeId != other.NodeId) return false;
       if (CascadeNodeManagement != other.CascadeNodeManagement) return false;
       if(!privileges_.Equals(other.privileges_)) return false;
-      if (EnterpriseUserId != other.EnterpriseUserId) return false;
-      if (EncryptedData != other.EncryptedData) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -6185,8 +5923,6 @@ namespace Enterprise {
       if (NodeId != 0L) hash ^= NodeId.GetHashCode();
       if (CascadeNodeManagement != false) hash ^= CascadeNodeManagement.GetHashCode();
       hash ^= privileges_.GetHashCode();
-      if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
-      if (EncryptedData.Length != 0) hash ^= EncryptedData.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -6209,14 +5945,6 @@ namespace Enterprise {
         output.WriteBool(CascadeNodeManagement);
       }
       privileges_.WriteTo(output, _repeated_privileges_codec);
-      if (EnterpriseUserId != 0L) {
-        output.WriteRawTag(32);
-        output.WriteInt64(EnterpriseUserId);
-      }
-      if (EncryptedData.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(EncryptedData);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -6232,12 +5960,6 @@ namespace Enterprise {
         size += 1 + 1;
       }
       size += privileges_.CalculateSize(_repeated_privileges_codec);
-      if (EnterpriseUserId != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EnterpriseUserId);
-      }
-      if (EncryptedData.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(EncryptedData);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -6245,7 +5967,7 @@ namespace Enterprise {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(UserPrivilege other) {
+    public void MergeFrom(UserManagedNode other) {
       if (other == null) {
         return;
       }
@@ -6256,12 +5978,6 @@ namespace Enterprise {
         CascadeNodeManagement = other.CascadeNodeManagement;
       }
       privileges_.Add(other.privileges_);
-      if (other.EnterpriseUserId != 0L) {
-        EnterpriseUserId = other.EnterpriseUserId;
-      }
-      if (other.EncryptedData.Length != 0) {
-        EncryptedData = other.EncryptedData;
-      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -6285,11 +6001,180 @@ namespace Enterprise {
             privileges_.AddEntriesFrom(input, _repeated_privileges_codec);
             break;
           }
-          case 32: {
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class UserPrivilege : pb::IMessage<UserPrivilege> {
+    private static readonly pb::MessageParser<UserPrivilege> _parser = new pb::MessageParser<UserPrivilege>(() => new UserPrivilege());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<UserPrivilege> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[30]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public UserPrivilege() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public UserPrivilege(UserPrivilege other) : this() {
+      userManagedNodes_ = other.userManagedNodes_.Clone();
+      enterpriseUserId_ = other.enterpriseUserId_;
+      encryptedData_ = other.encryptedData_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public UserPrivilege Clone() {
+      return new UserPrivilege(this);
+    }
+
+    /// <summary>Field number for the "userManagedNodes" field.</summary>
+    public const int UserManagedNodesFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Enterprise.UserManagedNode> _repeated_userManagedNodes_codec
+        = pb::FieldCodec.ForMessage(10, global::Enterprise.UserManagedNode.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.UserManagedNode> userManagedNodes_ = new pbc::RepeatedField<global::Enterprise.UserManagedNode>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Enterprise.UserManagedNode> UserManagedNodes {
+      get { return userManagedNodes_; }
+    }
+
+    /// <summary>Field number for the "enterpriseUserId" field.</summary>
+    public const int EnterpriseUserIdFieldNumber = 2;
+    private long enterpriseUserId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long EnterpriseUserId {
+      get { return enterpriseUserId_; }
+      set {
+        enterpriseUserId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "encryptedData" field.</summary>
+    public const int EncryptedDataFieldNumber = 3;
+    private string encryptedData_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string EncryptedData {
+      get { return encryptedData_; }
+      set {
+        encryptedData_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as UserPrivilege);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(UserPrivilege other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!userManagedNodes_.Equals(other.userManagedNodes_)) return false;
+      if (EnterpriseUserId != other.EnterpriseUserId) return false;
+      if (EncryptedData != other.EncryptedData) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= userManagedNodes_.GetHashCode();
+      if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
+      if (EncryptedData.Length != 0) hash ^= EncryptedData.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      userManagedNodes_.WriteTo(output, _repeated_userManagedNodes_codec);
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (EncryptedData.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(EncryptedData);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += userManagedNodes_.CalculateSize(_repeated_userManagedNodes_codec);
+      if (EnterpriseUserId != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EnterpriseUserId);
+      }
+      if (EncryptedData.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(EncryptedData);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(UserPrivilege other) {
+      if (other == null) {
+        return;
+      }
+      userManagedNodes_.Add(other.userManagedNodes_);
+      if (other.EnterpriseUserId != 0L) {
+        EnterpriseUserId = other.EnterpriseUserId;
+      }
+      if (other.EncryptedData.Length != 0) {
+        EncryptedData = other.EncryptedData;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            userManagedNodes_.AddEntriesFrom(input, _repeated_userManagedNodes_codec);
+            break;
+          }
+          case 16: {
             EnterpriseUserId = input.ReadInt64();
             break;
           }
-          case 42: {
+          case 26: {
             EncryptedData = input.ReadString();
             break;
           }
@@ -6457,197 +6342,6 @@ namespace Enterprise {
   }
 
   /// <summary>
-  ///possible values for KeyType
-  ///NO_KEY = 0
-  ///ENCRYPTED_BY_DATA_KEY = 1
-  ///ENCRYPTED_BY_PUBLIC_KEY = 2
-  /// </summary>
-  public sealed partial class RoleKey : pb::IMessage<RoleKey> {
-    private static readonly pb::MessageParser<RoleKey> _parser = new pb::MessageParser<RoleKey>(() => new RoleKey());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<RoleKey> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[32]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RoleKey() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RoleKey(RoleKey other) : this() {
-      roleId_ = other.roleId_;
-      encryptedKey_ = other.encryptedKey_;
-      keyType_ = other.keyType_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RoleKey Clone() {
-      return new RoleKey(this);
-    }
-
-    /// <summary>Field number for the "roleId" field.</summary>
-    public const int RoleIdFieldNumber = 1;
-    private long roleId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long RoleId {
-      get { return roleId_; }
-      set {
-        roleId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "encryptedKey" field.</summary>
-    public const int EncryptedKeyFieldNumber = 2;
-    private string encryptedKey_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string EncryptedKey {
-      get { return encryptedKey_; }
-      set {
-        encryptedKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "keyType" field.</summary>
-    public const int KeyTypeFieldNumber = 3;
-    private string keyType_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string KeyType {
-      get { return keyType_; }
-      set {
-        keyType_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as RoleKey);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(RoleKey other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (RoleId != other.RoleId) return false;
-      if (EncryptedKey != other.EncryptedKey) return false;
-      if (KeyType != other.KeyType) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (RoleId != 0L) hash ^= RoleId.GetHashCode();
-      if (EncryptedKey.Length != 0) hash ^= EncryptedKey.GetHashCode();
-      if (KeyType.Length != 0) hash ^= KeyType.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (RoleId != 0L) {
-        output.WriteRawTag(8);
-        output.WriteInt64(RoleId);
-      }
-      if (EncryptedKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(EncryptedKey);
-      }
-      if (KeyType.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(KeyType);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (RoleId != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(RoleId);
-      }
-      if (EncryptedKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(EncryptedKey);
-      }
-      if (KeyType.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(KeyType);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(RoleKey other) {
-      if (other == null) {
-        return;
-      }
-      if (other.RoleId != 0L) {
-        RoleId = other.RoleId;
-      }
-      if (other.EncryptedKey.Length != 0) {
-        EncryptedKey = other.EncryptedKey;
-      }
-      if (other.KeyType.Length != 0) {
-        KeyType = other.KeyType;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            RoleId = input.ReadInt64();
-            break;
-          }
-          case 18: {
-            EncryptedKey = input.ReadString();
-            break;
-          }
-          case 26: {
-            KeyType = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  /// <summary>
   ///possible values for privilegeType
   ///UNKNOWN = 0
   ///MANAGE_USER = 1
@@ -6671,7 +6365,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[33]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[32]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6856,7 +6550,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[34]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[33]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7013,7 +6707,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[35]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[34]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7162,7 +6856,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[36]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[35]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7493,7 +7187,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[37]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[36]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7678,7 +7372,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[38]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[37]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8031,7 +7725,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[39]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[38]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8062,12 +7756,12 @@ namespace Enterprise {
 
     /// <summary>Field number for the "productId" field.</summary>
     public const int ProductIdFieldNumber = 1;
-    private int productId_;
+    private string productId_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int ProductId {
+    public string ProductId {
       get { return productId_; }
       set {
-        productId_ = value;
+        productId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -8127,7 +7821,7 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (ProductId != 0) hash ^= ProductId.GetHashCode();
+      if (ProductId.Length != 0) hash ^= ProductId.GetHashCode();
       if (Seats != 0) hash ^= Seats.GetHashCode();
       if (AvailableSeats != 0) hash ^= AvailableSeats.GetHashCode();
       if (Stash != 0) hash ^= Stash.GetHashCode();
@@ -8144,9 +7838,9 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (ProductId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(ProductId);
+      if (ProductId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(ProductId);
       }
       if (Seats != 0) {
         output.WriteRawTag(16);
@@ -8168,8 +7862,8 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (ProductId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ProductId);
+      if (ProductId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ProductId);
       }
       if (Seats != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Seats);
@@ -8191,7 +7885,7 @@ namespace Enterprise {
       if (other == null) {
         return;
       }
-      if (other.ProductId != 0) {
+      if (other.ProductId.Length != 0) {
         ProductId = other.ProductId;
       }
       if (other.Seats != 0) {
@@ -8214,8 +7908,8 @@ namespace Enterprise {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 8: {
-            ProductId = input.ReadInt32();
+          case 10: {
+            ProductId = input.ReadString();
             break;
           }
           case 16: {
@@ -8244,7 +7938,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[40]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[39]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8401,7 +8095,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[41]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[40]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8642,7 +8336,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[42]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[41]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8673,8 +8367,8 @@ namespace Enterprise {
       maxBytes_ = other.maxBytes_;
       storageExpiration_ = other.storageExpiration_;
       licenseStatus_ = other.licenseStatus_;
-      mspPool_ = other.mspPool_ != null ? other.mspPool_.Clone() : null;
-      mspContact_ = other.mspContact_ != null ? other.mspContact_.Clone() : null;
+      mspPool_ = other.mspPool_.Clone();
+      managedBy_ = other.managedBy_ != null ? other.managedBy_.Clone() : null;
       addOns_ = other.addOns_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -8840,23 +8534,22 @@ namespace Enterprise {
 
     /// <summary>Field number for the "mspPool" field.</summary>
     public const int MspPoolFieldNumber = 15;
-    private global::Enterprise.MSPPool mspPool_;
+    private static readonly pb::FieldCodec<global::Enterprise.MSPPool> _repeated_mspPool_codec
+        = pb::FieldCodec.ForMessage(122, global::Enterprise.MSPPool.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.MSPPool> mspPool_ = new pbc::RepeatedField<global::Enterprise.MSPPool>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Enterprise.MSPPool MspPool {
+    public pbc::RepeatedField<global::Enterprise.MSPPool> MspPool {
       get { return mspPool_; }
-      set {
-        mspPool_ = value;
-      }
     }
 
-    /// <summary>Field number for the "mspContact" field.</summary>
-    public const int MspContactFieldNumber = 16;
-    private global::Enterprise.MSPContact mspContact_;
+    /// <summary>Field number for the "managedBy" field.</summary>
+    public const int ManagedByFieldNumber = 16;
+    private global::Enterprise.MSPContact managedBy_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Enterprise.MSPContact MspContact {
-      get { return mspContact_; }
+    public global::Enterprise.MSPContact ManagedBy {
+      get { return managedBy_; }
       set {
-        mspContact_ = value;
+        managedBy_ = value;
       }
     }
 
@@ -8897,8 +8590,8 @@ namespace Enterprise {
       if (MaxBytes != other.MaxBytes) return false;
       if (StorageExpiration != other.StorageExpiration) return false;
       if (LicenseStatus != other.LicenseStatus) return false;
-      if (!object.Equals(MspPool, other.MspPool)) return false;
-      if (!object.Equals(MspContact, other.MspContact)) return false;
+      if(!mspPool_.Equals(other.mspPool_)) return false;
+      if (!object.Equals(ManagedBy, other.ManagedBy)) return false;
       if(!addOns_.Equals(other.addOns_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -8920,8 +8613,8 @@ namespace Enterprise {
       if (MaxBytes != 0L) hash ^= MaxBytes.GetHashCode();
       if (StorageExpiration != 0L) hash ^= StorageExpiration.GetHashCode();
       if (LicenseStatus.Length != 0) hash ^= LicenseStatus.GetHashCode();
-      if (mspPool_ != null) hash ^= MspPool.GetHashCode();
-      if (mspContact_ != null) hash ^= MspContact.GetHashCode();
+      hash ^= mspPool_.GetHashCode();
+      if (managedBy_ != null) hash ^= ManagedBy.GetHashCode();
       hash ^= addOns_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -8992,13 +8685,10 @@ namespace Enterprise {
         output.WriteRawTag(114);
         output.WriteString(LicenseStatus);
       }
-      if (mspPool_ != null) {
-        output.WriteRawTag(122);
-        output.WriteMessage(MspPool);
-      }
-      if (mspContact_ != null) {
+      mspPool_.WriteTo(output, _repeated_mspPool_codec);
+      if (managedBy_ != null) {
         output.WriteRawTag(130, 1);
-        output.WriteMessage(MspContact);
+        output.WriteMessage(ManagedBy);
       }
       addOns_.WriteTo(output, _repeated_addOns_codec);
       if (_unknownFields != null) {
@@ -9051,11 +8741,9 @@ namespace Enterprise {
       if (LicenseStatus.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(LicenseStatus);
       }
-      if (mspPool_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MspPool);
-      }
-      if (mspContact_ != null) {
-        size += 2 + pb::CodedOutputStream.ComputeMessageSize(MspContact);
+      size += mspPool_.CalculateSize(_repeated_mspPool_codec);
+      if (managedBy_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(ManagedBy);
       }
       size += addOns_.CalculateSize(_repeated_addOns_codec);
       if (_unknownFields != null) {
@@ -9111,17 +8799,12 @@ namespace Enterprise {
       if (other.LicenseStatus.Length != 0) {
         LicenseStatus = other.LicenseStatus;
       }
-      if (other.mspPool_ != null) {
-        if (mspPool_ == null) {
-          MspPool = new global::Enterprise.MSPPool();
+      mspPool_.Add(other.mspPool_);
+      if (other.managedBy_ != null) {
+        if (managedBy_ == null) {
+          ManagedBy = new global::Enterprise.MSPContact();
         }
-        MspPool.MergeFrom(other.MspPool);
-      }
-      if (other.mspContact_ != null) {
-        if (mspContact_ == null) {
-          MspContact = new global::Enterprise.MSPContact();
-        }
-        MspContact.MergeFrom(other.MspContact);
+        ManagedBy.MergeFrom(other.ManagedBy);
       }
       addOns_.Add(other.addOns_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
@@ -9192,17 +8875,14 @@ namespace Enterprise {
             break;
           }
           case 122: {
-            if (mspPool_ == null) {
-              MspPool = new global::Enterprise.MSPPool();
-            }
-            input.ReadMessage(MspPool);
+            mspPool_.AddEntriesFrom(input, _repeated_mspPool_codec);
             break;
           }
           case 130: {
-            if (mspContact_ == null) {
-              MspContact = new global::Enterprise.MSPContact();
+            if (managedBy_ == null) {
+              ManagedBy = new global::Enterprise.MSPContact();
             }
-            input.ReadMessage(MspContact);
+            input.ReadMessage(ManagedBy);
             break;
           }
           case 138: {
@@ -9223,7 +8903,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[43]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[42]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9464,7 +9144,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[44]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[43]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9705,7 +9385,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[45]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[44]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9910,163 +9590,6 @@ namespace Enterprise {
 
   }
 
-  public sealed partial class RoleKey2 : pb::IMessage<RoleKey2> {
-    private static readonly pb::MessageParser<RoleKey2> _parser = new pb::MessageParser<RoleKey2>(() => new RoleKey2());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<RoleKey2> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[46]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RoleKey2() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RoleKey2(RoleKey2 other) : this() {
-      roleId_ = other.roleId_;
-      roleKey_ = other.roleKey_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RoleKey2 Clone() {
-      return new RoleKey2(this);
-    }
-
-    /// <summary>Field number for the "roleId" field.</summary>
-    public const int RoleIdFieldNumber = 1;
-    private long roleId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long RoleId {
-      get { return roleId_; }
-      set {
-        roleId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "roleKey" field.</summary>
-    public const int RoleKeyFieldNumber = 2;
-    private string roleKey_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string RoleKey {
-      get { return roleKey_; }
-      set {
-        roleKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as RoleKey2);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(RoleKey2 other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (RoleId != other.RoleId) return false;
-      if (RoleKey != other.RoleKey) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (RoleId != 0L) hash ^= RoleId.GetHashCode();
-      if (RoleKey.Length != 0) hash ^= RoleKey.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (RoleId != 0L) {
-        output.WriteRawTag(8);
-        output.WriteInt64(RoleId);
-      }
-      if (RoleKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(RoleKey);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (RoleId != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(RoleId);
-      }
-      if (RoleKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(RoleKey);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(RoleKey2 other) {
-      if (other == null) {
-        return;
-      }
-      if (other.RoleId != 0L) {
-        RoleId = other.RoleId;
-      }
-      if (other.RoleKey.Length != 0) {
-        RoleKey = other.RoleKey;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            RoleId = input.ReadInt64();
-            break;
-          }
-          case 18: {
-            RoleKey = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   public sealed partial class QueuedTeam : pb::IMessage<QueuedTeam> {
     private static readonly pb::MessageParser<QueuedTeam> _parser = new pb::MessageParser<QueuedTeam>(() => new QueuedTeam());
     private pb::UnknownFieldSet _unknownFields;
@@ -10075,7 +9598,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[47]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[45]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10288,7 +9811,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[48]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[46]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10438,7 +9961,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[49]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[47]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10735,7 +10258,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[50]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[48]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10892,7 +10415,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[51]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[49]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11265,432 +10788,6 @@ namespace Enterprise {
 
   }
 
-  public sealed partial class Key : pb::IMessage<Key> {
-    private static readonly pb::MessageParser<Key> _parser = new pb::MessageParser<Key>(() => new Key());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<Key> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[52]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Key() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Key(Key other) : this() {
-      rsaPublicKey_ = other.rsaPublicKey_;
-      rsaEncryptedPrivateKey_ = other.rsaEncryptedPrivateKey_;
-      eccPublicKey_ = other.eccPublicKey_;
-      eccEncryptedPrivateKey_ = other.eccEncryptedPrivateKey_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Key Clone() {
-      return new Key(this);
-    }
-
-    /// <summary>Field number for the "rsaPublicKey" field.</summary>
-    public const int RsaPublicKeyFieldNumber = 1;
-    private string rsaPublicKey_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string RsaPublicKey {
-      get { return rsaPublicKey_; }
-      set {
-        rsaPublicKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "rsaEncryptedPrivateKey" field.</summary>
-    public const int RsaEncryptedPrivateKeyFieldNumber = 2;
-    private string rsaEncryptedPrivateKey_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string RsaEncryptedPrivateKey {
-      get { return rsaEncryptedPrivateKey_; }
-      set {
-        rsaEncryptedPrivateKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "eccPublicKey" field.</summary>
-    public const int EccPublicKeyFieldNumber = 3;
-    private string eccPublicKey_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string EccPublicKey {
-      get { return eccPublicKey_; }
-      set {
-        eccPublicKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "eccEncryptedPrivateKey" field.</summary>
-    public const int EccEncryptedPrivateKeyFieldNumber = 4;
-    private string eccEncryptedPrivateKey_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string EccEncryptedPrivateKey {
-      get { return eccEncryptedPrivateKey_; }
-      set {
-        eccEncryptedPrivateKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as Key);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(Key other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (RsaPublicKey != other.RsaPublicKey) return false;
-      if (RsaEncryptedPrivateKey != other.RsaEncryptedPrivateKey) return false;
-      if (EccPublicKey != other.EccPublicKey) return false;
-      if (EccEncryptedPrivateKey != other.EccEncryptedPrivateKey) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (RsaPublicKey.Length != 0) hash ^= RsaPublicKey.GetHashCode();
-      if (RsaEncryptedPrivateKey.Length != 0) hash ^= RsaEncryptedPrivateKey.GetHashCode();
-      if (EccPublicKey.Length != 0) hash ^= EccPublicKey.GetHashCode();
-      if (EccEncryptedPrivateKey.Length != 0) hash ^= EccEncryptedPrivateKey.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (RsaPublicKey.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(RsaPublicKey);
-      }
-      if (RsaEncryptedPrivateKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(RsaEncryptedPrivateKey);
-      }
-      if (EccPublicKey.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(EccPublicKey);
-      }
-      if (EccEncryptedPrivateKey.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(EccEncryptedPrivateKey);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (RsaPublicKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(RsaPublicKey);
-      }
-      if (RsaEncryptedPrivateKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(RsaEncryptedPrivateKey);
-      }
-      if (EccPublicKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(EccPublicKey);
-      }
-      if (EccEncryptedPrivateKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(EccEncryptedPrivateKey);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(Key other) {
-      if (other == null) {
-        return;
-      }
-      if (other.RsaPublicKey.Length != 0) {
-        RsaPublicKey = other.RsaPublicKey;
-      }
-      if (other.RsaEncryptedPrivateKey.Length != 0) {
-        RsaEncryptedPrivateKey = other.RsaEncryptedPrivateKey;
-      }
-      if (other.EccPublicKey.Length != 0) {
-        EccPublicKey = other.EccPublicKey;
-      }
-      if (other.EccEncryptedPrivateKey.Length != 0) {
-        EccEncryptedPrivateKey = other.EccEncryptedPrivateKey;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            RsaPublicKey = input.ReadString();
-            break;
-          }
-          case 18: {
-            RsaEncryptedPrivateKey = input.ReadString();
-            break;
-          }
-          case 26: {
-            EccPublicKey = input.ReadString();
-            break;
-          }
-          case 34: {
-            EccEncryptedPrivateKey = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class UnManagedUser : pb::IMessage<UnManagedUser> {
-    private static readonly pb::MessageParser<UnManagedUser> _parser = new pb::MessageParser<UnManagedUser>(() => new UnManagedUser());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<UnManagedUser> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[53]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UnManagedUser() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UnManagedUser(UnManagedUser other) : this() {
-      enterpriseUserId_ = other.enterpriseUserId_;
-      encryptedData_ = other.encryptedData_;
-      username_ = other.username_;
-      status_ = other.status_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public UnManagedUser Clone() {
-      return new UnManagedUser(this);
-    }
-
-    /// <summary>Field number for the "enterpriseUserId" field.</summary>
-    public const int EnterpriseUserIdFieldNumber = 1;
-    private long enterpriseUserId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long EnterpriseUserId {
-      get { return enterpriseUserId_; }
-      set {
-        enterpriseUserId_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "encryptedData" field.</summary>
-    public const int EncryptedDataFieldNumber = 2;
-    private string encryptedData_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string EncryptedData {
-      get { return encryptedData_; }
-      set {
-        encryptedData_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "username" field.</summary>
-    public const int UsernameFieldNumber = 3;
-    private string username_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Username {
-      get { return username_; }
-      set {
-        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "status" field.</summary>
-    public const int StatusFieldNumber = 4;
-    private string status_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Status {
-      get { return status_; }
-      set {
-        status_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as UnManagedUser);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(UnManagedUser other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (EnterpriseUserId != other.EnterpriseUserId) return false;
-      if (EncryptedData != other.EncryptedData) return false;
-      if (Username != other.Username) return false;
-      if (Status != other.Status) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
-      if (EncryptedData.Length != 0) hash ^= EncryptedData.GetHashCode();
-      if (Username.Length != 0) hash ^= Username.GetHashCode();
-      if (Status.Length != 0) hash ^= Status.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (EnterpriseUserId != 0L) {
-        output.WriteRawTag(8);
-        output.WriteInt64(EnterpriseUserId);
-      }
-      if (EncryptedData.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(EncryptedData);
-      }
-      if (Username.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Username);
-      }
-      if (Status.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Status);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (EnterpriseUserId != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EnterpriseUserId);
-      }
-      if (EncryptedData.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(EncryptedData);
-      }
-      if (Username.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
-      }
-      if (Status.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Status);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(UnManagedUser other) {
-      if (other == null) {
-        return;
-      }
-      if (other.EnterpriseUserId != 0L) {
-        EnterpriseUserId = other.EnterpriseUserId;
-      }
-      if (other.EncryptedData.Length != 0) {
-        EncryptedData = other.EncryptedData;
-      }
-      if (other.Username.Length != 0) {
-        Username = other.Username;
-      }
-      if (other.Status.Length != 0) {
-        Status = other.Status;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            EnterpriseUserId = input.ReadInt64();
-            break;
-          }
-          case 18: {
-            EncryptedData = input.ReadString();
-            break;
-          }
-          case 26: {
-            Username = input.ReadString();
-            break;
-          }
-          case 34: {
-            Status = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   public sealed partial class EnterpriseData : pb::IMessage<EnterpriseData> {
     private static readonly pb::MessageParser<EnterpriseData> _parser = new pb::MessageParser<EnterpriseData>(() => new EnterpriseData());
     private pb::UnknownFieldSet _unknownFields;
@@ -11699,7 +10796,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[54]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[50]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11717,7 +10814,6 @@ namespace Enterprise {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public EnterpriseData(EnterpriseData other) : this() {
       entity_ = other.entity_;
-      cacheStatus_ = other.cacheStatus_;
       delete_ = other.delete_;
       data_ = other.data_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -11739,19 +10835,8 @@ namespace Enterprise {
       }
     }
 
-    /// <summary>Field number for the "cacheStatus" field.</summary>
-    public const int CacheStatusFieldNumber = 2;
-    private global::Enterprise.CacheStatus cacheStatus_ = global::Enterprise.CacheStatus.Keep;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Enterprise.CacheStatus CacheStatus {
-      get { return cacheStatus_; }
-      set {
-        cacheStatus_ = value;
-      }
-    }
-
     /// <summary>Field number for the "delete" field.</summary>
-    public const int DeleteFieldNumber = 3;
+    public const int DeleteFieldNumber = 2;
     private bool delete_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public bool Delete {
@@ -11762,9 +10847,9 @@ namespace Enterprise {
     }
 
     /// <summary>Field number for the "data" field.</summary>
-    public const int DataFieldNumber = 4;
+    public const int DataFieldNumber = 3;
     private static readonly pb::FieldCodec<pb::ByteString> _repeated_data_codec
-        = pb::FieldCodec.ForBytes(34);
+        = pb::FieldCodec.ForBytes(26);
     private readonly pbc::RepeatedField<pb::ByteString> data_ = new pbc::RepeatedField<pb::ByteString>();
     /// <summary>
     /// if delete==true then it's list of locations for the entity. If delete==false then it's list of entity objects (Node, Users etc...)
@@ -11788,7 +10873,6 @@ namespace Enterprise {
         return true;
       }
       if (Entity != other.Entity) return false;
-      if (CacheStatus != other.CacheStatus) return false;
       if (Delete != other.Delete) return false;
       if(!data_.Equals(other.data_)) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -11798,7 +10882,6 @@ namespace Enterprise {
     public override int GetHashCode() {
       int hash = 1;
       if (Entity != global::Enterprise.EnterpriseDataEntity.Nodes) hash ^= Entity.GetHashCode();
-      if (CacheStatus != global::Enterprise.CacheStatus.Keep) hash ^= CacheStatus.GetHashCode();
       if (Delete != false) hash ^= Delete.GetHashCode();
       hash ^= data_.GetHashCode();
       if (_unknownFields != null) {
@@ -11818,12 +10901,8 @@ namespace Enterprise {
         output.WriteRawTag(8);
         output.WriteEnum((int) Entity);
       }
-      if (CacheStatus != global::Enterprise.CacheStatus.Keep) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) CacheStatus);
-      }
       if (Delete != false) {
-        output.WriteRawTag(24);
+        output.WriteRawTag(16);
         output.WriteBool(Delete);
       }
       data_.WriteTo(output, _repeated_data_codec);
@@ -11837,9 +10916,6 @@ namespace Enterprise {
       int size = 0;
       if (Entity != global::Enterprise.EnterpriseDataEntity.Nodes) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Entity);
-      }
-      if (CacheStatus != global::Enterprise.CacheStatus.Keep) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CacheStatus);
       }
       if (Delete != false) {
         size += 1 + 1;
@@ -11858,9 +10934,6 @@ namespace Enterprise {
       }
       if (other.Entity != global::Enterprise.EnterpriseDataEntity.Nodes) {
         Entity = other.Entity;
-      }
-      if (other.CacheStatus != global::Enterprise.CacheStatus.Keep) {
-        CacheStatus = other.CacheStatus;
       }
       if (other.Delete != false) {
         Delete = other.Delete;
@@ -11882,14 +10955,10 @@ namespace Enterprise {
             break;
           }
           case 16: {
-            CacheStatus = (global::Enterprise.CacheStatus) input.ReadEnum();
-            break;
-          }
-          case 24: {
             Delete = input.ReadBool();
             break;
           }
-          case 34: {
+          case 26: {
             data_.AddEntriesFrom(input, _repeated_data_codec);
             break;
           }
@@ -11907,7 +10976,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[55]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[51]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11926,7 +10995,9 @@ namespace Enterprise {
     public EnterpriseDataResponse(EnterpriseDataResponse other) : this() {
       continuationToken_ = other.continuationToken_;
       hasMore_ = other.hasMore_;
+      cacheStatus_ = other.cacheStatus_;
       data_ = other.data_.Clone();
+      generalData_ = other.generalData_ != null ? other.generalData_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -11957,14 +11028,36 @@ namespace Enterprise {
       }
     }
 
+    /// <summary>Field number for the "cacheStatus" field.</summary>
+    public const int CacheStatusFieldNumber = 3;
+    private global::Enterprise.CacheStatus cacheStatus_ = global::Enterprise.CacheStatus.Keep;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Enterprise.CacheStatus CacheStatus {
+      get { return cacheStatus_; }
+      set {
+        cacheStatus_ = value;
+      }
+    }
+
     /// <summary>Field number for the "data" field.</summary>
-    public const int DataFieldNumber = 3;
+    public const int DataFieldNumber = 4;
     private static readonly pb::FieldCodec<global::Enterprise.EnterpriseData> _repeated_data_codec
-        = pb::FieldCodec.ForMessage(26, global::Enterprise.EnterpriseData.Parser);
+        = pb::FieldCodec.ForMessage(34, global::Enterprise.EnterpriseData.Parser);
     private readonly pbc::RepeatedField<global::Enterprise.EnterpriseData> data_ = new pbc::RepeatedField<global::Enterprise.EnterpriseData>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::Enterprise.EnterpriseData> Data {
       get { return data_; }
+    }
+
+    /// <summary>Field number for the "generalData" field.</summary>
+    public const int GeneralDataFieldNumber = 5;
+    private global::Enterprise.GeneralDataEntity generalData_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Enterprise.GeneralDataEntity GeneralData {
+      get { return generalData_; }
+      set {
+        generalData_ = value;
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11982,7 +11075,9 @@ namespace Enterprise {
       }
       if (ContinuationToken != other.ContinuationToken) return false;
       if (HasMore != other.HasMore) return false;
+      if (CacheStatus != other.CacheStatus) return false;
       if(!data_.Equals(other.data_)) return false;
+      if (!object.Equals(GeneralData, other.GeneralData)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -11991,7 +11086,9 @@ namespace Enterprise {
       int hash = 1;
       if (ContinuationToken.Length != 0) hash ^= ContinuationToken.GetHashCode();
       if (HasMore != false) hash ^= HasMore.GetHashCode();
+      if (CacheStatus != global::Enterprise.CacheStatus.Keep) hash ^= CacheStatus.GetHashCode();
       hash ^= data_.GetHashCode();
+      if (generalData_ != null) hash ^= GeneralData.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -12013,7 +11110,15 @@ namespace Enterprise {
         output.WriteRawTag(16);
         output.WriteBool(HasMore);
       }
+      if (CacheStatus != global::Enterprise.CacheStatus.Keep) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) CacheStatus);
+      }
       data_.WriteTo(output, _repeated_data_codec);
+      if (generalData_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(GeneralData);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -12028,7 +11133,13 @@ namespace Enterprise {
       if (HasMore != false) {
         size += 1 + 1;
       }
+      if (CacheStatus != global::Enterprise.CacheStatus.Keep) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CacheStatus);
+      }
       size += data_.CalculateSize(_repeated_data_codec);
+      if (generalData_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(GeneralData);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -12046,7 +11157,16 @@ namespace Enterprise {
       if (other.HasMore != false) {
         HasMore = other.HasMore;
       }
+      if (other.CacheStatus != global::Enterprise.CacheStatus.Keep) {
+        CacheStatus = other.CacheStatus;
+      }
       data_.Add(other.data_);
+      if (other.generalData_ != null) {
+        if (generalData_ == null) {
+          GeneralData = new global::Enterprise.GeneralDataEntity();
+        }
+        GeneralData.MergeFrom(other.GeneralData);
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -12066,8 +11186,19 @@ namespace Enterprise {
             HasMore = input.ReadBool();
             break;
           }
-          case 26: {
+          case 24: {
+            CacheStatus = (global::Enterprise.CacheStatus) input.ReadEnum();
+            break;
+          }
+          case 34: {
             data_.AddEntriesFrom(input, _repeated_data_codec);
+            break;
+          }
+          case 42: {
+            if (generalData_ == null) {
+              GeneralData = new global::Enterprise.GeneralDataEntity();
+            }
+            input.ReadMessage(GeneralData);
             break;
           }
         }
@@ -12084,7 +11215,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[56]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[52]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12213,7 +11344,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[57]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[53]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12510,7 +11641,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[58]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[54]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12835,7 +11966,7 @@ namespace Enterprise {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[59]; }
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[55]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

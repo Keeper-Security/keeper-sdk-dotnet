@@ -159,191 +159,132 @@
             Persistent login.
             </summary>
         </member>
-        <member name="T:KeeperSecurity.Authentication.IAuth">
+        <member name="T:KeeperSecurity.Authentication.Async.IAuthUI">
             <summary>
-            Defines the basic properties of Keeper authentication object.
+            Defines the user interface methods required for authentication with Keeper.
             </summary>
+            <seealso cref="T:KeeperSecurity.Authentication.Async.IAuthSsoUI"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Async.IHttpProxyCredentialUi"/>
+            <seealso cref="T:KeeperSecurity.Authentication.IAuthSecurityKeyUI"/>
+            <seealso cref="T:KeeperSecurity.Authentication.IPostLoginTaskUI"/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Async.IAuthUI.WaitForDeviceApproval(KeeperSecurity.Authentication.IDeviceApprovalChannelInfo[],System.Threading.CancellationToken)">
+            <summary>
+            Device Approval is required.
+            </summary>
+            <param name="channels">List of available device approval channels.</param>
+            <param name="token">Cancellation token. Keeper SDK notifies the client when device is successfully approved.</param>
+            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
             <remarks>
-            Keeper authentication object ....
+            Clients to display the list of available device approval channels.
+            When user picks one clients to check if channel implements <see cref="T:KeeperSecurity.Authentication.IDeviceApprovalPushInfo">push interface</see>
+            then invoke <see cref="P:KeeperSecurity.Authentication.IDeviceApprovalPushInfo.InvokeDeviceApprovalPushAction">push action</see>
+            If channel implements <see cref="T:KeeperSecurity.Authentication.ITwoFactorDurationInfo">2FA duration interface</see> clients may show 2FA expiration picker.
             </remarks>
         </member>
-        <member name="P:KeeperSecurity.Authentication.IAuth.Endpoint">
+        <member name="M:KeeperSecurity.Authentication.Async.IAuthUI.WaitForTwoFactorCode(KeeperSecurity.Authentication.ITwoFactorChannelInfo[],System.Threading.CancellationToken)">
             <summary>
-            Gets a keeper server endpoint
+            Two Factor Authentication is required.
             </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuth.Ui">
-            <summary>
-            Gets UI callback methods
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuth.Storage">
-            <summary>
-            Gets configuration storage 
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuth.PushNotifications">
-            <exclude/>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuth.Username">
-            <summary>
-            Gets user email address.
-            </summary>
+            <param name="channels">List of available 2FA channels.</param>
+            <param name="token">Cancellation token. Keeper SDK notifies the client passed 2FA.</param>
+            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
             <remarks>
-            This property is set by <c>Login</c> method
+            Clients to display the list of available 2FA channels.
+            When user picks one clients to check
+            <list type="number">
+            <item><description>
+            if channel implements <see cref="T:KeeperSecurity.Authentication.ITwoFactorPushInfo">push interface</see> clients displays an button for each <see cref="P:KeeperSecurity.Authentication.ITwoFactorPushInfo.SupportedActions">push action</see>
+            </description></item>
+            <item><description>
+            If channel implements <see cref="T:KeeperSecurity.Authentication.ITwoFactorDurationInfo">2FA duration interface</see> clients may show 2FA expiration picker.
+            </description></item>
+            <item><description>
+            If channel implements <see cref="T:KeeperSecurity.Authentication.ITwoFactorAppCodeInfo">2FA code interface</see> clients displays 2FA code input.
+            </description></item>
+            </list>
+            When customer enters the code and click Next clients returns the code to <see cref="P:KeeperSecurity.Authentication.ITwoFactorAppCodeInfo.InvokeTwoFactorCodeAction">the SDK</see>.
             </remarks>
         </member>
-        <member name="P:KeeperSecurity.Authentication.IAuth.DeviceToken">
+        <member name="M:KeeperSecurity.Authentication.Async.IAuthUI.WaitForUserPassword(KeeperSecurity.Authentication.IPasswordInfo,System.Threading.CancellationToken)">
             <summary>
-            Gets device token
+            Master Password is required.
             </summary>
+            <param name="passwordInfo">Enter Password interface</param>
+            <param name="token">Cancellation token. Keeper SDK notifies the client successfully authorized. Can be ignored.</param>
+            <returns>Awaitable boolean result. <c>True</c>True resumes login, <c>False</c> cancels.</returns>
+            <remarks>
+            Client displays Enter password dialog.
+            When customer clicks Next client returns the password to <see cref="P:KeeperSecurity.Authentication.IPasswordInfo.InvokePasswordActionDelegate">the SDK</see>.
+            </remarks>
         </member>
-        <member name="P:KeeperSecurity.Authentication.IAuth.ResumeSession">
+        <member name="T:KeeperSecurity.Authentication.Async.IAuthSsoUI">
             <summary>
-            Gets or sets session resumption flag
+            Defines the methods required completing SSO Login. Optional.
             </summary>
+            <remarks>If client supports SSO Login this interface needs to be implemented
+            along with <see cref="T:KeeperSecurity.Authentication.Async.IAuthUI">Auth UI</see>
+            </remarks>
+            <seealso cref="T:KeeperSecurity.Authentication.Async.IAuthUI"/>
+            <remarks>
+            Client implements this interface to support SSO login. This interface will be called in response
+            of <see cref="M:KeeperSecurity.Authentication.IAuth.Login(System.String,System.String[])"/> if username is SSO user or <see cref="M:KeeperSecurity.Authentication.IAuth.LoginSso(System.String,System.Boolean)"/>
+            </remarks>
         </member>
-        <member name="M:KeeperSecurity.Authentication.IAuth.Login(System.String,System.String[])">
+        <member name="M:KeeperSecurity.Authentication.Async.IAuthSsoUI.WaitForSsoToken(KeeperSecurity.Authentication.ISsoTokenActionInfo,System.Threading.CancellationToken)">
             <summary>
-            Login to Keeper account with email.
+            SSO Login is required.
             </summary>
-            <param name="username">Keeper account email address.</param>
-            <param name="passwords">Master password(s)</param>
-            <returns>Awaitable task</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.IAuth.LoginSso(System.String,System.Boolean)"/>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login error.</exception>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login cancelled.</exception>
-            <exception cref="T:System.Exception">Other exceptions.</exception>
+            <param name="actionInfo"></param>
+            <param name="token">Cancellation token. Keeper SDK notifies the client successfully logged in with SSO.</param>
+            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
+            <remarks>
+            When this method is called client opens embedded web browser and navigates to URL specified in
+            <see cref="P:KeeperSecurity.Authentication.ISsoTokenActionInfo.SsoLoginUrl">actionInfo.SsoLoginUrl</see>
+            then monitors embedded web browser navigation.
+            When it finds the page that contains <c>window.token</c> object it passes this object to
+            <see cref="P:KeeperSecurity.Authentication.ISsoTokenActionInfo.InvokeSsoTokenAction">actionInfo.InvokeSsoTokenAction</see>
+            </remarks>
         </member>
-        <member name="M:KeeperSecurity.Authentication.IAuth.LoginSso(System.String,System.Boolean)">
+        <member name="M:KeeperSecurity.Authentication.Async.IAuthSsoUI.WaitForDataKey(KeeperSecurity.Authentication.IDataKeyChannelInfo[],System.Threading.CancellationToken)">
             <summary>
-            Login to Keeper account with SSO Provider.
+            Data Key needs to be shared. 
             </summary>
-            <param name="providerName">SSO provider name.</param>
-            <param name="forceLogin">Force new login with SSO IdP.</param>
-            <returns>Awaitable task.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login error.</exception>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login cancelled.</exception>
-            <exception cref="T:System.Exception">Other exceptions.</exception>
-            <seealso cref="M:KeeperSecurity.Authentication.IAuth.Login(System.String,System.String[])" />
+            <param name="channels">List of available data key sharing channels.</param>
+            <param name="token">Cancellation token. Keeper SDK notifies the client that data key is shared.</param>
+            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
+            <remarks>
+            Cloud SSO login may require user data key to be shared if the device is used for the first time.
+            Client displays the list of available data key sharing channels.
+            When user picks a channel, client invokes channel's action <see cref="P:KeeperSecurity.Authentication.IDataKeyChannelInfo.InvokeGetDataKeyAction">channels.InvokeGetDataKeyAction</see>
+            </remarks>
         </member>
-        <member name="T:KeeperSecurity.Authentication.IAuthentication">
+        <member name="T:KeeperSecurity.Authentication.Async.IHttpProxyCredentialUi">
             <summary>
-            Defines properties and methods of connected Keeper authentication object.
+            Defines a method that returns HTTP Web proxy credentials. Optional.
             </summary>
+            <remarks>
+            Keeper SDK calls this interface if it detects that access to the Internet is protected with HTTP Proxy.
+            Clients requests HTTP proxy credentials from the user and return them to the library.
+            </remarks>
+            <seealso cref="T:KeeperSecurity.Authentication.Async.IAuthUI"/>
         </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthentication.AuthContext">
+        <member name="M:KeeperSecurity.Authentication.Async.IHttpProxyCredentialUi.WaitForHttpProxyCredentials(KeeperSecurity.Authentication.IHttpProxyInfo)">
             <summary>
-            Gets authentication context
+            Requests HTTP Proxy credentials.
             </summary>
+            <param name="proxyInfo">HTTP Proxy information</param>
+            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
         </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthCommand(KeeperSecurity.Commands.AuthenticatedCommand,System.Type,System.Boolean)">
+        <member name="T:KeeperSecurity.Authentication.Async.Auth">
             <summary>
-            Executes Keeper JSON command.
+            Represents Keeper authentication. (async)
             </summary>
-            <param name="command">Keeper JSON command.</param>
-            <param name="responseType">Type of response.</param>
-            <param name="throwOnError">throws exception on error.</param>
-            <returns>Task returning JSON response.</returns>
-            <seealso cref="!:Auth.ExecuteAuthCommand(AuthenticatedCommand,System.Type)"/>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)">
-            <summary>
-            Executes Keeper Protofuf request.
-            </summary>
-            <param name="endpoint">Request endpoint.</param>
-            <param name="request">Protobuf request.</param>
-            <param name="responseType">Expected response type</param>
-            <returns>Task returning Protobuf response.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.Auth.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)"/>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthentication.Logout">
-            <summary>
-            Logout from Keeper server.
-            </summary>
-            <returns>Awaitable Task</returns>
-        </member>
-        <member name="T:KeeperSecurity.Authentication.IAuthContext">
-            <summary>
-            Defines properties of connected user.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.DataKey">
-            <summary>
-            User's Data Key.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.SessionToken">
-            <summary>
-            Connection Token.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.ClientKey">
-            <summary>
-            User's Client Key.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.PrivateKey">
-            <summary>
-            User's RSA Private Key.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.License">
-            <summary>
-            Gets user's account license.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.Settings">
-            <summary>
-            Gets user's account settings.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.DeviceInfo">
-            <summary>
-            Gets device information.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.Enforcements">
-            <summary>
-            Gets user's enterprise enforcements.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.IsEnterpriseAdmin">
-            <summary>
-            Gets enterprise administrator flag.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.SsoLoginInfo">
-            <summary>
-            Gets SSO provider information
-            </summary>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthContext.CheckPasswordValid(System.String)">
-            <exclude/>
-        </member>
-        <member name="T:KeeperSecurity.Authentication.SsoLoginInfo">
-            <summary>
-            Describes SSO Provider connection parameters
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.SsoLoginInfo.SsoProvider">
-            <summary>
-            Gets SSO Provider name
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.SsoLoginInfo.SpBaseUrl">
-            <summary>
-            Gets SSO Provider base URL
-            </summary>
-        </member>
-        <member name="T:KeeperSecurity.Authentication.Auth">
-            <summary>
-            Represents Keeper authentication.
-            </summary>
+            <seealso cref="!:AuthSync"/>
             <seealso cref="T:KeeperSecurity.Authentication.IAuth"/>
             <seealso cref="T:KeeperSecurity.Authentication.IAuthentication"/>
         </member>
-        <member name="M:KeeperSecurity.Authentication.Auth.#ctor(KeeperSecurity.Authentication.IAuthUI,KeeperSecurity.Configuration.IConfigurationStorage,KeeperSecurity.Authentication.IKeeperEndpoint)">
+        <member name="M:KeeperSecurity.Authentication.Async.Auth.#ctor(KeeperSecurity.Authentication.Async.IAuthUI,KeeperSecurity.Configuration.IConfigurationStorage,KeeperSecurity.Authentication.IKeeperEndpoint)">
             <summary>
             Constructor.
             </summary>
@@ -351,108 +292,52 @@
             <param name="storage">Configuration storage.</param>
             <param name="endpoint">Keeper Endpoint.</param>
         </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.Username">
+        <member name="P:KeeperSecurity.Authentication.Async.Auth.Storage">
             <summary>
-            Gets user email address.
+            Gets configuration storage.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.Ui">
+        <member name="P:KeeperSecurity.Authentication.Async.Auth.Ui">
             <summary>
             Gets User interaction interface.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.Storage">
-            <summary>
-            Cets configuration storage.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.Endpoint">
-            <summary>
-            Gets Keeper endpoint.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.DeviceToken">
-            <summary>
-            Gets device token
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.ResumeSession">
-            <summary>
-            Gets or sets session resumption flag.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.AlternatePassword">
-            <summary>
-            Forces master password login for SSO accounts.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.AuthContext">
-            <summary>
-            Gets connected user context.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.Auth.PushNotifications">
+        <member name="P:KeeperSecurity.Authentication.Async.Auth.AuthCallback">
             <exclude/>
         </member>
-        <member name="M:KeeperSecurity.Authentication.Auth.ExecuteAuthCommand(KeeperSecurity.Commands.AuthenticatedCommand,System.Type,System.Boolean)">
-            <summary>
-            Executes Keeper JSON command.
-            </summary>
-            <param name="command">JSON command.</param>
-            <param name="responseType">Type of response.</param>
-            <param name="throwOnError">if <c>True</c> throw exception on Keeper error.</param>
-            <returns>JSON response.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException">Keeper JSON API Exception</exception>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.Auth.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)">
-            <summary>
-            Executes Keeper Protobuf request.
-            </summary>
-            <param name="endpoint">Request endpoint.</param>
-            <param name="request">Protobuf request.</param>
-            <param name="responseType">Expected response type</param>
-            <returns>Task returning Protobuf response.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteRest(System.String,Authentication.ApiRequestPayload)"/>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.Auth.LoginSso(System.String,System.Boolean)">
+        <member name="M:KeeperSecurity.Authentication.Async.Auth.LoginSso(System.String,System.Boolean)">
             <summary>
             Login to Keeper account with SSO provider.
             </summary>
             <param name="providerName">SSO provider name.</param>
             <param name="forceLogin">Force new login with SSO IdP.</param>
             <returns>Awaitable task.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.Auth.Login(System.String,System.String[])"/>
+            <seealso cref="M:KeeperSecurity.Authentication.Async.Auth.Login(System.String,System.String[])"/>
             <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login is cancelled.</exception>
             <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login exception.</exception>
             <exception cref="T:System.Exception">Generic exception.</exception>
         </member>
-        <member name="M:KeeperSecurity.Authentication.Auth.Login(System.String,System.String[])">
+        <member name="M:KeeperSecurity.Authentication.Async.Auth.Login(System.String,System.String[])">
             <summary>
             Login to Keeper account with email.
             </summary>
             <param name="username">Keeper account email address.</param>
             <param name="passwords">Master password(s)</param>
             <returns>Awaitable task</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.Auth.LoginSso(System.String,System.Boolean)"/>
+            <seealso cref="M:KeeperSecurity.Authentication.Async.Auth.LoginSso(System.String,System.Boolean)"/>
             <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login error.</exception>
             <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login cancelled.</exception>
             <exception cref="T:System.Exception">Other exceptions.</exception>
         </member>
-        <member name="M:KeeperSecurity.Authentication.Auth.Logout">
-            <summary>
-            Logout from Keeper server.
-            </summary>
-            <returns>Awaitable Task</returns>
-        </member>
-        <member name="T:KeeperSecurity.Authentication.MasterPasswordReentry">
+        <member name="M:KeeperSecurity.Authentication.Async.Auth.Dispose">
             <exclude/>
         </member>
-        <member name="T:KeeperSecurity.Authentication.NotificationEvent">
+        <member name="T:KeeperSecurity.Authentication.Async.MasterPasswordReentry">
             <exclude/>
         </member>
-        <member name="T:KeeperSecurity.Authentication.NamespaceDoc">
+        <member name="T:KeeperSecurity.Authentication.Async.NamespaceDoc">
             <summary>
-                Provides types for establishing connection to Keeper servers.
+                Provides types for connecting to Keeper servers (async).
             </summary>
             <example>
                 This example shows how to authenticate at Keeper server.
@@ -461,6 +346,7 @@
             using System.Threading;
             using System.Threading.Tasks;
             using KeeperSecurity.Authentication;
+            using KeeperSecurity.Authentication.Async;
             using KeeperSecurity.Configuration;
             
             class AuthUi : IAuthUI
@@ -516,8 +402,626 @@
             </code>
             </example>
             <seealso cref="T:KeeperSecurity.Authentication.IAuth" />
-            <seealso cref="T:KeeperSecurity.Authentication.IAuthUI" />
+            <seealso cref="T:KeeperSecurity.Authentication.Async.IAuthUI" />
             <seealso cref="T:KeeperSecurity.Configuration.JsonConfigurationStorage" />
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Async.ConsoleAuthUi">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.AccountAuthType">
+            <summary>
+            Specifies login type
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.AccountAuthType.Regular">
+            <summary>
+            Regular account
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.AccountAuthType.CloudSso">
+            <summary>
+            Cloud SSO account
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.AccountAuthType.OnsiteSso">
+            <summary>
+            On-Premises SSO account
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.AccountAuthType.ManagedCompany">
+            <summary>
+            MSP logged in to MC
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.IAuthCallback">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthEndpoint.AuthCallback">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthEndpoint.Endpoint">
+            <summary>
+            Gets a keeper server endpoint
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthEndpoint.PushNotifications">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthEndpoint.Username">
+            <summary>
+            Gets user email address.
+            </summary>
+            <remarks>
+            This property is set by <c>Login</c> method
+            </remarks>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthEndpoint.DeviceToken">
+            <summary>
+            Gets device token
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.IAuth">
+            <summary>
+            Defines the basic properties of Keeper authentication object.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuth.Storage">
+            <summary>
+            Gets configuration storage 
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuth.ResumeSession">
+            <summary>
+            Gets or sets session resumption flag
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuth.AlternatePassword">
+            <summary>
+            Forces master password login for SSO accounts.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuth.Login(System.String,System.String[])">
+            <summary>
+            Login to Keeper account with email.
+            </summary>
+            <param name="username">Keeper account email address.</param>
+            <param name="passwords">Master password(s)</param>
+            <returns>Awaitable task</returns>
+            <seealso cref="M:KeeperSecurity.Authentication.IAuth.LoginSso(System.String,System.Boolean)"/>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login error.</exception>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login cancelled.</exception>
+            <exception cref="T:System.Exception">Other exceptions.</exception>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuth.LoginSso(System.String,System.Boolean)">
+            <summary>
+            Login to Keeper account with SSO Provider.
+            </summary>
+            <param name="providerName">SSO provider name.</param>
+            <param name="forceLogin">Force new login with SSO IdP.</param>
+            <returns>Awaitable task.</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login error.</exception>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login cancelled.</exception>
+            <exception cref="T:System.Exception">Other exceptions.</exception>
+            <seealso cref="M:KeeperSecurity.Authentication.IAuth.Login(System.String,System.String[])" />
+        </member>
+        <member name="T:KeeperSecurity.Authentication.IAuthentication">
+            <summary>
+            Defines properties and methods of connected Keeper authentication object.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthentication.AuthContext">
+            <summary>
+            Gets authentication context
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthCommand(KeeperSecurity.Commands.AuthenticatedCommand,System.Type,System.Boolean)">
+            <summary>
+            Executes Keeper JSON command.
+            </summary>
+            <param name="command">Keeper JSON command.</param>
+            <param name="responseType">Type of response.</param>
+            <param name="throwOnError">throws exception on error.</param>
+            <returns>Task returning JSON response.</returns>
+            <seealso cref="!:Auth.ExecuteAuthCommand(AuthenticatedCommand,System.Type)"/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)">
+            <summary>
+            Executes Keeper Protobuf request.
+            </summary>
+            <param name="endpoint">Request endpoint.</param>
+            <param name="request">Protobuf request.</param>
+            <param name="responseType">Expected response type</param>
+            <returns>Task returning Protobuf response.</returns>
+            <seealso cref="!:Auth.ExecuteAuthRest"/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuthentication.Logout">
+            <summary>
+            Logout from Keeper server.
+            </summary>
+            <returns>Awaitable Task</returns>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.IAuthContext">
+            <summary>
+            Defines properties of connected user.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.DataKey">
+            <summary>
+            User's Data Key.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.SessionToken">
+            <summary>
+            Connection Token.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.ClientKey">
+            <summary>
+            User's Client Key.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.PrivateKey">
+            <summary>
+            User's RSA Private Key.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.License">
+            <summary>
+            Gets user's account license.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.Settings">
+            <summary>
+            Gets user's account settings.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.Enforcements">
+            <summary>
+            Gets user's enterprise enforcements.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.IsEnterpriseAdmin">
+            <summary>
+            Gets enterprise administrator flag.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.AccountAuthType">
+            <summary>
+            Gets account login type
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.SsoLoginInfo">
+            <summary>
+            Gets SSO provider information
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuthContext.CheckPasswordValid(System.String)">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.SsoLoginInfo">
+            <summary>
+            Describes SSO Provider connection parameters
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.SsoLoginInfo.SsoProvider">
+            <summary>
+            Gets SSO Provider name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.SsoLoginInfo.SpBaseUrl">
+            <summary>
+            Gets SSO Provider base URL
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.AuthCommon">
+            <summary>
+            Represents base authentication class
+            </summary>
+            <seealso cref="T:KeeperSecurity.Authentication.Async.Auth"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.AuthSync"/>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AuthCommon.Endpoint">
+            <summary>
+            Gets Keeper endpoint.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AuthCommon.Username">
+            <summary>
+            Gets user email address.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AuthCommon.DeviceToken">
+            <summary>
+            Gets device token
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AuthCommon.AuthContext">
+            <summary>
+            Gets connected user context.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AuthCommon.PushNotifications">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.ExecuteAuthCommand(KeeperSecurity.Commands.AuthenticatedCommand,System.Type,System.Boolean)">
+            <summary>
+            Executes Keeper JSON command.
+            </summary>
+            <param name="command">JSON command.</param>
+            <param name="responseType">Type of response.</param>
+            <param name="throwOnError">if <c>True</c> throw exception on Keeper error.</param>
+            <returns>JSON response.</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException">Keeper JSON API Exception</exception>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)">
+            <summary>
+            Executes Keeper Protobuf request.
+            </summary>
+            <param name="endpoint">Request endpoint.</param>
+            <param name="request">Protobuf request.</param>
+            <param name="responseType">Expected response type</param>
+            <returns>Task returning Protobuf response.</returns>
+            <seealso cref="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteRest(System.String,Authentication.ApiRequestPayload)"/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.Logout">
+            <summary>
+            Logout from Keeper server.
+            </summary>
+            <returns>Awaitable Task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.Dispose">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.NotificationEvent">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.NamespaceDoc">
+            <summary>
+                Provides base types for establishing connection to Keeper servers.
+            </summary>
+            <seealso cref="T:KeeperSecurity.Authentication.Async.Auth"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.AuthSync"/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.NamespaceDoc">
+            <summary>
+                Provides types for connecting to Keeper servers (sync).
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.AuthState">
+            <summary>
+            Specifies authentication states.
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.NotConnected">
+            <summary>
+            Ready to login
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.ProxyAuth">
+            <summary>
+            HTTP Proxy Authentication
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.DeviceApproval">
+            <summary>
+            Device Approval
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.TwoFactor">
+            <summary>
+            Two Factor Authentication
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.Password">
+            <summary>
+            Master Password
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.SsoToken">
+            <summary>
+            SSO Login
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.SsoDataKey">
+            <summary>
+            SSO Approval
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.Connected">
+            <summary>
+            Login success
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.Error">
+            <summary>
+            Login failure
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.AuthStep">
+            <summary>
+            Represents base Keeper authentication step
+            </summary>
+            <seealso cref="!:LoginStep"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.HttpProxyStep"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.DeviceApprovalStep"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.TwoFactorStep"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.PasswordStep"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.SsoTokenStep"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.SsoDataKeyStep"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.ConnectedStep"/>
+            <seealso cref="T:KeeperSecurity.Authentication.Sync.ErrorStep"/>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthStep.State">
+            <summary>
+            Gets Keeper login state
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.AuthStep.Dispose">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.ReadyToLoginStep">
+            <summary>
+            Represents initial Login step
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.DeviceApprovalStep">
+            <summary>
+            Represents device approval step
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.DeviceApprovalStep.DefaultChannel">
+            <summary>
+            Gets or sets default device approval channel
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.DeviceApprovalStep.Channels">
+            <summary>
+            Gets available device approval channels
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.DeviceApprovalStep.SendPush(KeeperSecurity.Authentication.DeviceApprovalChannel)">
+            <summary>
+            Sends push notification to the channel
+            </summary>
+            <param name="channel">Device approval channel</param>
+            <returns>Awaitable task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.DeviceApprovalStep.SendCode(KeeperSecurity.Authentication.DeviceApprovalChannel,System.String)">
+            <summary>
+            Sends verification code to the channel
+            </summary>
+            <param name="channel">Device approval channel</param>
+            <param name="code">Verification code</param>
+            <returns>Awaitable task</returns>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.TwoFactorStep">
+            <summary>
+            Represents Two Factor Authentication step
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.TwoFactorStep.DefaultChannel">
+            <summary>
+            Gets or sets default two factor authentication channel
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.TwoFactorStep.Channels">
+            <summary>
+            Gets available two factor authentication channels
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.TwoFactorStep.Duration">
+            <summary>
+            Gets / sets two factor authentication duration / expiration
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.TwoFactorStep.GetChannelPushActions(KeeperSecurity.Authentication.TwoFactorChannel)">
+            <summary>
+            Gets available push actions for the channel
+            </summary>
+            <param name="channel">Two factor authentication channel</param>
+            <returns>List of available push actions</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.TwoFactorStep.IsCodeChannel(KeeperSecurity.Authentication.TwoFactorChannel)">
+            <summary>
+            Gets flag if channel accepts verification codes
+            </summary>
+            <param name="channel">Two factor authentication channel</param>
+            <returns><c>True</c> if the channel supports verification codes</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.TwoFactorStep.GetPhoneNumber(KeeperSecurity.Authentication.TwoFactorChannel)">
+            <summary>
+            Gets phone number for the channel
+            </summary>
+            <param name="channel">Two factor authentication channel</param>
+            <returns>Phone number registered to the channel.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.TwoFactorStep.SendPush(KeeperSecurity.Authentication.TwoFactorPushAction)">
+            <summary>
+            Sends push action to the channel
+            </summary>
+            <param name="action">Push action</param>
+            <returns>Awaitable task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.TwoFactorStep.SendCode(KeeperSecurity.Authentication.TwoFactorChannel,System.String)">
+            <summary>
+            Sends verification code
+            </summary>
+            <param name="channel"></param>
+            <param name="code"></param>
+            <returns>Awaitable task</returns>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.PasswordStep">
+            <summary>
+            Represents Master Password step
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.PasswordStep.VerifyPassword(System.String)">
+            <summary>
+            Verifies master password
+            </summary>
+            <param name="password">Master password</param>
+            <returns>Awaitable task</returns>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.HttpProxyStep">
+            <summary>
+            Represents HTTP Proxy Authentication step
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.HttpProxyStep.ProxyUri">
+            <summary>
+            Gets HTTP Proxy URI
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.HttpProxyStep.SetProxyCredentials(System.String,System.String)">
+            <summary>
+            Sets HTTP Proxy credentials
+            </summary>
+            <param name="username">Proxy username</param>
+            <param name="password">Proxy password</param>
+            <returns>Awaitable task</returns>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.SsoTokenStep">
+            <summary>
+            Represents SSO Login step
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.SsoTokenStep.LoginAsUser">
+            <summary>
+            Gets username used to login
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.SsoTokenStep.LoginAsProvider">
+            <summary>
+            Gets SSO provider used to login
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.SsoTokenStep.SsoLoginUrl">
+            <summary>
+            Gets SSO login URL
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.SsoTokenStep.IsCloudSso">
+            <summary>
+            Gets cloud SSO flag
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.SsoTokenStep.SetSsoToken(System.String)">
+            <summary>
+            Sets SSO login token
+            </summary>
+            <param name="ssoToken">SSO token</param>
+            <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.SsoTokenStep.LoginWithPassword">
+            <summary>
+            Login with alternate Keeper password
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.SsoDataKeyStep">
+            <summary>
+            Represents SSO Approval step
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.SsoDataKeyStep.Channels">
+            <summary>
+            Gets available SSO approval channels
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.SsoDataKeyStep.RequestDataKey(KeeperSecurity.Authentication.DataKeyShareChannel)">
+            <summary>
+            Requests SSO Approval
+            </summary>
+            <param name="channel">SSO approval channel</param>
+            <returns></returns>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.ConnectedStep">
+            <summary>
+            Represents connected step
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.ErrorStep">
+            <summary>
+            Represents error step
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.ErrorStep.Code">
+            <summary>
+            Gets error code
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.ErrorStep.Message">
+            <summary>
+            GEt error message
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.IAuthSyncCallback">
+            <summary>
+            Defines the user interface methods required for authentication with Keeper (sync).
+            </summary>
+            <seealso cref="T:KeeperSecurity.Authentication.ISsoLogoutCallback"/>
+            <seealso cref="T:KeeperSecurity.Authentication.IPostLoginTaskUI"/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.AuthSync">
+            <summary>
+            Represents Keeper authentication. (sync)
+            </summary>
+            <seealso cref="T:KeeperSecurity.Authentication.Async.Auth"/>
+            <seealso cref="T:KeeperSecurity.Authentication.IAuth"/>
+            <seealso cref="T:KeeperSecurity.Authentication.IAuthentication"/>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.UiCallback">
+            <summary>
+            Gets User interaction interface.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.AuthCallback">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.#ctor(KeeperSecurity.Configuration.IConfigurationStorage,KeeperSecurity.Authentication.IKeeperEndpoint)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="storage">Configuration storage.</param>
+            <param name="endpoint">Keeper Endpoint.</param>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.Storage">
+            <summary>
+            Gets configuration storage.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.IsCompleted">
+            <summary>
+            Gets a value that indicates whether login to Keeper has completed.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.Step">
+            <summary>
+            Gets a current login step
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.Cancel">
+            <summary>
+            Cancels Keeper login
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.Login(System.String,System.String[])">
+            <summary>
+            Login to Keeper account with email.
+            </summary>
+            <param name="username">Keeper account email address.</param>
+            <param name="passwords">Master password(s)</param>
+            <returns>Awaitable task</returns>
+            <seealso cref="M:KeeperSecurity.Authentication.Sync.AuthSync.LoginSso(System.String,System.Boolean)"/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.LoginSso(System.String,System.Boolean)">
+            <summary>
+            Login to Keeper account with SSO provider.
+            </summary>
+            <param name="providerName">SSO provider name.</param>
+            <param name="forceLogin">Force new login with SSO IdP.</param>
+            <returns>Awaitable task.</returns>
+            <seealso cref="M:KeeperSecurity.Authentication.Sync.AuthSync.Login(System.String,System.String[])"/>
         </member>
         <member name="T:KeeperSecurity.Authentication.AuthExtensions">
             <summary>
@@ -538,7 +1042,7 @@
             <param name="auth">The authenticated connection.</param>
             <param name="command">JSON authenticated command.</param>
             <returns>A Task returning basic JSON response.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteV2Command(KeeperSecurity.Commands.KeeperApiCommand,System.Type)"/>
+            <seealso cref="!:IKeeperEndpoint.ExecuteV2Command"/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthCommand``2(KeeperSecurity.Authentication.IAuthentication,``0,System.Boolean)">
             <summary>
@@ -551,7 +1055,7 @@
             <param name="throwOnError">if <c>True</c> throw exception on Keeper error.</param>
             <returns>A Task returning JSON response.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException">Keeper API Exception.</exception>
-            <seealso cref="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteV2Command(KeeperSecurity.Commands.KeeperApiCommand,System.Type)"/>
+            <seealso cref="!:IKeeperEndpoint.ExecuteV2Command"/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthCommand``1(KeeperSecurity.Authentication.IAuthentication,``0)">
             <summary>
@@ -562,7 +1066,7 @@
             <param name="command">SON authenticated command.</param>
             <returns>Awaitable task.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException">Keeper API Exception.</exception>
-            <seealso cref="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteV2Command(KeeperSecurity.Commands.KeeperApiCommand,System.Type)"/>
+            <seealso cref="!:IKeeperEndpoint.ExecuteV2Command"/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthRest``2(KeeperSecurity.Authentication.IAuthentication,System.String,``0)">
             <summary>
@@ -617,6 +1121,11 @@
         <member name="P:KeeperSecurity.Authentication.IKeeperEndpoint.ServerKeyId">
             <exclude/>
         </member>
+        <member name="P:KeeperSecurity.Authentication.IKeeperEndpoint.WebProxy">
+            <summary>
+            Gets / sets HTTP Proxy
+            </summary>
+        </member>
         <member name="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteRest(System.String,Authentication.ApiRequestPayload)">
             <summary>
             Executes Protobuf request.
@@ -625,18 +1134,13 @@
             <param name="payload">Protobuf Payload.</param>
             <returns>Task returning serialized response.</returns>
         </member>
-        <member name="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteV2Command(KeeperSecurity.Commands.KeeperApiCommand,System.Type)">
-            <summary>
-            Executes JSON request.
-            </summary>
-            <param name="command">Keeper JSON command.</param>
-            <param name="responseType">Keeper JSON response type.</param>
-            <returns>Task returning Keeper JSON response.</returns>
-        </member>
         <member name="M:KeeperSecurity.Authentication.IKeeperEndpoint.PrepareApiRequest(Google.Protobuf.IMessage,System.Byte[],System.Byte[])">
             <exclude/>
         </member>
         <member name="M:KeeperSecurity.Authentication.IKeeperEndpoint.PushServer">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IKeeperEndpoint.ConnectToPushServer(Push.WssConnectionRequest,System.Threading.CancellationToken)">
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.WebSocketChannel">
@@ -649,13 +1153,22 @@
         </member>
         <member name="M:KeeperSecurity.Authentication.KeeperEndpointExtensions.ExecuteV2Command``2(KeeperSecurity.Authentication.IKeeperEndpoint,``0)">
             <summary>
-            Executes Keeper Protobuf command.
+            Executes Keeper JSON command. Generic version.
             </summary>
             <typeparam name="TC">Keeper Protobuf Request Type.</typeparam>
             <typeparam name="TR">Keeper Protobuf Response Type.</typeparam>
-            <param name="endpoint">URL path for request.</param>
+            <param name="endpoint">Keeper endpoint interface.</param>
             <param name="request">Keeper Protobuf Request.</param>
             <returns>Task returning Protobuf Response.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.KeeperEndpointExtensions.ExecuteV2Command(KeeperSecurity.Authentication.IKeeperEndpoint,KeeperSecurity.Commands.KeeperApiCommand,System.Type)">
+            <summary>
+            Executes JSON request.
+            </summary>
+            <param name="endpoint">Keeper endpoint interface.</param>
+            <param name="command">Keeper JSON command.</param>
+            <param name="responseType">Keeper JSON response type.</param>
+            <returns>Task returning Keeper JSON response.</returns>
         </member>
         <member name="T:KeeperSecurity.Authentication.KeeperEndpoint">
             <exclude/>
@@ -672,11 +1185,6 @@
         <member name="T:KeeperSecurity.Authentication.KeeperPostLoginErrors">
             <summary>
             User is not allowed to login.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Authentication.KeeperPostLoginErrors.Code">
-            <summary>
-            Error code.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Authentication.KeeperApiException">
@@ -861,65 +1369,6 @@
             U2F Security Key.
             </summary>
         </member>
-        <member name="T:KeeperSecurity.Authentication.IAuthUI">
-            <summary>
-            Defines the user interface methods required for authentication with Keeper.
-            </summary>
-            <seealso cref="T:KeeperSecurity.Authentication.IAuthSsoUI"/>
-            <seealso cref="!:IHttpProxyCredentialUI"/>
-            <seealso cref="T:KeeperSecurity.Authentication.IAuthSecurityKeyUI"/>
-            <seealso cref="T:KeeperSecurity.Authentication.IPostLoginTaskUI"/>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthUI.WaitForDeviceApproval(KeeperSecurity.Authentication.IDeviceApprovalChannelInfo[],System.Threading.CancellationToken)">
-            <summary>
-            Device Approval is required.
-            </summary>
-            <param name="channels">List of available device approval channels.</param>
-            <param name="token">Cancellation token. Keeper SDK notifies the client when device is successfully approved.</param>
-            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-            <remarks>
-            Clients to display the list of available device approval channels.
-            When user picks one clients to check if channel implements <see cref="T:KeeperSecurity.Authentication.IDeviceApprovalPushInfo">push interface</see>
-            then invoke <see cref="P:KeeperSecurity.Authentication.IDeviceApprovalPushInfo.InvokeDeviceApprovalPushAction">push action</see>
-            If channel implements <see cref="T:KeeperSecurity.Authentication.ITwoFactorDurationInfo">2FA duration interface</see> clients may show 2FA expiration picker.
-            </remarks>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthUI.WaitForTwoFactorCode(KeeperSecurity.Authentication.ITwoFactorChannelInfo[],System.Threading.CancellationToken)">
-            <summary>
-            Two Factor Authentication is required.
-            </summary>
-            <param name="channels">List of available 2FA channels.</param>
-            <param name="token">Cancellation token. Keeper SDK notifies the client passed 2FA.</param>
-            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-            <remarks>
-            Clients to display the list of available 2FA channels.
-            When user picks one clients to check
-            <list type="number">
-            <item><description>
-            if channel implements <see cref="T:KeeperSecurity.Authentication.ITwoFactorPushInfo">push interface</see> clients displays an button for each <see cref="P:KeeperSecurity.Authentication.ITwoFactorPushInfo.SupportedActions">push action</see>
-            </description></item>
-            <item><description>
-            If channel implements <see cref="T:KeeperSecurity.Authentication.ITwoFactorDurationInfo">2FA duration interface</see> clients may show 2FA expiration picker.
-            </description></item>
-            <item><description>
-            If channel implements <see cref="T:KeeperSecurity.Authentication.ITwoFactorAppCodeInfo">2FA code interface</see> clients displays 2FA code input.
-            </description></item>
-            </list>
-            When customer enters the code and click Next clients returns the code to <see cref="P:KeeperSecurity.Authentication.ITwoFactorAppCodeInfo.InvokeTwoFactorCodeAction">the SDK</see>.
-            </remarks>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthUI.WaitForUserPassword(KeeperSecurity.Authentication.IPasswordInfo,System.Threading.CancellationToken)">
-            <summary>
-            Master Password is required.
-            </summary>
-            <param name="passwordInfo">Enter Password interface</param>
-            <param name="token">Cancellation token. Keeper SDK notifies the client successfully authorized. Can be ignored.</param>
-            <returns>Awaitable boolean result. <c>True</c>True resumes login, <c>False</c> cancels.</returns>
-            <remarks>
-            Client displays Enter password dialog.
-            When customer clicks Next client returns the password to <see cref="P:KeeperSecurity.Authentication.IPasswordInfo.InvokePasswordActionDelegate">the SDK</see>.
-            </remarks>
-        </member>
         <member name="T:KeeperSecurity.Authentication.IAuthInfoUI">
             <summary>
             Various methods that notify client about IAuth object state changes. Optional.
@@ -937,48 +1386,7 @@
             </summary>
             <param name="deviceToken">Device Token</param>
         </member>
-        <member name="T:KeeperSecurity.Authentication.IAuthSsoUI">
-            <summary>
-            Defines the methods required completing SSO Login. Optional.
-            </summary>
-            <remarks>If client supports SSO Login this interface needs to be implemented
-            along with <see cref="T:KeeperSecurity.Authentication.IAuthUI">Auth UI</see>
-            </remarks>
-            <seealso cref="T:KeeperSecurity.Authentication.IAuthUI"/>
-            <remarks>
-            Client implements this interface to support SSO login. This interface will be called in response
-            of <see cref="M:KeeperSecurity.Authentication.IAuth.Login(System.String,System.String[])"/> if username is SSO user or <see cref="M:KeeperSecurity.Authentication.IAuth.LoginSso(System.String,System.Boolean)"/>
-            </remarks>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthSsoUI.WaitForSsoToken(KeeperSecurity.Authentication.ISsoTokenActionInfo,System.Threading.CancellationToken)">
-            <summary>
-            SSO Login is required.
-            </summary>
-            <param name="actionInfo"></param>
-            <param name="token">Cancellation token. Keeper SDK notifies the client successfully logged in with SSO.</param>
-            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-            <remarks>
-            When this method is called client opens embedded web browser and navigates to URL specified in
-            <see cref="P:KeeperSecurity.Authentication.ISsoTokenActionInfo.SsoLoginUrl">actionInfo.SsoLoginUrl</see>
-            then monitors embedded web browser navigation.
-            When it finds the page that contains <c>window.token</c> object it passes this object to
-            <see cref="P:KeeperSecurity.Authentication.ISsoTokenActionInfo.InvokeSsoTokenAction">actionInfo.InvokeSsoTokenAction</see>
-            </remarks>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthSsoUI.WaitForDataKey(KeeperSecurity.Authentication.IDataKeyChannelInfo[],System.Threading.CancellationToken)">
-            <summary>
-            Data Key needs to be shared. 
-            </summary>
-            <param name="channels">List of available data key sharing channels.</param>
-            <param name="token">Cancellation token. Keeper SDK notifies the client that data key is shared.</param>
-            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-            <remarks>
-            Cloud SSO login may require user data key to be shared if the device is used for the first time.
-            Client displays the list of available data key sharing channels.
-            When user picks a channel, client invokes channel's action <see cref="P:KeeperSecurity.Authentication.IDataKeyChannelInfo.InvokeGetDataKeyAction">channels.InvokeGetDataKeyAction</see>
-            </remarks>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthSsoUI.SsoLogoutUrl(System.String)">
+        <member name="M:KeeperSecurity.Authentication.ISsoLogoutCallback.SsoLogoutUrl(System.String)">
             <summary>
             Notifies the client that SSO user logged out.
             </summary>
@@ -986,23 +1394,6 @@
             <remarks>
             Client opens the browser windows and navigates to SSO Logout URL.
             </remarks>
-        </member>
-        <member name="T:KeeperSecurity.Authentication.IAuthSecurityKeyUI">
-            <summary>
-            Defines the method that starts U2F Security Key 2FA. Optional.
-            </summary>
-            <remarks>
-            Implement this interface along with <see cref="T:KeeperSecurity.Authentication.IAuthUI">Auth UI</see>
-            if you plan to support Security Key (Yubikey and any other U2F compatible keys).
-            </remarks>
-            <seealso cref="T:KeeperSecurity.Authentication.IAuthUI"/>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthSecurityKeyUI.AuthenticateRequests(KeeperSecurity.Authentication.SecurityKeyAuthenticateRequest[])">
-            <summary>
-            U2F key authentications required.
-            </summary>
-            <param name="requests">a list of registered U2F key requests.</param>
-            <returns>A task that returns U2F signature.</returns>
         </member>
         <member name="T:KeeperSecurity.Authentication.IPostLoginTaskUI">
             <summary>
@@ -1058,23 +1449,6 @@
             <summary>
             Accepts HTTP proxy credentials
             </summary>
-        </member>
-        <member name="T:KeeperSecurity.Authentication.IHttpProxyCredentialUi">
-            <summary>
-            Defines a method that returns HTTP Web proxy credentials. Optional.
-            </summary>
-            <remarks>
-            Keeper SDK calls this interface if it detects that access to the Internet is protected with HTTP Proxy.
-            Clients requests HTTP proxy credentials from the user and return them to the library.
-            </remarks>
-            <seealso cref="T:KeeperSecurity.Authentication.IAuthUI"/>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.IHttpProxyCredentialUi.WaitForHttpProxyCredentials(KeeperSecurity.Authentication.IHttpProxyInfo)">
-            <summary>
-            Requests HTTP Proxy credentials.
-            </summary>
-            <param name="proxyInfo">HTTP Proxy information</param>
-            <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
         </member>
         <member name="T:KeeperSecurity.Authentication.ITwoFactorChannelInfo">
             <summary>
@@ -1273,8 +1647,35 @@
             Gets 2FA push action endpoint.
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Authentication.IAuthSecurityKeyUI">
+            <summary>
+            Defines the method that starts U2F Security Key 2FA. Optional.
+            </summary>
+            <remarks>
+            Implement this interface along with <see cref="!:IAuthUI">Auth UI</see>
+            if you plan to support Security Key (Yubikey and any other U2F compatible keys).
+            </remarks>
+            <seealso cref="!:IAuthUI"/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuthSecurityKeyUI.AuthenticateRequests(KeeperSecurity.Authentication.SecurityKeyAuthenticateRequest[])">
+            <summary>
+            U2F key authentications required.
+            </summary>
+            <param name="requests">a list of registered U2F key requests.</param>
+            <returns>A task that returns U2F signature.</returns>
+        </member>
         <member name="T:KeeperSecurity.Authentication.AuthUIExtensions">
             <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthUIExtensions.GetWebProxyForCredentials(System.Uri,System.String[],System.String,System.String)">
+            <summary>
+            Creates IWebProxy instance for provided credentials.
+            </summary>
+            <param name="proxyUri">Proxy URI</param>
+            <param name="proxyMethods">Proxy Authentication Methods</param>
+            <param name="proxyUsername">Proxy Username</param>
+            <param name="proxyPassword">Proxy Password</param>
+            <returns></returns>
         </member>
         <member name="F:KeeperSecurity.Authentication.AuthUIExtensions.TwoFactorChannels">
             <summary>
@@ -1725,6 +2126,12 @@
             Otherwise file is created in User Document's <c>.keeper</c> older.
             </remarks>
         </member>
+        <member name="M:KeeperSecurity.Configuration.JsonConfigurationStorage.#ctor(System.String)">
+            <summary>
+            Creates using provided configuration cache object.
+            </summary>
+            <param name="fileName">Configuration file name.</param>
+        </member>
         <member name="M:KeeperSecurity.Configuration.JsonConfigurationStorage.#ctor(KeeperSecurity.Configuration.JsonConfigurationCache)">
             <summary>
             Creates using provided configuration cache object.
@@ -1778,20 +2185,26 @@
             Represents decrypted Enterprise data structure.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.EnterpriseName">
+            <summary>
+            Gets enterprise data
+            </summary>
+        </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseData.TreeKey">
             <summary>
             Gets Enterprise Tree encryption key.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.#ctor(KeeperSecurity.Authentication.IAuthentication)">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.#ctor(KeeperSecurity.Authentication.IAuthentication,System.Byte[])">
             <summary>
             Instantiates <see cref="T:KeeperSecurity.Enterprise.EnterpriseData"/> instance.
             </summary>
             <param name="auth">Keeper authentication.</param>
+            <param name="treeKey">Enterprise tree key. Optional.</param>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.GetEnterpriseData">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.PopulateEnterprise(System.Boolean)">
             <summary>
-            Retrieves Enterprise data structure.
+            Retrieves Enterprise node structure.
             </summary>
             <returns>Awaitable task.</returns>
         </member>
@@ -1965,6 +2378,11 @@
                 Gets Keeper authentication.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Enterprise.IEnterprise.EnterpriseName">
+            <summary>
+            Gets enterprise name
+            </summary>
+        </member>
         <member name="P:KeeperSecurity.Enterprise.IEnterprise.TreeKey">
             <summary>
                 Gets Enterprise Tree encryption key.
@@ -2005,11 +2423,12 @@
                 Gets the number of all teams in the enterprise.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterprise.GetEnterpriseData">
+        <member name="M:KeeperSecurity.Enterprise.IEnterprise.PopulateEnterprise(System.Boolean)">
             <summary>
                 Retrieves from Keeper and decrypts Enterprise Data structure.
             </summary>
-            <returns></returns>
+            <param name="nodesOnly">Retrieve node information only</param>
+            <returns>Awaitable task</returns>
         </member>
         <member name="M:KeeperSecurity.Enterprise.IEnterprise.TryGetNode(System.Int64,KeeperSecurity.Enterprise.EnterpriseNode@)">
             <summary>
@@ -2237,8 +2656,8 @@
                 Cannot proceed with enterprise operation.
             </summary>
         </member>
-        <member name="T:KeeperSecurity.Utils.ConsoleAuthUi">
-            <exclude/>
+        <member name="T:KeeperSecurity.Utils.CredentialManager">
+            <exclude />
         </member>
         <member name="T:KeeperSecurity.Utils.CryptoUtils">
             <summary>
@@ -6618,34 +7037,14 @@
         <member name="F:Enterprise.SpecialProvisioning.NameFieldNumber">
             <summary>Field number for the "name" field.</summary>
         </member>
-        <member name="T:Enterprise.MspKey">
-             <summary>
-            possible values for keyType
-            NO_KEY(0)
-            ENCRYPTED_BY_DATA_KEY(1)
-            ENCRYPTED_BY_PUBLIC_KEY(2)
-             </summary>
-        </member>
-        <member name="F:Enterprise.MspKey.TreeKeyFieldNumber">
-            <summary>Field number for the "treeKey" field.</summary>
-        </member>
-        <member name="F:Enterprise.MspKey.KeyTypeFieldNumber">
-            <summary>Field number for the "keyType" field.</summary>
-        </member>
         <member name="F:Enterprise.GeneralDataEntity.EnterpriseNameFieldNumber">
             <summary>Field number for the "enterpriseName" field.</summary>
-        </member>
-        <member name="F:Enterprise.GeneralDataEntity.TreeKeyFieldNumber">
-            <summary>Field number for the "treeKey" field.</summary>
-        </member>
-        <member name="F:Enterprise.GeneralDataEntity.KeyTypeIdFieldNumber">
-            <summary>Field number for the "keyTypeId" field.</summary>
         </member>
         <member name="F:Enterprise.GeneralDataEntity.SpecialProvisioningFieldNumber">
             <summary>Field number for the "specialProvisioning" field.</summary>
         </member>
-        <member name="F:Enterprise.GeneralDataEntity.MspKeyFieldNumber">
-            <summary>Field number for the "mspKey" field.</summary>
+        <member name="F:Enterprise.GeneralDataEntity.UserPrivilegeFieldNumber">
+            <summary>Field number for the "userPrivilege" field.</summary>
         </member>
         <member name="F:Enterprise.Node.NodeIdFieldNumber">
             <summary>Field number for the "nodeId" field.</summary>
@@ -6731,14 +7130,17 @@
         <member name="F:Enterprise.ManagedNode.CascadeNodeManagementFieldNumber">
             <summary>Field number for the "cascadeNodeManagement" field.</summary>
         </member>
-        <member name="F:Enterprise.UserPrivilege.NodeIdFieldNumber">
+        <member name="F:Enterprise.UserManagedNode.NodeIdFieldNumber">
             <summary>Field number for the "nodeId" field.</summary>
         </member>
-        <member name="F:Enterprise.UserPrivilege.CascadeNodeManagementFieldNumber">
+        <member name="F:Enterprise.UserManagedNode.CascadeNodeManagementFieldNumber">
             <summary>Field number for the "cascadeNodeManagement" field.</summary>
         </member>
-        <member name="F:Enterprise.UserPrivilege.PrivilegesFieldNumber">
+        <member name="F:Enterprise.UserManagedNode.PrivilegesFieldNumber">
             <summary>Field number for the "privileges" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserPrivilege.UserManagedNodesFieldNumber">
+            <summary>Field number for the "userManagedNodes" field.</summary>
         </member>
         <member name="F:Enterprise.UserPrivilege.EnterpriseUserIdFieldNumber">
             <summary>Field number for the "enterpriseUserId" field.</summary>
@@ -6751,23 +7153,6 @@
         </member>
         <member name="F:Enterprise.RoleUser.EnterpriseUserIdFieldNumber">
             <summary>Field number for the "enterpriseUserId" field.</summary>
-        </member>
-        <member name="T:Enterprise.RoleKey">
-             <summary>
-            possible values for KeyType
-            NO_KEY = 0
-            ENCRYPTED_BY_DATA_KEY = 1
-            ENCRYPTED_BY_PUBLIC_KEY = 2
-             </summary>
-        </member>
-        <member name="F:Enterprise.RoleKey.RoleIdFieldNumber">
-            <summary>Field number for the "roleId" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleKey.EncryptedKeyFieldNumber">
-            <summary>Field number for the "encryptedKey" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleKey.KeyTypeFieldNumber">
-            <summary>Field number for the "keyType" field.</summary>
         </member>
         <member name="T:Enterprise.RolePrivilege">
              <summary>
@@ -6954,8 +7339,8 @@
         <member name="F:Enterprise.License.MspPoolFieldNumber">
             <summary>Field number for the "mspPool" field.</summary>
         </member>
-        <member name="F:Enterprise.License.MspContactFieldNumber">
-            <summary>Field number for the "mspContact" field.</summary>
+        <member name="F:Enterprise.License.ManagedByFieldNumber">
+            <summary>Field number for the "managedBy" field.</summary>
         </member>
         <member name="F:Enterprise.License.AddOnsFieldNumber">
             <summary>Field number for the "addOns" field.</summary>
@@ -7001,12 +7386,6 @@
         </member>
         <member name="F:Enterprise.EmailProvision.MethodFieldNumber">
             <summary>Field number for the "method" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleKey2.RoleIdFieldNumber">
-            <summary>Field number for the "roleId" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleKey2.RoleKeyFieldNumber">
-            <summary>Field number for the "roleKey" field.</summary>
         </member>
         <member name="F:Enterprise.QueuedTeam.TeamUidFieldNumber">
             <summary>Field number for the "teamUid" field.</summary>
@@ -7083,35 +7462,8 @@
         <member name="F:Enterprise.DeviceRequestForAdminApproval.LocationFieldNumber">
             <summary>Field number for the "location" field.</summary>
         </member>
-        <member name="F:Enterprise.Key.RsaPublicKeyFieldNumber">
-            <summary>Field number for the "rsaPublicKey" field.</summary>
-        </member>
-        <member name="F:Enterprise.Key.RsaEncryptedPrivateKeyFieldNumber">
-            <summary>Field number for the "rsaEncryptedPrivateKey" field.</summary>
-        </member>
-        <member name="F:Enterprise.Key.EccPublicKeyFieldNumber">
-            <summary>Field number for the "eccPublicKey" field.</summary>
-        </member>
-        <member name="F:Enterprise.Key.EccEncryptedPrivateKeyFieldNumber">
-            <summary>Field number for the "eccEncryptedPrivateKey" field.</summary>
-        </member>
-        <member name="F:Enterprise.UnManagedUser.EnterpriseUserIdFieldNumber">
-            <summary>Field number for the "enterpriseUserId" field.</summary>
-        </member>
-        <member name="F:Enterprise.UnManagedUser.EncryptedDataFieldNumber">
-            <summary>Field number for the "encryptedData" field.</summary>
-        </member>
-        <member name="F:Enterprise.UnManagedUser.UsernameFieldNumber">
-            <summary>Field number for the "username" field.</summary>
-        </member>
-        <member name="F:Enterprise.UnManagedUser.StatusFieldNumber">
-            <summary>Field number for the "status" field.</summary>
-        </member>
         <member name="F:Enterprise.EnterpriseData.EntityFieldNumber">
             <summary>Field number for the "entity" field.</summary>
-        </member>
-        <member name="F:Enterprise.EnterpriseData.CacheStatusFieldNumber">
-            <summary>Field number for the "cacheStatus" field.</summary>
         </member>
         <member name="F:Enterprise.EnterpriseData.DeleteFieldNumber">
             <summary>Field number for the "delete" field.</summary>
@@ -7130,8 +7482,14 @@
         <member name="F:Enterprise.EnterpriseDataResponse.HasMoreFieldNumber">
             <summary>Field number for the "hasMore" field.</summary>
         </member>
+        <member name="F:Enterprise.EnterpriseDataResponse.CacheStatusFieldNumber">
+            <summary>Field number for the "cacheStatus" field.</summary>
+        </member>
         <member name="F:Enterprise.EnterpriseDataResponse.DataFieldNumber">
             <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Enterprise.EnterpriseDataResponse.GeneralDataFieldNumber">
+            <summary>Field number for the "generalData" field.</summary>
         </member>
         <member name="F:Enterprise.BackupRequest.ContinuationTokenFieldNumber">
             <summary>Field number for the "continuationToken" field.</summary>

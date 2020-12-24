@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
 using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication.Async;
 
 namespace Commander
 {
@@ -121,11 +122,11 @@ namespace Commander
         }
     }
 
-    public class CliCommands
+    public class CliCommands: IDisposable
     {
         public IDictionary<string, ICommand> Commands { get; } = new Dictionary<string, ICommand>();
         public IDictionary<string, string> CommandAliases { get; } = new Dictionary<string, string>();
-        protected bool ParseBoolOption(string text, out bool value)
+        public static bool ParseBoolOption(string text, out bool value)
         {
             if (string.Compare(text, "on", StringComparison.InvariantCultureIgnoreCase) == 0)
             {
@@ -141,6 +142,19 @@ namespace Commander
             value = false;
             return false;
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 
     public sealed class CliContext : CliCommands
@@ -149,7 +163,7 @@ namespace Commander
         {
             Commands.Add("clear", new SimpleCommand
             {
-                Order = 1000,
+                Order = 1001,
                 Description = "Clear the screen",
                 Action = (args) =>
                 {
@@ -160,7 +174,7 @@ namespace Commander
 
             Commands.Add("quit", new SimpleCommand
             {
-                Order = 1001,
+                Order = 1002,
                 Description = "Quit",
                 Action = (args) =>
                 {
@@ -178,7 +192,7 @@ namespace Commander
         public Queue<string> CommandQueue { get; } = new Queue<string>();
     }
 
-    public abstract class StateContext : CliCommands, IDisposable
+    public abstract class StateContext : CliCommands
     {
         public abstract string GetPrompt();
 
@@ -187,20 +201,37 @@ namespace Commander
             return Task.FromResult(false);
         }
 
-        public StateContext NextStateContext { get; set; }
+        public StateContext NextState { get; set; }
 
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                NextStateContext = null;
-            }
+            base.Dispose(disposing);
+            NextState = null;
+        }
+    }
+
+    public abstract class BackStateContext : StateContext
+    {
+        protected BackStateContext()
+        {
+            Commands.Add("back",
+                new SimpleCommand
+                {
+                    Order = 1000,
+                    Description = "Back",
+                    Action = _ =>
+                    {
+                        NextState = BackState;
+                        return Task.CompletedTask;
+                    },
+                });
         }
 
-        public void Dispose()
+        protected internal StateContext BackState { get; set; }
+        protected override void Dispose(bool disposing)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            base.Dispose(disposing);
+            BackState = null;
         }
     }
 
@@ -302,27 +333,6 @@ namespace Commander
                 {
                     Console.WriteLine("Username: " + username);
                 }
-
-                if (_auth.Ui is IUsePassword up)
-                {
-                    up.UsePassword = null;
-                    var passwords = new Queue<string>();
-                    if (!string.IsNullOrEmpty(options.Password))
-                    {
-                        passwords.Enqueue(options.Password);
-                    }
-
-                    var uc = _auth.Storage.Users.Get(username);
-                    if (!string.IsNullOrEmpty(uc?.Password))
-                    {
-                        passwords.Enqueue(uc.Password);
-                    }
-
-                    if (passwords.Any())
-                    {
-                        up.UsePassword = (u) => passwords.Any() ? passwords.Dequeue() : "";
-                    }
-                }
             }
 
             if (string.IsNullOrEmpty(username)) return;
@@ -340,14 +350,26 @@ namespace Commander
                     {
                         _auth.AlternatePassword = true;
                     }
+                    var passwords = new List<string>();
 
-                    await _auth.Login(username);
+                    if (!string.IsNullOrEmpty(options.Password))
+                    {
+                        passwords.Add(options.Password);
+                    }
+
+                    var uc = _auth.Storage.Users.Get(username);
+                    if (!string.IsNullOrEmpty(uc?.Password))
+                    {
+                        passwords.Add(uc.Password);
+                    }
+
+                    await _auth.Login(username, passwords.ToArray());
                 }
 
                 if (_auth.IsAuthenticated())
                 {
                     var connectedCommands = new ConnectedContext(_auth);
-                    NextStateContext = connectedCommands;
+                    NextState = connectedCommands;
                 }
             }
             catch (KeeperCanceled)
