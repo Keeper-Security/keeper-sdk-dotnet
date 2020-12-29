@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Cli;
 using CommandLine;
 using Enterprise;
 using KeeperSecurity.Commands;

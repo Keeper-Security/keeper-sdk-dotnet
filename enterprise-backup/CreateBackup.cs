@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Enterprise;
 using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication.Async;
 using KeeperSecurity.OfflineStorage.Sqlite;
 using KeeperSecurity.Utils;
 
@@ -39,9 +40,10 @@ namespace EnterpriseBackup
                 }
             }
 
-            using var auth = new Auth(new ConsoleAuthUi(Program.GetInputManager()), Storage);
-            auth.Endpoint.DeviceName = "Enterprise Backup";
-            auth.Endpoint.ClientVersion = "c15.0.0";
+            using var auth = new Auth(new ConsoleAuthUi(Program.GetInputManager()), Storage)
+            {
+                Endpoint = {DeviceName = "Enterprise Backup", ClientVersion = "c15.0.0"}
+            };
             if (!string.IsNullOrEmpty(KeeperServer))
             {
                 auth.Endpoint.Server = KeeperServer;
