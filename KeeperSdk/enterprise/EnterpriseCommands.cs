@@ -96,6 +96,28 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
+    public class GetEnterpriseQueuedTeam : IEncryptedData
+    {
+        [DataMember(Name = "team_uid")]
+        public string TeamUid { get; set; }
+        [DataMember(Name = "name")]
+        public string Name { get; set; }
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+        [DataMember(Name = "encrypted_data")]
+        public string EncryptedData { get; set; }
+    }
+
+    [DataContract]
+    public class GetEnterpriseQueuedTeamUser
+    {
+        [DataMember(Name = "team_uid")]
+        public string TeamUid { get; set; }
+        [DataMember(Name = "users")]
+        public ICollection<long> Users { get; set; }
+    }
+
+    [DataContract]
     public class GetEnterpriseTeam
     {
         [DataMember(Name = "team_uid")]
@@ -296,6 +318,13 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "team_users")]
         public ICollection<GetEnterpriseTeamUser> TeamUsers { get; set; }
+
+        [DataMember(Name = "queued_teams")]
+        public ICollection<GetEnterpriseQueuedTeam> QueuedTeams { get; set; }
+
+        [DataMember(Name = "queued_team_users")]
+        public ICollection<GetEnterpriseQueuedTeamUser> QueuedTeamUsers { get; set; }
+        
 
         [DataMember(Name = "users")]
         public ICollection<GetEnterpriseUser> Users { get; set; }

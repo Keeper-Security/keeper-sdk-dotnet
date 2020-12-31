@@ -425,7 +425,13 @@ namespace KeeperSecurity.Utils
         /// <remarks>32 bytes</remarks>
         public static byte[] UnloadEcPrivateKey(ECPrivateKeyParameters key)
         {
-            return key.D.ToByteArrayUnsigned();
+            var privateKey = key.D.ToByteArrayUnsigned();
+            var len = privateKey.Length;
+            if (len >= 32) return privateKey;
+            var pk = new byte[32];
+            Array.Clear(pk, 0, pk.Length);
+            Array.Copy(privateKey, 0, pk, 32 - len, len);
+            return pk;
         }
 
         /// <summary>
