@@ -351,7 +351,7 @@ namespace Sample
             
             var lastState = authFlow.Step.State;
             await authFlow.Login(username);
-            while (authFlow.Step.State != AuthState.Connected)
+            while (!authFlow.IsCompleted)
             {
                 if (authFlow.Step.State != lastState)
                 {
@@ -379,8 +379,13 @@ namespace Sample
                 }
             }
 
+            if (authFlow.Step is ErrorStep es)
+            {
+                Console.WriteLine(es.Message);
+            }
+            if (!authFlow.IsAuthenticated()) return;
+
             var auth = authFlow;
-            if (!auth.IsAuthenticated()) return;
             var vault = new VaultOnline(auth);
             Console.WriteLine("\nRetrieving records...");
             await vault.SyncDown();

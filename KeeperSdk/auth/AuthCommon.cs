@@ -638,7 +638,7 @@ namespace KeeperSecurity.Authentication
                     }
                     finally
                     {
-                        await Logout();
+                        await DoLogout();
                     }
                 }
             }
@@ -671,14 +671,8 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-
-        /// <summary>
-        /// Logout from Keeper server.
-        /// </summary>
-        /// <returns>Awaitable Task</returns>
-        public async Task Logout()
+        private async Task DoLogout()
         {
-            if (authContext == null) return;
             try
             {
                 if (this.IsAuthenticated())
@@ -693,6 +687,15 @@ namespace KeeperSecurity.Authentication
                 _timer?.Dispose();
                 _timer = null;
             }
+        }
+
+        /// <summary>
+        /// Logout from Keeper server.
+        /// </summary>
+        /// <returns>Awaitable Task</returns>
+        public virtual async Task Logout()
+        {
+            await DoLogout();
         }
 
         /// <exclude/>

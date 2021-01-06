@@ -1011,20 +1011,23 @@ namespace KeeperSecurity.Authentication
 
             var ssoAction = new GetSsoTokenActionInfo(builder.Uri.AbsoluteUri, true)
             {
-                InvokeSsoTokenAction = (tokenStr) =>
+                InvokeSsoTokenAction = async (tokenStr) =>
                 {
                     var rsBytes = tokenStr.Base64UrlDecode();
                     rsBytes = CryptoUtils.DecryptAesV2(rsBytes, transmissionKey);
                     var rs = SsoCloudResponse.Parser.ParseFrom(rsBytes);
+
                     auth.Username = rs.Email;
+                    await auth.EnsureDeviceTokenIsRegistered(v3, auth.Username);
+
                     v3.SsoLoginInfo = new SsoLoginInfo
                     {
                         SsoProvider = rs.ProviderName,
                         SpBaseUrl = ssoBaseUrl,
                         IdpSessionId = rs.IdpSessionId
                     };
+
                     onSsoLogin(rs.EncryptedLoginToken);
-                    return (Task) Task.FromResult(true);
                 }
             };
             return ssoAction;

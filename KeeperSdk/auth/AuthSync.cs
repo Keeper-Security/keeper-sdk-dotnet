@@ -87,7 +87,7 @@ namespace KeeperSecurity.Authentication.Sync
         public AuthStep Step
         {
             get => _step;
-            private set
+            protected set
             {
                 if (value == null) return;
                 _step?.Dispose();
@@ -142,14 +142,22 @@ namespace KeeperSecurity.Authentication.Sync
             Username = username.ToLowerInvariant();
             try
             {
-                await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
-                Step = await this.StartLogin(_loginContext, StartLoginSync);
+                try
+                {
+                    await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
+                    Step = await this.StartLogin(_loginContext, StartLoginSync);
+                }
+                catch (KeeperRegionRedirect krr)
+                {
+                    await this.RedirectToRegionV3(_loginContext, krr.RegionHost);
+                    await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
+                    Step = await this.StartLogin(_loginContext, StartLoginSync);
+                }
             }
-            catch (KeeperRegionRedirect krr)
+            catch (Exception e)
             {
-                await this.RedirectToRegionV3(_loginContext, krr.RegionHost);
-                await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
-                Step = await this.StartLogin(_loginContext, StartLoginSync);
+                var code = e is KeeperApiException kae ? kae.Code : "unknown_error";
+                Step = new ErrorStep(code, e.Message);
             }
         }
 
@@ -164,7 +172,10 @@ namespace KeeperSecurity.Authentication.Sync
         {
             await DetectProxySync(async () =>
             {
-                Cancel();
+                if (Step.State != AuthState.NotConnected)
+                {
+                    Cancel();
+                }
 
                 if (string.IsNullOrEmpty(username))
                 {
@@ -205,6 +216,12 @@ namespace KeeperSecurity.Authentication.Sync
                 _loginContext = new LoginContext();
                 await DoLoginSso(providerName, forceLogin);
             });
+        }
+
+        public override async Task Logout()
+        {
+            await base.Logout();
+            Cancel();
         }
 
         private async Task<AuthStep> StartLoginSync(StartLoginRequest request)
@@ -306,7 +323,7 @@ namespace KeeperSecurity.Authentication.Sync
             throw new KeeperStartLoginException(response.LoginState, response.Message);
         }
 
-        private async Task<ConnectedStep> OnConnected(AuthContext context)
+        private async Task<AuthStep> OnConnected(AuthContext context)
         {
             authContext = context;
             if (authContext.SessionTokenRestriction == 0 && PushNotifications is IPushNotificationChannel push)
@@ -315,9 +332,19 @@ namespace KeeperSecurity.Authentication.Sync
             }
 
             this.StoreConfigurationIfChangedV3(_loginContext);
-            await PostLogin();
-
-            return new ConnectedStep();
+            try
+            {
+                await PostLogin();
+                return new ConnectedStep();
+            }
+            catch (KeeperApiException kae)
+            {
+                return new ErrorStep(kae.Code, kae.Message);
+            }
+            catch (Exception e)
+            {
+                return new ErrorStep("unknown_error", e.Message);
+            }
         }
 
         private TwoFactorStep TwoFactorValidate(ByteString loginToken, IEnumerable<TwoFactorChannelInfo> channels)
