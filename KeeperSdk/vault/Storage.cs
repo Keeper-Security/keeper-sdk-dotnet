@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2020 Keeper Security Inc.
+// Copyright 2021 © Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -39,7 +39,11 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Key is encrypted with team key.
         /// </summary>
-        TeamKey = 4
+        TeamKey = 4,
+        /// <summary>
+        /// Key is encrypted with team RSA key.
+        /// </summary>
+        TeamPrivateKey = 5,
     }
 
     /// <exclude/>

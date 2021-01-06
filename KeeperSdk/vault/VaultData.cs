@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2020 Keeper Security Inc.
+// Copyright 2021 © Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -165,30 +165,60 @@ namespace KeeperSecurity.Vault
 
         private long _dataRevision = 0;
 
-        private byte[] DecryptSharedFolderKey(ISharedFolderKey sfmd)
+        private bool DecryptSharedFolderKey(ISharedFolderKey sfmd, out byte[] sharedFolderKey)
         {
-            var sfKey = sfmd.SharedFolderKey.Base64UrlDecode();
-            switch (sfmd.KeyType)
+            try
             {
-                case (int) KeyType.DataKey:
-                    return CryptoUtils.DecryptAesV1(sfKey, ClientKey);
-                case (int) KeyType.TeamKey:
-                    if (keeperTeams.TryGetValue(sfmd.TeamUid, out var team))
+                var sfKey = sfmd.SharedFolderKey.Base64UrlDecode();
+                switch (sfmd.KeyType)
+                {
+                    case (int) KeyType.DataKey:
+                        sharedFolderKey = CryptoUtils.DecryptAesV1(sfKey, ClientKey);
+                        return true;
+                    case (int) KeyType.TeamKey:
                     {
-                        return CryptoUtils.DecryptAesV1(sfKey, team.TeamKey);
-                    }
-                    else
-                    {
+                        if (keeperTeams.TryGetValue(sfmd.TeamUid, out var team))
+                        {
+                            if (sfKey.Length < 100)
+                            {
+                                sharedFolderKey = CryptoUtils.DecryptAesV1(sfKey, team.TeamKey);
+                                return true;
+                            }
+
+                            sharedFolderKey = CryptoUtils.DecryptRsa(sfKey, team.TeamPrivateKey);
+                            return true;
+
+                        }
                         Trace.TraceError($"Shared Folder key: Team {sfmd.TeamUid} not found");
                     }
 
                     break;
-                default:
-                    Trace.TraceError($"Unsupported key type {KeyType.DataKey} for shared folder {sfmd.SharedFolderUid}.");
+
+                    case (int) KeyType.TeamPrivateKey:
+                    {
+                        if (keeperTeams.TryGetValue(sfmd.TeamUid, out var team))
+                        {
+                            sharedFolderKey = CryptoUtils.DecryptRsa(sfKey, team.TeamPrivateKey);
+                            return true;
+                        }
+
+                        Trace.TraceError($"Shared Folder key: Team {sfmd.TeamUid} not found");
+
+                    }
                     break;
+
+                    default:
+                        Trace.TraceError($"Unsupported key type {KeyType.DataKey} for shared folder {sfmd.SharedFolderUid}.");
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.Message);
             }
 
-            return null;
+            sharedFolderKey = null;
+            return false;
         }
 
         private bool DecryptRecordKey(IRecordMetadata rmd, out byte[] recordKey)
@@ -271,8 +301,7 @@ namespace KeeperSecurity.Vault
                     {
                         if (entityKeys.ContainsKey(sfKey.SharedFolderUid)) continue;
 
-                        var key = DecryptSharedFolderKey(sfKey);
-                        if (key != null)
+                        if (DecryptSharedFolderKey(sfKey, out var key))
                         {
                             entityKeys[sfKey.SharedFolderUid] = key;
                         }
@@ -297,9 +326,8 @@ namespace KeeperSecurity.Vault
 
                             foreach (var sfKey in Storage.SharedFolderKeys.GetLinksForSubject(sharedFolderUid))
                             {
-                                var key = DecryptSharedFolderKey(sfKey);
-                                if (key == null) continue;
-
+                                if (!DecryptSharedFolderKey(sfKey, out var key)) continue;
+                                
                                 entityKeys[sfKey.SharedFolderUid] = key;
                                 break;
                             }

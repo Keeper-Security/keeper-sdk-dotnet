@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2020 Keeper Security Inc.
+// Copyright 2021 © Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -385,7 +385,7 @@ namespace KeeperSecurity.Vault
                         (team, sharedFolderKey) =>
                         {
                             sharedFolderKey.TeamUid = team.TeamUid;
-                            sharedFolderKey.KeyType = (int) KeyType.TeamKey;
+                            sharedFolderKey.KeyType = sharedFolderKey.KeyType == 2 ? (int) KeyType.TeamPrivateKey : (int)KeyType.TeamKey;
                             return sharedFolderKey;
                         })
                     .ToArray();

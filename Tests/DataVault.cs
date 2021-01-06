@@ -60,7 +60,7 @@ namespace Tests
                     };
                     response = device.ToByteArray();
                 }
-                break;
+                    break;
                 case "authentication/start_login":
                 {
                     var lrs = new LoginResponse
@@ -109,7 +109,7 @@ namespace Tests
 
                     response = lrs.ToByteArray();
                 }
-                break;
+                    break;
 
                 case "authentication/validate_auth_hash":
                 {
@@ -136,7 +136,7 @@ namespace Tests
                     }
 
                 }
-                break;
+                    break;
 
                 case "authentication/request_device_verification":
                     StopAtDeviceApproval = false;
@@ -167,6 +167,7 @@ namespace Tests
                     {
                         return Task.FromException<byte[]>(new KeeperAuthFailed());
                     }
+
                     break;
 
                 case "vault/execute_v2_command":
@@ -189,7 +190,7 @@ namespace Tests
                 {
                     response = auth.ProcessAccountSummary().ToByteArray();
                 }
-                break;
+                    break;
             }
 
             if (response != null)
@@ -292,6 +293,7 @@ fwIDAQAB
             var publicKeyInfo = new RsaPublicKeyStructure(publicKey.Modulus, publicKey.Exponent);
             return publicKeyInfo.GetDerEncoded();
         }
+
         /*
         public class PasswordFinder : IPasswordFinder
         {
@@ -435,7 +437,8 @@ fwIDAQAB
             _extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), settings);
         }
 
-        private Tuple<SyncDownRecord, SyncDownRecordMetaData> GenerateRecord(PasswordRecord record, KeyType keyType,
+        private Tuple<SyncDownRecord, SyncDownRecordMetaData> GenerateRecord(PasswordRecord record,
+            KeyType keyType,
             long revision)
         {
             var sdr = new SyncDownRecord
@@ -483,15 +486,16 @@ fwIDAQAB
             return new Tuple<SyncDownRecord, SyncDownRecordMetaData>(sdr, sdrmd);
         }
 
-        private SyncDownSharedFolder GenerateSharedFolder(SharedFolder sharedFolder, long revision,
-            IEnumerable<PasswordRecord> records, IEnumerable<Team> teams)
+        private SyncDownSharedFolder GenerateSharedFolder(SharedFolder sharedFolder,
+            long revision,
+            IEnumerable<PasswordRecord> records,
+            IEnumerable<Team> teams,
+            bool hasKey)
         {
             var sf = new SyncDownSharedFolder
             {
                 SharedFolderUid = sharedFolder.Uid,
                 Revision = revision,
-                KeyType = 1,
-                SharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, DataKey).Base64UrlEncode(),
                 Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(sharedFolder.Name), sharedFolder.SharedFolderKey)
                     .Base64UrlEncode(),
                 ManageRecords = false,
@@ -511,6 +515,12 @@ fwIDAQAB
                     }
                 }
             };
+            if (hasKey)
+            {
+                sf.KeyType = 1;
+                sf.SharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, DataKey).Base64UrlEncode();
+            }
+
             if (records != null)
             {
                 sf.records = records.Select(x => new SyncDownSharedFolderRecord
@@ -555,11 +565,19 @@ fwIDAQAB
 
             if (sharedFolders != null)
             {
-                t.sharedFolderKeys = sharedFolders.Select(x => new SyncDownSharedFolderKey
+                var useTeamRsaKey = false;
+                t.sharedFolderKeys = sharedFolders.Select(x =>
                 {
-                    SharedFolderUid = x.Uid,
-                    KeyType = 1,
-                    SharedFolderKey = CryptoUtils.EncryptAesV1(x.SharedFolderKey, team.TeamKey).Base64UrlEncode(),
+                    var key = new SyncDownSharedFolderKey
+                    {
+                        SharedFolderUid = x.Uid,
+                        KeyType = useTeamRsaKey ? 2 : 1,
+                        SharedFolderKey = (useTeamRsaKey
+                            ? CryptoUtils.EncryptRsa(x.SharedFolderKey, PublicKey)
+                            : CryptoUtils.EncryptAesV1(x.SharedFolderKey, team.TeamKey)).Base64UrlEncode(),
+                    };
+                    useTeamRsaKey = !useTeamRsaKey;
+                    return key;
                 }).ToArray();
             }
 
@@ -643,6 +661,17 @@ fwIDAQAB
                 Name = "Shared Folder 1",
             };
 
+            var sharedFolder2 = new SharedFolder
+            {
+                Uid = CryptoUtils.GenerateUid(),
+                SharedFolderKey = CryptoUtils.GenerateEncryptionKey(),
+                DefaultManageRecords = true,
+                DefaultManageUsers = true,
+                DefaultCanEdit = false,
+                DefaultCanShare = false,
+                Name = "Shared Folder 2",
+            };
+
             var team1 = new Team
             {
                 TeamUid = CryptoUtils.GenerateUid(),
@@ -663,8 +692,9 @@ fwIDAQAB
             var (r1, md1) = GenerateRecord(record1, KeyType.DataKey, 10);
             var (r2, md2) = GenerateRecord(record2, KeyType.PrivateKey, 11);
             var (r3, _) = GenerateRecord(record3, KeyType.NoKey, 12);
-            var sf1 = GenerateSharedFolder(sharedFolder1, 12, new[] {record1, record3}, new[] {team1});
-            var t1 = GenerateTeam(team1, KeyType.DataKey, new[] {sharedFolder1});
+            var sf1 = GenerateSharedFolder(sharedFolder1, 12, new[] {record1}, new[] {team1}, true);
+            var sf2 = GenerateSharedFolder(sharedFolder2, 12, new[] {record3}, new[] {team1}, false);
+            var t1 = GenerateTeam(team1, KeyType.DataKey, new[] {sharedFolder1, sharedFolder2});
             var uf1 = GenerateUserFolder(userFolder1, 14);
 
             var sdr = new SyncDownResponse
@@ -674,17 +704,18 @@ fwIDAQAB
                 revision = Revision,
                 records = new[] {r1, r2, r3},
                 recordMetaData = new[] {md1, md2},
-                sharedFolders = new[] {sf1},
+                sharedFolders = new[] {sf1, sf2},
                 teams = new[] {t1},
                 userFolders = new[] {uf1},
                 userFolderSharedFolders = new[]
                 {
                     new SyncDownUserFolderSharedFolder {SharedFolderUid = sharedFolder1.Uid}
                 },
-                userFolderRecords = new[] {
+                userFolderRecords = new[]
+                {
                     new SyncDownFolderRecord {RecordUid = r1.RecordUid},
-                    new SyncDownFolderRecord {RecordUid = r2.RecordUid, FolderUid = userFolder1.FolderUid}, 
-                    new SyncDownFolderRecord {RecordUid = r1.RecordUid, FolderUid = sharedFolder1.Uid}, 
+                    new SyncDownFolderRecord {RecordUid = r2.RecordUid, FolderUid = userFolder1.FolderUid},
+                    new SyncDownFolderRecord {RecordUid = r1.RecordUid, FolderUid = sharedFolder1.Uid},
                     new SyncDownFolderRecord {RecordUid = r3.RecordUid, FolderUid = sharedFolder1.Uid},
                 }
             };

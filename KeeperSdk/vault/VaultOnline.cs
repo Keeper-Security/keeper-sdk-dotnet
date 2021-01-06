@@ -5,7 +5,7 @@
 //              |_|
 //
 // Keeper SDK
-// Copyright 2020 Keeper Security Inc.
+// Copyright 2021 © Keeper Security Inc.
 // Contact: ops@keepersecurity.com
 //
 
@@ -15,7 +15,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
+#if NET45
 using KeeperSecurity.Utils;
+#endif
 
 namespace KeeperSecurity.Vault
 {

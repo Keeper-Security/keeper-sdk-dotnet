@@ -23,7 +23,7 @@ namespace Tests
             var vault = await GetVault();
             Assert.NotNull(vault);
             Assert.Equal(3, vault.RecordCount);
-            Assert.Equal(1, vault.SharedFolderCount);
+            Assert.Equal(2, vault.SharedFolderCount);
             Assert.Equal(1, vault.TeamCount);
         }
 
@@ -68,7 +68,7 @@ namespace Tests
                 }));
             await vault.SyncDown();
 
-            Assert.Equal(3, vault.RecordCount);
+            Assert.Equal(2, vault.RecordCount);
             Assert.Equal(1, vault.SharedFolderCount);
             Assert.Equal(0, vault.TeamCount);
         }
@@ -80,9 +80,6 @@ namespace Tests
 
             var sfUids = vault.SharedFolders.Select(x => x.Uid).Take(1).ToArray();
             Assert.Single(sfUids);
-
-            var links = vault.Storage.SharedFolderKeys.GetLinksForSubject(sfUids[0]).Count();
-            Assert.Equal(2, links);
             authMock
                 .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
@@ -94,10 +91,8 @@ namespace Tests
                 }));
 
             await vault.SyncDown();
-            links = vault.Storage.SharedFolderKeys.GetLinksForSubject(sfUids[0]).Count();
-            Assert.Equal(1, links);
             Assert.Equal(3, vault.RecordCount);
-            Assert.Equal(1, vault.SharedFolderCount);
+            Assert.Equal(2, vault.SharedFolderCount);
             Assert.Equal(1, vault.TeamCount);
 
             var teamUids = vault.Teams.Select(x => x.TeamUid).ToArray();
@@ -112,7 +107,7 @@ namespace Tests
                 }));
             await vault.SyncDown();
             Assert.Equal(2, vault.RecordCount);
-            Assert.Equal(0, vault.SharedFolderCount);
+            Assert.Equal(1, vault.SharedFolderCount);
             Assert.Equal(0, vault.TeamCount);
         }
 
