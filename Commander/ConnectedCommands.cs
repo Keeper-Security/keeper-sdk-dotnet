@@ -32,7 +32,8 @@ namespace Commander
             var storage = Program.CommanderStorage.GetKeeperStorage(auth.Username);
             _vault = new VaultOnline(_auth, storage)
             {
-                VaultUi = new VaultUi()
+                VaultUi = new VaultUi(), 
+                AutoSync = true
             };
             SubscribeToNotifications();
             CheckIfEnterpriseAdmin();

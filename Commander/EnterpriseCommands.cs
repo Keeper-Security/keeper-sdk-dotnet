@@ -213,8 +213,8 @@ namespace Commander
                     .FirstOrDefault(x =>
                     {
                         if (string.Compare(x.DisplayName, arguments.Name, StringComparison.CurrentCultureIgnoreCase) == 0) return true;
-                        if (string.Compare(x.Email, arguments.Name, StringComparison.InvariantCulture) == 0) return true;
-                        return true;
+                        if (x.Email.StartsWith(arguments.Name, StringComparison.InvariantCulture)) return true;
+                        return false;
                     });
                 if (user == null)
                 {

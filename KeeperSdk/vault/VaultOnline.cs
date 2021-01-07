@@ -128,7 +128,7 @@ namespace KeeperSecurity.Vault
 
         internal bool OnNotificationReceived(NotificationEvent evt)
         {
-            if (evt != null & evt?.Event == "sync")
+            if (evt != null & (evt?.Event == "sync" || evt?.Event == "sharing_notice"))
             {
                 if (evt.Sync)
                 {
