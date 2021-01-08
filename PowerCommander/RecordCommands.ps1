@@ -433,6 +433,119 @@ Register-ArgumentCompleter -Command Move-RecordToFolder -ParameterName Folder -S
 Register-ArgumentCompleter -Command Copy-RecordToFolder -ParameterName Folder -ScriptBlock $Keeper_SharedFolderNameCompleter
 #>
 
+function Update-KeeperRecord {
+<#
+	.Synopsis
+	Modifies a Keeper record by its Uid.
+
+	.Parameter Uid
+	Uid field
+
+	.Parameter Title
+	Title field
+
+	.Parameter Login
+	Login field
+
+	.Parameter Password
+	Password field
+
+	.Parameter GeneratePassword
+	Generate random password. Will overwrite value of the `Password` field if one was passed
+
+	.Parameter URL
+	Website Address field
+
+	.Parameter Custom
+	Comma-separated list of key:value pairs. 
+	Example: -Custom name1:value1,name2:value2
+
+	.Parameter Notes
+	Notes field
+
+#>
+
+	[CmdletBinding(DefaultParameterSetName = 'Default')]
+	Param (
+		[Parameter(Position = 0, Mandatory = $true)][string] $Uid,
+		[Parameter()][string] $Title,
+		[Parameter()][string] $Login,
+		[Parameter()][switch] $GeneratePassword,
+		[Parameter()][string] $Password,
+		[Parameter()][string] $URL,
+		[Parameter()][string[]] $Custom,
+		[Parameter()][string] $Notes
+	)
+
+	Begin {
+		[Vault.VaultOnline]$vault = $Script:Vault
+		if (-not $vault) {
+			Write-Error -Message 'Not connected'
+		}
+		[Vault.PasswordRecord]$record = $null
+	}
+
+	Process {
+		$objs = Get-KeeperChildItems -ObjectType Record | where Uid -eq $Uid
+		if ($objs.Length -eq 0) {
+			Write-Error -Message "Record `"$Uid`" not found"
+		}
+		else {
+			$record = Get-KeeperRecords -Uid $objs[0].UID
+			if (-not $record) {
+				Write-Error -Message "Record `"$UID`" not found"
+			}
+		}
+		
+		if ($Notes) {
+			if ($record.Notes) {
+				$record.Notes += "`n"
+			}
+			$record.Notes += $Notes
+		}
+
+		if ($GeneratePassword.IsPresent) {
+			$Password = [Utils.CryptoUtils]::GenerateUid()
+		}
+
+		if ($Title) {
+			$record.Title = $Title
+		}
+
+		if ($Login) {
+			$record.Login = $Login
+		}
+
+		if ($Password) {
+			$record.Password = $Password
+		}
+
+		if ($URL) {
+			$record.Link = $URL
+		}
+
+		if ($Custom) {
+			foreach($customField in $Custom) {
+				$pos = $customField.IndexOf(':')
+				if ($pos -gt 0 -and $pos -lt $customField.Length) {
+					$_ = $record.SetCustomField($customField.Substring(0, $pos), $customField.Substring($pos + 1))
+				}
+			}
+		}
+	}
+
+
+	End {
+		if ($record.Uid) {
+			$task = $vault.UpdateRecord($record)
+		} 
+		
+		$task.GetAwaiter().GetResult()
+	}
+}
+
+New-Alias -Name kupdate -Value Update-KeeperRecord
+
 function resolveFolderUid {
 	Param ([Vault.VaultOnline]$vault, $folder)
 
