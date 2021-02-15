@@ -102,7 +102,8 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         public LoginState LoginState { get; }
 
-        internal KeeperStartLoginException(LoginState loginState, string message) : base(message)
+        internal KeeperStartLoginException(LoginState loginState, string message) 
+            : base(string.IsNullOrEmpty(message) ? loginState.ToString() : message)
         {
             LoginState = loginState;
         }

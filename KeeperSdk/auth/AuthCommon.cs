@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -12,8 +13,6 @@ using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
 using Google.Protobuf;
-using KeeperSecurity.Authentication.Async;
-using KeeperSecurity.Authentication.Sync;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
@@ -498,7 +497,9 @@ namespace KeeperSecurity.Authentication
                 }
             }
         }
-        
+
+        public bool SupportRestrictedSession { get; set; }
+
         protected async Task PostLogin()
         {
             string clientKey = null;
@@ -563,6 +564,23 @@ namespace KeeperSecurity.Authentication
             }
 
             var isEnterpriseAdmin = accountSummaryResponse.IsEnterpriseAdmin;
+            if (keys.EncryptedPrivateKey != null)
+            {
+                var privateKeyData =
+                    CryptoUtils.DecryptAesV1(keys.EncryptedPrivateKey.Base64UrlDecode(),
+                        authContext.DataKey);
+                authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+            }
+
+            if (!string.IsNullOrEmpty(clientKey))
+            {
+                authContext.ClientKey = CryptoUtils.DecryptAesV1(clientKey.Base64UrlDecode(), authContext.DataKey);
+            }
+
+            authContext.License = license;
+            authContext.Settings = settings;
+            authContext.Enforcements = enforcements;
+            authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
 
             if (authContext.SessionTokenRestriction != 0)
             {
@@ -615,11 +633,11 @@ namespace KeeperSecurity.Authentication
                 }
                 else
                 {
-                    try
+                    if (!SupportRestrictedSession)
                     {
                         if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
                         {
-                            if (license?.AccountType == 0 && license?.ProductTypeId == 1)
+                            if (authContext.License?.AccountType == 0 && authContext.License?.ProductTypeId == 1)
                             {
                                 throw new KeeperPostLoginErrors("free_trial_expired_please_purchase",
                                     "Your free trial has expired. Please purchase a subscription.");
@@ -636,31 +654,10 @@ namespace KeeperSecurity.Authentication
 
                         throw new KeeperPostLoginErrors("need_vault_settings_update", "Please log into the web Vault to update your account settings.");
                     }
-                    finally
-                    {
-                        await DoLogout();
-                    }
                 }
             }
             else
             {
-                if (keys.EncryptedPrivateKey != null)
-                {
-                    var privateKeyData =
-                        CryptoUtils.DecryptAesV1(keys.EncryptedPrivateKey.Base64UrlDecode(),
-                            authContext.DataKey);
-                    authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
-                }
-
-                if (!string.IsNullOrEmpty(clientKey))
-                {
-                    authContext.ClientKey = CryptoUtils.DecryptAesV1(clientKey.Base64UrlDecode(), authContext.DataKey);
-                }
-
-                authContext.License = license;
-                authContext.Settings = settings;
-                authContext.Enforcements = enforcements;
-                authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
                 if (authContext.Settings.LogoutTimerInSec.HasValue)
                 {
                     if (authContext.Settings.LogoutTimerInSec > TimeSpan.FromMinutes(10).TotalSeconds && authContext.Settings.LogoutTimerInSec < TimeSpan.FromHours(12).TotalSeconds)
@@ -773,5 +770,32 @@ namespace KeeperSecurity.Authentication
 
     }
 #pragma warning restore 0649
+
+    /// <exclude/>
+    [DataContract]
+    public class MasterPasswordReentry
+    {
+        [DataMember(Name = "operations")]
+        public string[] operations;
+
+        [DataMember(Name = "timeout")]
+        internal string _timeout;
+
+        public int Timeout
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_timeout))
+                {
+                    if (int.TryParse(_timeout, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i))
+                    {
+                        return i;
+                    }
+                }
+
+                return 1;
+            }
+        }
+    }
 
 }

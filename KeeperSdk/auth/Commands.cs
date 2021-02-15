@@ -79,14 +79,20 @@ namespace KeeperSecurity.Commands
         public string RegionHost { get; set; }
     }
 
+    public interface IPasswordRules
+    {
+        string PasswordRulesIntro { get; }
+        PasswordRule[] PasswordRules { get; }
+    }
+
     [DataContract]
-    public class PasswordRequirements
+    public class PasswordRequirements: IPasswordRules
     {
         [DataMember(Name = "password_rules_intro", EmitDefaultValue = false)]
         public string PasswordRulesIntro { get; set; }
 
         [DataMember(Name = "password_rules", EmitDefaultValue = false)]
-        public PasswordRule[] PasswordRules;
+        public PasswordRule[] PasswordRules { get; set; }
     }
 
     [DataContract]

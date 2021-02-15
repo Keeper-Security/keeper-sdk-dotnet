@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace KeeperSecurity.Utils
 {
@@ -47,20 +48,44 @@ namespace KeeperSecurity.Utils
     /// <exclude />
     public class FanOut<T> : IFanOut<T>
     {
+        private int _callbackNo = 0;
         private readonly ConcurrentDictionary<int, NotificationCallback<T>> _callbacks = 
             new ConcurrentDictionary<int, NotificationCallback<T>>();
+
+        private bool TryGetCallbackId(NotificationCallback<T> callback, out int id)
+        {
+            using (var en = _callbacks.GetEnumerator())
+            {
+                while (en.MoveNext())
+                {
+                    if (ReferenceEquals(en.Current.Value, callback))
+                    {
+                        id = en.Current.Key;
+                        return true;
+                    }
+                }
+            }
+
+            id = -1;
+            return false;
+        }
 
         public void RegisterCallback(NotificationCallback<T> callback)
         {
             if (IsCompleted) return;
-            var id = callback.GetHashCode();
+            if (TryGetCallbackId(callback, out _)) return;
+
+            var id = Interlocked.Increment(ref _callbackNo);
             _callbacks.TryAdd(id, callback);
         }
 
         public void RemoveCallback(NotificationCallback<T> callback)
         {
             if (IsCompleted) return;
-            _callbacks.TryRemove(callback.GetHashCode(), out _);
+            if (TryGetCallbackId(callback, out int id))
+            {
+                _callbacks.TryRemove(id, out _);
+            }
         }
 
         public void Push(T item)

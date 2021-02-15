@@ -77,7 +77,10 @@ namespace KeeperSecurity.Authentication.Sync
         /// <summary>
         /// Gets a value that indicates whether login to Keeper has completed.
         /// </summary>
-        public bool IsCompleted => Step.State == AuthState.Connected || Step.State == AuthState.Error;
+        public bool IsCompleted => 
+            Step.State == AuthState.Connected || 
+            Step.State == AuthState.Error || 
+            Step.State == AuthState.Restricted;
 
         private AuthStep _step;
 
@@ -335,7 +338,9 @@ namespace KeeperSecurity.Authentication.Sync
             try
             {
                 await PostLogin();
-                return new ConnectedStep();
+                return authContext.SessionTokenRestriction == 0 
+                    ? (AuthStep) new ConnectedStep() 
+                    : (AuthStep) new RestrictedConnectionStep();
             }
             catch (KeeperApiException kae)
             {
@@ -455,7 +460,14 @@ namespace KeeperSecurity.Authentication.Sync
 
             var step = new PasswordStep
             {
-                OnPassword = async password => { await passwordInfo.InvokePasswordActionDelegate.Invoke(password); }
+                onPassword = async password =>
+                {
+                    await passwordInfo.InvokePasswordActionDelegate.Invoke(password);
+                },
+                onBiometricKey = async bioKey =>
+                {
+                    await passwordInfo.InvokeBiometricsActionDelegate.Invoke(bioKey);
+                }
             };
 
             return step;

@@ -62,6 +62,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommanderExtensions.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="ConnectedCommands.cs" />
     <Compile Include="CommanderStorageProtection.cs" />

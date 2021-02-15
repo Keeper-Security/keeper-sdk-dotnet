@@ -108,7 +108,7 @@ namespace KeeperSecurity.Authentication
                             if (rs?.Count > 0)
                             {
                                 var responseBytes = new byte[rs.Count];
-                                Array.Copy(buffer, 0, responseBytes, 0, responseBytes.Length);
+                                Array.Copy(buffer, segment.Offset, responseBytes, 0, responseBytes.Length);
                                 responseBytes = CryptoUtils.DecryptAesV2(responseBytes, tk);
                                 var wssRs = WssClientResponse.Parser.ParseFrom(responseBytes);
 #if DEBUG

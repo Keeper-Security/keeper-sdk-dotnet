@@ -12,6 +12,7 @@ using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Async;
+using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
@@ -212,12 +213,14 @@ namespace Commander
         }
 
         private string _currentFolder;
+
         private bool DeviceApprovalRequestCallback(NotificationEvent evt)
         {
             if (string.Compare(evt.Event, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) != 0) return false;
             _accountSummary = null;
-            Console.WriteLine(!string.IsNullOrEmpty(evt.EncryptedDeviceToken) 
-                ? $"New notification arrived for Device ID: {TokenToString(evt.EncryptedDeviceToken.Base64UrlDecode())}" 
+            var deviceToken = evt.EncryptedDeviceToken.Base64UrlDecode();
+            Console.WriteLine(!string.IsNullOrEmpty(evt.EncryptedDeviceToken)
+                ? $"New notification arrived for Device ID: {deviceToken.TokenToString()}"
                 : "New notification arrived.");
 
             return false;
@@ -764,32 +767,6 @@ namespace Commander
         }
 
 
-        public static string TokenToString(byte[] token)
-        {
-            var sb = new StringBuilder();
-            foreach (var b in token)
-            {
-                sb.AppendFormat("{0:x2}", b);
-                if (sb.Length >= 20)
-                {
-                    break;
-                }
-            }
-
-            return sb.ToString();
-        }
-
-        private string DeviceStatusToString(DeviceStatus status)
-        {
-            switch (status) {
-                case DeviceStatus.DeviceOk: return "OK";
-                case DeviceStatus.DeviceNeedsApproval: return "Need Approval";
-                case DeviceStatus.DeviceDisabledByUser: return "Disabled";
-                case DeviceStatus.DeviceLockedByAdmin: return "Locked";
-                default: return "";
-            }
-        }
-
         private async Task ThisDeviceCommand(ThisDeviceOptions arguments)
         {
             if (_accountSummary == null) {
@@ -804,8 +781,11 @@ namespace Commander
                 return;
             }
 
-            var availableVerbs = new[] {"rename", "register", "persistent_login", "ip_disable_auto_approve", "timeout"};
+            var availableVerbs = new[] {"rename", "register", "persistent_login", "ip_disable_auto_approve", "timeout", "bio"};
 
+            var deviceToken = device.EncryptedDeviceToken.ToByteArray();
+            var bioTarget = _auth.Username.BiometricCredentialTarget(deviceToken);
+            var hasBio = CredentialManager.GetCredentials(bioTarget, out _, out _);
             switch (arguments.Command)
             {
                 case null:
@@ -835,6 +815,7 @@ namespace Commander
                             Console.WriteLine("{0, 20}: {1} second(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalSeconds);
                         }
                     }
+                    Console.WriteLine("{0, 20}: {1}", "Biometric Login", hasBio);
 
                     Console.WriteLine();
                     Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
@@ -910,6 +891,50 @@ namespace Commander
                         else
                         {
                             Console.WriteLine($"{arguments.Command}: invalid timeout in minutes parameter: {arguments.Parameter}");
+                        }
+                    }
+                }
+                    break;
+
+                case "bio":
+                {
+                    bool enabled;
+                    if (string.Compare(arguments.Parameter, "on", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    {
+                        enabled = true;
+                    }
+                    else if (string.Compare(arguments.Parameter, "off", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    {
+                        enabled = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"\"{arguments.Command}\" accepts the following parameters: on, off");
+                        return;
+                    }
+
+                    var deviceTokenName = deviceToken.TokenToString();
+                    if (enabled)
+                    {
+                        var bioKey = CryptoUtils.GenerateEncryptionKey();
+                        var authHash = CryptoUtils.CreateBioAuthHash(bioKey);
+                        var encryptedDataKey = CryptoUtils.EncryptAesV2(_auth.AuthContext.DataKey, bioKey);
+                        var request = new UserAuthRequest
+                        {
+                            LoginType = LoginType.Bio,
+                            Name = deviceTokenName,
+                            AuthHash = ByteString.CopyFrom(authHash),
+                            EncryptedDataKey = ByteString.CopyFrom(encryptedDataKey)
+                        };
+
+                        await _auth.ExecuteAuthRest("authentication/set_v2_alternate_password", request);
+                        CredentialManager.PutCredentials(bioTarget, _auth.Username, bioKey.Base64UrlEncode());
+                    }
+                    else
+                    {
+                        if (hasBio)
+                        {
+                            CredentialManager.DeleteCredentials(bioTarget);
                         }
                     }
                 }
@@ -995,14 +1020,14 @@ namespace Commander
                 tab.AddHeader(new[] {"Device Name", "Client", "ID", "Status", "Data Key"});
                 foreach (var device in devices)
                 {
-                    tab.AddRow(new[]
-                    {
+                    var deviceToken = device.EncryptedDeviceToken.ToByteArray();
+                    tab.AddRow(
                         device.DeviceName,
                         device.ClientVersion,
-                        TokenToString(device.EncryptedDeviceToken.ToByteArray()),
-                        DeviceStatusToString(device.DeviceStatus),
+                        deviceToken.TokenToString(),
+                        device.DeviceStatus.DeviceStatusToString(),
                         device.EncryptedDataKeyPresent ? "Yes" : "No"
-                    });
+                    );
                 }
 
                 Console.WriteLine();
@@ -1028,7 +1053,8 @@ namespace Commander
                             return true;
                         }
 
-                        var token = TokenToString(x.EncryptedDeviceToken.ToByteArray());
+                        var deviceToken = x.EncryptedDeviceToken.ToByteArray();
+                        var token = deviceToken.TokenToString();
                         return token.StartsWith(arguments.DeviceId);
                     })
                     .ToArray();
@@ -1612,7 +1638,7 @@ namespace Commander
 
     class ThisDeviceOptions
     {
-        [Value(0, Required = false, HelpText = "this-device command: \"register\", \"rename\", \"timeout\"")]
+        [Value(0, Required = false, HelpText = "this-device command: \"register\", \"rename\", \"timeout\", \"bio\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "sub-command parameter")]

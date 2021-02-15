@@ -45,7 +45,7 @@ namespace KeeperSecurity
             public long ToRoleId;
 
             [DataMember(Name = "transfer_key")]
-            public string TransferTey;
+            public string TransferKey;
 
             public ShareAccountCommand() : base("share_account")
             {
@@ -97,7 +97,7 @@ namespace KeeperSecurity
                         var command = new ShareAccountCommand
                         {
                             ToRoleId = shareTo.RoleId,
-                            TransferTey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode()
+                            TransferKey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode()
                         };
                         await auth.ExecuteAuthCommand(command);
                     }

@@ -396,7 +396,40 @@ namespace KeeperSecurity.Authentication
             return result;
         }
 
-        private static async Task<AuthContext> ExecuteValidateAuthHash(this IAuth auth, LoginContext v3, ByteString loginToken, string password, Salt salt)
+        private static async Task<AuthContext> ExecuteValidateBiometricKey(
+            this IAuth auth,
+            LoginContext v3,
+            ByteString loginToken,
+            byte[] biometricKey)
+        {
+            var request = new ValidateAuthHashRequest
+            {
+                PasswordMethod = PasswordMethod.Biometrics,
+                EncryptedLoginToken = loginToken,
+                AuthResponse = ByteString.CopyFrom(CryptoUtils.CreateBioAuthHash(biometricKey))
+            };
+            var context = await auth.ExecuteValidateAuthHash(v3,
+                request,
+                (keyType, encryptedKey) =>
+                {
+                    switch (keyType)
+                    {
+                        case EncryptedDataKeyType.ByAlternate:
+                        case EncryptedDataKeyType.ByBio:
+                            return CryptoUtils.DecryptAesV2(encryptedKey, biometricKey);
+                    }
+
+                    throw new KeeperAuthFailed();
+                });
+            return context;
+        }
+
+        private static async Task<AuthContext> ExecuteValidatePassword(
+            this IAuth auth,
+            LoginContext v3,
+            ByteString loginToken,
+            string password,
+            Salt salt)
         {
             var request = new ValidateAuthHashRequest
             {
@@ -405,6 +438,31 @@ namespace KeeperSecurity.Authentication
                 AuthResponse = ByteString.CopyFrom(CryptoUtils.DeriveV1KeyHash(password, salt.Salt_.ToByteArray(), salt.Iterations))
             };
 
+            var context = await auth.ExecuteValidateAuthHash(v3, request,
+                (keyType, encryptedKey) =>
+                {
+                    switch (keyType)
+                    {
+                        case EncryptedDataKeyType.ByAlternate:
+                            var key = CryptoUtils.DeriveKeyV2("data_key", password, salt.Salt_.ToByteArray(), salt.Iterations);
+                            return CryptoUtils.DecryptAesV2(encryptedKey, key);
+                        case EncryptedDataKeyType.ByPassword:
+                            return CryptoUtils.DecryptEncryptionParams(password, encryptedKey);
+                    }
+                    throw new KeeperAuthFailed();
+                });
+            var validatorSalt = CryptoUtils.GetRandomBytes(16);
+            context.PasswordValidator =
+                CryptoUtils.CreateEncryptionParams(password, validatorSalt, 100000, CryptoUtils.GetRandomBytes(32));
+            return context;
+        }
+
+        private static async Task<AuthContext> ExecuteValidateAuthHash(
+            this IAuth auth, 
+            LoginContext v3, 
+            ValidateAuthHashRequest request,
+            Func<EncryptedDataKeyType, byte[], byte[]> dataKeyDecryptor)
+        {
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"validate_auth_hash\": {request}");
 #endif
@@ -423,25 +481,8 @@ namespace KeeperSecurity.Authentication
                 SsoLoginInfo = v3.SsoLoginInfo,
             };
 
-            var validatorSalt = CryptoUtils.GetRandomBytes(16);
-            authContext.PasswordValidator =
-                CryptoUtils.CreateEncryptionParams(password, validatorSalt, 100000, CryptoUtils.GetRandomBytes(32));
-
             var encryptedDataKey = response.EncryptedDataKey.ToByteArray();
-            switch (response.EncryptedDataKeyType)
-            {
-                case EncryptedDataKeyType.ByAlternate:
-                    var key = CryptoUtils.DeriveKeyV2("data_key", password, salt.Salt_.ToByteArray(), salt.Iterations);
-                    authContext.DataKey = CryptoUtils.DecryptAesV2(encryptedDataKey, key);
-                    break;
-                case EncryptedDataKeyType.ByPassword:
-                    authContext.DataKey = CryptoUtils.DecryptEncryptionParams(password, encryptedDataKey);
-                    break;
-                case EncryptedDataKeyType.ByDevicePublicKey:
-                    authContext.DataKey = CryptoUtils.DecryptEc(encryptedDataKey, v3.DeviceKey);
-                    break;
-            }
-
+            authContext.DataKey = dataKeyDecryptor(response.EncryptedDataKeyType, encryptedDataKey);
             return authContext;
         }
 
@@ -475,14 +516,21 @@ namespace KeeperSecurity.Authentication
             var saltInfo = passwordSalt ?? firstSalt;
             if (saltInfo == null)
             {
-                throw new KeeperStartLoginException(LoginState.RequiresAuthHash, "Master Password has not been created.");
+                throw new KeeperStartLoginException(
+                    LoginState.RequiresAuthHash, 
+                    "Master Password has not been created.");
             }
 
             return new MasterPasswordInfo(auth.Username)
             {
                 InvokePasswordActionDelegate = async password =>
                 {
-                    var context = await auth.ExecuteValidateAuthHash(v3, loginToken, password, saltInfo);
+                    var context = await auth.ExecuteValidatePassword(v3, loginToken, password, saltInfo);
+                    await onAuthHashValidated.Invoke(context);
+                },
+                InvokeBiometricsActionDelegate = async bioKey =>
+                {
+                    var context = await auth.ExecuteValidateBiometricKey(v3, loginToken, bioKey);
                     await onAuthHashValidated.Invoke(context);
                 }
             };

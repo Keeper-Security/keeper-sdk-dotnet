@@ -34,11 +34,7 @@ namespace Commander
         private readonly byte[] _entropy;
         private readonly DataProtectionScope _scope;
 
-        public DpApiConfigurationProtection(byte[] entropy) : this(entropy, DataProtectionScope.CurrentUser)
-        {
-        }
-
-        public DpApiConfigurationProtection(byte[] entropy, DataProtectionScope scope)
+        public DpApiConfigurationProtection(byte[] entropy)
         {
             _entropy = entropy;
             _scope = DataProtectionScope.CurrentUser;

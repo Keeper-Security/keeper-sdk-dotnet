@@ -44,6 +44,10 @@ namespace KeeperSecurity.Authentication.Sync
         /// Login failure
         /// </summary>
         Error,
+        /// <summary>
+        /// Restricted Connection
+        /// </summary>
+        Restricted,
     }
 
     /// <summary>
@@ -247,7 +251,7 @@ namespace KeeperSecurity.Authentication.Sync
         {
         }
 
-        internal Func<string, Task> OnPassword;
+        internal Func<string, Task> onPassword;
 
         /// <summary>
         /// Verifies master password
@@ -256,7 +260,18 @@ namespace KeeperSecurity.Authentication.Sync
         /// <returns>Awaitable task</returns>
         public Task VerifyPassword(string password)
         {
-            return OnPassword?.Invoke(password);
+            return onPassword?.Invoke(password);
+        }
+
+        internal Func<byte[], Task> onBiometricKey;
+        /// <summary>
+        /// Verifies biometric key
+        /// </summary>
+        /// <param name="biometricKey">Biometric key</param>
+        /// <returns>Awaitable task</returns>
+        public Task VerifyBiometricKey(byte[] biometricKey)
+        {
+            return onBiometricKey?.Invoke(biometricKey);
         }
     }
 
@@ -396,5 +411,12 @@ namespace KeeperSecurity.Authentication.Sync
         /// GEt error message
         /// </summary>
         public string Message { get; }
+    }
+
+    public class RestrictedConnectionStep : AuthStep
+    {
+        public RestrictedConnectionStep() : base(AuthState.Restricted)
+        {
+        }
     }
 }

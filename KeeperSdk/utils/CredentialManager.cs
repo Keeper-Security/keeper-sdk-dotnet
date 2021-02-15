@@ -1,4 +1,6 @@
-﻿#if NET45
+﻿
+using System.Text;
+#if NET45
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -11,6 +13,25 @@ namespace KeeperSecurity.Utils
     /// <exclude />
     public static class CredentialManager
     {
+        public static bool DeleteCredentials(string target)
+        {
+#if NET45
+            try
+            {
+                var permissions = new SecurityPermission(SecurityPermissionFlag.UnmanagedCode);
+                permissions.Demand();
+
+                return CredDelete(target, 1, 0);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.ToString());
+            }
+
+#endif
+            return false;
+        }
+
         public static bool GetCredentials(string target, out string username, out string password)
         {
 #if NET45
@@ -45,10 +66,49 @@ namespace KeeperSecurity.Utils
             return false;
         }
 
+        public static bool PutCredentials(string target, string username, string password)
+        {
+#if NET45
+            if (password.Length > 512)
+            {
+                Debug.WriteLine("Credentials password is too long.");
+                return false;
+            }
+
+            try
+            {
+                var permissions = new SecurityPermission(SecurityPermissionFlag.UnmanagedCode);
+                permissions.Demand();
+
+                var passwordBytes = Encoding.Unicode.GetBytes(password);
+
+                var credential = new CREDENTIAL
+                {
+                    TargetName = target,
+                    UserName = username,
+                    CredentialBlob = Marshal.StringToCoTaskMemUni(password),
+                    CredentialBlobSize = passwordBytes.Length,
+                    Comment = "Keeper Bio login credentials",
+                    Type = 1,
+                    Persist = 2
+                };
+
+                return CredWrite(ref credential, 0);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.ToString());
+            }
+#endif
+            return false;
+        }
 #if NET45
 
         [DllImport("Advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]
         static extern bool CredRead(string target, int credentialType, int reservedFlag, out IntPtr credentialPtr);
+
+        [DllImport("Advapi32.dll", EntryPoint = "CredDeleteW", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern bool CredDelete(string target, int credentialType, int reservedFlag);
 
         [DllImport("Advapi32.dll", EntryPoint = "CredWriteW", CharSet = CharSet.Unicode, SetLastError = true)]
         static extern bool CredWrite([In]

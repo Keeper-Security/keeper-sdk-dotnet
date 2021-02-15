@@ -12,9 +12,19 @@ namespace KeeperSecurity.Authentication.Async
     {
         protected InputManager InputManager { get; }
 
+        public static string BiometricKeyTag = "bio";
+        protected byte[] BiometricKey { get; set; }
+        protected byte[] DeviceToken { get; private set; }
+
         public ConsoleAuthUi(InputManager inputManager)
         {
             InputManager = inputManager;
+        }
+
+        public void SelectedDevice(string deviceToken)
+        {
+            BiometricKey = null;
+            DeviceToken = deviceToken.Base64UrlDecode();
         }
 
         public virtual async Task<bool> WaitForUserPassword(IPasswordInfo info, CancellationToken token)
@@ -29,7 +39,15 @@ namespace KeeperSecurity.Authentication.Async
                 if (string.IsNullOrEmpty(password)) return false;
                 try
                 {
-                    await info.InvokePasswordActionDelegate(password);
+                    if (BiometricKey != null && string.CompareOrdinal(BiometricKeyTag, password) == 0)
+                    {
+                        await info.InvokeBiometricsActionDelegate(BiometricKey);
+                    }
+                    else
+                    {
+                        await info.InvokePasswordActionDelegate(password);
+                    }
+
                     break;
                 }
                 catch (KeeperAuthFailed)
@@ -435,10 +453,6 @@ namespace KeeperSecurity.Authentication.Async
             Console.WriteLine();
             Console.WriteLine($"You are being redirected to the data center at: {newRegion}");
             Console.WriteLine();
-        }
-
-        public void SelectedDevice(string deviceToken)
-        {
         }
     }
 }

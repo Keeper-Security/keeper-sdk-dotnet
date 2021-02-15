@@ -190,6 +190,7 @@ namespace KeeperSecurity.Authentication
 
         public string Username { get; }
         public PasswordActionDelegate InvokePasswordActionDelegate { get; internal set; }
+        public BiometricsActionDelegate InvokeBiometricsActionDelegate { get; internal set; }
     }
 
     internal class HttpProxyInfo : IHttpProxyInfo

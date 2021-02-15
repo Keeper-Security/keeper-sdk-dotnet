@@ -258,6 +258,17 @@ namespace KeeperSecurity.Authentication
     public delegate Task PasswordActionDelegate(string password);
 
     /// <summary>
+    /// Validate biometrics key delegate.
+    /// </summary>
+    /// <param name="biometricsKey">Biometrics key.</param>
+    /// <returns>Awaitable task.</returns>
+    /// <exception cref="KeeperAuthFailed">Invalid username or password.</exception>
+    /// <exception cref="KeeperStartLoginException">Unrecoverable login error.</exception>
+    /// <exception cref="KeeperCanceled">Login cancelled.</exception>
+    /// <exception cref="Exception">Other exceptions.</exception>
+    public delegate Task BiometricsActionDelegate(byte[] biometricsKey);
+
+    /// <summary>
     /// Base interface for password validation.
     /// </summary>
     public interface IPasswordInfo
@@ -270,6 +281,10 @@ namespace KeeperSecurity.Authentication
         /// Master password validation delegate.
         /// </summary>
         PasswordActionDelegate InvokePasswordActionDelegate { get; }
+        /// <summary>
+        /// Biometric Key validation delegate
+        /// </summary>
+        BiometricsActionDelegate InvokeBiometricsActionDelegate { get; }
     }
 
     /// <summary>

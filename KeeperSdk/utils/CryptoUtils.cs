@@ -403,6 +403,17 @@ namespace KeeperSecurity.Utils
         }
 
         /// <summary>
+        /// Creates Auth hash for authorization with Biometrics
+        /// </summary>
+        /// <param name="biometricKey">Biometric key</param>
+        /// <returns>Auth hash</returns>
+        public static byte[] CreateBioAuthHash(byte[] biometricKey)
+        {
+            var hmac = new HMACSHA256(biometricKey);
+            return hmac.ComputeHash(Encoding.UTF8.GetBytes("biometric_auth"));
+        }
+
+        /// <summary>
         ///     Generate EC key pair.
         /// </summary>
         /// <param name="privateKey"><c>out</c> Private Key</param>

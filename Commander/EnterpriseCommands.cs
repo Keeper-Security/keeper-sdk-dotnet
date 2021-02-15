@@ -521,7 +521,8 @@ namespace Commander
                     {
                         if (!context.Enterprise.TryGetUserById(device.EnterpriseUserId, out var user)) continue;
 
-                        tab.AddRow(user.Email, ConnectedContext.TokenToString(device.EncryptedDeviceToken.Base64UrlDecode()), device.DeviceName, device.ClientVersion);
+                        var deiceToken = device.EncryptedDeviceToken.Base64UrlDecode();
+                        tab.AddRow(user.Email, deiceToken.TokenToString(), device.DeviceName, device.ClientVersion);
                     }
 
                     tab.Sort(1);
@@ -540,7 +541,8 @@ namespace Commander
                             .Where(x =>
                             {
                                 if (arguments.Match == "all") return true;
-                                var deviceId = ConnectedContext.TokenToString(x.EncryptedDeviceToken.Base64UrlDecode());
+                                var deviceToken = x.EncryptedDeviceToken.Base64UrlDecode();
+                                var deviceId = deviceToken.TokenToString();
                                 if (deviceId.StartsWith(arguments.Match)) return true;
 
                                 if (!context.Enterprise.TryGetUserById(x.EnterpriseUserId, out var user)) return false;

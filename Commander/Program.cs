@@ -246,6 +246,20 @@ namespace Commander
             return password1;
         }
 
+        public override Task<bool> WaitForUserPassword(IPasswordInfo info, CancellationToken token)
+        {
+            var bioTarget = info.Username.BiometricCredentialTarget(DeviceToken);
+            if (CredentialManager.GetCredentials(bioTarget, out var email, out var key))
+            {
+                if (!string.IsNullOrEmpty(key) && string.Compare(info.Username, email, StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    this.BiometricKey = key.Base64UrlDecode();
+                }
+            }
+
+            return base.WaitForUserPassword(info, token);
+        }
+
         public Task<bool> WaitForSsoToken(ISsoTokenActionInfo actionInfo, CancellationToken token)
         {
             Console.WriteLine($"Complete {(actionInfo.IsCloudSso ? "Cloud" : "OnSite")} SSO login");
