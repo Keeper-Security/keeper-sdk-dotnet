@@ -1,15 +1,4 @@
-﻿//  _  __
-// | |/ /___ ___ _ __  ___ _ _ ®
-// | ' </ -_) -_) '_ \/ -_) '_|
-// |_|\_\___\___| .__/\___|_|
-//              |_|
-//
-// Keeper SDK
-// Copyright 2020 Keeper Security Inc.
-// Contact: ops@keepersecurity.com
-//
-
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 
@@ -139,7 +128,7 @@ namespace KeeperSecurity.Authentication
 
 
     /// <summary>
-    /// Various methods that notify client about IAuth object state changes. Optional.
+    /// Defines methods that notify client about IAuth object state changes. Optional.
     /// </summary>
     public interface IAuthInfoUI
     {
@@ -156,6 +145,9 @@ namespace KeeperSecurity.Authentication
         void SelectedDevice(string deviceToken);
     }
 
+    /// <summary>
+    /// Defines the methods required to logout from SSO IdP. Optional.
+    /// </summary>
     public interface ISsoLogoutCallback
     {
         /// <summary>

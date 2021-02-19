@@ -305,6 +305,29 @@
         <member name="P:KeeperSecurity.Authentication.Async.Auth.AuthCallback">
             <exclude/>
         </member>
+        <member name="P:KeeperSecurity.Authentication.Async.Auth.ResumeSession">
+            <summary>
+            Gets or sets session resumption flag
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Async.Auth.AlternatePassword">
+            <summary>
+            Forces master password login for SSO accounts.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Async.Auth.Username">
+            <summary>
+            Gets or sets username.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Async.Auth.SetPushNotifications(KeeperSecurity.Utils.IFanOut{KeeperSecurity.Authentication.NotificationEvent})">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Async.Auth.DeviceToken">
+            <summary>
+            Gets or sets device token
+            </summary>
+        </member>
         <member name="M:KeeperSecurity.Authentication.Async.Auth.LoginSso(System.String,System.Boolean)">
             <summary>
             Login to Keeper account with SSO provider.
@@ -330,9 +353,6 @@
             <exception cref="T:System.Exception">Other exceptions.</exception>
         </member>
         <member name="M:KeeperSecurity.Authentication.Async.Auth.Dispose">
-            <exclude/>
-        </member>
-        <member name="T:KeeperSecurity.Authentication.Async.MasterPasswordReentry">
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.Async.NamespaceDoc">
@@ -436,6 +456,11 @@
         <member name="T:KeeperSecurity.Authentication.IAuthCallback">
             <exclude/>
         </member>
+        <member name="T:KeeperSecurity.Authentication.IAuthEndpoint">
+            <summary>
+            Defines the basic properties of Keeper endpoint object.
+            </summary>
+        </member>
         <member name="P:KeeperSecurity.Authentication.IAuthEndpoint.AuthCallback">
             <exclude/>
         </member>
@@ -462,7 +487,20 @@
         </member>
         <member name="T:KeeperSecurity.Authentication.IAuth">
             <summary>
-            Defines the basic properties of Keeper authentication object.
+            Defines the properties and methods of not connected Keeper authentication object.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuth.Username">
+            <summary>
+            Gets or sets username.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuth.SetPushNotifications(KeeperSecurity.Utils.IFanOut{KeeperSecurity.Authentication.NotificationEvent})">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuth.DeviceToken">
+            <summary>
+            Gets or sets device token
             </summary>
         </member>
         <member name="P:KeeperSecurity.Authentication.IAuth.Storage">
@@ -617,8 +655,8 @@
             <summary>
             Represents base authentication class
             </summary>
-            <seealso cref="T:KeeperSecurity.Authentication.Async.Auth"/>
-            <seealso cref="T:KeeperSecurity.Authentication.Sync.AuthSync"/>
+            <seealso cref="!:Auth"/>
+            <seealso cref="!:AuthSync"/>
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.Endpoint">
             <summary>
@@ -673,6 +711,9 @@
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.NotificationEvent">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.MasterPasswordReentry">
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.NamespaceDoc">
@@ -735,6 +776,11 @@
         <member name="F:KeeperSecurity.Authentication.Sync.AuthState.Error">
             <summary>
             Login failure
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Authentication.Sync.AuthState.Restricted">
+            <summary>
+            Restricted Connection
             </summary>
         </member>
         <member name="T:KeeperSecurity.Authentication.Sync.AuthStep">
@@ -862,6 +908,13 @@
             <param name="password">Master password</param>
             <returns>Awaitable task</returns>
         </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.PasswordStep.VerifyBiometricKey(System.Byte[])">
+            <summary>
+            Verifies biometric key
+            </summary>
+            <param name="biometricKey">Biometric key</param>
+            <returns>Awaitable task</returns>
+        </member>
         <member name="T:KeeperSecurity.Authentication.Sync.HttpProxyStep">
             <summary>
             Represents HTTP Proxy Authentication step
@@ -937,12 +990,12 @@
         </member>
         <member name="T:KeeperSecurity.Authentication.Sync.ConnectedStep">
             <summary>
-            Represents connected step
+            Represents Connected step. Final step. Successfully connected to Keeper.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Authentication.Sync.ErrorStep">
             <summary>
-            Represents error step
+            Represents Error step. Final step. Failed to connect to Keeper.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.ErrorStep.Code">
@@ -952,7 +1005,12 @@
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.ErrorStep.Message">
             <summary>
-            GEt error message
+            Get error message
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.Sync.RestrictedConnectionStep">
+            <summary>
+            Represents Restricted Connection step. Final step. The connection is limited only to certain commands.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Authentication.Sync.IAuthSyncCallback">
@@ -990,6 +1048,29 @@
             Gets configuration storage.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.ResumeSession">
+            <summary>
+            Gets or sets session resumption flag
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.AlternatePassword">
+            <summary>
+            Forces master password login for SSO accounts.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.Username">
+            <summary>
+            Gets or sets username.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.SetPushNotifications(KeeperSecurity.Utils.IFanOut{KeeperSecurity.Authentication.NotificationEvent})">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.DeviceToken">
+            <summary>
+            Gets or sets device token
+            </summary>
+        </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.IsCompleted">
             <summary>
             Gets a value that indicates whether login to Keeper has completed.
@@ -997,7 +1078,7 @@
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.Step">
             <summary>
-            Gets a current login step
+            Gets a current login step.
             </summary>
         </member>
         <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.Cancel">
@@ -1223,6 +1304,9 @@
             Login state triggered exception.
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Authentication.LoginContext">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Authentication.SecurityKeyAuthenticateRequest">
             <exclude/>
         </member>
@@ -1371,7 +1455,7 @@
         </member>
         <member name="T:KeeperSecurity.Authentication.IAuthInfoUI">
             <summary>
-            Various methods that notify client about IAuth object state changes. Optional.
+            Defines methods that notify client about IAuth object state changes. Optional.
             </summary>
         </member>
         <member name="M:KeeperSecurity.Authentication.IAuthInfoUI.RegionChanged(System.String)">
@@ -1385,6 +1469,11 @@
             Notifies the client about device token changes
             </summary>
             <param name="deviceToken">Device Token</param>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.ISsoLogoutCallback">
+            <summary>
+            Defines the methods required to logout from SSO IdP. Optional.
+            </summary>
         </member>
         <member name="M:KeeperSecurity.Authentication.ISsoLogoutCallback.SsoLogoutUrl(System.String)">
             <summary>
@@ -1481,6 +1570,17 @@
             <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login cancelled.</exception>
             <exception cref="T:System.Exception">Other exceptions.</exception>
         </member>
+        <member name="T:KeeperSecurity.Authentication.BiometricsActionDelegate">
+            <summary>
+            Validate biometrics key delegate.
+            </summary>
+            <param name="biometricsKey">Biometrics key.</param>
+            <returns>Awaitable task.</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperAuthFailed">Invalid username or password.</exception>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login error.</exception>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login cancelled.</exception>
+            <exception cref="T:System.Exception">Other exceptions.</exception>
+        </member>
         <member name="T:KeeperSecurity.Authentication.IPasswordInfo">
             <summary>
             Base interface for password validation.
@@ -1494,6 +1594,11 @@
         <member name="P:KeeperSecurity.Authentication.IPasswordInfo.InvokePasswordActionDelegate">
             <summary>
             Master password validation delegate.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IPasswordInfo.InvokeBiometricsActionDelegate">
+            <summary>
+            Biometric Key validation delegate
             </summary>
         </member>
         <member name="T:KeeperSecurity.Authentication.GetDataKeyActionDelegate">
@@ -2656,6 +2761,9 @@
                 Cannot proceed with enterprise operation.
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Enterprise.ManagedCompanyAuth">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Utils.CredentialManager">
             <exclude />
         </member>
@@ -2809,6 +2917,13 @@
             <param name="salt">Salt.</param>
             <param name="iterations">Iterations.</param>
             <returns>Encryption key.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Utils.CryptoUtils.CreateBioAuthHash(System.Byte[])">
+            <summary>
+            Creates Auth hash for authorization with Biometrics
+            </summary>
+            <param name="biometricKey">Biometric key</param>
+            <returns>Auth hash</returns>
         </member>
         <member name="M:KeeperSecurity.Utils.CryptoUtils.GenerateEcKey(Org.BouncyCastle.Crypto.Parameters.ECPrivateKeyParameters@,Org.BouncyCastle.Crypto.Parameters.ECPublicKeyParameters@)">
             <summary>
@@ -3184,6 +3299,11 @@
         <member name="F:KeeperSecurity.Vault.KeyType.TeamKey">
             <summary>
             Key is encrypted with team key.
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.KeyType.TeamPrivateKey">
+            <summary>
+            Key is encrypted with team RSA key.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.IUid">
@@ -3568,12 +3688,12 @@
         </member>
         <member name="P:KeeperSecurity.Vault.IKeeperStorage.PersonalScopeUid">
             <summary>
-            Pseudo UID for logged in user. 
+            ID for logged in user. 
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.IKeeperStorage.Revision">
             <summary>
-            Revision.
+            Gets or sets revision.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.IKeeperStorage.Records">
@@ -3650,7 +3770,96 @@
             Clear offline Keeper vault storage.
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:KeeperSecurity.Vault.InMemoryKeeperStorage" -->
+        <member name="T:KeeperSecurity.Vault.InMemoryKeeperStorage">
+            <summary>
+            Provides in memory implementation of IKeeperStorage interface.
+            </summary>
+            <seealso cref="T:KeeperSecurity.Vault.IKeeperStorage" />
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.PersonalScopeUid">
+            <summary>
+            Gets pseudo UID for logged in user. 
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.Revision">
+            <summary>
+            Gets or sets revision.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.Records">
+            <summary>
+            Gets record entity storage.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.SharedFolders">
+            <summary>
+            Gets shared folder entity storage.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.Teams">
+            <summary>
+            Gets team entity storage.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.NonSharedData">
+            <summary>
+            Gets non-shared record data entity storage.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.RecordKeys">
+            <summary>
+            Gets record key entity link storage.
+            </summary>
+            <remarks>
+            <list type="bullet">
+            <item><term>Object UID</term><description>Record UID</description></item>
+            <item><term>Subject UID</term><description><c>PersonalScopeUid</c> or Shared Folder UID</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.SharedFolderKeys">
+            <summary>
+            Gets shared folder key entity link storage
+            </summary>
+            <remarks>
+            <list type="bullet">
+            <item><term>Object UID</term><description>Shared Folder UID</description></item>
+            <item><term>Subject UID</term><description><c>PersonalScopeUid</c> or Team UID</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.SharedFolderPermissions">
+            <summary>
+            Gets shared folder user permission entity link storage.
+            </summary>
+            <remarks>
+            <list type="bullet">
+            <item><term>Object UID</term><description>Shared Folder UID</description></item>
+            <item><term>Subject UID</term><description>User Email or Team UID</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.Folders">
+            <summary>
+            Gets folder entity storage.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.FolderRecords">
+            <summary>
+            Gets folder's record entity link storage.
+            </summary>
+            <remarks>
+            <list type="bullet">
+            <item><term>Object UID</term><description>Folder UID</description></item>
+            <item><term>Subject UID</term><description>Record UID</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="M:KeeperSecurity.Vault.InMemoryKeeperStorage.Clear">
+            <summary>
+            Clear offline Keeper vault storage.
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Vault.SyncDownExtensions">
             <summary>
             Provides a set of static methods for syncing down vault.

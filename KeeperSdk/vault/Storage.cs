@@ -1,15 +1,4 @@
-﻿//  _  __
-// | |/ /___ ___ _ __  ___ _ _ ®
-// | ' </ -_) -_) '_ \/ -_) '_|
-// |_|\_\___\___| .__/\___|_|
-//              |_|
-//
-// Keeper SDK
-// Copyright 2021 © Keeper Security Inc.
-// Contact: ops@keepersecurity.com
-//
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -398,12 +387,12 @@ namespace KeeperSecurity.Vault
     public interface IKeeperStorage
     {
         /// <summary>
-        /// Pseudo UID for logged in user. 
+        /// ID for logged in user. 
         /// </summary>
         string PersonalScopeUid { get; }
 
         /// <summary>
-        /// Revision.
+        /// Gets or sets revision.
         /// </summary>
         long Revision { get; set; }
 
@@ -411,14 +400,17 @@ namespace KeeperSecurity.Vault
         /// Gets record entity storage.
         /// </summary>
         IEntityStorage<IPasswordRecord> Records { get; }
+
         /// <summary>
         /// Gets shared folder entity storage.
         /// </summary>
         IEntityStorage<ISharedFolder> SharedFolders { get; }
+
         /// <summary>
         /// Gets team entity storage.
         /// </summary>
         IEntityStorage<IEnterpriseTeam> Teams { get; }
+
         /// <summary>
         /// Gets non-shared record data entity storage.
         /// </summary>
@@ -434,6 +426,7 @@ namespace KeeperSecurity.Vault
         /// </list>
         /// </remarks>
         IPredicateStorage<IRecordMetadata> RecordKeys { get; } // RecordUid / "" or SharedFolderUid
+
         /// <summary>
         /// Gets shared folder key entity link storage
         /// </summary>
@@ -444,7 +437,6 @@ namespace KeeperSecurity.Vault
         /// </list>
         /// </remarks>
         IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; }
-        // SharedFolderUid / "" or teamUid
 
         /// <summary>
         /// Gets shared folder user permission entity link storage.
@@ -456,12 +448,12 @@ namespace KeeperSecurity.Vault
         /// </list>
         /// </remarks>
         IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; } 
-        // SharedFolderUid / username or teamUid
 
         /// <summary>
         /// Gets folder entity storage.
         /// </summary>
         IEntityStorage<IFolder> Folders { get; }
+
         /// <summary>
         /// Gets folder's record entity link storage.
         /// </summary>
@@ -609,8 +601,9 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Provides in memory implementation if <see cref="IKeeperStorage" interface./>
+    /// Provides in memory implementation of IKeeperStorage interface.
     /// </summary>
+    /// <seealso cref="IKeeperStorage" />
     public class InMemoryKeeperStorage : IKeeperStorage
     {
         public InMemoryKeeperStorage()
@@ -618,20 +611,88 @@ namespace KeeperSecurity.Vault
             Clear();
         }
 
+        /// <summary>
+        /// Gets pseudo UID for logged in user. 
+        /// </summary>
         public string PersonalScopeUid { get; } = "PersonalScopeUid";
 
+        /// <summary>
+        /// Gets or sets revision.
+        /// </summary>
         public long Revision { get; set; }
 
+        /// <summary>
+        /// Gets record entity storage.
+        /// </summary>
         public IEntityStorage<IPasswordRecord> Records { get; private set; }
+
+        /// <summary>
+        /// Gets shared folder entity storage.
+        /// </summary>
         public IEntityStorage<ISharedFolder> SharedFolders { get; private set; }
+        
+        /// <summary>
+        /// Gets team entity storage.
+        /// </summary>
         public IEntityStorage<IEnterpriseTeam> Teams { get; private set; }
+
+        /// <summary>
+        /// Gets non-shared record data entity storage.
+        /// </summary>
         public IEntityStorage<INonSharedData> NonSharedData { get; private set; }
+
+        /// <summary>
+        /// Gets record key entity link storage.
+        /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item><term>Object UID</term><description>Record UID</description></item>
+        /// <item><term>Subject UID</term><description><c>PersonalScopeUid</c> or Shared Folder UID</description></item>
+        /// </list>
+        /// </remarks>
         public IPredicateStorage<IRecordMetadata> RecordKeys { get; private set; }
+
+        /// <summary>
+        /// Gets shared folder key entity link storage
+        /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item><term>Object UID</term><description>Shared Folder UID</description></item>
+        /// <item><term>Subject UID</term><description><c>PersonalScopeUid</c> or Team UID</description></item>
+        /// </list>
+        /// </remarks>
         public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; private set; }
+
+        /// <summary>
+        /// Gets shared folder user permission entity link storage.
+        /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item><term>Object UID</term><description>Shared Folder UID</description></item>
+        /// <item><term>Subject UID</term><description>User Email or Team UID</description></item>
+        /// </list>
+        /// </remarks>
         public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; private set; }
+
+        /// <summary>
+        /// Gets folder entity storage.
+        /// </summary>
         public IEntityStorage<IFolder> Folders { get; private set; }
+
+        /// <summary>
+        /// Gets folder's record entity link storage.
+        /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item><term>Object UID</term><description>Folder UID</description></item>
+        /// <item><term>Subject UID</term><description>Record UID</description></item>
+        /// </list>
+        /// </remarks>
         public IPredicateStorage<IFolderRecordLink> FolderRecords { get; private set; }
 
+        /// <summary>
+        /// Clear offline Keeper vault storage.
+        /// </summary>
         public void Clear()
         {
             Records = new InMemoryItemStorage<IPasswordRecord>();

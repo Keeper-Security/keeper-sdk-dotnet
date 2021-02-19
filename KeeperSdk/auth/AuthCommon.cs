@@ -49,6 +49,9 @@ namespace KeeperSecurity.Authentication
     {
     }
 
+    /// <summary>
+    /// Defines the basic properties of Keeper endpoint object.
+    /// </summary>
     public interface IAuthEndpoint
     {
         /// <exclude/>
@@ -76,14 +79,21 @@ namespace KeeperSecurity.Authentication
     }
 
     /// <summary>
-    /// Defines the basic properties of Keeper authentication object.
+    /// Defines the properties and methods of not connected Keeper authentication object.
     /// </summary>
     public interface IAuth: IAuthEndpoint
     {
+        /// <summary>
+        /// Gets or sets username.
+        /// </summary>
         new string Username { get; set; }
 
+        /// <exclude />
         void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications);
 
+        /// <summary>
+        /// Gets or sets device token
+        /// </summary>
         new byte[] DeviceToken { get; set; }
 
         /// <summary>

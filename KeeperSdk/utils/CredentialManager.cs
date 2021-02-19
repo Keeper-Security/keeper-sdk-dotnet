@@ -1,10 +1,9 @@
-﻿
-using System.Text;
-#if NET45
+﻿#if NET45
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
+using System.Text;
 using Microsoft.Win32.SafeHandles;
 #endif
 

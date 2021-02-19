@@ -16,6 +16,7 @@ using SsoCloud;
 
 namespace KeeperSecurity.Authentication
 {
+    /// <exclude />
     public class LoginContext
     {
         public LoginContext()

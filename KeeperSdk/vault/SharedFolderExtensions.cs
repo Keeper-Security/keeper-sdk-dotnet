@@ -1,14 +1,4 @@
-﻿//  _  __
-// | |/ /___ ___ _ __  ___ _ _ ®
-// | ' </ -_) -_) '_ \/ -_) '_|
-// |_|\_\___\___| .__/\___|_|
-//              |_|
-//
-// Keeper SDK
-// Copyright 2020 Keeper Security Inc.
-// Contact: ops@keepersecurity.com
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;

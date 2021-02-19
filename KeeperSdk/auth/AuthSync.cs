@@ -54,19 +54,34 @@ namespace KeeperSecurity.Authentication.Sync
         /// </summary>
         public IConfigurationStorage Storage { get; }
 
+        /// <summary>
+        /// Gets or sets session resumption flag
+        /// </summary>
         public bool ResumeSession { get; set; }
+
+        /// <summary>
+        /// Forces master password login for SSO accounts.
+        /// </summary>
         public bool AlternatePassword { get; set; }
 
+        /// <summary>
+        /// Gets or sets username.
+        /// </summary>
         public new string Username
         {
             get => base.Username;
             set => base.Username = value;
         }
 
+        /// <exclude />
         public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
         {
             PushNotifications = pushNotifications;
         }
+
+        /// <summary>
+        /// Gets or sets device token
+        /// </summary>
         public new byte[] DeviceToken
         {
             get => base.DeviceToken;
@@ -85,7 +100,7 @@ namespace KeeperSecurity.Authentication.Sync
         private AuthStep _step;
 
         /// <summary>
-        /// Gets a current login step
+        /// Gets a current login step.
         /// </summary>
         public AuthStep Step
         {

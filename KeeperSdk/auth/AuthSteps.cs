@@ -382,7 +382,7 @@ namespace KeeperSecurity.Authentication.Sync
     }
 
     /// <summary>
-    /// Represents connected step
+    /// Represents Connected step. Final step. Successfully connected to Keeper.
     /// </summary>
     public class ConnectedStep : AuthStep
     {
@@ -392,7 +392,7 @@ namespace KeeperSecurity.Authentication.Sync
     }
 
     /// <summary>
-    /// Represents error step
+    /// Represents Error step. Final step. Failed to connect to Keeper.
     /// </summary>
     public class ErrorStep : AuthStep
     {
@@ -408,11 +408,14 @@ namespace KeeperSecurity.Authentication.Sync
         public string Code { get; }
 
         /// <summary>
-        /// GEt error message
+        /// Get error message
         /// </summary>
         public string Message { get; }
     }
 
+    /// <summary>
+    /// Represents Restricted Connection step. Final step. The connection is limited only to certain commands.
+    /// </summary>
     public class RestrictedConnectionStep : AuthStep
     {
         public RestrictedConnectionStep() : base(AuthState.Restricted)

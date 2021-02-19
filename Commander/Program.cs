@@ -1,4 +1,15 @@
-﻿using System;
+﻿//  _  __
+// | |/ /___ ___ _ __  ___ _ _ ®
+// | ' </ -_) -_) '_ \/ -_) '_|
+// |_|\_\___\___| .__/\___|_|
+//              |_|
+//
+// Keeper SDK
+// Copyright 2021 Keeper Security Inc.
+// Contact: ops@keepersecurity.com
+//
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
@@ -162,7 +173,7 @@ namespace Commander
                         Console.WriteLine($"Invalid command: {command}");
                     }
 
-                    foreach (var c in (_cliContext.Commands.Concat(_cliContext.StateContext.Commands))
+                    foreach (var c in (_cliContext.Commands.Concat(_cliContext.StateContext.Commands.Where(x => !string.IsNullOrEmpty(x.Value.Description))))
                         .OrderBy(x => x.Value.Order))
                     {
                         Console.WriteLine("    " + c.Key.PadRight(24) + c.Value.Description);

@@ -288,6 +288,22 @@ namespace Commander
                     return Task.FromResult(true);
                 }
             });
+
+            Commands.Add("version", new SimpleCommand
+            {
+                Order = 21,
+                Action = args =>
+                {
+                    if (!string.IsNullOrEmpty(args))
+                    {
+                        _auth.Endpoint.ClientVersion = args;
+                    }
+
+                    Console.WriteLine($"Keeper Client Version: {_auth.Endpoint.ClientVersion}");
+                    return Task.FromResult(true);
+                }
+            });
+
             if (autologin)
             {
                 if (string.IsNullOrEmpty(storage.LastServer))

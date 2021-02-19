@@ -5,6 +5,7 @@ using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Enterprise
 {
+    /// <exclude />
     public class ManagedCompanyAuth: AuthCommon
     {
         public byte[] TreeKey { get; private set; }

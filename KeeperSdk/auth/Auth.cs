@@ -1,22 +1,9 @@
-﻿//  _  __
-// | |/ /___ ___ _ __  ___ _ _ ®
-// | ' </ -_) -_) '_ \/ -_) '_|
-// |_|\_\___\___| .__/\___|_|
-//              |_|
-//
-// Keeper SDK
-// Copyright 2020 Keeper Security Inc.
-// Contact: ops@keepersecurity.com
-//
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using Authentication;
-using System.Runtime.Serialization;
 using System.Threading;
 using Google.Protobuf;
 using KeeperSecurity.Configuration;
@@ -184,20 +171,34 @@ namespace KeeperSecurity.Authentication.Async
         /// <exclude/>
         public override IAuthCallback AuthCallback => Ui;
 
+        /// <summary>
+        /// Gets or sets session resumption flag
+        /// </summary>
         public bool ResumeSession { get; set; }
+
+        /// <summary>
+        /// Forces master password login for SSO accounts.
+        /// </summary>
         public bool AlternatePassword { get; set; }
 
+        /// <summary>
+        /// Gets or sets username.
+        /// </summary>
         public new string Username
         {
             get => base.Username;
             set => base.Username = value;
         }
 
+        /// <exclude />
         public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
         {
             PushNotifications = pushNotifications;
         }
 
+        /// <summary>
+        /// Gets or sets device token
+        /// </summary>
         public new byte[] DeviceToken
         {
             get => base.DeviceToken;
