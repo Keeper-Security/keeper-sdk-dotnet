@@ -1,6 +1,7 @@
 #requires -Version 5.0
 
 using namespace KeeperSecurity
+using namespace KeeperSecurity.Utils.CryptoUtils
 
 function Get-KeeperRecords {
 <#
@@ -190,9 +191,11 @@ function Show-TwoFactorCode {
 		}
 	}
 	End {
+	        $BindingFlags= [Reflection.BindingFlags] "NonPublic,Static"
+		$GetTotpCode = [KeeperSecurity.Utils.CryptoUtils].GetMethod('GetTotpCode',$BindingFlags)
 		$output = @()
 		foreach ($totp in $totps) {
-			[Tuple[string, int, int]]$code = [Utils.CryptoUtils]::GetTotpCode($totps.TotpData)
+			[Tuple[string, int, int]]$code = $GetTotpCode.Invoke($null,$totps.TotpData)
 			if ($code) {
 				$output += [PSCustomObject]@{
 					PSTypeName   = 'TOTP.Codes'
