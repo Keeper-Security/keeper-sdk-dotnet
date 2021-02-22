@@ -2984,6 +2984,20 @@
             <param name="privateKey">Private key.</param>
             <returns>Plain data.</returns>
         </member>
+        <member name="M:KeeperSecurity.Utils.CryptoUtils.GetTotpCode(System.String)">
+            <summary>
+            Gets TOTP code for URL
+            </summary>
+            <param name="url">TOTP URL</param>
+            <returns>
+            A tuple containing three values:
+            <list type="number">
+            <item><description>TOTP code</description></item>
+            <item><description>Seconds passed</description></item>
+            <item><description>TOTP Period in seconds</description></item>
+            </list>
+            </returns>
+        </member>
         <member name="T:KeeperSecurity.Utils.EncryptTransform">
             <exclude />
         </member>

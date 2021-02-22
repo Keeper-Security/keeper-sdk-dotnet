@@ -528,7 +528,19 @@ namespace KeeperSecurity.Utils
             return output.ToArray();
         }
 
-        internal static Tuple<string, int, int> GetTotpCode(string url)
+        /// <summary>
+        /// Gets TOTP code for URL
+        /// </summary>
+        /// <param name="url">TOTP URL</param>
+        /// <returns>
+        /// A tuple containing three values:
+        /// <list type="number">
+        /// <item><description>TOTP code</description></item>
+        /// <item><description>Seconds passed</description></item>
+        /// <item><description>TOTP Period in seconds</description></item>
+        /// </list>
+        /// </returns>
+        public static Tuple<string, int, int> GetTotpCode(string url)
         {
             var uri = new Uri(url);
             if (uri.Scheme != "otpauth") return null;
