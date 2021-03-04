@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Authentication;
+using Enterprise;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 

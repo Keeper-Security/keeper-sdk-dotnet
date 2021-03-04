@@ -185,6 +185,14 @@ namespace KeeperSecurity.Vault
             await this.MoveToFolder(records, dstFolder.FolderUid, link);
         }
 
+        /// <summary>
+        /// Moves a folder to the another folder.
+        /// </summary>
+        /// <param name="srcFolderUid">Source Folder UID.</param>
+        /// <param name="dstFolderUid">Destination Folder UID.</param>
+        /// <param name="link"><c>true</c>creates a link. The source folder in not deleted; otherwise source folder will be removed.</param>
+        /// <returns>Awaitable task.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
         public async Task MoveFolder(string srcFolderUid, string dstFolderUid, bool link = false)
         {
             var srcFolder = this.GetFolder(srcFolderUid);
@@ -193,8 +201,18 @@ namespace KeeperSecurity.Vault
             await this.MoveToFolder(new[] {new RecordPath {FolderUid = srcFolder.FolderUid}}, dstFolder.FolderUid, link);
         }
 
-        public Task<FolderNode> CreateFolder<T>(string folderName, string parentFolderUid = null, T sharedFolderOptions = null)
-            where T : class, ISharedFolderUserOptions, ISharedFolderRecordOptions
+        /// <summary>
+        /// Creates a folder.
+        /// </summary>
+        /// <param name="name">Folder Name.</param>
+        /// <param name="parentFolderUid">Parent Folder UID.</param>
+        /// <param name="sharedFolderOptions">Shared Folder creation options. Optional.</param>
+        /// <returns>A task returning created folder.</returns>
+        /// <remarks>Pass <see cref="sharedFolderOptions"/> parameter to create a Shared Folder.</remarks>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <seealso cref="SharedFolderOptions"/>
+
+        public Task<FolderNode> CreateFolder(string folderName, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null)
         {
             if (string.IsNullOrEmpty(folderName))
             {
@@ -214,6 +232,13 @@ namespace KeeperSecurity.Vault
             return this.AddFolder(folderName, parentFolderUid, sharedFolderOptions);
         }
 
+        /// <summary>
+        /// Renames a folder.
+        /// </summary>
+        /// <param name="folderUid">Folder UID.</param>
+        /// <param name="newName">New folder name.</param>
+        /// <returns>A task returning renamed folder.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
         public Task<FolderNode> RenameFolder(string folderUid, string newName)
         {
             var folder = this.GetFolder(folderUid);

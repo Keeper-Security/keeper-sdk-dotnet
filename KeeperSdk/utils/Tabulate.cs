@@ -107,7 +107,7 @@ namespace KeeperSecurity.Utils
         private const string RowSeparator = "  ";
         public bool DumpRowNo { get; set; }
         public int LeftPadding { get; set; }
-        public int MaxColumnWidth { get; set; } = 40;
+        public int MaxColumnWidth { get; set; } = 60;
 
         public void Dump()
         {

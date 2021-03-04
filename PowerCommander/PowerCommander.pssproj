@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AuthCommands.ps1" />
+    <Compile Include="FolderCommands.ps1" />
     <Compile Include="PowerCommander.psd1" />
     <Compile Include="PowerCommander.psm1" />
     <Compile Include="PowerCommander.tests.ps1" />

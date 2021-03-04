@@ -225,7 +225,6 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Creates a folder.
         /// </summary>
-        /// <typeparam name="T">Shared Folder Options type.</typeparam>
         /// <param name="name">Folder Name.</param>
         /// <param name="parentFolderUid">Parent Folder UID.</param>
         /// <param name="sharedFolderOptions">Shared Folder creation options. Optional.</param>
@@ -233,8 +232,7 @@ namespace KeeperSecurity.Vault
         /// <remarks>Pass <see cref="sharedFolderOptions"/> parameter to create a Shared Folder.</remarks>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <seealso cref="SharedFolderOptions"/>
-        Task<FolderNode> CreateFolder<T>(string name, string parentFolderUid = null, T sharedFolderOptions = null) 
-            where T: class, ISharedFolderUserOptions, ISharedFolderRecordOptions;
+        Task<FolderNode> CreateFolder(string name, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null);
         /// <summary>
         /// Renames a folder.
         /// </summary>

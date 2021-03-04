@@ -641,7 +641,7 @@ namespace SsoCloud {
     public const int OperationFieldNumber = 3;
     private global::SsoCloud.SsoCloudSettingOperationType operation_ = global::SsoCloud.SsoCloudSettingOperationType.Set;
     /// <summary>
-    /// Set, Cancel to Default, etc.
+    /// Set, Reset to Default, etc.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::SsoCloud.SsoCloudSettingOperationType Operation {
