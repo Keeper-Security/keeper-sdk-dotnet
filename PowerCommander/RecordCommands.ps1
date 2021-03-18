@@ -83,6 +83,7 @@ function Copy-KeeperToClipboard {
 		if ($Record -is [Array]) {
 			if ($Record.Count -ne 1) {
 				Write-Error -Message 'Only one record is expected'
+				return
 			}
 			$Record = $Record[0]
 		}
@@ -90,6 +91,7 @@ function Copy-KeeperToClipboard {
 		[Vault.VaultOnline]$vault = $Script:Vault
 		if (-not $vault) {
 			Write-Error -Message 'Not connected'
+			return
 		}
 
 		$uid = $null
@@ -156,6 +158,7 @@ function Show-TwoFactorCode {
 		[Vault.VaultOnline]$vault = $Script:Vault
 		if (-not $vault) {
 			Write-Error -Message 'Not connected'
+			return
 		}
 		$totps = @()
 	}
@@ -257,14 +260,16 @@ function Add-KeeperRecord {
 		[Vault.VaultOnline]$vault = $Script:Vault
 		if (-not $vault) {
 			Write-Error -Message 'Not connected'
+			return
 		}
         [Vault.PasswordRecord]$record = $null
 	}
 
 	Process {
-		$objs = Get-KeeperChildItems -ObjectType Record | where Name -eq $Title
+		$objs = Get-KeeperChildItems -ObjectType Record | Where-Object Name -eq $Title
 		if ($objs.Length -eq 0 -and $UpdateOnly.IsPresent) {
             Write-Error -Message "Record `"$Title`" not found"
+			return
 		}
         if ($objs.Length -eq 0) {
             $record = New-Object Vault.PasswordRecord
@@ -273,6 +278,7 @@ function Add-KeeperRecord {
             $record = Get-KeeperRecords -Uid $objs[0].UID
             if (-not $record) {
                 Write-Error -Message "Record `"$Title`" not found"
+				return
             }
         }
         
@@ -325,6 +331,62 @@ function Add-KeeperRecord {
 }
 New-Alias -Name kadd -Value Add-KeeperRecord
 
+
+function Remove-KeeperRecord {
+<#
+	.Synopsis
+	Removes Keeper record.
+
+	.Parameter Name
+	Folder name or Folder UID
+#>
+
+	[CmdletBinding(DefaultParameterSetName = 'Default')]
+	Param (
+		[Parameter(Position = 0, Mandatory = $true)][string] $Name
+	)
+
+	[Vault.VaultOnline]$vault = $Script:Vault
+	if (-not $vault) {
+		Write-Error -Message 'Not connected'
+		return
+	}
+	$folderUid = $null
+	$recordUid = $null
+	[Vault.PasswordRecord] $record = $null
+	if ($vault.TryGetRecord($Name, [ref]$record)) {
+		$recordUid = $record.Uid
+		if (-not $vault.RootFolder.Records.Contains($recordUid)) {
+			foreach ($f in $vault.Folders) {
+				if ($f.Records.Contains($recordUid)) {
+					$folderUid = $f.FolderUid
+					break
+				}
+			}
+		}
+	}
+	if (-not $recordUid) {
+		$objs = Get-KeeperChildItems -ObjectType Record | Where-Object Name -eq $Name
+		if (-not $objs) {
+			Write-Error -Message "Record `"$Name`" does not exist"
+			return
+		}
+		if ($objs.Length -gt 1) {
+			Write-Error -Message "There are more than one records with name `"$Name`". Use Record UID do delete the correct one."
+			return
+		}
+		$recordUid = $objs[0].Uid
+		$folderUid = $Script:CurrentFolder
+	}
+
+	$recordPath = New-Object KeeperSecurity.Vault.RecordPath
+	$recordPath.RecordUid = $recordUid
+	$recordPath.FolderUid = $folderUid
+	$task = $vault.DeleteRecords(@($recordPath))
+	$_ = $task.GetAwaiter().GetResult()
+}
+New-Alias -Name kdel -Value Remove-KeeperRecord
+
 function Move-RecordToFolder {
 <#
 	.Synopsis
@@ -348,6 +410,7 @@ function Move-RecordToFolder {
 		[Vault.VaultOnline]$vault = $Script:Vault
 		if (-not $vault) {
 			Write-Error -Message 'Not connected'
+			return
 		}
 
 		$folderUid = resolveFolderUid $vault $Folder
@@ -365,7 +428,7 @@ function Move-RecordToFolder {
 			if ($r -is [String]) {
 				$uid = $r
 			} 
-			elseif ($r.Uid -ne $null) {
+			elseif ($null -ne $r.Uid) {
 				$uid = $r.Uid
 			}
 			if ($uid) {

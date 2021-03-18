@@ -33,6 +33,10 @@ namespace KeeperSecurity.Vault
 
         private bool _autoSync;
 
+        /// <summary>
+        /// Gets or sets vault auto sync flag.
+        /// </summary>
+        /// <remarks>When <c>True</c> the library subscribes to the Vault change notifications.</remarks>
         public bool AutoSync
         {
             get => _autoSync;
@@ -55,14 +59,14 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public IVaultUi VaultUi { get; set; }
 
-        private long scheduledAt;
-        private Task syncDownTask;
+        private long _scheduledAt;
+        private Task _syncDownTask;
 
         /// <summary>
         /// Schedules sync down.
         /// </summary>
         /// <param name="delay">delay</param>
-        /// <returns></returns>
+        /// <returns>Awaitable task</returns>
         public Task ScheduleSyncDown(TimeSpan delay)
         {
             if (delay > TimeSpan.FromSeconds(5))
@@ -72,11 +76,11 @@ namespace KeeperSecurity.Vault
 
             var now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-            if (syncDownTask != null && scheduledAt > now)
+            if (_syncDownTask != null && _scheduledAt > now)
             {
-                if (now + (long) delay.TotalMilliseconds < scheduledAt)
+                if (now + (long) delay.TotalMilliseconds < _scheduledAt)
                 {
-                    return syncDownTask;
+                    return _syncDownTask;
                 }
             }
 
@@ -90,29 +94,33 @@ namespace KeeperSecurity.Vault
                         await Task.Delay(delay);
                     }
 
-                    if (myTask == syncDownTask)
+                    if (myTask == _syncDownTask)
                     {
-                        scheduledAt = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 1000;
+                        _scheduledAt = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 1000;
                         await this.RunSyncDown();
                     }
                 }
                 finally
                 {
-                    if (myTask == syncDownTask)
+                    if (myTask == _syncDownTask)
                     {
-                        syncDownTask = null;
-                        scheduledAt = 0;
+                        _syncDownTask = null;
+                        _scheduledAt = 0;
                     }
                 }
             });
-            scheduledAt = now + (long) delay.TotalMilliseconds;
-            syncDownTask = myTask;
+            _scheduledAt = now + (long) delay.TotalMilliseconds;
+            _syncDownTask = myTask;
             return myTask;
         }
 
+        /// <summary>
+        /// Immediately executes sync down.
+        /// </summary>
+        /// <returns>Awaitable task</returns>
         public async Task SyncDown()
         {
-            await ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            await ScheduleSyncDown(TimeSpan.FromMilliseconds(10));
         }
 
         internal bool OnNotificationReceived(NotificationEvent evt)
@@ -134,21 +142,53 @@ namespace KeeperSecurity.Vault
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Creates a password record.
+        /// </summary>
+        /// <param name="record">Password Record.</param>
+        /// <param name="folderUid">Folder UID where the record to be created. Optional.</param>
+        /// <returns>A task returning created password record.</returns>
+        /// <seealso cref="IVault.CreateRecord"/>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
         public Task<PasswordRecord> CreateRecord(PasswordRecord record, string folderUid = null)
         {
             return this.AddRecordToFolder(record, folderUid);
         }
 
+        /// <summary>
+        /// Modifies a password record.
+        /// </summary>
+        /// <param name="record">Password Record.</param>
+        /// <param name="skipExtra">Do not update file attachment information on the record.</param>
+        /// <returns>A task returning created password record.</returns>
+        /// <seealso cref="IVault.UpdateRecord"/>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
         public Task<PasswordRecord> UpdateRecord(PasswordRecord record, bool skipExtra = true)
         {
             return this.PutRecord(record, false, skipExtra);
         }
 
+        /// <summary>
+        /// Stores non shared (or per user) data associated with the record.
+        /// </summary>
+        /// <typeparam name="T">App specific per-user data type</typeparam>
+        /// <param name="recordUid">Record UID</param>
+        /// <param name="nonSharedData">Non shared data</param>
+        /// <returns>Awaitable task.</returns>
+        /// <exception cref="Authentication.KeeperApiException">Keeper API error</exception>
+        /// <seealso cref="IVault.StoreNonSharedData{T}"/>
         public Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedData, new()
         {
             return this.PutNonSharedData(recordUid, nonSharedData);
         }
 
+        /// <summary>
+        /// Deletes password records.
+        /// </summary>
+        /// <param name="records">an array of record paths.</param>
+        /// <returns>Awaitable task.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <seealso cref="IVault.DeleteRecords"/>
         public Task DeleteRecords(RecordPath[] records)
         {
             foreach (var path in records)
@@ -168,6 +208,15 @@ namespace KeeperSecurity.Vault
             return this.DeleteVaultObjects(records);
         }
 
+        /// <summary>
+        /// Moves records to a folder.
+        /// </summary>
+        /// <param name="records">an array of record paths.</param>
+        /// <param name="dstFolderUid">Destination folder UID.</param>
+        /// <param name="link"><c>true</c>creates a link. The source record in not deleted; otherwise record will be removed from the source.</param>
+        /// <returns>Awaitable task.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <seealso cref="MoveRecords"/>
         public async Task MoveRecords(RecordPath[] records, string dstFolderUid, bool link = false)
         {
             foreach (var path in records)
@@ -204,14 +253,13 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Creates a folder.
         /// </summary>
-        /// <param name="name">Folder Name.</param>
+        /// <param name="folderName">Folder Name.</param>
         /// <param name="parentFolderUid">Parent Folder UID.</param>
         /// <param name="sharedFolderOptions">Shared Folder creation options. Optional.</param>
         /// <returns>A task returning created folder.</returns>
         /// <remarks>Pass <see cref="sharedFolderOptions"/> parameter to create a Shared Folder.</remarks>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <seealso cref="SharedFolderOptions"/>
-
         public Task<FolderNode> CreateFolder(string folderName, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null)
         {
             if (string.IsNullOrEmpty(folderName))
@@ -250,6 +298,12 @@ namespace KeeperSecurity.Vault
             return this.FolderUpdate(folder.FolderUid, newName);
         }
 
+        /// <summary>
+        /// Delete folder.
+        /// </summary>
+        /// <param name="folderUid">Folder UID.</param>
+        /// <returns>Awaitable task.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
         public Task DeleteFolder(string folderUid)
         {
             var folder = this.GetFolder(folderUid);
@@ -269,7 +323,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Retrieves all enterprise team descriptions.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A list of all enterprise teams. (awaitable)</returns>
         public async Task<IEnumerable<TeamInfo>> GetAvailableTeams()
         {
             var request = new GetAvailableTeamsCommand();

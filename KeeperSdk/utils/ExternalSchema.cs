@@ -5,6 +5,7 @@ using KeeperSecurity.Vault;
 
 namespace KeeperSecurity.Utils
 {
+    /// <exclude/>
     public interface IExternalLoader
     {
         bool VerifyDatabase();
@@ -31,6 +32,7 @@ namespace KeeperSecurity.Utils
         new string ObjectUid { get; set; }
     }
 
+    /// <exclude/>
     public enum ColumnType
     {
         Integer,
@@ -40,6 +42,7 @@ namespace KeeperSecurity.Utils
         Decimal,
     }
 
+    /// <exclude/>
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class SqlTableAttribute : Attribute
     {
@@ -49,6 +52,7 @@ namespace KeeperSecurity.Utils
         public string[] Index2 { get; set; }
     }
 
+    /// <exclude/>
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class SqlColumnAttribute : Attribute
     {

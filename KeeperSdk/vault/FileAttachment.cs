@@ -103,7 +103,7 @@ namespace KeeperSecurity
             /// </summary>
             /// <param name="recordUid">Record UID.</param>
             /// <param name="attachmentId">Attachment ID.</param>
-            /// <returns></returns>
+            /// <returns>A signed <see cref="WebRequest">WebRequest</see> instance (awaitable)</returns>
             public async Task<WebRequest> CreateAttachmentDownloadRequest(string recordUid, string attachmentId)
             {
                 var command = new RequestDownloadCommand

@@ -14,7 +14,7 @@ The Keeper .Net SDK is compatible with the new [Keeper Login V3 API](https://doc
 ### .Net SDK
 For source integration into your .Net code, please utilize the [KeeperSDK Library source code](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
 
-[API documentation] (https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/index.html)
+[API documentation] (https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
 
 ### Sample App
 For help with implementation of SDK features, please see the 

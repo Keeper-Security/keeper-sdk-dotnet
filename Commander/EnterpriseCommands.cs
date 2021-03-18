@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -25,6 +27,8 @@ namespace Commander
         Dictionary<long, byte[]> UserDataKeys { get; }
 
         ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
+
+        IDictionary<string, AuditEventType> AuditEvents { get; set; }
     }
 
     internal static class EnterpriseExtensions
@@ -69,6 +73,14 @@ namespace Commander
                     Order = 64,
                     Description = "Manage User Devices",
                     Action = async options => { await context.EnterpriseDeviceCommand(options); },
+                });
+
+            cli.Commands.Add("audit-report",
+                new ParsableCommand<AuditReportOptions>
+                {
+                    Order = 64,
+                    Description = "Run an audit trail report.",
+                    Action = async options => { await context.RunAuditEventsReport(options); },
                 });
 
             cli.CommandAliases["esd"] = "enterprise-sync-down";
@@ -709,6 +721,191 @@ namespace Commander
             await context.Enterprise.Auth.ExecuteAuthRest("enterprise/set_enterprise_key_pair", request);
             cli.Commands.Remove("enterprise-add-key");
         }
+
+        private static string IN_PATTERN = @"\s*in\s*\(\s*(.*)\s*\)";
+        private static string BETWEEN_PATTERN = @"\s*between\s+(\S*)\s+and\s+(.*)";
+
+        private static bool TryParseUtcDate(string text, out long epochInSec)
+        {
+            epochInSec = 0;
+            if (long.TryParse(text, out epochInSec))
+            {
+                var nowInCentis = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 10;
+                if (epochInSec > nowInCentis)
+                {
+                    epochInSec /= 1000;
+                    return true;
+                }
+            }
+
+            const DateTimeStyles dtStyle = DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal;
+            if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, dtStyle, out var dt))
+            {
+                epochInSec = dt.ToUnixTimeSeconds();
+                return true;
+            }
+
+            return false;
+        }
+
+        private static object ParseDateCreatedFilter(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+
+            switch (text.ToLowerInvariant())
+            {
+                case "today":
+                case "yesterday":
+                case "last_7_days":
+                case "last_30_days":
+                case "month_to_date":
+                case "last_month":
+                case "year_to_date":
+                case "last_year":
+                    return text;
+            }
+
+            if (text.StartsWith(">") || text.StartsWith("<"))
+            {
+                var isGreater = text[0] == '>';
+                text = text.Substring(1);
+                var hasEqual = text.StartsWith("=");
+                if (hasEqual)
+                {
+                    text = text.Substring(1);
+                }
+
+                if (TryParseUtcDate(text, out var dt))
+                {
+                    var filter = new CreatedFilter();
+                    if (isGreater)
+                    {
+                        filter.Min = dt;
+                        filter.ExcludeMin = !hasEqual;
+                    }
+                    else
+                    {
+                        filter.Max = dt;
+                        filter.ExcludeMax = !hasEqual;
+                    }
+                }
+            }
+            else
+            {
+                var match = Regex.Match(text, BETWEEN_PATTERN, RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    if (TryParseUtcDate(match.Groups[1].Value, out var from) && TryParseUtcDate(match.Groups[2].Value, out var to))
+                    {
+                        return new CreatedFilter
+                        {
+                            Min = from,
+                            Max = to,
+                            ExcludeMin = false,
+                            ExcludeMax = true,
+                        };
+                    }
+                }
+            }
+
+
+            return null;
+        }
+
+        private static string ParameterPattern = @"\${(\w+)}";
+
+        internal static async Task RunAuditEventsReport(this IEnterpriseContext context, AuditReportOptions options)
+        {
+            if (context.AuditEvents == null)
+            {
+                var auditEvents = await context.Enterprise.Auth.GetAvailableEvents();
+                lock (context)
+                {
+                    context.AuditEvents = new ConcurrentDictionary<string, AuditEventType>();
+                    foreach (var evt in auditEvents)
+                    {
+                        context.AuditEvents[evt.Name] = evt;
+                    }
+                }
+            }
+
+            var filter = new ReportFilter();
+            if (!string.IsNullOrEmpty(options.Created))
+            {
+                filter.Created = ParseDateCreatedFilter(options.Created);
+            }
+
+            if (options.EventType != null && options.EventType.Any())
+            {
+                filter.EventTypes = options.EventType.ToArray();
+            }
+
+            if (!string.IsNullOrEmpty(options.Username))
+            {
+                filter.Username = options.Username;
+            }
+
+            if (!string.IsNullOrEmpty(options.RecordUid))
+            {
+                filter.RecordUid = options.RecordUid;
+            }
+
+            if (!string.IsNullOrEmpty(options.SharedFolderUid))
+            {
+                filter.SharedFolderUid = options.SharedFolderUid;
+            }
+
+            var rq = new GetAuditEventReportsCommand
+            {
+                Filter = filter,
+                Limit = options.Limit,
+            };
+
+            var rs = await context.Enterprise.Auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(rq);
+
+            var tab = new Tabulate(4) {DumpRowNo = true};
+            tab.AddHeader("Created", "Username", "Event", "Message");
+            tab.MaxColumnWidth = 100;
+            foreach (var evt in rs.Events)
+            {
+                if (!evt.TryGetValue("audit_event_type", out var v)) continue;
+                var eventName = v.ToString();
+                if (!context.AuditEvents.TryGetValue(eventName, out var eventType)) continue;
+
+                var message = eventType.SyslogMessage;
+                do
+                {
+                    var match = Regex.Match(message, ParameterPattern);
+                    if (!match.Success) break;
+                    if (match.Groups.Count != 2) break;
+                    var parameter = match.Groups[1].Value;
+                    var value = "";
+                    if (evt.TryGetValue(parameter, out v))
+                    {
+                        value = v.ToString();
+                    }
+
+                    message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
+                    message = message.Insert(match.Groups[0].Index, value);
+                } while (true);
+                var created = "";
+                if (evt.TryGetValue("created", out v))
+                {
+                    created = v.ToString();
+                    if (long.TryParse(created, out var epoch))
+                    {
+                        created = DateTimeOffset.FromUnixTimeSeconds(epoch).ToString("G");
+                    }
+                }
+                var username = "";
+                if (evt.TryGetValue("username", out v))
+                {
+                    username = v.ToString();
+                }
+                tab.AddRow(created, username, eventName, message);
+            }
+            tab.Dump();
+        }
     }
 
     internal class McEnterpriseContext : BackStateContext, IEnterpriseContext
@@ -738,6 +935,7 @@ namespace Commander
         public bool AutoApproveAdminRequests { get; set; }
         public ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
+        public IDictionary<string, AuditEventType> AuditEvents { get; set; }
 
 
         public override string GetPrompt()
@@ -753,6 +951,7 @@ namespace Commander
         public bool AutoApproveAdminRequests { get; set; }
         public ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
+        public IDictionary<string, AuditEventType> AuditEvents { get; set; }
 
         private readonly List<EnterpriseManagedCompany> _managedCompanies = new List<EnterpriseManagedCompany>();
 
@@ -914,6 +1113,30 @@ namespace Commander
 
         [Value(1, Required = false, HelpText = "enterprise-device command: \"list\", \"approve\", \"decline\"")]
         public string Match { get; set; }
+    }
+
+    class AuditReportOptions 
+    {
+        [Option("limit", Required = false, Default = 100, HelpText = "maximum number of returned events")]
+        public int Limit { get; set; }
+
+        [Option("created", Required = false, Default = null, HelpText = "event creation datetime")]
+        public string Created { get; set; }
+
+        [Option("event-type", Required = false, Default = null, Separator = ',', HelpText = "audit event type")]
+        public IEnumerable<string> EventType { get; set; }
+
+        [Option("username", Required = false, Default = null, HelpText = "username of event originator")]
+        public string Username { get; set; }
+
+        [Option("to_username", Required = false, Default = null, HelpText = "username of event target")]
+        public string ToUsername { get; set; }
+
+        [Option("record_uid", Required = false, Default = null, HelpText = "record UID")]
+        public string RecordUid { get; set; }
+
+        [Option("shared-folder-uid", Required = false, Default = null, HelpText = "shared folder UID")]
+        public string SharedFolderUid { get; set; }
     }
 
     class EnterpriseMcLoginOptions : EnterpriseGenericOptions

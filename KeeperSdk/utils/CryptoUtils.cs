@@ -181,6 +181,7 @@ namespace KeeperSecurity.Utils
             return decryptedData.Take(len).ToArray();
         }
 
+        /// <exclude/>
         public static byte[] EncryptAesV2(byte[] data, byte[] key, byte[] nonce)
         {
             var parameters = new AeadParameters(new KeyParameter(key), 16 * 8, nonce);

@@ -5,7 +5,7 @@ using namespace KeeperSecurity
 function Add-KeeperFolder {
 <#
 	.Synopsis
-	Creates or Modifies a Keeper record in the current folder.
+	Creates a Keeper folder.
 
 	.Parameter Name
 	Folder name
@@ -44,10 +44,12 @@ function Add-KeeperFolder {
 	[Vault.VaultOnline]$vault = $Script:Vault
 	if (-not $vault) {
 		Write-Error -Message 'Not connected'
+		return
 	}
 	$objs = Get-KeeperChildItems -ObjectType Folder | where Name -eq $Name
 	if ($objs.Length -gt 0 ) {
         Write-Error -Message "Folder `"$Name`" already exists"
+		return
 	}
 
 	$parentUid = $Script:CurrentFolder
@@ -55,6 +57,7 @@ function Add-KeeperFolder {
 		[Vault.FolderNode]$folder = $null
 		if (-not $vault.TryGetFolder($ParentFolderUid, [ref]$folder)) {
 	        Write-Error -Message "Folder UID `"$ParentFolderUid`" does not exist"
+			return
 		}
 		$parentUid = $ParentFolderUid
 	}
@@ -76,5 +79,48 @@ function Add-KeeperFolder {
 		}
 	}
 	$task = $vault.CreateFolder($Name, $parentUid, $options)
+	$task.GetAwaiter().GetResult()
+}
+New-Alias -Name kmkdir -Value Add-KeeperFolder
+
+function Remove-KeeperFolder {
+<#
+	.Synopsis
+	Delete Keeper folder.
+
+	.Parameter Name
+	Folder name or Folder UID
+#>
+
+	[CmdletBinding(DefaultParameterSetName = 'Default')]
+	Param (
+		[Parameter(Position = 0, Mandatory = $true)][string] $Name
+	)
+
+	[Vault.VaultOnline]$vault = $Script:Vault
+	if (-not $vault) {
+		Write-Error -Message 'Not connected'
+		return
+	}
+	$folderUid = $null
+	$folder = $null
+	if ($vault.TryGetFolder($Name, [ref]$folder)) {
+		$folderUid = $folder.FolderUid
+	}
+	if (-not $folderUid) {
+		$objs = Get-KeeperChildItems -ObjectType Folder | where Name -eq $Name
+		if (-not $objs) {
+			Write-Error -Message "Folder `"$Name`" does not exist"
+			return
+		}
+		if ($objs.Length -gt 1) {
+			Write-Error -Message "There are more than one folders with name `"$Name`". Use Folder UID do delete the correct one."
+			return
+		}
+		$folderUid = $objs[0].Uid
+	}
+
+	$task = $vault.DeleteFolder($folderUid)
 	$_ = $task.GetAwaiter().GetResult()
 }
+New-Alias -Name krmdir -Value Remove-KeeperFolder

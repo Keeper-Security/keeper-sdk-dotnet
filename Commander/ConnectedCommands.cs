@@ -887,6 +887,7 @@ namespace Commander
                         if (int.TryParse(arguments.Parameter, out var timeout))
                         {
                             await _auth.SetSessionInactivityTimeout(timeout);
+                            _accountSummary = null;
                         }
                         else
                         {

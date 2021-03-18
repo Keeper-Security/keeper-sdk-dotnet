@@ -376,9 +376,11 @@ namespace KeeperSecurity.Vault
     /// </summary>
     public class VaultException : Exception
     {
+        /// <exclude/>
         public VaultException(string message) : base(message)
         {
         }
+        /// <exclude/>
         public VaultException(string translationKey, string message) : base(message)
         {
             TranslationKey = translationKey;

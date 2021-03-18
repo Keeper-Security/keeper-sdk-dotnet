@@ -120,10 +120,10 @@ $Keeper_FolderPathRecordCompleter = {
 				if ($vault.TryGetFolder($uid, [ref]$subfolder)) {
 					if ($subfolder.Name -like $pattern) {
 						$path = @()
-						$components | % { $path += $_ }
+						$components | ForEach-Object { $path += $_ }
 						$path[-1] = $subfolder.Name
 						$path += ''
-						$expansion = ($path | % {$_ -replace '\\', '\\'}) -join $Script:PathDelimiter 
+						$expansion = ($path | ForEach-Object {$_ -replace '\\', '\\'}) -join $Script:PathDelimiter 
 						if ($expansion -match '[\s'']') {
 							$expansion = $expansion -replace '''', ''''''
 							$expansion = "'${expansion}'"
@@ -230,7 +230,7 @@ function Get-KeeperChildItems {
 					if ($vault.TryGetFolder($uid, [ref]$sf)) {
 						$match = $true
 						if ($Filter) {
-							$match = @($sf.Name, $sf.FolderUid) | Select-String $Filter | Select -First 1
+							$match = @($sf.Name, $sf.FolderUid) | Select-String $Filter | Select-Object -First 1
 						}
 						if ($match) {
 							$entry = [PSCustomObject]@{
@@ -253,7 +253,7 @@ function Get-KeeperChildItems {
 					if ($vault.TryGetRecord($uid, [ref]$r)) {
 						$match = $true
 						if ($Filter) {
-							$match = @($r.Title, $r.Uid, $r.Login, $r.Link) | Select-String $Filter | Select -First 1
+							$match = @($r.Title, $r.Uid, $r.Login, $r.Link) | Select-String $Filter | Select-Object -First 1
 						}
 						if ($match) {
 							if ($Flat.IsPresent -and $recordEntries.ContainsKey($uid)) {
@@ -343,7 +343,7 @@ function Get-KeeperObject {
 					if ($PropertyName) {
 						$mp = $record | Get-Member -MemberType Properties -Name $PropertyName
 						if ($mp) {
-							$record | Select -ExpandProperty $PropertyName
+							$record | Select-Object -ExpandProperty $PropertyName
 						}
 					} else {
 						$record
@@ -357,7 +357,7 @@ function Get-KeeperObject {
 					if ($PropertyName) {
 						$mp = $sf | Get-Member -MemberType Properties -Name $PropertyName
 						if ($mp) {
-							$sf | Select -ExpandProperty $PropertyName
+							$sf | Select-Object -ExpandProperty $PropertyName
 						}
 					} else {
 						$sf
@@ -371,7 +371,7 @@ function Get-KeeperObject {
 					if ($PropertyName) {
 						$mp = $f | Get-Member -MemberType Properties -Name $PropertyName
 						if ($mp) {
-							$f | Select -ExpandProperty $PropertyName
+							$f | Select-Object -ExpandProperty $PropertyName
 						}
 					} else {
 						$f
@@ -385,7 +385,7 @@ function Get-KeeperObject {
 					if ($PropertyName) {
 						$mp = $t | Get-Member -MemberType Properties -Name $PropertyName
 						if ($mp) {
-							$t | Select -ExpandProperty $PropertyName
+							$t | Select-Object -ExpandProperty $PropertyName
 						}
 					} else {
 						$t
@@ -439,14 +439,13 @@ function parseKeeperPath {
 			}
 
 			if ($resume) {
-				$isFirstComponent = $false
 				$components = $rest
 			} else {
 				break
 			}
 		}
 		$folder
-		($components | % {escapePathComponent $_}) -join $Script:PathDelimiter
+		($components | ForEach-Object {escapePathComponent $_}) -join $Script:PathDelimiter
 	} else {
 		$folder
 		$path
@@ -517,7 +516,7 @@ function getVaultFolderPath {
 	if ($comps) {
 		[Array]::Reverse($comps)
 		$comps += ''
-		$path = ($comps | % {$_ -replace [Regex]::Escape($Script:PathDelimiter), "${Script:PathDelimiter}${Script:PathDelimiter}" }) -join $Script:PathDelimiter
+		$path = ($comps | ForEach-Object {$_ -replace [Regex]::Escape($Script:PathDelimiter), "${Script:PathDelimiter}${Script:PathDelimiter}" }) -join $Script:PathDelimiter
 	}
 	"${Script:PathDelimiter}${path}"
 }

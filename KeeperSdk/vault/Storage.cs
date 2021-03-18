@@ -194,6 +194,7 @@ namespace KeeperSecurity.Vault
         /// Shared folder UID.
         /// </summary>
         string SharedFolderUid { get; }
+        /// <exclude/>
         long Revision { get; }
         /// <summary>
         /// Shared folder name. Encrypted with the shared folder key.

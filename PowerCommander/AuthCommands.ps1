@@ -2,6 +2,15 @@
 
 using namespace KeeperSecurity
 
+class VaultCallback : Vault.IVaultUi {
+    [System.Threading.Tasks.Task[bool]]Confirmation([string]$information) {
+        Write-Host $information 
+        Write-Host
+        $answer = Read-Host -Prompt 'Please confirm (Y/N)'
+        return [System.Threading.Tasks.Task]::FromResult($answer -eq 'Y')
+    }
+}
+
 class AuthFlowCallback : Authentication.Sync.IAuthSyncCallback, Authentication.IAuthInfoUI {
     [bool]$ReadingInput = $false
 
@@ -462,6 +471,7 @@ function Connect-Keeper {
         $Script:Vault.AutoSync = $true
 
         [Vault.VaultData]$vault = $Script:Vault
+        $vault.VaultUi = New-Object VaultCallback
         Write-Information -MessageData "Decrypted $($vault.RecordCount) record(s)"
         $_ = Set-KeeperLocation -Path '\'
     }

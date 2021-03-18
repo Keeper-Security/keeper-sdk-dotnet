@@ -238,7 +238,7 @@ namespace KeeperSecurity.Vault
         /// <param name="sharedFolderUid">Shared Folder UID.</param>
         /// <param name="recordUid">Record UID.</param>
         /// <param name="options">Record permissions.</param>
-        /// <returns></returns>
+        /// <returns>Awaitable task</returns>
         /// <remarks>
         /// This method does not add a record to shared folder.
         /// Use <see cref="IVault.CreateRecord"/> or <see cref="IVault.MoveRecords"/>.

@@ -54,6 +54,10 @@ namespace KeeperSecurity
                 Rules = rules;
             }
 
+            /// <summary>
+            /// Gets the password rule list.
+            /// </summary>
+            /// <seealso cref="PasswordRule"/>
             public PasswordRule[] Rules { get; }
 
             /// <summary>
