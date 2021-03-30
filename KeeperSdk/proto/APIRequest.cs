@@ -344,11 +344,13 @@ namespace Authentication {
             "Q1lfVEhST1RUTEUQAxIVChFRQV9SRVRSWV9USFJPVFRMRRAEEhwKGEFDQ09V",
             "TlRfUkVDT1ZFUl9USFJPVFRMRRAFEi4KKlZBTElEQVRFX0RFVklDRV9WRVJJ",
             "RklDQVRJT05fQ09ERV9USFJPVFRMRRAGEjMKL1ZBTElEQVRFX0NSRUFURV9V",
-            "U0VSX1ZFUklGSUNBVElPTl9DT0RFX1RIUk9UVExFEAdCKgoYY29tLmtlZXBl",
-            "cnNlY3VyaXR5LnByb3RvQg5BdXRoZW50aWNhdGlvbmIGcHJvdG8z"));
+            "U0VSX1ZFUklGSUNBVElPTl9DT0RFX1RIUk9UVExFEAcqOAoGUmVnaW9uEgsK",
+            "B1VOS05PV04QABIGCgJldRABEgYKAnVzEAISCQoFdXNnb3YQAxIGCgJhdRAE",
+            "QioKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IOQXV0aGVudGljYXRpb25i",
+            "BnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Enterprise.EnterpriseReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), typeof(global::Authentication.AlternateAuthenticationType), typeof(global::Authentication.ThrottleType), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Authentication.SupportedLanguage), typeof(global::Authentication.LoginType), typeof(global::Authentication.DeviceStatus), typeof(global::Authentication.LicenseStatus), typeof(global::Authentication.AccountType), typeof(global::Authentication.SessionTokenType), typeof(global::Authentication.Version), typeof(global::Authentication.MasterPasswordReentryActionType), typeof(global::Authentication.LoginMethod), typeof(global::Authentication.LoginState), typeof(global::Authentication.EncryptedDataKeyType), typeof(global::Authentication.PasswordMethod), typeof(global::Authentication.TwoFactorPushType), typeof(global::Authentication.TwoFactorValueType), typeof(global::Authentication.TwoFactorChannelType), typeof(global::Authentication.TwoFactorExpiration), typeof(global::Authentication.LicenseType), typeof(global::Authentication.ObjectTypes), typeof(global::Authentication.AlternateAuthenticationType), typeof(global::Authentication.ThrottleType), typeof(global::Authentication.Region), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApiRequest), global::Authentication.ApiRequest.Parser, new[]{ "EncryptedTransmissionKey", "PublicKeyId", "Locale", "EncryptedPayload", "EncryptionType", "Recaptcha", "SubEnvironment" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.ApiRequestPayload), global::Authentication.ApiRequestPayload.Parser, new[]{ "Payload", "EncryptedSessionToken", "TimeToken", "ApiVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Authentication.Transform), global::Authentication.Transform.Parser, new[]{ "Key", "EncryptedDeviceToken" }, null, null, null, null),
@@ -728,6 +730,33 @@ namespace Authentication {
     [pbr::OriginalName("ACCOUNT_RECOVER_THROTTLE")] AccountRecoverThrottle = 5,
     [pbr::OriginalName("VALIDATE_DEVICE_VERIFICATION_CODE_THROTTLE")] ValidateDeviceVerificationCodeThrottle = 6,
     [pbr::OriginalName("VALIDATE_CREATE_USER_VERIFICATION_CODE_THROTTLE")] ValidateCreateUserVerificationCodeThrottle = 7,
+  }
+
+  /// <summary>
+  ///*
+  /// The names and IDs in this class correspond to the Kinfo database entries and to the Region class in Keeperpap.
+  /// </summary>
+  public enum Region {
+    /// <summary>
+    /// Our region numbers start at 1
+    /// </summary>
+    [pbr::OriginalName("UNKNOWN")] Unknown = 0,
+    /// <summary>
+    /// Europe
+    /// </summary>
+    [pbr::OriginalName("eu")] Eu = 1,
+    /// <summary>
+    /// North America
+    /// </summary>
+    [pbr::OriginalName("us")] Us = 2,
+    /// <summary>
+    /// US Government
+    /// </summary>
+    [pbr::OriginalName("usgov")] Usgov = 3,
+    /// <summary>
+    /// Australia
+    /// </summary>
+    [pbr::OriginalName("au")] Au = 4,
   }
 
   #endregion

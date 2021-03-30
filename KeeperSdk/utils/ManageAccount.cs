@@ -77,11 +77,26 @@ namespace KeeperSecurity
                     })
                     .Select(x => x.description).ToArray();
             }
+
+            public static PasswordRuleMatcher FromNewUserParams(NewUserMinimumParams userParams)
+            {
+                var rules = userParams.PasswordMatchDescription
+                    .Zip(userParams.PasswordMatchRegex,
+                        (description, pattern) => new PasswordRule
+                        {
+                            description = description,
+                            match = true,
+                            pattern = pattern
+                        })
+                    .ToArray();
+                return new PasswordRuleMatcher(rules);
+            }
         }
 
-        internal static class ManageAccountExtension
+        /// <exclude />
+        public static class ManageAccountExtension
         {
-            public static async Task ShareAccount(this IAuthentication auth, AccountShareTo[] shareAccountTo)
+            internal static async Task ShareAccount(this IAuthentication auth, AccountShareTo[] shareAccountTo)
             {
                 if (shareAccountTo != null)
                     foreach (var shareTo in shareAccountTo)

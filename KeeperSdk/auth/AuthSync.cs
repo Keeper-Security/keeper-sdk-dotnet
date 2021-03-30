@@ -167,7 +167,7 @@ namespace KeeperSecurity.Authentication.Sync
                 }
                 catch (KeeperRegionRedirect krr)
                 {
-                    await this.RedirectToRegionV3(_loginContext, krr.RegionHost);
+                    await this.RedirectToRegionV3(krr.RegionHost);
                     await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
                     Step = await this.StartLogin(_loginContext, StartLoginSync);
                 }

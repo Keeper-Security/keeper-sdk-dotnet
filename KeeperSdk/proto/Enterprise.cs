@@ -216,11 +216,14 @@ namespace Enterprise {
             "cGUSBwoDT1dOEAASGAoUU0hBUkVEX1RPX0VOVEVSUFJJU0UQASqBAQoQRW5j",
             "cnlwdGVkS2V5VHlwZRINCglLVF9OT19LRVkQABIcChhLVF9FTkNSWVBURURf",
             "QllfREFUQV9LRVkQARIeChpLVF9FTkNSWVBURURfQllfUFVCTElDX0tFWRAC",
-            "EiAKHEtUX0VOQ1JZUFRFRF9CWV9EQVRBX0tFWV9HQ00QA0ImChhjb20ua2Vl",
-            "cGVyc2VjdXJpdHkucHJvdG9CCkVudGVycHJpc2ViBnByb3RvMw=="));
+            "EiAKHEtUX0VOQ1JZUFRFRF9CWV9EQVRBX0tFWV9HQ00QAyppChJFbnRlcnBy",
+            "aXNlRmxhZ1R5cGUSCwoHSU5WQUxJRBAAEhoKFkFMTE9XX1BFUlNPTkFMX0xJ",
+            "Q0VOU0UQARIYChRTUEVDSUFMX1BST1ZJU0lPTklORxACEhAKDFJFQ09SRF9U",
+            "WVBFUxADQiYKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IKRW50ZXJwcmlz",
+            "ZWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Enterprise.KeyType), typeof(global::Enterprise.EnterpriseType), typeof(global::Enterprise.EnterpriseDataEntity), typeof(global::Enterprise.CacheStatus), typeof(global::Enterprise.BackupKeyType), typeof(global::Enterprise.BackupUserDataKeyType), typeof(global::Enterprise.EncryptedKeyType), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Enterprise.KeyType), typeof(global::Enterprise.EnterpriseType), typeof(global::Enterprise.EnterpriseDataEntity), typeof(global::Enterprise.CacheStatus), typeof(global::Enterprise.BackupKeyType), typeof(global::Enterprise.BackupUserDataKeyType), typeof(global::Enterprise.EncryptedKeyType), typeof(global::Enterprise.EnterpriseFlagType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseKeyPairRequest), global::Enterprise.EnterpriseKeyPairRequest.Parser, new[]{ "EnterprisePublicKey", "EncryptedEnterprisePrivateKey", "KeyType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.GetTeamMemberRequest), global::Enterprise.GetTeamMemberRequest.Parser, new[]{ "TeamUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseUser), global::Enterprise.EnterpriseUser.Parser, new[]{ "EnterpriseUserId", "Email", "EnterpriseUsername" }, null, null, null, null),
@@ -351,6 +354,13 @@ namespace Enterprise {
     [pbr::OriginalName("KT_ENCRYPTED_BY_DATA_KEY")] KtEncryptedByDataKey = 1,
     [pbr::OriginalName("KT_ENCRYPTED_BY_PUBLIC_KEY")] KtEncryptedByPublicKey = 2,
     [pbr::OriginalName("KT_ENCRYPTED_BY_DATA_KEY_GCM")] KtEncryptedByDataKeyGcm = 3,
+  }
+
+  public enum EnterpriseFlagType {
+    [pbr::OriginalName("INVALID")] Invalid = 0,
+    [pbr::OriginalName("ALLOW_PERSONAL_LICENSE")] AllowPersonalLicense = 1,
+    [pbr::OriginalName("SPECIAL_PROVISIONING")] SpecialProvisioning = 2,
+    [pbr::OriginalName("RECORD_TYPES")] RecordTypes = 3,
   }
 
   #endregion

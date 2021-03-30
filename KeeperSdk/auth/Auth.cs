@@ -273,7 +273,7 @@ namespace KeeperSecurity.Authentication.Async
                 }
                 catch (KeeperRegionRedirect krr)
                 {
-                    await this.RedirectToRegionV3(v3, krr.RegionHost);
+                    await this.RedirectToRegionV3(krr.RegionHost);
                     if (string.IsNullOrEmpty(krr.Username)) continue;
 
                     Username = krr.Username;
@@ -319,7 +319,7 @@ namespace KeeperSecurity.Authentication.Async
                 }
                 catch (KeeperRegionRedirect krr)
                 {
-                    await this.RedirectToRegionV3(v3, krr.RegionHost);
+                    await this.RedirectToRegionV3(krr.RegionHost);
                     authContext = await LoginV3(v3);
                 }
 

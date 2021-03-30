@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Authentication;
 using CommandLine;
+using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Async;
+using KeeperSecurity.Utils;
 
 namespace Commander
 {
@@ -238,6 +241,12 @@ namespace Commander
     {
         private readonly Auth _auth;
 
+        private class CreateOptions
+        {
+            [Value(0, Required = true, MetaName = "email", HelpText = "account email")]
+            public string Username { get; set; }
+        }
+
         private class LoginOptions
         {
             [Option("password", Required = false, HelpText = "master password")]
@@ -271,6 +280,13 @@ namespace Commander
                 Order = 10,
                 Description = "Login to Keeper",
                 Action = DoLogin
+            });
+
+            Commands.Add("create", new ParsableCommand<CreateOptions>
+            {
+                Order = 11,
+                Description = "Create Keeper account",
+                Action = DoCreateAccount
             });
 
             Commands.Add("server", new SimpleCommand
@@ -322,6 +338,87 @@ namespace Commander
                 {
                     Program.EnqueueCommand($"login --resume {lastLogin}");
                 }
+            }
+        }
+
+        private async Task DoCreateAccount(CreateOptions options)
+        {
+            var username = options.Username.ToLowerInvariant();
+            Console.WriteLine($"Create {username} account in {_auth.Endpoint.Server} region.");
+
+            var rulesRs = await _auth.Endpoint.GetNewUserParams(username);
+            var matcher = PasswordRuleMatcher.FromNewUserParams(rulesRs);
+            string password;
+            while (true)
+            {
+                Console.Write("\nEnter Master Password: ");
+                password = await Program.GetInputManager().ReadLine(new ReadLineParameters {IsSecured = true});
+                var failedRules = matcher.MatchFailedRules(password);
+                if (failedRules == null) break;
+                if (failedRules.Length == 0) break;
+                Console.WriteLine(string.Join("\n", failedRules));
+            }
+
+            try
+            {
+                var context = new LoginContext();
+                await _auth.EnsureDeviceTokenIsRegistered(context, username);
+                var devicePublicKey = CryptoUtils.GetPublicEcKey(context.DeviceKey);
+
+                var dataKey = CryptoUtils.GenerateEncryptionKey();
+                var clientKey = CryptoUtils.GenerateEncryptionKey();
+                CryptoUtils.GenerateRsaKey(out var rsaPrivate, out var rsaPublic);
+                CryptoUtils.GenerateEcKey(out var ecPrivate, out var ecPublic);
+                var createRq = new CreateUserRequest
+                {
+                    ClientVersion = _auth.Endpoint.ClientVersion,
+                    Username = username,
+                    AuthVerifier = ByteString.CopyFrom(CryptoUtils.CreateAuthVerifier(password, CryptoUtils.GetRandomBytes(16), 100000)),
+                    EncryptionParams = ByteString.CopyFrom(CryptoUtils.CreateEncryptionParams(password, CryptoUtils.GetRandomBytes(16), 100000, dataKey)),
+                    RsaPublicKey = ByteString.CopyFrom(rsaPublic),
+                    RsaEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(rsaPrivate, dataKey)),
+                    EccPublicKey = ByteString.CopyFrom(CryptoUtils.UnloadEcPublicKey(ecPublic)),
+                    EccEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(CryptoUtils.UnloadEcPrivateKey(ecPrivate), dataKey)),
+                    EncryptedClientKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(clientKey, dataKey)),
+                    EncryptedDeviceToken = ByteString.CopyFrom(_auth.DeviceToken),
+                    MessageSessionUid = ByteString.CopyFrom(context.MessageSessionUid),
+                    EncryptedDeviceDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(dataKey, devicePublicKey))
+                };
+
+                var payload = new ApiRequestPayload
+                {
+                    Payload = ByteString.CopyFrom(createRq.ToByteArray())
+                };
+
+                await _auth.Endpoint.ExecuteRest("authentication/request_create_user", payload);
+
+                while (true)
+                {
+                    Console.Write("\nEnter Verification Code: ");
+                    var code = await Program.GetInputManager().ReadLine();
+                    if (string.IsNullOrEmpty(code)) break;
+                    var verRq = new ValidateCreateUserVerificationCodeRequest
+                    {
+                        ClientVersion = _auth.Endpoint.ClientVersion,
+                        Username = username,
+                        VerificationCode = code,
+                    };
+
+                    payload = new ApiRequestPayload
+                    {
+                        Payload = ByteString.CopyFrom(verRq.ToByteArray())
+                    };
+
+                    await _auth.Endpoint.ExecuteRest("authentication/validate_create_user_verification_code", payload);
+
+                    Program.EnqueueCommand($"login {username}");
+                    break;
+                }
+            }
+            finally
+            {
+                _auth.PushNotifications?.Dispose();
+                _auth.SetPushNotifications(null);
             }
         }
 

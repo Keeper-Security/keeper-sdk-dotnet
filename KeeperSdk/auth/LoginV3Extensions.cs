@@ -31,7 +31,7 @@ namespace KeeperSecurity.Authentication
 
         internal string V2TwoFactorToken { get; set; }
 
-       internal ECPrivateKeyParameters DeviceKey { get; set; }
+       public ECPrivateKeyParameters DeviceKey { get; set; }
 
         public byte[] MessageSessionUid { get; }
         internal Queue<string> PasswordQueue { get; } = new Queue<string>();
@@ -39,9 +39,10 @@ namespace KeeperSecurity.Authentication
         internal SsoLoginInfo SsoLoginInfo { get; set; }
     }
 
-    internal static class LoginV3Extensions
+    /// <exclude />
+    public static class LoginV3Extensions
     {
-        internal static async Task EnsureDeviceTokenIsRegistered(this IAuth auth, LoginContext v3, string username)
+        public static async Task EnsureDeviceTokenIsRegistered(this IAuth auth, LoginContext v3, string username)
         {
             if (string.Compare(auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
             {
@@ -161,7 +162,7 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        internal static async Task RedirectToRegionV3(this IAuth auth, LoginContext v3, string newRegion)
+        internal static async Task RedirectToRegionV3(this IAuth auth, string newRegion)
         {
             auth.Endpoint.Server = newRegion;
             if (auth.AuthCallback is IAuthInfoUI infoUi)
@@ -1212,7 +1213,7 @@ namespace KeeperSecurity.Authentication
             }
             catch (KeeperRegionRedirect krr)
             {
-                await auth.RedirectToRegionV3(v3, krr.RegionHost);
+                await auth.RedirectToRegionV3(krr.RegionHost);
                 rsBytes = await auth.Endpoint.ExecuteRest("enterprise/get_sso_service_provider", payload);
             }
 

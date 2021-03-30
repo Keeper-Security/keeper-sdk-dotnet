@@ -463,7 +463,7 @@ namespace KeeperSecurity.Authentication
                 catch (WebException e)
                 {
                     var response = (HttpWebResponse) e.Response;
-                    if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) throw;
+                    if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) return null;
 
                     var authHeader = response.Headers.AllKeys
                         .FirstOrDefault(x =>
