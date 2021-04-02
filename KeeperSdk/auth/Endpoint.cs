@@ -413,7 +413,7 @@ namespace KeeperSecurity.Authentication
 
                             case "session_token":
                             case "auth_failed":
-                                throw new KeeperAuthFailed();
+                                throw new KeeperAuthFailed(keeperRs.Message);
 
                             case "login_token_expired":
                                 throw new KeeperCanceled();

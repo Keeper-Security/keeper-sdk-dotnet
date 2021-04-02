@@ -314,10 +314,18 @@ namespace KeeperSecurity.Authentication.Sync
                 }
 
                 case LoginState.RequiresAccountCreation:
-                    if (_loginContext.AccountAuthType == AccountAuthType.CloudSso)
+                    switch (_loginContext.AccountAuthType)
                     {
-                        await this.CreateSsoUser(_loginContext, response.EncryptedLoginToken);
-                        return await this.ResumeLogin(_loginContext, StartLoginSync, response.EncryptedLoginToken);
+                        case AccountAuthType.CloudSso:
+                            await this.CreateSsoUser(_loginContext, response.EncryptedLoginToken);
+                            return await this.ResumeLogin(_loginContext, StartLoginSync, response.EncryptedLoginToken);
+                        case AccountAuthType.OnsiteSso:
+                            if (_loginContext.PasswordQueue.Count > 0)
+                            {
+                                await this.RequestCreateUser(_loginContext, _loginContext.PasswordQueue.Peek());
+                                return await this.ResumeLogin(_loginContext, StartLoginSync, response.EncryptedLoginToken);
+                            }
+                            break;
                     }
 
                     break;

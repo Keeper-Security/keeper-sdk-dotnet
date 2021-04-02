@@ -381,7 +381,7 @@ namespace KeeperSecurity.Authentication
 
             if (response.resultCode == "auth_failed")
             {
-                throw new KeeperAuthFailed();
+                throw new KeeperAuthFailed(response.message);
             }
 
             if (throwOnError)

@@ -363,56 +363,63 @@ namespace Commander
             {
                 var context = new LoginContext();
                 await _auth.EnsureDeviceTokenIsRegistered(context, username);
-                var devicePublicKey = CryptoUtils.GetPublicEcKey(context.DeviceKey);
 
-                var dataKey = CryptoUtils.GenerateEncryptionKey();
-                var clientKey = CryptoUtils.GenerateEncryptionKey();
-                CryptoUtils.GenerateRsaKey(out var rsaPrivate, out var rsaPublic);
-                CryptoUtils.GenerateEcKey(out var ecPrivate, out var ecPublic);
-                var createRq = new CreateUserRequest
+                await _auth.RequestCreateUser(context, password);
+
+                Task<string> verificationCodeTask = null;
+                _auth.PushNotifications.RegisterCallback(evt =>
                 {
-                    ClientVersion = _auth.Endpoint.ClientVersion,
-                    Username = username,
-                    AuthVerifier = ByteString.CopyFrom(CryptoUtils.CreateAuthVerifier(password, CryptoUtils.GetRandomBytes(16), 100000)),
-                    EncryptionParams = ByteString.CopyFrom(CryptoUtils.CreateEncryptionParams(password, CryptoUtils.GetRandomBytes(16), 100000, dataKey)),
-                    RsaPublicKey = ByteString.CopyFrom(rsaPublic),
-                    RsaEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(rsaPrivate, dataKey)),
-                    EccPublicKey = ByteString.CopyFrom(CryptoUtils.UnloadEcPublicKey(ecPublic)),
-                    EccEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(CryptoUtils.UnloadEcPrivateKey(ecPrivate), dataKey)),
-                    EncryptedClientKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(clientKey, dataKey)),
-                    EncryptedDeviceToken = ByteString.CopyFrom(_auth.DeviceToken),
-                    MessageSessionUid = ByteString.CopyFrom(context.MessageSessionUid),
-                    EncryptedDeviceDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(dataKey, devicePublicKey))
-                };
+                    if (evt.Command == "user_created" && evt.Username == username)
+                    {
+                        if (verificationCodeTask != null)
+                        {
+                            Program.GetInputManager().InterruptReadTask(verificationCodeTask);
+                        }
 
-                var payload = new ApiRequestPayload
-                {
-                    Payload = ByteString.CopyFrom(createRq.ToByteArray())
-                };
+                        return true;
+                    }
 
-                await _auth.Endpoint.ExecuteRest("authentication/request_create_user", payload);
-
+                    return false;
+                });
                 while (true)
                 {
                     Console.Write("\nEnter Verification Code: ");
-                    var code = await Program.GetInputManager().ReadLine();
-                    if (string.IsNullOrEmpty(code)) break;
-                    var verRq = new ValidateCreateUserVerificationCodeRequest
+                    try
                     {
-                        ClientVersion = _auth.Endpoint.ClientVersion,
-                        Username = username,
-                        VerificationCode = code,
-                    };
+                        verificationCodeTask = Program.GetInputManager().ReadLine();
+                        var code = await verificationCodeTask;
+                        verificationCodeTask = null;
+                        if (string.IsNullOrEmpty(code)) break;
+                        var verRq = new ValidateCreateUserVerificationCodeRequest
+                        {
+                            ClientVersion = _auth.Endpoint.ClientVersion,
+                            Username = username,
+                            VerificationCode = code,
+                        };
 
-                    payload = new ApiRequestPayload
+                        var payload = new ApiRequestPayload
+                        {
+                            Payload = ByteString.CopyFrom(verRq.ToByteArray())
+                        };
+                        await _auth.Endpoint.ExecuteRest("authentication/validate_create_user_verification_code", payload);
+
+                        break;
+                    }
+                    catch (TaskCanceledException)
                     {
-                        Payload = ByteString.CopyFrom(verRq.ToByteArray())
-                    };
-
-                    await _auth.Endpoint.ExecuteRest("authentication/validate_create_user_verification_code", payload);
-
-                    Program.EnqueueCommand($"login {username}");
-                    break;
+                        break;
+                    }
+                    catch (KeeperApiException kae)
+                    {
+                        if (kae.Code == "link_or_code_expired")
+                        {
+                            Console.WriteLine(kae.Message);
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
                 }
             }
             finally
@@ -420,6 +427,12 @@ namespace Commander
                 _auth.PushNotifications?.Dispose();
                 _auth.SetPushNotifications(null);
             }
+
+            await DoLogin(new LoginOptions
+            {
+                Username = username,
+                Password = password
+            });
         }
 
         private async Task DoLogin(LoginOptions options)

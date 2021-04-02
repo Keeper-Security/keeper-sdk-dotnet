@@ -79,6 +79,9 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     public class KeeperAuthFailed : Exception
     {
+        public KeeperAuthFailed(string message) : base(message)
+        {
+        }
     }
 
     /// <summary>

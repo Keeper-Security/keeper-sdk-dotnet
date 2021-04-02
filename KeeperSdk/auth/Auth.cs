@@ -283,7 +283,7 @@ namespace KeeperSecurity.Authentication.Async
                 return;
             }
 
-            throw new KeeperAuthFailed();
+            throw new KeeperCanceled();
         }
 
         /// <summary>
@@ -338,7 +338,7 @@ namespace KeeperSecurity.Authentication.Async
                 return await AuthorizeUsingSso(v3, rs.IsCloud, rs.SpUrl, forceLogin);
             }
 
-            throw new KeeperAuthFailed();
+            throw new KeeperCanceled();
         }
 
         private async Task<AuthContext> LoginV3(LoginContext v3)
@@ -450,10 +450,18 @@ namespace KeeperSecurity.Authentication.Async
                 }
 
                 case LoginState.RequiresAccountCreation:
-                    if (v3.AccountAuthType == AccountAuthType.CloudSso)
+                    switch (v3.AccountAuthType)
                     {
-                        await this.CreateSsoUser(v3, response.EncryptedLoginToken);
-                        return await ResumeLogin(v3, response.EncryptedLoginToken);
+                        case AccountAuthType.CloudSso:
+                            await this.CreateSsoUser(v3, response.EncryptedLoginToken);
+                            return await ResumeLogin(v3, response.EncryptedLoginToken);
+                        case AccountAuthType.OnsiteSso:
+                            if (v3.PasswordQueue.Count > 0)
+                            {
+                                await this.RequestCreateUser(v3, v3.PasswordQueue.Peek());
+                                return await ResumeLogin(v3, response.EncryptedLoginToken);
+                            }
+                            break;
                     }
 
                     break;
@@ -675,7 +683,7 @@ namespace KeeperSecurity.Authentication.Async
                 }
             }
 
-            throw new KeeperAuthFailed();
+            throw new KeeperCanceled();
         }
 
         private async Task<AuthContext> RequestDataKey(LoginContext v3, ByteString loginToken)

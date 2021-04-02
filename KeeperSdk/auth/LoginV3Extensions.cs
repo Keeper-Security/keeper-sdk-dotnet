@@ -421,7 +421,7 @@ namespace KeeperSecurity.Authentication
                             return CryptoUtils.DecryptAesV2(encryptedKey, biometricKey);
                     }
 
-                    throw new KeeperAuthFailed();
+                    throw new KeeperCanceled();
                 });
             return context;
         }
@@ -451,7 +451,7 @@ namespace KeeperSecurity.Authentication
                         case EncryptedDataKeyType.ByPassword:
                             return CryptoUtils.DecryptEncryptionParams(password, encryptedKey);
                     }
-                    throw new KeeperAuthFailed();
+                    throw new KeeperCanceled();
                 });
             var validatorSalt = CryptoUtils.GetRandomBytes(16);
             context.PasswordValidator =
@@ -1083,6 +1083,37 @@ namespace KeeperSecurity.Authentication
             return ssoAction;
         }
 
+        public static async Task RequestCreateUser(this IAuth auth, LoginContext v3, string password)
+        {
+            var dataKey = CryptoUtils.GenerateEncryptionKey();
+            var clientKey = CryptoUtils.GenerateEncryptionKey();
+            CryptoUtils.GenerateRsaKey(out var rsaPrivate, out var rsaPublic);
+            CryptoUtils.GenerateEcKey(out var ecPrivate, out var ecPublic);
+            var devicePublicKey = CryptoUtils.GetPublicEcKey(v3.DeviceKey);
+            var request = new CreateUserRequest
+            {
+                ClientVersion = auth.Endpoint.ClientVersion,
+                Username = auth.Username,
+                AuthVerifier = ByteString.CopyFrom(CryptoUtils.CreateAuthVerifier(password, CryptoUtils.GetRandomBytes(16), 100000)),
+                EncryptionParams = ByteString.CopyFrom(CryptoUtils.CreateEncryptionParams(password, CryptoUtils.GetRandomBytes(16), 100000, dataKey)),
+                RsaPublicKey = ByteString.CopyFrom(rsaPublic),
+                RsaEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(rsaPrivate, dataKey)),
+                EccPublicKey = ByteString.CopyFrom(CryptoUtils.UnloadEcPublicKey(ecPublic)),
+                EccEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(CryptoUtils.UnloadEcPrivateKey(ecPrivate), dataKey)),
+                EncryptedClientKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(clientKey, dataKey)),
+                EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+                MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
+                EncryptedDeviceDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(dataKey, devicePublicKey))
+            };
+            var apiRequest = new ApiRequestPayload
+            {
+                Payload = request.ToByteString()
+            };
+            
+            Debug.WriteLine($"REST Request: endpoint \"request_create_user\": {request}");
+            await auth.Endpoint.ExecuteRest("authentication/request_create_user", apiRequest);
+        }
+
         internal static async Task CreateSsoUser(this IAuth auth, LoginContext v3, ByteString loginToken)
         {
             var dataKey = CryptoUtils.GenerateEncryptionKey();
@@ -1108,6 +1139,8 @@ namespace KeeperSecurity.Authentication
             {
                 Payload = request.ToByteString()
             };
+
+            Debug.WriteLine($"REST Request: endpoint \"create_user_sso\": {request}");
             await auth.Endpoint.ExecuteRest("authentication/create_user_sso", apiRequest);
         }
 
