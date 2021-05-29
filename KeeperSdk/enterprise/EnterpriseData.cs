@@ -2,8 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
+using Enterprise;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
@@ -13,7 +13,7 @@ namespace KeeperSecurity.Enterprise
     /// <summary>
     /// Represents decrypted Enterprise data structure.
     /// </summary>
-    public partial class EnterpriseData: IEnterprise
+    public partial class EnterpriseData : IEnterprise
     {
         /// <summary>
         /// Gets enterprise data
@@ -25,6 +25,15 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         public byte[] TreeKey { get; private set; }
 
+
+        /// <exclude/>
+        public byte[] RsaPrivateKey { get; set; }
+
+        /// <exclude/>
+        public byte[] EcPrivateKey { get; set; }
+
+        private byte[] _continuationToken;
+
         /// <summary>
         /// Instantiates <see cref="EnterpriseData"/> instance.
         /// </summary>
@@ -34,34 +43,35 @@ namespace KeeperSecurity.Enterprise
         {
             Auth = auth;
             TreeKey = treeKey;
+            _continuationToken = new byte[0];
         }
 
         internal readonly Dictionary<string, byte[]> UserPublicKeyCache = new Dictionary<string, byte[]>(StringComparer.InvariantCultureIgnoreCase);
 
-        private readonly ConcurrentDictionary<long, EnterpriseNode> _nodes = new ConcurrentDictionary<long, EnterpriseNode>();
+        internal readonly ConcurrentDictionary<long, EnterpriseNode> _nodes = new ConcurrentDictionary<long, EnterpriseNode>();
         private readonly ConcurrentDictionary<long, EnterpriseUser> _users = new ConcurrentDictionary<long, EnterpriseUser>();
         private readonly ConcurrentDictionary<string, EnterpriseTeam> _teams = new ConcurrentDictionary<string, EnterpriseTeam>();
         private readonly ConcurrentDictionary<string, long> _userNames = new ConcurrentDictionary<string, long>(1, 100, StringComparer.InvariantCultureIgnoreCase);
+        private readonly List<DeviceRequestForAdminApproval> _adminApprovals = new List<DeviceRequestForAdminApproval>();
+        private readonly ConcurrentDictionary<int, EnterpriseManagedCompany> _managedCompanies = new ConcurrentDictionary<int, EnterpriseManagedCompany>();
 
-        public async Task<GetEnterpriseDataResponse> GetEnterpriseData(params string[] includes)
+        /// <summary>
+        /// Retrieves Enterprise node structure.
+        /// </summary>
+        /// <returns>Awaitable task.</returns>
+        public async Task PopulateEnterprise()
         {
-            var rq = new GetEnterpriseDataCommand
-            {
-                include = includes
-            };
-            var rs =  await Auth.ExecuteAuthCommand<GetEnterpriseDataCommand, GetEnterpriseDataResponse>(rq);
-
-            EnterpriseName = rs.EnterpriseName;
-
             if (TreeKey == null)
             {
-                var encTreeKey = rs.TreeKey.Base64UrlDecode();
-                switch (rs.KeyTypeId)
+                var krq = new GetEnterpriseDataKeysRequest();
+                var krs = await Auth.ExecuteAuthRest<GetEnterpriseDataKeysRequest, GetEnterpriseDataKeysResponse>("enterprise/get_enterprise_data_keys", krq);
+                var encTreeKey = krs.TreeKey.TreeKey_.Base64UrlDecode();
+                switch (krs.TreeKey.KeyTypeId)
                 {
-                    case 1:
+                    case BackupKeyType.EncryptedByDataKey:
                         TreeKey = CryptoUtils.DecryptAesV1(encTreeKey, Auth.AuthContext.DataKey);
                         break;
-                    case 2:
+                    case BackupKeyType.EncryptedByPublicKey:
                         if (encTreeKey.Length > 60)
                         {
                             TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateKey);
@@ -70,205 +80,294 @@ namespace KeeperSecurity.Enterprise
                     default:
                         throw new Exception("cannot decrypt tree key");
                 }
-            }
 
-            return rs;
-        }
-
-        /// <summary>
-        /// Retrieves Enterprise node structure.
-        /// </summary>
-        /// <returns>Awaitable task.</returns>
-        public async Task PopulateEnterprise(bool nodesOnly = false)
-        {
-            var includes = new HashSet<string>();
-            includes.Add("nodes");
-            if (!nodesOnly)
-            {
-                includes.Add("users");
-                includes.Add("teams");
-                includes.Add("team_users");
-            }
-
-            var rs = await GetEnterpriseData(includes.ToArray());
-            var ids = new HashSet<long>();
-            if (includes.Contains("nodes"))
-            {
-                ids.Clear();
-                ids.UnionWith(_nodes.Keys);
-                foreach (var n in rs.Nodes)
+                if (krs.EnterpriseKeys != null)
                 {
-                    if (_nodes.TryGetValue(n.NodeId, out var node))
+                    if (!krs.EnterpriseKeys.RsaEncryptedPrivateKey.IsEmpty)
                     {
-                        ids.Remove(n.NodeId);
-                        node.Subnodes.Clear();
+                        RsaPrivateKey = CryptoUtils.DecryptAesV2(krs.EnterpriseKeys.RsaEncryptedPrivateKey.ToByteArray(), TreeKey);
                     }
-                    else
+                    if (!krs.EnterpriseKeys.EccEncryptedPrivateKey.IsEmpty)
                     {
-                        node = new EnterpriseNode { Id = n.NodeId };
-                        _nodes.TryAdd(n.NodeId, node);
-                    }
-
-                    EnterpriseUtils.DecryptEncryptedData(n, TreeKey, node);
-
-                    if (n.ParentId.HasValue && n.ParentId.Value > 0)
-                    {
-                        node.ParentNodeId = n.ParentId.Value;
-                    }
-                    else
-                    {
-                        RootNode = node;
-                        RootNode.DisplayName = rs.EnterpriseName;
-                        node.ParentNodeId = 0;
-                    }
-                }
-                foreach (var id in ids)
-                {
-                    _nodes.TryRemove(id, out _);
-                }
-
-                foreach (var node in _nodes.Values)
-                {
-                    if (node.ParentNodeId <= 0) continue;
-                    if (_nodes.TryGetValue(node.ParentNodeId, out var parent))
-                    {
-                        parent.Subnodes.Add(node.Id);
+                        EcPrivateKey = CryptoUtils.DecryptAesV2(krs.EnterpriseKeys.EccEncryptedPrivateKey.ToByteArray(), TreeKey);
                     }
                 }
             }
 
-            if (includes.Contains("users"))
+            var nodesChanged = false;
+            var usersChanged = false;
+
+            var done = false;
+            while (!done)
             {
-                if (rs.Users != null)
+                var rrq = new EnterpriseDataRequest
                 {
-                    ids.Clear();
-                    ids.UnionWith(_users.Keys);
-                    foreach (var u in rs.Users)
+                    ContinuationToken = Google.Protobuf.ByteString.CopyFrom(_continuationToken)
+                };
+                var rrs = await Auth.ExecuteAuthRest<EnterpriseDataRequest, EnterpriseDataResponse>("enterprise/get_enterprise_data_for_user", rrq);
+                if (rrs.CacheStatus == CacheStatus.Clear)
+                {
+                    _nodes.Clear();
+                    _users.Clear();
+                    _teams.Clear();
+                    _userNames.Clear();
+                }
+                if (rrs.GeneralData != null)
+                {
+                }
+                done = !rrs.HasMore;
+                _continuationToken = rrs.ContinuationToken.ToByteArray();
+                if (string.IsNullOrEmpty(EnterpriseName) && rrs.GeneralData != null)
+                {
+                    EnterpriseName = rrs.GeneralData.EnterpriseName;
+                }
+
+                foreach (var entityData in rrs.Data)
+                {
+                    switch (entityData.Entity)
                     {
-                        if (_users.TryGetValue(u.EnterpriseUserId, out var user))
+                        case EnterpriseDataEntity.Nodes:
                         {
-                            ids.Remove(u.EnterpriseUserId);
-                            user.Teams.Clear();
-                        }
-                        else
-                        {
-                            user = new EnterpriseUser
+                            nodesChanged = true;
+                            foreach (var data in entityData.Data)
                             {
-                                Id = u.EnterpriseUserId
-                            };
-                            _users.TryAdd(u.EnterpriseUserId, user);
-                        }
-
-                        user.ParentNodeId = u.NodeId;
-                        user.Email = u.Username;
-                        EnterpriseUtils.DecryptEncryptedData(u, TreeKey, user);
-
-                        if (u.Status == "active")
-                        {
-                            switch (u.Lock)
-                            {
-                                case 0:
-                                    user.UserStatus = UserStatus.Active;
-                                    break;
-                                case 1:
-                                    user.UserStatus = UserStatus.Locked;
-                                    break;
-                                case 2:
-                                    user.UserStatus = UserStatus.Disabled;
-                                    break;
-                                default:
-                                    user.UserStatus = UserStatus.Active;
-                                    break;
-                            }
-
-                            if (u.AccountShareExpiration.HasValue && u.AccountShareExpiration.Value > 0)
-                            {
-                                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                                if (now > (long) u.AccountShareExpiration.Value)
+                                var node = Node.Parser.ParseFrom(data);
+                                if (entityData.Delete)
                                 {
-                                    user.UserStatus = UserStatus.Blocked;
+                                    _nodes.TryRemove(node.NodeId, out _);
+                                }
+                                else
+                                {
+                                    if (!_nodes.TryGetValue(node.NodeId, out var n)) 
+                                    {
+                                        n = new EnterpriseNode
+                                        {
+                                            Id = node.NodeId,
+                                        };
+                                        _nodes.TryAdd(node.NodeId, n);
+                                    }
+                                    n.ParentNodeId = node.ParentId;
+                                    n.RestrictVisibility = node.RestrictVisibility;
+                                    EnterpriseUtils.DecryptEncryptedData(node.EncryptedData, TreeKey, n);
                                 }
                             }
                         }
-                        else
+                        break;
+
+                        case EnterpriseDataEntity.Users:
                         {
-                            user.UserStatus = UserStatus.Inactive;
+                            usersChanged = true;
+                            foreach (var data in entityData.Data)
+                            {
+                                var user = User.Parser.ParseFrom(data);
+                                if (entityData.Delete)
+                                {
+                                    _users.TryRemove(user.EnterpriseUserId, out _);
+                                }
+                                else
+                                {
+                                    if (!_users.TryGetValue(user.EnterpriseUserId, out var u))
+                                    {
+                                        u = new EnterpriseUser
+                                        {
+                                            Id = user.EnterpriseUserId,
+                                        };
+                                        _users.TryAdd(u.Id, u);
+                                    }
+
+                                    u.ParentNodeId = user.NodeId;
+                                    u.Email = user.Username;
+                                    EnterpriseUtils.DecryptEncryptedData(user.EncryptedData, TreeKey, u);
+                                    if (user.Status == "active")
+                                    {
+                                        switch (user.Lock)
+                                        {
+                                            case 0:
+                                                u.UserStatus = UserStatus.Active;
+                                                break;
+                                            case 1:
+                                                u.UserStatus = UserStatus.Locked;
+                                                break;
+                                            case 2:
+                                                u.UserStatus = UserStatus.Disabled;
+                                                break;
+                                            default:
+                                                u.UserStatus = UserStatus.Active;
+                                                break;
+                                        }
+
+                                        if (user.AccountShareExpiration > 0)
+                                        {
+                                            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                                            if (now > user.AccountShareExpiration)
+                                            {
+                                                u.UserStatus = UserStatus.Blocked;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        u.UserStatus = UserStatus.Inactive;
+                                    }
+                                }
+                            }
                         }
-                    }
+                        break;
 
-                    foreach (var id in ids)
-                    {
-                        _users.TryRemove(id, out _);
-                    }
+                        case EnterpriseDataEntity.Teams:
+                        {
+                            foreach (var data in entityData.Data)
+                            {
+                                var team = Team.Parser.ParseFrom(data);
+                                var teamUid = team.TeamUid.ToByteArray().Base64UrlEncode();
+                                if (entityData.Delete)
+                                {
+                                    _teams.TryRemove(teamUid, out _);
+                                }
+                                else
+                                {
+                                    if (!_teams.TryGetValue(teamUid, out var t)) {
+                                        t = new EnterpriseTeam
+                                        {
+                                            Uid = teamUid,
+                                        };
+                                        _teams.TryAdd(t.Uid, t);
+                                    }
 
-                    _userNames.Clear();
-                    foreach (var u in rs.Users)
-                    {
-                        _userNames.TryAdd(u.Username, u.EnterpriseUserId);
+                                    t.ParentNodeId = team.NodeId;
+                                    t.RestrictEdit = team.RestrictEdit;
+                                    t.RestrictSharing = team.RestrictShare;
+                                    t.RestrictView = team.RestrictView;
+                                    t.Name = team.Name;
+
+                                    if (!string.IsNullOrEmpty(team.EncryptedTeamKey))
+                                    {
+                                        try
+                                        {
+                                            t.TeamKey = CryptoUtils.DecryptAesV2(team.EncryptedTeamKey.Base64UrlDecode(), TreeKey);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Debug.WriteLine(e.Message);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+
+                        case EnterpriseDataEntity.TeamUsers:
+                        {
+                            foreach (var data in entityData.Data)
+                            {
+                                var teamUser = TeamUser.Parser.ParseFrom(data);
+                                var teamUid = teamUser.TeamUid.ToByteArray().Base64UrlEncode();
+
+                                if (_teams.TryGetValue(teamUid, out var team))
+                                {
+                                    if (entityData.Delete)
+                                    {
+                                        team.Users.Remove(teamUser.EnterpriseUserId);
+                                    }
+                                    else
+                                    {
+                                        team.Users.Add(teamUser.EnterpriseUserId);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+
+                        case EnterpriseDataEntity.DevicesRequestForAdminApproval:
+                        {
+                            foreach (var data in entityData.Data)
+                            {
+                                var ar = DeviceRequestForAdminApproval.Parser.ParseFrom(data);
+
+                                if (entityData.Delete)
+                                {
+                                    _adminApprovals.RemoveAll(x => x.DeviceId == ar.DeviceId && x.EnterpriseUserId == ar.EnterpriseUserId);
+                                }
+                                else
+                                {
+                                    _adminApprovals.Add(ar);
+                                }
+                            }
+                        }
+                        break;
+
+                        case EnterpriseDataEntity.ManagedCompanies:
+                        {
+                            foreach (var data in entityData.Data)
+                            {
+                                var mc = ManagedCompany.Parser.ParseFrom(data);
+
+                                if (entityData.Delete)
+                                {
+                                    _managedCompanies.TryRemove(mc.McEnterpriseId, out _);
+                                }
+                                else
+                                {
+                                    if (!_managedCompanies.TryGetValue(mc.McEnterpriseId, out var eCompany))
+                                    {
+                                        eCompany = new EnterpriseManagedCompany()
+                                        {
+                                            EnterpriseId = mc.McEnterpriseId
+                                        };
+                                        _managedCompanies.TryAdd(eCompany.EnterpriseId, eCompany);
+                                    }
+                                    eCompany.EnterpriseName = mc.McEnterpriseName;
+                                    eCompany.ProductId = mc.ProductId;
+                                    eCompany.NumberOfSeats = mc.NumberOfSeats;
+                                    eCompany.NumberOfUsers = mc.NumberOfUsers;
+                                    eCompany.ParentNodeId = mc.MspNodeId;
+                                    eCompany.IsExpired = mc.IsExpired;
+                                }
+                            }
+                        }
+                        break;
+
+                        case EnterpriseDataEntity.Licenses:
+                        {
+                            if (!entityData.Delete)
+                            {
+                                foreach (var data in entityData.Data)
+                                {
+                                    EnterpriseLicense = License.Parser.ParseFrom(data);
+                                }
+                            }
+                        }
+                        break;
                     }
                 }
             }
 
-            if (includes.Contains("teams"))
+            if (nodesChanged)
             {
-                if (rs.Teams != null)
+                foreach (var node in _nodes.Values)
                 {
-                    var uids = new HashSet<string>();
-                    uids.UnionWith(_teams.Keys);
-                    foreach (var t in rs.Teams)
+                    node.Subnodes.Clear();
+                    if (node.ParentNodeId == 0)
                     {
-                        if (_teams.TryGetValue(t.TeamUid, out var team))
-                        {
-                            uids.Remove(t.TeamUid);
-                            team.Users.Clear();
-                        }
-                        else
-                        {
-                            team = new EnterpriseTeam
-                            {
-                                Uid = t.TeamUid
-                            };
-                            _teams.TryAdd(t.TeamUid, team);
-                        }
-
-                        team.Name = t.Name;
-
-                        team.ParentNodeId = t.NodeId;
-                        team.RestrictEdit = t.RestrictEdit;
-                        team.RestrictSharing = t.RestrictSharing;
-                        team.RestrictView = t.RestrictView;
-                        if (!string.IsNullOrEmpty(t.EncryptedTeamKey))
-                        {
-                            try
-                            {
-                                team.TeamKey = CryptoUtils.DecryptAesV2(t.EncryptedTeamKey.Base64UrlDecode(), TreeKey);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.Message);
-                            }
-                        }
+                        RootNode = node;
+                        RootNode.DisplayName = EnterpriseName;
                     }
-
-                    foreach (var uid in uids)
+                }
+                foreach (var node in _nodes.Values)
+                {
+                    if (_nodes.TryGetValue(node.ParentNodeId, out var pNode))
                     {
-                        _teams.TryRemove(uid, out _);
+                        pNode.Subnodes.Add(node.Id);
                     }
                 }
             }
 
-            if (includes.Contains("team_users"))
+            if (usersChanged)
             {
-                if (rs.TeamUsers != null)
+                _userNames.Clear();
+                foreach (var user in _users.Values)
                 {
-                    foreach (var tu in rs.TeamUsers)
-                    {
-                        if (_users.TryGetValue(tu.EnterpriseUserId, out var user) && _teams.TryGetValue(tu.TeamUid, out var team))
-                        {
-                            team.Users.Add(user.Id);
-                            user.Teams.Add(team.Uid);
-                        }
-                    }
+                    _userNames.TryAdd(user.Email, user.Id);
                 }
             }
         }
@@ -355,5 +454,43 @@ namespace KeeperSecurity.Enterprise
         /// Gets the number of all teams in the enterprise.
         /// </summary>
         public int TeamCount => _teams.Count;
+
+
+        /// <summary>
+        /// Get the list of all managed companies in the enterprise.
+        /// </summary>
+        public IEnumerable<EnterpriseManagedCompany> ManagedCompanies => _managedCompanies.Values;
+
+        /// <exclude/>
+        public License EnterpriseLicense { get; internal set; }
+
+        /// <exclude/>
+        public DeviceRequestForAdminApproval[] GetDeviceApprovalRequests()
+        {
+            lock (_adminApprovals)
+            {
+                return _adminApprovals.ToArray();
+            }
+        }
+
+        private readonly ConcurrentBag<long> _availableIds = new ConcurrentBag<long>();
+        internal async Task<long> GetEnterpriseId()
+        {
+            if (_availableIds.TryTake(out var id))
+            {
+                return id;
+            }
+
+            var rs = await Auth.ExecuteAuthCommand<EnterpriseAllocateIdsCommand, EnterpriseAllocateIdsResponse>(new EnterpriseAllocateIdsCommand());
+            if (rs.IsSuccess)
+            {
+                for (int i = 1; i < rs.NumberAllocated; i++)
+                {
+                    _availableIds.Add(rs.BaseId + i);
+                }
+                return rs.BaseId;
+            }
+            throw new Exception("Unable to allocate enterprise ID");
+        }
     }
 }

@@ -22,7 +22,7 @@ namespace Commander
     internal interface IEnterpriseContext
     {
         EnterpriseData Enterprise { get; set; }
-        GetDeviceForAdminApproval[] DeviceForAdminApprovals { get; set; }
+
         bool AutoApproveAdminRequests { get; set; }
         Dictionary<long, byte[]> UserDataKeys { get; }
 
@@ -33,7 +33,7 @@ namespace Commander
 
     internal static class EnterpriseExtensions
     {
-        internal static async Task AppendEnterpriseCommands(this IEnterpriseContext context, CliCommands cli)
+        internal static void AppendEnterpriseCommands(this IEnterpriseContext context, CliCommands cli)
         {
             cli.Commands.Add("enterprise-sync-down",
                 new SimpleCommand
@@ -47,7 +47,7 @@ namespace Commander
                 new ParsableCommand<EnterpriseNodeOptions>
                 {
                     Order = 61,
-                    Description = "Display node structure",
+                    Description = "Manage enterprise nodes",
                     Action = async options => { await context.EnterpriseNodeCommand(options); },
                 });
 
@@ -89,13 +89,7 @@ namespace Commander
             cli.CommandAliases["et"] = "enterprise-team";
             cli.CommandAliases["ed"] = "enterprise-device";
 
-            var entRq = new GetEnterpriseDataCommand
-            {
-                include = new[] { "keys" }
-            };
-            var entRs = await context.Enterprise.Auth.ExecuteAuthCommand<GetEnterpriseDataCommand, GetEnterpriseDataResponse>(entRq);
-
-            if (string.IsNullOrEmpty(entRs.Keys?.EccEncryptedPrivateKey))
+            if (context.Enterprise.EcPrivateKey == null)
             {
                 cli.Commands.Add("enterprise-add-key",
                     new SimpleCommand
@@ -107,9 +101,7 @@ namespace Commander
             }
             else
             {
-                var privateKeyData = CryptoUtils.DecryptAesV2(
-                    entRs.Keys.EccEncryptedPrivateKey.Base64UrlDecode(), context.Enterprise.TreeKey);
-                context.EnterprisePrivateKey = CryptoUtils.LoadPrivateEcKey(privateKeyData);
+                context.EnterprisePrivateKey = CryptoUtils.LoadPrivateEcKey(context.Enterprise.EcPrivateKey);
             }
         }
 
@@ -124,10 +116,10 @@ namespace Commander
             }
         }
 
-        public static void PrintNodeTree(this IEnterpriseContext context, EnterpriseNode eNode, string indent, bool last)
+        public static void PrintNodeTree(this IEnterpriseContext context, EnterpriseNode eNode, string indent, bool verbose, bool last)
         {
             var isRoot = string.IsNullOrEmpty(indent);
-            Console.WriteLine(indent + (isRoot ? "" : "+-- ") + eNode.DisplayName);
+            Console.WriteLine(indent + (isRoot ? "" : "+-- ") + eNode.DisplayName + (verbose ? $" ({eNode.Id})" : "") + (verbose && eNode.RestrictVisibility? " [Isolated]" : ""));
             indent += isRoot ? " " : (last ? "    " : "|   ");
             var subNodes = eNode.Subnodes
                 .Select(x => context.Enterprise.TryGetNode(x, out var node) ? node : null)
@@ -136,21 +128,35 @@ namespace Commander
                 .ToArray();
             for (var i = 0; i < subNodes.Length; i++)
             {
-                context.PrintNodeTree(subNodes[i], indent, i == subNodes.Length - 1);
+                context.PrintNodeTree(subNodes[i], indent, verbose, i == subNodes.Length - 1);
             }
         }
 
-        public static async Task GetEnterpriseData(this IEnterpriseContext context, params string[] includes)
+        private static EnterpriseNode ResolveNodeName(this EnterpriseData enterprise, string nodeName)
         {
-            var requested = new HashSet<string>(includes);
-            var rq = new GetEnterpriseDataCommand
+            if (nodeName.All(x => char.IsDigit(x)))
             {
-                include = requested.ToArray()
-            };
-            var rs = await context.Enterprise.Auth.ExecuteAuthCommand<GetEnterpriseDataCommand, GetEnterpriseDataResponse>(rq);
-            if (requested.Contains("devices_request_for_admin_approval"))
+                if (long.TryParse(nodeName, out var nodeId))
+                {
+                    if (enterprise.TryGetNode(nodeId, out var node))
+                    {
+                        return node;
+                    }
+                }
+            }
+
+            var nodes = enterprise.Nodes.Where(x => string.Equals(nodeName, x.DisplayName, StringComparison.InvariantCultureIgnoreCase)).ToArray();
+            if (nodes.Length == 1)
             {
-                context.DeviceForAdminApprovals = rs.DeviceRequestForApproval != null ? rs.DeviceRequestForApproval.ToArray() : new GetDeviceForAdminApproval[0];
+                return nodes[0];
+            }
+            if (nodes.Length == 0)
+            {
+                throw new Exception($"Parent node \"{nodeName}\" is not found.");
+            }
+            else
+            {
+                throw new Exception($"There are {nodes.Length} nodes with name \"{nodeName}\". Use NodeID instead of Node name.");
             }
         }
 
@@ -164,17 +170,84 @@ namespace Commander
             }
 
             if (context.Enterprise.RootNode == null) throw new Exception("Enterprise data: cannot get root node");
-            switch (arguments.Command.ToLowerInvariant())
+
+            EnterpriseNode parentNode = null;
+            if (!string.IsNullOrEmpty(arguments.Parent))
             {
-                case "tree":
-                {
-                    context.PrintNodeTree(context.Enterprise.RootNode, "", true);
-                }
-                    break;
-                default:
-                    Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"tree\"");
-                    break;
+                parentNode = context.Enterprise.ResolveNodeName(arguments.Parent);
             }
+
+            if (string.Equals(arguments.Command, "add", StringComparison.OrdinalIgnoreCase))  // node in the name of new node
+            {
+                if (string.IsNullOrEmpty(arguments.Node))
+                {
+                    var usage = CommandExtensions.GetCommandUsage<EnterpriseNodeOptions>(Console.WindowWidth);
+                    Console.WriteLine(usage);
+                }
+                else
+                {
+                    var node = await context.Enterprise.CreateNode(arguments.Node, parentNode);
+                    Console.WriteLine($"Node \"{arguments.Node}\" created.");
+                    if (arguments.RestrictVisibility)
+                    {
+                        await context.Enterprise.SetRestrictVisibility(node.Id);
+                    }
+                }
+            }
+            else  // node is the name of the existing node
+            {
+                EnterpriseNode node;
+                if (string.IsNullOrEmpty(arguments.Node))
+                {
+                    if (string.Equals(arguments.Command, "tree", StringComparison.OrdinalIgnoreCase))
+                    {
+                        node = context.Enterprise.RootNode;
+                    }
+                    else
+                    {
+                        var usage = CommandExtensions.GetCommandUsage<EnterpriseNodeOptions>(Console.WindowWidth);
+                        Console.WriteLine(usage);
+                        return;
+                    }
+                }
+                else
+                {
+                    node = context.Enterprise.ResolveNodeName(arguments.Node);
+                }
+
+                switch (arguments.Command.ToLowerInvariant())
+                {
+                    case "tree":
+                    {
+                        context.PrintNodeTree(node, "", arguments.Verbose, true);
+                        return;
+                    }
+
+                    case "update":
+                        if (!string.IsNullOrEmpty(arguments.Name))
+                        {
+                            node.DisplayName = arguments.Name;
+                        }
+                        await context.Enterprise.UpdateNode(node, parentNode);
+                        Console.WriteLine($"Node \"{node.DisplayName}\" updated.");
+                        if (arguments.RestrictVisibility)
+                        {
+                            await context.Enterprise.SetRestrictVisibility(node.Id);
+                        }
+
+                        break;
+
+                    case "delete":
+                        await context.Enterprise.DeleteNode(node.Id);
+                        Console.WriteLine($"Node \"{node.DisplayName}\" deleted.");
+                        break;
+
+                    default:
+                        Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"tree\", \"add\", \"update\", \"delete\"");
+                        break;
+                }
+            }
+            await context.Enterprise.PopulateEnterprise();
         }
 
         public static async Task EnterpriseUserCommand(this IEnterpriseContext context, EnterpriseUserOptions arguments)
@@ -508,12 +581,14 @@ namespace Commander
 
             if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "list";
 
-            if (arguments.Force || context.DeviceForAdminApprovals == null)
+            if (arguments.Force)
             {
-                await context.GetEnterpriseData("devices_request_for_admin_approval");
+                await context.Enterprise.PopulateEnterprise();
             }
 
-            if (context.DeviceForAdminApprovals == null || context.DeviceForAdminApprovals.Length == 0)
+            var approvals = context.Enterprise.GetDeviceApprovalRequests();
+
+            if (approvals.Length == 0)
             {
                 Console.WriteLine("There are no pending devices");
                 return;
@@ -529,11 +604,11 @@ namespace Commander
                     };
                     Console.WriteLine();
                     tab.AddHeader("Email", "Device ID", "Device Name", "Client Version");
-                    foreach (var device in context.DeviceForAdminApprovals)
+                    foreach (var device in approvals)
                     {
                         if (!context.Enterprise.TryGetUserById(device.EnterpriseUserId, out var user)) continue;
 
-                        var deiceToken = device.EncryptedDeviceToken.Base64UrlDecode();
+                        var deiceToken = device.EncryptedDeviceToken.ToByteArray();
                         tab.AddRow(user.Email, deiceToken.TokenToString(), device.DeviceName, device.ClientVersion);
                     }
 
@@ -549,11 +624,11 @@ namespace Commander
                     }
                     else
                     {
-                        var devices = context.DeviceForAdminApprovals
+                        var devices = approvals
                             .Where(x =>
                             {
                                 if (arguments.Match == "all") return true;
-                                var deviceToken = x.EncryptedDeviceToken.Base64UrlDecode();
+                                var deviceToken = x.EncryptedDeviceToken.ToByteArray();
                                 var deviceId = deviceToken.TokenToString();
                                 if (deviceId.StartsWith(arguments.Match)) return true;
 
@@ -583,7 +658,7 @@ namespace Commander
             }
         }
 
-        internal static async Task ApproveAdminDeviceRequests(this IEnterpriseContext context, GetDeviceForAdminApproval[] devices)
+        internal static async Task ApproveAdminDeviceRequests(this IEnterpriseContext context, DeviceRequestForAdminApproval[] devices)
         {
             var dataKeys = new Dictionary<long, byte[]>();
             foreach (var device in devices)
@@ -620,15 +695,15 @@ namespace Commander
             foreach (var device in devices)
             {
                 if (!dataKeys.TryGetValue(device.EnterpriseUserId, out var dk)) continue;
-                if (string.IsNullOrEmpty(device.DevicePublicKey)) continue;
-                var devicePublicKey = CryptoUtils.LoadPublicEcKey(device.DevicePublicKey.Base64UrlDecode());
+                if (device.DevicePublicKey.IsEmpty) continue;
+                var devicePublicKey = CryptoUtils.LoadPublicEcKey(device.DevicePublicKey.ToByteArray());
 
                 try
                 {
                     var deviceRq = new ApproveUserDeviceRequest
                     {
                         EnterpriseUserId = device.EnterpriseUserId,
-                        EncryptedDeviceToken = ByteString.CopyFrom(device.EncryptedDeviceToken.Base64UrlDecode()),
+                        EncryptedDeviceToken = ByteString.CopyFrom(device.EncryptedDeviceToken.ToByteArray()),
                         EncryptedDeviceDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(dk, devicePublicKey))
                     };
                     rq.DeviceRequests.Add(deviceRq);
@@ -658,11 +733,11 @@ namespace Commander
                         }
                     }
                 }
-                context.DeviceForAdminApprovals = null;
+                await context.Enterprise.PopulateEnterprise();
             }
         }
 
-        internal static async Task DenyAdminDeviceRequests(this IEnterpriseContext context, GetDeviceForAdminApproval[] devices)
+        internal static async Task DenyAdminDeviceRequests(this IEnterpriseContext context, DeviceRequestForAdminApproval[] devices)
         {
             var rq = new ApproveUserDevicesRequest();
             foreach (var device in devices)
@@ -670,7 +745,7 @@ namespace Commander
                 var deviceRq = new ApproveUserDeviceRequest
                 {
                     EnterpriseUserId = device.EnterpriseUserId,
-                    EncryptedDeviceToken = ByteString.CopyFrom(device.EncryptedDeviceToken.Base64UrlDecode()),
+                    EncryptedDeviceToken = ByteString.CopyFrom(device.EncryptedDeviceToken.ToByteArray()),
                     DenyApproval = true,
                 };
                 rq.DeviceRequests.Add(deviceRq);
@@ -694,7 +769,7 @@ namespace Commander
                         }
                     }
 
-                    context.DeviceForAdminApprovals = null;
+                    await context.Enterprise.PopulateEnterprise();
                 }
             }
         }
@@ -720,14 +795,15 @@ namespace Commander
 
             await context.Enterprise.Auth.ExecuteAuthRest("enterprise/set_enterprise_key_pair", request);
             cli.Commands.Remove("enterprise-add-key");
+            context.Enterprise.EcPrivateKey = exportedPrivateKey;
+            context.EnterprisePrivateKey = privateKey;
         }
 
-        private static string IN_PATTERN = @"\s*in\s*\(\s*(.*)\s*\)";
+        //private static string IN_PATTERN = @"\s*in\s*\(\s*(.*)\s*\)";
         private static string BETWEEN_PATTERN = @"\s*between\s+(\S*)\s+and\s+(.*)";
 
         private static bool TryParseUtcDate(string text, out long epochInSec)
         {
-            epochInSec = 0;
             if (long.TryParse(text, out epochInSec))
             {
                 var nowInCentis = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 10;
@@ -920,7 +996,7 @@ namespace Commander
                     try
                     {
                         await Enterprise.PopulateEnterprise();
-                        await this.AppendEnterpriseCommands(this);
+                        this.AppendEnterpriseCommands(this);
                     }
                     catch (Exception e)
                     {
@@ -931,7 +1007,7 @@ namespace Commander
         }
 
         public EnterpriseData Enterprise { get; set; }
-        public GetDeviceForAdminApproval[] DeviceForAdminApprovals { get; set; }
+        public DeviceRequestForAdminApproval[] DeviceForAdminApprovals { get; set; }
         public bool AutoApproveAdminRequests { get; set; }
         public ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
@@ -947,13 +1023,10 @@ namespace Commander
     public partial class ConnectedContext: IEnterpriseContext
     {
         public EnterpriseData Enterprise { get; set; }
-        public GetDeviceForAdminApproval[] DeviceForAdminApprovals { get; set; }
         public bool AutoApproveAdminRequests { get; set; }
         public ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
         public IDictionary<string, AuditEventType> AuditEvents { get; set; }
-
-        private readonly List<EnterpriseManagedCompany> _managedCompanies = new List<EnterpriseManagedCompany>();
 
         private void CheckIfEnterpriseAdmin()
         {
@@ -968,17 +1041,10 @@ namespace Commander
                     {
                         await Enterprise.PopulateEnterprise();
 
-                        await this.AppendEnterpriseCommands(this);
+                        this.AppendEnterpriseCommands(this);
 
-                        var entRq = new GetEnterpriseDataCommand
+                        if (!string.IsNullOrEmpty(Enterprise.EnterpriseLicense?.LicenseStatus) && Enterprise.EnterpriseLicense.LicenseStatus.StartsWith("msp"))
                         {
-                            include = new[] {"licenses", "managed_companies" }
-                        };
-                        var entRs = await _auth.ExecuteAuthCommand<GetEnterpriseDataCommand, GetEnterpriseDataResponse>(entRq);
-
-                        if (entRs.ManagedCompanies?.Count > 0)
-                        {
-                            _managedCompanies.AddRange(entRs.ManagedCompanies);
                             Commands.Add("mc-list",
                                 new SimpleCommand
                                 {
@@ -1007,18 +1073,14 @@ namespace Commander
         {
             if (evt.Event == "request_device_admin_approval")
             {
-                if (this.AutoApproveAdminRequests)
+                if (AutoApproveAdminRequests)
                 {
                     Task.Run(async () =>
                     {
-                        await this.GetEnterpriseData("devices_request_for_admin_approval");
-                        if (!Enterprise.TryGetUserByEmail(evt.Email, out var user))
-                        {
-                            await Enterprise.PopulateEnterprise();
-                            if (!Enterprise.TryGetUserByEmail(evt.Email, out user)) return;
-                        }
+                        await Enterprise.PopulateEnterprise();
+                        if (!Enterprise.TryGetUserByEmail(evt.Email, out var user)) return;
 
-                        var devices = this.DeviceForAdminApprovals
+                        var devices = Enterprise.GetDeviceApprovalRequests()
                             .Where(x => x.EnterpriseUserId == user.Id)
                             .ToArray();
                         await this.ApproveAdminDeviceRequests(devices);
@@ -1028,7 +1090,6 @@ namespace Commander
                 else
                 {
                     Console.WriteLine($"\n{evt.Email} requested Device Approval\nIP Address: {evt.IPAddress}\nDevice Name: {evt.DeviceName}");
-                    this.DeviceForAdminApprovals = null;
                 }
             }
 
@@ -1046,10 +1107,10 @@ namespace Commander
         {
             var tab = new Tabulate(6);
             tab.AddHeader("Company Name", "Company ID", "License", "# Seats", "# Users", "Paused");
-            foreach (var mc in _managedCompanies)
+            foreach (var mc in Enterprise.ManagedCompanies)
             {
-                tab.AddRow(mc.McEnterpriseName, mc.McEnterpriseId, mc.ProductId, 
-                    mc.NumberOfSeats, mc.NumberOfUsers, mc.Paused ? "Yes" : "");
+                tab.AddRow(mc.EnterpriseName, mc.EnterpriseId, mc.ProductId, 
+                    mc.NumberOfSeats, mc.NumberOfUsers, mc.IsExpired ? "Yes" : "");
             }
             tab.Sort(0);
             tab.DumpRowNo = true;
@@ -1066,8 +1127,23 @@ namespace Commander
 
     class EnterpriseNodeOptions : EnterpriseGenericOptions
     {
-        [Value(0, Required = false, HelpText = "enterprise-node command: \"tree\"")]
+        [Value(0, Required = false, HelpText = "enterprise-user command: \"--command=[tree, add, update, delete]\" <Node name or ID>")]
+        public string Node { get; set; }
+
+        [Option("command", Required = false, HelpText = "[tree, add, update, delete]")]
         public string Command { get; set; }
+
+        [Option("parent", Required = false, HelpText = "parent node name or ID")]
+        public string Parent { get; set; }
+
+        [Option("name", Required = false, HelpText = "new node display name")]
+        public string Name { get; set; }
+
+        [Option('v', "verbose", Required = false, HelpText = "verbose output")]
+        public bool Verbose { get; set; }
+
+        [Option("toggle-isolated", Required = false, HelpText = "toggle node isolation flag")]
+        public bool RestrictVisibility { get; set; }
     }
 
     class EnterpriseUserOptions : EnterpriseGenericOptions
@@ -1108,10 +1184,10 @@ namespace Commander
         [Option("auto-approve", Required = false, Default = null, HelpText = "auto approve devices")]
         public bool? AutoApprove { get; set; }
 
-        [Value(0, Required = false, HelpText = "enterprise-device command: \"list\", \"approve\", \"decline\"")]
+        [Value(0, Required = false, HelpText = "command: \"list\", \"approve\", \"decline\"")]
         public string Command { get; set; }
 
-        [Value(1, Required = false, HelpText = "enterprise-device command: \"list\", \"approve\", \"decline\"")]
+        [Value(1, Required = false, HelpText = "device approval request: \"all\", email, or device id")]
         public string Match { get; set; }
     }
 

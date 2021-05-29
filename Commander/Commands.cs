@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Authentication;
 using CommandLine;
+using CommandLine.Text;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Async;
@@ -102,6 +103,17 @@ namespace Commander
             {
                 yield return sb.ToString();
             }
+        }
+
+        public static string GetCommandUsage<T>(int width = 120)
+        {
+            var parser = new Parser(with => with.HelpWriter = null);
+            var result = parser.ParseArguments<T>(new[] { "--help" });
+            return HelpText.AutoBuild(result, h =>
+            {
+                h.AdditionalNewLineAfterOption = false;
+                return h;
+            }, width);
         }
     }
 

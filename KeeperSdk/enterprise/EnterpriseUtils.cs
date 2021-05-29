@@ -11,15 +11,25 @@ namespace KeeperSecurity.Enterprise
 {
     internal static class EnterpriseUtils
     {
-        public static void DecryptEncryptedData(IEncryptedData encryptedData, byte[] encryptionKey, IDisplayName entity)
+
+        public static string EncryptEncryptedData(EncryptedData encryptedData, byte[] encryptionKey)
         {
-            if (string.IsNullOrEmpty(encryptedData.EncryptedData)) return;
+            return CryptoUtils.EncryptAesV1(JsonUtils.DumpJson(encryptedData), encryptionKey).Base64UrlEncode();
+        }
+
+        public static void DecryptEncryptedData(string encryptedData, byte[] encryptionKey, IDisplayName entity)
+        {
+            if (string.IsNullOrEmpty(encryptedData)) return;
 
             try
             {
-                var jData = CryptoUtils.DecryptAesV1(encryptedData.EncryptedData.Base64UrlDecode(), encryptionKey);
-                var data = JsonUtils.ParseJson<EncryptedData>(jData);
-                entity.DisplayName = data.DisplayName;
+                var encryptedBytes = encryptedData.Base64UrlDecode();
+                if (encryptedBytes != null && encryptedBytes.Length > 0)
+                {
+                    var jData = CryptoUtils.DecryptAesV1(encryptedBytes, encryptionKey);
+                    var data = JsonUtils.ParseJson<EncryptedData>(jData);
+                    entity.DisplayName = data.DisplayName;
+                }
             }
             catch (Exception e)
             {

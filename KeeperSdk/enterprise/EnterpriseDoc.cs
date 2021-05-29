@@ -33,6 +33,7 @@ namespace KeeperSecurity.Enterprise
     ///         {
     ///             // Load enterprise data.
     ///             var enterprise = new EnterpriseData(auth);
+    ///             await enterprise.PopulateEnterprise();
     /// 
     ///             // Find team with name "Google".
     ///             var team = enterprise.Teams

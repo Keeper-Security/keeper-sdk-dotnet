@@ -132,7 +132,7 @@ namespace Tests
                     }
                     else
                     {
-                        return Task.FromException<byte[]>(new KeeperAuthFailed());
+                        return Task.FromException<byte[]>(new KeeperAuthFailed("unit test"));
                     }
 
                 }
@@ -165,7 +165,7 @@ namespace Tests
                     }
                     else
                     {
-                        return Task.FromException<byte[]>(new KeeperAuthFailed());
+                        return Task.FromException<byte[]>(new KeeperAuthFailed("unit test"));
                     }
 
                     break;
@@ -182,7 +182,7 @@ namespace Tests
                     }
                     else
                     {
-                        return Task.FromException<byte[]>(new KeeperAuthFailed());
+                        return Task.FromException<byte[]>(new KeeperAuthFailed("unit test test"));
                     }
 
                     break;

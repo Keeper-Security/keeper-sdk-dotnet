@@ -12,7 +12,6 @@ using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Async;
-using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
@@ -966,7 +965,7 @@ namespace Commander
             }
             if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0) return;
 
-            var rs = (EnterprisePublicKeyResponse) await _auth.ExecuteAuthRest("breachwatch/get_enterprise_public_key", null, typeof(EnterprisePublicKeyResponse));
+            var rs = (EnterprisePublicKeyResponse) await _auth.ExecuteAuthRest("enterprise/get_enterprise_public_key", null, typeof(EnterprisePublicKeyResponse));
             if (rs.EnterpriseECCPublicKey?.Length == 65)
             {
                 var publicKey = CryptoUtils.LoadPublicEcKey(rs.EnterpriseECCPublicKey.ToByteArray());

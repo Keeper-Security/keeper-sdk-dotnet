@@ -1307,6 +1307,9 @@
         <member name="T:KeeperSecurity.Authentication.LoginContext">
             <exclude />
         </member>
+        <member name="T:KeeperSecurity.Authentication.LoginV3Extensions">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Authentication.SecurityKeyAuthenticateRequest">
             <exclude/>
         </member>
@@ -2285,6 +2288,29 @@
             </summary>
             <param name="json">JSON data</param>
         </member>
+        <member name="T:KeeperSecurity.Enterprise.AuditLogExtensions">
+            <summary>
+            Enterprise Audit Log access methods.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.AuditLogExtensions.GetAvailableEvents(KeeperSecurity.Authentication.IAuthentication)">
+            <summary>
+            Gets the list of all available audit events
+            </summary>
+            <param name="auth">Keeper Connection</param>
+            <returns>Awaitable task returning supported audit events</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.AuditLogExtensions.GetUserEvents(KeeperSecurity.Authentication.IAuthentication,System.String,System.Int64,System.Int64)">
+            <summary>
+            Gets audit events in descending order.
+            </summary>
+            <param name="auth">Keeper Connection</param>
+            <param name="forUser">User email</param>
+            <param name="recentUnixTime">Recent event epoch time in seconds</param>
+            <param name="latestUnixTime">Latest event epoch time in seconds</param>
+            <returns>Awaitable task returning a tuple. Item1 contains the audit event list. Item2 the epoch time in seconds to resume</returns>
+            <remarks>This method returns first 1000 events. To get the next chunk of audit events pass the second parameter of result into <c>recentUnixTime</c> parameter.</remarks>
+        </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseData">
             <summary>
             Represents decrypted Enterprise data structure.
@@ -2300,6 +2326,12 @@
             Gets Enterprise Tree encryption key.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.RsaPrivateKey">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.EcPrivateKey">
+            <exclude/>
+        </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.#ctor(KeeperSecurity.Authentication.IAuthentication,System.Byte[])">
             <summary>
             Instantiates <see cref="T:KeeperSecurity.Enterprise.EnterpriseData"/> instance.
@@ -2307,7 +2339,7 @@
             <param name="auth">Keeper authentication.</param>
             <param name="treeKey">Enterprise tree key. Optional.</param>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.PopulateEnterprise(System.Boolean)">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.PopulateEnterprise">
             <summary>
             Retrieves Enterprise node structure.
             </summary>
@@ -2385,6 +2417,17 @@
             Gets the number of all teams in the enterprise.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.ManagedCompanies">
+            <summary>
+            Get the list of all managed companies in the enterprise.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.EnterpriseLicense">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.GetDeviceApprovalRequests">
+            <exclude/>
+        </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.CreateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
             <summary>
                 Creates Enterprise Team.
@@ -2445,6 +2488,7 @@
                     {
                         // Load enterprise data.
                         var enterprise = new EnterpriseData(auth);
+                        await enterprise.PopulateEnterprise();
             
                         // Find team with name "Google".
                         var team = enterprise.Teams
@@ -2472,6 +2516,45 @@
             </example>
             <seealso cref="T:KeeperSecurity.Enterprise.IEnterprise" />
             <seealso cref="T:KeeperSecurity.Enterprise.EnterpriseData" />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseExtensions">
+            <summary>
+            Miscellaneous Enterprise Methods
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseExtensions.SetRestrictVisibility(KeeperSecurity.Enterprise.EnterpriseData,System.Int64)">
+            <summary>
+            Toggles "Node Isolation" flag for enterprise node.
+            </summary>
+            <param name="enterprise">Enterprise Data.</param>
+            <param name="nodeId">Node ID</param>
+            <returns>Awaitable Task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseExtensions.CreateNode(KeeperSecurity.Enterprise.EnterpriseData,System.String,KeeperSecurity.Enterprise.EnterpriseNode)">
+            <summary>
+            Creates Enterprise Node
+            </summary>
+            <param name="enterprise">Enterprise Data</param>
+            <param name="nodeName">Node Name</param>
+            <param name="parentNode">Parent Node</param>
+            <returns>Awaitable task returning crerated node</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseExtensions.UpdateNode(KeeperSecurity.Enterprise.EnterpriseData,KeeperSecurity.Enterprise.EnterpriseNode,KeeperSecurity.Enterprise.EnterpriseNode)">
+            <summary>
+            Updates existing node
+            </summary>
+            <param name="enterprise">Enterprise Data</param>
+            <param name="node">Enterprise node</param>
+            <param name="newParentNode">New Parent Node</param>
+            <returns>Awaitable task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseExtensions.DeleteNode(KeeperSecurity.Enterprise.EnterpriseData,System.Int64)">
+            <summary>
+            Deletes existing node
+            </summary>
+            <param name="enterprise">Enterprise Data</param>
+            <param name="nodeId">Node ID to be deleted</param>
+            <returns>Awaitable task</returns>
         </member>
         <member name="T:KeeperSecurity.Enterprise.IEnterprise">
             <summary>
@@ -2528,11 +2611,10 @@
                 Gets the number of all teams in the enterprise.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterprise.PopulateEnterprise(System.Boolean)">
+        <member name="M:KeeperSecurity.Enterprise.IEnterprise.PopulateEnterprise">
             <summary>
-                Retrieves from Keeper and decrypts Enterprise Data structure.
+                Syncronizes Enterprise Data structure with server.
             </summary>
-            <param name="nodesOnly">Retrieve node information only</param>
             <returns>Awaitable task</returns>
         </member>
         <member name="M:KeeperSecurity.Enterprise.IEnterprise.TryGetNode(System.Int64,KeeperSecurity.Enterprise.EnterpriseNode@)">
@@ -2640,6 +2722,11 @@
         <member name="P:KeeperSecurity.Enterprise.EnterpriseNode.ParentNodeId">
             <summary>
                 Parent Node ID.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseNode.RestrictVisibility">
+            <summary>
+                Node Isolation flag.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Enterprise.UserStatus">
@@ -2754,6 +2841,56 @@
         <member name="P:KeeperSecurity.Enterprise.EnterpriseTeam.ParentNodeId">
             <summary>
                 Node that owns the team.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseManagedCompany">
+            <summary>
+                Represents Enterprise Managed Company.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.EnterpriseId">
+            <summary>
+                Managed Company Enterprise ID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.EnterpriseName">
+            <summary>
+                Managed Company Enterprise Name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.ProductId">
+            <summary>
+                Managed Company Product ID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.NumberOfSeats">
+            <summary>
+                Number of Seats
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.NumberOfUsers">
+            <summary>
+                Number of Users
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.IsExpired">
+            <summary>
+                Is Managed Company Expired
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.TreeKey">
+            <summary>
+            Managed Company Tree Key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.TreeKeyRole">
+            <summary>
+            Managed Company Tree Key Role
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.ParentNodeId">
+            <summary>
+                Node that owns the managed company.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseException">
@@ -3146,6 +3283,9 @@
             </summary>
             <param name="password">Master Password.</param>
             <returns>A list of failed password rules.</returns>
+        </member>
+        <member name="T:KeeperSecurity.Utils.ManageAccountExtension">
+            <exclude />
         </member>
         <member name="T:KeeperSecurity.Utils.DateTimeOffsetExtensions">
             <exclude/>
@@ -5643,6 +5783,37 @@
             Google authenticator etc.
             </summary>
         </member>
+        <member name="T:Authentication.Region">
+             <summary>
+            *
+             The names and IDs in this class correspond to the Kinfo database entries and to the Region class in Keeperpap.
+             </summary>
+        </member>
+        <member name="F:Authentication.Region.Unknown">
+            <summary>
+            Our region numbers start at 1
+            </summary>
+        </member>
+        <member name="F:Authentication.Region.Eu">
+            <summary>
+            Europe
+            </summary>
+        </member>
+        <member name="F:Authentication.Region.Us">
+            <summary>
+            North America
+            </summary>
+        </member>
+        <member name="F:Authentication.Region.Usgov">
+            <summary>
+            US Government
+            </summary>
+        </member>
+        <member name="F:Authentication.Region.Au">
+            <summary>
+            Australia
+            </summary>
+        </member>
         <member name="F:Authentication.ApiRequest.EncryptedTransmissionKeyFieldNumber">
             <summary>Field number for the "encryptedTransmissionKey" field.</summary>
         </member>
@@ -6541,6 +6712,9 @@
             optinal for creating an account when creating an enterprise
             </summary>
         </member>
+        <member name="F:Authentication.CreateUserRequest.EncryptedVerificationTokenFieldNumber">
+            <summary>Field number for the "encryptedVerificationToken" field.</summary>
+        </member>
         <member name="F:Authentication.NodeEnforcementAddOrUpdateRequest.NodeIdFieldNumber">
             <summary>Field number for the "nodeId" field.</summary>
         </member>
@@ -6827,6 +7001,30 @@
         <member name="F:Authentication.ThrottleState.StateFieldNumber">
             <summary>Field number for the "state" field.</summary>
         </member>
+        <member name="F:Authentication.ThrottleState2.KeyFieldNumber">
+            <summary>Field number for the "key" field.</summary>
+        </member>
+        <member name="F:Authentication.ThrottleState2.KeyDescriptionFieldNumber">
+            <summary>Field number for the "keyDescription" field.</summary>
+        </member>
+        <member name="F:Authentication.ThrottleState2.ValueFieldNumber">
+            <summary>Field number for the "value" field.</summary>
+        </member>
+        <member name="F:Authentication.ThrottleState2.ValueDescriptionFieldNumber">
+            <summary>Field number for the "valueDescription" field.</summary>
+        </member>
+        <member name="F:Authentication.ThrottleState2.IdentifierFieldNumber">
+            <summary>Field number for the "identifier" field.</summary>
+        </member>
+        <member name="F:Authentication.ThrottleState2.LockedFieldNumber">
+            <summary>Field number for the "locked" field.</summary>
+        </member>
+        <member name="F:Authentication.ThrottleState2.IncludedInAllClearFieldNumber">
+            <summary>Field number for the "includedInAllClear" field.</summary>
+        </member>
+        <member name="F:Authentication.ThrottleState2.ExpireSecondsFieldNumber">
+            <summary>Field number for the "expireSeconds" field.</summary>
+        </member>
         <member name="F:Authentication.DeviceInformation.DeviceIdFieldNumber">
             <summary>Field number for the "deviceId" field.</summary>
         </member>
@@ -6978,6 +7176,9 @@
         <member name="F:Authentication.PublicKeyResponse.MessageFieldNumber">
             <summary>Field number for the "message" field.</summary>
         </member>
+        <member name="F:Authentication.PublicKeyResponse.ErrorCodeFieldNumber">
+            <summary>Field number for the "errorCode" field.</summary>
+        </member>
         <member name="F:Authentication.GetPublicKeysResponse.KeyResponsesFieldNumber">
             <summary>Field number for the "keyResponses" field.</summary>
         </member>
@@ -6986,6 +7187,36 @@
         </member>
         <member name="F:Authentication.SetEccKeyPairRequest.EncryptedPrivateKeyFieldNumber">
             <summary>Field number for the "encryptedPrivateKey" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppShareRequest.AppRecordUidFieldNumber">
+            <summary>Field number for the "appRecordUid" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppShareRequest.SecretUidFieldNumber">
+            <summary>Field number for the "secretUid" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppShareRequest.ShareTypeFieldNumber">
+            <summary>Field number for the "shareType" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppShareRequest.EncryptedSecretKeyFieldNumber">
+            <summary>Field number for the "encryptedSecretKey" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppClientRequest.AppRecordUidFieldNumber">
+            <summary>Field number for the "appRecordUid" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppClientRequest.EncryptedMasterKeyFieldNumber">
+            <summary>Field number for the "encryptedMasterKey" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppClientRequest.ClientIdFieldNumber">
+            <summary>Field number for the "clientId" field.</summary>
+        </member>
+        <member name="F:Authentication.GetVerificationTokenRequest.UsernameFieldNumber">
+            <summary>Field number for the "username" field.</summary>
+        </member>
+        <member name="F:Authentication.GetVerificationTokenResponse.EncryptedVerificationTokenFieldNumber">
+            <summary>Field number for the "encryptedVerificationToken" field.</summary>
+        </member>
+        <member name="F:Authentication.SendShareInviteRequest.EmailFieldNumber">
+            <summary>Field number for the "email" field.</summary>
         </member>
         <member name="T:BreachWatch.BreachwatchReflection">
             <summary>Holder for reflection information generated from breachwatch.proto</summary>
@@ -7439,6 +7670,9 @@
         <member name="F:Enterprise.GeneralDataEntity.EnterpriseNameFieldNumber">
             <summary>Field number for the "enterpriseName" field.</summary>
         </member>
+        <member name="F:Enterprise.GeneralDataEntity.RestrictVisibilityFieldNumber">
+            <summary>Field number for the "restrictVisibility" field.</summary>
+        </member>
         <member name="F:Enterprise.GeneralDataEntity.SpecialProvisioningFieldNumber">
             <summary>Field number for the "specialProvisioning" field.</summary>
         </member>
@@ -7589,17 +7823,14 @@
         <member name="F:Enterprise.RolePrivilege.PrivilegeTypeFieldNumber">
             <summary>Field number for the "privilegeType" field.</summary>
         </member>
-        <member name="F:Enterprise.Enforcement.EnforcementTypeFieldNumber">
-            <summary>Field number for the "enforcementType" field.</summary>
-        </member>
-        <member name="F:Enterprise.Enforcement.ValueFieldNumber">
-            <summary>Field number for the "value" field.</summary>
-        </member>
         <member name="F:Enterprise.RoleEnforcement.RoleIdFieldNumber">
             <summary>Field number for the "roleId" field.</summary>
         </member>
-        <member name="F:Enterprise.RoleEnforcement.EnforcementsFieldNumber">
-            <summary>Field number for the "enforcements" field.</summary>
+        <member name="F:Enterprise.RoleEnforcement.EnforcementTypeFieldNumber">
+            <summary>Field number for the "enforcementType" field.</summary>
+        </member>
+        <member name="F:Enterprise.RoleEnforcement.ValueFieldNumber">
+            <summary>Field number for the "value" field.</summary>
         </member>
         <member name="F:Enterprise.Team.TeamUidFieldNumber">
             <summary>Field number for the "teamUid" field.</summary>
@@ -7782,6 +8013,9 @@
         </member>
         <member name="F:Enterprise.Scim.RolePrefixFieldNumber">
             <summary>Field number for the "rolePrefix" field.</summary>
+        </member>
+        <member name="F:Enterprise.Scim.UniqueGroupsFieldNumber">
+            <summary>Field number for the "uniqueGroups" field.</summary>
         </member>
         <member name="F:Enterprise.EmailProvision.IdFieldNumber">
             <summary>Field number for the "id" field.</summary>
@@ -8044,6 +8278,9 @@
              <summary>
             1 is direct share, 2 share folder, 3 share team folder
              </summary>
+        </member>
+        <member name="F:Enterprise.SetRestrictVisibilityRequest.NodeIdFieldNumber">
+            <summary>Field number for the "nodeId" field.</summary>
         </member>
         <member name="T:Folder.FolderReflection">
             <summary>Holder for reflection information generated from folder.proto</summary>

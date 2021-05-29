@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Keeper Security Inc.")]
 [assembly: AssemblyProduct("Keeper SDK sample app")]
-[assembly: AssemblyCopyright("Copyright ©  2021")]
+[assembly: AssemblyCopyright("Copyright (c) 2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

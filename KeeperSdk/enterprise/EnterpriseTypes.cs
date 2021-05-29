@@ -62,11 +62,10 @@ namespace KeeperSecurity.Enterprise
         int TeamCount { get; }
 
         /// <summary>
-        ///     Retrieves from Keeper and decrypts Enterprise Data structure.
+        ///     Syncronizes Enterprise Data structure with server.
         /// </summary>
-        /// <param name="nodesOnly">Retrieve node information only</param>
         /// <returns>Awaitable task</returns>
-        Task PopulateEnterprise(bool nodesOnly);
+        Task PopulateEnterprise();
 
         /// <summary>
         ///     Gets the enterprise node associated with the specified ID.
@@ -182,6 +181,11 @@ namespace KeeperSecurity.Enterprise
         ///     Parent Node ID.
         /// </summary>
         public long ParentNodeId { get; internal set; }
+
+        /// <summary>
+        ///     Node Isolation flag.
+        /// </summary>
+        public bool RestrictVisibility { get; internal set; }
     }
 
     /// <summary>
@@ -297,6 +301,47 @@ namespace KeeperSecurity.Enterprise
 
         /// <summary>
         ///     Node that owns the team.
+        /// </summary>
+        public long ParentNodeId { get; set; }
+    }
+
+    /// <summary>
+    ///     Represents Enterprise Managed Company.
+    /// </summary>
+    public class EnterpriseManagedCompany : IParentNodeEntity
+    {
+        /// <summary>
+        ///     Managed Company Enterprise ID
+        /// </summary>
+        public int EnterpriseId { get; internal set; }
+
+        /// <summary>
+        ///     Managed Company Enterprise Name
+        /// </summary>
+        public string EnterpriseName { get; internal set; }
+
+        /// <summary>
+        ///     Managed Company Product ID
+        /// </summary>
+        public string ProductId { get; internal set; }
+
+        /// <summary>
+        ///     Number of Seats
+        /// </summary>
+        public int NumberOfSeats { get; internal set; }
+
+        /// <summary>
+        ///     Number of Users
+        /// </summary>
+        public int NumberOfUsers { get; internal set; }
+
+        /// <summary>
+        ///     Is Managed Company Expired
+        /// </summary>
+        public bool IsExpired { get; internal set; }
+
+        /// <summary>
+        ///     Node that owns the managed company.
         /// </summary>
         public long ParentNodeId { get; set; }
     }
