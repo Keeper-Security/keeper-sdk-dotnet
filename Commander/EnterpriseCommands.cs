@@ -233,6 +233,7 @@ namespace Commander
                         if (arguments.RestrictVisibility)
                         {
                             await context.Enterprise.SetRestrictVisibility(node.Id);
+                            Console.WriteLine($"Node Isolation: {(node.RestrictVisibility ? "ON" : "OFF")}");
                         }
 
                         break;
