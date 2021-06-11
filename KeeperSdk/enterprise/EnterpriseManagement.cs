@@ -147,6 +147,7 @@ namespace KeeperSecurity.Enterprise
             await this.PopulateUserPublicKeys(userPublicKeys, warnings);
             await this.PopulateTeamKeys(teamKeys, warnings);
 
+            int numUsersAlreadyOnTeam = 0;
             var commands = new List<KeeperApiCommand>();
             foreach (var userPair in userPublicKeys.Where(x => x.Value != null))
             {
@@ -158,7 +159,11 @@ namespace KeeperSecurity.Enterprise
                     foreach (var teamPair in teamKeys.Where(x => x.Value != null))
                     {
                         if (!TryGetTeam(teamPair.Key, out var team)) continue;
-                        if (team.Users.Contains(user.Id)) continue;
+                        if (team.Users.Contains(user.Id))
+                        {
+                            ++numUsersAlreadyOnTeam;
+                            continue;
+                        }
                         var teamKey = teamPair.Value;
                         commands.Add(new TeamEnterpriseUserAddCommand
                         {
@@ -176,6 +181,8 @@ namespace KeeperSecurity.Enterprise
                 }
             }
 
+            if (numUsersAlreadyOnTeam > 0)
+                warnings?.Invoke($"Skipped {numUsersAlreadyOnTeam} user(s) that already have team membership(s)");
             if (commands.Count > 0)
             {
                 var batch = commands.Take(99).ToList();
