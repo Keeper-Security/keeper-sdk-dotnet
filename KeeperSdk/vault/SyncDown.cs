@@ -30,7 +30,7 @@ namespace KeeperSecurity.Vault
             var command = new SyncDownCommand
             {
                 revision = storage.Revision,
-                include = new[] {"sfheaders", "sfrecords", "sfusers", "teams", "folders"},
+                include = new[] { "sfheaders", "sfrecords", "sfusers", "teams", "folders" },
                 deviceName = vault.Auth.Endpoint.DeviceName,
                 deviceId = vault.Auth.Endpoint.DeviceName
             };
@@ -248,7 +248,7 @@ namespace KeeperSecurity.Vault
                     {
                         x.AdjustUdata();
                         if (!recordOwnership.ContainsKey(x.RecordUid)) return x;
-                        
+
                         x.Owner = recordOwnership[x.RecordUid];
                         recordOwnership.Remove(x.RecordUid);
 
@@ -304,7 +304,7 @@ namespace KeeperSecurity.Vault
                             if (key != null)
                             {
                                 rmd.RecordKey = CryptoUtils.EncryptAesV1(key, context.ClientKey).Base64UrlEncode();
-                                rmd.RecordKeyType = (int) KeyType.DataKey;
+                                rmd.RecordKeyType = (int)KeyType.DataKey;
                                 rmd.SharedFolderUid = storage.PersonalScopeUid;
                                 return rmd;
                             }
@@ -343,10 +343,10 @@ namespace KeeperSecurity.Vault
                             byte[] teamKey;
                             switch (x.KeyType)
                             {
-                                case (int) KeyType.DataKey:
+                                case (int)KeyType.DataKey:
                                     teamKey = CryptoUtils.DecryptAesV1(x.TeamKey.Base64UrlDecode(), context.DataKey);
                                     break;
-                                case (int) KeyType.PrivateKey:
+                                case (int)KeyType.PrivateKey:
                                     teamKey = CryptoUtils.DecryptRsa(x.TeamKey.Base64UrlDecode(), context.PrivateKey);
                                     break;
                                 default:
@@ -354,7 +354,7 @@ namespace KeeperSecurity.Vault
                             }
 
                             x.TeamKey = CryptoUtils.EncryptAesV1(teamKey, clientKey).Base64UrlEncode();
-                            x.KeyType = (int) KeyType.DataKey;
+                            x.KeyType = (int)KeyType.DataKey;
                             return x;
                         }
                         catch (Exception e)
@@ -374,7 +374,7 @@ namespace KeeperSecurity.Vault
                         (team, sharedFolderKey) =>
                         {
                             sharedFolderKey.TeamUid = team.TeamUid;
-                            sharedFolderKey.KeyType = sharedFolderKey.KeyType == 2 ? (int) KeyType.TeamPrivateKey : (int)KeyType.TeamKey;
+                            sharedFolderKey.KeyType = sharedFolderKey.KeyType == 2 ? (int)KeyType.TeamPrivateKey : (int)KeyType.TeamKey;
                             return sharedFolderKey;
                         })
                     .ToArray();
@@ -415,7 +415,7 @@ namespace KeeperSecurity.Vault
                                 TeamUid = storage.PersonalScopeUid,
                                 SharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolderKey, clientKey)
                                     .Base64UrlEncode(),
-                                KeyType = (int) KeyType.DataKey
+                                KeyType = (int)KeyType.DataKey
                             };
                         }
                         catch (Exception e)
@@ -444,7 +444,7 @@ namespace KeeperSecurity.Vault
                             SharedFolderUid = sf.SharedFolderUid,
                             RecordUid = sfr.RecordUid,
                             RecordKey = sfr.RecordKey,
-                            RecordKeyType = (int) KeyType.SharedFolderKey,
+                            RecordKeyType = (int)KeyType.SharedFolderKey,
                             CanEdit = sfr.CanEdit,
                             CanShare = sfr.CanShare
                         })
@@ -493,10 +493,10 @@ namespace KeeperSecurity.Vault
                             var folderKey = uf.FolderKey.Base64UrlDecode();
                             switch (uf.keyType)
                             {
-                                case (int) KeyType.DataKey:
+                                case (int)KeyType.DataKey:
                                     folderKey = CryptoUtils.DecryptAesV1(folderKey, context.DataKey);
                                     break;
-                                case (int) KeyType.PrivateKey:
+                                case (int)KeyType.PrivateKey:
                                     folderKey = CryptoUtils.DecryptRsa(folderKey, context.PrivateKey);
                                     break;
                                 default:
@@ -504,7 +504,7 @@ namespace KeeperSecurity.Vault
                             }
 
                             uf.FolderKey = CryptoUtils.EncryptAesV1(folderKey, clientKey).Base64UrlEncode();
-                            uf.keyType = (int) KeyType.DataKey;
+                            uf.keyType = (int)KeyType.DataKey;
                             return uf;
                         }
                         catch (Exception e)

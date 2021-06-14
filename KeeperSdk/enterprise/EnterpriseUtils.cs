@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+using System.Text;
 
 namespace KeeperSecurity.Enterprise
 {
@@ -35,6 +36,42 @@ namespace KeeperSecurity.Enterprise
             {
                 Debug.WriteLine(e.Message);
             }
+        }
+
+        public static byte[] DecryptEncryptedData(byte[] encryptedData, byte[] encryptionKey)
+        {
+            var data = new byte[0];
+            if (encryptedData != null && encryptedData.Length > 0 && encryptionKey != null && encryptionKey.Length > 0)
+            {
+                try
+                {
+                    data = CryptoUtils.DecryptAesV1(encryptedData, encryptionKey);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            }
+            return data;
+        }
+
+        public static string DecryptEncryptedData(string encryptedData, byte[] encryptionKey)
+        {
+            string data = string.Empty;
+            if (!string.IsNullOrWhiteSpace(encryptedData) && encryptionKey != null && encryptionKey.Length > 0)
+            {
+                try
+                {
+                    byte[] encryptedBytes = encryptedData.Base64UrlDecode();
+                    byte[] decryptedBytes = DecryptEncryptedData(encryptedBytes, encryptionKey);
+                    data = Encoding.UTF8.GetString(decryptedBytes);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            }
+            return data;
         }
 
         public static async Task PopulateUserPublicKeys(this EnterpriseData enterprise, IDictionary<string, byte[]> publicKeys, Action<string> warnings = null)

@@ -49,6 +49,7 @@ namespace KeeperSecurity.Enterprise
         internal readonly Dictionary<string, byte[]> UserPublicKeyCache = new Dictionary<string, byte[]>(StringComparer.InvariantCultureIgnoreCase);
 
         internal readonly ConcurrentDictionary<long, EnterpriseNode> _nodes = new ConcurrentDictionary<long, EnterpriseNode>();
+        private readonly ConcurrentDictionary<long, EnterpriseRole> _roles = new ConcurrentDictionary<long, EnterpriseRole>();
         private readonly ConcurrentDictionary<long, EnterpriseUser> _users = new ConcurrentDictionary<long, EnterpriseUser>();
         private readonly ConcurrentDictionary<string, EnterpriseTeam> _teams = new ConcurrentDictionary<string, EnterpriseTeam>();
         private readonly ConcurrentDictionary<string, long> _userNames = new ConcurrentDictionary<string, long>(1, 100, StringComparer.InvariantCultureIgnoreCase);
@@ -108,6 +109,7 @@ namespace KeeperSecurity.Enterprise
                 if (rrs.CacheStatus == CacheStatus.Clear)
                 {
                     _nodes.Clear();
+                    _roles.Clear();
                     _users.Clear();
                     _teams.Clear();
                     _userNames.Clear();
@@ -283,6 +285,137 @@ namespace KeeperSecurity.Enterprise
                             }
                             break;
 
+                        case EnterpriseDataEntity.Roles:
+                            {
+                                foreach (var data in entityData.Data)
+                                {
+                                    var role = Role.Parser.ParseFrom(data);
+                                    var roleId = role.RoleId;
+                                    if (entityData.Delete)
+                                    {
+                                        _roles.TryRemove(roleId, out _);
+                                    }
+                                    else
+                                    {
+                                        if (!_roles.TryGetValue(roleId, out var t))
+                                        {
+                                            t = new EnterpriseRole { Id = roleId };
+                                            _roles.TryAdd(roleId, t);
+                                        }
+
+                                        t.NodeId = role.NodeId;
+                                        t.KeyType = role.KeyType;
+                                        t.VisibleBelow = role.VisibleBelow;
+                                        t.NewUserInherit = role.NewUserInherit;
+                                        t.RoleType = role.RoleType;
+
+                                        if (!string.IsNullOrEmpty(role.EncryptedData))
+                                        {
+                                            try
+                                            {
+                                                EnterpriseUtils.DecryptEncryptedData(role.EncryptedData, TreeKey, t);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Debug.WriteLine(e.Message);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+
+                        case EnterpriseDataEntity.RoleUsers:
+                            {
+                                foreach (var data in entityData.Data)
+                                {
+                                    var roleUser = RoleUser.Parser.ParseFrom(data);
+                                    if (_roles.TryGetValue(roleUser.RoleId, out var role))
+                                    {
+                                        if (entityData.Delete)
+                                            role.Users.Remove(roleUser.EnterpriseUserId);
+                                        else
+                                            role.Users.Add(roleUser.EnterpriseUserId);
+                                    }
+                                }
+                            }
+                            break;
+
+                        case EnterpriseDataEntity.RolePrivileges:
+                            {
+                                foreach (var data in entityData.Data)
+                                {
+                                    var rolePrivilege = RolePrivilege.Parser.ParseFrom(data);
+                                    if (_roles.TryGetValue(rolePrivilege.RoleId, out var role))
+                                    {
+                                        if (!role.ManagedNodes.TryGetValue(rolePrivilege.ManagedNodeId, out var _))
+                                            role.ManagedNodes.Add(rolePrivilege.ManagedNodeId, new HashSet<string>());
+                                        if (role.ManagedNodes.TryGetValue(rolePrivilege.ManagedNodeId, out var p))
+                                        {
+                                            if (entityData.Delete)
+                                            {
+                                                p?.Remove(rolePrivilege.PrivilegeType);
+                                            }
+                                            else
+                                            {
+                                                if (p == null)
+                                                    p = new HashSet<string>();
+                                                p.Add(rolePrivilege.PrivilegeType);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Debug.WriteLine($"Skipped role privelege for an unknown role ID: {rolePrivilege.RoleId}");
+                                    }
+                                }
+                            }
+                            break;
+
+                        case EnterpriseDataEntity.RoleEnforcements:
+                            {
+                                foreach (var data in entityData.Data)
+                                {
+                                    var roleEnforcement = RoleEnforcement.Parser.ParseFrom(data);
+                                    if (_roles.TryGetValue(roleEnforcement.RoleId, out var role))
+                                    {
+                                        if (entityData.Delete)
+                                        {
+                                            role.Enforcements.Remove(roleEnforcement.EnforcementType);
+                                        }
+                                        else
+                                        {
+                                            if (role.Enforcements.ContainsKey(roleEnforcement.EnforcementType))
+                                                role.Enforcements[roleEnforcement.EnforcementType] = roleEnforcement.Value;
+                                            else
+                                                role.Enforcements.Add(roleEnforcement.EnforcementType, roleEnforcement.Value);
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+
+                        case EnterpriseDataEntity.RoleTeams:
+                            {
+                                foreach (var data in entityData.Data)
+                                {
+                                    var roleTeam = RoleTeam.Parser.ParseFrom(data);
+                                    var teamUid = roleTeam.TeamUid.ToByteArray().Base64UrlEncode();
+                                    if (_roles.TryGetValue(roleTeam.RoleId, out var role))
+                                    {
+                                        if (entityData.Delete)
+                                        {
+                                            role.Teams.Remove(teamUid);
+                                        }
+                                        else
+                                        {
+                                            role.Teams.Add(teamUid);
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+
                         case EnterpriseDataEntity.DevicesRequestForAdminApproval:
                             {
                                 foreach (var data in entityData.Data)
@@ -392,7 +525,7 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         /// <param name="nodeId">Node Enterprise ID</param>
         /// <param name="node">When this method returns <c>true</c>, contains requested enterprise node; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the enterprise contains a node with specified ID; otherwise, <c>false</c></returns>
+        /// <returns><c>true</c> if the enterprise contains a node with specified ID; otherwise, <c>false</c></returns>
         public bool TryGetNode(long nodeId, out EnterpriseNode node)
         {
             return _nodes.TryGetValue(nodeId, out node);
@@ -415,7 +548,7 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         /// <param name="userId">User Enterprise ID</param>
         /// <param name="user">When this method returns <c>true</c>, contains requested enterprise user; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
+        /// <returns><c>true</c> if the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
         public bool TryGetUserById(long userId, out EnterpriseUser user)
         {
             return _users.TryGetValue(userId, out user);
@@ -425,7 +558,7 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         /// <param name="email">User Email Address.</param>
         /// <param name="user">When this method returns <c>true</c>, contains requested enterprise user; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
+        /// <returns><c>true</c> if the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
         public bool TryGetUserByEmail(string email, out EnterpriseUser user)
         {
             if (!_userNames.TryGetValue(email, out var id))
@@ -450,7 +583,7 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         /// <param name="teamUid">Team UID</param>
         /// <param name="team">When this method returns <c>true</c>, contains requested enterprise team; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the enterprise contains a team with specified UID; otherwise, <c>false</c></returns>
+        /// <returns><c>true</c> if the enterprise contains a team with specified UID; otherwise, <c>false</c></returns>
         public bool TryGetTeam(string teamUid, out EnterpriseTeam team)
         {
             return _teams.TryGetValue(teamUid, out team);
@@ -460,6 +593,24 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         public int TeamCount => _teams.Count;
 
+        /// <summary>
+        /// Get the list of all roles in the enterprise.
+        /// </summary>
+        public IEnumerable<EnterpriseRole> Roles => _roles.Values;
+        /// <summary>
+        /// Gets the enterprise role associated with the specified role ID.
+        /// </summary>
+        /// <param name="roleId">Role ID</param>
+        /// <param name="role">When this method returns <c>true</c>, contains requested enterprise role; otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> if the enterprise contains a role with specified ID; otherwise, <c>false</c></returns>
+        public bool TryGetRole(long roleId, out EnterpriseRole role)
+        {
+            return _roles.TryGetValue(roleId, out role);
+        }
+        /// <summary>
+        /// Gets the number of all roles in the enterprise.
+        /// </summary>
+        public int RoleCount => _roles.Count;
 
         /// <summary>
         /// Get the list of all managed companies in the enterprise.

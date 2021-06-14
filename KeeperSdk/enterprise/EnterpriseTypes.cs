@@ -62,6 +62,16 @@ namespace KeeperSecurity.Enterprise
         int TeamCount { get; }
 
         /// <summary>
+        ///     Get the list of all roles in the enterprise.
+        /// </summary>
+        IEnumerable<EnterpriseRole> Roles { get; }
+
+        /// <summary>
+        ///     Gets the number of all roles in the enterprise.
+        /// </summary>
+        int RoleCount { get; }
+
+        /// <summary>
         ///     Syncronizes Enterprise Data structure with server.
         /// </summary>
         /// <returns>Awaitable task</returns>
@@ -257,6 +267,51 @@ namespace KeeperSecurity.Enterprise
         ///     Node that owns the user.
         /// </summary>
         public long ParentNodeId { get; internal set; }
+    }
+
+    /// <summary>
+    ///     Represents Enterprise Role
+    /// </summary>
+    public class EnterpriseRole : IEnterpriseEntity, IDisplayName
+    {
+        /// <summary>
+        ///     Role ID.
+        /// </summary>
+        public long Id { get; internal set; }
+
+        /// <summary>
+        ///     Node ID.
+        /// </summary>
+        public long NodeId { get; internal set; }
+
+        /// <summary>
+        ///     Role Name.
+        /// </summary>
+        public string DisplayName { get; set; }
+
+
+        public string Data { get; internal set; }
+        public string KeyType { get; internal set; }
+        public bool VisibleBelow { get; internal set; }
+        public bool NewUserInherit { get; internal set; }
+        public string RoleType { get; internal set; }
+
+        /// <summary>
+        ///     A list of user ID that are managed by the role.
+        /// </summary>
+        public ISet<long> Users { get; } = new HashSet<long>();
+        /// <summary>
+        ///     A list of team UID that are managed by the role.
+        /// </summary>
+        public ISet<string> Teams { get; } = new HashSet<string>();
+        /// <summary>
+        ///     A dictionary mapping ManagedNode ID to a subset of assigned privileges.
+        /// </summary>
+        public IDictionary<long, HashSet<string>> ManagedNodes { get; } = new Dictionary<long, HashSet<string>>();
+        /// <summary>
+        ///     A dictionary with EnforcementTypes and corresponding values.
+        /// </summary>
+        public IDictionary<string, string> Enforcements { get; } = new Dictionary<string, string>();
     }
 
     /// <summary>

@@ -16,7 +16,6 @@ namespace KeeperSecurity.Commands
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
-
     [DataContract]
     public class PreAccountTransferCommand : AuthenticatedCommand
     {
@@ -72,7 +71,7 @@ namespace KeeperSecurity.Commands
 
 
     [DataContract]
-    public class NodeCommand: AuthenticatedCommand
+    public class NodeCommand : AuthenticatedCommand
     {
         public NodeCommand(string command) : base(command)
         {
@@ -217,5 +216,4 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "encrypted_team_key")]
         public string EncryptedTeamKey { get; set; }
     }
-
 }
