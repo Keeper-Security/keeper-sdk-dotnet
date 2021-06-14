@@ -341,32 +341,22 @@ namespace KeeperSecurity.Enterprise
                             }
                             break;
 
-                        case EnterpriseDataEntity.RolePrivileges:
+                        case EnterpriseDataEntity.RoleTeams:
                             {
                                 foreach (var data in entityData.Data)
                                 {
-                                    var rolePrivilege = RolePrivilege.Parser.ParseFrom(data);
-                                    if (_roles.TryGetValue(rolePrivilege.RoleId, out var role))
+                                    var roleTeam = RoleTeam.Parser.ParseFrom(data);
+                                    var teamUid = roleTeam.TeamUid.ToByteArray().Base64UrlEncode();
+                                    if (_roles.TryGetValue(roleTeam.RoleId, out var role))
                                     {
-                                        if (!role.ManagedNodes.TryGetValue(rolePrivilege.ManagedNodeId, out var _))
-                                            role.ManagedNodes.Add(rolePrivilege.ManagedNodeId, new HashSet<string>());
-                                        if (role.ManagedNodes.TryGetValue(rolePrivilege.ManagedNodeId, out var p))
+                                        if (entityData.Delete)
                                         {
-                                            if (entityData.Delete)
-                                            {
-                                                p?.Remove(rolePrivilege.PrivilegeType);
-                                            }
-                                            else
-                                            {
-                                                if (p == null)
-                                                    p = new HashSet<string>();
-                                                p.Add(rolePrivilege.PrivilegeType);
-                                            }
+                                            role.Teams.Remove(teamUid);
                                         }
-                                    }
-                                    else
-                                    {
-                                        Debug.WriteLine($"Skipped role privelege for an unknown role ID: {rolePrivilege.RoleId}");
+                                        else
+                                        {
+                                            role.Teams.Add(teamUid);
+                                        }
                                     }
                                 }
                             }
@@ -395,22 +385,32 @@ namespace KeeperSecurity.Enterprise
                             }
                             break;
 
-                        case EnterpriseDataEntity.RoleTeams:
+                        case EnterpriseDataEntity.RolePrivileges:
                             {
                                 foreach (var data in entityData.Data)
                                 {
-                                    var roleTeam = RoleTeam.Parser.ParseFrom(data);
-                                    var teamUid = roleTeam.TeamUid.ToByteArray().Base64UrlEncode();
-                                    if (_roles.TryGetValue(roleTeam.RoleId, out var role))
+                                    var rolePrivilege = RolePrivilege.Parser.ParseFrom(data);
+                                    if (_roles.TryGetValue(rolePrivilege.RoleId, out var role))
                                     {
-                                        if (entityData.Delete)
+                                        if (!role.ManagedNodes.TryGetValue(rolePrivilege.ManagedNodeId, out var _))
+                                            role.ManagedNodes.Add(rolePrivilege.ManagedNodeId, new HashSet<string>());
+                                        if (role.ManagedNodes.TryGetValue(rolePrivilege.ManagedNodeId, out var p))
                                         {
-                                            role.Teams.Remove(teamUid);
+                                            if (entityData.Delete)
+                                            {
+                                                p?.Remove(rolePrivilege.PrivilegeType);
+                                            }
+                                            else
+                                            {
+                                                if (p == null)
+                                                    p = new HashSet<string>();
+                                                p.Add(rolePrivilege.PrivilegeType);
+                                            }
                                         }
-                                        else
-                                        {
-                                            role.Teams.Add(teamUid);
-                                        }
+                                    }
+                                    else
+                                    {
+                                        Debug.WriteLine($"Skipped role privelege for an unknown role ID: {rolePrivilege.RoleId}");
                                     }
                                 }
                             }
