@@ -337,6 +337,10 @@ namespace KeeperSecurity.Enterprise
                                         else
                                             role.Users.Add(roleUser.EnterpriseUserId);
                                     }
+                                    else
+                                    {
+                                        Debug.WriteLine($"Skipped Enterprise User ID = {roleUser.EnterpriseUserId} for an unknown role ID: {roleUser.RoleId}");
+                                    }
                                 }
                             }
                             break;
@@ -357,6 +361,10 @@ namespace KeeperSecurity.Enterprise
                                         {
                                             role.Teams.Add(teamUid);
                                         }
+                                    }
+                                    else
+                                    {
+                                        Debug.WriteLine($"Skipped Team UID = {teamUid} for an unknown role ID: {roleTeam.RoleId}");
                                     }
                                 }
                             }
@@ -380,6 +388,10 @@ namespace KeeperSecurity.Enterprise
                                             else
                                                 role.Enforcements.Add(roleEnforcement.EnforcementType, roleEnforcement.Value);
                                         }
+                                    }
+                                    else
+                                    {
+                                        Debug.WriteLine($"Skipped RoleEnforcement = {roleEnforcement.EnforcementType} for an unknown role ID: {roleEnforcement.RoleId}");
                                     }
                                 }
                             }
@@ -410,7 +422,7 @@ namespace KeeperSecurity.Enterprise
                                     }
                                     else
                                     {
-                                        Debug.WriteLine($"Skipped role privelege for an unknown role ID: {rolePrivilege.RoleId}");
+                                        Debug.WriteLine($"Skipped Role Privelege = {rolePrivilege.PrivilegeType} for an unknown role ID: {rolePrivilege.RoleId}");
                                     }
                                 }
                             }

@@ -425,7 +425,7 @@ namespace KeeperSecurity.Authentication
 
             var response = mp.ParseFrom(rsBytes);
 #if DEBUG
-            Debug.WriteLine($"REST response: endpoint \"{endpoint}\": {response}");
+            Debug.WriteLine($"REST Response: endpoint \"{endpoint}\": {response}");
 #endif
             return response;
         }

@@ -472,7 +472,7 @@ namespace KeeperSecurity.Authentication
                 new ApiRequestPayload {Payload = request.ToByteString()});
             var response = LoginResponse.Parser.ParseFrom(rs);
 #if DEBUG
-            Debug.WriteLine($"REST response: endpoint \"validate_auth_hash\": {response}");
+            Debug.WriteLine($"REST Response: endpoint \"validate_auth_hash\": {response}");
 #endif
             auth.Username = response.PrimaryUsername;
             v3.CloneCode = response.CloneCode.ToByteArray();
