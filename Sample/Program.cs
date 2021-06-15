@@ -72,14 +72,14 @@ namespace Sample
             {
                 case TwoFactorDuration.EveryLogin: return "now";
                 case TwoFactorDuration.Forever: return "never";
-                default: return $"{(int) duration}_days";
+                default: return $"{(int)duration}_days";
             }
         }
 
         private const string PushCommand = "push";
         private const string ChannelCommand = "channel";
         private const string ExpireCommand = "expire";
-        private static readonly TwoFactorDuration[] Expires = {TwoFactorDuration.EveryLogin, TwoFactorDuration.Every30Days, TwoFactorDuration.Forever};
+        private static readonly TwoFactorDuration[] Expires = { TwoFactorDuration.EveryLogin, TwoFactorDuration.Every30Days, TwoFactorDuration.Forever };
 
         private static void PrintStepPrompt(AuthStep step)
         {
@@ -359,7 +359,7 @@ namespace Sample
 
             // Login to Keeper
             Console.WriteLine("Logging in...");
-            
+
             var lastState = authFlow.Step.State;
             await authFlow.Login(username);
             while (!authFlow.IsCompleted)
@@ -488,10 +488,11 @@ namespace Sample
             }
 
             // Add user to shared folder.
+            string sfUser = "user@google.com";
             try
             {
                 await vault.PutUserToSharedFolder(sharedFolder.Uid,
-                    "user@google.com",
+                    sfUser,
                     UserType.User,
                     new SharedFolderUserOptions
                     {
@@ -501,12 +502,12 @@ namespace Sample
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Add user to Shared Folder error: {e.Message}");
+                Console.WriteLine($"Add user '{sfUser}' to shared folder  - error: {e.Message} ");
             }
 
 
             // Add record to shared folder.
-            await vault.MoveRecords(new[] {new RecordPath {RecordUid = search.Uid}}, sharedFolder.Uid, true);
+            await vault.MoveRecords(new[] { new RecordPath { RecordUid = search.Uid } }, sharedFolder.Uid, true);
 
             if (auth.AuthContext.IsEnterpriseAdmin)
             {
@@ -523,6 +524,7 @@ namespace Sample
                     team = await enterprise.CreateTeam(new EnterpriseTeam
                     {
                         Name = "Google",
+                        ParentNodeId = enterprise.RootNode.Id,
                         RestrictEdit = false,
                         RestrictSharing = true,
                         RestrictView = false,
@@ -532,10 +534,16 @@ namespace Sample
                 if (team != null)
                 {
                     // Add users to the "Google" team.
-                    await enterprise.AddUsersToTeams(
-                        new[] {"username@company.com", "username1@company.com"},
-                        new[] {team.Uid},
-                        Console.WriteLine);
+                    // Note: Only existing active users can be added to a team
+                    //var teamUsers = new List<string> { "username@company.com", "username1@company.com" };
+                    var teamUser = enterprise.Users.FirstOrDefault(x => x.UserStatus == UserStatus.Active);
+                    if (!object.Equals(teamUser, default(EnterpriseUser)))
+                    {
+                        await enterprise.AddUsersToTeams(
+                            new[] { teamUser.Email },
+                            new[] { team.Uid },
+                            Console.WriteLine);
+                    }
                 }
             }
 
