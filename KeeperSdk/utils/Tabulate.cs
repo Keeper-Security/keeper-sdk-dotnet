@@ -108,6 +108,7 @@ namespace KeeperSecurity.Utils
         public bool DumpRowNo { get; set; }
         public int LeftPadding { get; set; }
         public int MaxColumnWidth { get; set; } = 60;
+        public bool RowsTrimEnd { get; set; } = false;
 
         public void Dump()
         {
@@ -182,9 +183,11 @@ namespace KeeperSecurity.Utils
                     Console.Write("".PadLeft(LeftPadding));
                 }
 
-                Console.WriteLine(string.Join(RowSeparator, r));
+                var line = string.Join(RowSeparator, r);
+                line = RowsTrimEnd ? line.TrimEnd() : line;
+                Console.WriteLine(line);
 
-                rowNo++;
+                ++rowNo;
             }
 
             Console.WriteLine();
