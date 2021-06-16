@@ -358,6 +358,7 @@ function Connect-Keeper {
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
         [Parameter(Position = 0)][string] $Username,
+        [Parameter()][string] $Password,
         [Parameter()][switch] $NewLogin,
         [Parameter(ParameterSetName='sso_password')][switch] $SsoPassword,
         [Parameter(ParameterSetName='sso_provider')][switch] $SsoProvider,
@@ -408,7 +409,11 @@ function Connect-Keeper {
     if ($SsoProvider.IsPresent) {
         $_ = $authFlow.LoginSso($Username).GetAwaiter().GetResult()
     } else {
-        $_ = $authFlow.Login($Username).GetAwaiter().GetResult()
+        $passwords = @()
+        if ($Password) {
+            $passwords += $Password
+        }
+        $_ = $authFlow.Login($Username, $passwords).GetAwaiter().GetResult()
     }
     $lastState = $null
     Write-Output ""
