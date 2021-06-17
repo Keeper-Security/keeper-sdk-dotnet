@@ -402,6 +402,27 @@ namespace KeeperSecurity.Enterprise
     }
 
     /// <summary>
+    ///     Represents Enterprise Managed Node.
+    /// </summary>
+    public class EnterpriseManagedNode : IEnterpriseEntity
+    {
+        /// <summary>
+        ///     Managed Node ID.
+        /// </summary>
+        public long Id { get; internal set; }
+
+        /// <summary>
+        ///     Role ID.
+        /// </summary>
+        public long RoleId { get; internal set; }
+
+        /// <summary>
+        ///     Cascade Node Management flag.
+        /// </summary>
+        public bool CascadeNodeManagement { get; internal set; }
+    }
+
+    /// <summary>
     ///     Cannot proceed with enterprise operation.
     /// </summary>
     public class EnterpriseException : Exception
