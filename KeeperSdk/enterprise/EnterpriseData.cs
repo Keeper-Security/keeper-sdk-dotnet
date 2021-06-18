@@ -30,7 +30,19 @@ namespace KeeperSecurity.Enterprise
         public byte[] RsaPrivateKey { get; set; }
 
         /// <exclude/>
+        public byte[] RsaPublicKey { get; set; }
+
+        /// <exclude/>
         public byte[] EcPrivateKey { get; set; }
+
+        /// <exclude/>
+        public byte[] EcPublicKey { get; set; }
+
+        /// <exclude/>
+        public Dictionary<long, byte[]> RoleKeys { get; set; } = new Dictionary<long, byte[]>();
+
+        /// <exclude/>
+        public Dictionary<long, byte[]> EncryptedRoleKeys { get; set; } = new Dictionary<long, byte[]>();
 
         private byte[] _continuationToken;
 
@@ -49,12 +61,13 @@ namespace KeeperSecurity.Enterprise
         internal readonly Dictionary<string, byte[]> UserPublicKeyCache = new Dictionary<string, byte[]>(StringComparer.InvariantCultureIgnoreCase);
 
         internal readonly ConcurrentDictionary<long, EnterpriseNode> _nodes = new ConcurrentDictionary<long, EnterpriseNode>();
-        private readonly ConcurrentDictionary<long, EnterpriseRole> _roles = new ConcurrentDictionary<long, EnterpriseRole>();
+        internal readonly ConcurrentDictionary<long, EnterpriseRole> _roles = new ConcurrentDictionary<long, EnterpriseRole>();
         private readonly ConcurrentDictionary<long, EnterpriseUser> _users = new ConcurrentDictionary<long, EnterpriseUser>();
         private readonly ConcurrentDictionary<string, EnterpriseTeam> _teams = new ConcurrentDictionary<string, EnterpriseTeam>();
         private readonly ConcurrentDictionary<string, long> _userNames = new ConcurrentDictionary<string, long>(1, 100, StringComparer.InvariantCultureIgnoreCase);
         private readonly List<DeviceRequestForAdminApproval> _adminApprovals = new List<DeviceRequestForAdminApproval>();
         private readonly ConcurrentDictionary<int, EnterpriseManagedCompany> _managedCompanies = new ConcurrentDictionary<int, EnterpriseManagedCompany>();
+        private readonly ConcurrentDictionary<long, EnterpriseManagedNode> _managedNodes = new ConcurrentDictionary<long, EnterpriseManagedNode>();
 
         /// <summary>
         /// Retrieves Enterprise node structure.
@@ -88,9 +101,52 @@ namespace KeeperSecurity.Enterprise
                     {
                         RsaPrivateKey = CryptoUtils.DecryptAesV2(krs.EnterpriseKeys.RsaEncryptedPrivateKey.ToByteArray(), TreeKey);
                     }
+                    if (!krs.EnterpriseKeys.RsaPublicKey.IsEmpty)
+                    {
+                        RsaPublicKey = krs.EnterpriseKeys.RsaPublicKey.ToByteArray();
+                    }
                     if (!krs.EnterpriseKeys.EccEncryptedPrivateKey.IsEmpty)
                     {
                         EcPrivateKey = CryptoUtils.DecryptAesV2(krs.EnterpriseKeys.EccEncryptedPrivateKey.ToByteArray(), TreeKey);
+                    }
+                    if (!krs.EnterpriseKeys.EccPublicKey.IsEmpty)
+                    {
+                        EcPublicKey = krs.EnterpriseKeys.EccPublicKey.ToByteArray();
+                    }
+                }
+
+                // RoleKeys/role_keys
+                if (krs.RoleKey != null)
+                {
+                    foreach (var rk in krs.RoleKey)
+                    {
+                        switch (rk.KeyType)
+                        {
+                            case EncryptedKeyType.KtNoKey:
+                                RoleKeys.Add(rk.RoleId, rk.EncryptedKey.Base64UrlDecode());
+                                break;
+                            case EncryptedKeyType.KtEncryptedByDataKey:
+                                RoleKeys.Add(rk.RoleId, CryptoUtils.DecryptAesV1(rk.EncryptedKey.Base64UrlDecode(), Auth.AuthContext.DataKey));
+                                break;
+                            case EncryptedKeyType.KtEncryptedByDataKeyGcm:
+                                RoleKeys.Add(rk.RoleId, CryptoUtils.DecryptAesV2(rk.EncryptedKey.Base64UrlDecode(), Auth.AuthContext.DataKey));
+                                break;
+                            case EncryptedKeyType.KtEncryptedByPublicKey:
+                                throw new Exception("cannot decrypt tree key");
+                            case EncryptedKeyType.KtEncryptedByPublicKeyEcc:
+                                throw new Exception("cannot decrypt tree key");
+                            default:
+                                throw new Exception("cannot decrypt tree key");
+                        }
+                    }
+                }
+
+                // EncryptedRoleKeys/role_keys2 ReEncryptedRoleKey[]
+                if (krs.ReEncryptedRoleKey != null)
+                {
+                    foreach (var rk in krs.ReEncryptedRoleKey)
+                    {
+                        EncryptedRoleKeys.Add(rk.RoleId, CryptoUtils.DecryptAesV2(rk.EncryptedRoleKey.ToByteArray(), TreeKey));
                     }
                 }
             }
@@ -113,6 +169,7 @@ namespace KeeperSecurity.Enterprise
                     _users.Clear();
                     _teams.Clear();
                     _userNames.Clear();
+                    _managedNodes.Clear();
                 }
                 if (rrs.GeneralData != null)
                 {
@@ -488,6 +545,30 @@ namespace KeeperSecurity.Enterprise
                                 }
                             }
                             break;
+
+                        case EnterpriseDataEntity.ManagedNodes:
+                            {
+                                foreach (var data in entityData.Data)
+                                {
+                                    var mn = ManagedNode.Parser.ParseFrom(data);
+
+                                    if (entityData.Delete)
+                                    {
+                                        _managedNodes.TryRemove(mn.ManagedNodeId, out _);
+                                    }
+                                    else
+                                    {
+                                        if (!_managedNodes.TryGetValue(mn.ManagedNodeId, out var node))
+                                        {
+                                            node = new EnterpriseManagedNode() { Id = mn.ManagedNodeId };
+                                            _managedNodes.TryAdd(node.Id, node);
+                                        }
+                                        node.RoleId = mn.RoleId;
+                                        node.CascadeNodeManagement = mn.CascadeNodeManagement;
+                                    }
+                                }
+                            }
+                            break;
                     }
                 }
             }
@@ -623,6 +704,25 @@ namespace KeeperSecurity.Enterprise
         /// Gets the number of all roles in the enterprise.
         /// </summary>
         public int RoleCount => _roles.Count;
+
+        /// <summary>
+        /// Get the list of all managed nodes in the enterprise.
+        /// </summary>
+        public IEnumerable<EnterpriseManagedNode> ManagedNodes => _managedNodes.Values;
+        /// <summary>
+        /// Gets the enterprise managed node associated with the specified Managed Node ID.
+        /// </summary>
+        /// <param name="nodeId">Node ID</param>
+        /// <param name="managedNode">When this method returns <c>true</c>, contains requested enterprise managed node; otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> if the enterprise contains a managed node with specified ID; otherwise, <c>false</c></returns>
+        public bool TryGetManagedNode(long nodeId, out EnterpriseManagedNode managedNode)
+        {
+            return _managedNodes.TryGetValue(nodeId, out managedNode);
+        }
+        /// <summary>
+        /// Gets the number of all managed nodes in the enterprise.
+        /// </summary>
+        public int ManagedNodeCount => _managedNodes.Count;
 
         /// <summary>
         /// Get the list of all managed companies in the enterprise.

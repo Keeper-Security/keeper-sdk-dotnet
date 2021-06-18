@@ -54,6 +54,8 @@ This folder is a sample Commander CLI application using the .NET SDK.  Below is 
 
 * ```enterprise-team``` Display a list of enterprise users, manage team users
 
+* ```enterprise-role``` Display a list of enterprise roles, manage role users
+
 * ```enterprise-device``` Manage admin approval queue. Cloud SSO only.
 
 ### Sample C# .Net Core application

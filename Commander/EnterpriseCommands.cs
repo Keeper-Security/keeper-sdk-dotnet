@@ -47,7 +47,7 @@ namespace Commander
                 new ParsableCommand<EnterpriseNodeOptions>
                 {
                     Order = 61,
-                    Description = "Manage enterprise nodes",
+                    Description = "Manage Enterprise Nodes",
                     Action = async options => { await context.EnterpriseNodeCommand(options); },
                 });
 
@@ -55,7 +55,7 @@ namespace Commander
                 new ParsableCommand<EnterpriseUserOptions>
                 {
                     Order = 62,
-                    Description = "List Enterprise Users",
+                    Description = "Manage Enterprise Users",
                     Action = async options => { await context.EnterpriseUserCommand(options); },
                 });
 
@@ -63,14 +63,22 @@ namespace Commander
                 new ParsableCommand<EnterpriseTeamOptions>
                 {
                     Order = 63,
-                    Description = "List Enterprise Teams",
+                    Description = "Manage Enterprise Teams",
                     Action = async options => { await context.EnterpriseTeamCommand(options); },
+                });
+
+            cli.Commands.Add("enterprise-role",
+                new ParsableCommand<EnterpriseRoleOptions>
+                {
+                    Order = 64,
+                    Description = "Manage Enterprise Roles",
+                    Action = async options => { await context.EnterpriseRoleCommand(options); },
                 });
 
             cli.Commands.Add("enterprise-device",
                 new ParsableCommand<EnterpriseDeviceOptions>
                 {
-                    Order = 64,
+                    Order = 65,
                     Description = "Manage User Devices",
                     Action = async options => { await context.EnterpriseDeviceCommand(options); },
                 });
@@ -78,7 +86,7 @@ namespace Commander
             cli.Commands.Add("audit-report",
                 new ParsableCommand<AuditReportOptions>
                 {
-                    Order = 64,
+                    Order = 66,
                     Description = "Run an audit trail report.",
                     Action = async options => { await context.RunAuditEventsReport(options); },
                 });
@@ -87,6 +95,7 @@ namespace Commander
             cli.CommandAliases["en"] = "enterprise-node";
             cli.CommandAliases["eu"] = "enterprise-user";
             cli.CommandAliases["et"] = "enterprise-team";
+            cli.CommandAliases["er"] = "enterprise-role";
             cli.CommandAliases["ed"] = "enterprise-device";
 
             if (context.Enterprise.EcPrivateKey == null)
@@ -569,6 +578,281 @@ namespace Commander
                 {
                     Console.WriteLine($"Unsupported command \"{arguments.Command}\". Valid commands are  \"list\", \"view\", \"add\", \"delete\", \"update\"");
                 }
+            }
+        }
+
+        public static async Task EnterpriseRoleCommand(this IEnterpriseContext context, EnterpriseRoleOptions arguments)
+        {
+            if (arguments.Force)
+            {
+                await context.Enterprise.PopulateEnterprise();
+            }
+
+            if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "list";
+            if (string.CompareOrdinal(arguments.Command, "list") == 0)
+            {
+                var roles = context.Enterprise.Roles
+                    .Where(x =>
+                    {
+                        return
+                            string.IsNullOrEmpty(arguments.Name)
+                            || arguments.Name == x.Id.ToString()
+                            || (x.DisplayName ?? "").IndexOf(arguments.Name, StringComparison.InvariantCultureIgnoreCase) >= 0
+                            || (x.RoleType ?? "").IndexOf(arguments.Name, StringComparison.InvariantCultureIgnoreCase) >= 0;
+                    })
+                    .ToArray();
+                var tab = new Tabulate(5) { DumpRowNo = true };
+                tab.AddHeader("Role Name", "Role ID", /*"Node ID",*/ "Role Type", /*"Visible Below", "New User Inherit", "Managed Nodes",*/ "Teams", "Users");
+                foreach (var role in roles)
+                {
+                    tab.AddRow(role.DisplayName,
+                        role.Id,
+                        //role.NodeId,
+                        role.RoleType,
+                        //role.VisibleBelow,
+                        //role.NewUserInherit,
+                        //role.ManagedNodes.Count,
+                        role.Teams.Count,
+                        role.Users.Count);
+                }
+
+                tab.Sort(1);
+                tab.Dump();
+            }
+            else if (string.CompareOrdinal(arguments.Command, "view") == 0)
+            {
+                var roles = context.Enterprise.Roles
+                    .Where(x =>
+                    {
+                        return
+                            string.IsNullOrEmpty(arguments.Name)
+                            || arguments.Name == x.Id.ToString()
+                            || (x.DisplayName ?? "").IndexOf(arguments.Name, StringComparison.InvariantCultureIgnoreCase) >= 0
+                            || (x.RoleType ?? "").IndexOf(arguments.Name, StringComparison.InvariantCultureIgnoreCase) >= 0;
+                    })
+                    .ToArray();
+                if (roles == null || roles.Length < 1)
+                {
+                    Console.WriteLine($"Role \"{arguments?.Name ?? string.Empty}\" not found");
+                    return;
+                }
+                else if (roles.Length > 1)
+                {
+                    Console.WriteLine($"Role \"{arguments?.Name ?? string.Empty}\" - multiple matches found ({roles.Length}), please use Role ID.");
+                    return;
+                }
+
+                var role = roles.First();
+                var tab = new Tabulate(2)
+                {
+                    DumpRowNo = false,
+                    MaxColumnWidth = 1024, // Managed Nodes Privileges
+                    RowsTrimEnd = true
+                };
+                tab.SetColumnRightAlign(0, true);
+                tab.AddRow(" Role Name:", role.DisplayName);
+                tab.AddRow(" Role ID:", role.Id);
+                tab.AddRow(" Node ID:", role.NodeId);
+                tab.AddRow(" Role Type:", role.RoleType);
+                tab.AddRow(" Visible Below:", role.VisibleBelow ? "Yes" : "No");
+                tab.AddRow(" New User Inherit:", role.NewUserInherit ? "Yes" : "No");
+
+                var mnodes = role.ManagedNodes
+                    .Select(x => (context?.Enterprise?.Nodes?.FirstOrDefault(t => t.Id == x.Key)?.DisplayName ?? x.Key.ToString(), string.Join(",", x.Value)))
+                    .ToArray();
+                Array.Sort(mnodes);
+                tab.AddRow(" Managed Nodes:", mnodes.Length > 0 ? mnodes[0].Item1 + " : " + mnodes[0].Item2 : "");
+                for (var i = 1; i < mnodes.Length; i++)
+                {
+                    tab.AddRow("", mnodes[i].Item1 + " : " + mnodes[i].Item2);
+                }
+
+
+                var teams = role.Teams
+                    .Select(x => context?.Enterprise?.Teams?.FirstOrDefault(t => t.Uid == x)?.Name ?? x)
+                    .ToArray();
+                Array.Sort(teams);
+                tab.AddRow(" Teams:", teams.Length > 0 ? teams[0] : "");
+                for (var i = 1; i < teams.Length; i++)
+                {
+                    tab.AddRow("", teams[i]);
+                }
+
+                var users = role.Users
+                    .Select(x => context.Enterprise.TryGetUserById(x, out var user) ? user.Email : null)
+                    .Where(x => !string.IsNullOrEmpty(x))
+                    .ToArray();
+                Array.Sort(users);
+                tab.AddRow(" Users:", users.Length > 0 ? users[0] : "");
+                for (var i = 1; i < users.Length; i++)
+                {
+                    tab.AddRow("", users[i]);
+                }
+
+                tab.Dump();
+            }
+            else if (string.CompareOrdinal(arguments.Command, "add-user") == 0)
+            {
+                if (string.IsNullOrEmpty(arguments.Name))
+                {
+                    Console.WriteLine($"Command \"add-user\" requires a role name or ID.");
+                    return;
+                }
+                if (string.IsNullOrEmpty(arguments.UserName))
+                {
+                    Console.WriteLine($"Command \"add-user\" requires user name, email or ID provided by \"--name\" parameter.");
+                    return;
+                }
+
+                var roles = context.Enterprise.Roles
+                    .Where(x =>
+                    {
+                        return
+                            arguments.Name == x.Id.ToString() ||
+                            arguments.Name == x.DisplayName;
+                    })
+                    .ToArray();
+                if (roles == null || roles.Length != 1)
+                {
+                    Console.WriteLine($"Role \"{arguments.Name}\" - ({roles?.Length ?? 0}) matches found, please use existing Role ID.");
+                    return;
+                }
+
+                var users = context.Enterprise.Users
+                    .Where(x =>
+                    {
+                        return
+                            arguments.UserName == x.Id.ToString() ||
+                            arguments.UserName == x.DisplayName ||
+                            arguments.UserName == x.Email;
+                    })
+                    .ToArray();
+                if (users == null || users.Length != 1)
+                {
+                    Console.WriteLine($"User \"{arguments.UserName}\" - ({users?.Length ?? 0}) matches found, please use existing User ID.");
+                    return;
+                }
+
+                var role = roles.First();
+                var user = users.First();
+                if (user.UserStatus != UserStatus.Active)
+                {
+                    Console.WriteLine($"User \"{arguments.UserName}\" - Status: {user.UserStatus}, only active users can be added to a role.");
+                    return;
+                }
+                if (role.Users.Contains(user.Id))
+                {
+                    Console.WriteLine($"User \"{user?.Email ?? user.Id.ToString()}\" already present in role \"{role?.DisplayName ?? role.Id.ToString()}\"");
+                    return;
+                }
+
+                string treeKey = null;
+                string roleAdminKey = null;
+
+                // Managed Roles need to provide tree key and role admin key
+                if (context.Enterprise.ManagedNodes.FirstOrDefault(x => x.RoleId == role.Id) is EnterpriseManagedNode mn)
+                {
+                    byte[] rawRoleAdminKey = context.Enterprise.EncryptedRoleKeys.TryGetValue(role.Id, out byte[] erk) ? erk : null;
+                    rawRoleAdminKey = (((rawRoleAdminKey?.Length ?? 0) < 1) && context.Enterprise.RoleKeys.TryGetValue(role.Id, out byte[] rk)) ? rk : rawRoleAdminKey;
+
+                    var userPublicKeys = new Dictionary<string, byte[]>() { { user.Email, null } };
+
+                    string answer = (arguments.Silent ? "y" : "n");
+                    if (!arguments.Silent)
+                    {
+                        Console.Write($"Do you want to grant administrative privileges to \"{user?.Email ?? user.Id.ToString()}\" [y/N]: ");
+                        answer = (await Program.GetInputManager().ReadLine() ?? string.Empty).ToLower();
+                    }
+                    if (answer == "y" || answer == "yes")
+                    {
+                        await EnterpriseUtils.PopulateUserPublicKeys(context.Enterprise, userPublicKeys, Console.WriteLine);
+                        if (!userPublicKeys.TryGetValue(user.Email, out byte[] p) || (p?.Length ?? 0) < 1)
+                            Console.WriteLine($"Warning - Cannot get public key for user \"{user.Email}\"");
+                    }
+                    else
+                    {
+                        return;
+                    }
+
+                    if (userPublicKeys.TryGetValue(user.Email, out byte[] pk) && (pk?.Length ?? 0) > 0)
+                    {
+                        try
+                        {
+                            var publicKey = CryptoUtils.LoadPublicKey(pk);
+                            if ((rawRoleAdminKey?.Length ?? 0) > 0)
+                                roleAdminKey = CryptoUtils.EncryptRsa(rawRoleAdminKey, publicKey).Base64UrlEncode();
+                            if ((context?.Enterprise?.TreeKey?.Length ?? 0) > 0)
+                                treeKey = CryptoUtils.EncryptRsa(context.Enterprise.TreeKey, publicKey).Base64UrlEncode();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Error processing role keys: " + e.Message);
+                            Debug.WriteLine(e);
+                        }
+                    }
+                }
+
+                await context.Enterprise.AddUserToRole(role.Id, user.Id, treeKey, roleAdminKey);
+                role.Users.Add(user.Id);
+                Console.WriteLine($"\"{role?.DisplayName ?? role.Id.ToString()}\" role assigned to \"{user?.Email ?? user.Id.ToString()}\"");
+
+                await context.Enterprise.PopulateEnterprise();
+            }
+            else if (string.CompareOrdinal(arguments.Command, "copy-role") == 0)
+            {
+                if (string.IsNullOrEmpty(arguments.Name))
+                {
+                    Console.WriteLine($"Command \"copy-role\" requires a role name or ID.");
+                    return;
+                }
+                if (string.IsNullOrEmpty(arguments.NewRoleName))
+                {
+                    Console.WriteLine($"Command \"copy-role\" requires new role name provided by \"--to-role\" parameter.");
+                    return;
+                }
+                if (string.IsNullOrEmpty(arguments.NewNode))
+                {
+                    Console.WriteLine($"Command \"copy-role\" requires node name or ID provided by \"--to-node\" parameter.");
+                    return;
+                }
+                var roles = context.Enterprise.Roles
+                    .Where(x =>
+                    {
+                        return
+                            arguments.Name == x.Id.ToString() ||
+                            arguments.Name == x.DisplayName;
+                    })
+                    .ToArray();
+                if (roles == null || roles.Length != 1)
+                {
+                    Console.WriteLine($"Role \"{arguments.Name}\" - ({roles?.Length ?? 0}) matches found, please use existing Role ID.");
+                    return;
+                }
+
+                var nodes = context.Enterprise.Nodes
+                    .Where(x =>
+                    {
+                        return
+                            arguments.NewNode == x.Id.ToString() ||
+                            arguments.NewNode == x.DisplayName;
+                    })
+                    .ToArray();
+                if (nodes == null || nodes.Length != 1)
+                {
+                    Console.WriteLine($"Node \"{arguments.NewNode}\" - ({nodes?.Length ?? 0}) matches found, please use existing Node ID.");
+                    return;
+                }
+
+                var role = roles.First();
+                var node = nodes.First();
+
+                var r = await context.Enterprise.CopyRole(role, node.Id, arguments.NewRoleName);
+                Console.WriteLine($"Role \"{arguments.NewRoleName}\" created as a copy of \"{role.DisplayName ?? role.Id.ToString()}\"");
+                await context.Enterprise.PopulateEnterprise();
+            }
+            else
+            {
+                Console.WriteLine($"Unsupported command \"{arguments.Command}\". Valid commands are  \"list\", \"view\", \"add-user\", \"copy-role\"");
             }
         }
 
@@ -1177,6 +1461,27 @@ namespace Commander
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "enterprise team Name, UID, list match")]
+        public string Name { get; set; }
+    }
+
+    class EnterpriseRoleOptions : EnterpriseGenericOptions
+    {
+        [Option("name", Required = false, HelpText = "existing user name, email or ID. \"add-user\"")]
+        public string UserName { get; set; }
+
+        [Option("to-role", Required = false, HelpText = "new role name. \"copy-role\"")]
+        public string NewRoleName { get; set; }
+
+        [Option("to-node", Required = false, HelpText = "node name or ID. \"copy-role\"")]
+        public string NewNode { get; set; }
+
+        [Option('s', "silent", Required = false, Default = false, HelpText = "non-interactive mode. \"add-user\"")]
+        public bool Silent { get; set; }
+
+        [Value(0, Required = false, HelpText = "enterprise-role command: \"list\", \"view\", \"add-user\", \"copy-role\"")]
+        public string Command { get; set; }
+
+        [Value(1, Required = false, HelpText = "enterprise role name, ID, list match")]
         public string Name { get; set; }
     }
 

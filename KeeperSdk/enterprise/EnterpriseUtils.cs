@@ -10,7 +10,7 @@ using System.Text;
 
 namespace KeeperSecurity.Enterprise
 {
-    internal static class EnterpriseUtils
+    public static class EnterpriseUtils
     {
 
         public static string EncryptEncryptedData(EncryptedData encryptedData, byte[] encryptionKey)

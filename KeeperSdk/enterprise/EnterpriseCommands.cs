@@ -216,4 +216,133 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "encrypted_team_key")]
         public string EncryptedTeamKey { get; set; }
     }
+
+    [DataContract]
+    public class RoleCommand : AuthenticatedCommand
+    {
+        public RoleCommand(string command) : base(command)
+        {
+        }
+
+        [DataMember(Name = "role_id")]
+        public long RoleId { get; set; }
+
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+
+        [DataMember(Name = "encrypted_data")]
+        public string EncryptedData { get; set; }
+
+        [DataMember(Name = "visible_below")]
+        public bool VisibleBelow { get; set; }
+
+        [DataMember(Name = "new_user_inherit")]
+        public bool NewUserInherit { get; set; }
+    }
+
+    [DataContract]
+    public class RoleAddCommand : RoleCommand
+    {
+        public RoleAddCommand() : base("role_add")
+        {
+        }
+    }
+
+    [DataContract]
+    public class RoleUpdateCommand : RoleCommand
+    {
+        public RoleUpdateCommand() : base("role_update")
+        {
+        }
+    }
+
+    [DataContract]
+    public class RoleDeleteCommand : AuthenticatedCommand
+    {
+        public RoleDeleteCommand() : base("role_delete")
+        {
+        }
+
+        [DataMember(Name = "role_id")]
+        public long RoleId { get; set; }
+    }
+
+    [DataContract]
+    public class RoleEnforcementCommand : AuthenticatedCommand
+    {
+        public RoleEnforcementCommand(string command) : base(command)
+        {
+        }
+
+        [DataMember(Name = "role_id")]
+        public long RoleId { get; set; }
+
+        [DataMember(Name = "enforcement")]
+        public string Enforcement { get; set; }
+    }
+
+    [DataContract]
+    public class RoleEnforcementAddCommand : RoleEnforcementCommand
+    {
+        public RoleEnforcementAddCommand() : base("role_enforcement_add")
+        {
+        }
+
+        [DataMember(Name = "value")]
+        public string Value { get; set; }
+    }
+
+    [DataContract]
+    public class RoleEnforcementUpdateCommand : RoleEnforcementCommand
+    {
+        public RoleEnforcementUpdateCommand() : base("role_enforcement_update")
+        {
+        }
+
+        [DataMember(Name = "value")]
+        public string Value { get; set; }
+    }
+
+    [DataContract]
+    public class RoleEnforcementRemoveCommand : RoleEnforcementCommand
+    {
+        public RoleEnforcementRemoveCommand() : base("role_enforcement_remove")
+        {
+        }
+    }
+
+    [DataContract]
+    public class RoleUserCommand : AuthenticatedCommand
+    {
+        public RoleUserCommand(string command) : base(command)
+        {
+        }
+
+        [DataMember(Name = "role_id")]
+        public long RoleId { get; set; }
+
+        [DataMember(Name = "enterprise_user_id")]
+        public long EnterpriseUserId { get; set; }
+    }
+
+    [DataContract]
+    public class RoleUserRemoveCommand : RoleUserCommand
+    {
+        public RoleUserRemoveCommand() : base("role_user_remove")
+        {
+        }
+    }
+
+    [DataContract]
+    public class RoleUserAddCommand : RoleUserCommand
+    {
+        public RoleUserAddCommand() : base("role_user_add")
+        {
+        }
+        [DataMember(Name = "tree_key", EmitDefaultValue = false)]
+        public string TreeKey { get; set; }
+
+        [DataMember(Name = "role_admin_key", EmitDefaultValue = false)]
+        public string RoleAdminKey { get; set; }
+    }
 }
