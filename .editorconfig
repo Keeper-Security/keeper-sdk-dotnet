@@ -1,0 +1,4 @@
+[*.{cs,vb}]
+end_of_line=lf
+[*.cs]
+csharp_indent_case_contents=true

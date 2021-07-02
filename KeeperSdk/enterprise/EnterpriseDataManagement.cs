@@ -9,7 +9,7 @@ using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Enterprise
 {
-    public partial class EnterpriseData : IEnterpriseManagement
+    public partial class EnterpriseData : IEnterpriseDataManagement
     {
         /// <summary>
         ///     Creates Enterprise Team.
@@ -33,10 +33,10 @@ namespace KeeperSecurity.Enterprise
                 PrivateKey = encryptedPrivateKey.Base64UrlEncode(),
                 NodeId = team.ParentNodeId,
                 ManageOnly = true,
-                EncryptedTeamKey = CryptoUtils.EncryptAesV2(teamKey, TreeKey).Base64UrlEncode()
+                EncryptedTeamKey = CryptoUtils.EncryptAesV2(teamKey, Enterprise.TreeKey).Base64UrlEncode()
             };
-            await Auth.ExecuteAuthCommand(rq);
-            await PopulateEnterprise();
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
             TryGetTeam(teamUid, out team);
             return team;
         }
@@ -61,8 +61,8 @@ namespace KeeperSecurity.Enterprise
                 RestrictView = team.RestrictView,
                 NodeId = team.ParentNodeId
             };
-            await Auth.ExecuteAuthCommand(rq);
-            await PopulateEnterprise();
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
             TryGetTeam(team.Uid, out team);
             return team;
         }
@@ -78,8 +78,8 @@ namespace KeeperSecurity.Enterprise
             {
                 TeamUid = teamUid
             };
-            await Auth.ExecuteAuthCommand(rq);
-            await PopulateEnterprise();
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
         }
 
         /// <summary>
@@ -158,7 +158,11 @@ namespace KeeperSecurity.Enterprise
                     foreach (var teamPair in teamKeys.Where(x => x.Value != null))
                     {
                         if (!TryGetTeam(teamPair.Key, out var team)) continue;
-                        if (team.Users.Contains(user.Id)) continue;
+                        var users = GetUsersForTeam(team.Uid);
+                        if (users != null && users.Contains(user.Id)) {
+                            warnings?.Invoke($"User \"{user.Email}\" is already member of \"{team.Name}\" team. Skipped");
+                            continue;
+                        }
                         var teamKey = teamPair.Value;
                         commands.Add(new TeamEnterpriseUserAddCommand
                         {
@@ -183,7 +187,7 @@ namespace KeeperSecurity.Enterprise
                 {
                     Requests = batch
                 };
-                var execRs = await Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
+                var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
                 if (execRs.Results?.Count > 0)
                 {
                     var last = execRs.Results.Last();
@@ -192,7 +196,7 @@ namespace KeeperSecurity.Enterprise
                     if (!last.IsSuccess) warnings?.Invoke(last.message);
                 }
 
-                await PopulateEnterprise();
+                await Enterprise.Load();
             }
         }
 
@@ -216,9 +220,12 @@ namespace KeeperSecurity.Enterprise
 
                 foreach (var email in emails)
                 {
-                    if (TryGetUserByEmail(email, out var user))
-                        if (!team.Users.Contains(user.Id))
+                    if (TryGetUserByEmail(email, out var user)) {
+                        var users = GetUsersForTeam(team.Uid);
+                        if (users == null || !users.Contains(user.Id)) {
                             user = null;
+                        }
+                    }
 
                     if (user == null)
                     {
@@ -241,7 +248,7 @@ namespace KeeperSecurity.Enterprise
                 {
                     Requests = batch
                 };
-                var execRs = await Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
+                var execRs = await Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
                 if (execRs.Results?.Count > 0)
                 {
                     var last = execRs.Results.Last();
@@ -250,7 +257,7 @@ namespace KeeperSecurity.Enterprise
                     if (!last.IsSuccess) warnings?.Invoke(last.message);
                 }
 
-                await PopulateEnterprise();
+                await Enterprise.Load();
             }
         }
     }

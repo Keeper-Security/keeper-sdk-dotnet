@@ -6,142 +6,39 @@ using KeeperSecurity.Commands;
 
 namespace KeeperSecurity.Enterprise
 {
-    /// <summary>
-    ///     Defines properties and methods of Enterprise data structure.
-    /// </summary>
-    public interface IEnterprise
+    /// <exclude/>
+    public interface IEnterpriseLoader 
     {
-        /// <summary>
-        ///     Gets Keeper authentication.
-        /// </summary>
         IAuthentication Auth { get; }
-
-        /// <summary>
-        /// Gets enterprise name
-        /// </summary>
         string EnterpriseName { get; }
-
-        /// <summary>
-        ///     Gets Enterprise Tree encryption key.
-        /// </summary>
         byte[] TreeKey { get; }
+        Task Load();
+        Task<long> GetEnterpriseId();
+    }
 
-        /// <summary>
-        ///     Get the list of all nodes in the enterprise.
-        /// </summary>
+    /// <exclude/>
+    public interface IEnterpriseData
+    {
         IEnumerable<EnterpriseNode> Nodes { get; }
-
-        /// <summary>
-        ///     Gets the number of all nodes in the enterprise.
-        /// </summary>
         int NodeCount { get; }
-
-        /// <summary>
-        ///     Gets the Enterprise Root Node.
-        /// </summary>
         EnterpriseNode RootNode { get; }
-
-        /// <summary>
-        ///     Get the list of all users in the enterprise.
-        /// </summary>
         IEnumerable<EnterpriseUser> Users { get; }
-
-        /// <summary>
-        ///     Gets the number of all users in the enterprise.
-        /// </summary>
         int UserCount { get; }
-
-        /// <summary>
-        ///     Get the list of all teams in the enterprise.
-        /// </summary>
         IEnumerable<EnterpriseTeam> Teams { get; }
-
-        /// <summary>
-        ///     Gets the number of all teams in the enterprise.
-        /// </summary>
         int TeamCount { get; }
-
-        /// <summary>
-        ///     Syncronizes Enterprise Data structure with server.
-        /// </summary>
-        /// <returns>Awaitable task</returns>
-        Task PopulateEnterprise();
-
-        /// <summary>
-        ///     Gets the enterprise node associated with the specified ID.
-        /// </summary>
-        /// <param name="nodeId">Node Enterprise ID</param>
-        /// <param name="node">When this method returns <c>true</c>, contains requested enterprise node; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the enterprise contains a node with specified ID; otherwise, <c>false</c></returns>
         bool TryGetNode(long nodeId, out EnterpriseNode node);
-
-        /// <summary>
-        ///     Gets the enterprise user associated with the specified ID.
-        /// </summary>
-        /// <param name="userId">User Enterprise ID</param>
-        /// <param name="user">When this method returns <c>true</c>, contains requested enterprise user; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
         bool TryGetUserById(long userId, out EnterpriseUser user);
-
-        /// <summary>
-        ///     Gets the enterprise user associated with the specified email address.
-        /// </summary>
-        /// <param name="email">User Email Address.</param>
-        /// <param name="user">When this method returns <c>true</c>, contains requested enterprise user; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
         bool TryGetUserByEmail(string email, out EnterpriseUser user);
-
-        /// <summary>
-        ///     Gets the enterprise team associated with the specified team UID.
-        /// </summary>
-        /// <param name="teamUid">Team UID</param>
-        /// <param name="team">When this method returns <c>true</c>, contains requested enterprise team; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the enterprise contains a team with specified UID; otherwise, <c>false</c></returns>
         bool TryGetTeam(string teamUid, out EnterpriseTeam team);
     }
 
-    /// <summary>
-    /// Defines method for enterprise management.
-    /// </summary>
-    public interface IEnterpriseManagement
+    /// <exclude/>
+    public interface IEnterpriseDataManagement
     {
-        /// <summary>
-        ///     Creates Enterprise Team.
-        /// </summary>
-        /// <param name="team">Enterprise Team</param>
-        /// <returns>Created Team</returns>
         Task<EnterpriseTeam> CreateTeam(EnterpriseTeam team);
-
-        /// <summary>
-        ///     Updates Enterprise Team
-        /// </summary>
-        /// <param name="team">Enterprise Team</param>
-        /// <returns>Updated Team</returns>
         Task<EnterpriseTeam> UpdateTeam(EnterpriseTeam team);
-
-        /// <summary>
-        ///     Deletes Enterprise Team.
-        /// </summary>
-        /// <param name="teamUid">Enterprise Team UID.</param>
-        /// <returns>Awaitable task.</returns>
         Task DeleteTeam(string teamUid);
-
-        /// <summary>
-        ///     Add Enterprise User(s) to Team(s).
-        /// </summary>
-        /// <param name="emails">A list of user emails</param>
-        /// <param name="teamUids">A list of team UIDs</param>
-        /// <param name="warnings">A callback that receives warnings</param>
-        /// <returns>Awaitable task.</returns>
         Task AddUsersToTeams(string[] emails, string[] teamUids, Action<string> warnings = null);
-
-        /// <summary>
-        ///     Removes Users(s) from Team(s)
-        /// </summary>
-        /// <param name="emails">A list of user emails</param>
-        /// <param name="teamUids">A list of team UIDs</param>
-        /// <param name="warnings">A callback that receives warnings</param>
-        /// <returns>Awaitable task.</returns>
         Task RemoveUsersFromTeams(string[] emails, string[] teamUids, Action<string> warnings = null);
     }
 
@@ -239,11 +136,6 @@ namespace KeeperSecurity.Enterprise
         public UserStatus UserStatus { get; internal set; }
 
         /// <summary>
-        ///     A list of team UID that user is member of.
-        /// </summary>
-        public ISet<string> Teams { get; } = new HashSet<string>();
-
-        /// <summary>
         ///     User Name.
         /// </summary>
         public string DisplayName { get; set; }
@@ -258,6 +150,41 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         public long ParentNodeId { get; internal set; }
     }
+
+    /// <summary>
+    ///     Represents Enterprise Role
+    /// </summary>
+    public class EnterpriseRole : IEnterpriseEntity, IParentNodeEntity, IDisplayName
+    {
+        /// <summary>
+        ///     Role ID.
+        /// </summary>
+        public long Id { get; internal set; }
+
+        /// <summary>
+        ///     User Name.
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
+        /// Role is visible to the subnodes.
+        /// </summary>
+        public bool VisibleBelow { get; set; }
+
+        /// <summary>
+        /// New users automaticall added to this role
+        /// </summary>
+        public bool NewUserInherit { get; set; }
+
+        /// <exclude/>
+        public string RoleType { get; set; }
+        internal string KeyType { get; set; }
+        /// <summary>
+        ///     Node that owns the role.
+        /// </summary>
+        public long ParentNodeId { get; set; }
+    }
+
 
     /// <summary>
     ///     Represents Enterprise Team.
@@ -288,11 +215,6 @@ namespace KeeperSecurity.Enterprise
         ///     Restricts Record View?
         /// </summary>
         public bool RestrictView { get; set; }
-
-        /// <summary>
-        ///     A list of team users.
-        /// </summary>
-        public ISet<long> Users { get; } = new HashSet<long>();
 
         /// <summary>
         ///     Team Encryption Key.

@@ -2311,44 +2311,39 @@
             <returns>Awaitable task returning a tuple. Item1 contains the audit event list. Item2 the epoch time in seconds to resume</returns>
             <remarks>This method returns first 1000 events. To get the next chunk of audit events pass the second parameter of result into <c>recentUnixTime</c> parameter.</remarks>
         </member>
+        <member name="T:KeeperSecurity.Enterprise.DeviceApprovalData">
+            <summary>
+            Represent Device Approval Queue data.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.DeviceApprovalData.Entities">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.DeviceApprovalData.DeviceApprovalRequests">
+            <summary>
+            Gets a list of all pending device approvals.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.DeviceApprovalList">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseData">
             <summary>
-            Represents decrypted Enterprise data structure.
+                Represents decrypted basic Enterprise data structures: Nodes, Users, Teams
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.EnterpriseName">
-            <summary>
-            Gets enterprise data
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.TreeKey">
-            <summary>
-            Gets Enterprise Tree encryption key.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.RsaPrivateKey">
-            <exclude/>
-        </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.EcPrivateKey">
-            <exclude/>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.#ctor(KeeperSecurity.Authentication.IAuthentication,System.Byte[])">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.#ctor">
             <summary>
             Instantiates <see cref="T:KeeperSecurity.Enterprise.EnterpriseData"/> instance.
             </summary>
             <param name="auth">Keeper authentication.</param>
             <param name="treeKey">Enterprise tree key. Optional.</param>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.PopulateEnterprise">
-            <summary>
-            Retrieves Enterprise node structure.
-            </summary>
-            <returns>Awaitable task.</returns>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.#ctor(KeeperSecurity.Authentication.IAuthentication)">
+            <exclude/>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.Auth">
-            <summary>
-            Gets Keeper authentication.
-            </summary>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.Entities">
+            <exclude />
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseData.Nodes">
             <summary>
@@ -2361,7 +2356,7 @@
             </summary>
             <param name="nodeId">Node Enterprise ID</param>
             <param name="node">When this method returns <c>true</c>, contains requested enterprise node; otherwise <c>null</c>.</param>
-            <returns><c>true</c> in the enterprise contains a node with specified ID; otherwise, <c>false</c></returns>
+            <returns><c>true</c> if the enterprise contains a node with specified ID; otherwise, <c>false</c></returns>
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseData.NodeCount">
             <summary>
@@ -2384,7 +2379,7 @@
             </summary>
             <param name="userId">User Enterprise ID</param>
             <param name="user">When this method returns <c>true</c>, contains requested enterprise user; otherwise <c>null</c>.</param>
-            <returns><c>true</c> in the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
+            <returns><c>true</c> if the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
         </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.TryGetUserByEmail(System.String,KeeperSecurity.Enterprise.EnterpriseUser@)">
             <summary>
@@ -2392,7 +2387,7 @@
             </summary>
             <param name="email">User Email Address.</param>
             <param name="user">When this method returns <c>true</c>, contains requested enterprise user; otherwise <c>null</c>.</param>
-            <returns><c>true</c> in the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
+            <returns><c>true</c> if the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseData.UserCount">
             <summary>
@@ -2410,22 +2405,31 @@
             </summary>
             <param name="teamUid">Team UID</param>
             <param name="team">When this method returns <c>true</c>, contains requested enterprise team; otherwise <c>null</c>.</param>
-            <returns><c>true</c> in the enterprise contains a team with specified UID; otherwise, <c>false</c></returns>
+            <returns><c>true</c> if the enterprise contains a team with specified UID; otherwise, <c>false</c></returns>
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseData.TeamCount">
             <summary>
             Gets the number of all teams in the enterprise.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseData.ManagedCompanies">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.GetUsersForTeam(System.String)">
             <summary>
-            Get the list of all managed companies in the enterprise.
+            Gets a list of user IDs for specified team.
             </summary>
+            <param name="teamUid">Team UID.</param>
+            <returns>A list of user IDs</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.GetTeamsForUser(System.Int64)">
+            <summary>
+            Gets a list of team UID for the specified user.
+            </summary>
+            <param name="userId">Enterprise User ID.</param>
+            <returns>A list of team UIDs.</returns>
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseData.EnterpriseLicense">
             <exclude/>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.GetDeviceApprovalRequests">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.PopulateEnterprise">
             <exclude/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.CreateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
@@ -2467,6 +2471,42 @@
             <param name="warnings">A callback that receives warnings</param>
             <returns>Awaitable task.</returns>
         </member>
+        <member name="T:KeeperSecurity.Enterprise.NodeDictionary">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.UserDictionary">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.TeamDictionary">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.TeamUserDataLink">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.LicenseSingleData">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IKeeperEnterpriseEntity">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.KeeperEnterpriseDataEntity`1">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IGetEnterprise">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseSingleData`2">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseDataDictionary`3">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseDataList`2">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseDataLink`4">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Enterprise.NamespaceDoc">
             <summary>
                 Provides types for manipulating Keeper Enterprise data.
@@ -2487,8 +2527,9 @@
                     if (auth.AuthContext.IsEnterpriseAdmin)
                     {
                         // Load enterprise data.
-                        var enterprise = new EnterpriseData(auth);
-                        await enterprise.PopulateEnterprise();
+                        var enterprise = new EnterpriseData();
+                        var enterpriseLoader = new EnterpriseLoader(auth, new [] { enterprise });
+                        await enterpriseLoader.Load();
             
                         // Find team with name "Google".
                         var team = enterprise.Teams
@@ -2514,7 +2555,7 @@
             }
             </code>
             </example>
-            <seealso cref="T:KeeperSecurity.Enterprise.IEnterprise" />
+            <seealso cref="T:KeeperSecurity.Enterprise.IEnterpriseLoader" />
             <seealso cref="T:KeeperSecurity.Enterprise.EnterpriseData" />
         </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseExtensions">
@@ -2537,7 +2578,7 @@
             <param name="enterprise">Enterprise Data</param>
             <param name="nodeName">Node Name</param>
             <param name="parentNode">Parent Node</param>
-            <returns>Awaitable task returning crerated node</returns>
+            <returns>Awaitable task returning created node</returns>
         </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseExtensions.UpdateNode(KeeperSecurity.Enterprise.EnterpriseData,KeeperSecurity.Enterprise.EnterpriseNode,KeeperSecurity.Enterprise.EnterpriseNode)">
             <summary>
@@ -2556,142 +2597,67 @@
             <param name="nodeId">Node ID to be deleted</param>
             <returns>Awaitable task</returns>
         </member>
-        <member name="T:KeeperSecurity.Enterprise.IEnterprise">
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseDataPlugin">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseLoader">
             <summary>
-                Defines properties and methods of Enterprise data structure.
+            Represents Keeper Enterprise connection that incrementally loads requested enterprrise data.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.Auth">
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseLoader.Auth">
             <summary>
-                Gets Keeper authentication.
+            Gets Keeper authentication.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.EnterpriseName">
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseLoader.EnterpriseName">
             <summary>
-            Gets enterprise name
+            Gets enterprise data
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.TreeKey">
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseLoader.TreeKey">
             <summary>
-                Gets Enterprise Tree encryption key.
+            Gets Enterprise Tree encryption key.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.Nodes">
-            <summary>
-                Get the list of all nodes in the enterprise.
-            </summary>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseLoader.RsaPrivateKey">
+            <exclude/>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.NodeCount">
-            <summary>
-                Gets the number of all nodes in the enterprise.
-            </summary>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseLoader.EcPrivateKey">
+            <exclude/>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.RootNode">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseLoader.#ctor(KeeperSecurity.Authentication.IAuthentication,System.Collections.Generic.IEnumerable{KeeperSecurity.Enterprise.EnterpriseDataPlugin},System.Byte[])">
             <summary>
-                Gets the Enterprise Root Node.
+            Initialises EnterpriseLoader instance.
             </summary>
+            <param name="auth">Keeper Authentication</param>
+            <param name="plugins">Enterprise data plugins</param>
+            <param name="treeKey">Enterprise tree key. Optional.</param>
+            <seealso cref="T:KeeperSecurity.Enterprise.EnterpriseData"/>
+            <seealso cref="T:KeeperSecurity.Enterprise.RoleData"/>
+            <seealso cref="T:KeeperSecurity.Enterprise.DeviceApprovalData"/>
+            <seealso cref="T:KeeperSecurity.Enterprise.ManagedCompanyData"/>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.Users">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseLoader.Load">
             <summary>
-                Get the list of all users in the enterprise.
+            Retrieves Enterprise Data structure.
             </summary>
-        </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.UserCount">
-            <summary>
-                Gets the number of all users in the enterprise.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.Teams">
-            <summary>
-                Get the list of all teams in the enterprise.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Enterprise.IEnterprise.TeamCount">
-            <summary>
-                Gets the number of all teams in the enterprise.
-            </summary>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterprise.PopulateEnterprise">
-            <summary>
-                Syncronizes Enterprise Data structure with server.
-            </summary>
-            <returns>Awaitable task</returns>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterprise.TryGetNode(System.Int64,KeeperSecurity.Enterprise.EnterpriseNode@)">
-            <summary>
-                Gets the enterprise node associated with the specified ID.
-            </summary>
-            <param name="nodeId">Node Enterprise ID</param>
-            <param name="node">When this method returns <c>true</c>, contains requested enterprise node; otherwise <c>null</c>.</param>
-            <returns><c>true</c> in the enterprise contains a node with specified ID; otherwise, <c>false</c></returns>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterprise.TryGetUserById(System.Int64,KeeperSecurity.Enterprise.EnterpriseUser@)">
-            <summary>
-                Gets the enterprise user associated with the specified ID.
-            </summary>
-            <param name="userId">User Enterprise ID</param>
-            <param name="user">When this method returns <c>true</c>, contains requested enterprise user; otherwise <c>null</c>.</param>
-            <returns><c>true</c> in the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterprise.TryGetUserByEmail(System.String,KeeperSecurity.Enterprise.EnterpriseUser@)">
-            <summary>
-                Gets the enterprise user associated with the specified email address.
-            </summary>
-            <param name="email">User Email Address.</param>
-            <param name="user">When this method returns <c>true</c>, contains requested enterprise user; otherwise <c>null</c>.</param>
-            <returns><c>true</c> in the enterprise contains a user with specified ID; otherwise, <c>false</c></returns>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterprise.TryGetTeam(System.String,KeeperSecurity.Enterprise.EnterpriseTeam@)">
-            <summary>
-                Gets the enterprise team associated with the specified team UID.
-            </summary>
-            <param name="teamUid">Team UID</param>
-            <param name="team">When this method returns <c>true</c>, contains requested enterprise team; otherwise <c>null</c>.</param>
-            <returns><c>true</c> in the enterprise contains a team with specified UID; otherwise, <c>false</c></returns>
-        </member>
-        <member name="T:KeeperSecurity.Enterprise.IEnterpriseManagement">
-            <summary>
-            Defines method for enterprise management.
-            </summary>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterpriseManagement.CreateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
-            <summary>
-                Creates Enterprise Team.
-            </summary>
-            <param name="team">Enterprise Team</param>
-            <returns>Created Team</returns>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterpriseManagement.UpdateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
-            <summary>
-                Updates Enterprise Team
-            </summary>
-            <param name="team">Enterprise Team</param>
-            <returns>Updated Team</returns>
-        </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterpriseManagement.DeleteTeam(System.String)">
-            <summary>
-                Deletes Enterprise Team.
-            </summary>
-            <param name="teamUid">Enterprise Team UID.</param>
             <returns>Awaitable task.</returns>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterpriseManagement.AddUsersToTeams(System.String[],System.String[],System.Action{System.String})">
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseLoader.GetEnterpriseId">
             <summary>
-                Add Enterprise User(s) to Team(s).
+                Returns unique enterprise id.
             </summary>
-            <param name="emails">A list of user emails</param>
-            <param name="teamUids">A list of team UIDs</param>
-            <param name="warnings">A callback that receives warnings</param>
-            <returns>Awaitable task.</returns>
+            <returns>Enterprise ID. Awaitable task.</returns>
         </member>
-        <member name="M:KeeperSecurity.Enterprise.IEnterpriseManagement.RemoveUsersFromTeams(System.String[],System.String[],System.Action{System.String})">
-            <summary>
-                Removes Users(s) from Team(s)
-            </summary>
-            <param name="emails">A list of user emails</param>
-            <param name="teamUids">A list of team UIDs</param>
-            <param name="warnings">A callback that receives warnings</param>
-            <returns>Awaitable task.</returns>
+        <member name="T:KeeperSecurity.Enterprise.IEnterpriseLoader">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IEnterpriseData">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IEnterpriseDataManagement">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Enterprise.IEnterpriseEntity">
             <exclude />
@@ -2778,11 +2744,6 @@
                 User Status.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.Teams">
-            <summary>
-                A list of team UID that user is member of.
-            </summary>
-        </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.DisplayName">
             <summary>
                 User Name.
@@ -2796,6 +2757,39 @@
         <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.ParentNodeId">
             <summary>
                 Node that owns the user.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseRole">
+            <summary>
+                Represents Enterprise Role
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseRole.Id">
+            <summary>
+                Role ID.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseRole.DisplayName">
+            <summary>
+                User Name.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseRole.VisibleBelow">
+            <summary>
+            Role is visible to the subnodes.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseRole.NewUserInherit">
+            <summary>
+            New users automaticall added to this role
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseRole.RoleType">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseRole.ParentNodeId">
+            <summary>
+                Node that owns the role.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseTeam">
@@ -2826,11 +2820,6 @@
         <member name="P:KeeperSecurity.Enterprise.EnterpriseTeam.RestrictView">
             <summary>
                 Restricts Record View?
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseTeam.Users">
-            <summary>
-                A list of team users.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseTeam.TeamKey">
@@ -2878,16 +2867,6 @@
                 Is Managed Company Expired
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.TreeKey">
-            <summary>
-            Managed Company Tree Key
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.TreeKeyRole">
-            <summary>
-            Managed Company Tree Key Role
-            </summary>
-        </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.ParentNodeId">
             <summary>
                 Node that owns the managed company.
@@ -2898,8 +2877,121 @@
                 Cannot proceed with enterprise operation.
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseUtils">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IManagedCompanyData">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.ManagedCompanyData">
+            <summary>
+            Represends Managed Companies enterprise data.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyData.Entities">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyData.ManagedCompanies">
+            <summary>
+            Get a list of all managed companies in the enterprise.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.ManagedCompanyDictionary">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Enterprise.ManagedCompanyAuth">
             <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IRoleData">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.RoleData">
+            <summary>
+            Represents Role enterprise data.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.RoleData.Entities">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.RoleData.Roles">
+            <summary>
+            Get a list of all roles in the enterprise
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.TryGetRole(System.Int64,KeeperSecurity.Enterprise.EnterpriseRole@)">
+            <summary>
+            Gets the enterprise role assocoated with the specified ID.
+            </summary>
+            <param name="roleId">Enterprise Role ID</param>
+            <param name="role">When this method returns <c>true</c>, contains requested enterprise role; otherwise <c>null</c>.</param>
+            <returns><c>true</c> if the enterprise contains a role with specified ID; otherwise, <c>false</c></returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.GetUsersForRole(System.Int64)">
+            <summary>
+            Gets a list of user IDs for specified role.
+            </summary>
+            <param name="roleId">Enterprise Role ID.</param>
+            <returns>List of Enterprise User IDs.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.GetRolesForUser(System.Int64)">
+            <summary>
+            Gets a list of role IDs for specified user.
+            </summary>
+            <param name="userId">Enterprise User ID.</param>
+            <returns>List of Enterprise Role IDs</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.GetTeamsForRole(System.Int64)">
+            <summary>
+            Gets a list of team UIDs for specified role.
+            </summary>
+            <param name="roleId">Enterprise Role ID.</param>
+            <returns>List of Enterprise Team UIDs.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.GetRolesForTeam(System.String)">
+            <summary>
+            Gets a list of role IDs for specified team.
+            </summary>
+            <param name="teamUid">Team UID.</param>
+            <returns>List of Enterprise Role IDs</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.GetEnforcementsForRole(System.Int64)">
+            <summary>
+            Gets a list of role enforcements for specified role.
+            </summary>
+            <param name="roleId">Enterprise Role ID.</param>
+            <returns>List of Role Enforcements</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.GetPrivilegesForRoleAndNode(System.Int64,System.Int64)">
+            <summary>
+            Gets a list of privileges for specified role and node
+            </summary>
+            <param name="roleId">Enterprise Role ID.</param>
+            <param name="nodeId">Enterprise Node ID.</param>
+            <returns>List of Role Privileges</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.GetManagedNodes">
+            <summary>
+            Gets a list of all managed nodes in the enterprise
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.RoleDictionary">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.RoleUserLink">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.RoleTeamLink">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.RoleEnforcementLink">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.ManagedNodeLink">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.RolePrivilegesList">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Utils.CredentialManager">
             <exclude />
@@ -3386,7 +3478,7 @@
             <param name="options">Shared Folder User Permissions.</param>
             <returns>Awaitable task.</returns>
             <remarks>
-            If <seealso cref="!:options"/> parameter is <c>null</c> then user gets default user permissions when added./>
+            If <c>options</c> parameter is <c>null</c> then user gets default user permissions when added.
             </remarks>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
             <seealso cref="M:KeeperSecurity.Vault.IVaultSharedFolder.PutUserToSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType,KeeperSecurity.Vault.ISharedFolderUserOptions)"/>
@@ -3397,7 +3489,7 @@
             </summary>
             <param name="sharedFolderUid">Shared Folder UID.</param>
             <param name="userId">User email or Team UID.</param>
-            <param name="userType">Type of <see cref="!:userId"/> parameter.</param>
+            <param name="userType">Type of <c>userId</c> parameter.</param>
             <returns>Awaitable task.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
             <seealso cref="M:KeeperSecurity.Vault.IVaultSharedFolder.RemoveUserFromSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType)"/>

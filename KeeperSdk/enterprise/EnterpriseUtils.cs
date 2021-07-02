@@ -9,7 +9,8 @@ using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Enterprise
 {
-    internal static class EnterpriseUtils
+    /// <exclude />
+    public static class EnterpriseUtils
     {
 
         public static string EncryptEncryptedData(EncryptedData encryptedData, byte[] encryptionKey)
@@ -37,30 +38,31 @@ namespace KeeperSecurity.Enterprise
             }
         }
 
-        public static async Task PopulateUserPublicKeys(this EnterpriseData enterprise, IDictionary<string, byte[]> publicKeys, Action<string> warnings = null)
+        public static async Task PopulateUserPublicKeys(this EnterpriseData enterpriseData, IDictionary<string, byte[]> publicKeys, Action<string> warnings = null)
         {
             var toLoad = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
             toLoad.UnionWith(publicKeys.Keys);
-            toLoad.ExceptWith(enterprise.UserPublicKeyCache.Keys);
+            toLoad.ExceptWith(enterpriseData.UserPublicKeyCache.Keys);
             if (toLoad.Count > 0)
             {
                 var publicKeyRq = new PublicKeysCommand
                 {
                     keyOwners = toLoad.ToArray()
                 };
-                var publicKeyRs = await enterprise.Auth.ExecuteAuthCommand<PublicKeysCommand, PublicKeysResponse>(publicKeyRq);
+                var auth = enterpriseData.Enterprise.Auth;
+                var publicKeyRs = await auth.ExecuteAuthCommand<PublicKeysCommand, PublicKeysResponse>(publicKeyRq);
                 if (publicKeyRs.publicKeys != null)
                 {
                     foreach (var key in publicKeyRs.publicKeys)
                     {
                         if (!string.IsNullOrEmpty(key.publicKey))
                         {
-                            enterprise.UserPublicKeyCache[key.keyOwner] = key.publicKey.Base64UrlDecode();
+                            enterpriseData.UserPublicKeyCache[key.keyOwner] = key.publicKey.Base64UrlDecode();
                         }
                         else
                         {
                             warnings?.Invoke($"User \'{key.keyOwner}\': Public key error ({key.resultCode}): {key.message}");
-                            enterprise.UserPublicKeyCache[key.keyOwner] = null;
+                            enterpriseData.UserPublicKeyCache[key.keyOwner] = null;
                         }
                     }
                 }
@@ -68,19 +70,19 @@ namespace KeeperSecurity.Enterprise
 
             foreach (var email in publicKeys.Keys.ToArray())
             {
-                if (enterprise.UserPublicKeyCache.TryGetValue(email, out var pk))
+                if (enterpriseData.UserPublicKeyCache.TryGetValue(email, out var pk))
                 {
                     publicKeys[email] = pk;
                 }
             }
         }
 
-        public static async Task PopulateTeamKeys(this EnterpriseData enterprise, IDictionary<string, byte[]> teamKeys, Action<string> warnings = null)
+        public static async Task PopulateTeamKeys(this EnterpriseData enterpriseData, IDictionary<string, byte[]> teamKeys, Action<string> warnings = null)
         {
             var toLoad = new HashSet<string>();
             foreach (var teamUid in teamKeys.Keys.ToArray())
             {
-                if (enterprise.TryGetTeam(teamUid, out var team))
+                if (enterpriseData.TryGetTeam(teamUid, out var team))
                 {
                     if (team.TeamKey != null)
                     {
@@ -99,7 +101,8 @@ namespace KeeperSecurity.Enterprise
                 {
                     teams = toLoad.ToArray()
                 };
-                var teamKeyRs = await enterprise.Auth.ExecuteAuthCommand<TeamGetKeysCommand, TeamGetKeysResponse>(teamKeyRq);
+                var auth = enterpriseData.Enterprise.Auth;
+                var teamKeyRs = await auth.ExecuteAuthCommand<TeamGetKeysCommand, TeamGetKeysResponse>(teamKeyRq);
                 if (teamKeyRs.keys != null)
                 {
                     foreach (var tk in teamKeyRs.keys)
@@ -112,10 +115,10 @@ namespace KeeperSecurity.Enterprise
                                 switch (tk.keyType)
                                 {
                                     case 1:
-                                        key = CryptoUtils.DecryptAesV1(tk.key.Base64UrlDecode(), enterprise.Auth.AuthContext.DataKey);
+                                        key = CryptoUtils.DecryptAesV1(tk.key.Base64UrlDecode(), auth.AuthContext.DataKey);
                                         break;
                                     case 2:
-                                        key = CryptoUtils.DecryptRsa(tk.key.Base64UrlDecode(), enterprise.Auth.AuthContext.PrivateKey);
+                                        key = CryptoUtils.DecryptRsa(tk.key.Base64UrlDecode(), auth.AuthContext.PrivateKey);
                                         break;
                                     default:
                                         warnings?.Invoke($"Team \'{tk.teamUid}\' unsupported key type: {tk.keyType}");
@@ -130,7 +133,7 @@ namespace KeeperSecurity.Enterprise
 
                         if (key == null) continue;
 
-                        if (enterprise.TryGetTeam(tk.teamUid, out var team))
+                        if (enterpriseData.TryGetTeam(tk.teamUid, out var team))
                         {
                             team.TeamKey = key;
                         }

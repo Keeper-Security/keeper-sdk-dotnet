@@ -388,17 +388,6 @@ fwIDAQAB
 
 
 
-
-    public class KInfoDevice
-    {
-        public byte[] Token { get; internal set; }
-        public byte[] PublicKey { get; internal set; }
-        public ISet<string> Environment { get; } = new HashSet<string>();
-        public ISet<string> ApprovedUser { get; } = new HashSet<string>();
-        public ISet<string> TwoFactorUser { get; } = new HashSet<string>();
-        public IDictionary<string, byte[]> UserDataKey { get; } = new Dictionary<string, byte[]>();
-    }
-
     public class VaultEnvironment
     {
         public string User { get; } = DataVault.UserName;
@@ -421,8 +410,6 @@ fwIDAQAB
         public byte[] ClientKey { get; } = DataVault.UserClientKey;
         public long Revision { get; } = DataVault.Revision;
         public string TwoFactorOneTimeToken { get; } = DataVault.TwoFactorOneTimeToken;
-
-        public IList<KInfoDevice> KInfoDevices { get; } = new List<KInfoDevice>();
 
         private readonly DataContractJsonSerializer _dataSerializer;
         private readonly DataContractJsonSerializer _extraSerializer;
@@ -608,7 +595,8 @@ fwIDAQAB
                 };
             }
         }
-
+        public const string SharedFolder1Uid = "SharedFolder1";
+        public const string SharedFolder2Uid = "SharedFolder2";
         public SyncDownResponse GetSyncDownResponse()
         {
             var record1 = new PasswordRecord
@@ -652,7 +640,7 @@ fwIDAQAB
 
             var sharedFolder1 = new SharedFolder
             {
-                Uid = CryptoUtils.GenerateUid(),
+                Uid = SharedFolder1Uid,
                 SharedFolderKey = CryptoUtils.GenerateEncryptionKey(),
                 DefaultManageRecords = false,
                 DefaultManageUsers = false,
@@ -663,7 +651,7 @@ fwIDAQAB
 
             var sharedFolder2 = new SharedFolder
             {
-                Uid = CryptoUtils.GenerateUid(),
+                Uid = SharedFolder2Uid,
                 SharedFolderKey = CryptoUtils.GenerateEncryptionKey(),
                 DefaultManageRecords = true,
                 DefaultManageUsers = true,

@@ -57,13 +57,20 @@ namespace KeeperSecurity.Utils
                 var text = "";
                 if (o != null)
                 {
-                    text = o.ToString();
-                    var isNum = IsNumber(o);
-                    if (isNum)
+                    if (o is bool b)
                     {
-                        if (IsDecimal(o))
+                        text = b ? "X" : "-";
+                    }
+                    else
+                    {
+                        text = o.ToString();
+                        var isNum = IsNumber(o);
+                        if (isNum)
                         {
-                            text = $"{o:0.00}";
+                            if (IsDecimal(o))
+                            {
+                                text = $"{o:0.00}";
+                            }
                         }
                     }
                 }
@@ -96,10 +103,10 @@ namespace KeeperSecurity.Utils
             {
                 _data.Sort((x, y) =>
                 {
-                    if (!isNum) return string.Compare(y[colNo], x[colNo], StringComparison.Ordinal);
+                    if (!isNum) return string.Compare(x[colNo], y[colNo], StringComparison.Ordinal);
 
                     var res = x[colNo].Length.CompareTo(y[colNo].Length);
-                    return res != 0 ? res : string.Compare(y[colNo], x[colNo], StringComparison.Ordinal);
+                    return res != 0 ? res : string.Compare(x[colNo], y[colNo], StringComparison.Ordinal);
                 });
             }
         }

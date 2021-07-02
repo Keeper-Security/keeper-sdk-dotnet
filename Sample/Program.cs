@@ -317,7 +317,7 @@ namespace Sample
 
             // Keeper SDK needs a storage to save configuration
             // such as: last login name, device token, etc
-            var configuration = new JsonConfigurationStorage("test.json");
+            var configuration = new JsonConfigurationStorage("config.json");
 
 
             var prompt = "Enter Email Address: ";
@@ -397,6 +397,7 @@ namespace Sample
             if (!authFlow.IsAuthenticated()) return;
 
             var auth = authFlow;
+
             var vault = new VaultOnline(auth);
             Console.WriteLine("\nRetrieving records...");
             await vault.SyncDown();
@@ -511,8 +512,9 @@ namespace Sample
             if (auth.AuthContext.IsEnterpriseAdmin)
             {
                 // Load enterprise data.
-                var enterprise = new EnterpriseData(auth);
-                await enterprise.PopulateEnterprise();
+                var enterprise = new EnterpriseData();
+                var enterpriseLoader = new EnterpriseLoader(auth, new[] { enterprise });
+                await enterpriseLoader.Load();
 
                 // Find team with name "Google".
                 var team = enterprise.Teams

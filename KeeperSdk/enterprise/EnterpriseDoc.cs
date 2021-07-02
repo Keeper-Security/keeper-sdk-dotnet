@@ -32,8 +32,9 @@ namespace KeeperSecurity.Enterprise
     ///         if (auth.AuthContext.IsEnterpriseAdmin)
     ///         {
     ///             // Load enterprise data.
-    ///             var enterprise = new EnterpriseData(auth);
-    ///             await enterprise.PopulateEnterprise();
+    ///             var enterprise = new EnterpriseData();
+    ///             var enterpriseLoader = new EnterpriseLoader(auth, new [] { enterprise });
+    ///             await enterpriseLoader.Load();
     /// 
     ///             // Find team with name "Google".
     ///             var team = enterprise.Teams
@@ -59,7 +60,7 @@ namespace KeeperSecurity.Enterprise
     /// }
     /// </code>
     /// </example>
-    /// <seealso cref="IEnterprise" />
+    /// <seealso cref="IEnterpriseLoader" />
     /// <seealso cref="EnterpriseData" />
     [CompilerGenerated]
     internal class NamespaceDoc

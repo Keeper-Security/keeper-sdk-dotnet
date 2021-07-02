@@ -269,7 +269,9 @@ namespace KeeperSecurity.Authentication
             }
 
             var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
-            var encKey = CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperPublicKeys[ServerKeyId]);
+            var encKey = ServerKeyId <= 6
+                ? CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperRsaPublicKeys[ServerKeyId])
+                : CryptoUtils.EncryptEc(transmissionKey, KeeperSettings.KeeperEcPublicKeys[ServerKeyId]);
             return new ApiRequest()
             {
                 EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
@@ -314,7 +316,7 @@ namespace KeeperSecurity.Authentication
             {
                 attempt++;
 
-                var request = (HttpWebRequest) WebRequest.Create(uri);
+                var request = (HttpWebRequest)WebRequest.Create(uri);
                 if (WebProxy != null)
                 {
                     request.Proxy = WebProxy;
@@ -326,7 +328,11 @@ namespace KeeperSecurity.Authentication
 
 
                 var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), _transmissionKey);
-                var encKey = CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperPublicKeys[keyId]);
+                var encKey = ServerKeyId <= 6
+                    ? CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperRsaPublicKeys[ServerKeyId])
+                    : CryptoUtils.EncryptEc(_transmissionKey, KeeperSettings.KeeperEcPublicKeys[ServerKeyId]);
+
+
                 var apiRequest = new ApiRequest()
                 {
                     EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
@@ -343,12 +349,12 @@ namespace KeeperSecurity.Authentication
                         var p = apiRequest.ToByteArray();
                         await requestStream.WriteAsync(p, 0, p.Length);
                     }
-                    response = (HttpWebResponse) request.GetResponse();
+                    response = (HttpWebResponse)request.GetResponse();
                 }
 
                 catch (WebException e)
                 {
-                    response = (HttpWebResponse) e.Response;
+                    response = (HttpWebResponse)e.Response;
                     if (response == null) throw;
 
                     if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
@@ -397,13 +403,9 @@ namespace KeeperSecurity.Authentication
                         switch (keeperRs.Error)
                         {
                             case "key":
-                                if (KeeperSettings.KeeperPublicKeys.ContainsKey(keeperRs.KeyId))
-                                {
-                                    keyId = keeperRs.KeyId;
-                                    continue;
-                                }
+                                keyId = keeperRs.KeyId;
+                                continue;
 
-                                break;
                             case "region_redirect":
                                 throw new KeeperRegionRedirect(keeperRs.RegionHost);
 
@@ -456,14 +458,14 @@ namespace KeeperSecurity.Authentication
             set
             {
                 _server = string.IsNullOrEmpty(value) ? DefaultKeeperServer : value;
-                if (ServerKeyId < 1 || ServerKeyId > KeeperSettings.KeeperPublicKeys.Count)
+                if (!KeeperSettings.KeeperRsaPublicKeys.ContainsKey(ServerKeyId) && !KeeperSettings.KeeperEcPublicKeys.ContainsKey(ServerKeyId))
                 {
                     ServerKeyId = 1;
                 }
 
                 var configuration = _storage?.Get(_server);
                 if (configuration == null) return;
-                if (configuration.ServerKeyId > 0 && configuration.ServerKeyId <= KeeperSettings.KeeperPublicKeys.Count)
+                if (KeeperSettings.KeeperRsaPublicKeys.ContainsKey(configuration.ServerKeyId) || KeeperSettings.KeeperEcPublicKeys.ContainsKey(configuration.ServerKeyId))
                 {
                     ServerKeyId = configuration.ServerKeyId;
                 }
@@ -516,11 +518,12 @@ namespace KeeperSecurity.Authentication
         }
 
 
-        internal static readonly IDictionary<int, RsaKeyParameters> KeeperPublicKeys;
+        internal static readonly IDictionary<int, RsaKeyParameters> KeeperRsaPublicKeys;
+        internal static readonly IDictionary<int, ECPublicKeyParameters> KeeperEcPublicKeys;
 
         static KeeperSettings()
         {
-            var list = new[]
+            var rsaList = new[]
             {
                 new KeyValuePair<int, RsaKeyParameters>(1, CryptoUtils.LoadPublicKey(KeeperKey1.Base64UrlDecode())),
                 new KeyValuePair<int, RsaKeyParameters>(2, CryptoUtils.LoadPublicKey(KeeperKey2.Base64UrlDecode())),
@@ -529,7 +532,22 @@ namespace KeeperSecurity.Authentication
                 new KeyValuePair<int, RsaKeyParameters>(5, CryptoUtils.LoadPublicKey(KeeperKey5.Base64UrlDecode())),
                 new KeyValuePair<int, RsaKeyParameters>(6, CryptoUtils.LoadPublicKey(KeeperKey6.Base64UrlDecode()))
             };
-            KeeperPublicKeys = new ConcurrentDictionary<int, RsaKeyParameters>(list);
+            KeeperRsaPublicKeys = new ConcurrentDictionary<int, RsaKeyParameters>(rsaList);
+
+            var ecList = new[] 
+            {
+                new KeyValuePair<int, ECPublicKeyParameters>(7, CryptoUtils.LoadPublicEcKey(KeeperKey7.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(8, CryptoUtils.LoadPublicEcKey(KeeperKey8.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(9, CryptoUtils.LoadPublicEcKey(KeeperKey9.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(10, CryptoUtils.LoadPublicEcKey(KeeperKey10.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(11, CryptoUtils.LoadPublicEcKey(KeeperKey11.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(12, CryptoUtils.LoadPublicEcKey(KeeperKey12.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(13, CryptoUtils.LoadPublicEcKey(KeeperKey13.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(14, CryptoUtils.LoadPublicEcKey(KeeperKey14.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(15, CryptoUtils.LoadPublicEcKey(KeeperKey15.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(16, CryptoUtils.LoadPublicEcKey(KeeperKey16.Base64UrlDecode())),
+            };
+            KeeperEcPublicKeys = new ConcurrentDictionary<int, ECPublicKeyParameters>(ecList);
         }
 
         internal static readonly IDictionary<string, string> KeeperLanguages = new Dictionary<string, string>()
@@ -598,5 +616,17 @@ namespace KeeperSecurity.Authentication
             "_JvAKt4axY9RGUtBbv0NmpkBCjLZri5AaTMgjLdu8XBXCqoLx7qZL-Bwiv4njw-" +
             "ZAI4jIszJTdGzMtoQ0zL7LBj_TDUBI4Qhf2bZTZlUSL3xeDWOKmd8Frksw3oKyJ" +
             "17oCQK-EGau6EaJRGyasBXl8uOEWmYYgqOWirNwIDAQAB";
+
+        const string KeeperKey7  = "BKnhy0obglZJK-igwthNLdknoSXRrGB-mvFRzyb_L-DKKefWjYdFD2888qN1ROczz4n3keYSfKz9Koj90Z6w_tQ";
+        const string KeeperKey8  = "BAsPQdCpLIGXdWNLdAwx-3J5lNqUtKbaOMV56hUj8VzxE2USLHuHHuKDeno0ymJt-acxWV1xPlBfNUShhRTR77g";
+        const string KeeperKey9  = "BNYIh_Sv03nRZUUJveE8d2mxKLIDXv654UbshaItHrCJhd6cT7pdZ_XwbdyxAOCWMkBb9AZ4t1XRCsM8-wkEBRg";
+        const string KeeperKey10 = "BA6uNfeYSvqagwu4TOY6wFK4JyU5C200vJna0lH4PJ-SzGVXej8l9dElyQ58_ljfPs5Rq6zVVXpdDe8A7Y3WRhk";
+        const string KeeperKey11 = "BMjTIlXfohI8TDymsHxo0DqYysCy7yZGJ80WhgOBR4QUd6LBDA6-_318a-jCGW96zxXKMm8clDTKpE8w75KG-FY";
+        const string KeeperKey12 = "BJBDU1P1H21IwIdT2brKkPqbQR0Zl0TIHf7Bz_OO9jaNgIwydMkxt4GpBmkYoprZ_DHUGOrno2faB7pmTR7HhuI";
+        const string KeeperKey13 = "BJFF8j-dH7pDEw_U347w2CBM6xYM8Dk5fPPAktjib-opOqzvvbsER-WDHM4ONCSBf9O_obAHzCyygxmtpktDuiE";
+        const string KeeperKey14 = "BDKyWBvLbyZ-jMueORl3JwJnnEpCiZdN7yUvT0vOyjwpPBCDf6zfL4RWzvSkhAAFnwOni_1tQSl8dfXHbXqXsQ8";
+        const string KeeperKey15 = "BDXyZZnrl0tc2jdC5I61JjwkjK2kr7uet9tZjt8StTiJTAQQmnVOYBgbtP08PWDbecxnHghx3kJ8QXq1XE68y8c";
+        const string KeeperKey16 = "BFX68cb97m9_sweGdOVavFM3j5ot6gveg6xT4BtGahfGhKib-zdZyO9pwvv1cBda9ahkSzo1BQ4NVXp9qRyqVGU";
+
     }
 }

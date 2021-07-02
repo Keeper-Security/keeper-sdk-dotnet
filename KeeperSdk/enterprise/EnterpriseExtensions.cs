@@ -16,13 +16,13 @@ namespace KeeperSecurity.Enterprise
         /// <param name="enterprise">Enterprise Data.</param>
         /// <param name="nodeId">Node ID</param>
         /// <returns>Awaitable Task</returns>
-        public static async Task SetRestrictVisibility(this EnterpriseData enterprise, long nodeId)
+        public static async Task SetRestrictVisibility(this EnterpriseData enterpriseData, long nodeId)
         {
             var rq = new SetRestrictVisibilityRequest
             {
                 NodeId = nodeId
             };
-            await enterprise.Auth.ExecuteAuthRest("enterprise/set_restrict_visibility", rq);
+            await enterpriseData.Enterprise.Auth.ExecuteAuthRest("enterprise/set_restrict_visibility", rq);
         }
 
         /// <summary>
@@ -31,34 +31,34 @@ namespace KeeperSecurity.Enterprise
         /// <param name="enterprise">Enterprise Data</param>
         /// <param name="nodeName">Node Name</param>
         /// <param name="parentNode">Parent Node</param>
-        /// <returns>Awaitable task returning crerated node</returns>
-        public static async Task<EnterpriseNode> CreateNode(this EnterpriseData enterprise, string nodeName, EnterpriseNode parentNode = null)
+        /// <returns>Awaitable task returning created node</returns>
+        public static async Task<EnterpriseNode> CreateNode(this EnterpriseData enterpriseData, string nodeName, EnterpriseNode parentNode = null)
         {
-            parentNode = parentNode ?? enterprise.RootNode;
+            parentNode = parentNode ?? enterpriseData.RootNode;
             var encryptedData = new EncryptedData
             {
                 DisplayName = nodeName
             };
 
-            var nodeId = await enterprise.GetEnterpriseId();
+            var nodeId = await enterpriseData.Enterprise.GetEnterpriseId();
             var rq = new NodeAddCommand
             {
                 NodeId = nodeId,
-                EncryptedData = EnterpriseUtils.EncryptEncryptedData(encryptedData, enterprise.TreeKey)
+                EncryptedData = EnterpriseUtils.EncryptEncryptedData(encryptedData, enterpriseData.Enterprise.TreeKey)
             };
             if (parentNode.Id > 0)
             {
                 rq.ParentId = parentNode.Id;
             }
-            await enterprise.Auth.ExecuteAuthCommand(rq);
+            await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
             var node = new EnterpriseNode
             {
                 Id = nodeId,
                 DisplayName = nodeName,
                 ParentNodeId = parentNode?.Id ?? 0,
             };
-            enterprise._nodes.TryAdd(nodeId, node);
-            parentNode.Subnodes.Add(nodeId);
+
+            await enterpriseData.Enterprise.Load();
 
             return node;
         }
@@ -70,7 +70,7 @@ namespace KeeperSecurity.Enterprise
         /// <param name="node">Enterprise node</param>
         /// <param name="newParentNode">New Parent Node</param>
         /// <returns>Awaitable task</returns>
-        public static async Task UpdateNode(this EnterpriseData enterprise, EnterpriseNode node, EnterpriseNode newParentNode = null)
+        public static async Task UpdateNode(this EnterpriseData enterpriseData, EnterpriseNode node, EnterpriseNode newParentNode = null)
         {
             var encryptedData = new EncryptedData
             {
@@ -81,18 +81,10 @@ namespace KeeperSecurity.Enterprise
             {
                 NodeId = node.Id,
                 ParentId = newParentNode != null ? newParentNode.Id : node.ParentNodeId,
-                EncryptedData = EnterpriseUtils.EncryptEncryptedData(encryptedData, enterprise.TreeKey)
+                EncryptedData = EnterpriseUtils.EncryptEncryptedData(encryptedData, enterpriseData.Enterprise.TreeKey)
             };
-            await enterprise.Auth.ExecuteAuthCommand(rq);
-            if (newParentNode != null)
-            {
-                if (enterprise._nodes.TryGetValue(node.Id, out var pNode))
-                {
-                    pNode.Subnodes.Remove(node.Id);
-                }
-                newParentNode.Subnodes.Add(node.Id);
-                node.ParentNodeId = newParentNode.Id;
-            }
+            await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
+            await enterpriseData.Enterprise.Load();
         }
 
         /// <summary>
@@ -101,22 +93,16 @@ namespace KeeperSecurity.Enterprise
         /// <param name="enterprise">Enterprise Data</param>
         /// <param name="nodeId">Node ID to be deleted</param>
         /// <returns>Awaitable task</returns>
-        public static async Task DeleteNode(this EnterpriseData enterprise, long nodeId)
+        public static async Task DeleteNode(this EnterpriseData enterpriseData, long nodeId)
         {
-            if (nodeId != enterprise.RootNode.Id)
+            if (nodeId != enterpriseData.RootNode.Id)
             {
                 var rq = new NodeDeleteCommand
                 {
                     NodeId = nodeId
                 };
-                await enterprise.Auth.ExecuteAuthCommand(rq);
-                if (enterprise._nodes.TryGetValue(nodeId, out var node))
-                {
-                    if (enterprise._nodes.TryGetValue(node.ParentNodeId, out node))
-                    {
-                        node.Subnodes.Remove(nodeId);
-                    }
-                }
+                await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);
+                await enterpriseData.Enterprise.Load();
             }
         }
     }

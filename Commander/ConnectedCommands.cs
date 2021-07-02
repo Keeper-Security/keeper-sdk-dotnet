@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -379,34 +380,54 @@ namespace Commander
             var tab = new Tabulate(3);
             if (_vault.TryGetRecord(uid, out var record))
             {
-                tab.AddRow(new[] {"Record UID:", record.Uid});
-                tab.AddRow(new[] {"Title:", record.Title});
-                tab.AddRow(new[] {"Login:", record.Login});
-                tab.AddRow(new[] {"Password:", record.Password});
-                tab.AddRow(new[] {"Login URL:", record.Link});
-                tab.AddRow(new[] {"Notes:", record.Notes});
+                tab.AddRow(new[] { "Record UID:", record.Uid });
+                tab.AddRow(new[] { "Title:", record.Title });
+                tab.AddRow(new[] { "Login:", record.Login });
+                tab.AddRow(new[] { "Password:", record.Password });
+                tab.AddRow(new[] { "Login URL:", record.Link });
+                tab.AddRow(new[] { "Notes:", record.Notes });
                 if (record.Custom != null && record.Custom.Count > 0)
                 {
-                    tab.AddRow(new[] {""});
-                    tab.AddRow(new[] {"Custom Fields:", ""});
+                    tab.AddRow(new[] { "" });
+                    tab.AddRow(new[] { "Custom Fields:", "" });
                     foreach (var c in record.Custom)
                     {
-                        tab.AddRow(new[] {c.Name + ":", c.Value});
+                        tab.AddRow(new[] { c.Name + ":", c.Value });
+                    }
+                }
+                if (record.ExtraFields != null)
+                {
+                    var totps = record.ExtraFields
+                        .Where(x => string.Equals(x.FieldType, "totp", StringComparison.InvariantCultureIgnoreCase) && x.Custom != null)
+                        .Where(x => x.Custom.ContainsKey("data"))
+                        .ToArray();
+                    foreach (var t in totps)
+                    {
+                        try
+                        {
+                            var url = t.Custom["data"] as string;
+                            var tup = CryptoUtils.GetTotpCode(url);
+                            tab.AddRow($"{t.FieldTitle}:", $"{tup.Item1} expires in {tup.Item3 - tup.Item2} sec.");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
                     }
                 }
             }
             else if (_vault.TryGetSharedFolder(uid, out var sf))
             {
-                tab.AddRow(new[] {"Shared Folder UID:", sf.Uid});
-                tab.AddRow(new[] {"Name:", sf.Name});
-                tab.AddRow(new[] {"Default Manage Records:", sf.DefaultManageRecords.ToString()});
-                tab.AddRow(new[] {"Default Manage Users:", sf.DefaultManageUsers.ToString()});
-                tab.AddRow(new[] {"Default Can Edit:", sf.DefaultCanEdit.ToString()});
-                tab.AddRow(new[] {"Default Can Share:", sf.DefaultCanShare.ToString()});
+                tab.AddRow(new[] { "Shared Folder UID:", sf.Uid });
+                tab.AddRow(new[] { "Name:", sf.Name });
+                tab.AddRow(new[] { "Default Manage Records:", sf.DefaultManageRecords.ToString() });
+                tab.AddRow(new[] { "Default Manage Users:", sf.DefaultManageUsers.ToString() });
+                tab.AddRow(new[] { "Default Can Edit:", sf.DefaultCanEdit.ToString() });
+                tab.AddRow(new[] { "Default Can Share:", sf.DefaultCanShare.ToString() });
                 if (sf.RecordPermissions.Count > 0)
                 {
-                    tab.AddRow(new[] {""});
-                    tab.AddRow(new[] {"Record Permissions:"});
+                    tab.AddRow(new[] { "" });
+                    tab.AddRow(new[] { "Record Permissions:" });
                     foreach (var r in sf.RecordPermissions)
                     {
                         tab.AddRow(new[]
@@ -420,8 +441,8 @@ namespace Commander
                 var teamLookup = _vault.Teams.ToDictionary(t => t.TeamUid, t => t.Name);
                 if (sf.UsersPermissions.Count > 0)
                 {
-                    tab.AddRow(new[] {""});
-                    tab.AddRow(new[] {"User/Team Permissions:"});
+                    tab.AddRow(new[] { "" });
+                    tab.AddRow(new[] { "User/Team Permissions:" });
                     var sortedList = sf.UsersPermissions.ToList();
                     sortedList.Sort((x, y) =>
                     {
@@ -456,14 +477,14 @@ namespace Commander
             }
             else if (_vault.TryGetFolder(uid, out var f))
             {
-                tab.AddRow(new[] {"Folder UID:", f.FolderUid});
+                tab.AddRow(new[] { "Folder UID:", f.FolderUid });
                 if (!string.IsNullOrEmpty(f.ParentUid))
                 {
-                    tab.AddRow(new[] {"Parent Folder UID:", f.ParentUid});
+                    tab.AddRow(new[] { "Parent Folder UID:", f.ParentUid });
                 }
 
-                tab.AddRow(new[] {"Folder Type:", f.FolderType.ToString()});
-                tab.AddRow(new[] {"Name:", f.Name});
+                tab.AddRow(new[] { "Folder Type:", f.FolderType.ToString() });
+                tab.AddRow(new[] { "Name:", f.Name });
             }
             else
             {

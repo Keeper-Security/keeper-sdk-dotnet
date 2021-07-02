@@ -15,6 +15,7 @@ Project("{F5034706-568F-408A-B7B3-4D38C6DB8A32}") = "PowerCommander", "PowerComm
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5CD05D46-E97D-4149-8EAB-0406E3840DB9}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		.github\workflows\build.yml = .github\workflows\build.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml

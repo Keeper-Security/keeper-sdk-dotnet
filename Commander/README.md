@@ -46,13 +46,15 @@ This folder is a sample Commander CLI application using the .NET SDK.  Below is 
 
 ** Enterprise Commands **
 
-* ```enterprise-sync-down``` Retrieve enterprise data structure
+* ```enterprise-get-data``` Retrieve enterprise data structure
 
 * ```enterprise-node``` Display enterprise node tree
 
 * ```enterprise-user``` Display a list of enterprise users
 
-* ```enterprise-team``` Display a list of enterprise users, manage team users
+* ```enterprise-team``` Display a list of enterprise users, manage team's users
+
+* ```enterprise-role``` Display a list of enterprise roles, manage role's users and teams
 
 * ```enterprise-device``` Manage admin approval queue. Cloud SSO only.
 

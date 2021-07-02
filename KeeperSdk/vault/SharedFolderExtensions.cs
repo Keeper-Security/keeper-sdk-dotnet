@@ -19,7 +19,7 @@ namespace KeeperSecurity.Vault
         /// <param name="options">Shared Folder User Permissions.</param>
         /// <returns>Awaitable task.</returns>
         /// <remarks>
-        /// If <seealso cref="options"/> parameter is <c>null</c> then user gets default user permissions when added./>
+        /// If <c>options</c> parameter is <c>null</c> then user gets default user permissions when added.
         /// </remarks>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <seealso cref="IVaultSharedFolder.PutUserToSharedFolder"/>
@@ -173,7 +173,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="sharedFolderUid">Shared Folder UID.</param>
         /// <param name="userId">User email or Team UID.</param>
-        /// <param name="userType">Type of <see cref="userId"/> parameter.</param>
+        /// <param name="userType">Type of <c>userId</c> parameter.</param>
         /// <returns>Awaitable task.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <seealso cref="IVaultSharedFolder.RemoveUserFromSharedFolder"/>
