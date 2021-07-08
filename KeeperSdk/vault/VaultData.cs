@@ -120,7 +120,7 @@ namespace KeeperSecurity.Vault
         {
             var nsd = Storage.NonSharedData.GetEntity(recordUid);
             if (string.IsNullOrEmpty(nsd?.Data)) return new T();
-            
+
             try
             {
                 var data = CryptoUtils.DecryptAesV1(nsd.Data.Base64UrlDecode(), ClientKey);
@@ -128,7 +128,7 @@ namespace KeeperSecurity.Vault
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.Message);
+                Trace.TraceError($"Record UID \"{recordUid}\": Non-shared data loading error: {e.Message}");
                 return new T();
             }
         }
@@ -231,12 +231,12 @@ namespace KeeperSecurity.Vault
                         }
                         else
                         {
-                            Debug.WriteLine("Shared Folder not found.");
+                            Trace.TraceError($"Record UID \"{rmd.RecordUid}\": Shared Folder \"{rmd.SharedFolderUid}\" not found.");
                             break;
                         }
 
                     default:
-                        Debug.WriteLine("Unsupported record key type");
+                        Trace.TraceError($"Record UID \"{rmd.RecordUid}\": Unsupported record key type.");
                         break;
                 }
             }
@@ -422,8 +422,15 @@ namespace KeeperSecurity.Vault
                     if (entityKeys.ContainsKey(r.RecordUid))
                     {
                         var rKey = entityKeys[r.RecordUid];
-                        var record = r.Load(rKey);
-                        keeperRecords.TryAdd(r.RecordUid, record);
+                        try
+                        {
+                            var record = r.Load(rKey);
+                            keeperRecords.TryAdd(r.RecordUid, record);
+                        }
+                        catch (Exception e) 
+                        {
+                            Trace.TraceError($"Error decoding record \"{r.RecordUid}\": {e.Message}");
+                        }
                     }
                     else
                     {

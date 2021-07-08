@@ -328,9 +328,9 @@ namespace KeeperSecurity.Authentication
 
 
                 var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), _transmissionKey);
-                var encKey = ServerKeyId <= 6
-                    ? CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperRsaPublicKeys[ServerKeyId])
-                    : CryptoUtils.EncryptEc(_transmissionKey, KeeperSettings.KeeperEcPublicKeys[ServerKeyId]);
+                var encKey = keyId <= 6
+                    ? CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperRsaPublicKeys[keyId])
+                    : CryptoUtils.EncryptEc(_transmissionKey, KeeperSettings.KeeperEcPublicKeys[keyId]);
 
 
                 var apiRequest = new ApiRequest()
