@@ -21,8 +21,6 @@ using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Async;
-using CommandLine.Text;
-using CommandLine;
 
 namespace Commander
 {
