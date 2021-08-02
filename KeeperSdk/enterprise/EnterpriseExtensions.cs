@@ -22,7 +22,13 @@ namespace KeeperSecurity.Enterprise
             {
                 NodeId = nodeId
             };
+            EnterpriseNode node = null;
+            enterpriseData.TryGetNode(nodeId, out node);
             await enterpriseData.Enterprise.Auth.ExecuteAuthRest("enterprise/set_restrict_visibility", rq);
+            if (node != null)
+            {
+                node.RestrictVisibility = !node.RestrictVisibility;
+            }
         }
 
         /// <summary>
