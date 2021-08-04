@@ -220,16 +220,8 @@ namespace KeeperSecurity.Enterprise
 
                 foreach (var email in emails)
                 {
-                    if (TryGetUserByEmail(email, out var user)) {
-                        var users = GetUsersForTeam(team.Uid);
-                        if (users == null || !users.Contains(user.Id)) {
-                            user = null;
-                        }
-                    }
-
-                    if (user == null)
-                    {
-                        warnings?.Invoke($"User \'{email}\' does not belong to team \'{team.Name}\'");
+                    if (!TryGetUserByEmail(email, out var user)) {
+                        warnings?.Invoke($"User \'{email}\' not found");
                         continue;
                     }
 

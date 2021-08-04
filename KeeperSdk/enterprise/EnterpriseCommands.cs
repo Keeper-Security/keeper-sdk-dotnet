@@ -346,4 +346,18 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "role_admin_key", EmitDefaultValue = false)]
         public string RoleAdminKey { get; set; }
     }
+
+    [DataContract]
+    public class TeamQueueUserCommand : AuthenticatedCommand
+    {
+        public TeamQueueUserCommand() : base("team_queue_user")
+        {
+        }
+
+        [DataMember(Name = "team_uid")]
+        public string TeamUid { get; set; }
+
+        [DataMember(Name = "enterprise_user_id")]
+        public long EnterpriseUserId { get; set; }
+    }
 }
