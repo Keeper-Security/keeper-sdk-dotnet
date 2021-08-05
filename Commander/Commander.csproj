@@ -67,6 +67,7 @@
     <Compile Include="ConnectedCommands.cs" />
     <Compile Include="CommanderStorageProtection.cs" />
     <Compile Include="enterprise\EnterpriseCommands.cs" />
+    <Compile Include="enterprise\QueuedTeamData.cs" />
     <Compile Include="enterprise\RoleDataManagement.cs" />
     <Compile Include="StorageUtils.cs" />
     <Compile Include="Program.cs" />

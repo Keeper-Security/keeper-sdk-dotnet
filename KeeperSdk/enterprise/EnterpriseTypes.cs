@@ -32,9 +32,31 @@ namespace KeeperSecurity.Enterprise
         bool TryGetTeam(string teamUid, out EnterpriseTeam team);
     }
 
+    /// <summary>
+    /// Defines optional Invite User properties 
+    /// </summary>
+    public class InviteUserOptions 
+    { 
+        /// <summary>
+        /// User Full Name
+        /// </summary>
+        public string FullName { get; set; }
+        /// <summary>
+        /// Enterprise Node ID
+        /// </summary>
+        public long? NodeId { get; set; }
+        /// <summary>
+        /// Callback method that receives enterprise invitation code.
+        /// When provided the enterprise invitation email will not be sent.
+        /// </summary>
+        public Action<string> SuppressEmail { get; set; }
+    }
     /// <exclude/>
     public interface IEnterpriseDataManagement
     {
+        Task<EnterpriseUser> InviteUser(string email, InviteUserOptions options = null);
+        Task<EnterpriseUser> SetUserLocked(EnterpriseUser user, bool locked);
+
         Task<EnterpriseTeam> CreateTeam(EnterpriseTeam team);
         Task<EnterpriseTeam> UpdateTeam(EnterpriseTeam team);
         Task DeleteTeam(string teamUid);

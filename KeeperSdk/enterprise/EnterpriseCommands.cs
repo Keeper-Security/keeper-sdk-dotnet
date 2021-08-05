@@ -194,7 +194,6 @@ namespace KeeperSecurity.Commands
         }
     }
 
-
     [DataContract]
     public class TeamAddCommand : TeamCommand
     {
@@ -216,6 +215,20 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "encrypted_team_key")]
         public string EncryptedTeamKey { get; set; }
+    }
+
+    [DataContract]
+    public class TeamQueueUserCommand : AuthenticatedCommand
+    {
+        public TeamQueueUserCommand() : base("team_queue_user")
+        {
+        }
+
+        [DataMember(Name = "team_uid")]
+        public string TeamUid { get; set; }
+
+        [DataMember(Name = "enterprise_user_id")]
+        public long EnterpriseUserId { get; set; }
     }
 
     [DataContract]
@@ -346,4 +359,64 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "role_admin_key", EmitDefaultValue = false)]
         public string RoleAdminKey { get; set; }
     }
+
+    [DataContract]
+    public class EnterpriseUserCommand : AuthenticatedCommand
+    {
+        public EnterpriseUserCommand(string command) : base(command)
+        {
+        }
+
+        [DataMember(Name = "enterprise_user_id")]
+        public long EnterpriseUserId { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseUserAddCommand : EnterpriseUserCommand
+    {
+        public EnterpriseUserAddCommand() : base("enterprise_user_add")
+        {
+        }
+
+        [DataMember(Name = "enterprise_user_username")]
+        public string EnterpriseUserUsername { get; set; }
+
+        [DataMember(Name = "node_id")]
+        public long NodeId { get; set; }
+
+        [DataMember(Name = "encrypted_data", EmitDefaultValue = false)]
+        public string EncryptedData { get; set; }
+
+        [DataMember(Name = "full_name", EmitDefaultValue = false)]
+        public string FullName { get; set; }
+
+        [DataMember(Name = "job_title", EmitDefaultValue = false)]
+        public string JobTitle { get; set; }
+
+        [DataMember(Name = "suppress_email_invite", EmitDefaultValue = false)]
+        public bool? SuppressEmailInvite { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseUserAddResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "verification_code")]
+        public string VerificationCode { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseUserLockCommand : EnterpriseUserCommand
+    {
+        public EnterpriseUserLockCommand() : base("enterprise_user_lock")
+        {
+        }
+
+        [DataMember(Name = "lock", EmitDefaultValue = false)] 
+        public string Lock { get; set; }  // one of: locked, disabled, unlocked
+
+        [DataMember(Name = "delete_if_pending", EmitDefaultValue = false)]
+        public bool? DeleteIfPending { get; set; }
+    }
+
+
 }

@@ -25,6 +25,7 @@ namespace Commander
         EnterpriseLoader Enterprise { get; }
         EnterpriseData EnterpriseData { get; }
         RoleDataManagement RoleManagement { get; }
+        QueuedTeamDataManagement QueuedTeamManagement { get; }
 
         DeviceApprovalData DeviceApproval { get; }
 
@@ -61,7 +62,7 @@ namespace Commander
                 {
                     Order = 62,
                     Description = "Manage Enterprise Users",
-                    Action = async options => { await context.EnterpriseData.EnterpriseUserCommand(options); },
+                    Action = async options => { await context.EnterpriseUserCommand(options); },
                 });
 
             cli.Commands.Add("enterprise-team",
@@ -69,7 +70,7 @@ namespace Commander
                 {
                     Order = 63,
                     Description = "Manage Enterprise Teams",
-                    Action = async options => { await context.EnterpriseData.EnterpriseTeamCommand(options); },
+                    Action = async options => { await context.EnterpriseTeamCommand(options); },
                 });
 
             cli.Commands.Add("enterprise-role",
@@ -266,32 +267,39 @@ namespace Commander
             await enterpriseData.Enterprise.Load();
         }
 
-        public static async Task EnterpriseUserCommand(this EnterpriseData enterpriseData, EnterpriseUserOptions arguments)
+        public static async Task EnterpriseUserCommand(this IEnterpriseContext context, EnterpriseUserOptions arguments)
         {
-            if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "list";
+            if (string.IsNullOrEmpty(arguments.Command))
+            {
+                arguments.Command = "list";
+            }
+            else
+            {
+                arguments.Command = arguments.Command.ToLowerInvariant();
+            }
 
             if (arguments.Force)
             {
-                await enterpriseData.Enterprise.Load();
+                await context.Enterprise.Load();
             }
 
-            if (string.Compare(arguments.Command, "list", StringComparison.InvariantCultureIgnoreCase) == 0)
+            if (arguments.Command == "list")
             {
-                var users = enterpriseData.Users
+                var users = context.EnterpriseData.Users
                     .Where(x =>
                     {
-                        if (string.IsNullOrEmpty(arguments.Name)) return true;
-                        if (x.Email.StartsWith(arguments.Name, StringComparison.InvariantCultureIgnoreCase)) return true;
-                        var m = Regex.Match(x.Email, arguments.Name, RegexOptions.IgnoreCase);
+                        if (string.IsNullOrEmpty(arguments.User)) return true;
+                        if (x.Email.StartsWith(arguments.User, StringComparison.InvariantCultureIgnoreCase)) return true;
+                        var m = Regex.Match(x.Email, arguments.User, RegexOptions.IgnoreCase);
                         if (m.Success) return true;
                         if (!string.IsNullOrEmpty(x.DisplayName))
                         {
-                            m = Regex.Match(x.DisplayName, arguments.Name, RegexOptions.IgnoreCase);
+                            m = Regex.Match(x.DisplayName, arguments.User, RegexOptions.IgnoreCase);
                             if (m.Success) return true;
                         }
 
                         var status = x.UserStatus.ToString();
-                        m = Regex.Match(status, arguments.Name, RegexOptions.IgnoreCase);
+                        m = Regex.Match(status, arguments.User, RegexOptions.IgnoreCase);
                         return m.Success;
                     })
                     .ToArray();
@@ -303,41 +311,74 @@ namespace Commander
                 tab.AddHeader("Email", "Display Name", "Status", "Teams");
                 foreach (var user in users)
                 {
-                    var teams = enterpriseData.GetTeamsForUser(user.Id);
+                    var teams = context.EnterpriseData.GetTeamsForUser(user.Id);
                     tab.AddRow(user.Email, user.DisplayName, user.UserStatus.ToString(), teams?.Length ?? 0);
                 }
 
                 tab.Sort(1);
                 tab.Dump();
+                return;
             }
-            else if (string.Compare(arguments.Command, "view", StringComparison.InvariantCultureIgnoreCase) == 0)
+
+            if (string.IsNullOrEmpty(arguments.User)) 
             {
-                var user = enterpriseData.Users
-                    .FirstOrDefault(x =>
-                    {
-                        if (string.Compare(x.DisplayName, arguments.Name, StringComparison.CurrentCultureIgnoreCase) == 0) return true;
-                        if (x.Email.StartsWith(arguments.Name, StringComparison.InvariantCulture)) return true;
-                        return false;
-                    });
-                if (user == null)
+                Console.WriteLine("User parameter cannot be empty");
+                return;
+            }
+
+            if (arguments.Command == "invite")
+            {
+                var options = new InviteUserOptions
                 {
-                    Console.WriteLine($"Enterprise user \"{arguments.Name}\" not found");
-                    return;
+                    FullName = arguments.FullName,
+                };
+                if (!string.IsNullOrEmpty(arguments.Node))
+                {
+                    try
+                    {
+                        var n = context.EnterpriseData.ResolveNodeName(arguments.Node);
+                        options.NodeId = n.Id;
+                    }
+                    catch { }
                 }
+                await context.EnterpriseData.InviteUser(arguments.User, options);
+                Console.WriteLine($"User {arguments.User} invited.");
+                return;
+            }
+
+            KeeperSecurity.Enterprise.EnterpriseUser singleUser = null;
+            if (arguments.User.All(x => char.IsDigit(x)))
+            {
+                if (long.TryParse(arguments.User, out var userId))
+                {
+                    context.EnterpriseData.TryGetUserById(userId, out singleUser);
+                }
+            }
+            if (singleUser == null) {
+                context.EnterpriseData.TryGetUserByEmail(arguments.User, out singleUser);
+            }
+            if (singleUser == null)
+            {
+                Console.WriteLine($"Enterprise user \"{arguments.User}\" not found");
+                return;
+            }
+
+            if (arguments.Command == "view")
+            {
                 var tab = new Tabulate(2)
                 {
                     DumpRowNo = false
                 };
                 tab.SetColumnRightAlign(0, true);
-                tab.AddRow(" User Email:", user.Email);
-                tab.AddRow(" User Name:", user.DisplayName);
-                tab.AddRow(" User ID:", user.Id.ToString());
-                tab.AddRow(" Status:", user.UserStatus.ToString());
+                tab.AddRow(" User Email:", singleUser.Email);
+                tab.AddRow(" User Name:", singleUser.DisplayName);
+                tab.AddRow(" User ID:", singleUser.Id.ToString());
+                tab.AddRow(" Status:", singleUser.UserStatus.ToString());
 
-                var teams = enterpriseData.GetTeamsForUser(user.Id) ?? Enumerable.Empty<string>();
+                var teams = context.EnterpriseData.GetTeamsForUser(singleUser.Id) ?? Enumerable.Empty<string>();
 
                 var teamNames = teams
-                    .Select(x => enterpriseData.TryGetTeam(x, out var team) ? team.Name : null)
+                    .Select(x => context.EnterpriseData.TryGetTeam(x, out var team) ? team.Name : null)
                     .Where(x => !string.IsNullOrEmpty(x))
                     .ToArray();
                 Array.Sort(teamNames);
@@ -347,60 +388,86 @@ namespace Commander
                     tab.AddRow("", teamNames[i]);
                 }
 
-                if (enterpriseData.TryGetNode(user.ParentNodeId, out var node))
+                if (context.EnterpriseData.TryGetNode(singleUser.ParentNodeId, out var node))
                 {
-                    var nodes = enterpriseData.GetNodePath(node).ToArray();
+                    var nodes = context.EnterpriseData.GetNodePath(node).ToArray();
                     Array.Reverse(nodes);
                     tab.AddRow(" Node:", string.Join(" -> ", nodes));
                 }
 
                 tab.Dump();
             }
-            else if (string.Compare(arguments.Command, "team-add", StringComparison.InvariantCultureIgnoreCase) == 0 || string.Compare(arguments.Command, "team-remove", StringComparison.InvariantCultureIgnoreCase) == 0)
+            else if (arguments.Command == "team-add" || arguments.Command == "team-remove")
             {
-                var user = enterpriseData.Users
-                    .FirstOrDefault(x =>
-                    {
-                        if (string.Compare(x.DisplayName, arguments.Name, StringComparison.CurrentCultureIgnoreCase) == 0) return true;
-                        if (string.Compare(x.Email, arguments.Name, StringComparison.InvariantCulture) == 0) return true;
-                        return false;
-                    });
-                if (user == null)
-                {
-                    Console.WriteLine($"Enterprise user \"{arguments.Name}\" not found");
-                    return;
-                }
-
                 if (string.IsNullOrEmpty(arguments.Team))
                 {
                     Console.WriteLine("Team name parameter is mandatory.");
                     return;
                 }
 
-                var team = enterpriseData.Teams
+                var team = context.EnterpriseData.Teams
                     .FirstOrDefault(x =>
                     {
                         if (string.CompareOrdinal(x.Uid, arguments.Team) == 0) return true;
                         return string.Compare(x.Name, arguments.Team, StringComparison.CurrentCultureIgnoreCase) == 0;
                     });
-                if (team == null)
+                var queuedTeam = context.QueuedTeamManagement.QueuedTeams
+                    .FirstOrDefault(x =>
+                    {
+                        if (string.CompareOrdinal(x.Uid, arguments.Team) == 0) return true;
+                        return string.Compare(x.Name, arguments.Team, StringComparison.CurrentCultureIgnoreCase) == 0;
+                    });
+                if (team == null && queuedTeam == null)
                 {
                     Console.WriteLine($"Team {arguments.Team} cannot be found.");
                     return;
                 }
 
-                if (string.Compare(arguments.Command, "team-add", StringComparison.InvariantCultureIgnoreCase) == 0)
+                if (arguments.Command == "team-add")
                 {
-                    await enterpriseData.AddUsersToTeams(new[] { user.Email }, new[] { team.Uid }, Console.WriteLine);
+                    if (team != null)
+                    {
+                        if (singleUser.UserStatus == UserStatus.Active)
+                        {
+                            await context.EnterpriseData.AddUsersToTeams(new[] { singleUser.Email }, new[] { team.Uid }, Console.WriteLine);
+                        }
+                        else
+                        {
+                            await context.QueuedTeamManagement.QueueUserToTeam(singleUser.Id, team.Uid);
+                        }
+                    }
+                    else if (queuedTeam != null)
+                    {
+                        await context.QueuedTeamManagement.QueueUserToTeam(singleUser.Id, queuedTeam.Uid);
+                    }
                 }
                 else
                 {
-                    await enterpriseData.RemoveUsersFromTeams(new[] { user.Email }, new[] { team.Uid }, Console.WriteLine);
+                    if (team != null)
+                    {
+                        await context.EnterpriseData.RemoveUsersFromTeams(new[] { singleUser.Email }, new[] { team.Uid }, Console.WriteLine);
+                    }
+                    else if (queuedTeam != null)
+                    {
+                        await context.EnterpriseData.RemoveUsersFromTeams(new[] { singleUser.Email }, new[] { queuedTeam.Uid }, Console.WriteLine);
+                    }
+                }
+            }
+            else if (arguments.Command == "lock" || arguments.Command == "unlock")
+            {
+                var user = await context.EnterpriseData.SetUserLocked(singleUser, arguments.Command == "lock");
+                if (user != null)
+                {
+                    Console.WriteLine($"User {user.Email} status: {user.UserStatus}");
+                }
+                else
+                {
+                    Console.WriteLine($"User {singleUser.Email} deleted");
                 }
             }
             else
             {
-                Console.WriteLine($"Unsupported command \"{arguments.Command}\". Commands are \"list\", \"view\", \"team-add\", \"team-remove\"");
+                Console.WriteLine($"Unsupported command \"{arguments.Command}\". Commands are \"list\", \"view\", \"invite\", \"team-add\", \"team-remove\"");
             }
         }
 
@@ -773,17 +840,17 @@ namespace Commander
             Console.WriteLine($"Unsupported command \"{arguments.Command}\". Valid commands are  \"list\", \"view\", \"add\", \"delete\", \"add-members\", \"remove-members\"");
         }
 
-        public static async Task EnterpriseTeamCommand(this EnterpriseData enterpriseData, EnterpriseTeamOptions arguments)
+        public static async Task EnterpriseTeamCommand(this IEnterpriseContext context, EnterpriseTeamOptions arguments)
         {
             if (arguments.Force)
             {
-                await enterpriseData.Enterprise.Load();
+                await context.Enterprise.Load();
             }
 
             if (string.IsNullOrEmpty(arguments.Command)) arguments.Command = "list";
             if (string.CompareOrdinal(arguments.Command, "list") == 0)
             {
-                var teams = enterpriseData.Teams
+                var teams = context.EnterpriseData.Teams
                     .Where(x =>
                     {
                         if (string.IsNullOrEmpty(arguments.Name)) return true;
@@ -792,31 +859,56 @@ namespace Commander
                         return m.Success;
                     })
                     .ToArray();
-                var tab = new Tabulate(7)
+                var tab = new Tabulate(7 + (arguments.Queued ? 2 : 0))
                 {
                     DumpRowNo = true
                 };
-                tab.AddHeader("Team Name", "Team UID", "Node Name", "Restrict Edit", "Restrict Share", "Restrict View", "Users");
+                tab.AddHeader("Team Name", "Team UID", "Node Name", "Restrict Edit", "Restrict Share", "Restrict View", "Users", "Queued?", "Queued Users");
                 foreach (var team in teams)
                 {
                     EnterpriseNode node = null;
                     if (team.ParentNodeId > 0)
                     {
-                        enterpriseData.TryGetNode(team.ParentNodeId, out node);
+                        context.EnterpriseData.TryGetNode(team.ParentNodeId, out node);
                     }
                     else
                     {
-                        node = enterpriseData.RootNode;
+                        node = context.EnterpriseData.RootNode;
                     }
 
-                    var users = enterpriseData.GetUsersForTeam(team.Uid);
+                    var users = context.EnterpriseData.GetUsersForTeam(team.Uid);
+                    var queuedUserCount = context.QueuedTeamManagement.GetQueuedUsersForTeam(team.Uid)?.Count() ?? 0;
                     tab.AddRow(team.Name,
                         team.Uid,
                         node != null ? node.DisplayName : "",
                         team.RestrictEdit,
                         team.RestrictSharing,
                         team.RestrictView,
-                        (users?.Length ?? 0).ToString());
+                        (users?.Length ?? 0).ToString(),
+                        false, queuedUserCount.ToString());
+                }
+
+                if (arguments.Queued) 
+                {
+                    foreach (var qteam in context.QueuedTeamManagement.QueuedTeams) 
+                    {
+                        EnterpriseNode node = null;
+                        if (qteam.ParentNodeId > 0)
+                        {
+                            context.EnterpriseData.TryGetNode(qteam.ParentNodeId, out node);
+                        }
+                        else
+                        {
+                            node = context.EnterpriseData.RootNode;
+                        }
+
+                        var queuedUserCount = context.QueuedTeamManagement.GetQueuedUsersForTeam(qteam.Uid).Count();
+                        tab.AddRow(qteam.Name,
+                            qteam.Uid,
+                            node != null ? node.DisplayName : "",
+                            "","","","",
+                            true, queuedUserCount.ToString());
+                    }
                 }
 
                 tab.Sort(1);
@@ -824,7 +916,14 @@ namespace Commander
             }
             else
             {
-                var team = enterpriseData.Teams
+                var team = context.EnterpriseData.Teams
+                    .FirstOrDefault(x =>
+                    {
+                        if (string.IsNullOrEmpty(arguments.Name)) return true;
+                        if (arguments.Name == x.Uid) return true;
+                        return string.Compare(x.Name, arguments.Name, StringComparison.CurrentCultureIgnoreCase) == 0;
+                    });
+                var queuedTeam = context.QueuedTeamManagement.QueuedTeams
                     .FirstOrDefault(x =>
                     {
                         if (string.IsNullOrEmpty(arguments.Name)) return true;
@@ -833,17 +932,17 @@ namespace Commander
                     });
                 if (string.CompareOrdinal(arguments.Command, "delete") == 0)
                 {
-                    if (team == null)
+                    if (team == null && queuedTeam == null)
                     {
                         Console.WriteLine($"Team \"{arguments.Name}\" not found");
                         return;
                     }
 
-                    await enterpriseData.DeleteTeam(team.Uid);
+                    await context.EnterpriseData.DeleteTeam(team.Uid);
                 }
                 else if (string.CompareOrdinal(arguments.Command, "view") == 0)
                 {
-                    if (team == null)
+                    if (team == null && queuedTeam == null)
                     {
                         Console.WriteLine($"Team \"{arguments.Name}\" not found");
                         return;
@@ -854,27 +953,52 @@ namespace Commander
                         DumpRowNo = false
                     };
                     tab.SetColumnRightAlign(0, true);
-                    tab.AddRow(" Team Name:", team.Name);
-                    tab.AddRow(" Team UID:", team.Uid);
-                    tab.AddRow(" Restrict Edit:", team.RestrictEdit ? "Yes" : "No");
-                    tab.AddRow(" Restrict Share:", team.RestrictSharing ? "Yes" : "No");
-                    tab.AddRow(" Restrict View:", team.RestrictView ? "Yes" : "No");
-
-                    var users = enterpriseData.GetUsersForTeam(team.Uid) ?? Enumerable.Empty<long>(); ;
-                    var userEmails = users
-                        .Select(x => enterpriseData.TryGetUserById(x, out var user) ? user.Email : null)
-                        .Where(x => !string.IsNullOrEmpty(x))
-                        .ToArray();
-                    Array.Sort(userEmails);
-                    tab.AddRow(" Users:", userEmails.Length > 0 ? userEmails[0] : "");
-                    for (var i = 1; i < userEmails.Length; i++)
+                    if (team != null)
                     {
-                        tab.AddRow("", userEmails[i]);
+                        tab.AddRow(" Team Name:", team.Name);
+                        tab.AddRow(" Team UID:", team.Uid);
+                        tab.AddRow(" Restrict Edit:", team.RestrictEdit ? "Yes" : "No");
+                        tab.AddRow(" Restrict Share:", team.RestrictSharing ? "Yes" : "No");
+                        tab.AddRow(" Restrict View:", team.RestrictView ? "Yes" : "No");
+                    }
+                    else if (queuedTeam != null) 
+                    {
+                        tab.AddRow(" Queued Team Name:", queuedTeam.Name);
+                        tab.AddRow(" Queued Team UID:", queuedTeam.Uid);
                     }
 
-                    if (enterpriseData.TryGetNode(team.ParentNodeId, out var node))
+                    var teamUid = team != null ? team.Uid : queuedTeam.Uid;
+                    if (team != null) 
                     {
-                        var nodes = enterpriseData.GetNodePath(node).ToArray();
+                        var users = context.EnterpriseData.GetUsersForTeam(teamUid) ?? Enumerable.Empty<long>(); ;
+                        var userEmails = users
+                            .Select(x => context.EnterpriseData.TryGetUserById(x, out var user) ? user.Email : null)
+                            .Where(x => !string.IsNullOrEmpty(x))
+                            .ToArray();
+                        Array.Sort(userEmails);
+                        tab.AddRow(" Users:", userEmails.Length > 0 ? userEmails[0] : "");
+                        for (var i = 1; i < userEmails.Length; i++)
+                        {
+                            tab.AddRow("", userEmails[i]);
+                        }
+                    }
+                    var queuedUsers = context.QueuedTeamManagement.GetQueuedUsersForTeam(teamUid) ?? Enumerable.Empty<long>(); ;
+                    var queuedUserEmails = queuedUsers
+                        .Select(x => context.EnterpriseData.TryGetUserById(x, out var user) ? user.Email : null)
+                        .Where(x => !string.IsNullOrEmpty(x))
+                        .ToArray();
+                    Array.Sort(queuedUserEmails);
+                    tab.AddRow(" Queued Users:", queuedUserEmails.Length > 0 ? queuedUserEmails[0] : "");
+                    for (var i = 1; i < queuedUserEmails.Length; i++)
+                    {
+                        tab.AddRow("", queuedUserEmails[i]);
+                    }
+
+
+                    var parentNodeId = team != null ? team.ParentNodeId : queuedTeam.ParentNodeId;
+                    if (context.EnterpriseData.TryGetNode(parentNodeId, out var node))
+                    {
+                        var nodes = context.EnterpriseData.GetNodePath(node).ToArray();
                         Array.Reverse(nodes);
                         tab.AddRow(" Node:", string.Join(" -> ", nodes));
                     }
@@ -894,7 +1018,7 @@ namespace Commander
 
                         team = new EnterpriseTeam
                         {
-                            ParentNodeId = enterpriseData.RootNode.Id
+                            ParentNodeId = context.EnterpriseData.RootNode.Id
                         };
                     }
                     else
@@ -942,7 +1066,7 @@ namespace Commander
                             }
                         }
 
-                        var node = enterpriseData.Nodes
+                        var node = context.EnterpriseData.Nodes
                             .FirstOrDefault(x =>
                             {
                                 if (asId.HasValue && asId.Value == x.Id) return true;
@@ -954,7 +1078,7 @@ namespace Commander
                         }
                     }
 
-                    await enterpriseData.UpdateTeam(team);
+                    await context.EnterpriseData.UpdateTeam(team);
                 }
                 else
                 {
@@ -1382,6 +1506,7 @@ namespace Commander
         public EnterpriseData EnterpriseData { get; }
         public DeviceApprovalData DeviceApproval { get; }
         public RoleDataManagement RoleManagement { get; }
+        public QueuedTeamDataManagement QueuedTeamManagement { get; }
 
         public McEnterpriseContext(ManagedCompanyAuth auth)
         {
@@ -1390,8 +1515,9 @@ namespace Commander
                 DeviceApproval = new DeviceApprovalData();
                 RoleManagement = new RoleDataManagement();
                 EnterpriseData = new EnterpriseData();
+                QueuedTeamManagement = new QueuedTeamDataManagement();
 
-                Enterprise = new EnterpriseLoader(auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval }, auth.TreeKey);
+                Enterprise = new EnterpriseLoader(auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, QueuedTeamManagement }, auth.TreeKey);
                 Task.Run(async () =>
                 {
                     try
@@ -1422,8 +1548,9 @@ namespace Commander
     {
         public EnterpriseLoader Enterprise { get; private set; }
         public EnterpriseData EnterpriseData { get; private set; }
-
         public RoleDataManagement RoleManagement { get; private set; }
+        public QueuedTeamDataManagement QueuedTeamManagement { get; private set; }
+
         public DeviceApprovalData DeviceApproval { get; private set; }
         public bool AutoApproveAdminRequests { get; set; }
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
@@ -1442,8 +1569,9 @@ namespace Commander
                 RoleManagement = new RoleDataManagement();
                 DeviceApproval = new DeviceApprovalData();
                 _managedCompanies = new ManagedCompanyData();
+                QueuedTeamManagement = new QueuedTeamDataManagement();
 
-                Enterprise = new EnterpriseLoader(_auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, _managedCompanies });
+                Enterprise = new EnterpriseLoader(_auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, _managedCompanies, QueuedTeamManagement });
 
                 _auth.PushNotifications?.RegisterCallback(EnterpriseNotificationCallback);
                 Task.Run(async () =>
@@ -1559,20 +1687,29 @@ namespace Commander
 
     class EnterpriseUserOptions : EnterpriseGenericOptions
     {
-        [Option("team", Required = false, HelpText = "team name or UID")]
+        [Option("team", Required = false, HelpText = "team name or UID. \"team-add\", \"team-remove\"")]
         public string Team { get; set; }
 
-        [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"team-add\", \"team-remove\"")]
+        [Option("node", Required = false, HelpText = "node name or ID. \"invite\"")]
+        public string Node { get; set; }
+
+        [Option("name", Required = false, HelpText = "user full name. \"invite\"")]
+        public string FullName { get; set; }
+
+        [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"invite\", \"lock\", \"unlock\", \"team-add\", \"team-remove\"")]
         public string Command { get; set; }
 
-        [Value(1, Required = false, HelpText = "enterprise user email, ID, list match")]
-        public string Name { get; set; }
+        [Value(1, Required = false, HelpText = "enterprise user email, ID (except \"invite\")")]
+        public string User { get; set; }
     }
 
     class EnterpriseTeamOptions : EnterpriseGenericOptions
     {
-        [Option("node", Required = false, HelpText = "node name or ID. \"add\", \"delete\", \"update\"")]
+        [Option("node", Required = false, HelpText = "node name or ID. \"add\", \"update\"")]
         public string Node { get; set; }
+
+        [Option('q', "queued", Required = false, HelpText = "include queued team/user information. \"list\", \"view\"")]
+        public bool Queued { get; set; }
 
         [Option("restrict-edit", Required = false, HelpText = "ON | OFF:  disable record edits. \"add\", \"update\"")]
         public string RestrictEdit { get; set; }
