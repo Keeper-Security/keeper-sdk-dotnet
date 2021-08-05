@@ -12,6 +12,67 @@ namespace KeeperSecurity.Enterprise
     public partial class EnterpriseData : IEnterpriseDataManagement
     {
         /// <summary>
+        /// Invites user to enterprise
+        /// </summary>
+        /// <param name="email">Email Address</param>
+        /// <param name="fullName">Full Name</param>
+        /// <returns>Invited User</returns>
+        public async Task<EnterpriseUser> InviteUser(string email, InviteUserOptions options = null)
+        {
+            var userId = await Enterprise.GetEnterpriseId();
+            var rq = new EnterpriseUserAddCommand
+            {
+                EnterpriseUserId = userId,
+                EnterpriseUserUsername = email,
+                NodeId = RootNode.Id,
+            };
+
+            EncryptedData encrypted = new EncryptedData();
+            if (options != null)
+            {
+                if (options.SuppressEmail != null)
+                {
+                    rq.SuppressEmailInvite = true;
+                }
+
+                if (options.NodeId.HasValue)
+                {
+                    if (TryGetNode(options.NodeId.Value, out _))
+                    {
+                        rq.NodeId = options.NodeId.Value;
+                    }
+                }
+
+                encrypted.DisplayName = options.FullName;
+            }
+            rq.EncryptedData = EnterpriseUtils.EncryptEncryptedData(encrypted, Enterprise.TreeKey);
+
+            var rs = await Enterprise.Auth.ExecuteAuthCommand<EnterpriseUserAddCommand, EnterpriseUserAddResponse>(rq);
+            if (options != null && options.SuppressEmail != null) 
+            {
+                options.SuppressEmail.Invoke(rs.VerificationCode);
+            }
+            await Enterprise.Load();
+            TryGetUserById(userId, out var user);
+            return user;
+        }
+
+        public async Task<EnterpriseUser> SetUserLocked(EnterpriseUser user, bool locked) 
+        {
+            var userId = user.Id;
+            var rq = new EnterpriseUserLockCommand
+            {
+                EnterpriseUserId = userId,
+                Lock = locked ? "locked" : "unlocked",
+                DeleteIfPending = true
+            };
+            await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
+            TryGetUserById(userId, out user);
+            return user;
+        }
+
+        /// <summary>
         ///     Creates Enterprise Team.
         /// </summary>
         /// <param name="team">Enterprise Team</param>
@@ -220,16 +281,8 @@ namespace KeeperSecurity.Enterprise
 
                 foreach (var email in emails)
                 {
-                    if (TryGetUserByEmail(email, out var user)) {
-                        var users = GetUsersForTeam(team.Uid);
-                        if (users == null || !users.Contains(user.Id)) {
-                            user = null;
-                        }
-                    }
-
-                    if (user == null)
-                    {
-                        warnings?.Invoke($"User \'{email}\' does not belong to team \'{team.Name}\'");
+                    if (!TryGetUserByEmail(email, out var user)) {
+                        warnings?.Invoke($"User \'{email}\' not found");
                         continue;
                     }
 
