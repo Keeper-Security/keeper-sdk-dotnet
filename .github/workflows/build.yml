@@ -24,7 +24,7 @@ jobs:
             $packageVersion = $packageVersion + '-' + $comp[2]
           }
 
-          $buildVersion = $packageVersion + $Env:GITHUB_RUN_NUMBER
+          $buildVersion = $sdkVersion + '.' + $Env:GITHUB_RUN_NUMBER
 
           echo "SDK_VERSION=${sdkVersion}" >> $Env:GITHUB_ENV
           echo "PACKAGE_VERSION=${packageVersion}" >> $Env:GITHUB_ENV

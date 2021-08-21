@@ -69,6 +69,8 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude/>
         Task<IFanOut<NotificationEvent>> ConnectToPushServer(WssConnectionRequest connectionRequest, CancellationToken token);
+        /// <exclude/>
+        byte[] EncryptWithKeeperKey(byte[] data, int keyId);
     }
 
     internal interface IPushNotificationChannel : IFanOut<NotificationEvent>
@@ -495,6 +497,20 @@ namespace KeeperSecurity.Authentication
 
             return KeeperSettings.KeeperLanguages.TryGetValue(culture.TwoLetterISOLanguageName, out locale) ? locale : "en_US";
         }
+
+        /// <exclude/>
+        public byte[] EncryptWithKeeperKey(byte[] data, int keyId) {
+            if (KeeperSettings.KeeperRsaPublicKeys.ContainsKey(keyId)) 
+            {
+                return CryptoUtils.EncryptRsa(data, KeeperSettings.KeeperRsaPublicKeys[keyId]);
+            }
+            if (KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId)) {
+                return CryptoUtils.EncryptEc(data, KeeperSettings.KeeperEcPublicKeys[keyId]);
+            }
+
+            throw new KeeperInvalidParameter("Endpoint.EncryptWithKeeperKey", "keyId", keyId.ToString(), 
+                "Server Key Id is invalid");
+        }
     }
 
     internal static class KeeperSettings
@@ -546,6 +562,7 @@ namespace KeeperSecurity.Authentication
                 new KeyValuePair<int, ECPublicKeyParameters>(14, CryptoUtils.LoadPublicEcKey(KeeperKey14.Base64UrlDecode())),
                 new KeyValuePair<int, ECPublicKeyParameters>(15, CryptoUtils.LoadPublicEcKey(KeeperKey15.Base64UrlDecode())),
                 new KeyValuePair<int, ECPublicKeyParameters>(16, CryptoUtils.LoadPublicEcKey(KeeperKey16.Base64UrlDecode())),
+                new KeyValuePair<int, ECPublicKeyParameters>(17, CryptoUtils.LoadPublicEcKey(KeeperKey17.Base64UrlDecode())),
             };
             KeeperEcPublicKeys = new ConcurrentDictionary<int, ECPublicKeyParameters>(ecList);
         }
@@ -617,16 +634,17 @@ namespace KeeperSecurity.Authentication
             "ZAI4jIszJTdGzMtoQ0zL7LBj_TDUBI4Qhf2bZTZlUSL3xeDWOKmd8Frksw3oKyJ" +
             "17oCQK-EGau6EaJRGyasBXl8uOEWmYYgqOWirNwIDAQAB";
 
-        const string KeeperKey7  = "BKnhy0obglZJK-igwthNLdknoSXRrGB-mvFRzyb_L-DKKefWjYdFD2888qN1ROczz4n3keYSfKz9Koj90Z6w_tQ";
-        const string KeeperKey8  = "BAsPQdCpLIGXdWNLdAwx-3J5lNqUtKbaOMV56hUj8VzxE2USLHuHHuKDeno0ymJt-acxWV1xPlBfNUShhRTR77g";
-        const string KeeperKey9  = "BNYIh_Sv03nRZUUJveE8d2mxKLIDXv654UbshaItHrCJhd6cT7pdZ_XwbdyxAOCWMkBb9AZ4t1XRCsM8-wkEBRg";
-        const string KeeperKey10 = "BA6uNfeYSvqagwu4TOY6wFK4JyU5C200vJna0lH4PJ-SzGVXej8l9dElyQ58_ljfPs5Rq6zVVXpdDe8A7Y3WRhk";
-        const string KeeperKey11 = "BMjTIlXfohI8TDymsHxo0DqYysCy7yZGJ80WhgOBR4QUd6LBDA6-_318a-jCGW96zxXKMm8clDTKpE8w75KG-FY";
-        const string KeeperKey12 = "BJBDU1P1H21IwIdT2brKkPqbQR0Zl0TIHf7Bz_OO9jaNgIwydMkxt4GpBmkYoprZ_DHUGOrno2faB7pmTR7HhuI";
-        const string KeeperKey13 = "BJFF8j-dH7pDEw_U347w2CBM6xYM8Dk5fPPAktjib-opOqzvvbsER-WDHM4ONCSBf9O_obAHzCyygxmtpktDuiE";
-        const string KeeperKey14 = "BDKyWBvLbyZ-jMueORl3JwJnnEpCiZdN7yUvT0vOyjwpPBCDf6zfL4RWzvSkhAAFnwOni_1tQSl8dfXHbXqXsQ8";
-        const string KeeperKey15 = "BDXyZZnrl0tc2jdC5I61JjwkjK2kr7uet9tZjt8StTiJTAQQmnVOYBgbtP08PWDbecxnHghx3kJ8QXq1XE68y8c";
-        const string KeeperKey16 = "BFX68cb97m9_sweGdOVavFM3j5ot6gveg6xT4BtGahfGhKib-zdZyO9pwvv1cBda9ahkSzo1BQ4NVXp9qRyqVGU";
+        const string KeeperKey7  = "BK9w6TZFxE6nFNbMfIpULCup2a8xc6w2tUTABjxny7yFmxW0dAEojwC6j6zb5nTlmb1dAx8nwo3qF7RPYGmloRM";
+        const string KeeperKey8  = "BKnhy0obglZJK-igwthNLdknoSXRrGB-mvFRzyb_L-DKKefWjYdFD2888qN1ROczz4n3keYSfKz9Koj90Z6w_tQ";
+        const string KeeperKey9  = "BAsPQdCpLIGXdWNLdAwx-3J5lNqUtKbaOMV56hUj8VzxE2USLHuHHuKDeno0ymJt-acxWV1xPlBfNUShhRTR77g";
+        const string KeeperKey10 = "BNYIh_Sv03nRZUUJveE8d2mxKLIDXv654UbshaItHrCJhd6cT7pdZ_XwbdyxAOCWMkBb9AZ4t1XRCsM8-wkEBRg";
+        const string KeeperKey11 = "BA6uNfeYSvqagwu4TOY6wFK4JyU5C200vJna0lH4PJ-SzGVXej8l9dElyQ58_ljfPs5Rq6zVVXpdDe8A7Y3WRhk";
+        const string KeeperKey12 = "BMjTIlXfohI8TDymsHxo0DqYysCy7yZGJ80WhgOBR4QUd6LBDA6-_318a-jCGW96zxXKMm8clDTKpE8w75KG-FY";
+        const string KeeperKey13 = "BJBDU1P1H21IwIdT2brKkPqbQR0Zl0TIHf7Bz_OO9jaNgIwydMkxt4GpBmkYoprZ_DHUGOrno2faB7pmTR7HhuI";
+        const string KeeperKey14 = "BJFF8j-dH7pDEw_U347w2CBM6xYM8Dk5fPPAktjib-opOqzvvbsER-WDHM4ONCSBf9O_obAHzCyygxmtpktDuiE";
+        const string KeeperKey15 = "BDKyWBvLbyZ-jMueORl3JwJnnEpCiZdN7yUvT0vOyjwpPBCDf6zfL4RWzvSkhAAFnwOni_1tQSl8dfXHbXqXsQ8";
+        const string KeeperKey16 = "BDXyZZnrl0tc2jdC5I61JjwkjK2kr7uet9tZjt8StTiJTAQQmnVOYBgbtP08PWDbecxnHghx3kJ8QXq1XE68y8c";
+        const string KeeperKey17 = "BFX68cb97m9_sweGdOVavFM3j5ot6gveg6xT4BtGahfGhKib-zdZyO9pwvv1cBda9ahkSzo1BQ4NVXp9qRyqVGU";
 
     }
 }
