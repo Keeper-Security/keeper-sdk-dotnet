@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -806,6 +807,23 @@ namespace Commander
             var deviceToken = device.EncryptedDeviceToken.ToByteArray();
             var bioTarget = _auth.Username.BiometricCredentialTarget(deviceToken);
             var hasBio = CredentialManager.GetCredentials(bioTarget, out _, out _);
+            var persistentLoginDisabled = false;
+            if (_auth.AuthContext.Enforcements.ContainsKey("restrict_persistent_login"))
+            {
+                var pl = _auth.AuthContext.Enforcements["restrict_persistent_login"];
+                if (pl is bool b)
+                {
+                    persistentLoginDisabled = b;
+                }
+                else if (pl is IConvertible conv)
+                {
+                    persistentLoginDisabled = conv.ToBoolean(CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    persistentLoginDisabled = true;
+                }
+            }
             switch (arguments.Command)
             {
                 case null:
@@ -815,7 +833,7 @@ namespace Commander
                     Console.WriteLine("{0, 20}: {1}", "Client Version", device.ClientVersion);
                     Console.WriteLine("{0, 20}: {1}", "Data Key Present", device.EncryptedDataKeyPresent);
                     Console.WriteLine("{0, 20}: {1}", "IP Auto Approve", !_accountSummary.Settings.IpDisableAutoApprove);
-                    Console.WriteLine("{0, 20}: {1}", "Persistent Login", _accountSummary.Settings.PersistentLogin);
+                    Console.WriteLine("{0, 20}: {1}", "Persistent Login", !persistentLoginDisabled && _accountSummary.Settings.PersistentLogin);
                     if (_accountSummary.Settings.LogoutTimer > 0)
                     {
                         if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromDays(1).TotalMilliseconds)
@@ -890,6 +908,11 @@ namespace Commander
                     else
                     {
                         Console.WriteLine($"\"{arguments.Command}\" accepts the following parameters: on, off");
+                        return;
+                    }
+                    if (arguments.Command == "persistent_login" && persistentLoginDisabled)
+                    {
+                        Console.WriteLine("\"Stay Logged In\" feature is restricted by Keeper Administrator");
                         return;
                     }
                     await _auth.SetSessionParameter(arguments.Command, enabled.Value ? "1" : "0");

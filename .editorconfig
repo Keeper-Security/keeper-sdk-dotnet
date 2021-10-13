@@ -3,3 +3,4 @@ end_of_line=lf
 [*.cs]
 csharp_indent_case_contents=true
 csharp_space_after_cast=true
+csharp_indent_case_contents_when_block=false
