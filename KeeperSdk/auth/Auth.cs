@@ -193,6 +193,7 @@ namespace KeeperSecurity.Authentication.Async
         /// <exclude />
         public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
         {
+            PushNotifications?.Dispose();
             PushNotifications = pushNotifications;
         }
 

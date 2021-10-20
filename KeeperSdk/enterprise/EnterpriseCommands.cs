@@ -7,6 +7,11 @@ namespace KeeperSecurity.Commands
         string DisplayName { get; set; }
     }
 
+    public interface IEncryptedData
+    {
+        string EncryptedData { get; }
+    }
+
     [DataContract]
     public class EncryptedData : IExtensibleDataObject
     {

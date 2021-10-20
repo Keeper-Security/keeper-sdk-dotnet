@@ -10,6 +10,7 @@ namespace KeeperSecurity.Enterprise
     public interface IRoleData 
     { 
         IEnumerable<EnterpriseRole> Roles { get; }
+        int RoleCount { get; }
         bool TryGetRole(long roleId, out EnterpriseRole role);
         IEnumerable<long> GetUsersForRole(long roleId);
         IEnumerable<long> GetRolesForUser(long userId);
@@ -42,6 +43,12 @@ namespace KeeperSecurity.Enterprise
         /// Get a list of all roles in the enterprise
         /// </summary>
         public IEnumerable<EnterpriseRole> Roles => _roles.Entities;
+
+        /// <summary>
+        /// Gets the number of all roles in the enterprise.
+        /// </summary>
+        public int RoleCount => _roles.Count;
+
 
         /// <summary>
         /// Gets the enterprise role assocoated with the specified ID.
@@ -141,6 +148,7 @@ namespace KeeperSecurity.Enterprise
         protected override void PopulateSdkFromKeeper(EnterpriseRole sdk, Role keeper)
         {
             sdk.ParentNodeId = keeper.NodeId;
+            sdk.EncryptedData = keeper.EncryptedData;
             sdk.KeyType = keeper.KeyType;
             sdk.NewUserInherit = keeper.NewUserInherit;
             sdk.VisibleBelow = keeper.VisibleBelow;
