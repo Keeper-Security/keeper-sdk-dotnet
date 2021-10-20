@@ -196,6 +196,15 @@ namespace KeeperSecurity.Authentication
         /// <summary>
         /// User's RSA Private Key.
         /// </summary>
+        RsaPrivateCrtKeyParameters PrivateRsaKey { get; }
+
+        /// <summary>
+        /// User's EC Private key
+        /// </summary>
+        ECPrivateKeyParameters PrivateEcKey { get; }
+
+        /// <exclude/>
+        [Obsolete("Use PrivateRsaKey")]
         RsaPrivateCrtKeyParameters PrivateKey { get; }
 
         /// <summary>
@@ -261,7 +270,8 @@ namespace KeeperSecurity.Authentication
     {
         public byte[] DataKey { get; internal set; }
         public byte[] ClientKey { get; internal set; }
-        public RsaPrivateCrtKeyParameters PrivateKey { get; internal set; }
+        public RsaPrivateCrtKeyParameters PrivateRsaKey { get; internal set; }
+        public ECPrivateKeyParameters PrivateEcKey { get; internal set; }
         public byte[] SessionToken { get; internal set; }
         public SessionTokenRestriction SessionTokenRestriction { get; set; }
         public AccountLicense License { get; internal set; }
@@ -285,6 +295,8 @@ namespace KeeperSecurity.Authentication
                 return false;
             }
         }
+        /// <exclude/>
+        public RsaPrivateCrtKeyParameters PrivateKey => PrivateRsaKey;
     }
 
     /// <summary>
@@ -579,7 +591,13 @@ namespace KeeperSecurity.Authentication
                 var privateKeyData =
                     CryptoUtils.DecryptAesV1(keys.EncryptedPrivateKey.Base64UrlDecode(),
                         authContext.DataKey);
-                authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+                authContext.PrivateRsaKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+            }
+            if (keys.EncryptedEcPrivateKey != null) {
+                var privateKeyData =
+                    CryptoUtils.DecryptAesV2(keys.EncryptedEcPrivateKey.Base64UrlDecode(),
+                        authContext.DataKey);
+                authContext.PrivateEcKey = CryptoUtils.LoadPrivateEcKey(privateKeyData);
             }
 
             if (!string.IsNullOrEmpty(clientKey))

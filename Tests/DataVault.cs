@@ -403,7 +403,7 @@ fwIDAQAB
         public string OneTimeToken { get; } = DataVault.TwoFactorOneTimeToken;
         public string DeviceToken { get; } = DataVault.TwoFactorDeviceToken;
         public byte[] PrivateKeyData { get; } = DataVault.DerPrivateKey;
-        public RsaPrivateCrtKeyParameters PrivateKey { get; } = DataVault.ImportedPrivateKey;
+        public RsaPrivateCrtKeyParameters PrivateRsaKey { get; } = DataVault.ImportedPrivateKey;
         public string EncryptedPrivateKey { get; } = DataVault.EncryptedPrivateKey.Base64UrlEncode();
         public string EncryptedDataKey { get; } = DataVault.EncryptedDataKey;
         public byte[] EncryptionParams { get; } = DataVault.EncryptionParams;

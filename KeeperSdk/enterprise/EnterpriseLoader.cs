@@ -114,7 +114,7 @@ namespace KeeperSecurity.Enterprise
                     case BackupKeyType.EncryptedByPublicKey:
                         if (encTreeKey.Length > 60)
                         {
-                            TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateKey);
+                            TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateRsaKey);
                         }
                         break;
                     default:
