@@ -294,7 +294,7 @@ namespace KeeperSecurity.Vault
                                     key = CryptoUtils.DecryptAesV1(rmd.RecordKey.Base64UrlDecode(), context.DataKey);
                                     break;
                                 case 2:
-                                    key = CryptoUtils.DecryptRsa(rmd.RecordKey.Base64UrlDecode(), context.PrivateKey);
+                                    key = CryptoUtils.DecryptRsa(rmd.RecordKey.Base64UrlDecode(), context.PrivateRsaKey);
                                     break;
                                 default:
                                     throw new Exception(
@@ -347,7 +347,7 @@ namespace KeeperSecurity.Vault
                                     teamKey = CryptoUtils.DecryptAesV1(x.TeamKey.Base64UrlDecode(), context.DataKey);
                                     break;
                                 case (int) KeyType.PrivateKey:
-                                    teamKey = CryptoUtils.DecryptRsa(x.TeamKey.Base64UrlDecode(), context.PrivateKey);
+                                    teamKey = CryptoUtils.DecryptRsa(x.TeamKey.Base64UrlDecode(), context.PrivateRsaKey);
                                     break;
                                 default:
                                     throw new Exception($"Team UID {x.TeamUid}: unsupported key type {x.KeyType}");
@@ -402,7 +402,7 @@ namespace KeeperSecurity.Vault
                                     sharedFolderKey = CryptoUtils.DecryptAesV1(sharedFolderKey, context.DataKey);
                                     break;
                                 case 2:
-                                    sharedFolderKey = CryptoUtils.DecryptRsa(sharedFolderKey, context.PrivateKey);
+                                    sharedFolderKey = CryptoUtils.DecryptRsa(sharedFolderKey, context.PrivateRsaKey);
                                     break;
                                 default:
                                     throw new Exception(
@@ -497,7 +497,7 @@ namespace KeeperSecurity.Vault
                                     folderKey = CryptoUtils.DecryptAesV1(folderKey, context.DataKey);
                                     break;
                                 case (int) KeyType.PrivateKey:
-                                    folderKey = CryptoUtils.DecryptRsa(folderKey, context.PrivateKey);
+                                    folderKey = CryptoUtils.DecryptRsa(folderKey, context.PrivateRsaKey);
                                     break;
                                 default:
                                     throw new Exception($"User Folder UID {uf.FolderUid}: unsupported key type {uf.keyType}");

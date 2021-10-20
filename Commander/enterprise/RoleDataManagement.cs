@@ -75,8 +75,16 @@ namespace Commander.Enterprise
                             case EncryptedKeyType.KtEncryptedByDataKey:
                                 roleKey = CryptoUtils.DecryptAesV1(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.DataKey);
                                 break;
+                            case EncryptedKeyType.KtEncryptedByDataKeyGcm:
+                                roleKey = CryptoUtils.DecryptAesV2(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.DataKey);
+                                break;
                             case EncryptedKeyType.KtEncryptedByPublicKey:
-                                roleKey = CryptoUtils.DecryptRsa(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.PrivateKey);
+                                roleKey = CryptoUtils.DecryptRsa(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.PrivateRsaKey);
+                                break;
+                            case EncryptedKeyType.KtEncryptedByPublicKeyEcc:
+                                if (Enterprise.Auth.AuthContext.PrivateEcKey != null) { 
+                                }
+                                roleKey = CryptoUtils.DecryptEc(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.PrivateEcKey);
                                 break;
                         }
                     }

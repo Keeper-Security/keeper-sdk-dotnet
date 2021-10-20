@@ -61,15 +61,74 @@ namespace Folder {
             "ci5SZWNvcmRSZXF1ZXN0InwKGkltcG9ydEZvbGRlclJlY29yZFJlc3BvbnNl",
             "Ei4KDmZvbGRlclJlc3BvbnNlGAEgAygLMhYuRm9sZGVyLkZvbGRlclJlc3Bv",
             "bnNlEi4KDnJlY29yZFJlc3BvbnNlGAIgAygLMhYuRm9sZGVyLlJlY29yZFJl",
-            "c3BvbnNlKhoKClJlY29yZFR5cGUSDAoIcGFzc3dvcmQQACpeCgpGb2xkZXJU",
-            "eXBlEhIKDmRlZmF1bHRfZm9sZGVyEAASDwoLdXNlcl9mb2xkZXIQARIRCg1z",
-            "aGFyZWRfZm9sZGVyEAISGAoUc2hhcmVkX2ZvbGRlcl9mb2xkZXIQAypWChBF",
-            "bmNyeXB0ZWRLZXlUeXBlEgoKBm5vX2tleRAAEhkKFWVuY3J5cHRlZF9ieV9k",
-            "YXRhX2tleRABEhsKF2VuY3J5cHRlZF9ieV9wdWJsaWNfa2V5EAJCIgoYY29t",
-            "LmtlZXBlcnNlY3VyaXR5LnByb3RvQgZGb2xkZXJiBnByb3RvMw=="));
+            "c3BvbnNlItoBChhTaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmQSEQoJcmVjb3Jk",
+            "VWlkGAEgASgMEhcKD3NoYXJlZEZvbGRlclVpZBgCIAEoDBIPCgd0ZWFtVWlk",
+            "GAMgASgMEigKB2NhbkVkaXQYBCABKA4yFy5Gb2xkZXIuU2V0Qm9vbGVhblZh",
+            "bHVlEikKCGNhblNoYXJlGAUgASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1",
+            "ZRIaChJlbmNyeXB0ZWRSZWNvcmRLZXkYBiABKAwSEAoIcmV2aXNpb24YByAB",
+            "KAUioQEKFlNoYXJlZEZvbGRlclVwZGF0ZVVzZXISEAoIdXNlcm5hbWUYASAB",
+            "KAkSLAoLbWFuYWdlVXNlcnMYAiABKA4yFy5Gb2xkZXIuU2V0Qm9vbGVhblZh",
+            "bHVlEi4KDW1hbmFnZVJlY29yZHMYAyABKA4yFy5Gb2xkZXIuU2V0Qm9vbGVh",
+            "blZhbHVlEhcKD3NoYXJlZEZvbGRlcktleRgEIAEoDCJuChZTaGFyZWRGb2xk",
+            "ZXJVcGRhdGVUZWFtEg8KB3RlYW1VaWQYASABKAwSEwoLbWFuYWdlVXNlcnMY",
+            "AiABKAgSFQoNbWFuYWdlUmVjb3JkcxgDIAEoCBIXCg9zaGFyZWRGb2xkZXJL",
+            "ZXkYBCABKAwiyAcKG1NoYXJlZEZvbGRlclVwZGF0ZVYzUmVxdWVzdBJIChtz",
+            "aGFyZWRGb2xkZXJVcGRhdGVPcGVyYXRpb24YASABKA4yIy5Gb2xkZXIuU2hh",
+            "cmVkRm9sZGVyVXBkYXRlT3BlcmF0aW9uEhcKD3NoYXJlZEZvbGRlclVpZBgC",
+            "IAEoDBIhChllbmNyeXB0ZWRTaGFyZWRGb2xkZXJOYW1lGAMgASgMEhAKCHJl",
+            "dmlzaW9uGAQgASgDEhMKC2ZvcmNlVXBkYXRlGAUgASgIEhMKC2Zyb21UZWFt",
+            "VWlkGAYgASgMEjMKEmRlZmF1bHRNYW5hZ2VVc2VycxgHIAEoDjIXLkZvbGRl",
+            "ci5TZXRCb29sZWFuVmFsdWUSNQoUZGVmYXVsdE1hbmFnZVJlY29yZHMYCCAB",
+            "KA4yFy5Gb2xkZXIuU2V0Qm9vbGVhblZhbHVlEi8KDmRlZmF1bHRDYW5FZGl0",
+            "GAkgASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRIwCg9kZWZhdWx0Q2Fu",
+            "U2hhcmUYCiABKA4yFy5Gb2xkZXIuU2V0Qm9vbGVhblZhbHVlEj8KFXNoYXJl",
+            "ZEZvbGRlckFkZFJlY29yZBgLIAMoCzIgLkZvbGRlci5TaGFyZWRGb2xkZXJV",
+            "cGRhdGVSZWNvcmQSOwoTc2hhcmVkRm9sZGVyQWRkVXNlchgMIAMoCzIeLkZv",
+            "bGRlci5TaGFyZWRGb2xkZXJVcGRhdGVVc2VyEjsKE3NoYXJlZEZvbGRlckFk",
+            "ZFRlYW0YDSADKAsyHi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVGVhbRJC",
+            "ChhzaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmQYDiADKAsyIC5Gb2xkZXIuU2hh",
+            "cmVkRm9sZGVyVXBkYXRlUmVjb3JkEj4KFnNoYXJlZEZvbGRlclVwZGF0ZVVz",
+            "ZXIYDyADKAsyHi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlchI+ChZz",
+            "aGFyZWRGb2xkZXJVcGRhdGVUZWFtGBAgAygLMh4uRm9sZGVyLlNoYXJlZEZv",
+            "bGRlclVwZGF0ZVRlYW0SIAoYc2hhcmVkRm9sZGVyUmVtb3ZlUmVjb3JkGBEg",
+            "AygMEh4KFnNoYXJlZEZvbGRlclJlbW92ZVVzZXIYEiADKAkSHgoWc2hhcmVk",
+            "Rm9sZGVyUmVtb3ZlVGVhbRgTIAMoDBIcChRlbmNyeXB0ZWREZXZpY2VUb2tl",
+            "bhgUIAEoDBIZChFtZXNzYWdlU2Vzc2lvblVpZBgVIAEoDCJDCh5TaGFyZWRG",
+            "b2xkZXJVcGRhdGVSZWNvcmRTdGF0dXMSEQoJcmVjb3JkVWlkGAEgASgMEg4K",
+            "BnN0YXR1cxgCIAEoCSJAChxTaGFyZWRGb2xkZXJVcGRhdGVVc2VyU3RhdHVz",
+            "EhAKCHVzZXJuYW1lGAEgASgJEg4KBnN0YXR1cxgCIAEoCSI/ChxTaGFyZWRG",
+            "b2xkZXJVcGRhdGVUZWFtU3RhdHVzEg8KB3RlYW1VaWQYASABKAwSDgoGc3Rh",
+            "dHVzGAIgASgJIt8FChxTaGFyZWRGb2xkZXJVcGRhdGVWM1Jlc3BvbnNlEhAK",
+            "CHJldmlzaW9uGAEgASgDEksKG3NoYXJlZEZvbGRlckFkZFJlY29yZFN0YXR1",
+            "cxgCIAMoCzImLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0",
+            "dXMSRwoZc2hhcmVkRm9sZGVyQWRkVXNlclN0YXR1cxgDIAMoCzIkLkZvbGRl",
+            "ci5TaGFyZWRGb2xkZXJVcGRhdGVVc2VyU3RhdHVzEkcKGXNoYXJlZEZvbGRl",
+            "ckFkZFRlYW1TdGF0dXMYBCADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBk",
+            "YXRlVGVhbVN0YXR1cxJOCh5zaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0",
+            "dXMYBSADKAsyJi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkU3Rh",
+            "dHVzEkoKHHNoYXJlZEZvbGRlclVwZGF0ZVVzZXJTdGF0dXMYBiADKAsyJC5G",
+            "b2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlclN0YXR1cxJKChxzaGFyZWRG",
+            "b2xkZXJVcGRhdGVUZWFtU3RhdHVzGAcgAygLMiQuRm9sZGVyLlNoYXJlZEZv",
+            "bGRlclVwZGF0ZVRlYW1TdGF0dXMSTgoec2hhcmVkRm9sZGVyUmVtb3ZlUmVj",
+            "b3JkU3RhdHVzGAggAygLMiYuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVJl",
+            "Y29yZFN0YXR1cxJKChxzaGFyZWRGb2xkZXJSZW1vdmVVc2VyU3RhdHVzGAkg",
+            "AygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVVzZXJTdGF0dXMSSgoc",
+            "c2hhcmVkRm9sZGVyUmVtb3ZlVGVhbVN0YXR1cxgKIAMoCzIkLkZvbGRlci5T",
+            "aGFyZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzKhoKClJlY29yZFR5cGUSDAoI",
+            "cGFzc3dvcmQQACpeCgpGb2xkZXJUeXBlEhIKDmRlZmF1bHRfZm9sZGVyEAAS",
+            "DwoLdXNlcl9mb2xkZXIQARIRCg1zaGFyZWRfZm9sZGVyEAISGAoUc2hhcmVk",
+            "X2ZvbGRlcl9mb2xkZXIQAypWChBFbmNyeXB0ZWRLZXlUeXBlEgoKBm5vX2tl",
+            "eRAAEhkKFWVuY3J5cHRlZF9ieV9kYXRhX2tleRABEhsKF2VuY3J5cHRlZF9i",
+            "eV9wdWJsaWNfa2V5EAIqrgEKG1NoYXJlZEZvbGRlclVwZGF0ZU9wZXJhdGlv",
+            "bhIqCiZJTlZBTElEX1NIQVJFRF9GT0xERVJfVVBEQVRFX09QRVJBVElPThAA",
+            "EhUKEVNIQVJFRF9GT0xERVJfQUREEAESGAoUU0hBUkVEX0ZPTERFUl9VUERB",
+            "VEUQAhIYChRTSEFSRURfRk9MREVSX1JFTU9WRRADEhgKFFNIQVJFRF9GT0xE",
+            "RVJfREVMRVRFEAQqTQoPU2V0Qm9vbGVhblZhbHVlEhUKEUJPT0xFQU5fTk9f",
+            "Q0hBTkdFEAASEAoMQk9PTEVBTl9UUlVFEAESEQoNQk9PTEVBTl9GQUxTRRAC",
+            "QiIKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IGRm9sZGVyYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), typeof(global::Folder.SharedFolderUpdateOperation), typeof(global::Folder.SetBooleanValue), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.EncryptedDataKey), global::Folder.EncryptedDataKey.Parser, new[]{ "EncryptedKey", "EncryptedKeyType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderRecordData), global::Folder.SharedFolderRecordData.Parser, new[]{ "FolderUid", "RecordUid", "UserId", "EncryptedDataKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderRecordDataList), global::Folder.SharedFolderRecordDataList.Parser, new[]{ "SharedFolderRecordData" }, null, null, null, null),
@@ -82,7 +141,15 @@ namespace Folder {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderRequest), global::Folder.FolderRequest.Parser, new[]{ "FolderUid", "FolderType", "ParentFolderUid", "FolderData", "EncryptedFolderKey", "SharedFolderFields", "SharedFolderFolderFields" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderResponse), global::Folder.FolderResponse.Parser, new[]{ "FolderUid", "Revision", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.ImportFolderRecordRequest), global::Folder.ImportFolderRecordRequest.Parser, new[]{ "FolderRequest", "RecordRequest" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.ImportFolderRecordResponse), global::Folder.ImportFolderRecordResponse.Parser, new[]{ "FolderResponse", "RecordResponse" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.ImportFolderRecordResponse), global::Folder.ImportFolderRecordResponse.Parser, new[]{ "FolderResponse", "RecordResponse" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateRecord), global::Folder.SharedFolderUpdateRecord.Parser, new[]{ "RecordUid", "SharedFolderUid", "TeamUid", "CanEdit", "CanShare", "EncryptedRecordKey", "Revision" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateUser), global::Folder.SharedFolderUpdateUser.Parser, new[]{ "Username", "ManageUsers", "ManageRecords", "SharedFolderKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateTeam), global::Folder.SharedFolderUpdateTeam.Parser, new[]{ "TeamUid", "ManageUsers", "ManageRecords", "SharedFolderKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3Request), global::Folder.SharedFolderUpdateV3Request.Parser, new[]{ "SharedFolderUpdateOperation", "SharedFolderUid", "EncryptedSharedFolderName", "Revision", "ForceUpdate", "FromTeamUid", "DefaultManageUsers", "DefaultManageRecords", "DefaultCanEdit", "DefaultCanShare", "SharedFolderAddRecord", "SharedFolderAddUser", "SharedFolderAddTeam", "SharedFolderUpdateRecord", "SharedFolderUpdateUser", "SharedFolderUpdateTeam", "SharedFolderRemoveRecord", "SharedFolderRemoveUser", "SharedFolderRemoveTeam", "EncryptedDeviceToken", "MessageSessionUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateRecordStatus), global::Folder.SharedFolderUpdateRecordStatus.Parser, new[]{ "RecordUid", "Status" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateUserStatus), global::Folder.SharedFolderUpdateUserStatus.Parser, new[]{ "Username", "Status" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateTeamStatus), global::Folder.SharedFolderUpdateTeamStatus.Parser, new[]{ "TeamUid", "Status" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3Response), global::Folder.SharedFolderUpdateV3Response.Parser, new[]{ "Revision", "SharedFolderAddRecordStatus", "SharedFolderAddUserStatus", "SharedFolderAddTeamStatus", "SharedFolderUpdateRecordStatus", "SharedFolderUpdateUserStatus", "SharedFolderUpdateTeamStatus", "SharedFolderRemoveRecordStatus", "SharedFolderRemoveUserStatus", "SharedFolderRemoveTeamStatus" }, null, null, null, null)
           }));
     }
     #endregion
@@ -104,6 +171,23 @@ namespace Folder {
     [pbr::OriginalName("no_key")] NoKey = 0,
     [pbr::OriginalName("encrypted_by_data_key")] EncryptedByDataKey = 1,
     [pbr::OriginalName("encrypted_by_public_key")] EncryptedByPublicKey = 2,
+  }
+
+  /// <summary>
+  ///ADD, UPDATE, REMOVE, DELETE
+  /// </summary>
+  public enum SharedFolderUpdateOperation {
+    [pbr::OriginalName("INVALID_SHARED_FOLDER_UPDATE_OPERATION")] InvalidSharedFolderUpdateOperation = 0,
+    [pbr::OriginalName("SHARED_FOLDER_ADD")] SharedFolderAdd = 1,
+    [pbr::OriginalName("SHARED_FOLDER_UPDATE")] SharedFolderUpdate = 2,
+    [pbr::OriginalName("SHARED_FOLDER_REMOVE")] SharedFolderRemove = 3,
+    [pbr::OriginalName("SHARED_FOLDER_DELETE")] SharedFolderDelete = 4,
+  }
+
+  public enum SetBooleanValue {
+    [pbr::OriginalName("BOOLEAN_NO_CHANGE")] BooleanNoChange = 0,
+    [pbr::OriginalName("BOOLEAN_TRUE")] BooleanTrue = 1,
+    [pbr::OriginalName("BOOLEAN_FALSE")] BooleanFalse = 2,
   }
 
   #endregion
@@ -2626,6 +2710,2156 @@ namespace Folder {
           }
           case 18: {
             recordResponse_.AddEntriesFrom(input, _repeated_recordResponse_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SharedFolderUpdateRecord : pb::IMessage<SharedFolderUpdateRecord> {
+    private static readonly pb::MessageParser<SharedFolderUpdateRecord> _parser = new pb::MessageParser<SharedFolderUpdateRecord>(() => new SharedFolderUpdateRecord());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SharedFolderUpdateRecord> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[13]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateRecord() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateRecord(SharedFolderUpdateRecord other) : this() {
+      recordUid_ = other.recordUid_;
+      sharedFolderUid_ = other.sharedFolderUid_;
+      teamUid_ = other.teamUid_;
+      canEdit_ = other.canEdit_;
+      canShare_ = other.canShare_;
+      encryptedRecordKey_ = other.encryptedRecordKey_;
+      revision_ = other.revision_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateRecord Clone() {
+      return new SharedFolderUpdateRecord(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "sharedFolderUid" field.</summary>
+    public const int SharedFolderUidFieldNumber = 2;
+    private pb::ByteString sharedFolderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///Only used when adding a record, or updating the permission to a record
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString SharedFolderUid {
+      get { return sharedFolderUid_; }
+      set {
+        sharedFolderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "teamUid" field.</summary>
+    public const int TeamUidFieldNumber = 3;
+    private pb::ByteString teamUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///Only used when adding a record, or updating the permission to a record
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString TeamUid {
+      get { return teamUid_; }
+      set {
+        teamUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "canEdit" field.</summary>
+    public const int CanEditFieldNumber = 4;
+    private global::Folder.SetBooleanValue canEdit_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SetBooleanValue CanEdit {
+      get { return canEdit_; }
+      set {
+        canEdit_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "canShare" field.</summary>
+    public const int CanShareFieldNumber = 5;
+    private global::Folder.SetBooleanValue canShare_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SetBooleanValue CanShare {
+      get { return canShare_; }
+      set {
+        canShare_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "encryptedRecordKey" field.</summary>
+    public const int EncryptedRecordKeyFieldNumber = 6;
+    private pb::ByteString encryptedRecordKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// record key encrypted with the shared folder key
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString EncryptedRecordKey {
+      get { return encryptedRecordKey_; }
+      set {
+        encryptedRecordKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "revision" field.</summary>
+    public const int RevisionFieldNumber = 7;
+    private int revision_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Revision {
+      get { return revision_; }
+      set {
+        revision_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateRecord);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SharedFolderUpdateRecord other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (SharedFolderUid != other.SharedFolderUid) return false;
+      if (TeamUid != other.TeamUid) return false;
+      if (CanEdit != other.CanEdit) return false;
+      if (CanShare != other.CanShare) return false;
+      if (EncryptedRecordKey != other.EncryptedRecordKey) return false;
+      if (Revision != other.Revision) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (SharedFolderUid.Length != 0) hash ^= SharedFolderUid.GetHashCode();
+      if (TeamUid.Length != 0) hash ^= TeamUid.GetHashCode();
+      if (CanEdit != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanEdit.GetHashCode();
+      if (CanShare != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= CanShare.GetHashCode();
+      if (EncryptedRecordKey.Length != 0) hash ^= EncryptedRecordKey.GetHashCode();
+      if (Revision != 0) hash ^= Revision.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (SharedFolderUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SharedFolderUid);
+      }
+      if (TeamUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(TeamUid);
+      }
+      if (CanEdit != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) CanEdit);
+      }
+      if (CanShare != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) CanShare);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(EncryptedRecordKey);
+      }
+      if (Revision != 0) {
+        output.WriteRawTag(56);
+        output.WriteInt32(Revision);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (SharedFolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedFolderUid);
+      }
+      if (TeamUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TeamUid);
+      }
+      if (CanEdit != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanEdit);
+      }
+      if (CanShare != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CanShare);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedRecordKey);
+      }
+      if (Revision != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Revision);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SharedFolderUpdateRecord other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.SharedFolderUid.Length != 0) {
+        SharedFolderUid = other.SharedFolderUid;
+      }
+      if (other.TeamUid.Length != 0) {
+        TeamUid = other.TeamUid;
+      }
+      if (other.CanEdit != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanEdit = other.CanEdit;
+      }
+      if (other.CanShare != global::Folder.SetBooleanValue.BooleanNoChange) {
+        CanShare = other.CanShare;
+      }
+      if (other.EncryptedRecordKey.Length != 0) {
+        EncryptedRecordKey = other.EncryptedRecordKey;
+      }
+      if (other.Revision != 0) {
+        Revision = other.Revision;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            SharedFolderUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            TeamUid = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            CanEdit = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            CanShare = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            EncryptedRecordKey = input.ReadBytes();
+            break;
+          }
+          case 56: {
+            Revision = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SharedFolderUpdateUser : pb::IMessage<SharedFolderUpdateUser> {
+    private static readonly pb::MessageParser<SharedFolderUpdateUser> _parser = new pb::MessageParser<SharedFolderUpdateUser>(() => new SharedFolderUpdateUser());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SharedFolderUpdateUser> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[14]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateUser() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateUser(SharedFolderUpdateUser other) : this() {
+      username_ = other.username_;
+      manageUsers_ = other.manageUsers_;
+      manageRecords_ = other.manageRecords_;
+      sharedFolderKey_ = other.sharedFolderKey_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateUser Clone() {
+      return new SharedFolderUpdateUser(this);
+    }
+
+    /// <summary>Field number for the "username" field.</summary>
+    public const int UsernameFieldNumber = 1;
+    private string username_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Username {
+      get { return username_; }
+      set {
+        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "manageUsers" field.</summary>
+    public const int ManageUsersFieldNumber = 2;
+    private global::Folder.SetBooleanValue manageUsers_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SetBooleanValue ManageUsers {
+      get { return manageUsers_; }
+      set {
+        manageUsers_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "manageRecords" field.</summary>
+    public const int ManageRecordsFieldNumber = 3;
+    private global::Folder.SetBooleanValue manageRecords_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SetBooleanValue ManageRecords {
+      get { return manageRecords_; }
+      set {
+        manageRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "sharedFolderKey" field.</summary>
+    public const int SharedFolderKeyFieldNumber = 4;
+    private pb::ByteString sharedFolderKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// shared folder AES key encrypted with user's "key" (for the caller, the user's data key, for a different user, the user's public key)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString SharedFolderKey {
+      get { return sharedFolderKey_; }
+      set {
+        sharedFolderKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateUser);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SharedFolderUpdateUser other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Username != other.Username) return false;
+      if (ManageUsers != other.ManageUsers) return false;
+      if (ManageRecords != other.ManageRecords) return false;
+      if (SharedFolderKey != other.SharedFolderKey) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (ManageUsers != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= ManageUsers.GetHashCode();
+      if (ManageRecords != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= ManageRecords.GetHashCode();
+      if (SharedFolderKey.Length != 0) hash ^= SharedFolderKey.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (ManageUsers != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) ManageUsers);
+      }
+      if (ManageRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) ManageRecords);
+      }
+      if (SharedFolderKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(SharedFolderKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Username.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      }
+      if (ManageUsers != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ManageUsers);
+      }
+      if (ManageRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ManageRecords);
+      }
+      if (SharedFolderKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedFolderKey);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SharedFolderUpdateUser other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Username.Length != 0) {
+        Username = other.Username;
+      }
+      if (other.ManageUsers != global::Folder.SetBooleanValue.BooleanNoChange) {
+        ManageUsers = other.ManageUsers;
+      }
+      if (other.ManageRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        ManageRecords = other.ManageRecords;
+      }
+      if (other.SharedFolderKey.Length != 0) {
+        SharedFolderKey = other.SharedFolderKey;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 16: {
+            ManageUsers = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            ManageRecords = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            SharedFolderKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SharedFolderUpdateTeam : pb::IMessage<SharedFolderUpdateTeam> {
+    private static readonly pb::MessageParser<SharedFolderUpdateTeam> _parser = new pb::MessageParser<SharedFolderUpdateTeam>(() => new SharedFolderUpdateTeam());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SharedFolderUpdateTeam> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[15]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateTeam() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateTeam(SharedFolderUpdateTeam other) : this() {
+      teamUid_ = other.teamUid_;
+      manageUsers_ = other.manageUsers_;
+      manageRecords_ = other.manageRecords_;
+      sharedFolderKey_ = other.sharedFolderKey_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateTeam Clone() {
+      return new SharedFolderUpdateTeam(this);
+    }
+
+    /// <summary>Field number for the "teamUid" field.</summary>
+    public const int TeamUidFieldNumber = 1;
+    private pb::ByteString teamUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString TeamUid {
+      get { return teamUid_; }
+      set {
+        teamUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "manageUsers" field.</summary>
+    public const int ManageUsersFieldNumber = 2;
+    private bool manageUsers_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool ManageUsers {
+      get { return manageUsers_; }
+      set {
+        manageUsers_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "manageRecords" field.</summary>
+    public const int ManageRecordsFieldNumber = 3;
+    private bool manageRecords_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool ManageRecords {
+      get { return manageRecords_; }
+      set {
+        manageRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "sharedFolderKey" field.</summary>
+    public const int SharedFolderKeyFieldNumber = 4;
+    private pb::ByteString sharedFolderKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// shared folder AES key encrypted with the team key retrieved from team_get_keys, for team member, which is team key; for a non member, the team's public key
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString SharedFolderKey {
+      get { return sharedFolderKey_; }
+      set {
+        sharedFolderKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateTeam);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SharedFolderUpdateTeam other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (TeamUid != other.TeamUid) return false;
+      if (ManageUsers != other.ManageUsers) return false;
+      if (ManageRecords != other.ManageRecords) return false;
+      if (SharedFolderKey != other.SharedFolderKey) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (TeamUid.Length != 0) hash ^= TeamUid.GetHashCode();
+      if (ManageUsers != false) hash ^= ManageUsers.GetHashCode();
+      if (ManageRecords != false) hash ^= ManageRecords.GetHashCode();
+      if (SharedFolderKey.Length != 0) hash ^= SharedFolderKey.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (TeamUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(TeamUid);
+      }
+      if (ManageUsers != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(ManageUsers);
+      }
+      if (ManageRecords != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(ManageRecords);
+      }
+      if (SharedFolderKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(SharedFolderKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (TeamUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TeamUid);
+      }
+      if (ManageUsers != false) {
+        size += 1 + 1;
+      }
+      if (ManageRecords != false) {
+        size += 1 + 1;
+      }
+      if (SharedFolderKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedFolderKey);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SharedFolderUpdateTeam other) {
+      if (other == null) {
+        return;
+      }
+      if (other.TeamUid.Length != 0) {
+        TeamUid = other.TeamUid;
+      }
+      if (other.ManageUsers != false) {
+        ManageUsers = other.ManageUsers;
+      }
+      if (other.ManageRecords != false) {
+        ManageRecords = other.ManageRecords;
+      }
+      if (other.SharedFolderKey.Length != 0) {
+        SharedFolderKey = other.SharedFolderKey;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            TeamUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            ManageUsers = input.ReadBool();
+            break;
+          }
+          case 24: {
+            ManageRecords = input.ReadBool();
+            break;
+          }
+          case 34: {
+            SharedFolderKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SharedFolderUpdateV3Request : pb::IMessage<SharedFolderUpdateV3Request> {
+    private static readonly pb::MessageParser<SharedFolderUpdateV3Request> _parser = new pb::MessageParser<SharedFolderUpdateV3Request>(() => new SharedFolderUpdateV3Request());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SharedFolderUpdateV3Request> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[16]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateV3Request() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateV3Request(SharedFolderUpdateV3Request other) : this() {
+      sharedFolderUpdateOperation_ = other.sharedFolderUpdateOperation_;
+      sharedFolderUid_ = other.sharedFolderUid_;
+      encryptedSharedFolderName_ = other.encryptedSharedFolderName_;
+      revision_ = other.revision_;
+      forceUpdate_ = other.forceUpdate_;
+      fromTeamUid_ = other.fromTeamUid_;
+      defaultManageUsers_ = other.defaultManageUsers_;
+      defaultManageRecords_ = other.defaultManageRecords_;
+      defaultCanEdit_ = other.defaultCanEdit_;
+      defaultCanShare_ = other.defaultCanShare_;
+      sharedFolderAddRecord_ = other.sharedFolderAddRecord_.Clone();
+      sharedFolderAddUser_ = other.sharedFolderAddUser_.Clone();
+      sharedFolderAddTeam_ = other.sharedFolderAddTeam_.Clone();
+      sharedFolderUpdateRecord_ = other.sharedFolderUpdateRecord_.Clone();
+      sharedFolderUpdateUser_ = other.sharedFolderUpdateUser_.Clone();
+      sharedFolderUpdateTeam_ = other.sharedFolderUpdateTeam_.Clone();
+      sharedFolderRemoveRecord_ = other.sharedFolderRemoveRecord_.Clone();
+      sharedFolderRemoveUser_ = other.sharedFolderRemoveUser_.Clone();
+      sharedFolderRemoveTeam_ = other.sharedFolderRemoveTeam_.Clone();
+      encryptedDeviceToken_ = other.encryptedDeviceToken_;
+      messageSessionUid_ = other.messageSessionUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateV3Request Clone() {
+      return new SharedFolderUpdateV3Request(this);
+    }
+
+    /// <summary>Field number for the "sharedFolderUpdateOperation" field.</summary>
+    public const int SharedFolderUpdateOperationFieldNumber = 1;
+    private global::Folder.SharedFolderUpdateOperation sharedFolderUpdateOperation_ = global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SharedFolderUpdateOperation SharedFolderUpdateOperation {
+      get { return sharedFolderUpdateOperation_; }
+      set {
+        sharedFolderUpdateOperation_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "sharedFolderUid" field.</summary>
+    public const int SharedFolderUidFieldNumber = 2;
+    private pb::ByteString sharedFolderUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// required
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString SharedFolderUid {
+      get { return sharedFolderUid_; }
+      set {
+        sharedFolderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "encryptedSharedFolderName" field.</summary>
+    public const int EncryptedSharedFolderNameFieldNumber = 3;
+    private pb::ByteString encryptedSharedFolderName_ = pb::ByteString.Empty;
+    /// <summary>
+    ///shared folder name encrypted with the shared folder key
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString EncryptedSharedFolderName {
+      get { return encryptedSharedFolderName_; }
+      set {
+        encryptedSharedFolderName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "revision" field.</summary>
+    public const int RevisionFieldNumber = 4;
+    private long revision_;
+    /// <summary>
+    /// clientSharedFolderRevision
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Revision {
+      get { return revision_; }
+      set {
+        revision_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "forceUpdate" field.</summary>
+    public const int ForceUpdateFieldNumber = 5;
+    private bool forceUpdate_;
+    /// <summary>
+    /// true if the requestor does not want the revision to be validated for out of sync; either force_update must be true, or revision is required
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool ForceUpdate {
+      get { return forceUpdate_; }
+      set {
+        forceUpdate_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "fromTeamUid" field.</summary>
+    public const int FromTeamUidFieldNumber = 6;
+    private pb::ByteString fromTeamUid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// for update/delete only; this is the team that gives you the permission to perform the operations you are trying to perform
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString FromTeamUid {
+      get { return fromTeamUid_; }
+      set {
+        fromTeamUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "defaultManageUsers" field.</summary>
+    public const int DefaultManageUsersFieldNumber = 7;
+    private global::Folder.SetBooleanValue defaultManageUsers_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SetBooleanValue DefaultManageUsers {
+      get { return defaultManageUsers_; }
+      set {
+        defaultManageUsers_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "defaultManageRecords" field.</summary>
+    public const int DefaultManageRecordsFieldNumber = 8;
+    private global::Folder.SetBooleanValue defaultManageRecords_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SetBooleanValue DefaultManageRecords {
+      get { return defaultManageRecords_; }
+      set {
+        defaultManageRecords_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "defaultCanEdit" field.</summary>
+    public const int DefaultCanEditFieldNumber = 9;
+    private global::Folder.SetBooleanValue defaultCanEdit_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SetBooleanValue DefaultCanEdit {
+      get { return defaultCanEdit_; }
+      set {
+        defaultCanEdit_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "defaultCanShare" field.</summary>
+    public const int DefaultCanShareFieldNumber = 10;
+    private global::Folder.SetBooleanValue defaultCanShare_ = global::Folder.SetBooleanValue.BooleanNoChange;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Folder.SetBooleanValue DefaultCanShare {
+      get { return defaultCanShare_; }
+      set {
+        defaultCanShare_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "sharedFolderAddRecord" field.</summary>
+    public const int SharedFolderAddRecordFieldNumber = 11;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateRecord> _repeated_sharedFolderAddRecord_codec
+        = pb::FieldCodec.ForMessage(90, global::Folder.SharedFolderUpdateRecord.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateRecord> sharedFolderAddRecord_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateRecord>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateRecord> SharedFolderAddRecord {
+      get { return sharedFolderAddRecord_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderAddUser" field.</summary>
+    public const int SharedFolderAddUserFieldNumber = 12;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateUser> _repeated_sharedFolderAddUser_codec
+        = pb::FieldCodec.ForMessage(98, global::Folder.SharedFolderUpdateUser.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateUser> sharedFolderAddUser_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateUser>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateUser> SharedFolderAddUser {
+      get { return sharedFolderAddUser_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderAddTeam" field.</summary>
+    public const int SharedFolderAddTeamFieldNumber = 13;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateTeam> _repeated_sharedFolderAddTeam_codec
+        = pb::FieldCodec.ForMessage(106, global::Folder.SharedFolderUpdateTeam.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateTeam> sharedFolderAddTeam_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateTeam>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateTeam> SharedFolderAddTeam {
+      get { return sharedFolderAddTeam_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderUpdateRecord" field.</summary>
+    public const int SharedFolderUpdateRecordFieldNumber = 14;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateRecord> _repeated_sharedFolderUpdateRecord_codec
+        = pb::FieldCodec.ForMessage(114, global::Folder.SharedFolderUpdateRecord.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateRecord> sharedFolderUpdateRecord_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateRecord>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateRecord> SharedFolderUpdateRecord {
+      get { return sharedFolderUpdateRecord_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderUpdateUser" field.</summary>
+    public const int SharedFolderUpdateUserFieldNumber = 15;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateUser> _repeated_sharedFolderUpdateUser_codec
+        = pb::FieldCodec.ForMessage(122, global::Folder.SharedFolderUpdateUser.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateUser> sharedFolderUpdateUser_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateUser>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateUser> SharedFolderUpdateUser {
+      get { return sharedFolderUpdateUser_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderUpdateTeam" field.</summary>
+    public const int SharedFolderUpdateTeamFieldNumber = 16;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateTeam> _repeated_sharedFolderUpdateTeam_codec
+        = pb::FieldCodec.ForMessage(130, global::Folder.SharedFolderUpdateTeam.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateTeam> sharedFolderUpdateTeam_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateTeam>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateTeam> SharedFolderUpdateTeam {
+      get { return sharedFolderUpdateTeam_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderRemoveRecord" field.</summary>
+    public const int SharedFolderRemoveRecordFieldNumber = 17;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_sharedFolderRemoveRecord_codec
+        = pb::FieldCodec.ForBytes(138);
+    private readonly pbc::RepeatedField<pb::ByteString> sharedFolderRemoveRecord_ = new pbc::RepeatedField<pb::ByteString>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<pb::ByteString> SharedFolderRemoveRecord {
+      get { return sharedFolderRemoveRecord_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderRemoveUser" field.</summary>
+    public const int SharedFolderRemoveUserFieldNumber = 18;
+    private static readonly pb::FieldCodec<string> _repeated_sharedFolderRemoveUser_codec
+        = pb::FieldCodec.ForString(146);
+    private readonly pbc::RepeatedField<string> sharedFolderRemoveUser_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<string> SharedFolderRemoveUser {
+      get { return sharedFolderRemoveUser_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderRemoveTeam" field.</summary>
+    public const int SharedFolderRemoveTeamFieldNumber = 19;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_sharedFolderRemoveTeam_codec
+        = pb::FieldCodec.ForBytes(154);
+    private readonly pbc::RepeatedField<pb::ByteString> sharedFolderRemoveTeam_ = new pbc::RepeatedField<pb::ByteString>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<pb::ByteString> SharedFolderRemoveTeam {
+      get { return sharedFolderRemoveTeam_; }
+    }
+
+    /// <summary>Field number for the "encryptedDeviceToken" field.</summary>
+    public const int EncryptedDeviceTokenFieldNumber = 20;
+    private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString EncryptedDeviceToken {
+      get { return encryptedDeviceToken_; }
+      set {
+        encryptedDeviceToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "messageSessionUid" field.</summary>
+    public const int MessageSessionUidFieldNumber = 21;
+    private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString MessageSessionUid {
+      get { return messageSessionUid_; }
+      set {
+        messageSessionUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateV3Request);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SharedFolderUpdateV3Request other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SharedFolderUpdateOperation != other.SharedFolderUpdateOperation) return false;
+      if (SharedFolderUid != other.SharedFolderUid) return false;
+      if (EncryptedSharedFolderName != other.EncryptedSharedFolderName) return false;
+      if (Revision != other.Revision) return false;
+      if (ForceUpdate != other.ForceUpdate) return false;
+      if (FromTeamUid != other.FromTeamUid) return false;
+      if (DefaultManageUsers != other.DefaultManageUsers) return false;
+      if (DefaultManageRecords != other.DefaultManageRecords) return false;
+      if (DefaultCanEdit != other.DefaultCanEdit) return false;
+      if (DefaultCanShare != other.DefaultCanShare) return false;
+      if(!sharedFolderAddRecord_.Equals(other.sharedFolderAddRecord_)) return false;
+      if(!sharedFolderAddUser_.Equals(other.sharedFolderAddUser_)) return false;
+      if(!sharedFolderAddTeam_.Equals(other.sharedFolderAddTeam_)) return false;
+      if(!sharedFolderUpdateRecord_.Equals(other.sharedFolderUpdateRecord_)) return false;
+      if(!sharedFolderUpdateUser_.Equals(other.sharedFolderUpdateUser_)) return false;
+      if(!sharedFolderUpdateTeam_.Equals(other.sharedFolderUpdateTeam_)) return false;
+      if(!sharedFolderRemoveRecord_.Equals(other.sharedFolderRemoveRecord_)) return false;
+      if(!sharedFolderRemoveUser_.Equals(other.sharedFolderRemoveUser_)) return false;
+      if(!sharedFolderRemoveTeam_.Equals(other.sharedFolderRemoveTeam_)) return false;
+      if (EncryptedDeviceToken != other.EncryptedDeviceToken) return false;
+      if (MessageSessionUid != other.MessageSessionUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) hash ^= SharedFolderUpdateOperation.GetHashCode();
+      if (SharedFolderUid.Length != 0) hash ^= SharedFolderUid.GetHashCode();
+      if (EncryptedSharedFolderName.Length != 0) hash ^= EncryptedSharedFolderName.GetHashCode();
+      if (Revision != 0L) hash ^= Revision.GetHashCode();
+      if (ForceUpdate != false) hash ^= ForceUpdate.GetHashCode();
+      if (FromTeamUid.Length != 0) hash ^= FromTeamUid.GetHashCode();
+      if (DefaultManageUsers != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= DefaultManageUsers.GetHashCode();
+      if (DefaultManageRecords != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= DefaultManageRecords.GetHashCode();
+      if (DefaultCanEdit != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= DefaultCanEdit.GetHashCode();
+      if (DefaultCanShare != global::Folder.SetBooleanValue.BooleanNoChange) hash ^= DefaultCanShare.GetHashCode();
+      hash ^= sharedFolderAddRecord_.GetHashCode();
+      hash ^= sharedFolderAddUser_.GetHashCode();
+      hash ^= sharedFolderAddTeam_.GetHashCode();
+      hash ^= sharedFolderUpdateRecord_.GetHashCode();
+      hash ^= sharedFolderUpdateUser_.GetHashCode();
+      hash ^= sharedFolderUpdateTeam_.GetHashCode();
+      hash ^= sharedFolderRemoveRecord_.GetHashCode();
+      hash ^= sharedFolderRemoveUser_.GetHashCode();
+      hash ^= sharedFolderRemoveTeam_.GetHashCode();
+      if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
+      if (MessageSessionUid.Length != 0) hash ^= MessageSessionUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) SharedFolderUpdateOperation);
+      }
+      if (SharedFolderUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SharedFolderUid);
+      }
+      if (EncryptedSharedFolderName.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(EncryptedSharedFolderName);
+      }
+      if (Revision != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(Revision);
+      }
+      if (ForceUpdate != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(ForceUpdate);
+      }
+      if (FromTeamUid.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(FromTeamUid);
+      }
+      if (DefaultManageUsers != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) DefaultManageUsers);
+      }
+      if (DefaultManageRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) DefaultManageRecords);
+      }
+      if (DefaultCanEdit != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(72);
+        output.WriteEnum((int) DefaultCanEdit);
+      }
+      if (DefaultCanShare != global::Folder.SetBooleanValue.BooleanNoChange) {
+        output.WriteRawTag(80);
+        output.WriteEnum((int) DefaultCanShare);
+      }
+      sharedFolderAddRecord_.WriteTo(output, _repeated_sharedFolderAddRecord_codec);
+      sharedFolderAddUser_.WriteTo(output, _repeated_sharedFolderAddUser_codec);
+      sharedFolderAddTeam_.WriteTo(output, _repeated_sharedFolderAddTeam_codec);
+      sharedFolderUpdateRecord_.WriteTo(output, _repeated_sharedFolderUpdateRecord_codec);
+      sharedFolderUpdateUser_.WriteTo(output, _repeated_sharedFolderUpdateUser_codec);
+      sharedFolderUpdateTeam_.WriteTo(output, _repeated_sharedFolderUpdateTeam_codec);
+      sharedFolderRemoveRecord_.WriteTo(output, _repeated_sharedFolderRemoveRecord_codec);
+      sharedFolderRemoveUser_.WriteTo(output, _repeated_sharedFolderRemoveUser_codec);
+      sharedFolderRemoveTeam_.WriteTo(output, _repeated_sharedFolderRemoveTeam_codec);
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(162, 1);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(170, 1);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) SharedFolderUpdateOperation);
+      }
+      if (SharedFolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedFolderUid);
+      }
+      if (EncryptedSharedFolderName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedSharedFolderName);
+      }
+      if (Revision != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Revision);
+      }
+      if (ForceUpdate != false) {
+        size += 1 + 1;
+      }
+      if (FromTeamUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FromTeamUid);
+      }
+      if (DefaultManageUsers != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DefaultManageUsers);
+      }
+      if (DefaultManageRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DefaultManageRecords);
+      }
+      if (DefaultCanEdit != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DefaultCanEdit);
+      }
+      if (DefaultCanShare != global::Folder.SetBooleanValue.BooleanNoChange) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DefaultCanShare);
+      }
+      size += sharedFolderAddRecord_.CalculateSize(_repeated_sharedFolderAddRecord_codec);
+      size += sharedFolderAddUser_.CalculateSize(_repeated_sharedFolderAddUser_codec);
+      size += sharedFolderAddTeam_.CalculateSize(_repeated_sharedFolderAddTeam_codec);
+      size += sharedFolderUpdateRecord_.CalculateSize(_repeated_sharedFolderUpdateRecord_codec);
+      size += sharedFolderUpdateUser_.CalculateSize(_repeated_sharedFolderUpdateUser_codec);
+      size += sharedFolderUpdateTeam_.CalculateSize(_repeated_sharedFolderUpdateTeam_codec);
+      size += sharedFolderRemoveRecord_.CalculateSize(_repeated_sharedFolderRemoveRecord_codec);
+      size += sharedFolderRemoveUser_.CalculateSize(_repeated_sharedFolderRemoveUser_codec);
+      size += sharedFolderRemoveTeam_.CalculateSize(_repeated_sharedFolderRemoveTeam_codec);
+      if (EncryptedDeviceToken.Length != 0) {
+        size += 2 + pb::CodedOutputStream.ComputeBytesSize(EncryptedDeviceToken);
+      }
+      if (MessageSessionUid.Length != 0) {
+        size += 2 + pb::CodedOutputStream.ComputeBytesSize(MessageSessionUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SharedFolderUpdateV3Request other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) {
+        SharedFolderUpdateOperation = other.SharedFolderUpdateOperation;
+      }
+      if (other.SharedFolderUid.Length != 0) {
+        SharedFolderUid = other.SharedFolderUid;
+      }
+      if (other.EncryptedSharedFolderName.Length != 0) {
+        EncryptedSharedFolderName = other.EncryptedSharedFolderName;
+      }
+      if (other.Revision != 0L) {
+        Revision = other.Revision;
+      }
+      if (other.ForceUpdate != false) {
+        ForceUpdate = other.ForceUpdate;
+      }
+      if (other.FromTeamUid.Length != 0) {
+        FromTeamUid = other.FromTeamUid;
+      }
+      if (other.DefaultManageUsers != global::Folder.SetBooleanValue.BooleanNoChange) {
+        DefaultManageUsers = other.DefaultManageUsers;
+      }
+      if (other.DefaultManageRecords != global::Folder.SetBooleanValue.BooleanNoChange) {
+        DefaultManageRecords = other.DefaultManageRecords;
+      }
+      if (other.DefaultCanEdit != global::Folder.SetBooleanValue.BooleanNoChange) {
+        DefaultCanEdit = other.DefaultCanEdit;
+      }
+      if (other.DefaultCanShare != global::Folder.SetBooleanValue.BooleanNoChange) {
+        DefaultCanShare = other.DefaultCanShare;
+      }
+      sharedFolderAddRecord_.Add(other.sharedFolderAddRecord_);
+      sharedFolderAddUser_.Add(other.sharedFolderAddUser_);
+      sharedFolderAddTeam_.Add(other.sharedFolderAddTeam_);
+      sharedFolderUpdateRecord_.Add(other.sharedFolderUpdateRecord_);
+      sharedFolderUpdateUser_.Add(other.sharedFolderUpdateUser_);
+      sharedFolderUpdateTeam_.Add(other.sharedFolderUpdateTeam_);
+      sharedFolderRemoveRecord_.Add(other.sharedFolderRemoveRecord_);
+      sharedFolderRemoveUser_.Add(other.sharedFolderRemoveUser_);
+      sharedFolderRemoveTeam_.Add(other.sharedFolderRemoveTeam_);
+      if (other.EncryptedDeviceToken.Length != 0) {
+        EncryptedDeviceToken = other.EncryptedDeviceToken;
+      }
+      if (other.MessageSessionUid.Length != 0) {
+        MessageSessionUid = other.MessageSessionUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            SharedFolderUpdateOperation = (global::Folder.SharedFolderUpdateOperation) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            SharedFolderUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            EncryptedSharedFolderName = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            Revision = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            ForceUpdate = input.ReadBool();
+            break;
+          }
+          case 50: {
+            FromTeamUid = input.ReadBytes();
+            break;
+          }
+          case 56: {
+            DefaultManageUsers = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 64: {
+            DefaultManageRecords = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 72: {
+            DefaultCanEdit = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 80: {
+            DefaultCanShare = (global::Folder.SetBooleanValue) input.ReadEnum();
+            break;
+          }
+          case 90: {
+            sharedFolderAddRecord_.AddEntriesFrom(input, _repeated_sharedFolderAddRecord_codec);
+            break;
+          }
+          case 98: {
+            sharedFolderAddUser_.AddEntriesFrom(input, _repeated_sharedFolderAddUser_codec);
+            break;
+          }
+          case 106: {
+            sharedFolderAddTeam_.AddEntriesFrom(input, _repeated_sharedFolderAddTeam_codec);
+            break;
+          }
+          case 114: {
+            sharedFolderUpdateRecord_.AddEntriesFrom(input, _repeated_sharedFolderUpdateRecord_codec);
+            break;
+          }
+          case 122: {
+            sharedFolderUpdateUser_.AddEntriesFrom(input, _repeated_sharedFolderUpdateUser_codec);
+            break;
+          }
+          case 130: {
+            sharedFolderUpdateTeam_.AddEntriesFrom(input, _repeated_sharedFolderUpdateTeam_codec);
+            break;
+          }
+          case 138: {
+            sharedFolderRemoveRecord_.AddEntriesFrom(input, _repeated_sharedFolderRemoveRecord_codec);
+            break;
+          }
+          case 146: {
+            sharedFolderRemoveUser_.AddEntriesFrom(input, _repeated_sharedFolderRemoveUser_codec);
+            break;
+          }
+          case 154: {
+            sharedFolderRemoveTeam_.AddEntriesFrom(input, _repeated_sharedFolderRemoveTeam_codec);
+            break;
+          }
+          case 162: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 170: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SharedFolderUpdateRecordStatus : pb::IMessage<SharedFolderUpdateRecordStatus> {
+    private static readonly pb::MessageParser<SharedFolderUpdateRecordStatus> _parser = new pb::MessageParser<SharedFolderUpdateRecordStatus>(() => new SharedFolderUpdateRecordStatus());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SharedFolderUpdateRecordStatus> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[17]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateRecordStatus() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateRecordStatus(SharedFolderUpdateRecordStatus other) : this() {
+      recordUid_ = other.recordUid_;
+      status_ = other.status_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateRecordStatus Clone() {
+      return new SharedFolderUpdateRecordStatus(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 2;
+    private string status_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Status {
+      get { return status_; }
+      set {
+        status_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateRecordStatus);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SharedFolderUpdateRecordStatus other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (Status != other.Status) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (Status.Length != 0) hash ^= Status.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (Status.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Status);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (Status.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Status);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SharedFolderUpdateRecordStatus other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.Status.Length != 0) {
+        Status = other.Status;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Status = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SharedFolderUpdateUserStatus : pb::IMessage<SharedFolderUpdateUserStatus> {
+    private static readonly pb::MessageParser<SharedFolderUpdateUserStatus> _parser = new pb::MessageParser<SharedFolderUpdateUserStatus>(() => new SharedFolderUpdateUserStatus());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SharedFolderUpdateUserStatus> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[18]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateUserStatus() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateUserStatus(SharedFolderUpdateUserStatus other) : this() {
+      username_ = other.username_;
+      status_ = other.status_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateUserStatus Clone() {
+      return new SharedFolderUpdateUserStatus(this);
+    }
+
+    /// <summary>Field number for the "username" field.</summary>
+    public const int UsernameFieldNumber = 1;
+    private string username_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Username {
+      get { return username_; }
+      set {
+        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 2;
+    private string status_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Status {
+      get { return status_; }
+      set {
+        status_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateUserStatus);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SharedFolderUpdateUserStatus other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Username != other.Username) return false;
+      if (Status != other.Status) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (Status.Length != 0) hash ^= Status.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (Status.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Status);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Username.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      }
+      if (Status.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Status);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SharedFolderUpdateUserStatus other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Username.Length != 0) {
+        Username = other.Username;
+      }
+      if (other.Status.Length != 0) {
+        Status = other.Status;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            Status = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SharedFolderUpdateTeamStatus : pb::IMessage<SharedFolderUpdateTeamStatus> {
+    private static readonly pb::MessageParser<SharedFolderUpdateTeamStatus> _parser = new pb::MessageParser<SharedFolderUpdateTeamStatus>(() => new SharedFolderUpdateTeamStatus());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SharedFolderUpdateTeamStatus> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[19]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateTeamStatus() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateTeamStatus(SharedFolderUpdateTeamStatus other) : this() {
+      teamUid_ = other.teamUid_;
+      status_ = other.status_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateTeamStatus Clone() {
+      return new SharedFolderUpdateTeamStatus(this);
+    }
+
+    /// <summary>Field number for the "teamUid" field.</summary>
+    public const int TeamUidFieldNumber = 1;
+    private pb::ByteString teamUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString TeamUid {
+      get { return teamUid_; }
+      set {
+        teamUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 2;
+    private string status_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Status {
+      get { return status_; }
+      set {
+        status_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateTeamStatus);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SharedFolderUpdateTeamStatus other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (TeamUid != other.TeamUid) return false;
+      if (Status != other.Status) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (TeamUid.Length != 0) hash ^= TeamUid.GetHashCode();
+      if (Status.Length != 0) hash ^= Status.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (TeamUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(TeamUid);
+      }
+      if (Status.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Status);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (TeamUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TeamUid);
+      }
+      if (Status.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Status);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SharedFolderUpdateTeamStatus other) {
+      if (other == null) {
+        return;
+      }
+      if (other.TeamUid.Length != 0) {
+        TeamUid = other.TeamUid;
+      }
+      if (other.Status.Length != 0) {
+        Status = other.Status;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            TeamUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Status = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SharedFolderUpdateV3Response : pb::IMessage<SharedFolderUpdateV3Response> {
+    private static readonly pb::MessageParser<SharedFolderUpdateV3Response> _parser = new pb::MessageParser<SharedFolderUpdateV3Response>(() => new SharedFolderUpdateV3Response());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SharedFolderUpdateV3Response> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[20]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateV3Response() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateV3Response(SharedFolderUpdateV3Response other) : this() {
+      revision_ = other.revision_;
+      sharedFolderAddRecordStatus_ = other.sharedFolderAddRecordStatus_.Clone();
+      sharedFolderAddUserStatus_ = other.sharedFolderAddUserStatus_.Clone();
+      sharedFolderAddTeamStatus_ = other.sharedFolderAddTeamStatus_.Clone();
+      sharedFolderUpdateRecordStatus_ = other.sharedFolderUpdateRecordStatus_.Clone();
+      sharedFolderUpdateUserStatus_ = other.sharedFolderUpdateUserStatus_.Clone();
+      sharedFolderUpdateTeamStatus_ = other.sharedFolderUpdateTeamStatus_.Clone();
+      sharedFolderRemoveRecordStatus_ = other.sharedFolderRemoveRecordStatus_.Clone();
+      sharedFolderRemoveUserStatus_ = other.sharedFolderRemoveUserStatus_.Clone();
+      sharedFolderRemoveTeamStatus_ = other.sharedFolderRemoveTeamStatus_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SharedFolderUpdateV3Response Clone() {
+      return new SharedFolderUpdateV3Response(this);
+    }
+
+    /// <summary>Field number for the "revision" field.</summary>
+    public const int RevisionFieldNumber = 1;
+    private long revision_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Revision {
+      get { return revision_; }
+      set {
+        revision_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "sharedFolderAddRecordStatus" field.</summary>
+    public const int SharedFolderAddRecordStatusFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateRecordStatus> _repeated_sharedFolderAddRecordStatus_codec
+        = pb::FieldCodec.ForMessage(18, global::Folder.SharedFolderUpdateRecordStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus> sharedFolderAddRecordStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus> SharedFolderAddRecordStatus {
+      get { return sharedFolderAddRecordStatus_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderAddUserStatus" field.</summary>
+    public const int SharedFolderAddUserStatusFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateUserStatus> _repeated_sharedFolderAddUserStatus_codec
+        = pb::FieldCodec.ForMessage(26, global::Folder.SharedFolderUpdateUserStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus> sharedFolderAddUserStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus> SharedFolderAddUserStatus {
+      get { return sharedFolderAddUserStatus_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderAddTeamStatus" field.</summary>
+    public const int SharedFolderAddTeamStatusFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateTeamStatus> _repeated_sharedFolderAddTeamStatus_codec
+        = pb::FieldCodec.ForMessage(34, global::Folder.SharedFolderUpdateTeamStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus> sharedFolderAddTeamStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus> SharedFolderAddTeamStatus {
+      get { return sharedFolderAddTeamStatus_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderUpdateRecordStatus" field.</summary>
+    public const int SharedFolderUpdateRecordStatusFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateRecordStatus> _repeated_sharedFolderUpdateRecordStatus_codec
+        = pb::FieldCodec.ForMessage(42, global::Folder.SharedFolderUpdateRecordStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus> sharedFolderUpdateRecordStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus> SharedFolderUpdateRecordStatus {
+      get { return sharedFolderUpdateRecordStatus_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderUpdateUserStatus" field.</summary>
+    public const int SharedFolderUpdateUserStatusFieldNumber = 6;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateUserStatus> _repeated_sharedFolderUpdateUserStatus_codec
+        = pb::FieldCodec.ForMessage(50, global::Folder.SharedFolderUpdateUserStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus> sharedFolderUpdateUserStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus> SharedFolderUpdateUserStatus {
+      get { return sharedFolderUpdateUserStatus_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderUpdateTeamStatus" field.</summary>
+    public const int SharedFolderUpdateTeamStatusFieldNumber = 7;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateTeamStatus> _repeated_sharedFolderUpdateTeamStatus_codec
+        = pb::FieldCodec.ForMessage(58, global::Folder.SharedFolderUpdateTeamStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus> sharedFolderUpdateTeamStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus> SharedFolderUpdateTeamStatus {
+      get { return sharedFolderUpdateTeamStatus_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderRemoveRecordStatus" field.</summary>
+    public const int SharedFolderRemoveRecordStatusFieldNumber = 8;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateRecordStatus> _repeated_sharedFolderRemoveRecordStatus_codec
+        = pb::FieldCodec.ForMessage(66, global::Folder.SharedFolderUpdateRecordStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus> sharedFolderRemoveRecordStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateRecordStatus> SharedFolderRemoveRecordStatus {
+      get { return sharedFolderRemoveRecordStatus_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderRemoveUserStatus" field.</summary>
+    public const int SharedFolderRemoveUserStatusFieldNumber = 9;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateUserStatus> _repeated_sharedFolderRemoveUserStatus_codec
+        = pb::FieldCodec.ForMessage(74, global::Folder.SharedFolderUpdateUserStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus> sharedFolderRemoveUserStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateUserStatus> SharedFolderRemoveUserStatus {
+      get { return sharedFolderRemoveUserStatus_; }
+    }
+
+    /// <summary>Field number for the "sharedFolderRemoveTeamStatus" field.</summary>
+    public const int SharedFolderRemoveTeamStatusFieldNumber = 10;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateTeamStatus> _repeated_sharedFolderRemoveTeamStatus_codec
+        = pb::FieldCodec.ForMessage(82, global::Folder.SharedFolderUpdateTeamStatus.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus> sharedFolderRemoveTeamStatus_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateTeamStatus> SharedFolderRemoveTeamStatus {
+      get { return sharedFolderRemoveTeamStatus_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateV3Response);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SharedFolderUpdateV3Response other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Revision != other.Revision) return false;
+      if(!sharedFolderAddRecordStatus_.Equals(other.sharedFolderAddRecordStatus_)) return false;
+      if(!sharedFolderAddUserStatus_.Equals(other.sharedFolderAddUserStatus_)) return false;
+      if(!sharedFolderAddTeamStatus_.Equals(other.sharedFolderAddTeamStatus_)) return false;
+      if(!sharedFolderUpdateRecordStatus_.Equals(other.sharedFolderUpdateRecordStatus_)) return false;
+      if(!sharedFolderUpdateUserStatus_.Equals(other.sharedFolderUpdateUserStatus_)) return false;
+      if(!sharedFolderUpdateTeamStatus_.Equals(other.sharedFolderUpdateTeamStatus_)) return false;
+      if(!sharedFolderRemoveRecordStatus_.Equals(other.sharedFolderRemoveRecordStatus_)) return false;
+      if(!sharedFolderRemoveUserStatus_.Equals(other.sharedFolderRemoveUserStatus_)) return false;
+      if(!sharedFolderRemoveTeamStatus_.Equals(other.sharedFolderRemoveTeamStatus_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Revision != 0L) hash ^= Revision.GetHashCode();
+      hash ^= sharedFolderAddRecordStatus_.GetHashCode();
+      hash ^= sharedFolderAddUserStatus_.GetHashCode();
+      hash ^= sharedFolderAddTeamStatus_.GetHashCode();
+      hash ^= sharedFolderUpdateRecordStatus_.GetHashCode();
+      hash ^= sharedFolderUpdateUserStatus_.GetHashCode();
+      hash ^= sharedFolderUpdateTeamStatus_.GetHashCode();
+      hash ^= sharedFolderRemoveRecordStatus_.GetHashCode();
+      hash ^= sharedFolderRemoveUserStatus_.GetHashCode();
+      hash ^= sharedFolderRemoveTeamStatus_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Revision != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Revision);
+      }
+      sharedFolderAddRecordStatus_.WriteTo(output, _repeated_sharedFolderAddRecordStatus_codec);
+      sharedFolderAddUserStatus_.WriteTo(output, _repeated_sharedFolderAddUserStatus_codec);
+      sharedFolderAddTeamStatus_.WriteTo(output, _repeated_sharedFolderAddTeamStatus_codec);
+      sharedFolderUpdateRecordStatus_.WriteTo(output, _repeated_sharedFolderUpdateRecordStatus_codec);
+      sharedFolderUpdateUserStatus_.WriteTo(output, _repeated_sharedFolderUpdateUserStatus_codec);
+      sharedFolderUpdateTeamStatus_.WriteTo(output, _repeated_sharedFolderUpdateTeamStatus_codec);
+      sharedFolderRemoveRecordStatus_.WriteTo(output, _repeated_sharedFolderRemoveRecordStatus_codec);
+      sharedFolderRemoveUserStatus_.WriteTo(output, _repeated_sharedFolderRemoveUserStatus_codec);
+      sharedFolderRemoveTeamStatus_.WriteTo(output, _repeated_sharedFolderRemoveTeamStatus_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Revision != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Revision);
+      }
+      size += sharedFolderAddRecordStatus_.CalculateSize(_repeated_sharedFolderAddRecordStatus_codec);
+      size += sharedFolderAddUserStatus_.CalculateSize(_repeated_sharedFolderAddUserStatus_codec);
+      size += sharedFolderAddTeamStatus_.CalculateSize(_repeated_sharedFolderAddTeamStatus_codec);
+      size += sharedFolderUpdateRecordStatus_.CalculateSize(_repeated_sharedFolderUpdateRecordStatus_codec);
+      size += sharedFolderUpdateUserStatus_.CalculateSize(_repeated_sharedFolderUpdateUserStatus_codec);
+      size += sharedFolderUpdateTeamStatus_.CalculateSize(_repeated_sharedFolderUpdateTeamStatus_codec);
+      size += sharedFolderRemoveRecordStatus_.CalculateSize(_repeated_sharedFolderRemoveRecordStatus_codec);
+      size += sharedFolderRemoveUserStatus_.CalculateSize(_repeated_sharedFolderRemoveUserStatus_codec);
+      size += sharedFolderRemoveTeamStatus_.CalculateSize(_repeated_sharedFolderRemoveTeamStatus_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SharedFolderUpdateV3Response other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Revision != 0L) {
+        Revision = other.Revision;
+      }
+      sharedFolderAddRecordStatus_.Add(other.sharedFolderAddRecordStatus_);
+      sharedFolderAddUserStatus_.Add(other.sharedFolderAddUserStatus_);
+      sharedFolderAddTeamStatus_.Add(other.sharedFolderAddTeamStatus_);
+      sharedFolderUpdateRecordStatus_.Add(other.sharedFolderUpdateRecordStatus_);
+      sharedFolderUpdateUserStatus_.Add(other.sharedFolderUpdateUserStatus_);
+      sharedFolderUpdateTeamStatus_.Add(other.sharedFolderUpdateTeamStatus_);
+      sharedFolderRemoveRecordStatus_.Add(other.sharedFolderRemoveRecordStatus_);
+      sharedFolderRemoveUserStatus_.Add(other.sharedFolderRemoveUserStatus_);
+      sharedFolderRemoveTeamStatus_.Add(other.sharedFolderRemoveTeamStatus_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Revision = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            sharedFolderAddRecordStatus_.AddEntriesFrom(input, _repeated_sharedFolderAddRecordStatus_codec);
+            break;
+          }
+          case 26: {
+            sharedFolderAddUserStatus_.AddEntriesFrom(input, _repeated_sharedFolderAddUserStatus_codec);
+            break;
+          }
+          case 34: {
+            sharedFolderAddTeamStatus_.AddEntriesFrom(input, _repeated_sharedFolderAddTeamStatus_codec);
+            break;
+          }
+          case 42: {
+            sharedFolderUpdateRecordStatus_.AddEntriesFrom(input, _repeated_sharedFolderUpdateRecordStatus_codec);
+            break;
+          }
+          case 50: {
+            sharedFolderUpdateUserStatus_.AddEntriesFrom(input, _repeated_sharedFolderUpdateUserStatus_codec);
+            break;
+          }
+          case 58: {
+            sharedFolderUpdateTeamStatus_.AddEntriesFrom(input, _repeated_sharedFolderUpdateTeamStatus_codec);
+            break;
+          }
+          case 66: {
+            sharedFolderRemoveRecordStatus_.AddEntriesFrom(input, _repeated_sharedFolderRemoveRecordStatus_codec);
+            break;
+          }
+          case 74: {
+            sharedFolderRemoveUserStatus_.AddEntriesFrom(input, _repeated_sharedFolderRemoveUserStatus_codec);
+            break;
+          }
+          case 82: {
+            sharedFolderRemoveTeamStatus_.AddEntriesFrom(input, _repeated_sharedFolderRemoveTeamStatus_codec);
             break;
           }
         }

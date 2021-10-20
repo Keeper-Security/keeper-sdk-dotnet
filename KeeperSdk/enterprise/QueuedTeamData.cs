@@ -1,22 +1,28 @@
 ﻿using Enterprise;
-using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
-using KeeperSecurity.Enterprise;
 using KeeperSecurity.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using KeeperEnterpriseData = Enterprise.EnterpriseData;
 
-namespace Commander.Enterprise
+namespace KeeperSecurity.Enterprise
 {
-    public class EnterpriseQueuedTeam : IParentNodeEntity
+    public interface IQueuedTeamData
+    {
+        IEnumerable<EnterpriseQueuedTeam> QueuedTeams { get; }
+        IEnumerable<EnterpriseQueuedUsers> QueuedTeamUsers { get; }
+        IEnumerable<long> GetQueuedUsersForTeam(string teamUid);
+    }
+
+    public class EnterpriseQueuedTeam : IParentNodeEntity, IEncryptedData
     {
         public string Uid { get; internal set; }
         public string Name { get; set; }
         public long ParentNodeId { get; internal set; }
+
+        public string EncryptedData { get; internal set; }
     }
 
     public class EnterpriseQueuedUsers
@@ -24,18 +30,6 @@ namespace Commander.Enterprise
         public string TeamUid { get; internal set; }
         public ISet<long> UserIDs { get; } = new HashSet<long>();
     }
-
-    public interface IQueuedTeamData
-    {
-        IEnumerable<EnterpriseQueuedTeam> QueuedTeams { get; }
-        IEnumerable<long> GetQueuedUsersForTeam(string teamUid);
-    }
-
-    public interface IQueuedTeamDataManagement
-    {
-        Task QueueUserToTeam(long enterpriseUserId, string teamUid);
-    }
-
 
     public class QueuedTeamData : EnterpriseDataPlugin, IQueuedTeamData
     {
@@ -53,6 +47,9 @@ namespace Commander.Enterprise
         public override IEnumerable<IKeeperEnterpriseEntity> Entities { get; }
 
         public IEnumerable<EnterpriseQueuedTeam> QueuedTeams => _queuedTeams.Entities;
+        public int QueuedTeamCount => _queuedTeams.Count;
+
+        public IEnumerable<EnterpriseQueuedUsers> QueuedTeamUsers => _queuedUsers.Entities;
         public IEnumerable<long> GetQueuedUsersForTeam(string teamUid)
         {
             if (_queuedUsers.TryGetEntity(teamUid, out var users))
@@ -60,21 +57,6 @@ namespace Commander.Enterprise
                 return users.UserIDs;
             }
             return Enumerable.Empty<long>();
-        }
-    }
-
-    public class QueuedTeamDataManagement : QueuedTeamData, IQueuedTeamDataManagement
-    {
-        public async Task QueueUserToTeam(long enterpriseUserId, string teamUid)
-        {
-            var rq = new TeamQueueUserCommand
-            {
-                TeamUid = teamUid,
-                EnterpriseUserId = enterpriseUserId
-            };
-
-            await Enterprise.Auth.ExecuteAuthCommand(rq);
-            await Enterprise.Load();
         }
     }
 
@@ -100,6 +82,7 @@ namespace Commander.Enterprise
         {
             sdk.Name = keeper.Name;
             sdk.ParentNodeId = keeper.NodeId;
+            sdk.EncryptedData = keeper.EncryptedData;
         }
     }
 
@@ -158,5 +141,10 @@ namespace Commander.Enterprise
         {
             _entities.Clear();
         }
+
+        public IEnumerable<EnterpriseQueuedUsers> Entities => _entities.Values;
+
+        public int Count => _entities.Count;
+
     }
 }
