@@ -143,7 +143,7 @@ namespace Tests
             context.Setup(x => x.SessionToken).Returns(_vaultEnv.SessionToken);
             context.Setup(x => x.ClientKey).Returns(_vaultEnv.ClientKey);
             context.Setup(x => x.DataKey).Returns(_vaultEnv.DataKey);
-            context.Setup(x => x.PrivateKey).Returns(_vaultEnv.PrivateKey);
+            context.Setup(x => x.PrivateRsaKey).Returns(_vaultEnv.PrivateRsaKey);
 
             var endpoint = new Mock<IKeeperEndpoint>();
             endpoint.Setup(x => x.DeviceName).Returns("C# Unit Tests");
