@@ -26,6 +26,7 @@ namespace Commander
         EnterpriseData EnterpriseData { get; }
         RoleDataManagement RoleManagement { get; }
         QueuedTeamDataManagement QueuedTeamManagement { get; }
+        UserAliasData UserAliasData { get; }
 
         DeviceApprovalData DeviceApproval { get; }
 
@@ -1507,6 +1508,7 @@ namespace Commander
         public DeviceApprovalData DeviceApproval { get; }
         public RoleDataManagement RoleManagement { get; }
         public QueuedTeamDataManagement QueuedTeamManagement { get; }
+        public UserAliasData UserAliasData { get; }
 
         public McEnterpriseContext(ManagedCompanyAuth auth)
         {
@@ -1516,8 +1518,9 @@ namespace Commander
                 RoleManagement = new RoleDataManagement();
                 EnterpriseData = new EnterpriseData();
                 QueuedTeamManagement = new QueuedTeamDataManagement();
+                UserAliasData = new UserAliasData();
 
-                Enterprise = new EnterpriseLoader(auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, QueuedTeamManagement }, auth.TreeKey);
+                Enterprise = new EnterpriseLoader(auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, QueuedTeamManagement, UserAliasData }, auth.TreeKey);
                 Task.Run(async () =>
                 {
                     try
@@ -1550,6 +1553,7 @@ namespace Commander
         public EnterpriseData EnterpriseData { get; private set; }
         public RoleDataManagement RoleManagement { get; private set; }
         public QueuedTeamDataManagement QueuedTeamManagement { get; private set; }
+        public UserAliasData UserAliasData { get; internal set; }
 
         public DeviceApprovalData DeviceApproval { get; private set; }
         public bool AutoApproveAdminRequests { get; set; }
@@ -1570,8 +1574,9 @@ namespace Commander
                 DeviceApproval = new DeviceApprovalData();
                 _managedCompanies = new ManagedCompanyData();
                 QueuedTeamManagement = new QueuedTeamDataManagement();
+                UserAliasData = new UserAliasData();
 
-                Enterprise = new EnterpriseLoader(_auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, _managedCompanies, QueuedTeamManagement });
+                Enterprise = new EnterpriseLoader(_auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, _managedCompanies, QueuedTeamManagement, UserAliasData });
 
                 _auth.PushNotifications?.RegisterCallback(EnterpriseNotificationCallback);
                 Task.Run(async () =>
