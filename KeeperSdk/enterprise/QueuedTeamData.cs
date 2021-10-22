@@ -12,7 +12,6 @@ namespace KeeperSecurity.Enterprise
     public interface IQueuedTeamData
     {
         IEnumerable<EnterpriseQueuedTeam> QueuedTeams { get; }
-        IEnumerable<EnterpriseQueuedUsers> QueuedTeamUsers { get; }
         IEnumerable<long> GetQueuedUsersForTeam(string teamUid);
     }
 
@@ -23,12 +22,6 @@ namespace KeeperSecurity.Enterprise
         public long ParentNodeId { get; internal set; }
 
         public string EncryptedData { get; internal set; }
-    }
-
-    public class EnterpriseQueuedUsers
-    {
-        public string TeamUid { get; internal set; }
-        public ISet<long> UserIDs { get; } = new HashSet<long>();
     }
 
     public class QueuedTeamData : EnterpriseDataPlugin, IQueuedTeamData
@@ -49,12 +42,11 @@ namespace KeeperSecurity.Enterprise
         public IEnumerable<EnterpriseQueuedTeam> QueuedTeams => _queuedTeams.Entities;
         public int QueuedTeamCount => _queuedTeams.Count;
 
-        public IEnumerable<EnterpriseQueuedUsers> QueuedTeamUsers => _queuedUsers.Entities;
         public IEnumerable<long> GetQueuedUsersForTeam(string teamUid)
         {
-            if (_queuedUsers.TryGetEntity(teamUid, out var users))
+            if (_queuedUsers.TryGetMembers(teamUid, out var users))
             {
-                return users.UserIDs;
+                return users;
             }
             return Enumerable.Empty<long>();
         }
@@ -90,7 +82,7 @@ namespace KeeperSecurity.Enterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
 
-        internal readonly ConcurrentDictionary<string, EnterpriseQueuedUsers> _entities = new ConcurrentDictionary<string, EnterpriseQueuedUsers>();
+        internal readonly ConcurrentDictionary<string, ISet<long>> _entities = new ConcurrentDictionary<string, ISet<long>>();
 
         public QueuedUserDictionary() : base(EnterpriseDataEntity.QueuedTeamUsers)
         {
@@ -104,10 +96,7 @@ namespace KeeperSecurity.Enterprise
                 var id = keeperEntity.TeamUid.ToByteArray().Base64UrlEncode();
                 if (!_entities.TryGetValue(id, out var sdkEntity))
                 {
-                    sdkEntity = new EnterpriseQueuedUsers
-                    {
-                        TeamUid = id
-                    };
+                    sdkEntity = new HashSet<long>();
                     _entities.TryAdd(id, sdkEntity);
                 }
 
@@ -115,15 +104,15 @@ namespace KeeperSecurity.Enterprise
                 {
                     if (entityData.Delete)
                     {
-                        sdkEntity.UserIDs.Remove(userId);
+                        sdkEntity.Remove(userId);
                     }
                     else
                     {
-                        sdkEntity.UserIDs.Add(userId);
+                        sdkEntity.Add(userId);
                     }
                 }
 
-                if (sdkEntity.UserIDs.Count == 0)
+                if (sdkEntity.Count == 0)
                 {
                     _entities.TryRemove(id, out _);
                 }
@@ -131,7 +120,7 @@ namespace KeeperSecurity.Enterprise
             DataStructureChanged();
         }
 
-        public bool TryGetEntity(string key, out EnterpriseQueuedUsers entity)
+        public bool TryGetMembers(string key, out ISet<long> entity)
         {
             return _entities.TryGetValue(key, out entity);
         }
@@ -141,10 +130,5 @@ namespace KeeperSecurity.Enterprise
         {
             _entities.Clear();
         }
-
-        public IEnumerable<EnterpriseQueuedUsers> Entities => _entities.Values;
-
-        public int Count => _entities.Count;
-
     }
 }
