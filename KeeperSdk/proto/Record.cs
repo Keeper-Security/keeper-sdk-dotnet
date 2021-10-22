@@ -105,34 +105,35 @@ namespace Records {
             "cGxpY2F0aW9uQWRkUmVxdWVzdBIPCgdhcHBfdWlkGAEgASgMEhIKCnJlY29y",
             "ZF9rZXkYAiABKAwSHAoUY2xpZW50X21vZGlmaWVkX3RpbWUYAyABKAMSDAoE",
             "ZGF0YRgEIAEoDCJLCiJHZXRSZWNvcmREYXRhV2l0aEFjY2Vzc0luZm9SZXF1",
-            "ZXN0EhIKCmNsaWVudFRpbWUYASABKAMSEQoJcmVjb3JkVWlkGAIgAygMIoMB",
+            "ZXN0EhIKCmNsaWVudFRpbWUYASABKAMSEQoJcmVjb3JkVWlkGAIgAygMIpcB",
             "Cg5Vc2VyUGVybWlzc2lvbhIQCgh1c2VybmFtZRgBIAEoCRINCgVvd25lchgC",
             "IAEoCBIQCghzaGFyYWJsZRgDIAEoCBIQCghlZGl0YWJsZRgEIAEoCBIYChBh",
-            "d2FpdGluZ0FwcHJvdmFsGAUgASgIEhIKCmV4cGlyYXRpb24YBiABKAMifQoW",
-            "U2hhcmVkRm9sZGVyUGVybWlzc2lvbhIXCg9zaGFyZWRGb2xkZXJVaWQYASAB",
-            "KAwSEgoKcmVzaGFyYWJsZRgCIAEoCBIQCghlZGl0YWJsZRgDIAEoCBIQCghy",
-            "ZXZpc2lvbhgEIAEoAxISCgpleHBpcmF0aW9uGAUgASgDIpoDChhSZWNvcmRE",
-            "YXRhV2l0aEFjY2Vzc0luZm8SEQoJcmVjb3JkVWlkGAEgASgMEhAKCHJldmlz",
-            "aW9uGAIgASgDEg8KB3ZlcnNpb24YAyABKAUSDgoGc2hhcmVkGAQgASgIEhsK",
-            "E2VuY3J5cHRlZFJlY29yZERhdGEYBSABKAkSGgoSZW5jcnlwdGVkRXh0cmFE",
-            "YXRhGAYgASgJEhoKEmNsaWVudE1vZGlmaWVkVGltZRgHIAEoAxIWCg5vd25l",
-            "clJlY29yZFVpZBgIIAEoDBIgChhlbmNyeXB0ZWRMaW5rZWRSZWNvcmRLZXkY",
-            "CSABKAwSDgoGZmlsZUlkGAogAygDEhAKCGZpbGVTaXplGAsgASgDEhUKDXRo",
-            "dW1ibmFpbFNpemUYDCABKAMSLwoOdXNlclBlcm1pc3Npb24YDSADKAsyFy5S",
-            "ZWNvcmRzLlVzZXJQZXJtaXNzaW9uEj8KFnNoYXJlZEZvbGRlclBlcm1pc3Np",
-            "b24YDiADKAsyHy5SZWNvcmRzLlNoYXJlZEZvbGRlclBlcm1pc3Npb24iiQEK",
-            "I0dldFJlY29yZERhdGFXaXRoQWNjZXNzSW5mb1Jlc3BvbnNlEkMKGHJlY29y",
-            "ZERhdGFXaXRoQWNjZXNzSW5mbxgBIAMoCzIhLlJlY29yZHMuUmVjb3JkRGF0",
-            "YVdpdGhBY2Nlc3NJbmZvEh0KFW5vUGVybWlzc2lvblJlY29yZFVpZBgCIAMo",
-            "DCK8AQoYUmVjb3JkU2hhcmVVcGRhdGVSZXF1ZXN0Ei4KD2FkZFNoYXJlZFJl",
-            "Y29yZBgBIAMoCzIVLlJlY29yZHMuU2hhcmVkUmVjb3JkEjEKEnVwZGF0ZVNo",
-            "YXJlZFJlY29yZBgCIAMoCzIVLlJlY29yZHMuU2hhcmVkUmVjb3JkEjEKEnJl",
-            "bW92ZVNoYXJlZFJlY29yZBgDIAMoCzIVLlJlY29yZHMuU2hhcmVkUmVjb3Jk",
-            "EgoKAnB0GAQgASgJIrwBCgxTaGFyZWRSZWNvcmQSEgoKdG9Vc2VybmFtZRgB",
-            "IAEoCRIRCglyZWNvcmRVaWQYAiABKAwSEQoJcmVjb3JkS2V5GAMgASgMEhcK",
-            "D3NoYXJlZEZvbGRlclVpZBgEIAEoDBIPCgd0ZWFtVWlkGAUgASgMEhAKCGVk",
-            "aXRhYmxlGAYgASgIEhEKCXNoYXJlYWJsZRgHIAEoCBIQCgh0cmFuc2ZlchgI",
-            "IAEoCBIRCgl1c2VFY2NLZXkYCSABKAgi1QEKGVJlY29yZFNoYXJlVXBkYXRl",
+            "d2FpdGluZ0FwcHJvdmFsGAUgASgIEhIKCmV4cGlyYXRpb24YBiABKAMSEgoK",
+            "YWNjb3VudFVpZBgHIAEoDCJ9ChZTaGFyZWRGb2xkZXJQZXJtaXNzaW9uEhcK",
+            "D3NoYXJlZEZvbGRlclVpZBgBIAEoDBISCgpyZXNoYXJhYmxlGAIgASgIEhAK",
+            "CGVkaXRhYmxlGAMgASgIEhAKCHJldmlzaW9uGAQgASgDEhIKCmV4cGlyYXRp",
+            "b24YBSABKAMimgMKGFJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxIRCglyZWNv",
+            "cmRVaWQYASABKAwSEAoIcmV2aXNpb24YAiABKAMSDwoHdmVyc2lvbhgDIAEo",
+            "BRIOCgZzaGFyZWQYBCABKAgSGwoTZW5jcnlwdGVkUmVjb3JkRGF0YRgFIAEo",
+            "CRIaChJlbmNyeXB0ZWRFeHRyYURhdGEYBiABKAkSGgoSY2xpZW50TW9kaWZp",
+            "ZWRUaW1lGAcgASgDEhYKDm93bmVyUmVjb3JkVWlkGAggASgMEiAKGGVuY3J5",
+            "cHRlZExpbmtlZFJlY29yZEtleRgJIAEoDBIOCgZmaWxlSWQYCiADKAMSEAoI",
+            "ZmlsZVNpemUYCyABKAMSFQoNdGh1bWJuYWlsU2l6ZRgMIAEoAxIvCg51c2Vy",
+            "UGVybWlzc2lvbhgNIAMoCzIXLlJlY29yZHMuVXNlclBlcm1pc3Npb24SPwoW",
+            "c2hhcmVkRm9sZGVyUGVybWlzc2lvbhgOIAMoCzIfLlJlY29yZHMuU2hhcmVk",
+            "Rm9sZGVyUGVybWlzc2lvbiKJAQojR2V0UmVjb3JkRGF0YVdpdGhBY2Nlc3NJ",
+            "bmZvUmVzcG9uc2USQwoYcmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvGAEgAygL",
+            "MiEuUmVjb3Jkcy5SZWNvcmREYXRhV2l0aEFjY2Vzc0luZm8SHQoVbm9QZXJt",
+            "aXNzaW9uUmVjb3JkVWlkGAIgAygMIrwBChhSZWNvcmRTaGFyZVVwZGF0ZVJl",
+            "cXVlc3QSLgoPYWRkU2hhcmVkUmVjb3JkGAEgAygLMhUuUmVjb3Jkcy5TaGFy",
+            "ZWRSZWNvcmQSMQoSdXBkYXRlU2hhcmVkUmVjb3JkGAIgAygLMhUuUmVjb3Jk",
+            "cy5TaGFyZWRSZWNvcmQSMQoScmVtb3ZlU2hhcmVkUmVjb3JkGAMgAygLMhUu",
+            "UmVjb3Jkcy5TaGFyZWRSZWNvcmQSCgoCcHQYBCABKAki1QEKDFNoYXJlZFJl",
+            "Y29yZBISCgp0b1VzZXJuYW1lGAEgASgJEhEKCXJlY29yZFVpZBgCIAEoDBIR",
+            "CglyZWNvcmRLZXkYAyABKAwSFwoPc2hhcmVkRm9sZGVyVWlkGAQgASgMEg8K",
+            "B3RlYW1VaWQYBSABKAwSEAoIZWRpdGFibGUYBiABKAgSEQoJc2hhcmVhYmxl",
+            "GAcgASgIEhAKCHRyYW5zZmVyGAggASgIEhEKCXVzZUVjY0tleRgJIAEoCBIX",
+            "Cg9yZW1vdmVWYXVsdERhdGEYCiABKAgi1QEKGVJlY29yZFNoYXJlVXBkYXRl",
             "UmVzcG9uc2USOgoVYWRkU2hhcmVkUmVjb3JkU3RhdHVzGAEgAygLMhsuUmVj",
             "b3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMSPQoYdXBkYXRlU2hhcmVkUmVjb3Jk",
             "U3RhdHVzGAIgAygLMhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMSPQoY",
@@ -191,12 +192,12 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesGetResponse), global::Records.FilesGetResponse.Parser, new[]{ "Files" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.ApplicationAddRequest), global::Records.ApplicationAddRequest.Parser, new[]{ "AppUid", "RecordKey", "ClientModifiedTime", "Data" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetRecordDataWithAccessInfoRequest), global::Records.GetRecordDataWithAccessInfoRequest.Parser, new[]{ "ClientTime", "RecordUid" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.UserPermission), global::Records.UserPermission.Parser, new[]{ "Username", "Owner", "Sharable", "Editable", "AwaitingApproval", "Expiration" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.UserPermission), global::Records.UserPermission.Parser, new[]{ "Username", "Owner", "Sharable", "Editable", "AwaitingApproval", "Expiration", "AccountUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedFolderPermission), global::Records.SharedFolderPermission.Parser, new[]{ "SharedFolderUid", "Resharable", "Editable", "Revision", "Expiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordDataWithAccessInfo), global::Records.RecordDataWithAccessInfo.Parser, new[]{ "RecordUid", "Revision", "Version", "Shared", "EncryptedRecordData", "EncryptedExtraData", "ClientModifiedTime", "OwnerRecordUid", "EncryptedLinkedRecordKey", "FileId", "FileSize", "ThumbnailSize", "UserPermission", "SharedFolderPermission" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetRecordDataWithAccessInfoResponse), global::Records.GetRecordDataWithAccessInfoResponse.Parser, new[]{ "RecordDataWithAccessInfo", "NoPermissionRecordUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordShareUpdateRequest), global::Records.RecordShareUpdateRequest.Parser, new[]{ "AddSharedRecord", "UpdateSharedRecord", "RemoveSharedRecord", "Pt" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedRecord), global::Records.SharedRecord.Parser, new[]{ "ToUsername", "RecordUid", "RecordKey", "SharedFolderUid", "TeamUid", "Editable", "Shareable", "Transfer", "UseEccKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedRecord), global::Records.SharedRecord.Parser, new[]{ "ToUsername", "RecordUid", "RecordKey", "SharedFolderUid", "TeamUid", "Editable", "Shareable", "Transfer", "UseEccKey", "RemoveVaultData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordShareUpdateResponse), global::Records.RecordShareUpdateResponse.Parser, new[]{ "AddSharedRecordStatus", "UpdateSharedRecordStatus", "RemoveSharedRecordStatus" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedRecordStatus), global::Records.SharedRecordStatus.Parser, new[]{ "RecordUid", "Status", "Message", "Username" }, null, null, null, null)
           }));
@@ -6767,6 +6768,7 @@ namespace Records {
       editable_ = other.editable_;
       awaitingApproval_ = other.awaitingApproval_;
       expiration_ = other.expiration_;
+      accountUid_ = other.accountUid_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -6847,6 +6849,17 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "accountUid" field.</summary>
+    public const int AccountUidFieldNumber = 7;
+    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString AccountUid {
+      get { return accountUid_; }
+      set {
+        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as UserPermission);
@@ -6866,6 +6879,7 @@ namespace Records {
       if (Editable != other.Editable) return false;
       if (AwaitingApproval != other.AwaitingApproval) return false;
       if (Expiration != other.Expiration) return false;
+      if (AccountUid != other.AccountUid) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -6878,6 +6892,7 @@ namespace Records {
       if (Editable != false) hash ^= Editable.GetHashCode();
       if (AwaitingApproval != false) hash ^= AwaitingApproval.GetHashCode();
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
+      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -6915,6 +6930,10 @@ namespace Records {
         output.WriteRawTag(48);
         output.WriteInt64(Expiration);
       }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteBytes(AccountUid);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -6940,6 +6959,9 @@ namespace Records {
       }
       if (Expiration != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(Expiration);
+      }
+      if (AccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -6969,6 +6991,9 @@ namespace Records {
       }
       if (other.Expiration != 0L) {
         Expiration = other.Expiration;
+      }
+      if (other.AccountUid.Length != 0) {
+        AccountUid = other.AccountUid;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -7003,6 +7028,10 @@ namespace Records {
           }
           case 48: {
             Expiration = input.ReadInt64();
+            break;
+          }
+          case 58: {
+            AccountUid = input.ReadBytes();
             break;
           }
         }
@@ -8107,6 +8136,7 @@ namespace Records {
       shareable_ = other.shareable_;
       transfer_ = other.transfer_;
       useEccKey_ = other.useEccKey_;
+      removeVaultData_ = other.removeVaultData_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -8214,6 +8244,17 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "removeVaultData" field.</summary>
+    public const int RemoveVaultDataFieldNumber = 10;
+    private bool removeVaultData_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool RemoveVaultData {
+      get { return removeVaultData_; }
+      set {
+        removeVaultData_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as SharedRecord);
@@ -8236,6 +8277,7 @@ namespace Records {
       if (Shareable != other.Shareable) return false;
       if (Transfer != other.Transfer) return false;
       if (UseEccKey != other.UseEccKey) return false;
+      if (RemoveVaultData != other.RemoveVaultData) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -8251,6 +8293,7 @@ namespace Records {
       if (Shareable != false) hash ^= Shareable.GetHashCode();
       if (Transfer != false) hash ^= Transfer.GetHashCode();
       if (UseEccKey != false) hash ^= UseEccKey.GetHashCode();
+      if (RemoveVaultData != false) hash ^= RemoveVaultData.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -8300,6 +8343,10 @@ namespace Records {
         output.WriteRawTag(72);
         output.WriteBool(UseEccKey);
       }
+      if (RemoveVaultData != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(RemoveVaultData);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -8333,6 +8380,9 @@ namespace Records {
         size += 1 + 1;
       }
       if (UseEccKey != false) {
+        size += 1 + 1;
+      }
+      if (RemoveVaultData != false) {
         size += 1 + 1;
       }
       if (_unknownFields != null) {
@@ -8372,6 +8422,9 @@ namespace Records {
       }
       if (other.UseEccKey != false) {
         UseEccKey = other.UseEccKey;
+      }
+      if (other.RemoveVaultData != false) {
+        RemoveVaultData = other.RemoveVaultData;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -8418,6 +8471,10 @@ namespace Records {
           }
           case 72: {
             UseEccKey = input.ReadBool();
+            break;
+          }
+          case 80: {
+            RemoveVaultData = input.ReadBool();
             break;
           }
         }
