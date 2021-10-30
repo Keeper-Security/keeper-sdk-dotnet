@@ -429,8 +429,7 @@ function Connect-Keeper {
         if ($authFlow.Step -is [Authentication.Sync.PasswordStep]) {
             $securedPassword = Read-Host -Prompt $prompt -AsSecureString 
             if ($securedPassword.Length -gt 0) {
-                $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedPassword)
-			    $action = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+                $action = [Net.NetworkCredential]::new('',$securedPassword).Password
             } else {
                 $action = ''
             }
@@ -439,8 +438,7 @@ function Connect-Keeper {
             $proxyUser = Read-Host -Prompt 'Proxy username'
             $securedPassword = Read-Host -Prompt 'Proxy password' -AsSecureString 
             if ($securedPassword.Length -gt 0) {
-                $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedPassword)
-			    $proxyPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+                $action = [Net.NetworkCredential]::new('',$securedPassword).Password
             }
             $action = "login `"$proxyUser`" `"$proxyPassword`""
         } else {
