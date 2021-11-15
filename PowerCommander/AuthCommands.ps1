@@ -1,111 +1,200 @@
 #requires -Version 5.0
 
-using namespace KeeperSecurity
+$expires = @(
+    [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin, 
+    [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days, 
+    [KeeperSecurity.Authentication.TwoFactorDuration]::Forever)
 
-class VaultCallback : Vault.IVaultUi {
-    [System.Threading.Tasks.Task[bool]]Confirmation([string]$information) {
-        Write-Host $information 
-        Write-Host
-        $answer = Read-Host -Prompt 'Please confirm (Y/N)'
-        return [System.Threading.Tasks.Task]::FromResult($answer -eq 'Y')
+function twoFactorChannelToText ([KeeperSecurity.Authentication.TwoFactorChannel] $channel) {
+    if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::Authenticator) {
+        return 'authenticator'
+    }
+    if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::TextMessage) {
+        return 'sms'
+    }
+    if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::DuoSecurity) {
+        return 'duo'
+    }
+    if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::RSASecurID) {
+        return 'rsa'
+    }
+    if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::KeeperDNA) {
+        return 'dna'
+    }
+    return ''
+}
+
+function deviceApprovalChannelToText ([KeeperSecurity.Authentication.DeviceApprovalChannel]$channel) {
+    if ($channel -eq [KeeperSecurity.Authentication.DeviceApprovalChannel]::Email) {
+        return 'email'
+    }
+    if ($channel -eq [KeeperSecurity.Authentication.DeviceApprovalChannel]::KeeperPush) {
+        return 'keeper'
+    }
+    if ($channel -eq [KeeperSecurity.Authentication.DeviceApprovalChannel]::TwoFactorAuth) {
+        return '2fa'
+    }
+    return ''
+}
+
+function twoFactorDurationToExpire ([KeeperSecurity.Authentication.TwoFactorDuration] $duration) {
+    if ($duration -eq [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin) {
+        return 'now'
+    }
+    if ($duration -eq [KeeperSecurity.Authentication.TwoFactorDuration]::Forever) {
+        return 'never'
+    }
+    return "$([int]$duration)_days"
+}
+
+
+function getStepPrompt ([KeeperSecurity.Authentication.IAuthentication] $auth) {
+    $prompt = "`nUnsupported ($($auth.step.State.ToString()))"
+    if ($auth.step -is [Authentication.Sync.DeviceApprovalStep]) {
+        $prompt = "`nDevice Approval ($(deviceApprovalChannelToText $auth.step.DefaultChannel))"
+    }
+    elseif ($auth.step -is [Authentication.Sync.TwoFactorStep]) {
+        $channelText = twoFactorChannelToText $auth.step.DefaultChannel
+        $prompt = "`n2FA channel($($channelText)) expire[$(twoFactorDurationToExpire $auth.step.Duration)]"
+    }
+
+    elseif ($auth.step -is [Authentication.Sync.PasswordStep]) {
+        $prompt = "`nMaster Password"
+    }
+    elseif ($auth.step -is [Authentication.Sync.SsoTokenStep]) {
+        $prompt = "`nSSO Token"
+    }
+    elseif ($auth.step -is [Authentication.Sync.SsoDataKeyStep]) {
+        $prompt = "`nSSO Login Approval"
+    }
+    elseif ($auth.step -is [Authentication.Sync.ReadyToLoginStep]) {
+        $prompt = "`nLogin"
+    }
+    elseif ($auth.step -is [Authentication.Sync.HttpProxyStep]) {
+        $prompt = "`nHTTP Proxy Login"
+    }
+
+    return $prompt
+}
+
+function printStepHelp ([KeeperSecurity.Authentication.IAuthentication] $auth) {
+    $commands = @()
+    if ($auth.step -is [KeeperSecurity.Authentication.Sync.DeviceApprovalStep]) {
+        $channels = @()
+        foreach($ch in $auth.step.Channels) {
+            $channels += deviceApprovalChannelToText $ch
+        }
+        if ($channels) {
+            $commands += "channel=<$($channels -join ' | ')> to change channel."
+        }
+        $commands += "`"push`" to send a push to the channel"
+        $commands += '<code> to send a code to the channel'
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.TwoFactorStep]) {
+        $channels = @()
+        foreach($ch in $auth.step.Channels) {
+            $channelText = twoFactorChannelToText $ch
+            if ($channelText) {
+                $channels += $channelText
+            }
+        }
+        if ($channels) {
+            $commands += "channel=<$($channels -join ' | ')> to change channel."
+        }
+
+        $channels = @()
+        foreach($ch in $auth.step.Channels) {
+            $pushes = $auth.step.GetChannelPushActions($ch)
+            if ($null -ne $pushes) {
+                foreach($push in $pushes) {
+                    $channels += [KeeperSecurity.Authentication.AuthUIExtensions]::GetPushActionText($push)
+                }
+            }
+        }
+        if ($channels) {
+            $commands += "`"$($channels -join ' | ')`" to send a push/code"
+        }
+
+        $channels = @()
+        foreach($exp in $expires) {
+            $channels += twoFactorDurationToExpire $exp
+        }
+        $commands += "expire=<$($channels -join ' | ')> to set 2fa expiration."
+        $commands += '<code> to send a 2fa code.'
+    }
+
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
+        $commands += '<password> to send a master password.'
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoTokenStep]) {
+        $commands += $auth.step.SsoLoginUrl
+        $commands += ''
+        if (-not $auth.step.LoginAsProvider) {
+            $commands += '"password" to login using master password.'
+        }
+        $commands += '<sso token> paste SSO login token.'
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoDataKeyStep]) {
+        $channels = @()
+        foreach($ch in $auth.step.Channels) {
+            $channels += [KeeperSecurity.Authentication.AuthUIExtensions]::SsoDataKeyShareChannelText($ch)
+        }
+        if ($channels) {
+            $commands += "`"$($channels -join ' | ')`" to request login approval"
+        }
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.ReadyToLoginStep]) {
+        $commands += '"login <Keeper Email>" login to Keeper as user'
+        $commands += '"login_sso <Enterprise Domain>" login to Enterprise Domain'
+    }
+
+    if ($commands) {
+        Write-Host "`nAvailable Commands`n"
+        foreach ($command in $commands) {
+            Write-Host $command
+        }
+        Write-Host '<Enter> to resume'
     }
 }
 
-class AuthFlowCallback : Authentication.Sync.IAuthSyncCallback, Authentication.IAuthInfoUI {
-    [bool]$ReadingInput = $false
+function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $auth, [string] $action) {
 
-    [void]RegionChanged([string]$newRegion) {
-        Write-Information -MessageData "Region changed: $newRegion"
-    }
-
-    [void]SelectedDevice([string]$deviceToken) {
-    }
-
-    [void]OnNextStep() {
-        if ($this.ReadingInput) {
-            [Console]::WriteLine("`n<Enter> to resume.");
-        }
-    }
-
-    $expires = @([Authentication.TwoFactorDuration]::EveryLogin, [Authentication.TwoFactorDuration]::Every30Days, [Authentication.TwoFactorDuration]::Forever)
-    [string]TwoFactorDurationToExpire([Authentication.TwoFactorDuration]$duration) {
-        if ($duration -eq [Authentication.TwoFactorDuration]::EveryLogin) {
-            return 'now'
-        }
-        if ($duration -eq [Authentication.TwoFactorDuration]::Forever) {
-            return 'never'
-        }
-        return "$([int]$duration)_days"
-    }
-    [bool]TryExpireToTwoFactorDuration([string]$expire, [ref]$duration)
-    {
+    function tryExpireToTwoFactorDuration ([string] $expire, [ref] [KeeperSecurity.Authentication.TwoFactorDuration] $duration) {
         $result = $true
         if ($expire -eq 'now') {
-            $duration.Value = [Authentication.TwoFactorDuration]::EveryLogin
+            $duration.Value = [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin
         }
         elseif ($expire -eq 'never') {
-            $duration.Value = [Authentication.TwoFactorDuration]::Forever
+            $duration.Value = [KeeperSecurity.Authentication.TwoFactorDuration]::Forever
         }
         elseif ($expire -eq '30_days') {
-            $duration.Value = [Authentication.TwoFactorDuration]::Every30Days
+            $duration.Value = [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days
         } else {
-            $duration.Value = [Authentication.TwoFactorDuration]::EveryLogin
+            $duration.Value = [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin
         }
-
+    
         return $result
     }
-
-    [string]DeviceApprovalChannelToText([Authentication.DeviceApprovalChannel]$channel) {
-        if ($channel -eq [Authentication.DeviceApprovalChannel]::Email) {
-            return 'email'
-        }
-        if ($channel -eq [Authentication.DeviceApprovalChannel]::KeeperPush) {
-            return 'keeper'
-        }
-        if ($channel -eq [Authentication.DeviceApprovalChannel]::TwoFactorAuth) {
-            return '2fa'
-        }
-        return ''
-    }
-    [bool]TryTextToDeviceApprovalChannel([string]$text, [ref]$channel)
-    {
+    
+    function tryTextToDeviceApprovalChannel ([string] $text, [ref] [KeeperSecurity.Authentication.DeviceApprovalChannel] $channel) {
         $result = $true
         if ($text -eq 'email') {
-            $channel.Value = [Authentication.DeviceApprovalChannel]::Email
+            $channel.Value = [KeeperSecurity.Authentication.DeviceApprovalChannel]::Email
         }
         elseif ($text -eq 'keeper') {
-            $channel.Value = [Authentication.DeviceApprovalChannel]::KeeperPush
+            $channel.Value = [KeeperSecurity.Authentication.DeviceApprovalChannel]::KeeperPush
         }
         elseif ($text -eq '2fa') {
-            $channel.Value = [Authentication.DeviceApprovalChannel]::TwoFactorAuth
+            $channel.Value = [KeeperSecurity.Authentication.DeviceApprovalChannel]::TwoFactorAuth
         } else {
             Write-Host 'Unsupported device approval channel:', $text
             $result = $false
         }
-
+    
         return $result
     }
-
-    [string]TwoFactorChannelToText([KeeperSecurity.Authentication.TwoFactorChannel]$channel) {
-        if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::Authenticator) {
-            return 'authenticator'
-        }
-        if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::TextMessage) {
-            return 'sms'
-        }
-        if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::DuoSecurity) {
-            return 'duo'
-        }
-        if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::RSASecurID) {
-            return 'rsa'
-        }
-        if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::KeeperDNA) {
-            return 'dna'
-        }
-        return ''
-    }
-    [bool]TryTextToTwoFactorChannel([string]$text, [ref]$channel)
-    {
+    
+    function tryTextToTwoFactorChannel ([string] $text, [ref] [KeeperSecurity.Authentication.TwoFactorChannel] $channel) {
         $result = $true
         if ($text -eq 'authenticator') {
             $channel.Value = [KeeperSecurity.Authentication.TwoFactorChannel]::Authenticator
@@ -128,212 +217,101 @@ class AuthFlowCallback : Authentication.Sync.IAuthSyncCallback, Authentication.I
 
         return $result
     }
-
-    [void]ExecuteStepAction($auth, $action) {
-        if ($auth.step -is [Authentication.Sync.DeviceApprovalStep]) {
-            if ($action -eq 'push') {
-                $_ = $auth.step.SendPush($auth.step.DefaultChannel).GetAwaiter().GetResult()
+    
+    if ($auth.step -is [KeeperSecurity.Authentication.Sync.DeviceApprovalStep]) {
+        if ($action -eq 'push') {
+           $auth.step.SendPush($auth.step.DefaultChannel).GetAwaiter().GetResult() | Out-Null
+        }
+        elseif ($action -match 'channel\s*=\s*(.*)') {
+            $ch = $Matches.1
+            [KeeperSecurity.Authentication.DeviceApprovalChannel]$cha = $auth.step.DefaultChannel
+            if (tryTextToDeviceApprovalChannel ($ch) ([ref]$cha)) {
+                $auth.step.DefaultChannel = $cha
             }
-            elseif ($action -match 'channel\s*=\s*(.*)') {
-                $ch = $Matches.1
-                [Authentication.DeviceApprovalChannel]$cha = $auth.step.DefaultChannel
-                if ($this.TryTextToDeviceApprovalChannel($ch, [ref]$cha)) {
-                    $auth.step.DefaultChannel = $cha
+        } else {
+            Try {
+                $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult() | Out-Null
+            }
+            Catch [KeeperSecurity.Authentication.KeeperApiException]{
+                Write-Host $_ -ForegroundColor Red
+            }
+            Catch {
+                Write-Host $_ -ForegroundColor Red
+            }
+        }
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.TwoFactorStep]) {
+        if ($action -match 'channel\s*=\s*(.*)') {
+            $ch = $Matches.1
+            [KeeperSecurity.Authentication.TwoFactorChannel]$cha = $auth.step.DefaultChannel
+            if (tryTextToTwoFactorChannel($ch) ([ref]$cha)) {
+                $auth.step.DefaultChannel = $cha
+            }
+        }
+        elseif ($action -match 'expire\s*=\s*(.*)') {
+            $exp = $Matches.1
+            [KeeperSecurity.Authentication.TwoFactorDuration]$dur = $auth.step.Duration
+            if (tryExpireToTwoFactorDuration($exp) ([ref]$dur)) {
+                $auth.step.Duration = $dur
+            }
+        } else {
+            foreach($cha in $auth.step.Channels) {
+                $pushes = $auth.step.GetChannelPushActions($cha)
+                if ($null -ne $pushes) {
+                    foreach($push in $pushes) {
+                        if ($action -eq [KeeperSecurity.Authentication.AuthUIExtensions]::GetPushActionText($push)) {
+                            $auth.step.SendPush($push).GetAwaiter().GetResult() | Out-Null
+                            return
+                        }
+                    }
                 }
-            } else {
                 Try {
-                    $_ = $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult()
-                }
-                Catch [Authentication.KeeperApiException]{
-                    Write-Host $_ -ForegroundColor Red
+                    $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult() | Out-Null
                 }
                 Catch {
                     Write-Host $_ -ForegroundColor Red
                 }
             }
         }
-        elseif ($auth.step -is [Authentication.Sync.TwoFactorStep]) {
-            if ($action -match 'channel\s*=\s*(.*)') {
-                $ch = $Matches.1
-                [KeeperSecurity.Authentication.TwoFactorChannel]$cha = $auth.step.DefaultChannel
-                if ($this.TryTextToTwoFactorChannel($ch, [ref]$cha)) {
-                    $auth.step.DefaultChannel = $cha
-                }
-            }
-            elseif ($action -match 'expire\s*=\s*(.*)') {
-                $exp = $Matches.1
-                [Authentication.TwoFactorDuration]$dur = $auth.step.Duration
-                if ($this.TryExpireToTwoFactorDuration($exp, [ref]$dur)) {
-                    $auth.step.Duration = $dur
-                }
-            } else {
-                foreach($cha in $auth.step.Channels) {
-                    $pushes = $auth.step.GetChannelPushActions($cha)
-                    if ($pushes -ne $null) {
-                        foreach($push in $pushes) {
-                            if ($action -eq [Authentication.AuthUIExtensions]::GetPushActionText($push)) {
-                                $_ = $auth.step.SendPush($push).GetAwaiter().GetResult()
-                                return
-                            }
-                        }
-                    }
-                    Try {
-                        $_ = $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult()
-                    }
-                    Catch {
-                        Write-Host $_ -ForegroundColor Red
-                    }
-                }
-            }
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
+        Try {
+            $auth.step.VerifyPassword($action).GetAwaiter().GetResult() | Out-Null
         }
-        elseif ($auth.step -is [Authentication.Sync.PasswordStep]) {
-            Try {
-                $_ = $auth.step.VerifyPassword($action).GetAwaiter().GetResult()
-            }
-            Catch [Authentication.KeeperAuthFailed]{
-                Write-Host 'Invalid password' -ForegroundColor Red
-            }
-            Catch {
-                Write-Host $_ -ForegroundColor Red
-            }
+        Catch [KeeperSecurity.Authentication.KeeperAuthFailed]{
+            Write-Host 'Invalid password' -ForegroundColor Red
         }
-        elseif ($auth.step -is [Authentication.Sync.SsoTokenStep]) {
-            if ($action -eq 'password') {
-                $_ = $auth.step.LoginWithPassword().GetAwaiter().GetResult()
-            } else {
-                $_ = $auth.step.SetSsoToken($action).GetAwaiter().GetResult()
-            }
-        }
-        elseif ($auth.step -is [Authentication.Sync.SsoDataKeyStep]) {
-            [Authentication.DataKeyShareChannel]$channel = [Authentication.DataKeyShareChannel]::KeeperPush
-            if ([Authentication.AuthUIExtensions]::TryParseDataKeyShareChannel($action, [ref]$channel)) {
-                $_ = $auth.step.RequestDataKey($channel).GetAwaiter().GetResult()
-            }
-        }
-        elseif ($auth.step -is [Authentication.Sync.ReadyToLoginStep]) {
-            if ($action -match '^login\s+(.*)$') {
-                $username = $Matches.1
-                $_ = $auth.Login($username).GetAwaiter().GetResult()
-            }
-            elseif ($action -match '^login_sso\s+(.*)$') {
-                $providerName = $Matches.1
-                $_ = $auth.LoginSso($providerName).GetAwaiter().GetResult()
-            }
-        }
-        elseif ($auth.step -is [Authentication.Sync.HttpProxyStep]) {
-            $args = Invoke-Expression ".{`$args} $action"
-            if ($args.Count -eq 3 -and $args[0] -eq 'login') {
-                $_ = $auth.step.SetProxyCredentials($args[1], $args[2]).GetAwaiter().GetResult()
-            }
+        Catch {
+            Write-Host $_ -ForegroundColor Red
         }
     }
-
-    [string]GetStepPrompt($auth) {
-        $prompt = "`nUnsupported ($($auth.step.State.ToString()))"
-        if ($auth.step -is [Authentication.Sync.DeviceApprovalStep]) {
-            $prompt = "`nDevice Approval ($($this.DeviceApprovalChannelToText($auth.step.DefaultChannel)))"
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoTokenStep]) {
+        if ($action -eq 'password') {
+            $auth.step.LoginWithPassword().GetAwaiter().GetResult() | Out-Null
+        } else {
+            $auth.step.SetSsoToken($action).GetAwaiter().GetResult() | Out-Null
         }
-        elseif ($auth.step -is [Authentication.Sync.TwoFactorStep]) {
-            $channelText = $this.TwoFactorChannelToText($auth.step.DefaultChannel)
-            $prompt = "`n2FA channel($($channelText)) expire[$($this.TwoFactorDurationToExpire($auth.step.Duration))]"
-        }
-
-        elseif ($auth.step -is [Authentication.Sync.PasswordStep]) {
-            $prompt = "`nMaster Password"
-        }
-        elseif ($auth.step -is [Authentication.Sync.SsoTokenStep]) {
-            $prompt = "`nSSO Token"
-        }
-        elseif ($auth.step -is [Authentication.Sync.SsoDataKeyStep]) {
-            $prompt = "`nSSO Login Approval"
-        }
-        elseif ($auth.step -is [Authentication.Sync.ReadyToLoginStep]) {
-            $prompt = "`nLogin"
-        }
-        elseif ($auth.step -is [Authentication.Sync.HttpProxyStep]) {
-            $prompt = "`nHTTP Proxy Login"
-        }
-
-        return $prompt
     }
-
-    [void]PrintStepHelp($auth) {
-        $commands = @()
-        if ($auth.step -is [Authentication.Sync.DeviceApprovalStep]) {
-            $channels = @()
-            foreach($ch in $auth.step.Channels) {
-                $channels += $this.DeviceApprovalChannelToText($ch)
-            }
-            if ($channels) {
-                $commands += "channel=<$($channels -join ' | ')> to change channel."
-            }
-            $commands += "`"push`" to send a push to the channel"
-            $commands += '<code> to send a code to the channel'
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoDataKeyStep]) {
+        [KeeperSecurity.Authentication.DataKeyShareChannel]$channel = [KeeperSecurity.Authentication.DataKeyShareChannel]::KeeperPush
+        if ([KeeperSecurity.Authentication.AuthUIExtensions]::TryParseDataKeyShareChannel($action, [ref]$channel)) {
+            $auth.step.RequestDataKey($channel).GetAwaiter().GetResult() | Out-Null
         }
-        elseif ($auth.step -is [Authentication.Sync.TwoFactorStep]) {
-            $channels = @()
-            foreach($ch in $auth.step.Channels) {
-                $channelText = $this.TwoFactorChannelToText($ch)
-                if ($channelText) {
-                    $channels += $channelText
-                }
-            }
-            if ($channels) {
-                $commands += "channel=<$($channels -join ' | ')> to change channel."
-            }
-
-            $channels = @()
-            foreach($ch in $auth.step.Channels) {
-                $pushes = $auth.step.GetChannelPushActions($ch)
-                if ($pushes -ne $null) {
-                    foreach($push in $pushes) {
-                        $channels += [Authentication.AuthUIExtensions]::GetPushActionText($push)
-                    }
-                }
-            }
-            if ($channels) {
-                $commands += "`"$($channels -join ' | ')`" to send a push/code"
-            }
-
-            $channels = @()
-            foreach($exp in $this.Expires) {
-                $channels += $this.TwoFactorDurationToExpire($exp)
-            }
-            $commands += "expire=<$($channels -join ' | ')> to set 2fa expiration."
-            $commands += '<code> to send a 2fa code.'
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.ReadyToLoginStep]) {
+        if ($action -match '^login\s+(.*)$') {
+            $username = $Matches.1
+            $auth.Login($username).GetAwaiter().GetResult() | Out-Null
         }
-
-        elseif ($auth.step -is [Authentication.Sync.PasswordStep]) {
-            $commands += '<password> to send a master password.'
+        elseif ($action -match '^login_sso\s+(.*)$') {
+            $providerName = $Matches.1
+            $auth.LoginSso($providerName).GetAwaiter().GetResult() | Out-Null
         }
-        elseif ($auth.step -is [Authentication.Sync.SsoTokenStep]) {
-            $commands += $auth.step.SsoLoginUrl
-            $commands += ''
-            if (-not $auth.step.LoginAsProvider) {
-                $commands += '"password" to login using master password.'
-            }
-            $commands += '<sso token> paste SSO login token.'
-        }
-        elseif ($auth.step -is [Authentication.Sync.SsoDataKeyStep]) {
-            $channels = @()
-            foreach($ch in $auth.step.Channels) {
-                $channels += [Authentication.AuthUIExtensions]::SsoDataKeyShareChannelText($ch)
-            }
-            if ($channels) {
-                $commands += "`"$($channels -join ' | ')`" to request login approval"
-            }
-        }
-        elseif ($auth.step -is [Authentication.Sync.ReadyToLoginStep]) {
-            $commands += '"login <Keeper Email>" login to Keeper as user'
-            $commands += '"login_sso <Enterprise Domain>" login to Enterprise Domain'
-        }
-
-        if ($commands) {
-            Write-Host "`nAvailable Commands`n"
-            foreach ($command in $commands) {
-                Write-Host $command
-            }
-            Write-Host '<Enter> to resume'
+    }
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.HttpProxyStep]) {
+        $args = Invoke-Expression ".{`$args} $action"
+        if ($args.Count -eq 3 -and $args[0] -eq 'login') {
+            $auth.step.SetProxyCredentials($args[1], $args[2]).GetAwaiter().GetResult() | Out-Null
         }
     }
 }
@@ -365,7 +343,7 @@ function Connect-Keeper {
         [Parameter()][string] $Server
     )
 
-    $_ = Disconnect-Keeper -Resume
+    Disconnect-Keeper -Resume | Out-Null
 
 	$storage = New-Object Configuration.JsonConfigurationStorage
     if (-not $Server) {
@@ -373,7 +351,7 @@ function Connect-Keeper {
         if ($Server) {
             Write-Information -MessageData "`nUsing Keeper Server: $Server`n"
         } else {
-            Write-Information -MessageData "`nUsing Default Keeper Server: $([Authentication.KeeperEndpoint]::DefaultKeeperServer)`n"
+            Write-Information -MessageData "`nUsing Default Keeper Server: $([KeeperSecurity.Authentication.KeeperEndpoint]::DefaultKeeperServer)`n"
         }
     }
     
@@ -381,9 +359,6 @@ function Connect-Keeper {
 	$endpoint = New-Object Authentication.KeeperEndpoint($Server, $storage.Servers)
     $endpoint.DeviceName = 'PowerShell Commander'
     $authFlow = New-Object Authentication.Sync.AuthSync($storage, $endpoint)
-
-    $authFlow.UiCallback = New-Object AuthFlowCallback
-    $authFlow.UiCallback.ReadingInput = $false
 
     $authFlow.ResumeSession = $true
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
@@ -407,26 +382,24 @@ function Connect-Keeper {
         }    
     }
     if ($SsoProvider.IsPresent) {
-        $_ = $authFlow.LoginSso($Username).GetAwaiter().GetResult()
+        $authFlow.LoginSso($Username).GetAwaiter().GetResult() | Out-Null
     } else {
         $passwords = @()
         if ($Password) {
             $passwords += $Password
         }
-        $_ = $authFlow.Login($Username, $passwords).GetAwaiter().GetResult()
+        $authFlow.Login($Username, $passwords).GetAwaiter().GetResult() | Out-Null
     }
-    $lastState = $null
     Write-Output ""
     while(-not $authFlow.IsCompleted) {
         if ($lastStep -ne $authFlow.Step.State) {
-            $authFlow.UiCallback.PrintStepHelp($authFlow)
+            printStepHelp $authFlow
             $lastStep = $authFlow.Step.State
         }
 
-        $prompt = $authFlow.UiCallback.GetStepPrompt($authFlow)
+        $prompt = getStepPrompt $authFlow
 
-        $authFlow.UiCallback.ReadingInput = $true
-        if ($authFlow.Step -is [Authentication.Sync.PasswordStep]) {
+        if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
             $securedPassword = Read-Host -Prompt $prompt -AsSecureString 
             if ($securedPassword.Length -gt 0) {
                 $action = [Net.NetworkCredential]::new('',$securedPassword).Password
@@ -434,7 +407,7 @@ function Connect-Keeper {
                 $action = ''
             }
         } 
-        elseif ($authFlow.Step -is [Authentication.Sync.HttpProxyStep]) {
+        elseif ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.HttpProxyStep]) {
             $proxyUser = Read-Host -Prompt 'Proxy username'
             $securedPassword = Read-Host -Prompt 'Proxy password' -AsSecureString 
             if ($securedPassword.Length -gt 0) {
@@ -444,39 +417,36 @@ function Connect-Keeper {
         } else {
             $action = Read-Host -Prompt $prompt
         }
-        $authFlow.UiCallback.ReadingInput = $false
 
         if ($action) {
             if ($action -eq '?') {
-                $lastState = $null
             } else {
-                $authFlow.UiCallback.ExecuteStepAction($authFlow, $action)
+                executeStepAction $authFlow $action
             }
         }
     }
 
-    if ($authFlow.Step.State -ne [Authentication.Sync.AuthState]::Connected) {
-        if ($authFlow.Step -is [Authentication.Sync.ErrorStep]) {
+    if ($authFlow.Step.State -ne [KeeperSecurity.Authentication.Sync.AuthState]::Connected) {
+        if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.ErrorStep]) {
             Write-Host $authFlow.Step.Message -ForegroundColor Red
         }
         return
     }
 
     $auth = $authFlow
-    if ([Authentication.AuthExtensions]::IsAuthenticated($auth)) {
+    if ([KeeperSecurity.Authentication.AuthExtensions]::IsAuthenticated($auth)) {
         $Script:Auth = $auth
         Write-Debug -Message "Connected to Keeper as $Username"
 
         $Script:Vault = New-Object Vault.VaultOnline($auth)
         $task = $Script:Vault.SyncDown()
         Write-Information -MessageData 'Syncing ...'
-        $_ = $task.GetAwaiter().GetResult()
+        $task.GetAwaiter().GetResult() | Out-Null
         $Script:Vault.AutoSync = $true
 
-        [Vault.VaultData]$vault = $Script:Vault
-        $vault.VaultUi = New-Object VaultCallback
+        [KeeperSecurity.Vault.VaultData]$vault = $Script:Vault
         Write-Information -MessageData "Decrypted $($vault.RecordCount) record(s)"
-        $_ = Set-KeeperLocation -Path '\'
+        Set-KeeperLocation -Path '\' | Out-Null
     }
 }
 
@@ -504,17 +474,17 @@ function Disconnect-Keeper {
     )
 
     $vault = $Script.Vault
-    if ($vault -ne $null) {
-        $_ = $vault.Dispose()
+    if ($null -ne $vault) {
+        $vault.Dispose() | Out-Null
     }
     $Script:Vault = $null
 
-    [Authentication.IAuthentication] $auth = $Script:Auth
-    if ($auth -ne $null) {
+    [KeeperSecurity.Authentication.IAuthentication] $auth = $Script:Auth
+    if ($null -ne $auth) {
         if (-not $Resume.IsPresent) {
-            $_ = $auth.Logout().GetAwaiter().GetResult()
+            $auth.Logout().GetAwaiter().GetResult() | Out-Null
         }
-        $_ = $auth.Dispose()
+        $auth.Dispose() | Out-Null
 
     }
     $Script:Auth = $null
@@ -528,7 +498,7 @@ function Sync-Keeper {
 #>
 
     [CmdletBinding()]
-    [Vault.VaultOnline]$vault = $Script:Vault
+    [KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
     if ($vault) {
         $task = $vault.SyncDown()
         $_ = $task.GetAwaiter().GetResult()

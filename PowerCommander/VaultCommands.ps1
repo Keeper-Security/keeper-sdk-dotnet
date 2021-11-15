@@ -1,7 +1,5 @@
 #requires -Version 5.0
 
-using namespace KeeperSecurity.Sdk
-
 $Script:PathDelimiter = [System.IO.Path]::DirectorySeparatorChar
 
 function Get-KeeperLocation {
@@ -11,10 +9,10 @@ function Get-KeeperLocation {
 #>
 	[CmdletBinding()]
 
-	[Vault.VaultOnline]$vault = $Script:Vault
+	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 	if ($vault) {
 		[string]$currentFolder = $Script:CurrentFolder
-		[Vault.FolderNode]$folder = $vault.RootFolder
+		[KeeperSecurity.Vault.FolderNode]$folder = $vault.RootFolder
 		if ($currentFolder) {
 			$_ = $vault.TryGetFolder($currentFolder, [ref]$folder)
 		}
@@ -38,10 +36,10 @@ function Set-KeeperLocation {
 	Param (
 		[Parameter(Position = 0)][string] $Path
 	)
-	[Vault.VaultOnline]$vault = $Script:Vault
+	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 	if ($vault) {
 		if ($Path) {
-			[Vault.FolderNode]$folder = $null
+			[KeeperSecurity.Vault.FolderNode]$folder = $null
 			if (!$vault.TryGetFolder($Script:CurrentFolder, [ref]$folder)) {
 				$folder = $vault.RootFolder
 			}
@@ -68,9 +66,9 @@ $Keeper_FolderPathRecordCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
 	$result = @()
-	[Vault.VaultOnline]$vault = $Script:Vault
+	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 	if ($vault) {
-		[Vault.FolderNode] $folder = $null
+		[KeeperSecurity.Vault.FolderNode] $folder = $null
 		if (!$vault.TryGetFolder($Script:CurrentFolder, [ref]$folder)) {
 			$folder = $vault.RootFolder
 		}
@@ -185,9 +183,9 @@ function Get-KeeperChildItems {
 		$showRecord = !$showFolder
 	}
 
-	[Vault.VaultOnline]$vault = $Script:Vault
+	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 	if ($vault) {
-		[Vault.FolderNode] $baseDir = $null
+		[KeeperSecurity.Vault.FolderNode] $baseDir = $null
 		if (!$vault.TryGetFolder($Script:CurrentFolder, [ref]$baseDir)) {
 			$baseDir = $vault.RootFolder
 		}
@@ -196,7 +194,7 @@ function Get-KeeperChildItems {
 			$rs = parseKeeperPath $components $vault $baseDir
 			$baseDir = $rs[0]
 		}
-		[Vault.FolderNode[]]$folders = @($baseDir)
+		[KeeperSecurity.Vault.FolderNode[]]$folders = @($baseDir)
 		if ($Recursive.IsPresent) {
 			$pos = 0
 			$dep = 0
@@ -209,7 +207,7 @@ function Get-KeeperChildItems {
 				$lastPos = $folders.Count
 				for ($i = $pos; $i -lt $lastPos; $i++) {
 					foreach($uid in $folders[$i].Subfolders) {
-						[Vault.FolderNode] $sf = $null;
+						[KeeperSecurity.Vault.FolderNode] $sf = $null;
 						if ($vault.TryGetFolder($uid, [ref]$sf)) {
 							$folders += $sf
 						}
@@ -222,11 +220,11 @@ function Get-KeeperChildItems {
 		$entries = @()
 		$recordEntries = @{}
 		for ($i = 0; $i -lt $folders.Count; $i++) {
-			[Vault.FolderNode]$f = $folders[$i]
+			[KeeperSecurity.Vault.FolderNode]$f = $folders[$i]
 			$path = getVaultFolderPath $vault $f.FolderUid
 			if ($showFolder) {
 				foreach ($uid in $f.Subfolders) {
-					[Vault.FolderNode]$sf = $null
+					[KeeperSecurity.Vault.FolderNode]$sf = $null
 					if ($vault.TryGetFolder($uid, [ref]$sf)) {
 						$match = $true
 						if ($Filter) {
@@ -239,7 +237,7 @@ function Get-KeeperChildItems {
 								Name = $sf.Name
 								OwnerFolder = $path
 								FolderType = $sf.FolderType
-								Shared = $sf.FolderType -ne [Vault.FolderType]::UserFolder
+								Shared = $sf.FolderType -ne [KeeperSecurity.Vault.FolderType]::UserFolder
 								SortGroup = 0
 							}
 							$entries += $entry
@@ -249,7 +247,7 @@ function Get-KeeperChildItems {
 			}
 			if ($showRecord) {
 				foreach ($uid in $f.Records) {
-					[Vault.PasswordRecord] $r = $null
+					[KeeperSecurity.Vault.PasswordRecord] $r = $null
 					if ($vault.TryGetRecord($uid, [ref]$r)) {
 						$match = $true
 						if ($Filter) {
@@ -324,7 +322,7 @@ function Get-KeeperObject {
 	)
 
 	Begin {
-		[Vault.VaultOnline]$vault = $Script:Vault
+		[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 		if (-not $vault) {
 			Write-Error -Message 'Not connected'
 			return
@@ -338,7 +336,7 @@ function Get-KeeperObject {
 	Process {
 		ForEach($oid in $Uid) {
 			if ($testRecord) {
-				[Vault.PasswordRecord] $record = $null
+				[KeeperSecurity.Vault.PasswordRecord] $record = $null
 				if ($vault.TryGetRecord($oid, [ref]$record)) {
 					if ($PropertyName) {
 						$mp = $record | Get-Member -MemberType Properties -Name $PropertyName
@@ -352,7 +350,7 @@ function Get-KeeperObject {
 				}
 			}
 			if ($testSharedFolder) {
-				[Vault.SharedFolder] $sf = $null
+				[KeeperSecurity.Vault.SharedFolder] $sf = $null
 				if ($vault.TryGetSharedFolder($oid, [ref]$sf)) {
 					if ($PropertyName) {
 						$mp = $sf | Get-Member -MemberType Properties -Name $PropertyName
@@ -366,7 +364,7 @@ function Get-KeeperObject {
 				}
 			}
 			if ($testFolder) {
-				[Vault.FolderNode] $f = $null
+				[KeeperSecurity.Vault.FolderNode] $f = $null
 				if ($vault.TryGetFolder($oid, [ref]$f)) {
 					if ($PropertyName) {
 						$mp = $f | Get-Member -MemberType Properties -Name $PropertyName
@@ -380,7 +378,7 @@ function Get-KeeperObject {
 				}
 			}
 			if ($testTeam) {
-				[Vault.EnterpriseTeam] $t = $null
+				[KeeperSecurity.Vault.EnterpriseTeam] $t = $null
 				if ($vault.TryGetTeam($oid, [ref]$t)) {
 					if ($PropertyName) {
 						$mp = $t | Get-Member -MemberType Properties -Name $PropertyName
@@ -403,8 +401,8 @@ New-Alias -Name ko -Value Get-KeeperObject
 function parseKeeperPath {
 	Param (
 		[string[]]$components,
-		[Vault.VaultOnline]$vault,
-		[Vault.FolderNode]$folder
+		[KeeperSecurity.Vault.VaultOnline]$vault,
+		[KeeperSecurity.Vault.FolderNode]$folder
 	)
 	if ($components) {
 		if (!$components[0]) {
@@ -427,7 +425,7 @@ function parseKeeperPath {
 			}		
 			else {
 				foreach ($x in $folder.Subfolders) {
-					[Vault.FolderNode] $subfolder = $null
+					[KeeperSecurity.Vault.FolderNode] $subfolder = $null
 					if ($vault.TryGetFolder($x, [ref]$subfolder)) {
 						if ($subfolder.Name -eq $component) {
 							$resume = $true
@@ -481,7 +479,7 @@ function splitKeeperPath {
 }
 
 function exportKeeperNode {
-	Param ([Vault.FolderNode] $folder)
+	Param ([KeeperSecurity.Vault.FolderNode] $folder)
 	[PSCustomObject]@{
 		PSTypeName  = 'KeeperSecurity.Commander.FolderInfo'
 		FolderUid = $folder.FolderUid
@@ -506,7 +504,7 @@ function escapePathComponent {
 
 function getVaultFolderPath {
 	Param (
-		[Vault.VaultOnline]$vault,
+		[KeeperSecurity.Vault.VaultOnline]$vault,
 		[string] $folderUid
 	)
 
@@ -521,9 +519,9 @@ function getVaultFolderPath {
 	"${Script:PathDelimiter}${path}"
 }
 
-function traverseFolderToRoot ([Vault.VaultOnline]$vault, [string] $folderUid, [ref][string[]] $components) {
+function traverseFolderToRoot ([KeeperSecurity.Vault.VaultOnline]$vault, [string] $folderUid, [ref][string[]] $components) {
 	if ($folderUid) {
-		[Vault.FolderNode]$folder = $null
+		[KeeperSecurity.Vault.FolderNode]$folder = $null
 		if ($vault.TryGetFolder($folderUid, [ref]$folder)) {
 			$components.Value += $folder.Name
 			traverseFolderToRoot $vault $folder.ParentUid $components
