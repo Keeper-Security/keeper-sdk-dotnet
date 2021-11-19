@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -34,17 +34,25 @@ namespace Commander
             var storage = Program.CommanderStorage.GetKeeperStorage(auth.Username);
             _vault = new VaultOnline(_auth, storage)
             {
-                VaultUi = new VaultUi(), 
+                VaultUi = new VaultUi(),
                 AutoSync = true
             };
             SubscribeToNotifications();
             CheckIfEnterpriseAdmin();
             lock (Commands)
             {
+                Commands.Add("search",
+                    new ParsableCommand<SearchCommandOptions>
+                    {
+                        Order = 10,
+                        Description = "Search the vault. Can use a regular expression",
+                        Action = SearchCommand
+                    });
+
                 Commands.Add("list",
                     new ParsableCommand<ListCommandOptions>
                     {
-                        Order = 10,
+                        Order = 11,
                         Description = "List folder content",
                         Action = ListCommand
                     });
@@ -52,7 +60,7 @@ namespace Commander
                 Commands.Add("cd",
                     new SimpleCommand
                     {
-                        Order = 11,
+                        Order = 12,
                         Description = "Change current folder",
                         Action = ChangeDirectoryCommand
                     });
@@ -60,7 +68,7 @@ namespace Commander
                 Commands.Add("tree",
                     new ParsableCommand<TreeCommandOptions>
                     {
-                        Order = 12,
+                        Order = 13,
                         Description = "Display folder structure",
                         Action = TreeCommand
                     });
@@ -68,15 +76,29 @@ namespace Commander
                 Commands.Add("get",
                     new SimpleCommand
                     {
-                        Order = 13,
+                        Order = 14,
                         Description = "Display specified Keeper record/folder/team",
                         Action = GetCommand
                     });
 
+                if (auth.AuthContext.Settings.RecordTypesEnabled)
+                {
+                    Commands.Add("record-type-info",
+                        new ParsableCommand<RecordTypeInfoOptions>
+                        {
+                            Order = 20,
+                            Description = "Get record type info",
+                            Action = RecordTypeInfoCommand
+                        }
+                    );
+                    CommandAliases.Add("rti", "record-type-info");
+
+                }
+
                 Commands.Add("add-record",
                     new ParsableCommand<AddRecordOptions>
                     {
-                        Order = 20,
+                        Order = 21,
                         Description = "Add record",
                         Action = AddRecordCommand
                     });
@@ -84,7 +106,7 @@ namespace Commander
                 Commands.Add("update-record",
                     new ParsableCommand<UpdateRecordOptions>
                     {
-                        Order = 21,
+                        Order = 22,
                         Description = "Update record",
                         Action = UpdateRecordCommand
                     });
@@ -92,7 +114,7 @@ namespace Commander
                 Commands.Add("mkdir",
                     new ParsableCommand<MakeFolderOptions>
                     {
-                        Order = 22,
+                        Order = 23,
                         Description = "Make folder",
                         Action = MakeFolderCommand
                     });
@@ -100,7 +122,7 @@ namespace Commander
                 Commands.Add("rmdir",
                     new ParsableCommand<FolderOptions>
                     {
-                        Order = 22,
+                        Order = 24,
                         Description = "Remove folder",
                         Action = RemoveFolderCommand
                     });
@@ -108,7 +130,7 @@ namespace Commander
                 Commands.Add("mv",
                     new ParsableCommand<MoveOptions>
                     {
-                        Order = 23,
+                        Order = 25,
                         Description = "Move record or folder",
                         Action = MoveCommand
                     });
@@ -116,9 +138,25 @@ namespace Commander
                 Commands.Add("rm",
                     new ParsableCommand<RemoveRecordOptions>
                     {
-                        Order = 24,
+                        Order = 26,
                         Description = "Remove record(s)",
                         Action = RemoveRecordCommand
+                    });
+
+                Commands.Add("download-attachment",
+                    new ParsableCommand<DownloadAttachmentOptions>
+                    {
+                        Order = 27,
+                        Description = "Download Attachment(s)",
+                        Action = DownloadAttachmentCommand
+                    });
+
+                Commands.Add("upload-attachment",
+                    new ParsableCommand<UploadAttachmentOptions>
+                    {
+                        Order = 28,
+                        Description = "Upload file attachment",
+                        Action = UploadAttachmentCommand
                     });
 
                 Commands.Add("sf-list",
@@ -191,6 +229,7 @@ namespace Commander
 
                             if (fullSync)
                             {
+
                                 Console.WriteLine($"Decrypted {_vault.RecordCount} record(s)");
                             }
                         }
@@ -207,7 +246,7 @@ namespace Commander
                 CommandAliases.Add("ls", "list");
                 CommandAliases.Add("d", "sync-down");
                 CommandAliases.Add("add", "add-record");
-                CommandAliases.Add("upd", "update-record");
+                CommandAliases.Add("edit", "update-record");
             }
 
             Program.EnqueueCommand("sync-down");
@@ -217,7 +256,8 @@ namespace Commander
 
         private bool DeviceApprovalRequestCallback(NotificationEvent evt)
         {
-            if (string.Compare(evt.Event, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) != 0) return false;
+            if (string.Compare(evt.Event, "device_approval_request", StringComparison.InvariantCultureIgnoreCase) !=
+                0) return false;
             _accountSummary = null;
             var deviceToken = evt.EncryptedDeviceToken.Base64UrlDecode();
             Console.WriteLine(!string.IsNullOrEmpty(evt.EncryptedDeviceToken)
@@ -259,6 +299,102 @@ namespace Commander
             NextState = new NotConnectedCliContext(false);
         }
 
+        private Task SearchCommand(SearchCommandOptions options)
+        {
+            if (options.Limit <= 0)
+            {
+                options.Limit = 100;
+            }
+            else if (options.Limit > 1000)
+            {
+                options.Limit = 1000;
+            }
+
+            Regex pattern = string.IsNullOrEmpty(options.Pattern)
+                ? null
+                : new Regex(options.Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            var matchedRecords = _vault.KeeperRecords
+                .Where(record =>
+                {
+                    if (pattern == null)
+                    {
+                        return true;
+                    }
+
+                    if (record.Uid == options.Pattern)
+                    {
+                        return true;
+                    }
+
+                    if (pattern.IsMatch(record.Title))
+                    {
+                        return true;
+                    }
+
+                    if (record is PasswordRecord legacy)
+                    {
+                        return new[] {legacy.Notes, legacy.Login, legacy.Password, legacy.Notes}
+                            .Where(x => !string.IsNullOrEmpty(x))
+                            .Any(x => pattern.IsMatch(x));
+                    }
+
+                    if (record is TypedRecord typed)
+                    {
+
+                        var matched = new[] { typed.Notes, typed.TypeName }
+                            .Where(x => !string.IsNullOrEmpty(x))
+                            .Any(x => pattern.IsMatch(x));
+
+                        if (matched)
+                        {
+                            return true;
+                        }
+
+                        matched = typed.Fields
+                            .Any(x => x.GetTypedFieldValues().Any(y => pattern.IsMatch(y)));
+                        if (matched)
+                        {
+                            return true;
+                        }
+
+                        return typed.Custom
+                            .Any(x => x.GetTypedFieldValues().Any(y => pattern.IsMatch(y)));
+                    }
+
+                    return false;
+                })
+                .Take(options.Limit)
+                .ToArray();
+
+            if (matchedRecords.Length > 0)
+            {
+                var tab = new Tabulate(4)
+                {
+                    DumpRowNo = true
+                };
+                tab.AddHeader("Record UID", "Title", "Type", "Info");
+                foreach (var r in matchedRecords)
+                {
+                    tab.AddRow(r.Uid, r.Title, r.KeeperRecordType(), r.KeeperRecordPublicInformation());
+                }
+
+                tab.Sort(1);
+                tab.Dump();
+
+                if (matchedRecords.Length == options.Limit)
+                {
+                    Console.WriteLine($"First {options.Limit} found records are shown.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No records found");
+            }
+
+            return Task.FromResult(true);
+        }
+
         private Task ListCommand(ListCommandOptions options)
         {
             FolderNode node = null;
@@ -267,7 +403,8 @@ namespace Commander
                 _vault.TryGetFolder(_currentFolder, out node);
             }
 
-            if (node == null) {
+            if (node == null)
+            {
                 node = _vault.RootFolder;
             }
 
@@ -279,12 +416,12 @@ namespace Commander
                     {
                         DumpRowNo = true
                     };
-                    tab.AddHeader(new[] {"Folder UID", "Name"});
+                    tab.AddHeader("Folder UID", "Name");
                     foreach (var uid in node.Subfolders)
                     {
                         if (_vault.TryGetFolder(uid, out var f))
                         {
-                            tab.AddRow(new[] {f.FolderUid, f.Name});
+                            tab.AddRow(f.FolderUid, f.Name);
                         }
                     }
 
@@ -298,12 +435,12 @@ namespace Commander
                     {
                         DumpRowNo = true
                     };
-                    tab.AddHeader(new[] {"Record UID", "Title", "Login", "URL"});
+                    tab.AddHeader("Record UID", "Title", "Type", "Info");
                     foreach (var uid in node.Records)
                     {
-                        if (_vault.TryGetRecord(uid, out var r))
+                        if (_vault.TryGetKeeperRecord(uid, out var r))
                         {
-                            tab.AddRow(new[] {r.Uid, r.Title, r.Login, r.Link});
+                            tab.AddRow(r.Uid, r.Title, r.KeeperRecordType(), r.KeeperRecordPublicInformation());
                         }
                     }
 
@@ -321,16 +458,21 @@ namespace Commander
                         names.Add(subNode.Name + "/");
                     }
                 }
+
                 names.Sort(StringComparer.InvariantCultureIgnoreCase);
 
                 var len = names.Count;
                 foreach (var uid in node.Records)
                 {
-                    if (_vault.TryGetRecord(uid, out var record))
+                    if (_vault.TryGetKeeperRecord(uid, out var r))
                     {
-                        names.Add(string.IsNullOrEmpty(record.Title) ? record.Uid : record.Title);
+                        if (r.Version == 2 || r.Version == 3)
+                        {
+                            names.Add(string.IsNullOrEmpty(r.Title) ? r.Uid : r.Title);
+                        }
                     }
                 }
+
                 if (names.Count <= 0) return Task.FromResult(true);
                 names.Sort(len, names.Count - len, StringComparer.InvariantCultureIgnoreCase);
 
@@ -379,36 +521,92 @@ namespace Commander
         private Task GetCommand(string uid)
         {
             var tab = new Tabulate(3);
-            if (_vault.TryGetRecord(uid, out var record))
+            if (_vault.TryGetKeeperRecord(uid, out var record))
             {
-                tab.AddRow(new[] { "Record UID:", record.Uid });
-                tab.AddRow(new[] { "Title:", record.Title });
-                tab.AddRow(new[] { "Login:", record.Login });
-                tab.AddRow(new[] { "Password:", record.Password });
-                tab.AddRow(new[] { "Login URL:", record.Link });
-                tab.AddRow(new[] { "Notes:", record.Notes });
-                if (record.Custom != null && record.Custom.Count > 0)
+                List<string> totps = null;
+
+                tab.AddRow("Record UID:", record.Uid);
+                tab.AddRow("Type:", record.KeeperRecordType());
+                tab.AddRow("Title:", record.Title);
+                if (record is PasswordRecord legacy)
                 {
-                    tab.AddRow(new[] { "" });
-                    tab.AddRow(new[] { "Custom Fields:", "" });
-                    foreach (var c in record.Custom)
+                    tab.AddRow("Notes:", legacy.Notes);
+                    tab.AddRow("(login):", legacy.Login);
+                    tab.AddRow("(password):", legacy.Password);
+                    tab.AddRow("(url):", legacy.Link);
+                    if (legacy.Custom != null && legacy.Custom.Count > 0)
                     {
-                        tab.AddRow(new[] { c.Name + ":", c.Value });
+                        foreach (var c in legacy.Custom)
+                        {
+                            tab.AddRow(c.Name + ":", c.Value);
+                        }
+                    }
+
+                    if (legacy.ExtraFields != null)
+                    {
+                        totps = legacy.ExtraFields
+                            .Where(x =>
+                                string.Equals(x.FieldType, "totp", StringComparison.InvariantCultureIgnoreCase) &&
+                                x.Custom != null)
+                            .Where(x => x.Custom.ContainsKey("data"))
+                            .Select(x => x.Custom["data"] as string)
+                            .Where(x => !string.IsNullOrEmpty(x))
+                            .ToList();
                     }
                 }
-                if (record.ExtraFields != null)
+                else if (record is TypedRecord typed)
                 {
-                    var totps = record.ExtraFields
-                        .Where(x => string.Equals(x.FieldType, "totp", StringComparison.InvariantCultureIgnoreCase) && x.Custom != null)
-                        .Where(x => x.Custom.ContainsKey("data"))
-                        .ToArray();
-                    foreach (var t in totps)
+                    tab.AddRow("Notes:", typed.Notes);
+                    foreach (var f in typed.Fields.Concat(typed.Custom))
+                    {
+                        if (f.FieldName == "totp")
+                        {
+                            if (totps == null)
+                            {
+                                totps = new List<string>();
+                            }
+
+                            if (f is TypedField<string> sf && sf.Count > 0)
+                            {
+                                totps.AddRange(sf.Values.Where(x => !string.IsNullOrEmpty(x)));
+                            }
+                        }
+                        else
+                        {
+                            var label = f.GetTypedFieldName();
+                            var values = f.GetTypedFieldValues().ToArray();
+                            for (var i = 0; i < Math.Max(values.Length, 1); i++)
+                            {
+                                var v = i < values.Length ? values[i] : "";
+                                if (v.Length > 80)
+                                {
+                                    v = v.Substring(0, 77) + "...";
+                                }
+
+                                tab.AddRow(i == 0 ? $"{label}:" : "", v);
+                            }
+                        }
+                    }
+                }
+                else if (record is FileRecord file)
+                {
+                    tab.AddRow("Name:", file.Name);
+                    tab.AddRow("MIME Type:", file.MimeType ?? "");
+                    tab.AddRow("Size:", file.FileSize.ToString("N"));
+                    if (file.ThumbnailSize > 0)
+                    {
+                        tab.AddRow("Thumbnail Size:", file.ThumbnailSize.ToString("N"));
+                    }
+                }
+
+                if (totps != null)
+                {
+                    foreach (var url in totps)
                     {
                         try
                         {
-                            var url = t.Custom["data"] as string;
                             var tup = CryptoUtils.GetTotpCode(url);
-                            tab.AddRow($"{t.FieldTitle}:", $"{tup.Item1} expires in {tup.Item3 - tup.Item2} sec.");
+                            tab.AddRow($"{tup.Item1}:", $"expires in {tup.Item3 - tup.Item2} sec.");
                         }
                         catch (Exception e)
                         {
@@ -416,34 +614,34 @@ namespace Commander
                         }
                     }
                 }
+
+                tab.AddRow("Last Modified:", record.ClientModified.LocalDateTime.ToString("F"));
+
             }
             else if (_vault.TryGetSharedFolder(uid, out var sf))
             {
-                tab.AddRow(new[] { "Shared Folder UID:", sf.Uid });
-                tab.AddRow(new[] { "Name:", sf.Name });
-                tab.AddRow(new[] { "Default Manage Records:", sf.DefaultManageRecords.ToString() });
-                tab.AddRow(new[] { "Default Manage Users:", sf.DefaultManageUsers.ToString() });
-                tab.AddRow(new[] { "Default Can Edit:", sf.DefaultCanEdit.ToString() });
-                tab.AddRow(new[] { "Default Can Share:", sf.DefaultCanShare.ToString() });
+                tab.AddRow("Shared Folder UID:", sf.Uid);
+                tab.AddRow("Name:", sf.Name);
+                tab.AddRow("Default Manage Records:", sf.DefaultManageRecords.ToString());
+                tab.AddRow("Default Manage Users:", sf.DefaultManageUsers.ToString());
+                tab.AddRow("Default Can Edit:", sf.DefaultCanEdit.ToString());
+                tab.AddRow("Default Can Share:", sf.DefaultCanShare.ToString());
                 if (sf.RecordPermissions.Count > 0)
                 {
-                    tab.AddRow(new[] { "" });
-                    tab.AddRow(new[] { "Record Permissions:" });
+                    tab.AddRow("");
+                    tab.AddRow("Record Permissions:");
                     foreach (var r in sf.RecordPermissions)
                     {
-                        tab.AddRow(new[]
-                        {
-                            r.RecordUid + ":", "Can Edit: " + r.CanEdit,
-                            "Can Share: " + r.CanShare
-                        });
+                        tab.AddRow(r.RecordUid + ":",
+                            $"Can Edit: {(r.CanEdit ? "Y" : "N")} Can Share: {(r.CanShare ? "Y" : "N")}");
                     }
                 }
 
                 var teamLookup = _vault.Teams.ToDictionary(t => t.TeamUid, t => t.Name);
                 if (sf.UsersPermissions.Count > 0)
                 {
-                    tab.AddRow(new[] { "" });
-                    tab.AddRow(new[] { "User/Team Permissions:" });
+                    tab.AddRow("");
+                    tab.AddRow("User/Team Permissions:");
                     var sortedList = sf.UsersPermissions.ToList();
                     sortedList.Sort((x, y) =>
                     {
@@ -467,25 +665,21 @@ namespace Commander
                     foreach (var u in sortedList)
                     {
                         var subjectName = u.UserType == UserType.User ? u.UserId : (teamLookup[u.UserId] ?? u.UserId);
-                        tab.AddRow(new[]
-                        {
-                            $"{u.UserType} {subjectName}:",
-                            $"Can Manage Records: {u.ManageRecords}",
-                            $"Can Manage Users: {u.ManageUsers}"
-                        });
+                        tab.AddRow($"{u.UserType} {subjectName}:", $"Can Manage Records: {u.ManageRecords}",
+                            $"Can Manage Users: {u.ManageUsers}");
                     }
                 }
             }
             else if (_vault.TryGetFolder(uid, out var f))
             {
-                tab.AddRow(new[] { "Folder UID:", f.FolderUid });
+                tab.AddRow("Folder UID:", f.FolderUid);
                 if (!string.IsNullOrEmpty(f.ParentUid))
                 {
-                    tab.AddRow(new[] { "Parent Folder UID:", f.ParentUid });
+                    tab.AddRow("Parent Folder UID:", f.ParentUid);
                 }
 
-                tab.AddRow(new[] { "Folder Type:", f.FolderType.ToString() });
-                tab.AddRow(new[] { "Name:", f.Name });
+                tab.AddRow("Folder Type:", f.FolderType.ToString());
+                tab.AddRow("Name:", f.Name);
             }
             else
             {
@@ -520,64 +714,302 @@ namespace Commander
             return Task.FromResult(true);
         }
 
+        private static readonly Tuple<string, bool>[] Prefixes = {Tuple.Create("field.",true), Tuple.Create("f.", true), Tuple.Create("custom.", false), Tuple.Create("c.", false)};
+        private const string FieldPattern = "^(\\w+)(\\.[^\\[]+)?(\\[*.\\])?\\s*=\\s*(.*)$";
+
+        private static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)
+        {
+            var rx = new Regex(FieldPattern);
+            foreach (var f in inputs)
+            {
+                var field = f;
+                var crf = new CmdLineRecordField();
+                foreach (var pair in Prefixes)
+                {
+                    var prefix = pair.Item1;
+                    var isField = pair.Item2;
+                    if (field.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        crf.IsRecordField = isField;
+                        field = field.Substring(prefix.Length);
+                        break;
+                    }
+                }
+                var match = rx.Match(field);
+                if (!match.Success || match.Groups.Count < 5)
+                {
+                    throw new Exception($"Invalid field parameter: {f}");
+                }
+
+                crf.FieldName = match.Groups[1].Value.Trim();
+                crf.FieldLabel = match.Groups[2].Value.Trim('.').Trim();
+                crf.FieldIndex = match.Groups[3].Value.Trim('[', ']').Trim();
+                crf.Value = match.Groups[4].Value.Trim();
+                if (crf.Value.Length >= 2 && crf.Value.StartsWith("\"") && crf.Value.EndsWith("\""))
+                {
+                    crf.Value = crf.Value.Trim('"').Replace("\\\"", "\"");
+                }
+
+                yield return crf;
+            }
+        }
+
+
+        private void AssignRecordFields(KeeperRecord record, CmdLineRecordField[] fields)
+        {
+            if (record is PasswordRecord password)
+            {
+                foreach (var field in fields)
+                {
+                    switch (field.FieldName.ToLowerInvariant())
+                    {
+                        case "login":
+                            password.Login = field.Value;
+                            break;
+                        case "password":
+                            password.Password = field.Value;
+                            break;
+                        case "notes":
+                            password.Notes = field.Value;
+                            break;
+                        default:
+                            password.SetCustomField(field.FieldName, field.Value);
+                            break;
+                    }
+                }
+            }
+            else if (record is TypedRecord typed)
+            {
+                var indexes = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
+                foreach (var f in typed.Fields.Concat(typed.Custom))
+                {
+                    if (f.Count <= 1) continue;
+                    var fullName = f.GetTypedFieldName();
+                    for (var i = 1; i < f.Count; i++)
+                    {
+                        indexes.Add($"{fullName}[{i}]", i);
+                    }
+                }
+
+                if (_vault.TryGetRecordTypeByName(typed.TypeName, out var recordType))
+                {
+                    VerifyTypedFields(fields, recordType);
+                }
+
+                var fieldSet = fields.Where(x => !string.IsNullOrEmpty(x.Value)).ToArray();
+                var fieldDelete = fields.Where(x => string.IsNullOrEmpty(x.Value)).ToArray();
+                foreach (var field in fieldSet.Concat(fieldDelete))
+                {
+                    if (string.Equals(field.FieldName, "notes", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (string.IsNullOrEmpty(typed.Notes))
+                        {
+                            typed.Notes = "";
+                        }
+                        else
+                        {
+                            typed.Notes += "\n";
+                        }
+                        typed.Notes += field.Value;
+                    }
+                    else
+                    {
+                        var fieldSource = field.IsRecordField == true ? typed.Fields : typed.Custom;
+                        if (!fieldSource.FindTypedField(field, out var typedField))
+                        {
+                            if (string.IsNullOrEmpty(field.Value)) continue;
+
+                            typedField = field.CreateTypedField();
+                            fieldSource.Add(typedField);
+                        }
+
+                        if (string.IsNullOrEmpty(field.Value))
+                        {
+                            if (string.IsNullOrEmpty(field.FieldIndex))
+                            {
+                                fieldSource.Remove(typedField);
+                            }
+                            else
+                            {
+                                var fullName = field.GetTypedFieldName();
+                                var valuePath = $"{fullName}[{field.FieldIndex}]";
+                                if (!indexes.TryGetValue(valuePath, out var idx))
+                                {
+                                    if (idx >= 0 && idx < typedField.Count)
+                                    {
+                                        typedField.DeleteValueAt(idx);
+                                    }
+                                    indexes.Remove(valuePath);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var idx = 0;
+                            if (!string.IsNullOrEmpty(field.FieldIndex))
+                            {
+                                var fullName = field.GetTypedFieldName();
+                                var valuePath = $"{fullName}[{field.FieldIndex}]";
+                                if (!indexes.TryGetValue(valuePath, out idx))
+                                {
+                                    typedField.AppendValue();
+                                    idx = typedField.Count - 1;
+                                    indexes.Add(valuePath, idx);
+                                }
+                            }
+
+                            if (typedField.Count == 0)
+                            {
+                                typedField.AppendValue();
+                            }
+
+                            if (typedField is TypedField<string> tfs)
+                            {
+                                tfs.Values[idx] = field.Value;
+                            }
+                            else if (typedField is TypedField<long> tfl)
+                            {
+                                if (!long.TryParse(field.Value, out var lv))
+                                {
+                                    if (DateTimeOffset.TryParse(field.Value, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out var dto))
+                                    {
+                                        lv = dto.ToUnixTimeMilliseconds();
+                                    }
+                                    else
+                                    {
+                                        throw new Exception($"Field \"{field.FieldName}\": invalid value \"{field.Value}\"");
+                                    }
+                                }
+                                tfl.Values[idx] = lv;
+                            }
+                            else
+                            {
+                                if (typedField.GetValueAt(idx) is IFieldTypeSerialize typedValue)
+                                {
+                                    foreach (var pair in field.Value.Split(','))
+                                    {
+                                        var pos = pair.IndexOf('=');
+                                        var element = pos > 0 ? pair.Substring(0, pos) : pair;
+                                        var value = pos > 0 ? pair.Substring(pos + 1) : "";
+                                        if (!typedValue.SetElementValue(element, value))
+                                        {
+                                            throw new Exception($"Field type {field.FieldName}: Invalid element name: {element}.");
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    throw new Exception($"Field type {field.FieldName}: Value serialization is not supported.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void VerifyTypedFields(CmdLineRecordField[] fields, RecordType recordType)
+        {
+            var recordFields = new Dictionary<string, RecordTypeField>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var f in recordType.Fields)
+            {
+                recordFields[f.FieldName] = f;
+            }
+            foreach (var field in fields)
+            {
+                if (string.Equals(field.FieldName, "notes", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (!field.IsRecordField.HasValue)
+                {
+                    if (recordFields.TryGetValue(field.FieldName, out var rtf))
+                    {
+                        field.FieldLabel = rtf.FieldLabel;
+                        field.IsRecordField = true;
+                        if (rtf.RecordField.Multiple == RecordFieldMultiple.Default)
+                        {
+                            recordFields.Remove(field.FieldName);
+                        }
+                    }
+                    else
+                    {
+                        field.IsRecordField = false;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(field.Value)) continue;
+
+                if (!RecordTypesConstants.TryGetRecordField(field.FieldName, out var recordField))
+                {
+                    throw new Exception($"Record field \"{field.FieldName}\" is not supported.");
+                }
+
+                if (string.IsNullOrEmpty(field.FieldIndex)) continue;
+
+                if (recordField.Multiple != RecordFieldMultiple.Default)
+                {
+                    throw new Exception($"Record field \"{field.FieldName}\" does not support multiple values");
+                }
+            }
+        }
+
         private async Task AddRecordCommand(AddRecordOptions options)
         {
-            if (!TryResolvePath(options.Folder, out FolderNode node))
+            if (!TryResolvePath(options.Folder, out var node))
             {
                 Console.WriteLine($"Cannot resolve folder {options.Folder}");
                 return;
             }
-
-            var record = new PasswordRecord
+            if (string.IsNullOrEmpty(options.Title)) 
             {
-                Title = options.Title,
-                Login = options.Login,
-                Password = options.Password,
-                Link = options.Url,
-                Notes = options.Notes
-            };
-            if (string.IsNullOrEmpty(record.Password) && options.Generate)
-            {
-                record.Password = CryptoUtils.GenerateUid();
+                Console.WriteLine($"\"Title\" parameter is missing.");
+                return;
             }
-
-            if (!options.Force)
+            var fields = ParseRecordFields(options.Fields).ToArray();
+            if (options.Generate)
             {
-                if (string.IsNullOrEmpty(record.Login))
+                foreach (var field in fields)
                 {
-                    Console.Write("..." + "Login: ".PadRight(16));
-                    record.Login = await Program.GetInputManager().ReadLine();
-                }
-
-                if (string.IsNullOrEmpty(record.Password))
-                {
-                    Console.Write("..." + "Password: ".PadRight(16));
-                    record.Login = await Program.GetInputManager().ReadLine(new ReadLineParameters
+                    if (string.Equals(field.FieldName, "password", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(field.Value))
                     {
-                        IsSecured = true
-                    });
-                }
-
-                if (string.IsNullOrEmpty(record.Link))
-                {
-                    Console.Write("..." + "Login URL: ".PadRight(16));
-                    record.Link = await Program.GetInputManager().ReadLine();
+                        field.Value = CryptoUtils.GenerateUid();
+                    }
                 }
             }
 
+            KeeperRecord record = null;
+            if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) || 
+                string.Equals(options.RecordType, "legacy", StringComparison.InvariantCultureIgnoreCase))
+            {
+                record = new PasswordRecord
+                {
+                    Title = options.Title
+                };
+            }
+            else
+            {
+                record = new TypedRecord(options.RecordType)
+                {
+                    Title = options.Title
+                };
+            }
+
+            AssignRecordFields(record, fields);
             await _vault.CreateRecord(record, node.FolderUid);
         }
 
         private async Task UpdateRecordCommand(UpdateRecordOptions options)
         {
-            if (_vault.TryGetRecord(options.RecordId, out var record))
+            if (_vault.TryGetKeeperRecord(options.RecordId, out var record))
             {
             }
             else if (TryResolvePath(options.RecordId, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
-                    if (!_vault.TryGetRecord(uid, out var r)) continue;
+                    if (!_vault.TryGetKeeperRecord(uid, out var r)) continue;
                     if (string.CompareOrdinal(title, r.Title) != 0) continue;
 
                     record = r;
@@ -596,33 +1028,19 @@ namespace Commander
                 record.Title = options.Title;
             }
 
-            if (!string.IsNullOrEmpty(options.Login))
+            var fields = ParseRecordFields(options.Fields).ToArray();
+            if (options.Generate)
             {
-                record.Login = options.Login;
-            }
-
-            if (string.IsNullOrEmpty(options.Password))
-            {
-                if (options.Generate)
+                foreach (var field in fields)
                 {
-                    record.Password = CryptoUtils.GenerateUid();
+                    if (string.Equals(field.FieldName, "password", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(field.Value))
+                    {
+                        field.Value = CryptoUtils.GenerateUid();
+                    }
                 }
             }
-            else
-            {
-                record.Password = options.Password;
-            }
 
-            if (!string.IsNullOrEmpty(options.Url))
-            {
-                record.Link = options.Url;
-            }
-
-            if (!string.IsNullOrEmpty(options.Notes))
-            {
-                record.Notes = options.Notes;
-            }
-
+            AssignRecordFields(record, fields);
             await _vault.UpdateRecord(record);
         }
 
@@ -647,9 +1065,10 @@ namespace Commander
                 return;
             }
 
-            if (_vault.TryGetRecord(options.RecordName, out var record))
+            if (_vault.TryGetKeeperRecord(options.RecordName, out var record))
             {
-                var folders = Enumerable.Repeat(_vault.RootFolder, 1).Concat(_vault.Folders).Where(x => x.Records.Contains(record.Uid)).ToArray();
+                var folders = Enumerable.Repeat(_vault.RootFolder, 1).Concat(_vault.Folders)
+                    .Where(x => x.Records.Contains(record.Uid)).ToArray();
                 if (folders.Length == 0)
                 {
                     Console.WriteLine("not expected");
@@ -659,11 +1078,12 @@ namespace Commander
                 var folder = folders.Length == 1
                     ? folders[0]
                     : folders.FirstOrDefault(x => x.FolderUid == _currentFolder)
-                    ?? folders.FirstOrDefault(x => string.IsNullOrEmpty(x.FolderUid))
-                    ?? folders.FirstOrDefault(x => x.FolderType == FolderType.UserFolder)
-                    ?? folders[0];
+                      ?? folders.FirstOrDefault(x => string.IsNullOrEmpty(x.FolderUid))
+                      ?? folders.FirstOrDefault(x => x.FolderType == FolderType.UserFolder)
+                      ?? folders[0];
 
-                await _vault.DeleteRecords(new[] {new RecordPath {FolderUid = folder.FolderUid, RecordUid = record.Uid,}});
+                await _vault.DeleteRecords(new[]
+                    {new RecordPath {FolderUid = folder.FolderUid, RecordUid = record.Uid,}});
             }
             else
             {
@@ -685,18 +1105,153 @@ namespace Commander
                 var records = new List<RecordPath>();
                 foreach (var recordUid in folder.Records)
                 {
-                    if (!_vault.TryGetRecord(recordUid, out record)) continue;
+                    if (!_vault.TryGetKeeperRecord(recordUid, out record)) continue;
 
                     var m = Regex.Match(record.Title, pattern, RegexOptions.IgnoreCase);
                     if (m.Success)
                     {
-                        records.Add(new RecordPath { FolderUid = folder.FolderUid, RecordUid = recordUid });
+                        records.Add(new RecordPath {FolderUid = folder.FolderUid, RecordUid = recordUid});
                     }
                 }
 
                 await _vault.DeleteRecords(records.ToArray());
             }
         }
+
+
+        private async Task DownloadAttachmentCommand(DownloadAttachmentOptions options)
+        {
+            if (_vault.TryGetKeeperRecord(options.RecordName, out var record))
+            {
+            }
+            else if (TryResolvePath(options.RecordName, out var node, out var title))
+            {
+                foreach (var uid in node.Records)
+                {
+                    if (!_vault.TryGetKeeperRecord(uid, out var r)) continue;
+                    if (string.CompareOrdinal(title, r.Title) != 0) continue;
+
+                    record = r;
+                    break;
+                }
+            }
+
+            if (record == null)
+            {
+                Console.WriteLine($"Cannot resolve record {options.RecordName}");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(options.OutputDirectory))
+            {
+                options.OutputDirectory = Directory.GetCurrentDirectory();
+            }
+            else
+            {
+                var dirEntry = System.IO.Directory.CreateDirectory(options.OutputDirectory);
+                options.OutputDirectory = dirEntry.FullName;
+            }
+
+            var attas = _vault.RecordAttachments(record)
+                .Where(x =>
+                {
+                    if (string.IsNullOrEmpty(options.FileName))
+                    {
+                        return true;
+                    }
+
+                    if (string.Equals(options.FileName, x.Id))
+                    {
+                        return true;
+                    }
+
+                    if (string.Equals(options.FileName, x.Title, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                    if (string.Equals(options.FileName, x.Name, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }).ToArray();
+
+            if (attas.Length > 0)
+            {
+                foreach (var atta in attas)
+                {
+                    Console.Write($"Downloading {atta.Name} ...");
+                    try
+                    {
+                        using (var stream = File.OpenWrite(Path.Combine(options.OutputDirectory, atta.Name)))
+                        {
+                            switch (atta)
+                            {
+                                case AttachmentFile af:
+                                    await _vault.DownloadAttachmentFile(record.Uid, af, stream);
+                                    break;
+                                case FileRecord fr:
+                                    await _vault.DownloadFile(fr, stream);
+                                    break;
+                            }
+                        }
+
+                        Console.WriteLine(" Done.");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Failed: {e.Message}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Attachment not found: {(options.FileName ?? "")}");
+            }
+        }
+
+        private async Task UploadAttachmentCommand(UploadAttachmentOptions options)
+        {
+            if (_vault.TryGetKeeperRecord(options.RecordName, out var record))
+            {
+            }
+            else if (TryResolvePath(options.RecordName, out var node, out var title))
+            {
+                foreach (var uid in node.Records)
+                {
+                    if (!_vault.TryGetKeeperRecord(uid, out var r)) continue;
+                    if (string.CompareOrdinal(title, r.Title) != 0) continue;
+
+                    record = r;
+                    break;
+                }
+            }
+
+            if (record == null)
+            {
+                Console.WriteLine($"Cannot resolve record {options.RecordName}");
+                return;
+            }
+
+            if (!File.Exists(options.FileName))
+            {
+                Console.WriteLine($"File {options.FileName} not found.");
+                return;
+            }
+
+            var uploadTask = new FileAttachmentUploadTask(options.FileName);
+            if (record is PasswordRecord password)
+            {
+                await _vault.UploadAttachment(password, uploadTask);
+            }
+            else if (record is TypedRecord typed)
+            {
+                await _vault.UploadAttachment(typed, uploadTask);
+            }
+        }
+
 
         private async Task MoveCommand(MoveOptions options)
         {
@@ -713,22 +1268,25 @@ namespace Commander
             {
                 await _vault.MoveFolder(srcFolder.FolderUid, dstFolder.FolderUid, options.Link);
             }
-            else if (_vault.TryGetRecord(options.SourceName, out var record))
+            else if (_vault.TryGetKeeperRecord(options.SourceName, out var record))
             {
-                var folders = Enumerable.Repeat(_vault.RootFolder, 1).Concat(_vault.Folders).Where(x => x.Records.Contains(record.Uid)).ToArray();
+                var folders = Enumerable.Repeat(_vault.RootFolder, 1).Concat(_vault.Folders)
+                    .Where(x => x.Records.Contains(record.Uid)).ToArray();
                 if (folders.Length == 0)
                 {
                     Console.WriteLine("not expected");
                     return;
                 }
 
-                var folder = folders.Length == 1 ? folders[0] :
-                    folders.FirstOrDefault(x => x.FolderUid == _currentFolder)
-                    ?? folders.FirstOrDefault(x => string.IsNullOrEmpty(x.FolderUid))
-                    ?? folders.FirstOrDefault(x => x.FolderType == FolderType.UserFolder)
-                    ?? folders[0];
+                var folder = folders.Length == 1
+                    ? folders[0]
+                    : folders.FirstOrDefault(x => x.FolderUid == _currentFolder)
+                      ?? folders.FirstOrDefault(x => string.IsNullOrEmpty(x.FolderUid))
+                      ?? folders.FirstOrDefault(x => x.FolderType == FolderType.UserFolder)
+                      ?? folders[0];
 
-                await _vault.MoveRecords(new [] {new RecordPath {FolderUid = folder.FolderUid, RecordUid = record.Uid}}, dstFolder.FolderUid, options.Link);
+                await _vault.MoveRecords(new[] {new RecordPath {FolderUid = folder.FolderUid, RecordUid = record.Uid}},
+                    dstFolder.FolderUid, options.Link);
             }
             else
             {
@@ -756,18 +1314,19 @@ namespace Commander
                     var records = new List<RecordPath>();
                     foreach (var recordUid in srcFolder.Records)
                     {
-                        if (!_vault.TryGetRecord(recordUid, out record)) continue;
+                        if (!_vault.TryGetKeeperRecord(recordUid, out record)) continue;
 
                         var m = Regex.Match(record.Title, pattern, RegexOptions.IgnoreCase);
                         if (m.Success)
                         {
-                            records.Add(new RecordPath { FolderUid = srcFolder.FolderUid, RecordUid = recordUid });
+                            records.Add(new RecordPath {FolderUid = srcFolder.FolderUid, RecordUid = recordUid});
                         }
                     }
 
                     if (records.Count == 0)
                     {
-                        throw new Exception($"Folder {srcFolder.Name} does not contain any record matching {recordTitle}");
+                        throw new Exception(
+                            $"Folder {srcFolder.Name} does not contain any record matching {recordTitle}");
                     }
 
                     await _vault.MoveRecords(records.ToArray(), dstFolder.FolderUid, options.Link);
@@ -790,7 +1349,8 @@ namespace Commander
 
         private async Task ThisDeviceCommand(ThisDeviceOptions arguments)
         {
-            if (_accountSummary == null) {
+            if (_accountSummary == null)
+            {
                 _accountSummary = await _auth.LoadAccountSummary();
             }
 
@@ -802,7 +1362,8 @@ namespace Commander
                 return;
             }
 
-            var availableVerbs = new[] {"rename", "register", "persistent_login", "ip_disable_auto_approve", "timeout", "bio"};
+            var availableVerbs = new[]
+                {"rename", "register", "persistent_login", "ip_disable_auto_approve", "timeout", "bio"};
 
             var deviceToken = device.EncryptedDeviceToken.ToByteArray();
             var bioTarget = _auth.Username.BiometricCredentialTarget(deviceToken);
@@ -824,6 +1385,7 @@ namespace Commander
                     persistentLoginDisabled = true;
                 }
             }
+
             switch (arguments.Command)
             {
                 case null:
@@ -832,33 +1394,40 @@ namespace Commander
                     Console.WriteLine("{0, 20}: {1}", "Device Name", device.DeviceName);
                     Console.WriteLine("{0, 20}: {1}", "Client Version", device.ClientVersion);
                     Console.WriteLine("{0, 20}: {1}", "Data Key Present", device.EncryptedDataKeyPresent);
-                    Console.WriteLine("{0, 20}: {1}", "IP Auto Approve", !_accountSummary.Settings.IpDisableAutoApprove);
-                    Console.WriteLine("{0, 20}: {1}", "Persistent Login", !persistentLoginDisabled && _accountSummary.Settings.PersistentLogin);
+                    Console.WriteLine("{0, 20}: {1}", "IP Auto Approve",
+                        !_accountSummary.Settings.IpDisableAutoApprove);
+                    Console.WriteLine("{0, 20}: {1}", "Persistent Login",
+                        !persistentLoginDisabled && _accountSummary.Settings.PersistentLogin);
                     if (_accountSummary.Settings.LogoutTimer > 0)
                     {
                         if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromDays(1).TotalMilliseconds)
                         {
-                            Console.WriteLine("{0, 20}: {1} day(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalDays);
+                            Console.WriteLine("{0, 20}: {1} day(s)", "Logout Timeout",
+                                TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalDays);
                         }
                         else if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromHours(1).TotalMilliseconds)
                         {
-                            Console.WriteLine("{0, 20}: {1} hour(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalHours);
+                            Console.WriteLine("{0, 20}: {1} hour(s)", "Logout Timeout",
+                                TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalHours);
                         }
                         else if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromSeconds(1).TotalMilliseconds)
                         {
-                            Console.WriteLine("{0, 20}: {1} minute(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalMinutes);
+                            Console.WriteLine("{0, 20}: {1} minute(s)", "Logout Timeout",
+                                TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalMinutes);
                         }
                         else
                         {
-                            Console.WriteLine("{0, 20}: {1} second(s)", "Logout Timeout", TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalSeconds);
+                            Console.WriteLine("{0, 20}: {1} second(s)", "Logout Timeout",
+                                TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalSeconds);
                         }
                     }
+
                     Console.WriteLine("{0, 20}: {1}", "Biometric Login", hasBio);
 
                     Console.WriteLine();
                     Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
                 }
-                break;
+                    break;
 
                 case "rename":
                     if (string.IsNullOrEmpty(arguments.Parameter))
@@ -891,7 +1460,7 @@ namespace Commander
                     }
 
                 }
-                break;
+                    break;
 
                 case "ip_disable_auto_approve":
                 case "persistent_login":
@@ -901,7 +1470,8 @@ namespace Commander
                     {
                         enabled = true;
                     }
-                    else if (string.Compare(arguments.Parameter, "off", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    else if (string.Compare(arguments.Parameter, "off", StringComparison.InvariantCultureIgnoreCase) ==
+                             0)
                     {
                         enabled = false;
                     }
@@ -910,14 +1480,16 @@ namespace Commander
                         Console.WriteLine($"\"{arguments.Command}\" accepts the following parameters: on, off");
                         return;
                     }
+
                     if (arguments.Command == "persistent_login" && persistentLoginDisabled)
                     {
                         Console.WriteLine("\"Stay Logged In\" feature is restricted by Keeper Administrator");
                         return;
                     }
+
                     await _auth.SetSessionParameter(arguments.Command, enabled.Value ? "1" : "0");
                 }
-                break;
+                    break;
 
                 case "timeout":
                 {
@@ -934,7 +1506,8 @@ namespace Commander
                         }
                         else
                         {
-                            Console.WriteLine($"{arguments.Command}: invalid timeout in minutes parameter: {arguments.Parameter}");
+                            Console.WriteLine(
+                                $"{arguments.Command}: invalid timeout in minutes parameter: {arguments.Parameter}");
                         }
                     }
                 }
@@ -947,7 +1520,8 @@ namespace Commander
                     {
                         enabled = true;
                     }
-                    else if (string.Compare(arguments.Parameter, "off", StringComparison.InvariantCultureIgnoreCase) == 0)
+                    else if (string.Compare(arguments.Parameter, "off", StringComparison.InvariantCultureIgnoreCase) ==
+                             0)
                     {
                         enabled = false;
                     }
@@ -988,7 +1562,7 @@ namespace Commander
                 {
                     Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
                 }
-                break;
+                    break;
             }
         }
 
@@ -1001,15 +1575,18 @@ namespace Commander
                 return;
             }
             */
-            Console.Write("Enterprise administrator requested data key to be shared. Proceed with sharing? (Yes/No) : ");
+            Console.Write(
+                "Enterprise administrator requested data key to be shared. Proceed with sharing? (Yes/No) : ");
             var answer = await Program.GetInputManager().ReadLine();
             if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
                 answer = "yes";
             }
+
             if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0) return;
 
-            var rs = (EnterprisePublicKeyResponse) await _auth.ExecuteAuthRest("enterprise/get_enterprise_public_key", null, typeof(EnterprisePublicKeyResponse));
+            var rs = (EnterprisePublicKeyResponse) await _auth.ExecuteAuthRest("enterprise/get_enterprise_public_key",
+                null, typeof(EnterprisePublicKeyResponse));
             if (rs.EnterpriseECCPublicKey?.Length == 65)
             {
                 var publicKey = CryptoUtils.LoadPublicEcKey(rs.EnterpriseECCPublicKey.ToByteArray());
@@ -1034,7 +1611,8 @@ namespace Commander
                 _accountSummary = null;
             }
 
-            if (_accountSummary == null) {
+            if (_accountSummary == null)
+            {
                 _accountSummary = await _auth.LoadAccountSummary();
             }
 
@@ -1089,7 +1667,8 @@ namespace Commander
 
                 var isDecline = arguments.Command == "decline";
                 var toApprove = devices
-                    .Where(x => ((x.DeviceStatus == DeviceStatus.DeviceNeedsApproval) || (arguments.Link && x.DeviceStatus == DeviceStatus.DeviceOk)))
+                    .Where(x => ((x.DeviceStatus == DeviceStatus.DeviceNeedsApproval) ||
+                                 (arguments.Link && x.DeviceStatus == DeviceStatus.DeviceOk)))
                     .Where(x =>
                     {
                         if (arguments.DeviceId == "all")
@@ -1161,7 +1740,8 @@ namespace Commander
             if (!_vault.TryGetSharedFolder(options.FolderName, out var sf))
             {
                 var sfs = _vault.SharedFolders
-                    .Where(x => string.Compare(x.Name, options.FolderName, StringComparison.CurrentCultureIgnoreCase) == 0)
+                    .Where(x => string.Compare(x.Name, options.FolderName, StringComparison.CurrentCultureIgnoreCase) ==
+                                0)
                     .ToArray();
                 if (sfs.Length == 1)
                 {
@@ -1186,12 +1766,14 @@ namespace Commander
                     return;
                 }
 
-                sf = _vault.GetSharedFolder(folder.FolderType == FolderType.SharedFolder ? folder.FolderUid : folder.SharedFolderUid);
+                sf = _vault.GetSharedFolder(folder.FolderType == FolderType.SharedFolder
+                    ? folder.FolderUid
+                    : folder.SharedFolderUid);
             }
 
             if (string.IsNullOrEmpty(options.User))
             {
-                var teams = await  GetAvailableTeams();
+                var teams = await GetAvailableTeams();
                 var tab = new Tabulate(4)
                 {
                     DumpRowNo = true
@@ -1203,14 +1785,20 @@ namespace Commander
                 {
                     if (p.UserType == UserType.User)
                     {
-                        tab.AddRow(new[] {p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-", p.ManageUsers ? "X" : "="});
+                        tab.AddRow(new[]
+                            {p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-", p.ManageUsers ? "X" : "="});
                     }
                     else
                     {
                         var team = teams.FirstOrDefault(x => x.TeamUid == p.UserId);
-                        tab.AddRow(new[] { team?.Name ?? p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-", p.ManageUsers ? "X" : "-" });
+                        tab.AddRow(new[]
+                        {
+                            team?.Name ?? p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-",
+                            p.ManageUsers ? "X" : "-"
+                        });
                     }
                 }
+
                 tab.Dump();
             }
             else
@@ -1231,7 +1819,8 @@ namespace Commander
                     }
                     else
                     {
-                        team = _vault.Teams.FirstOrDefault(x => string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0);
+                        team = _vault.Teams.FirstOrDefault(x =>
+                            string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0);
                         if (team != null)
                         {
                             userId = team.TeamUid;
@@ -1257,7 +1846,8 @@ namespace Commander
                     }
                 }
 
-                var userPermission = sf.UsersPermissions.FirstOrDefault(x => x.UserType == userType && x.UserId == userId);
+                var userPermission =
+                    sf.UsersPermissions.FirstOrDefault(x => x.UserType == userType && x.UserId == userId);
 
                 if (options.Delete)
                 {
@@ -1267,7 +1857,8 @@ namespace Commander
                     }
                     else
                     {
-                        Console.WriteLine($"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder {sf.Name}");
+                        Console.WriteLine(
+                            $"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder {sf.Name}");
                     }
                 }
                 else if (options.ManageUsers.HasValue || options.ManageRecords.HasValue)
@@ -1285,13 +1876,15 @@ namespace Commander
                         Console.WriteLine();
                         Console.WriteLine("{0, 20}: {1}", "User Type", userPermission.UserType.ToString());
                         Console.WriteLine("{0, 20}: {1}", "User ID", userPermission.UserId);
-                        Console.WriteLine("{0, 20}: {1}", "Manage Records", userPermission.ManageRecords ? "Yes" : "No");
+                        Console.WriteLine("{0, 20}: {1}", "Manage Records",
+                            userPermission.ManageRecords ? "Yes" : "No");
                         Console.WriteLine("{0, 20}: {1}", "Manage Users", userPermission.ManageUsers ? "Yes" : "No");
                         Console.WriteLine();
                     }
                     else
                     {
-                        Console.WriteLine($"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder {sf.Name}");
+                        Console.WriteLine(
+                            $"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder {sf.Name}");
                     }
                 }
             }
@@ -1302,7 +1895,8 @@ namespace Commander
             if (!_vault.TryGetSharedFolder(options.FolderName, out var sf))
             {
                 var sfs = _vault.SharedFolders
-                    .Where(x => string.Compare(x.Name, options.FolderName, StringComparison.CurrentCultureIgnoreCase) == 0)
+                    .Where(x => string.Compare(x.Name, options.FolderName, StringComparison.CurrentCultureIgnoreCase) ==
+                                0)
                     .ToArray();
                 if (sfs.Length == 1)
                 {
@@ -1327,7 +1921,9 @@ namespace Commander
                     return;
                 }
 
-                sf = _vault.GetSharedFolder(folder.FolderType == FolderType.SharedFolder ? folder.FolderUid : folder.SharedFolderUid);
+                sf = _vault.GetSharedFolder(folder.FolderType == FolderType.SharedFolder
+                    ? folder.FolderUid
+                    : folder.SharedFolderUid);
             }
 
             if (string.IsNullOrEmpty(options.Record))
@@ -1336,21 +1932,22 @@ namespace Commander
                 {
                     DumpRowNo = true
                 };
-                tab.AddHeader(new[] { "Record Title", "Record UID", "Can Edit", "Can Share" });
+                tab.AddHeader(new[] {"Record Title", "Record UID", "Can Edit", "Can Share"});
                 foreach (var p in sf.RecordPermissions)
                 {
-                    if (_vault.TryGetRecord(p.RecordUid, out var record))
+                    if (_vault.TryGetKeeperRecord(p.RecordUid, out var record))
                     {
-                        tab.AddRow(new[] { record.Title, p.RecordUid, p.CanEdit ? "X" : "-", p.CanShare ? "X" : "-" });
+                        tab.AddRow(record.Title, p.RecordUid, p.CanEdit ? "X" : "-", p.CanShare ? "X" : "-");
                     }
                 }
+
                 tab.Sort(0);
                 tab.Dump();
             }
             else
             {
                 string recordUid = null;
-                if (_vault.TryGetRecord(options.Record, out var record))
+                if (_vault.TryGetKeeperRecord(options.Record, out var record))
                 {
                     recordUid = record.Uid;
                 }
@@ -1358,10 +1955,12 @@ namespace Commander
                 {
                     if (TryResolvePath(options.Record, out var folder, out var title))
                     {
-                        recordUid = folder.Records.Select(x => _vault.GetRecord(x)).FirstOrDefault(x => string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0)?.Uid;
+                        recordUid = folder.Records.Select(x => _vault.GetRecord(x)).FirstOrDefault(x =>
+                            string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0)?.Uid;
 
                     }
                 }
+
                 if (string.IsNullOrEmpty(recordUid))
                 {
                     Console.WriteLine($"\'{options.Record}\' cannot be resolved as record");
@@ -1394,6 +1993,118 @@ namespace Commander
                 }
             }
         }
+
+        private Task RecordTypeInfoCommand(RecordTypeInfoOptions options)
+        {
+            Tabulate table = null;
+            if (string.IsNullOrEmpty(options.Name))
+            {
+                if (options.ShowFields)
+                {
+                    table = new Tabulate(4);
+                    table.AddHeader("Field Type ID", "Type", "Multiple", "Description");
+                    foreach (var f in RecordTypesConstants.RecordFields)
+                    {
+                        table.AddRow(f.Name, f.Type?.Name,
+                            f.Multiple == RecordFieldMultiple.Optional
+                                ? "optional"
+                                : (f.Multiple == RecordFieldMultiple.Default ? "default" : ""),
+                            f.Type?.Description ?? "");
+                    }
+                }
+                else
+                {
+                    table = new Tabulate(3)
+                    {
+                        LeftPadding = 4
+                    };
+                    table.SetColumnRightAlign(0, true);
+                    table.AddHeader("Record Type ID", "Type Name", "Scope", "Description");
+                    foreach (var rt in _vault.RecordTypes)
+                    {
+                        table.AddRow(rt.Id, rt.Name, rt.Scope.ToText(), rt.Description);
+                    }
+
+                    table.Sort(0);
+                }
+            }
+            else
+            {
+                if (options.ShowFields)
+                {
+                    if (!RecordTypesConstants.TryGetRecordField(options.Name, out var fieldInfo))
+                    {
+                        Console.WriteLine($"Error - Unknown field type: {options.Name}");
+                        return Task.FromResult(false);
+                    }
+
+                    table = new Tabulate(2)
+                    {
+                        LeftPadding = 4
+                    };
+                    table.SetColumnRightAlign(0, true);
+                    table.AddRow("Field Type ID:", fieldInfo.Name);
+                    table.AddRow("Type:", fieldInfo.Type.Name);
+                    var valueType = "";
+                    if (fieldInfo.Type != null)
+                    {
+                        if (fieldInfo.Type?.Type == typeof(string))
+                        {
+                            valueType = "string";
+                        }
+                        else if (fieldInfo.Type?.Type == typeof(long))
+                        {
+                            valueType = "integer";
+                        }
+                        else
+                        {
+                            valueType = "object";
+                        }
+                    }
+
+                    table.AddRow("Value Type:", valueType);
+                    if (fieldInfo.Type != null)
+                    {
+                        if (fieldInfo.Type.Elements.Length > 0)
+                        {
+                            table.AddRow("Value Elements:",
+                                string.Join(", ", fieldInfo.Type.Elements.Select(x => $"\"{x}\"")));
+                        }
+                    }
+                }
+                else
+                {
+                    if (!_vault.TryGetRecordTypeByName(options.Name, out var recordInfo))
+                    {
+                        Console.WriteLine($"Error - Unknown record type: {options.Name}");
+                        return Task.FromResult(false);
+                    }
+
+                    table = new Tabulate(2)
+                    {
+                        LeftPadding = 4
+                    };
+                    table.SetColumnRightAlign(0, true);
+                    table.AddRow("Record Type ID:", recordInfo.Id);
+                    table.AddRow("Type Name:", recordInfo.Name);
+                    table.AddRow("Scope:", recordInfo.Scope.ToText());
+                    table.AddRow("Description:", recordInfo.Description);
+                    var fields = recordInfo.Fields
+                        .Select(x =>
+                            $"{x.FieldLabel ?? ""} ({(string.IsNullOrEmpty(x.FieldName) ? "text" : x.FieldName)})"
+                                .Trim())
+                        .ToArray();
+                    for (var i = 0; i < Math.Max(fields.Length, 1); i++)
+                    {
+                        table.AddRow(i == 0 ? "Fields:" : "", i < fields.Length ? fields[i] : "");
+                    }
+                }
+            }
+
+            table?.Dump();
+            return Task.FromResult(true);
+        }
+
 
         private bool TryResolvePath(string path, out FolderNode node)
         {
@@ -1541,13 +2252,19 @@ namespace Commander
         public bool Resume { get; set; }
     }
 
+    class SearchCommandOptions
+    {
+        [Option("limit", Required = false, Default = 0, HelpText = "limit output")]
+        public int Limit { get; set; }
+
+        [Value(0, Required = false, MetaName = "pattern", HelpText = "search pattern")]
+        public string Pattern { get; set; }
+    }
+
     class ListCommandOptions
     {
         [Option('l', "list", Required = false, Default = false, HelpText = "detailed output")]
         public bool Details { get; set; }
-
-        [Value(0, Required = false, MetaName = "pattern", HelpText = "search pattern")]
-        public string Pattern { get; set; }
     }
 
     internal class TreeCommandOptions
@@ -1556,43 +2273,37 @@ namespace Commander
         public string Folder { get; set; }
     }
 
-    internal class EditRecord
-    {
-        [Option("login", Required = false, HelpText = "login name")]
-        public string Login { get; set; }
-
-        [Option("pass", Required = false, HelpText = "password")]
-        public string Password { get; set; }
-
-        [Option("url", Required = false, HelpText = "url")]
-        public string Url { get; set; }
-
-        [Option("notes", Required = false, HelpText = "notes")]
-        public string Notes { get; set; }
-
-        [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
-        public bool Generate { get; set; }
-    }
-
-    class AddRecordOptions : EditRecord
+    class AddRecordOptions
     {
         [Option("folder", Required = false, HelpText = "folder")]
         public string Folder { get; set; }
 
-        [Option('f', "force", Required = false, Default = false, HelpText = "do not prompt for omitted fields")]
-        public bool Force { get; set; }
+        [Option('t', "type", Required = true, HelpText = "record type. legacy if omitted.")]
+        public string RecordType { get; set; }
 
-        [Value(0, Required = true, MetaName = "title", HelpText = "title")]
+        [Option( "title", Required = true, HelpText = "record title.")]
         public string Title { get; set; }
+
+        [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
+        public bool Generate { get; set; }
+
+        [Value(0, Required = false, MetaName = "Record fields", HelpText = "Record fields")]
+        public IEnumerable<string> Fields { get; set; }
     }
 
-    class UpdateRecordOptions : EditRecord
+    class UpdateRecordOptions
     {
         [Option("title", Required = false, HelpText = "title")]
         public string Title { get; set; }
 
-        [Value(0, Required = true, MetaName = "title", HelpText = "record path or UID")]
+        [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
+        public bool Generate { get; set; }
+
+        [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
         public string RecordId { get; set; }
+
+        [Value(1, Required = false, MetaName = "Record fields", HelpText = "Record fields")]
+        public IEnumerable<string> Fields { get; set; }
     }
 
     class ShareFolderRecordPermissionOptions : FolderOptions
@@ -1626,6 +2337,29 @@ namespace Commander
     class RemoveRecordOptions
     {
         [Value(0, Required = true, MetaName = "record title, uid, or pattern", HelpText = "remove records")]
+        public string RecordName { get; set; }
+    }
+
+    class DownloadAttachmentOptions
+    {
+        [Option('o', "output-dir", Required = false, Default = null, HelpText = "Output directory")]
+        public string OutputDirectory { get; set; }
+
+        [Option('f', "file", Required = false, Default = null, HelpText = "Attachment UID, name, or title")]
+        public string FileName { get; set; }
+
+
+        [Value(0, Required = true, MetaName = "record path or uid", HelpText = "Keeper Record")]
+        public string RecordName { get; set; }
+    }
+
+    class UploadAttachmentOptions
+    {
+        [Option('f', "file", Required = true, Default = null, HelpText = "File path")]
+        public string FileName { get; set; }
+
+
+        [Value(0, Required = true, MetaName = "record path or uid", HelpText = "Keeper Record")]
         public string RecordName { get; set; }
     }
 
@@ -1693,5 +2427,23 @@ namespace Commander
     {
         [Option("reset", Required = false, Default = false, HelpText = "resets on-disk storage")]
         public bool Reset { get; set; }
+    }
+
+    class RecordTypeInfoOptions
+    {
+        [Option('f', "field", Required = false, HelpText = "Show field. ")]
+        public bool ShowFields { get; set; }
+
+        [Value(0, Required = false, HelpText = "record or field type name")]
+        public string Name { get; set; }
+    }
+
+    class CmdLineRecordField: IRecordTypeField
+    {
+        public bool? IsRecordField { get; set; }
+        public string FieldName { get; set; }
+        public string FieldLabel { get; set; }
+        public string FieldIndex { get; set; }
+        public string Value { get; set; }
     }
 }

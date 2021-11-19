@@ -67,6 +67,9 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "removed_teams")]
         public string[] removedTeams;
 
+        [DataMember(Name = "removed_links")]
+        public SyncDownRecordLink[] removedLinks;
+
         [DataMember(Name = "user_folders")]
         public SyncDownUserFolder[] userFolders;
 
@@ -99,7 +102,7 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
-    public class SyncDownRecord : IPasswordRecord
+    public class SyncDownRecord : IStorageRecord
     {
         [DataMember(Name = "record_uid")]
         public string RecordUid { get; set; }
@@ -108,7 +111,7 @@ namespace KeeperSecurity.Commands
         public long Revision { get; set; }
 
         [DataMember(Name = "version")]
-        public long Version { get; set; }
+        public int Version { get; set; }
 
         [DataMember(Name = "shared")]
         public bool Shared { get; set; }
@@ -124,6 +127,18 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "udata")]
         public SyncDownRecordUData udata;
+
+        [DataMember(Name = "owner_uid")]
+        public string OwnerRecordId;
+
+        [DataMember(Name = "link_key")]
+        public string LinkKey;
+
+        [DataMember(Name = "file_size")]
+        internal long? fileSize;
+
+        [DataMember(Name = "thumbnail_size")]
+        internal long? thumbnailSize;
 
         public string Udata { get; set; }
 
@@ -478,6 +493,20 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
+    public class SyncDownRecordLink : IUidLink
+    {
+        [DataMember(Name = "record_uid")]
+        public string recordUid;
+
+        [DataMember(Name = "owner_uid")]
+        public string ownerUid;
+
+        string IUidLink.SubjectUid => ownerUid;
+
+        string IUidLink.ObjectUid => recordUid;
+    }
+
+    [DataContract]
     public class SyncDownSharingChanges
     {
         [DataMember(Name = "record_uid")]
@@ -611,12 +640,30 @@ namespace KeeperSecurity.Commands
     [DataContract]
     public class SyncDownRecordUData : IExtensibleDataObject
     {
-        [DataMember(Name = "file_ids")]
+        [DataMember(Name = "file_ids", EmitDefaultValue = false)]
         public string[] fileIds;
+
+        [DataMember(Name = "file_size", EmitDefaultValue = false)]
+        public long? FileSize { get; set; }
+
+        [DataMember(Name = "thumbnail_size", EmitDefaultValue = false)]
+        public long? ThumbnailSize { get; set; }
 
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
+    [DataContract]
+    public class RecordAuditData
+    {
+        [DataMember(Name = "title", EmitDefaultValue = false)]
+        public string Title { get; set; }
+
+        [DataMember(Name = "record_type", EmitDefaultValue = false)]
+        public string RecordType { get; set; }
+
+        [DataMember(Name = "url", EmitDefaultValue = false)]
+        public string Url { get; set; }
+    }
 
 #pragma warning restore 0649
 }

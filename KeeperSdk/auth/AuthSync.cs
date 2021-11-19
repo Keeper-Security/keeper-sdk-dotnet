@@ -204,6 +204,7 @@ namespace KeeperSecurity.Authentication.Sync
                 _loginContext = new LoginContext();
                 foreach (var password in passwords)
                 {
+                    if (string.IsNullOrEmpty(password)) continue;
                     _loginContext.PasswordQueue.Enqueue(password);
                 }
 

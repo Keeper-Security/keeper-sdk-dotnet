@@ -189,9 +189,9 @@ namespace KeeperSecurity.Enterprise
             sdk.EncryptedData = keeper.EncryptedData;
             sdk.BridgeId = keeper.BridgeId;
             sdk.ScimId = keeper.ScimId;
-            sdk.SsoServiceProviderId = keeper.SsoServiceProviderId;
+            sdk.SsoServiceProviderIds = keeper.SsoServiceProviderIds.ToArray();
             var enterprise = GetEnterprise?.Invoke();
-            if (enterprise != null && enterprise.TreeKey != null)
+            if (enterprise?.TreeKey != null)
             {
                 EnterpriseUtils.DecryptEncryptedData(keeper.EncryptedData, enterprise.TreeKey, sdk);
             }

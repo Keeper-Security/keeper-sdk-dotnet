@@ -458,7 +458,7 @@ namespace KeeperSecurity.Utils
         }
 
         /// <summary>
-        ///     Load EC public key.
+        ///     LoadV2 EC public key.
         /// </summary>
         /// <param name="key">public key bytes.</param>
         /// <returns>EC public key</returns>
@@ -615,10 +615,11 @@ namespace KeeperSecurity.Utils
         private readonly IBufferedCipher _cypher;
         private byte[] _tail;
 
-        public EncryptTransform(IBufferedCipher cypher, byte[] key)
+        public EncryptTransform(IBufferedCipher cypher, byte[] key, int ivSize = 0)
         {
             _cypher = cypher;
-            var iv = CryptoUtils.GetRandomBytes(cypher.GetBlockSize());
+
+            var iv = CryptoUtils.GetRandomBytes(ivSize > 0 ? ivSize : _cypher.GetBlockSize());
             _cypher.Init(true, new ParametersWithIV(new KeyParameter(key), iv));
             _tail = iv;
             EncryptedBytes = 0;
@@ -647,7 +648,7 @@ namespace KeeperSecurity.Utils
             var encrypted = _cypher.ProcessBytes(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
             if (_tail.Length > 0)
             {
-                if (_tail.Length <= outputBuffer.Length + outputOffset + encrypted)
+                if (_tail.Length <= outputBuffer.Length - (outputOffset + encrypted))
                 {
                     Array.Copy(outputBuffer, outputOffset, outputBuffer, outputOffset + _tail.Length, encrypted);
                     Array.Copy(_tail, 0, outputBuffer, outputOffset, _tail.Length);
@@ -660,7 +661,7 @@ namespace KeeperSecurity.Utils
                     {
                         var newTail = new byte[_tail.Length];
                         Array.Copy(outputBuffer, outputOffset + encrypted - _tail.Length, newTail, 0, _tail.Length);
-                        Array.Copy(outputBuffer, outputOffset, outputBuffer, outputOffset + _tail.Length, encrypted);
+                        Array.Copy(outputBuffer, outputOffset, outputBuffer, outputOffset + _tail.Length, encrypted - newTail.Length);
                         Array.Copy(_tail, 0, outputBuffer, outputOffset, _tail.Length);
                         _tail = newTail;
                     }
@@ -696,10 +697,11 @@ namespace KeeperSecurity.Utils
         public readonly byte[] Key;
         private bool _initialized;
 
-        public DecryptTransform(IBufferedCipher cypher, byte[] key)
+        public DecryptTransform(IBufferedCipher cypher, byte[] key, int ivSize)
         {
             _cypher = cypher;
             Key = key;
+            _ivSize = ivSize > 0 ? ivSize : _cypher.GetBlockSize();
             _initialized = false;
             DecryptedBytes = 0;
         }
@@ -713,8 +715,23 @@ namespace KeeperSecurity.Utils
 
         public bool CanReuseTransform => false;
 
+        protected readonly int _ivSize;
+
         public void Dispose()
         {
+        }
+
+        private void EnsureInitialized(byte[] inputBuffer, ref int inputOffset, ref int inputCount)
+        {
+            if (!_initialized)
+            {
+                var iv = new byte[_ivSize];
+                Array.Copy(inputBuffer, inputOffset, iv, 0, iv.Length);
+                inputOffset += iv.Length;
+                inputCount -= iv.Length;
+                _cypher.Init(false, new ParametersWithIV(new KeyParameter(Key), iv));
+                _initialized = true;
+            }
         }
 
         public int TransformBlock(byte[] inputBuffer,
@@ -723,15 +740,7 @@ namespace KeeperSecurity.Utils
             byte[] outputBuffer,
             int outputOffset)
         {
-            if (!_initialized)
-            {
-                var iv = new byte[_cypher.GetBlockSize()];
-                Array.Copy(inputBuffer, inputOffset, iv, 0, iv.Length);
-                inputOffset += iv.Length;
-                inputCount -= iv.Length;
-                _cypher.Init(false, new ParametersWithIV(new KeyParameter(Key), iv));
-                _initialized = true;
-            }
+            EnsureInitialized(inputBuffer, ref inputOffset, ref inputCount);
 
             var res = _cypher.ProcessBytes(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
             DecryptedBytes += res;
@@ -740,15 +749,7 @@ namespace KeeperSecurity.Utils
 
         public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
-            if (!_initialized)
-            {
-                var iv = new byte[_cypher.GetBlockSize()];
-                Array.Copy(inputBuffer, inputOffset, iv, 0, iv.Length);
-                inputOffset += iv.Length;
-                inputCount -= iv.Length;
-                _cypher.Init(false, new ParametersWithIV(new KeyParameter(Key), iv));
-                _initialized = true;
-            }
+            EnsureInitialized(inputBuffer, ref inputOffset, ref inputCount);
 
             var res = _cypher.DoFinal(inputBuffer, inputOffset, inputCount);
             DecryptedBytes += res.LongLength;
@@ -761,7 +762,7 @@ namespace KeeperSecurity.Utils
     {
         public EncryptAesV1Transform(byte[] key) : base(
             new PaddedBufferedBlockCipher(new CbcBlockCipher(new AesEngine()), new Pkcs7Padding()),
-            key)
+            key, 0)
         {
         }
     }
@@ -771,7 +772,26 @@ namespace KeeperSecurity.Utils
     {
         public DecryptAesV1Transform(byte[] key) : base(
             new PaddedBufferedBlockCipher(new CbcBlockCipher(new AesEngine()), new Pkcs7Padding()),
-            key)
+            key, 0)
+        {
+        }
+    }
+
+
+    /// <exclude />
+    public class EncryptAesV2Transform : EncryptTransform
+    {
+        public EncryptAesV2Transform(byte[] key) : base(
+            new BufferedAeadBlockCipher(new GcmBlockCipher(new AesEngine())), key, 12)
+        {
+        }
+    }
+
+    /// <exclude />
+    public class DecryptAesV2Transform : DecryptTransform
+    {
+        public DecryptAesV2Transform(byte[] key) : base(
+            new BufferedAeadBlockCipher(new GcmBlockCipher(new AesEngine())), key, 12)
         {
         }
     }

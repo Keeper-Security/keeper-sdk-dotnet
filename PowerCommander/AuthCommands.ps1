@@ -501,7 +501,7 @@ function Sync-Keeper {
     [KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
     if ($vault) {
         $task = $vault.SyncDown()
-        $_ = $task.GetAwaiter().GetResult()
+        $task.GetAwaiter().GetResult() | Out-Null
     } else {
         Write-Error -Message "Not connected"
     }

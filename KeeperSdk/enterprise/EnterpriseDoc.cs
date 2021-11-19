@@ -31,10 +31,10 @@ namespace KeeperSecurity.Enterprise
     ///         IAuthentication auth = await ConnectToKeeperAs("username@company.com");
     ///         if (auth.AuthContext.IsEnterpriseAdmin)
     ///         {
-    ///             // Load enterprise data.
+    ///             // LoadV2 enterprise data.
     ///             var enterprise = new EnterpriseData();
     ///             var enterpriseLoader = new EnterpriseLoader(auth, new [] { enterprise });
-    ///             await enterpriseLoader.Load();
+    ///             await enterpriseLoader.LoadV2();
     /// 
     ///             // Find team with name "Google".
     ///             var team = enterprise.Teams

@@ -10,37 +10,28 @@ function Get-KeeperRecords {
 
 	.Parameter Filter
 	Return matching records only
-
-	.Parameter ShowPassword
-	Display record password
 #>
 	[CmdletBinding()]
-	[OutputType([KeeperSecurity.Vault.PasswordRecord[]])] 
+	[OutputType([KeeperSecurity.Vault.KeeperRecord[]])] 
 	Param (
 		[string] $Uid,
-		[string] $Filter,
-		[switch] $ShowPassword
+		[string] $Filter
 	)
 	Begin {
-		if ($ShowPassword.IsPresent) {
-			Set-KeeperPasswordVisible -Visible
-		} else {
-			Set-KeeperPasswordVisible
-		}
 	}
 
 	Process {
 		[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 		if ($vault) {
 			if ($Uid) {
-				[KeeperSecurity.Vault.PasswordRecord] $record = $null
-				if ($vault.TryGetRecord($uid, [ref]$record)) {
+				[KeeperSecurity.Vault.KeeperRecord] $record = $null
+				if ($vault.TryGetKeeperRecord($uid, [ref]$record)) {
 					$record
 				}
 			} else {
-				foreach ($record in $vault.Records) {
+				foreach ($record in $vault.KeeperRecords) {
 					if ($Filter) {
-						$match = $($record.Title, $record.Login, $record.Link, $record.Notes) | Select-String $Filter | Select-Object -First 1
+						$match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
 						if (-not $match) {
 							continue
 						}
@@ -54,7 +45,6 @@ function Get-KeeperRecords {
 	}
 
 	End {
-		Set-KeeperPasswordVisible
 	}
 }
 New-Alias -Name kr -Value Get-KeeperRecords
@@ -75,7 +65,7 @@ function Copy-KeeperToClipboard {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true, ValueFromPipeline = $true)] $Record,
-		[string] [ValidateSet('Login' ,'Password', 'WebAddress')] $Field = 'Password'
+		[string] [ValidateSet('Login' ,'Password', 'URL')] $Field = 'Password'
 	)
 	Process {
 		if ($Record -is [Array]) {
@@ -102,21 +92,40 @@ function Copy-KeeperToClipboard {
 
 		$found = $false
 		if ($uid) {
-			[KeeperSecurity.Vault.PasswordRecord] $rec = $null
-			if (-not $vault.TryGetRecord($uid, [ref]$rec)) {
+			[KeeperSecurity.Vault.KeeperRecord] $rec = $null
+			if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
 				$entries = Get-KeeperChildItems -Filter $uid -ObjectType Record
 				if ($entries.Uid) {
-					$_ = $vault.TryGetRecord($entries[0].Uid, [ref]$rec)
+					$vault.TryGetRecord($entries[0].Uid, [ref]$rec) | Out-Null
 				}
 			}
 			if ($rec) {
 				$found = $true
 				$value = ''
-				switch($Field) {
-					'Login' {$value = $rec.Login}
-					'Password' {$value = $rec.Password}
-					'WebAddress' {$value = $rec.Link}
+
+				if ($rec -is [KeeperSecurity.Vault.PasswordRecord]) {
+					switch($Field) {
+						'Login' {$value = $rec.Login}
+						'Password' {$value = $rec.Password}
+						'URL' {$value = $rec.Link}
+					}
 				}
+				elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) {
+					$fieldType = ''
+					switch($Field) {
+						'Login' {$fieldType = 'login'}
+						'Password' {$fieldType = 'password'}
+						'URL' {$fieldType = 'url'}
+					}
+					if ($fieldType) {
+						$recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField $fieldType, $null
+						[KeeperSecurity.Vault.ITypedField]$recordField = $null
+						if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($rec, $recordTypeField, [ref]$recordField)) {
+							$value = $recordField.Value
+						}
+					}
+				}
+
 				if ($value) {
 					Set-Clipboard -Value $value
 					Write-Host "Copied to clipboard: $Field for $($rec.Title)"
@@ -172,16 +181,31 @@ function Show-TwoFactorCode {
 				$uid = $r.Uid
 			}
 			if ($uid) {
-				[KeeperSecurity.Vault.PasswordRecord] $rec = $null
-				if ($vault.TryGetRecord($uid, [ref]$rec)) {
-					if ($rec.ExtraFields) {
-						foreach ($ef in $rec.ExtraFields) {
-							if ($ef.FieldType -eq 'totp') {
+				[KeeperSecurity.Vault.KeeperRecord] $rec = $null
+				if ($vault.TryGetKeeperRecord($uid, [ref]$rec)) {
+					if ($rec -is [KeeperSecurity.Vault.PasswordRecord]) {
+						if ($rec.ExtraFields) {
+							foreach ($ef in $rec.ExtraFields) {
+								if ($ef.FieldType -eq 'totp') {
+									$totps += [PSCustomObject]@{
+										RecordUid    = $rec.Uid
+										Title        = $rec.Title
+										TotpData     = $ef.Custom['data']
+									}
+								}
+							}
+						}
+					}
+					elseif ($rec -is [KeeperSecurity.Vault.TypedRecord]) {
+						$recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField 'oneTimeCode', $null
+						[KeeperSecurity.Vault.ITypedField]$recordField = $null
+						if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($rec, $recordTypeField, [ref]$recordField)) {
+							$data = $recordField.Value
+							if ($data) {
 								$totps += [PSCustomObject]@{
 									RecordUid    = $rec.Uid
 									Title        = $rec.Title
-									TotpType     = $ef.Custom['type']
-									TotpData     = $ef.Custom['data']
+									TotpData     = $data
 								}
 							}
 						}
@@ -215,43 +239,24 @@ function Add-KeeperRecord {
 	.Synopsis
 	Creates or Modifies a Keeper record in the current folder.
 
-	.Parameter Title
-	Title field
-
 	.Parameter UpdateOnly 
 	Do not create a new record
-
-	.Parameter Login
-	Login field
-
-	.Parameter Password
-	Password field
 
 	.Parameter GeneratePassword
 	Generate random password
 
-	.Parameter URL
-	Website Address field
-
-	.Parameter Custom
-	Comma-separated list of key:value pairs. 
-	Example: -Custom name1:value1,name2:value2
-
-	.Parameter Notes
-	Notes field
-
+	.Parameter Title
+	Field Title
 #>
 
-	[CmdletBinding(DefaultParameterSetName = 'Default')]
+	[CmdletBinding(DefaultParameterSetName = 'add')]
 	Param (
-		[Parameter(Position = 0, Mandatory = $true)][string] $Title,
-		[Parameter()][switch] $UpdateOnly,
-		[Parameter()][string] $Login,
 		[Parameter()][switch] $GeneratePassword,
-		[Parameter()][string] $Password,
-		[Parameter()][string] $URL,
-		[Parameter()][string[]] $Custom,
-		[Parameter()][string] $Notes
+		[Parameter(ParameterSetName='add', Mandatory = $True)][string] $RecordType,
+		[Parameter(ParameterSetName='add', Mandatory = $True)][string] $Title,
+		[Parameter(ParameterSetName='edit', Mandatory = $True)][string] $Uid,
+		[Parameter()][string] $Notes,
+		[Parameter(ValueFromRemainingArguments=$true)][string[]] $Fields
 	)
 
 	Begin {
@@ -260,63 +265,90 @@ function Add-KeeperRecord {
 			Write-Error -Message 'Not connected'
 			return
 		}
-        [KeeperSecurity.Vault.PasswordRecord]$record = $null
+        [KeeperSecurity.Vault.KeeperRecord]$record = $null
 	}
 
 	Process {
-		$objs = Get-KeeperChildItems -ObjectType Record | Where-Object Name -eq $Title
-		if ($objs.Length -eq 0 -and $UpdateOnly.IsPresent) {
-            Write-Error -Message "Record `"$Title`" not found"
-			return
-		}
-        if ($objs.Length -eq 0) {
-            $record = New-Object KeeperSecurity.Vault.PasswordRecord
-        }
-        else {
-            $record = Get-KeeperRecords -Uid $objs[0].UID
-            if (-not $record) {
-                Write-Error -Message "Record `"$Title`" not found"
+		if ($Uid) {
+			if (-not $vault.TryGetKeeperRecord($Uid, [ref]$record)) {
+				$objs = Get-KeeperChildItems -ObjectType Record | Where-Object Name -eq $Uid
+				if ($objs.Length -gt 1) {
+					$vault.TryGetKeeperRecord($objs[0].Uid, [ref]$record)
+				}
+			}
+			if (-not $record) {
+				Write-Error -Message "Record `"$Uid`" not found"
 				return
-            }
-        }
-        
+			}
+		} else {
+			if (-not $RecordType -or  $RecordType -eq 'legacy') {
+				$record = New-Object KeeperSecurity.Vault.PasswordRecord
+			} else {
+				$record = New-Object KeeperSecurity.Vault.TypedRecord $RecordType
+				[KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $record)
+			}
+			$record.Title = $Title
+		}
+
         if ($Notes) {
-            if ($record.Notes) {
+            if ($record.Notes -and $Notes[0] -eq '+') {
                 $record.Notes += "`n"
+				$Notes = $Notes.Substring(1)
             }
             $record.Notes += $Notes
         }
 
-        if ($GeneratePassword.IsPresent) {
-            if ($record.Password) {
-                if ($record.Notes) {
-                    $record.Notes += "`n"
-                }
-                $record.Notes += "Password generated on $(Get-Date)`nOld password: $($record.Password)`n"
-            }
-            $Password = [Utils.CryptoUtils]::GenerateUid()
-        }
-
-        if (-not $record.Uid) {
-            $record.Title = $Title
-        }
-        if ($Login) {
-            $record.Login = $Login
-        }
-        if ($Password) {
-            $record.Password = $Password
-        }
-        if ($URL) {
-            $record.Link = $URL
-        }
-        if ($Custom) {
-            foreach($customField in $Custom) {
-                $pos = $customField.IndexOf(':')
-                if ($pos -gt 0 -and $pos -lt $customField.Length) {
-                    $_ = $record.SetCustomField($customField.Substring(0, $pos), $customField.Substring($pos + 1))
-                }
-            }
-        }
+		foreach ($field in $Fields) {
+			if ($field -match '^(\w+)(\.[^=]+)?=(.*)$') {
+				$fieldName = $Matches[1]
+				$fieldLabel = $Matches[2]
+				if ($fieldLabel) {
+					$fieldLabel = $fieldLabel.Trim().Trim('.')
+				}
+				$fieldValue = $Matches[3]
+				if ($fieldValue) {
+					$fieldValue = $fieldValue.Trim()
+				}
+				if ($fieldName -eq 'password' -and -not $fieldValue -and $GeneratePassword.IsPresent) {
+					$fieldValue = [Utils.CryptoUtils]::GenerateUid()
+				}
+				if ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
+					switch($fieldName) {
+						'login' {$record.Login = $fieldValue}
+						'password' {$record.Login = $fieldValue}
+						'url' {$record.Login = $fieldValue}
+						Default {
+							if ($fieldValue) {
+								[KeeperSecurity.Vault.VaultExtensions]::SetCustomField($record, $fieldName, $fieldValue) | Out-Null
+							} else {
+								[KeeperSecurity.Vault.VaultExtensions]::DeleteCustomField($record, $fieldName) | Out-Null
+							}
+						}
+					}
+				}
+				elseif ($record -is [KeeperSecurity.Vault.TypedRecord]) {
+					$recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField $fieldName, $fieldLabel
+					[KeeperSecurity.Vault.ITypedField]$recordField = $null
+					if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($record, $recordTypeField, [ref]$recordField)) {
+					} else {
+						if ($fieldValue) {
+							$recordField = [KeeperSecurity.Vault.VaultDataExtensions]::CreateTypedField($fieldName, $fieldLabel)
+							$record.Custom.Add($recordField)
+						}
+					}
+					if ($recordField) {
+						if ($fieldValue) {
+							$recordField.ObjectValue = $fieldValue
+						} else {
+							$recordField.DeleteValueAt(0)
+						}
+					}
+				}
+			} else {
+				Write-Error -Message "Invalid field `"field`""
+				return
+			}
+		}
 	}
     End {
 		if ($record.Uid) {
@@ -351,8 +383,8 @@ function Remove-KeeperRecord {
 	}
 	$folderUid = $null
 	$recordUid = $null
-	[KeeperSecurity.Vault.PasswordRecord] $record = $null
-	if ($vault.TryGetRecord($Name, [ref]$record)) {
+	[KeeperSecurity.Vault.KeeperRecord] $record = $null
+	if ($vault.TryGetKeeperRecord($Name, [ref]$record)) {
 		$recordUid = $record.Uid
 		if (-not $vault.RootFolder.Records.Contains($recordUid)) {
 			foreach ($f in $vault.Folders) {
@@ -381,7 +413,7 @@ function Remove-KeeperRecord {
 	$recordPath.RecordUid = $recordUid
 	$recordPath.FolderUid = $folderUid
 	$task = $vault.DeleteRecords(@($recordPath))
-	$_ = $task.GetAwaiter().GetResult()
+	$task.GetAwaiter().GetResult() | Out-Null
 }
 New-Alias -Name kdel -Value Remove-KeeperRecord
 

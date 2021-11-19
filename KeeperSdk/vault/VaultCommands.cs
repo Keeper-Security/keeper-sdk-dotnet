@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
-using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
+#if NET452
+using KeeperSecurity.Utils;
+#endif
 
 namespace KeeperSecurity.Commands
 {
@@ -627,5 +630,91 @@ namespace KeeperSecurity.Commands
     {
         [DataMember(Name = "keys", EmitDefaultValue = false)]
         public TeamKeyObject[] keys;
+    }
+
+    [DataContract]
+    internal class RequestDownloadCommand : AuthenticatedCommand, IRecordAccessPath
+    {
+        public RequestDownloadCommand() : base("request_download")
+        {
+        }
+
+        [DataMember(Name = "file_ids")]
+        public string[] FileIDs;
+
+        [DataMember(Name = "record_uid")]
+        public string RecordUid { get; set; }
+
+        [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
+        public string SharedFolderUid { get; set; }
+
+        [DataMember(Name = "team_uid", EmitDefaultValue = false)]
+        public string TeamUid { get; set; }
+    }
+
+    [DataContract]
+    internal class RequestUploadCommand : AuthenticatedCommand
+    {
+        public RequestUploadCommand() : base("request_upload")
+        {
+        }
+
+        [DataMember(Name = "file_count")]
+        public int FileCount = 0;
+
+        [DataMember(Name = "thumbnail_count")]
+        public int ThumbnailCount = 0;
+    }
+
+    [DataContract]
+    internal class RequestDownload
+    {
+        [DataMember(Name = "success_status_code")]
+        public int SuccessStatusCode;
+
+        [DataMember(Name = "url")]
+        public string Url;
+    }
+
+    [DataContract]
+    [KnownType(typeof(RequestDownload))]
+    internal class RequestDownloadResponse : KeeperApiResponse
+    {
+
+        [DataMember(Name = "downloads")]
+        public RequestDownload[] Downloads;
+    }
+
+    [DataContract]
+    internal class UploadParameters
+    {
+        [DataMember(Name = "url")]
+        public string Url;
+
+        [DataMember(Name = "max_size")]
+        public long MaxSize;
+
+        [DataMember(Name = "success_status_code")]
+        public int SuccessStatusCode;
+
+        [DataMember(Name = "file_id")]
+        public string FileId;
+
+        [DataMember(Name = "file_parameter")]
+        public string FileParameter;
+
+        [DataMember(Name = "parameters")]
+        public IDictionary<string, object> Parameters;
+
+    }
+
+    [DataContract]
+    internal class RequestUploadResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "file_uploads")]
+        public UploadParameters[] FileUploads;
+
+        [DataMember(Name = "thumbnail_uploads")]
+        public UploadParameters[] ThumbnailUploads;
     }
 }
