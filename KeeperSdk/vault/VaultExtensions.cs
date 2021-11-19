@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -12,7 +13,8 @@ namespace KeeperSecurity.Vault
     /// <exclude/>
     public static class VaultExtensions
     {
-        public static IRecordMetadata ResolveRecordAccessPath(this IVault vault, IRecordAccessPath path, bool forEdit = false,
+        public static IRecordMetadata ResolveRecordAccessPath(this IVault vault, IRecordAccessPath path,
+            bool forEdit = false,
             bool forShare = false, bool forView = false)
         {
             if (string.IsNullOrEmpty(path.RecordUid))
@@ -57,15 +59,15 @@ namespace KeeperSecurity.Vault
 
             return null;
         }
-        
+
         public static SharedFolderPermission ResolveSharedFolderAccessPath(this IVault vault, string username,
             string sharedFolderUid, bool forManageUsers = false, bool forManageRecords = false)
         {
             if (string.IsNullOrEmpty(sharedFolderUid)) return null;
             if (!vault.TryGetSharedFolder(sharedFolderUid, out var sf)) return null;
-            
+
             var permissions = sf.UsersPermissions
-                .Where(x => 
+                .Where(x =>
                     x.UserType == UserType.User && x.UserId == username ||
                     x.UserType == UserType.Team && vault.TryGetTeam(x.UserId, out _))
                 .Where(x => (!forManageUsers || x.ManageUsers) && (!forManageRecords || x.ManageRecords))
@@ -76,12 +78,11 @@ namespace KeeperSecurity.Vault
         }
 
 
-        internal static RecordData ExtractRecordData(this PasswordRecord record, RecordData existingData = null)
+        internal static RecordData ExtractRecordData(this PasswordRecord record)
         {
             return new RecordData
             {
                 title = record.Title,
-                folder = existingData?.folder,
                 secret1 = record.Login,
                 secret2 = record.Password,
                 link = record.Link,
@@ -127,7 +128,7 @@ namespace KeeperSecurity.Vault
                         name = x.Name,
                         title = x.Title ?? x.Name,
                         size = x.Size,
-                        type = x.Type
+                        type = x.MimeType
                     };
                     if (x.Thumbnails != null && x.Thumbnails.Length > 0)
                     {
@@ -162,18 +163,87 @@ namespace KeeperSecurity.Vault
             };
         }
 
+        internal static IEnumerable<string> ExtractRecordRefs(this TypedRecord typedRecord)
+        {
+            foreach (var field in typedRecord.Fields.Concat(typedRecord.Custom))
+            {
+                if (!(field is TypedField<string> tfs)) continue;
+                if (!RecordTypesConstants.TryGetRecordField(tfs.FieldName, out var rf)) continue;
+                switch (rf.Type.Name)
+                {
+                    case "fileRef":
+                    case "addressRef":
+                    case "cardRef":
+                    {
+                        foreach (var value in tfs.Values)
+                        {
+                            yield return value;
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        internal static RecordAuditData ExtractRecordAuditData(this KeeperRecord record)
+        {
+            var auditData = new RecordAuditData
+            {
+                Title = record.Title,
+            };
+            string url = null;
+            if (record is PasswordRecord password)
+            {
+                url = password.Link;
+            }
+            else if (record is TypedRecord typed)
+            {
+                auditData.RecordType = typed.TypeName;
+                var urlField = typed.Fields.OfType<TypedField<string>>().FirstOrDefault(x => x.FieldName == "url") ??
+                               typed.Custom.OfType<TypedField<string>>().FirstOrDefault(x => x.FieldName == "url");
+                url = urlField?.TypedValue;
+            }
+
+            if (!string.IsNullOrEmpty(url))
+            {
+                auditData.Url = url.StripUrl();
+            }
+
+            return auditData;
+        }
+
+        internal static RecordTypeData ExtractRecordV3Data(this TypedRecord typedRecord)
+        {
+            return new RecordTypeData
+            {
+                Type = typedRecord.TypeName ?? "login",
+                Title = typedRecord.Title ?? "",
+                Notes = typedRecord.Notes ?? "",
+                Fields = typedRecord.Fields
+                    .OfType<IToRecordTypeDataField>()
+                    .Select(x => x.ToRecordTypeDataField())
+                    .ToArray(),
+                Custom = typedRecord.Custom
+                    .OfType<IToRecordTypeDataField>()
+                    .Select(x => x.ToRecordTypeDataField())
+                    .ToArray()
+            };
+        }
+
         private static readonly DataContractJsonSerializer DataSerializer =
             new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
 
         private static readonly DataContractJsonSerializer ExtraSerializer =
             new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
 
-        internal static PasswordRecord Load(this IPasswordRecord r, byte[] key)
+        internal static PasswordRecord LoadV2(this IStorageRecord r, byte[] key)
         {
             var record = new PasswordRecord()
             {
                 RecordKey = key,
                 Uid = r.RecordUid,
+                Version = 2,
                 Shared = r.Shared,
                 Owner = r.Owner,
                 ClientModified = r.ClientModifiedTime != 0
@@ -221,7 +291,7 @@ namespace KeeperSecurity.Vault
                                 Key = file.key,
                                 Name = file.name,
                                 Title = file.title ?? "",
-                                Type = file.type ?? "",
+                                MimeType = file.type ?? "",
                                 Size = file.size ?? 0,
                                 LastModified = file.lastModified != null
                                     ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(file.lastModified.Value)
@@ -276,6 +346,101 @@ namespace KeeperSecurity.Vault
             return record;
         }
 
+        internal static ITypedField ConvertToTypedField(this RecordTypeDataFieldBase field)
+        {
+            try
+            {
+                if (RecordTypesConstants.TryGetRecordField(field.Type, out var rf))
+                {
+                    if (RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
+                    {
+                        var xb = JsonUtils.DumpJson(field);
+                        using (var ms = new MemoryStream(xb))
+                        {
+                            var f = (RecordTypeDataFieldBase) serializer.ReadObject(ms);
+                            return f.CreateTypedField();
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Unsupported field type: {rf.Type.Type}");
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine($"Unsupported record field: {field.Type}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+
+            return new UnsupportedField(field);
+        }
+
+        internal static TypedRecord LoadV3(this IStorageRecord r, byte[] key)
+        {
+            var data = CryptoUtils.DecryptAesV2(r.Data.Base64UrlDecode(), key);
+            var rtd = JsonUtils.ParseJson<RecordTypeData>(data);
+            var typedRecord = new TypedRecord(rtd.Type)
+            {
+                Uid = r.RecordUid,
+                Version = 3,
+                RecordKey = key,
+                Shared = r.Shared,
+                Owner = r.Owner,
+                ClientModified = r.ClientModifiedTime != 0
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
+                    : DateTimeOffset.Now,
+                Title = rtd.Title,
+                Notes = rtd.Notes,
+            };
+
+            if (rtd.Fields != null)
+            {
+                typedRecord.Fields.AddRange(rtd.Fields.Select(ConvertToTypedField));
+            }
+
+            if (rtd.Custom != null)
+            {
+                typedRecord.Custom.AddRange(rtd.Custom.Select(ConvertToTypedField));
+            }
+
+            return typedRecord;
+        }
+
+        internal static FileRecord LoadV4(this IStorageRecord r, byte[] key)
+        {
+            var data = CryptoUtils.DecryptAesV2(r.Data.Base64UrlDecode(), key);
+            var rfd = JsonUtils.ParseJson<RecordFileData>(data);
+            var fileRecord = new FileRecord()
+            {
+                RecordKey = key,
+                Uid = r.RecordUid,
+                Version = 4,
+                Shared = r.Shared,
+                Owner = r.Owner,
+                ClientModified = r.ClientModifiedTime != 0
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
+                    : DateTimeOffset.Now,
+                Title = rfd.Title,
+                Name = rfd.Name,
+                FileSize = rfd.Size ?? 0,
+                MimeType = rfd.Type,
+                LastModified = rfd.LastModified != null
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(rfd.LastModified.Value)
+                    : DateTimeOffset.Now
+            };
+            if (!string.IsNullOrEmpty(r.Udata))
+            {
+                var uData = JsonUtils.ParseJson<SyncDownRecordUData>(r.Udata.Base64UrlDecode());
+                fileRecord.StorageFileSize = uData.FileSize;
+                fileRecord.StorageThumbnailSize = uData.ThumbnailSize;
+            }
+
+            return fileRecord;
+        }
 
         internal static SharedFolder Load(this ISharedFolder sf, IEnumerable<IRecordMetadata> records,
             IEnumerable<ISharedFolderPermission> users, byte[] sharedFolderKey)
@@ -319,6 +484,118 @@ namespace KeeperSecurity.Vault
             }
 
             return sharedFolder;
+        }
+
+        /// <summary>
+        /// Gets a custom field.
+        /// </summary>
+        /// <param name="record">KeeperRecord</param>
+        /// <param name="name">Custom field Name.</param>
+        /// <returns>Returns custom field or <c>null</c> is it was not found.</returns>
+        public static ICustomField GetCustomField(this KeeperRecord record, string name)
+        {
+            switch (record)
+            {
+                case PasswordRecord password:
+                {
+                    return password.Custom
+                        .FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
+                }
+                case TypedRecord typed:
+                {
+                    return typed.Custom
+                        .OfType<TypedField<string>>()
+                        .FirstOrDefault(x => string.Equals(name, x.FieldLabel, StringComparison.CurrentCultureIgnoreCase));
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Deletes a custom field.
+        /// </summary>
+        /// <param name="record">KeeperRecord</param>
+        /// <param name="name">Custom field Name.</param>
+        /// <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
+        public static ICustomField DeleteCustomField(this KeeperRecord record, string name)
+        {
+            switch (record)
+            {
+                case PasswordRecord password:
+                {
+                    var cf = password.Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
+                    if (cf != null)
+                    {
+                        if (password.Custom.Remove(cf))
+                        {
+                            return cf;
+                        }
+                    }
+
+                    break;
+                }
+                case TypedRecord typed:
+                {
+                    var field = typed.Custom
+                        .OfType<TypedField<string>>()
+                        .FirstOrDefault(x => string.Equals(name, x.FieldLabel, StringComparison.CurrentCultureIgnoreCase));
+                    if (field != null)
+                    {
+                        typed.Custom.Remove(field);
+                        return field;
+                    }
+
+                    break;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Adds or Changes custom field.
+        /// </summary>
+        /// <param name="record">KeeperRecord</param>
+        /// <param name="name">Name.</param>
+        /// <param name="value">Value.</param>
+        /// <returns>Added or modified custom field.</returns>
+        public static ICustomField SetCustomField(this KeeperRecord record, string name, string value)
+        {
+            switch (record)
+            {
+                case PasswordRecord password:
+                {
+                    var cf = password.Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
+                    if (cf == null)
+                    {
+                        cf = new CustomField
+                        {
+                            Name = name
+                        };
+                        password.Custom.Add(cf);
+                    }
+
+                    cf.Value = value ?? "";
+                    return cf;
+                }
+                case TypedRecord typed:
+                {
+                    var field = typed.Custom
+                        .OfType<TypedField<string>>()
+                        .FirstOrDefault(x => string.Equals(name, x.FieldLabel, StringComparison.CurrentCultureIgnoreCase));
+                    if (field == null)
+                    {
+                        field = new TypedField<string>("text", name);
+                        typed.Custom.Add(field);
+                    }
+
+                    field.TypedValue = value;
+                    return field;
+                }
+                default:
+                    return null;
+            }
         }
     }
 }

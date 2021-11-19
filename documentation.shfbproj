@@ -51,7 +51,9 @@
 <NamespaceSummaryItem name="KeeperSecurity.Enterprise" isDocumented="True" />
 <NamespaceSummaryItem name="KeeperSecurity.Utils" isDocumented="True" />
 <NamespaceSummaryItem name="KeeperSecurity.Vault" isDocumented="True" />
-<NamespaceSummaryItem name="Folder" isDocumented="False" /></NamespaceSummaries>
+<NamespaceSummaryItem name="Folder" isDocumented="False" />
+<NamespaceSummaryItem name="Records" isDocumented="False" />
+<NamespaceSummaryItem name="Tokens" isDocumented="False" /></NamespaceSummaries>
     <ComponentConfigurations>
       <ComponentConfig id="Syntax Component" enabled="True" xmlns="">
         <component id="Syntax Component">
@@ -64,7 +66,7 @@
       </ComponentConfig>
     </ComponentConfigurations>
     <HelpTitle>Keeper SDK Class Library</HelpTitle>
-    <HelpFileVersion>1.0.0.0</HelpFileVersion>
+    <HelpFileVersion>1.0.3.0</HelpFileVersion>
     <NamingMethod>MemberName</NamingMethod>
     <ContentPlacement>AboveNamespaces</ContentPlacement>
     <RootNamespaceContainer>True</RootNamespaceContainer>

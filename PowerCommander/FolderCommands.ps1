@@ -1,7 +1,5 @@
 #requires -Version 5.0
 
-using namespace KeeperSecurity
-
 function Add-KeeperFolder {
 <#
 	.Synopsis
@@ -41,12 +39,12 @@ function Add-KeeperFolder {
 		[Parameter()][switch] $ManageRecords
 	)
 
-	[Vault.VaultOnline]$vault = $Script:Vault
+	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 	if (-not $vault) {
 		Write-Error -Message 'Not connected'
 		return
 	}
-	$objs = Get-KeeperChildItems -ObjectType Folder | where Name -eq $Name
+	$objs = Get-KeeperChildItems -ObjectType Folder | Where-Object Name -eq $Name
 	if ($objs.Length -gt 0 ) {
         Write-Error -Message "Folder `"$Name`" already exists"
 		return
@@ -54,7 +52,7 @@ function Add-KeeperFolder {
 
 	$parentUid = $Script:CurrentFolder
 	if ($ParentFolderUid) {
-		[Vault.FolderNode]$folder = $null
+		[KeeperSecurity.Vault.FolderNode]$folder = $null
 		if (-not $vault.TryGetFolder($ParentFolderUid, [ref]$folder)) {
 	        Write-Error -Message "Folder UID `"$ParentFolderUid`" does not exist"
 			return
@@ -97,7 +95,7 @@ function Remove-KeeperFolder {
 		[Parameter(Position = 0, Mandatory = $true)][string] $Name
 	)
 
-	[Vault.VaultOnline]$vault = $Script:Vault
+	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 	if (-not $vault) {
 		Write-Error -Message 'Not connected'
 		return
@@ -108,7 +106,7 @@ function Remove-KeeperFolder {
 		$folderUid = $folder.FolderUid
 	}
 	if (-not $folderUid) {
-		$objs = Get-KeeperChildItems -ObjectType Folder | where Name -eq $Name
+		$objs = Get-KeeperChildItems -ObjectType Folder | Where-Object Name -eq $Name
 		if (-not $objs) {
 			Write-Error -Message "Folder `"$Name`" does not exist"
 			return
@@ -121,6 +119,6 @@ function Remove-KeeperFolder {
 	}
 
 	$task = $vault.DeleteFolder($folderUid)
-	$_ = $task.GetAwaiter().GetResult()
+	$task.GetAwaiter().GetResult() | Out-Null
 }
 New-Alias -Name krmdir -Value Remove-KeeperFolder

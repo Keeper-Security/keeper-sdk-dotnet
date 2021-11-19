@@ -69,7 +69,7 @@ namespace KeeperSecurity.Utils
     /// <exclude/>
     [SqlTable(Name = "Records", PrimaryKey = new [] { "RecordUid" })]
     [DataContract]
-    public class ExternalRecord : IEntity, IPasswordRecord, IEntityCopy<IPasswordRecord>
+    public class ExternalRecord : IEntity, IStorageRecord, IEntityCopy<IStorageRecord>
     {
         [SqlColumn(Length = 32)]
         [DataMember(Name = "record_uid", EmitDefaultValue = false)]
@@ -78,6 +78,10 @@ namespace KeeperSecurity.Utils
         [SqlColumn]
         [DataMember(Name = "revision", EmitDefaultValue = false)]
         public long Revision { get; set; }
+
+        [SqlColumn]
+        [DataMember(Name = "version", EmitDefaultValue = false)]
+        public int Version { get; set; }
 
         [SqlColumn]
         [DataMember(Name = "client_modified_time", EmitDefaultValue = false)]
@@ -109,7 +113,7 @@ namespace KeeperSecurity.Utils
             set => RecordUid = value;
         }
 
-        public void CopyFields(IPasswordRecord source)
+        public void CopyFields(IStorageRecord source)
         {
             RecordUid = source.RecordUid;
             Revision = source.Revision;

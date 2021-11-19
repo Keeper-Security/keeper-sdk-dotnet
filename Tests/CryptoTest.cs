@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -18,6 +21,55 @@ namespace Tests
 
     public class CryptoTest
     {
+        private const string FieldPattern = "^(\\w+)(\\.[^\\[]+)?(\\[*.\\])?\\s*=\\s*(.*)$";
+        [Fact]
+        public void TestPattern()
+        {
+            var rx = new Regex(FieldPattern);
+            var m = rx.Match("text.fdfsd fff = sfsd dsf f sf sdf");
+            Assert.True(m.Success);
+        }
+
+        [Fact]
+        public async Task TestEncryptTransform()
+        {
+            var key = CryptoUtils.GenerateEncryptionKey();
+            var encryptTransformV2 = new EncryptAesV2Transform(key);
+            var decryptTransformV2 = new DecryptAesV2Transform(key);
+            var data = new byte[999];
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (byte) (i & 0xff);
+            }
+
+            byte[] outputData;
+            using (var output = new MemoryStream())
+            {
+                using (var cryptoStream = new CryptoStream(new MemoryStream(data), encryptTransformV2, CryptoStreamMode.Read))
+                {
+                    await cryptoStream.CopyToAsync(output);
+                }
+
+                outputData = output.ToArray();
+            }
+            Assert.Equal(outputData.Length, data.Length + 12 + 16);
+
+            byte[] dataBack;
+            using (var back = new MemoryStream())
+            {
+                using (var cryptoStream = new CryptoStream(new MemoryStream(outputData), decryptTransformV2, CryptoStreamMode.Read))
+                {
+                    await cryptoStream.CopyToAsync(back);
+                }
+
+                dataBack = back.ToArray();
+            }
+            Assert.Equal(dataBack.Length, data.Length);
+            for (int i = 0; i < data.Length; i++) {
+                Assert.Equal(data[i], dataBack[i]);
+            }
+        }
+
         [Fact]
         public void TestECDHAgreement()
         {

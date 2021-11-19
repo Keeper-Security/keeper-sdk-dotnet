@@ -6,9 +6,11 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace KeeperSecurity.Vault
 {
@@ -44,47 +46,35 @@ namespace KeeperSecurity.Vault
 
     internal static class VaultOnlineFunctions
     {
-        public static async Task<PasswordRecord> AddRecordToFolder(this VaultOnline vault, PasswordRecord record, string folderUid = null)
+        public static async Task<KeeperRecord> AddRecordToFolder(this VaultOnline vault, KeeperRecord record,
+            string folderUid = null)
         {
+            record.Uid = CryptoUtils.GenerateUid();
+            record.RecordKey = CryptoUtils.GenerateEncryptionKey();
             FolderNode node = null;
             if (!string.IsNullOrEmpty(folderUid))
             {
                 vault.TryGetFolder(folderUid, out node);
             }
 
-            record.Uid = CryptoUtils.GenerateUid();
-            record.RecordKey = CryptoUtils.GenerateEncryptionKey();
-            var recordAdd = new RecordAddCommand
-            {
-                RecordUid = record.Uid,
-                RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, vault.Auth.AuthContext.DataKey).Base64UrlEncode(),
-                RecordType = "password"
-            };
-            if (node == null)
-            {
-                recordAdd.FolderType = "user_folder";
-            }
-            else
+            folderUid = null;
+            byte[] folderKey = null;
+            if (node != null)
             {
                 switch (node.FolderType)
                 {
                     case FolderType.UserFolder:
-                        recordAdd.FolderType = "user_folder";
-                        recordAdd.FolderUid = node.FolderUid;
+                        folderUid = node.FolderUid;
                         break;
                     case FolderType.SharedFolder:
                     case FolderType.SharedFolderFolder:
-                        recordAdd.FolderUid = node.FolderUid;
-                        recordAdd.FolderType = node.FolderType == FolderType.SharedFolder
-                            ? "shared_folder"
-                            : "shared_folder_folder";
+                        folderUid = node.FolderUid;
                         if (vault.TryGetSharedFolder(node.SharedFolderUid, out var sf))
                         {
-                            recordAdd.FolderKey = CryptoUtils.EncryptAesV1(record.RecordKey, sf.SharedFolderKey)
-                                .Base64UrlEncode();
+                            folderKey = sf.SharedFolderKey;
                         }
 
-                        if (string.IsNullOrEmpty(recordAdd.FolderKey))
+                        if (folderKey == null)
                         {
                             throw new Exception($"Cannot resolve shared folder for folder UID: {folderUid}");
                         }
@@ -93,17 +83,141 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
-            var data = record.ExtractRecordData();
-            using (var ms = new MemoryStream())
+            if (record is PasswordRecord pr)
             {
-                dataSerializer.WriteObject(ms, data);
-                recordAdd.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
+                var ft = "user_folder";
+                switch (node?.FolderType)
+                {
+                    case FolderType.SharedFolder:
+                        ft = "shared_folder";
+                        break;
+                    case FolderType.SharedFolderFolder:
+                        ft = "shared_folder_folder";
+                        break;
+                }
+
+                var recordAdd = new RecordAddCommand
+                {
+                    RecordUid = record.Uid,
+                    RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, vault.Auth.AuthContext.DataKey)
+                        .Base64UrlEncode(),
+                    RecordType = "password",
+                    FolderType = ft,
+                };
+                if (!string.IsNullOrEmpty(folderUid))
+                {
+                    recordAdd.FolderUid = folderUid;
+                    if (folderKey != null)
+                    {
+                        recordAdd.FolderKey = CryptoUtils.EncryptAesV1(record.RecordKey, folderKey).Base64UrlEncode();
+                    }
+                }
+
+                var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
+                var data = pr.ExtractRecordData();
+                using (var ms = new MemoryStream())
+                {
+                    dataSerializer.WriteObject(ms, data);
+                    recordAdd.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
+                }
+
+                await vault.Auth.ExecuteAuthCommand(recordAdd);
+                vault.ScheduleForAudit(record.Uid);
+            }
+            else if (record is TypedRecord typed)
+            {
+                var ft = Records.RecordFolderType.UserFolder;
+                switch (node?.FolderType)
+                {
+                    case FolderType.SharedFolder:
+                        ft = Records.RecordFolderType.SharedFolder;
+                        break;
+                    case FolderType.SharedFolderFolder:
+                        ft = Records.RecordFolderType.SharedFolderFolder;
+                        break;
+                }
+
+                var recordAddProto = new Records.RecordAdd
+                {
+                    RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
+                    RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(record.RecordKey,
+                        vault.Auth.AuthContext.DataKey)),
+                    ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    FolderType = ft,
+                };
+                if (!string.IsNullOrEmpty(folderUid))
+                {
+                    recordAddProto.FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode());
+                    if (folderKey != null)
+                    {
+                        recordAddProto.RecordKey =
+                            ByteString.CopyFrom(CryptoUtils.EncryptAesV2(record.RecordKey, folderKey));
+                    }
+                }
+
+                vault.AdjustTypedRecord(typed);
+                var recordData = typed.ExtractRecordV3Data();
+                var jsonData = JsonUtils.DumpJson(recordData);
+                recordAddProto.Data =
+                    ByteString.CopyFrom(CryptoUtils.EncryptAesV2(jsonData, record.RecordKey));
+                var refKeys = new Dictionary<string, byte[]>();
+                foreach (var recordUid in typed.ExtractRecordRefs())
+                {
+                    if (refKeys.ContainsKey(recordUid)) continue;
+                    if (vault.TryGetKeeperRecord(recordUid, out var keeperRecord))
+                    {
+                        refKeys.Add(recordUid, keeperRecord.RecordKey);
+                    }
+                }
+
+                if (refKeys.Count > 0)
+                {
+                    recordAddProto.RecordLinks.AddRange(refKeys.Select(pair => new Records.RecordLink
+                    {
+                        RecordUid = ByteString.CopyFrom(pair.Key.Base64UrlDecode()),
+                        RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(pair.Value, record.RecordKey))
+                    }));
+                }
+
+                if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
+                {
+                    var auditData = typed.ExtractRecordAuditData();
+                    var data = JsonUtils.DumpJson(auditData);
+                    recordAddProto.Audit = new Records.RecordAudit
+                    {
+                        Version = 0,
+                        Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(data,
+                            vault.Auth.AuthContext.EnterprisePublicEcKey))
+                    };
+                }
+
+                var rq = new Records.RecordsAddRequest
+                {
+                    ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                };
+                rq.Records.Add(recordAddProto);
+                var rs = await vault.Auth.ExecuteAuthRest<Records.RecordsAddRequest, Records.RecordsModifyResponse>(
+                    "vault/records_add", rq);
+                var modifyResult = rs.Records[0];
+                if (modifyResult.Status != Records.RecordModifyResult.RsSuccess)
+                {
+                    var status = modifyResult.Status.ToString().ToSnakeCase();
+                    if (status.StartsWith("rs_"))
+                    {
+                        status = status.Substring(3);
+                    }
+
+                    throw new KeeperApiException(status, modifyResult.Message);
+                }
+            }
+            else
+            {
+                throw new Exception($"Unsupported record type: {record.GetType().Name}");
             }
 
-            await vault.Auth.ExecuteAuthCommand(recordAdd);
             await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
-            return vault.TryGetRecord(record.Uid, out var r) ? r : record;
+
+            return vault.TryGetKeeperRecord(record.Uid, out var r) ? r : record;
         }
 
         public static async Task MoveToFolder(this VaultOnline vault, IEnumerable<RecordPath> objects, string toFolderUid, bool link = false)
@@ -141,7 +255,7 @@ namespace KeeperSecurity.Vault
                     foreach (var recordUid in folder.Records)
                     {
                         if (keyObjects.ContainsKey(recordUid)) continue;
-                        if (!vault.TryGetRecord(recordUid, out var record))
+                        if (!vault.TryGetKeeperRecord(recordUid, out var record))
                         {
                             keyObjects.Add(recordUid,
                                 new TransitionKey
@@ -195,7 +309,7 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    if (!vault.TryGetRecord(mo.RecordUid, out var record))
+                    if (!vault.TryGetKeeperRecord(mo.RecordUid, out var record))
                     {
                         throw new VaultException("");
                     }
@@ -237,9 +351,10 @@ namespace KeeperSecurity.Vault
             await vault.Auth.ExecuteAuthCommand(request);
         }
 
-        public static async Task<PasswordRecord> PutRecord(this VaultOnline vault, PasswordRecord record, bool skipData = false, bool skipExtra = true)
+        public static async Task<KeeperRecord> PutRecord(this VaultOnline vault, KeeperRecord record,
+            bool skipData = false, bool skipExtra = true)
         {
-            IPasswordRecord existingRecord = null;
+            IStorageRecord existingRecord = null;
             if (!string.IsNullOrEmpty(record.Uid))
             {
                 existingRecord = vault.Storage.Records.GetEntity(record.Uid);
@@ -250,112 +365,165 @@ namespace KeeperSecurity.Vault
                 return await vault.AddRecordToFolder(record);
             }
 
-            var updateRecord = new RecordUpdateRecord
-            {
-                RecordUid = existingRecord.RecordUid
-            };
 
-            var rmd = vault.ResolveRecordAccessPath(updateRecord, true);
-            if (rmd != null)
+            if (record is PasswordRecord passwordRecord)
             {
-                if (rmd.RecordKeyType == (int) KeyType.NoKey || rmd.RecordKeyType == (int) KeyType.PrivateKey)
+                var updateRecord = new RecordUpdateRecord
                 {
-                    updateRecord.RecordKey = CryptoUtils.EncryptAesV1(record.RecordKey, vault.Auth.AuthContext.DataKey)
-                        .Base64UrlEncode();
-                }
-            }
+                    RecordUid = existingRecord.RecordUid,
+                    Revision = existingRecord.Revision
+                };
 
-            updateRecord.Revision = existingRecord.Revision;
-
-            if (!skipData)
-            {
-                var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
-                RecordData existingData = null;
-                try
+                var rmd = vault.ResolveRecordAccessPath(updateRecord, true);
+                if (rmd != null)
                 {
-                    var unencryptedData =
-                        CryptoUtils.DecryptAesV1(existingRecord.Data.Base64UrlDecode(), record.RecordKey);
-                    using (var ms = new MemoryStream(unencryptedData))
+                    if (rmd.RecordKeyType == (int) KeyType.NoKey || rmd.RecordKeyType == (int) KeyType.PrivateKey)
                     {
-                        existingData = (RecordData) dataSerializer.ReadObject(ms);
+                        updateRecord.RecordKey = CryptoUtils
+                            .EncryptAesV1(record.RecordKey, vault.Auth.AuthContext.DataKey)
+                            .Base64UrlEncode();
                     }
                 }
-                catch (Exception e)
+
+                if (!skipData)
                 {
-                    Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"",
-                        existingRecord.RecordUid,
-                        e.GetType().Name,
-                        e.Message);
+                    var data = passwordRecord.ExtractRecordData();
+                    var unencryptedData = JsonUtils.DumpJson(data);
+                    updateRecord.Data = CryptoUtils.EncryptAesV1(unencryptedData, record.RecordKey).Base64UrlEncode();
                 }
 
-                var data = record.ExtractRecordData(existingData);
-                using (var ms = new MemoryStream())
+                if (!skipExtra)
                 {
-                    dataSerializer.WriteObject(ms, data);
-                    updateRecord.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
-                }
-            }
-
-            if (!skipExtra)
-            {
-                var extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
-                RecordExtra existingExtra = null;
-                try
-                {
-                    var unencryptedExtra =
-                        CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
-                    using (var ms = new MemoryStream(unencryptedExtra))
+                    RecordExtra existingExtra = null;
+                    try
                     {
-                        existingExtra = (RecordExtra) extraSerializer.ReadObject(ms);
+                        var unencryptedExtra =
+                            CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
+                        existingExtra = JsonUtils.ParseJson<RecordExtra>(unencryptedExtra);
                     }
-                }
-                catch (Exception e)
-                {
-                    Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"",
-                        existingRecord.RecordUid,
-                        e.GetType().Name,
-                        e.Message);
-
-                }
-
-                var extra = record.ExtractRecordExtra(existingExtra);
-                using (var ms = new MemoryStream())
-                {
-                    extraSerializer.WriteObject(ms, extra);
-                    updateRecord.Extra = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
-                }
-
-                var udata = new RecordUpdateUData();
-                var ids = new HashSet<string>();
-                if (record.Attachments != null)
-                {
-                    foreach (var atta in record.Attachments)
+                    catch (Exception e)
                     {
-                        ids.Add(atta.Id);
-                        if (atta.Thumbnails != null)
+                        Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"",
+                            existingRecord.RecordUid,
+                            e.GetType().Name,
+                            e.Message);
+                    }
+
+                    var extra = passwordRecord.ExtractRecordExtra(existingExtra);
+                    var extraBytes = JsonUtils.DumpJson(extra);
+                    updateRecord.Extra = CryptoUtils.EncryptAesV1(extraBytes, record.RecordKey).Base64UrlEncode();
+
+                    var udata = new RecordUpdateUData();
+                    var ids = new HashSet<string>();
+                    if (passwordRecord.Attachments != null)
+                    {
+                        foreach (var atta in passwordRecord.Attachments)
                         {
-                            foreach (var thumb in atta.Thumbnails)
+                            ids.Add(atta.Id);
+                            if (atta.Thumbnails != null)
                             {
-                                ids.Add(thumb.Id);
+                                foreach (var thumb in atta.Thumbnails)
+                                {
+                                    ids.Add(thumb.Id);
+                                }
                             }
                         }
                     }
+
+                    udata.FileIds = ids.ToArray();
+                    updateRecord.Udata = udata;
                 }
 
-                udata.FileIds = ids.ToArray();
-                updateRecord.Udata = udata;
+                var command = new RecordUpdateCommand
+                {
+                    deviceId = vault.Auth.Endpoint.DeviceName,
+                    UpdateRecords = new[] {updateRecord}
+                };
+
+                await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
+                vault.ScheduleForAudit(record.Uid);
+            }
+            else if (record is TypedRecord typed)
+            {
+                vault.AdjustTypedRecord(typed);
+                var recordUpdate = new Records.RecordUpdate
+                {
+                    RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
+                    ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    Revision = record.Revision,
+                };
+
+                var recordData = typed.ExtractRecordV3Data();
+                var jsonData = JsonUtils.DumpJson(recordData);
+                recordUpdate.Data =
+                    ByteString.CopyFrom(CryptoUtils.EncryptAesV2(jsonData, record.RecordKey));
+
+                jsonData = CryptoUtils.DecryptAesV2(existingRecord.Data.Base64UrlDecode(), typed.RecordKey);
+                recordData = JsonUtils.ParseJson<RecordTypeData>(jsonData);
+
+                var existingRefs = new HashSet<string>();
+                existingRefs.UnionWith((recordData.Fields ?? Enumerable.Empty<RecordTypeDataFieldBase>()
+                        .Concat(recordData.Custom ?? Enumerable.Empty<RecordTypeDataFieldBase>()))
+                    .Where(x => x.Type.EndsWith("Ref"))
+                    .Select(VaultExtensions.ConvertToTypedField)
+                    .OfType<TypedField<string>>()
+                    .SelectMany(x => x.Values, (field, s) => s));
+
+                var currentRefs = new HashSet<string>(typed.Fields.Concat(typed.Custom)
+                    .Where(x => x.FieldName.EndsWith("Ref"))
+                    .OfType<TypedField<string>>()
+                    .SelectMany(x => x.Values, (field, s) => s));
+
+                recordUpdate.RecordLinksAdd.AddRange(currentRefs.Except(existingRefs)
+                    .Select(x => vault.TryGetKeeperRecord(x, out var xr) ? xr : null)
+                    .Where(x => x != null)
+                    .Select(x => new Records.RecordLink
+                    {
+                        RecordUid = ByteString.CopyFrom(x.Uid.Base64UrlDecode()),
+                        RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(x.RecordKey, typed.RecordKey))
+                    }));
+
+                recordUpdate.RecordLinksRemove.AddRange(existingRefs.Except(currentRefs)
+                    .Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+                if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
+                {
+                    var rad = typed.ExtractRecordAuditData();
+                    recordUpdate.Audit = new Records.RecordAudit
+                    {
+                        Version = 0,
+                        Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(JsonUtils.DumpJson(rad),
+                            vault.Auth.AuthContext.EnterprisePublicEcKey))
+                    };
+                }
+
+                var rq = new Records.RecordsUpdateRequest
+                {
+                    ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                };
+                rq.Records.Add(recordUpdate);
+
+                var rs = await vault.Auth.ExecuteAuthRest<Records.RecordsUpdateRequest, Records.RecordsModifyResponse>(
+                    "vault/records_update", rq);
+                var updateResult = rs.Records[0];
+                if (updateResult.Status != Records.RecordModifyResult.RsSuccess)
+                {
+                    var status = updateResult.Status.ToString().ToSnakeCase();
+                    if (status.StartsWith("rs_"))
+                    {
+                        status = status.Substring(3);
+                    }
+
+                    throw new KeeperApiException(status, updateResult.Message);
+                }
+            }
+            else
+            {
+                throw new Exception($"Unsupported record type: {record.GetType().Name}");
             }
 
-            var command = new RecordUpdateCommand
-            {
-                deviceId = vault.Auth.Endpoint.DeviceName,
-                UpdateRecords = new[] {updateRecord}
-            };
-
-            await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
             await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
 
-            return vault.TryGetRecord(record.Uid, out var r) ? r : record;
+            return vault.TryGetKeeperRecord(record.Uid, out var r) ? r : record;
         }
 
         public static async Task PutNonSharedData<T>(this VaultOnline vault, string recordUid, T nonSharedData) 
@@ -627,12 +795,12 @@ namespace KeeperSecurity.Vault
                     }
 
                     ok = await vault.VaultUi.Confirmation(confirmation);
-                    if (ok)
+                }
+                if (ok)
+                {
+                    foreach (var rq in requests)
                     {
-                        foreach (var rq in requests)
-                        {
-                            _ = vault.Auth.ExecuteAuthCommand<SharedFolderUpdateCommand, SharedFolderUpdateResponse>(rq);
-                        }
+                        _ = vault.Auth.ExecuteAuthCommand<SharedFolderUpdateCommand, SharedFolderUpdateResponse>(rq);
                     }
                 }
             }

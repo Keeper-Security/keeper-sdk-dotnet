@@ -33,6 +33,10 @@ namespace KeeperSecurity.Vault
         /// Key is encrypted with team RSA key.
         /// </summary>
         TeamPrivateKey = 5,
+        /// <summary>
+        /// Key is encrypted with record key.
+        /// </summary>
+        RecordKey = 6,
     }
 
     /// <exclude/>
@@ -83,7 +87,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Defines Password Record properties.
     /// </summary>
-    public interface IPasswordRecord : IUid
+    public interface IStorageRecord : IUid
     {
         /// <summary>
         /// Record UID.
@@ -93,6 +97,14 @@ namespace KeeperSecurity.Vault
         /// Last Revision.
         /// </summary>
         long Revision { get; }
+        /// <summary>
+        /// Record Version.
+        /// 2 - Legacy
+        /// 3 - Typed
+        /// 4 - File
+        /// 5 - Application
+        /// </summary>
+        int Version { get; }
         /// <summary>
         /// Last modification time. Unix epoch in seconds.
         /// </summary>
@@ -400,7 +412,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Gets record entity storage.
         /// </summary>
-        IEntityStorage<IPasswordRecord> Records { get; }
+        IEntityStorage<IStorageRecord> Records { get; }
 
         /// <summary>
         /// Gets shared folder entity storage.
@@ -448,7 +460,7 @@ namespace KeeperSecurity.Vault
         /// <item><term>Subject UID</term><description>User Email or Team UID</description></item>
         /// </list>
         /// </remarks>
-        IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; } 
+        IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; }
 
         /// <summary>
         /// Gets folder entity storage.
@@ -471,6 +483,60 @@ namespace KeeperSecurity.Vault
         /// </summary>
         void Clear();
     }
+
+    /// <summary>
+    /// Specifies Record Type Scope
+    /// </summary>
+    public enum RecordTypeScope
+    {
+        /// <summary>
+        /// Pre-Defined 
+        /// </summary>
+        Standard = 0,
+        /// <summary>
+        /// User-Defined
+        /// </summary>
+        User = 1,
+        /// <summary>
+        /// Enterprise-Defined
+        /// </summary>
+        Enterprise = 2,
+    }
+
+    /// <summary>
+    /// Defines properties for Record Types.
+    /// </summary>
+    public interface IRecordType : IUid
+    {
+        /// <summary>
+        /// Record Type ID
+        /// </summary>
+        int Id { get; }
+        /// <summary>
+        /// Record Type Scope
+        /// </summary>
+        RecordTypeScope Scope { get; }
+        /// <summary>
+        /// Record Type Content (JSON).
+        /// </summary>
+        string Content { get; }
+    }
+
+    /// <summary>
+    /// Defines properties for offline record types storage.
+    /// </summary>
+    public interface IKeeperRecordTypeStorage
+    {
+        /// <summary>
+        /// Gets record type storage
+        /// </summary>
+        IEntityStorage<IRecordType> RecordTypes { get; }
+        /// <summary>
+        /// Clears storage
+        /// </summary>
+        void Clear();
+    }
+
 
     internal class InMemoryItemStorage<T> : IEntityStorage<T> where T : IUid
     {
@@ -625,13 +691,13 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Gets record entity storage.
         /// </summary>
-        public IEntityStorage<IPasswordRecord> Records { get; private set; }
+        public IEntityStorage<IStorageRecord> Records { get; private set; }
 
         /// <summary>
         /// Gets shared folder entity storage.
         /// </summary>
         public IEntityStorage<ISharedFolder> SharedFolders { get; private set; }
-        
+
         /// <summary>
         /// Gets team entity storage.
         /// </summary>
@@ -696,7 +762,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public void Clear()
         {
-            Records = new InMemoryItemStorage<IPasswordRecord>();
+            Records = new InMemoryItemStorage<IStorageRecord>();
             SharedFolders = new InMemoryItemStorage<ISharedFolder>();
             Teams = new InMemoryItemStorage<IEnterpriseTeam>();
             NonSharedData = new InMemoryItemStorage<INonSharedData>();
@@ -705,6 +771,7 @@ namespace KeeperSecurity.Vault
             SharedFolderPermissions = new InMemorySentenceStorage<ISharedFolderPermission>();
             Folders = new InMemoryItemStorage<IFolder>();
             FolderRecords = new InMemorySentenceStorage<IFolderRecordLink>();
+
             Revision = 0;
         }
     }

@@ -180,11 +180,11 @@
                 <PropertyName>Mode</PropertyName>
               </ListItem>
               <ListItem>
-                <PropertyName>Login</PropertyName>
+                <PropertyName>Type</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Website Address</Label>
-                <PropertyName>Link</PropertyName>
+                <Label>Info</Label>
+                <PropertyName>PublicInformation</PropertyName>
               </ListItem>
               <ListItem>
                 <Label>UID</Label>

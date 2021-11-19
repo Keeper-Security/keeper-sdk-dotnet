@@ -81,6 +81,16 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         public float SecondsUntilStorageExpiration { get; internal set; }
 
+        /// <summary>
+        /// File storage plan. Total bytes
+        /// </summary>
+        public long BytesTotal { get; internal set; }
+
+        /// <summary>
+        /// File storage plan. Used bytes
+        /// </summary>
+        public long BytesUsed { get; set; }
+
         internal static AccountLicense LoadFromProtobuf(AccountSummary.License license)
         {
             return new AccountLicense
@@ -92,7 +102,9 @@ namespace KeeperSecurity.Authentication
                 SecondsUntilExpiration = license.SecondsUntilExpiration,
                 FilePlanType = license.FilePlanType,
                 StorageExpirationDate = license.StorageExpirationDate,
-                SecondsUntilStorageExpiration = license.SecondsUntilStorageExpiration
+                SecondsUntilStorageExpiration = license.SecondsUntilStorageExpiration,
+                BytesTotal = license.BytesTotal,
+                BytesUsed = license.BytesUsed,
             };
         }
     }
@@ -171,6 +183,12 @@ namespace KeeperSecurity.Authentication
         /// Persistent login.
         /// </summary>
         public bool PersistentLogin { get; internal set; }
+        /// <summary>
+        /// Record types enabled flag.
+        /// </summary>
+
+        public bool RecordTypesEnabled { get; internal set; }
+
         internal string AccountFolderKey { get; set; }
         internal AccountShareTo[] ShareAccountTo { get; set; }
 
@@ -195,6 +213,7 @@ namespace KeeperSecurity.Authentication
                 ShareDatakeyWithEnterprise = settings.ShareDataKeyWithEccPublicKey,
                 LogoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : (long?) null,
                 PersistentLogin = settings.PersistentLogin,
+                RecordTypesEnabled = settings.RecordTypesEnabled,
             };
         }
     }

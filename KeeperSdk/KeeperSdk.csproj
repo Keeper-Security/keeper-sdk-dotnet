@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <LangVersion>7.1</LangVersion>
-    <Version>1.0.3-beta01</Version>
+    <Version>1.0.3-beta03</Version>
     <Authors>Keeper Security Inc.</Authors>
     <Product>.NET Keeper Sdk</Product>
     <PackageTags>keeper password manager</PackageTags>
@@ -13,8 +13,8 @@
     <RepositoryType>Github</RepositoryType>
     <PackageProjectUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</PackageProjectUrl>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.3.1</AssemblyVersion>
-    <FileVersion>1.0.3.1</FileVersion>
+    <AssemblyVersion>1.0.3.2</AssemblyVersion>
+    <FileVersion>1.0.3.2</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <IncludeSymbols>true</IncludeSymbols>
@@ -29,12 +29,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.14.0" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.9" />
+    <PackageReference Include="Google.Protobuf" Version="3.19.0" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Web" Condition="'$(TargetFramework)' == 'net45'" />
+    <Reference Include="System.Web" Condition="'$(TargetFramework)' == 'net452'" />
   </ItemGroup>
   
 </Project>

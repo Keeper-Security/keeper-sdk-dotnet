@@ -14,7 +14,7 @@ function Get-KeeperLocation {
 		[string]$currentFolder = $Script:CurrentFolder
 		[KeeperSecurity.Vault.FolderNode]$folder = $vault.RootFolder
 		if ($currentFolder) {
-			$_ = $vault.TryGetFolder($currentFolder, [ref]$folder)
+			$vault.TryGetFolder($currentFolder, [ref]$folder) | Out-Null
 		}
 		exportKeeperNode $folder
 	} else {
@@ -247,26 +247,31 @@ function Get-KeeperChildItems {
 			}
 			if ($showRecord) {
 				foreach ($uid in $f.Records) {
-					[KeeperSecurity.Vault.PasswordRecord] $r = $null
-					if ($vault.TryGetRecord($uid, [ref]$r)) {
+					[KeeperSecurity.Vault.KeeperRecord] $r = $null
+					if ($vault.TryGetKeeperRecord($uid, [ref]$r)) {
+						if ($r.Version -ne 2 -and $r.Version -ne 3) {
+							continue
+						}
 						$match = $true
 						if ($Filter) {
-							$match = @($r.Title, $r.Uid, $r.Login, $r.Link) | Select-String $Filter | Select-Object -First 1
+							$match = @($r.Title, $r.Uid) | Select-String $Filter | Select-Object -First 1
 						}
 						if ($match) {
 							if ($Flat.IsPresent -and $recordEntries.ContainsKey($uid)) {
 								$entry = $recordEntries[$uid]
 								$entry.OwnerFolder += $path
 							} else {
+								$type = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($r)
+								$publicInfo = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordPublicInformation($r)
 								$entry = [PSCustomObject]@{
 									PSTypeName  = "KeeperSecurity.Commander.RecordEntry$(if ($SkipGrouping.IsPresent) {'Flat'} else {''})"
 									Uid = $r.Uid
 									Name = $r.Title
 									Shared = $r.Shared
 									Owner = $r.Owner
-									HasAttachments = ($r.Attachments.Count -gt 0)
-									Link = $r.Link
-									Login = $r.Login
+									Type = $type
+									PublicInformation = $publicInfo
+									HasAttachments = ($vault.RecordAttachments($r).Count -gt 0)
 									SortGroup = 1
 								}
 								if ($SkipGrouping.IsPresent) {
@@ -276,6 +281,7 @@ function Get-KeeperChildItems {
 								}
 
 								$recordEntries[$uid] = $entry
+								$entry = $null
 							}
 						}
 					}
@@ -336,8 +342,8 @@ function Get-KeeperObject {
 	Process {
 		ForEach($oid in $Uid) {
 			if ($testRecord) {
-				[KeeperSecurity.Vault.PasswordRecord] $record = $null
-				if ($vault.TryGetRecord($oid, [ref]$record)) {
+				[KeeperSecurity.Vault.KeeperRecord] $record = $null
+				if ($vault.TryGetKeeperRecord($oid, [ref]$record)) {
 					if ($PropertyName) {
 						$mp = $record | Get-Member -MemberType Properties -Name $PropertyName
 						if ($mp) {
@@ -378,7 +384,7 @@ function Get-KeeperObject {
 				}
 			}
 			if ($testTeam) {
-				[KeeperSecurity.Vault.EnterpriseTeam] $t = $null
+				[KeeperSecurity.Vault.Team] $t = $null
 				if ($vault.TryGetTeam($oid, [ref]$t)) {
 					if ($PropertyName) {
 						$mp = $t | Get-Member -MemberType Properties -Name $PropertyName

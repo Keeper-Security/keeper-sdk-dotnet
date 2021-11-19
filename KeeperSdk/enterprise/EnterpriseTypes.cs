@@ -117,7 +117,7 @@ namespace KeeperSecurity.Enterprise
         public long ScimId { get; internal set; }
 
         /// <exclude/>
-        public long SsoServiceProviderId { get; internal set; }
+        public long[] SsoServiceProviderIds { get; internal set; }
     }
 
     /// <summary>

@@ -406,36 +406,57 @@ namespace Sample
             Console.WriteLine($"Vault has {vault.RecordCount} records.");
 
             // Find record with title "Google"
-            var search = vault.Records.FirstOrDefault(x => string.Compare(x.Title, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
+            var search = vault
+                .KeeperRecords
+                .Where(x => x.Version == 2 || x.Version == 3)
+                .FirstOrDefault(x => string.Compare(x.Title, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
             // Create a record if it does not exist.
             if (search == null)
             {
-                search = new PasswordRecord
+                if (auth.AuthContext.Settings.RecordTypesEnabled)
                 {
-                    Title = "Google",
-                    Login = "<Account Name>",
-                    Password = "<Account Password>",
-                    Link = "https://google.com",
-                    Notes = "Stores google credentials"
-                };
+                    var loginRecord = new TypedRecordFacade<LoginRecordType>();
+                    loginRecord.Fields.Login = "<Account Name>";
+                    loginRecord.Fields.Password = "<Account Password>";
+                    loginRecord.Fields.Url = "https://google.com";
+
+                    var typed = loginRecord.TypedRecord;
+                    typed.Title = "Google";
+                    typed.Notes = "Stores google credentials";
+
+                    search = typed;
+                }
+                else
+                {
+                    search = new PasswordRecord
+                    {
+                        Title = "Google",
+                        Login = "<Account Name>",
+                        Password = "<Account Password>",
+                        Link = "https://google.com",
+                        Notes = "Stores google credentials"
+                    };
+                }
+
                 search = await vault.CreateRecord(search);
+                var nsd3 = vault.LoadNonSharedData<NonSharedData3>(search.Uid);
+                nsd3.Data1 = "1";
+                nsd3.Data3 = "3";
+                await vault.StoreNonSharedData(search.Uid, nsd3);
+
+                var nsd2 = vault.LoadNonSharedData<NonSharedData2>(search.Uid);
+                nsd2.Data2 = "2";
+                await vault.StoreNonSharedData(search.Uid, nsd2);
             }
 
-            var nsd3 = vault.LoadNonSharedData<NonSharedData3>(search.Uid);
-            nsd3.Data1 = "1";
-            nsd3.Data3 = "3";
-            await vault.StoreNonSharedData(search.Uid, nsd3);
-
-            var nsd2 = vault.LoadNonSharedData<NonSharedData2>(search.Uid);
-            nsd2.Data2 = "2";
-            await vault.StoreNonSharedData(search.Uid, nsd2);
-
             // Update record.
-            search.SetCustomField("Security Token", "11111111");
+            var cf = search.GetCustomField("Security Token");
+            var tokenValue = cf?.Value ?? "1";
+            search.SetCustomField("Security Token", tokenValue + "1");
             search = await vault.UpdateRecord(search);
 
-            // find file attachment.
-            var attachment = search.Attachments
+
+            var attachment = vault.RecordAttachments(search)
                 .FirstOrDefault(x => string.Compare(x.Title, "google", StringComparison.InvariantCultureIgnoreCase) == 0);
 
             if (attachment == null)
@@ -452,7 +473,6 @@ namespace Sample
                         MimeType = "text/plain"
                     };
                     await vault.UploadAttachment(search, uploadTask);
-                    await vault.UpdateRecord(search, false);
                 }
             }
             else
@@ -465,9 +485,7 @@ namespace Sample
                     await vault.DownloadAttachment(search, attachment.Id, stream);
                 }
 
-                // Delete attachment. Remove it from the record 
-                search.Attachments.Remove(attachment);
-                await vault.UpdateRecord(search, false);
+                await vault.DeleteAttachment(search, attachment.Id);
             }
 
             // Find shared folder with name "Google".
