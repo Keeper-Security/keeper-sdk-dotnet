@@ -57,7 +57,7 @@ jobs:
           dotnet restore /P:Configuration=Release
           dotnet clean /P:Configuration=Release
           dotnet build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net45\KeeperSdk.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
           dotnet pack --no-build --no-restore /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell      
@@ -83,7 +83,7 @@ jobs:
       - name: Zip Commander
         run: |
           $params = @{
-            Path = "Commander/bin/Release/Commander.*", "Commander/bin/Release/CommandLine.dll", "WinWebAuthn/bin/Release/WinWebAuthn.dll", "KeeperSdk/bin/Release/net45/*.dll"
+            Path = "Commander/bin/Release/Commander.*", "Commander/bin/Release/CommandLine.dll", "WinWebAuthn/bin/Release/WinWebAuthn.dll", "KeeperSdk/bin/Release/net452/*.dll"
             CompressionLevel = "Fastest"
             DestinationPath = "Commander-${Env:PACKAGE_VERSION}.zip"
           }
