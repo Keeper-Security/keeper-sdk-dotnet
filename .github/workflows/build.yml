@@ -50,16 +50,13 @@ jobs:
           Remove-Item certificate.txt
         shell: powershell
 
-      - name: Build Keeper SDK Nuget package
-        working-directory: ./KeeperSdk
+      - name: Build .Net Commander
+        working-directory: ./Commander
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet restore /P:Configuration=Release
-          dotnet clean /P:Configuration=Release
-          dotnet build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
-          dotnet pack --no-build --no-restore /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
+          msbuild /T:Restore,Clean /P:Configuration=Release
+          msbuild /T:Build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
         shell: powershell      
 
       - name: Build Security Key library for Windows
@@ -71,13 +68,16 @@ jobs:
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\WinWebAuthn.dll"
         shell: powershell
 
-      - name: Build .Net Commander
-        working-directory: ./Commander
+      - name: Build Keeper SDK Nuget package
+        working-directory: ./KeeperSdk
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          msbuild /T:Restore,Clean /P:Configuration=Release
-          msbuild /T:Build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
+          dotnet restore /P:Configuration=Release
+          dotnet clean /P:Configuration=Release
+          dotnet build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
+          dotnet pack --no-build --no-restore /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell      
 
       - name: Zip Commander
