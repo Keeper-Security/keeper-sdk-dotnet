@@ -239,22 +239,37 @@ function Add-KeeperRecord {
 	.Synopsis
 	Creates or Modifies a Keeper record in the current folder.
 
-	.Parameter UpdateOnly 
-	Do not create a new record
+	.Parameter Uid 
+	Record UID. If provided the existing record to be updated. Otherwise record is added.
 
-	.Parameter GeneratePassword
-	Generate random password
+	.Parameter RecordType
+	Record Type (if account supports record types). 
 
 	.Parameter Title
-	Field Title
+	Record Title. Mandatory field for added record.
+
+	.Parameter Notes
+	Record Notes.
+
+	.Parameter GeneratePassword
+	Generate random password. 
+
+	.Parameter Fields
+	A list of record Fields. Record field format NAME=VALUE
+	Predefined fields are
+	login 			Login Name
+	password		Password
+	url				Web Address
+	Any other name is added to Custom Fields
+	Example: login=username password=userpassword "Database Server=value1" 
 #>
 
 	[CmdletBinding(DefaultParameterSetName = 'add')]
 	Param (
 		[Parameter()][switch] $GeneratePassword,
-		[Parameter(ParameterSetName='add', Mandatory = $True)][string] $RecordType,
-		[Parameter(ParameterSetName='add', Mandatory = $True)][string] $Title,
+		[Parameter(ParameterSetName='add')][string] $RecordType,
 		[Parameter(ParameterSetName='edit', Mandatory = $True)][string] $Uid,
+		[Parameter(ParameterSetName='add', Mandatory = $True)][string] $Title,
 		[Parameter()][string] $Notes,
 		[Parameter(ValueFromRemainingArguments=$true)][string[]] $Fields
 	)
@@ -299,7 +314,7 @@ function Add-KeeperRecord {
         }
 
 		foreach ($field in $Fields) {
-			if ($field -match '^(\w+)(\.[^=]+)?=(.*)$') {
+			if ($field -match '^([^=\.]+)(\.[^=]+)?=(.*)$') {
 				$fieldName = $Matches[1]
 				$fieldLabel = $Matches[2]
 				if ($fieldLabel) {
@@ -315,8 +330,8 @@ function Add-KeeperRecord {
 				if ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
 					switch($fieldName) {
 						'login' {$record.Login = $fieldValue}
-						'password' {$record.Login = $fieldValue}
-						'url' {$record.Login = $fieldValue}
+						'password' {$record.Password = $fieldValue}
+						'url' {$record.Link = $fieldValue}
 						Default {
 							if ($fieldValue) {
 								[KeeperSecurity.Vault.VaultExtensions]::SetCustomField($record, $fieldName, $fieldValue) | Out-Null
@@ -328,24 +343,33 @@ function Add-KeeperRecord {
 				}
 				elseif ($record -is [KeeperSecurity.Vault.TypedRecord]) {
 					$recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField $fieldName, $fieldLabel
-					[KeeperSecurity.Vault.ITypedField]$recordField = $null
-					if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($record, $recordTypeField, [ref]$recordField)) {
+					[KeeperSecurity.Vault.ITypedField]$typedField = $null
+					if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($record, $recordTypeField, [ref]$typedField)) {
 					} else {
 						if ($fieldValue) {
-							$recordField = [KeeperSecurity.Vault.VaultDataExtensions]::CreateTypedField($fieldName, $fieldLabel)
-							$record.Custom.Add($recordField)
+							if (-not $fieldLabel) {
+								[KeeperSecurity.Vault.RecordField]$recordField = $null
+								if (-not [KeeperSecurity.Vault.RecordTypesConstants]::TryGetRecordField($fieldName, [ref]$recordField)) {
+									$fieldLabel = $fieldName
+									$fieldName = 'text'
+								}
+							}
+							$typedField = [KeeperSecurity.Vault.VaultDataExtensions]::CreateTypedField($fieldName, $fieldLabel)
+							if ($typedField) {
+								$record.Custom.Add($typedField)
+							}
 						}
 					}
-					if ($recordField) {
+					if ($typedField) {
 						if ($fieldValue) {
-							$recordField.ObjectValue = $fieldValue
+							$typedField.ObjectValue = $fieldValue
 						} else {
-							$recordField.DeleteValueAt(0)
+							$typedField.DeleteValueAt(0)
 						}
 					}
 				}
 			} else {
-				Write-Error -Message "Invalid field `"field`""
+				Write-Error -Message "Invalid field `"$field`""
 				return
 			}
 		}

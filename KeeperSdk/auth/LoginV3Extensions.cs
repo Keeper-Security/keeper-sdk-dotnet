@@ -1282,6 +1282,9 @@ namespace KeeperSecurity.Authentication
             else
             {
                 queryString.Add("embedded", "");
+                queryString.Add("token", "");
+                queryString.Add("user", auth.Username);
+                queryString.Add("session_id", auth.AuthContext.SsoLoginInfo.IdpSessionId);
             }
 
             var builder = new UriBuilder(new Uri(auth.AuthContext.SsoLoginInfo.SpBaseUrl.Replace("/login", "/logout")))
