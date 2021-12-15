@@ -150,7 +150,7 @@ namespace KeeperSecurity.Vault
                     recordAddProto.FolderUid = ByteString.CopyFrom(folderUid.Base64UrlDecode());
                     if (folderKey != null)
                     {
-                        recordAddProto.RecordKey =
+                        recordAddProto.FolderKey =
                             ByteString.CopyFrom(CryptoUtils.EncryptAesV2(record.RecordKey, folderKey));
                     }
                 }
