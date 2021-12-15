@@ -300,7 +300,7 @@ namespace KeeperSecurity.Vault
                     case (int) KeyType.SharedFolderKey:
                         if (keeperSharedFolders.TryGetValue(rmd.SharedFolderUid, out var sf))
                         {
-                            recordKey = CryptoUtils.DecryptAesV1(rKey, sf.SharedFolderKey);
+                            recordKey = rKey.Length == 60 ? CryptoUtils.DecryptAesV2(rKey, sf.SharedFolderKey) : CryptoUtils.DecryptAesV1(rKey, sf.SharedFolderKey);
                             return true;
                         }
                         else
