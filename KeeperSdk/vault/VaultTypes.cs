@@ -452,7 +452,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public DateTimeOffset ClientModified { get; internal set; }
         /// <summary>
-        /// A list of Custom Fields.
+        /// Is user Owner?
         /// </summary>
         public bool Owner { get; set; }
         /// <summary>
@@ -774,7 +774,7 @@ namespace KeeperSecurity.Vault
     public class PasswordRecord : KeeperRecord
     {
         /// <summary>
-        /// Is user Owner?
+        /// Notes.
         /// </summary>
         public string Notes { get; set; }
 
@@ -794,7 +794,7 @@ namespace KeeperSecurity.Vault
         public string Link { get; set; }
 
         /// <summary>
-        /// Notes.
+        /// A list of Custom Fields.
         /// </summary>
         public IList<CustomField> Custom { get; } = new List<CustomField>();
 
