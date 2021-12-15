@@ -284,7 +284,7 @@ namespace Commander
 
             _auth = new Auth(ui, storage)
             {
-                Endpoint = {DeviceName = "Commander C#", ClientVersion = "c15.0.0"}
+                Endpoint = {DeviceName = "Commander C#", ClientVersion = "c16.0.0"}
             };
 
             Commands.Add("login", new ParsableCommand<LoginOptions>
