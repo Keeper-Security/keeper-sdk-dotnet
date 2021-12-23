@@ -8,7 +8,7 @@ function Get-KeeperLocation {
 	Get current Keeper folder
 #>
 	[CmdletBinding()]
-
+	Param()
 	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
 	if ($vault) {
 		[string]$currentFolder = $Script:CurrentFolder
