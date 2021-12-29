@@ -1,41 +1,28 @@
 ﻿using Enterprise;
-using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
-using KeeperSecurity.Enterprise;
 using KeeperSecurity.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using KeeperEnterpriseData = Enterprise.EnterpriseData;
 
-namespace Commander.Enterprise
+namespace KeeperSecurity.Enterprise
 {
-    public class EnterpriseQueuedTeam : IParentNodeEntity
-    {
-        public string Uid { get; internal set; }
-        public string Name { get; set; }
-        public long ParentNodeId { get; internal set; }
-    }
-
-    public class EnterpriseQueuedUsers
-    {
-        public string TeamUid { get; internal set; }
-        public ISet<long> UserIDs { get; } = new HashSet<long>();
-    }
-
     public interface IQueuedTeamData
     {
         IEnumerable<EnterpriseQueuedTeam> QueuedTeams { get; }
         IEnumerable<long> GetQueuedUsersForTeam(string teamUid);
     }
 
-    public interface IQueuedTeamDataManagement
+    public class EnterpriseQueuedTeam : IParentNodeEntity, IEncryptedData
     {
-        Task QueueUserToTeam(long enterpriseUserId, string teamUid);
-    }
+        public string Uid { get; internal set; }
+        public string Name { get; set; }
+        public long ParentNodeId { get; internal set; }
 
+        public string EncryptedData { get; internal set; }
+    }
 
     public class QueuedTeamData : EnterpriseDataPlugin, IQueuedTeamData
     {
@@ -53,28 +40,15 @@ namespace Commander.Enterprise
         public override IEnumerable<IKeeperEnterpriseEntity> Entities { get; }
 
         public IEnumerable<EnterpriseQueuedTeam> QueuedTeams => _queuedTeams.Entities;
+        public int QueuedTeamCount => _queuedTeams.Count;
+
         public IEnumerable<long> GetQueuedUsersForTeam(string teamUid)
         {
-            if (_queuedUsers.TryGetEntity(teamUid, out var users))
+            if (_queuedUsers.TryGetMembers(teamUid, out var users))
             {
-                return users.UserIDs;
+                return users;
             }
             return Enumerable.Empty<long>();
-        }
-    }
-
-    public class QueuedTeamDataManagement : QueuedTeamData, IQueuedTeamDataManagement
-    {
-        public async Task QueueUserToTeam(long enterpriseUserId, string teamUid)
-        {
-            var rq = new TeamQueueUserCommand
-            {
-                TeamUid = teamUid,
-                EnterpriseUserId = enterpriseUserId
-            };
-
-            await Enterprise.Auth.ExecuteAuthCommand(rq);
-            await Enterprise.Load();
         }
     }
 
@@ -100,6 +74,7 @@ namespace Commander.Enterprise
         {
             sdk.Name = keeper.Name;
             sdk.ParentNodeId = keeper.NodeId;
+            sdk.EncryptedData = keeper.EncryptedData;
         }
     }
 
@@ -107,7 +82,7 @@ namespace Commander.Enterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
 
-        internal readonly ConcurrentDictionary<string, EnterpriseQueuedUsers> _entities = new ConcurrentDictionary<string, EnterpriseQueuedUsers>();
+        internal readonly ConcurrentDictionary<string, ISet<long>> _entities = new ConcurrentDictionary<string, ISet<long>>();
 
         public QueuedUserDictionary() : base(EnterpriseDataEntity.QueuedTeamUsers)
         {
@@ -121,10 +96,7 @@ namespace Commander.Enterprise
                 var id = keeperEntity.TeamUid.ToByteArray().Base64UrlEncode();
                 if (!_entities.TryGetValue(id, out var sdkEntity))
                 {
-                    sdkEntity = new EnterpriseQueuedUsers
-                    {
-                        TeamUid = id
-                    };
+                    sdkEntity = new HashSet<long>();
                     _entities.TryAdd(id, sdkEntity);
                 }
 
@@ -132,15 +104,15 @@ namespace Commander.Enterprise
                 {
                     if (entityData.Delete)
                     {
-                        sdkEntity.UserIDs.Remove(userId);
+                        sdkEntity.Remove(userId);
                     }
                     else
                     {
-                        sdkEntity.UserIDs.Add(userId);
+                        sdkEntity.Add(userId);
                     }
                 }
 
-                if (sdkEntity.UserIDs.Count == 0)
+                if (sdkEntity.Count == 0)
                 {
                     _entities.TryRemove(id, out _);
                 }
@@ -148,7 +120,7 @@ namespace Commander.Enterprise
             DataStructureChanged();
         }
 
-        public bool TryGetEntity(string key, out EnterpriseQueuedUsers entity)
+        public bool TryGetMembers(string key, out ISet<long> entity)
         {
             return _entities.TryGetValue(key, out entity);
         }

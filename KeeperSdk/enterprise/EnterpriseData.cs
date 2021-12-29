@@ -186,8 +186,12 @@ namespace KeeperSecurity.Enterprise
         {
             sdk.ParentNodeId = keeper.ParentId;
             sdk.RestrictVisibility = keeper.RestrictVisibility;
+            sdk.EncryptedData = keeper.EncryptedData;
+            sdk.BridgeId = keeper.BridgeId;
+            sdk.ScimId = keeper.ScimId;
+            sdk.SsoServiceProviderIds = keeper.SsoServiceProviderIds.ToArray();
             var enterprise = GetEnterprise?.Invoke();
-            if (enterprise != null && enterprise.TreeKey != null)
+            if (enterprise?.TreeKey != null)
             {
                 EnterpriseUtils.DecryptEncryptedData(keeper.EncryptedData, enterprise.TreeKey, sdk);
             }
@@ -253,7 +257,7 @@ namespace KeeperSecurity.Enterprise
         protected override void PopulateSdkFromKeeper(EnterpriseUser sdk, User keeper)
         {
             sdk.ParentNodeId = keeper.NodeId;
-            sdk.ParentNodeId = keeper.NodeId;
+            sdk.EncryptedData = keeper.EncryptedData;
             sdk.Email = keeper.Username;
             if (keeper.Status == "active")
             {

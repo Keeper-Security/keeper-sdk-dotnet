@@ -82,14 +82,22 @@ To install the PowerCommander module copy PowerCommander\ directory to
 
 6. Add/Modify Keeper record
     ```
-    PS > kadd -Login email@company.com -GeneratePassword -URL https://company.com -Custom 'Name:John Doe' 'Record for John Doe'
+    PS > kadd -Title 'Record for John Doe' -GeneratePassword login=email@company.com url=https://company.com 'User Name=John Doe' 
     ```
-    creates a record in Keeper 
+    creates a legacy record in Keeper 
+    ```
+    PS > kadd -RecordType login -Title 'Record for John Doe' -GeneratePassword login=email@company.com url=https://company.com 'User Name=John Doe' 
+    ```
+    creates a record of `login` type in Keeper 
+    ```
+    PS > kadd -Uid <RECORD UID> -GeneratePassword 
+    ```
+    generates a new password for existing record
 
-    ```
-    PS > kadd -GeneratePassword -UpdateOnly 'Record for John Doe'
-    ```
-    generates a new password
+    Pre-defined fields supported by both legacy and typed records
+    * `login`       Login
+    * `password`    Password
+    * `url`         Website Address
 
 7. Copy owned record to folder
     ```

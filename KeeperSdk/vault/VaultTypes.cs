@@ -47,16 +47,31 @@ namespace KeeperSecurity.Vault
         /// Gets the number of all records in the vault.
         /// </summary>
         int RecordCount { get; }
+
         /// <summary>
         /// Get the list of all records in the vault.
         /// </summary>
-        IEnumerable<PasswordRecord> Records { get; }
+        IEnumerable<KeeperRecord> KeeperRecords { get; }
         /// <summary>
-        /// Gets the record associated with the specified record UID.
+        /// Gets the legacy record associated with the specified record UID.
         /// </summary>
         /// <param name="recordUid">Record UID.</param>
         /// <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c>.</param>
         /// <returns><c>true</c> in the vault contains a record with specified UID; otherwise, <c>false</c></returns>
+        bool TryGetKeeperRecord(string recordUid, out KeeperRecord record);
+
+        /// <summary>
+        /// Get the list of all legacy records in the vault.
+        /// </summary>
+        [Obsolete("Use KeeperRecords")]
+        IEnumerable<PasswordRecord> Records { get; }
+        /// <summary>
+        /// Gets the legacy record associated with the specified record UID.
+        /// </summary>
+        /// <param name="recordUid">Record UID.</param>
+        /// <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> in the vault contains a record with specified UID; otherwise, <c>false</c></returns>
+        [Obsolete("Use TryGetKeeperRecord")]
         bool TryGetRecord(string recordUid, out PasswordRecord record);
 
         /// <summary>
@@ -98,6 +113,11 @@ namespace KeeperSecurity.Vault
         /// <param name="recordUid">Record UID</param>
         /// <returns>Non shared data associated with the record</returns>
         T LoadNonSharedData<T>(string recordUid) where T : RecordNonSharedData, new();
+
+        bool RecordTypesSupported { get; }
+
+        IEnumerable<RecordType> RecordTypes { get; }
+        bool TryGetRecordTypeByName(string name, out RecordType recordType);
     }
 
     /// <summary>
@@ -179,20 +199,20 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Creates a password record.
         /// </summary>
-        /// <param name="record">Password Record.</param>
+        /// <param name="record">Keeper Record.</param>
         /// <param name="folderUid">Folder UID where the record to be created. Optional.</param>
         /// <returns>A task returning created password record.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
-        Task<PasswordRecord> CreateRecord(PasswordRecord record, string folderUid = null);
+        Task<KeeperRecord> CreateRecord(KeeperRecord record, string folderUid = null);
 
         /// <summary>
         /// Modifies a password record.
         /// </summary>
-        /// <param name="record">Password Record.</param>
+        /// <param name="record">Keeper Record.</param>
         /// <param name="skipExtra">Do not update file attachment information on the record.</param>
         /// <returns>A task returning created password record.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
-        Task<PasswordRecord> UpdateRecord(PasswordRecord record, bool skipExtra = true);
+        Task<KeeperRecord> UpdateRecord(KeeperRecord record, bool skipExtra = true);
 
         /// <summary>
         /// Deletes password records.
@@ -355,20 +375,36 @@ namespace KeeperSecurity.Vault
     public interface IVaultFileAttachment
     {
         /// <summary>
+        /// Returns Record attachments
+        /// </summary>
+        /// <param name="record">Keeper record</param>
+        /// <returns>List od attachments</returns>
+        IEnumerable<IAttachment> RecordAttachments(KeeperRecord record);
+
+        /// <summary>
         /// Downloads and decrypts file attachment.
         /// </summary>
         /// <param name="record">Keeper record.</param>
         /// <param name="attachment">Attachment name, title, or ID.</param>
         /// <param name="destination">Writable stream.</param>
         /// <returns>Awaitable task.</returns>
-        Task DownloadAttachment(PasswordRecord record, string attachment, Stream destination);
+        Task DownloadAttachment(KeeperRecord record, string attachment, Stream destination);
+
         /// <summary>
         /// Encrypts and uploads file attachment.
         /// </summary>
-        /// <param name="record">Keeper record.</param>
+        /// <param name="record">Keeper record</param>
         /// <param name="uploadTask">Upload task</param>
         /// <returns>Awaitable task.</returns>
-        Task UploadAttachment(PasswordRecord record, IAttachmentUploadTask uploadTask);
+        Task UploadAttachment(KeeperRecord record, IAttachmentUploadTask uploadTask);
+
+        /// <summary>
+        /// Downloads and decrypts file attachment.
+        /// </summary>
+        /// <param name="record">Keeper record.</param>
+        /// <param name="attachmentId">Attachment ID</param>
+        /// <returns>Awaitable task.</returns>
+        Task<bool> DeleteAttachment(KeeperRecord record, string attachmentId);
     }
 
     /// <summary>
@@ -391,14 +427,30 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
-    /// Represents a decrypted Keeper Password Record.
+    /// Represents generic Keeper Record
     /// </summary>
-    public class PasswordRecord
+    public abstract class KeeperRecord 
     {
         /// <summary>
         /// Record UID.
         /// </summary>
         public string Uid { get; set; }
+        /// <summary>
+        /// Record version
+        /// </summary>
+        public int Version { get; set; }
+        /// <summary>
+        /// Record revision
+        /// </summary>
+        public long Revision { get; set; }
+        /// <summary>
+        /// Title.
+        /// </summary>
+        public string Title { get; set; }
+        /// <summary>
+        /// Last modification time.
+        /// </summary>
+        public DateTimeOffset ClientModified { get; internal set; }
         /// <summary>
         /// Is user Owner?
         /// </summary>
@@ -407,94 +459,360 @@ namespace KeeperSecurity.Vault
         /// Is record Shared?
         /// </summary>
         public bool Shared { get; set; }
-
-        /// <summary>
-        /// Title.
-        /// </summary>
-        public string Title { get; set; }
-        /// <summary>
-        /// Login or Username.
-        /// </summary>
-        public string Login { get; set; }
-        /// <summary>
-        /// Password.
-        /// </summary>
-        public string Password { get; set; }
-        /// <summary>
-        /// Web URL.
-        /// </summary>
-        public string Link { get; set; }
-        /// <summary>
-        /// Notes.
-        /// </summary>
-        public string Notes { get; set; }
-        /// <summary>
-        /// Last modification time.
-        /// </summary>
-        public DateTimeOffset ClientModified { get; internal set; }
-        /// <summary>
-        /// A list of Custom Fields.
-        /// </summary>
-        public IList<CustomField> Custom { get; } = new List<CustomField>();
-        /// <summary>
-        /// A list of Attachments.
-        /// </summary>
-        public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
-        /// <summary>
-        /// A list of Extra Fields.
-        /// </summary>
-        public IList<ExtraField> ExtraFields { get; } = new List<ExtraField>();
         /// <summary>
         /// Record key.
         /// </summary>
         public byte[] RecordKey { get; set; }
+    }
+
+    /// <exclude />
+    public interface ICustomField
+    {
+        string Type { get; }
+        string Name { get; }
+        string Value { get; set; }
+    }
+
+    /// <summary>
+    /// Defines properties for typed record field
+    /// </summary>
+    public interface ITypedField : IRecordTypeField, ICustomField
+    {
+        /// <summary>
+        /// Gets or sets the first field value
+        /// </summary>
+        object ObjectValue { get; set; }
 
         /// <summary>
-        /// Deletes a custom field.
+        /// Gets default field value.
         /// </summary>
-        /// <param name="name">Custom field name.</param>
-        /// <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
-        public CustomField DeleteCustomField(string name)
-        {
-            var cf = Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
-            if (cf != null)
-            {
-                if (Custom.Remove(cf))
-                {
-                    return cf;
-                }
-            }
+        /// <returns></returns>
+        object AppendValue();
 
+        /// <summary>
+        /// Gets value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns></returns>
+        object GetValueAt(int index);
+
+        /// <summary>
+        /// Sets value at index.
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        void SetValueAt(int index, object value);
+
+        /// <summary>
+        /// Deletes value at index.
+        /// </summary>
+        /// <param name="index">Index</param>
+        void DeleteValueAt(int index);
+
+        /// <summary>
+        /// Gets the number of values
+        /// </summary>
+        int Count { get; }
+    }
+
+    /// <summary>
+    /// Represents a Typed Record 
+    /// </summary>
+    /// <seealso cref="ITypedField"/>
+    public class TypedRecord : KeeperRecord
+    {
+        /// <summary>
+        /// Record notes
+        /// </summary>
+        public string Notes { get; set; }
+
+        /// <summary>
+        /// Record type name.
+        /// </summary>
+        public string TypeName { get; set; }
+
+        /// <exclude/>
+        public TypedRecord(string typeName)
+        {
+            TypeName = typeName;
+        }
+        /// <summary>
+        /// Record mandatory fields.
+        /// </summary>
+        public List<ITypedField> Fields { get; } = new List<ITypedField>();
+        /// <summary>
+        /// Record custom data.
+        /// </summary>
+        public List<ITypedField> Custom { get; } = new List<ITypedField>();
+    }
+
+    internal interface IToRecordTypeDataField
+    {
+        RecordTypeDataFieldBase ToRecordTypeDataField();
+    }
+
+    /// <exclude />
+    public class UnsupportedField : ITypedField, IToRecordTypeDataField
+    {
+        private readonly RecordTypeDataFieldBase _dataField;
+        internal UnsupportedField(RecordTypeDataFieldBase dataField)
+        {
+            _dataField = dataField;
+        }
+
+        RecordTypeDataFieldBase IToRecordTypeDataField.ToRecordTypeDataField()
+        {
+            return _dataField;
+        }
+
+        object ITypedField.ObjectValue { 
+            get => null;
+            set { }
+        }
+
+        object ITypedField.AppendValue()
+        {
             return null;
         }
 
-        /// <summary>
-        /// Adds or Changes custom field.
-        /// </summary>
-        /// <param name="name">Name.</param>
-        /// <param name="value">Value.</param>
-        /// <returns>Added or modified custom field.</returns>
-        public CustomField SetCustomField(string name, string value)
+        object ITypedField.GetValueAt(int index)
         {
-            var cf = Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
-            if (cf == null)
-            {
-                cf = new CustomField
-                {
-                    Name = name
-                };
-                Custom.Add(cf);
-            }
-            cf.Value = value ?? "";
-
-            return cf;
+            return null;
         }
+
+        void ITypedField.SetValueAt(int index, object value)
+        {
+        }
+
+        void ITypedField.DeleteValueAt(int index)
+        {
+        }
+        int ITypedField.Count => 0;
+
+        string IRecordTypeField.FieldName => _dataField.Type;
+        string IRecordTypeField.FieldLabel => _dataField.Label;
+
+        string ICustomField.Type => _dataField.Type;
+        string ICustomField.Name => _dataField.Label;
+        string ICustomField.Value 
+        {
+            get => null;
+            set { } 
+        }
+    }
+
+    /// <summary>
+    /// Represents a typed field.
+    /// </summary>
+    /// <typeparam name="T">Field Data Type</typeparam>
+    public class TypedField<T> : ITypedField, IToRecordTypeDataField
+    {
+        internal TypedField(RecordTypeDataField<T> dataField)
+        {
+            FieldName = dataField.Type;
+            FieldLabel = dataField.Label;
+            if (dataField.Value != null)
+            {
+                Values.AddRange(dataField.Value);
+            }
+        }
+
+        /// <exclude/>
+        public TypedField() : this("")
+        {
+        }
+
+        /// <exclude/>
+        public TypedField(string fieldType, string fieldLabel = null)
+        {
+            FieldName = string.IsNullOrEmpty(fieldType) ? "text" : fieldType;
+            FieldLabel = fieldLabel ?? "";
+        }
+
+        /// <summary>
+        /// Field type name.
+        /// </summary>
+        public string FieldName { get; }
+
+        /// <summary>
+        /// Field Label.
+        /// </summary>
+        public string FieldLabel { get; set; }
+
+        /// <summary>
+        /// Field values.
+        /// </summary>
+        public List<T> Values { get; } = new List<T>();
+
+        public T AppendTypedValue()
+        {
+            switch (Values)
+            {
+                case List<string> ls:
+                    ls.Add("");
+                    break;
+                case List<long> ll:
+                    ll.Add(0);
+                    break;
+                default:
+                    Values.Add((T) Activator.CreateInstance(typeof(T)));
+                    break;
+            }
+
+            return Values.Last();
+        }
+
+        /// <summary>
+        /// Default field value.
+        /// </summary>
+        public T TypedValue
+        {
+            get
+            {
+                if (Values.Count == 0)
+                {
+                    return AppendTypedValue();
+                }
+
+                return Values[0];
+            }
+            set
+            {
+                if (Values.Count == 0)
+                {
+                    Values.Add(value);
+                }
+                else
+                {
+                    Values[0] = value;
+                }
+            }
+        }
+
+        /// <exclude />
+        public object ObjectValue
+        {
+            get => TypedValue;
+            set => TypedValue = (T) value;
+        }
+
+        /// <summary>
+        /// Gets field value at index
+        /// </summary>
+        /// <param name="index">value index</param>
+        /// <returns></returns>
+        public object GetValueAt(int index)
+        {
+            if (index >= 0 && index < Values.Count)
+            {
+                return Values[index];
+            }
+
+            return default(T);
+        }
+
+        /// <summary>
+        /// Deletes field value at index
+        /// </summary>
+        /// <param name="index">Value index</param>
+        public void DeleteValueAt(int index)
+        {
+            if (index >= 0 && index < Values.Count)
+            {
+                Values.RemoveAt(index);
+            }
+        }
+
+        /// <summary>
+        /// Sets field value at index
+        /// </summary>
+        /// <param name="index">Value index</param>
+        /// <param name="value">Value</param>
+        public void SetValueAt(int index, object value)
+        {
+            if (index >= 0 && index < Values.Count)
+            {
+                if (value is T tv)
+                {
+                    Values[index] = tv;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Value Count
+        /// </summary>
+        public int Count => Values.Count;
+
+        RecordTypeDataFieldBase IToRecordTypeDataField.ToRecordTypeDataField()
+        {
+            return new RecordTypeDataField<T>(this);
+        }
+
+        /// <summary>
+        /// Appends a value.
+        /// </summary>
+        /// <returns></returns>
+        object ITypedField.AppendValue()
+        {
+            return AppendTypedValue();
+        }
+
+        string ICustomField.Name => FieldLabel;
+        string ICustomField.Value
+        {
+            get => (TypedValue is string s) ? s : null;
+            set => TypedValue = value is T t ? t : default;
+        }
+           
+        string ICustomField.Type => FieldName;
+    }
+
+    /// <summary>
+    /// Represents a Legacy Keeper Record.
+    /// </summary>
+    public class PasswordRecord : KeeperRecord
+    {
+        /// <summary>
+        /// Notes.
+        /// </summary>
+        public string Notes { get; set; }
+
+        /// <summary>
+        /// Login or Username.
+        /// </summary>
+        public string Login { get; set; }
+
+        /// <summary>
+        /// Password.
+        /// </summary>
+        public string Password { get; set; }
+
+        /// <summary>
+        /// Web URL.
+        /// </summary>
+        public string Link { get; set; }
+
+        /// <summary>
+        /// A list of Custom Fields.
+        /// </summary>
+        public IList<CustomField> Custom { get; } = new List<CustomField>();
+
+        /// <summary>
+        /// A list of Attachments.
+        /// </summary>
+        public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
+
+        /// <summary>
+        /// A list of Extra Fields.
+        /// </summary>
+        public IList<ExtraField> ExtraFields { get; } = new List<ExtraField>();
     }
 
     /// <summary>
     /// Represents a custom field.
     /// </summary>
-    public class CustomField
+    public class CustomField : ICustomField
     {
         /// <summary>
         /// Custom field name.
@@ -554,9 +872,45 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
+    /// Defines property for file attachment
+    /// </summary>
+    public interface IAttachment
+    {
+        /// <summary>
+        /// Attachment ID.
+        /// </summary>
+        string Id { get; }
+        /// <summary>
+        /// Attachment name.
+        /// </summary>
+        /// <remarks>Usually it is an original file name.</remarks>
+        string Name { get; }
+        /// <summary>
+        /// Attachment title.
+        /// </summary>
+        string Title { get; }
+        /// <summary>
+        /// Attachment MIME type.
+        /// </summary>
+        string MimeType { get; }
+        /// <summary>
+        /// Attachment size in bytes.
+        /// </summary>
+        long Size { get; }
+        /// <summary>
+        /// Last time modified.
+        /// </summary>
+        DateTimeOffset LastModified { get; }
+        /// <summary>
+        /// Attachment encryption key.
+        /// </summary>
+        byte[] AttachmentKey { get; }
+    }
+
+    /// <summary>
     /// Represents attachment file.
     /// </summary>
-    public class AttachmentFile
+    public class AttachmentFile : IAttachment
     {
         /// <summary>
         /// Attachment ID.
@@ -578,7 +932,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Attachment MIME type.
         /// </summary>
-        public string Type { get; set; }
+        public string MimeType { get; set; }
         /// <summary>
         /// Attachment size in bytes.
         /// </summary>
@@ -591,6 +945,53 @@ namespace KeeperSecurity.Vault
         /// A list of thumbnails.
         /// </summary>
         public AttachmentFileThumb[] Thumbnails { get; internal set; }
+
+        byte[] IAttachment.AttachmentKey => string.IsNullOrEmpty(Key) ? null : Key.Base64UrlDecode();
+    }
+
+    /// <summary>
+    /// Represents a Keeper File Record.
+    /// </summary>
+    public class FileRecord : KeeperRecord, IAttachment
+    {
+        /// <summary>
+        /// File Name.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// File MIME type.
+        /// </summary>
+        public string MimeType { get; set; }
+
+        /// <summary>
+        /// File size in bytes.
+        /// </summary>
+        public long FileSize { get; set; }
+
+        /// <summary>
+        /// File size in bytes.
+        /// </summary>
+        public long ThumbnailSize { get; set; }
+
+        /// <summary>
+        /// Last time modified.
+        /// </summary>
+        public DateTimeOffset LastModified { get; set; }
+
+        /// <summary>
+        /// On storage file size in bytes.
+        /// </summary>
+        public long? StorageFileSize { get; internal set; }
+
+        /// <summary>
+        /// On storage thumbnail size in bytes.
+        /// </summary>
+        public long? StorageThumbnailSize { get; internal set; }
+
+        string IAttachment.Id => Uid;
+        long IAttachment.Size => FileSize;
+        byte[] IAttachment.AttachmentKey => RecordKey;
     }
 
     /// <summary>

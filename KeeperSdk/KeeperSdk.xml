@@ -81,6 +81,16 @@
             The number of seconds until this user’s file plan subscription expires. Unix time.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Authentication.AccountLicense.BytesTotal">
+            <summary>
+            File storage plan. Total bytes
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AccountLicense.BytesUsed">
+            <summary>
+            File storage plan. Used bytes
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Authentication.AccountSettings">
             <summary>
             Represents user's account settings.
@@ -157,6 +167,11 @@
         <member name="P:KeeperSecurity.Authentication.AccountSettings.PersistentLogin">
             <summary>
             Persistent login.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AccountSettings.RecordTypesEnabled">
+            <summary>
+            Record types enabled flag.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Authentication.Async.IAuthUI">
@@ -598,10 +613,23 @@
             User's Client Key.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Authentication.IAuthContext.PrivateKey">
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.PrivateRsaKey">
             <summary>
             User's RSA Private Key.
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.PrivateEcKey">
+            <summary>
+            User's EC Private key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.EnterprisePublicEcKey">
+            <summary>
+            Enterprise EC Public key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.IAuthContext.PrivateKey">
+            <exclude/>
         </member>
         <member name="P:KeeperSecurity.Authentication.IAuthContext.License">
             <summary>
@@ -650,6 +678,9 @@
             <summary>
             Gets SSO Provider base URL
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AuthContext.PrivateKey">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.AuthCommon">
             <summary>
@@ -1224,6 +1255,9 @@
         <member name="M:KeeperSecurity.Authentication.IKeeperEndpoint.ConnectToPushServer(Push.WssConnectionRequest,System.Threading.CancellationToken)">
             <exclude/>
         </member>
+        <member name="M:KeeperSecurity.Authentication.IKeeperEndpoint.EncryptWithKeeperKey(System.Byte[],System.Int32)">
+            <exclude/>
+        </member>
         <member name="T:KeeperSecurity.Authentication.WebSocketChannel">
             <exclude/>
         </member>
@@ -1259,6 +1293,9 @@
             Returns language supported by Keeper.
             </summary>
             <returns>locale in format xx_YY where xx - 2 character language code, YY - 2 character country code</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.KeeperEndpoint.EncryptWithKeeperKey(System.Byte[],System.Int32)">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.KeeperInvalidParameter">
             <exclude/>
@@ -2432,6 +2469,14 @@
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.PopulateEnterprise">
             <exclude/>
         </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.InviteUser(System.String,KeeperSecurity.Enterprise.InviteUserOptions)">
+            <summary>
+            Invites user to enterprise
+            </summary>
+            <param name="email">Email Address</param>
+            <param name="fullName">Full Name</param>
+            <returns>Invited User</returns>
+        </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.CreateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
             <summary>
                 Creates Enterprise Team.
@@ -2526,10 +2571,10 @@
                     IAuthentication auth = await ConnectToKeeperAs("username@company.com");
                     if (auth.AuthContext.IsEnterpriseAdmin)
                     {
-                        // Load enterprise data.
+                        // LoadV2 enterprise data.
                         var enterprise = new EnterpriseData();
                         var enterpriseLoader = new EnterpriseLoader(auth, new [] { enterprise });
-                        await enterpriseLoader.Load();
+                        await enterpriseLoader.LoadV2();
             
                         // Find team with name "Google".
                         var team = enterprise.Teams
@@ -2656,6 +2701,27 @@
         <member name="T:KeeperSecurity.Enterprise.IEnterpriseData">
             <exclude/>
         </member>
+        <member name="T:KeeperSecurity.Enterprise.InviteUserOptions">
+            <summary>
+            Defines optional Invite User properties 
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.InviteUserOptions.FullName">
+            <summary>
+            User Full Name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.InviteUserOptions.NodeId">
+            <summary>
+            Enterprise Node ID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.InviteUserOptions.SuppressEmail">
+            <summary>
+            Callback method that receives enterprise invitation code.
+            When provided the enterprise invitation email will not be sent.
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Enterprise.IEnterpriseDataManagement">
             <exclude/>
         </member>
@@ -2694,6 +2760,18 @@
             <summary>
                 Node Isolation flag.
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseNode.EncryptedData">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseNode.BridgeId">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseNode.ScimId">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseNode.SsoServiceProviderIds">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Enterprise.UserStatus">
             <summary>
@@ -2758,6 +2836,18 @@
             <summary>
                 Node that owns the user.
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.UserId">
+            <excluded />
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.KeyType">
+            <excluded />
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.EncryptedData">
+            <excluded />
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.AccountShareExpiration">
+            <excluded />
         </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseRole">
             <summary>
@@ -2916,6 +3006,11 @@
         <member name="P:KeeperSecurity.Enterprise.RoleData.Roles">
             <summary>
             Get a list of all roles in the enterprise
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.RoleData.RoleCount">
+            <summary>
+            Gets the number of all roles in the enterprise.
             </summary>
         </member>
         <member name="M:KeeperSecurity.Enterprise.RoleData.TryGetRole(System.Int64,KeeperSecurity.Enterprise.EnterpriseRole@)">
@@ -3190,7 +3285,7 @@
         </member>
         <member name="M:KeeperSecurity.Utils.CryptoUtils.LoadPublicEcKey(System.Byte[])">
             <summary>
-                Load EC public key.
+                LoadV2 EC public key.
             </summary>
             <param name="key">public key bytes.</param>
             <returns>EC public key</returns>
@@ -3240,6 +3335,12 @@
             <exclude />
         </member>
         <member name="T:KeeperSecurity.Utils.DecryptAesV1Transform">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Utils.EncryptAesV2Transform">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Utils.DecryptAesV2Transform">
             <exclude />
         </member>
         <member name="T:KeeperSecurity.Utils.IExternalLoader">
@@ -3358,6 +3459,9 @@
             <param name="obj">JSON object.</param>
             <returns>JSON data.</returns>
         </member>
+        <member name="T:KeeperSecurity.Utils.StringUtils">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Utils.PasswordRuleMatcher">
             <summary>
                 Represents a password complexity rule matcher.
@@ -3381,6 +3485,57 @@
         </member>
         <member name="T:KeeperSecurity.Utils.DateTimeOffsetExtensions">
             <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Utils.RecordTypesUtils">
+            <summary>
+            Provides extension methods for Vault Record Types
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Utils.RecordTypesUtils.ToText(KeeperSecurity.Vault.RecordTypeScope)">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Utils.RecordTypesUtils.KeeperRecordType(KeeperSecurity.Vault.KeeperRecord)">
+            <summary>
+            Returns record type information.
+            </summary>
+            <param name="record">Keeper Record</param>
+            <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Utils.RecordTypesUtils.KeeperRecordPublicInformation(KeeperSecurity.Vault.KeeperRecord)">
+            <summary>
+            Returns common record information.
+            Does not include sensitive data
+            </summary>
+            <param name="record">Keeper Record</param>
+            <returns>General record information</returns>
+        </member>
+        <member name="M:KeeperSecurity.Utils.RecordTypesUtils.GetTypedFieldName(KeeperSecurity.Vault.IRecordTypeField)">
+            <summary>
+            Encodes record field name
+            </summary>
+            <param name="field">Field definition</param>
+            <returns>Record field full name.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Utils.RecordTypesUtils.GetTypedFieldValues(KeeperSecurity.Vault.ITypedField)">
+            <summary>
+            Returns typed field values converted to string
+            </summary>
+            <param name="field">Record Field</param>
+            <returns>Field values.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Utils.RecordTypesUtils.GetTypedFieldInformation(KeeperSecurity.Vault.ITypedField)">
+            <summary>
+            Returns general typed field values masking sensitive information.
+            </summary>
+            <param name="field">Record Field</param>
+            <returns>Field common values</returns>
+        </member>
+        <member name="M:KeeperSecurity.Utils.RecordTypesUtils.AdjustTypedRecord(KeeperSecurity.Vault.VaultData,KeeperSecurity.Vault.TypedRecord)">
+            <summary>
+            Verifies Typed record.
+            </summary>
+            <param name="vault">Vault</param>
+            <param name="typed">Typed Record</param>
         </member>
         <member name="T:KeeperSecurity.Utils.Tabulate">
             <exclude/>
@@ -3437,19 +3592,18 @@
             <param name="thumbnail">Thumbnail upload task. Optional.</param>
         </member>
         <member name="T:KeeperSecurity.Vault.VaultOnline">
-            <summary>
+            <summary>passwordRecord
             Represents Keeper Vault connected to Keeper server.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Vault.VaultOnline.CreateAttachmentDownloadRequest(System.String,System.String)">
+        <member name="M:KeeperSecurity.Vault.VaultOnline.RecordAttachments(KeeperSecurity.Vault.KeeperRecord)">
             <summary>
-            Creates a file attachment download HTTP request.
+            Returns Record attachments
             </summary>
-            <param name="recordUid">Record UID.</param>
-            <param name="attachmentId">Attachment ID.</param>
-            <returns>A signed <see cref="T:System.Net.WebRequest">WebRequest</see> instance (awaitable)</returns>
+            <param name="record">Keeper record</param>
+            <returns>List od attachments</returns>
         </member>
-        <member name="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachment(KeeperSecurity.Vault.PasswordRecord,System.String,System.IO.Stream)">
+        <member name="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachment(KeeperSecurity.Vault.KeeperRecord,System.String,System.IO.Stream)">
             <summary>
             Downloads and decrypts file attachment.
             </summary>
@@ -3457,16 +3611,34 @@
             <param name="attachment">Attachment name, title, or ID.</param>
             <param name="destination">Writable stream.</param>
             <returns>Awaitable task.</returns>
-            <seealso cref="M:KeeperSecurity.Vault.IVaultFileAttachment.DownloadAttachment(KeeperSecurity.Vault.PasswordRecord,System.String,System.IO.Stream)"/>
         </member>
-        <member name="M:KeeperSecurity.Vault.VaultOnline.UploadAttachment(KeeperSecurity.Vault.PasswordRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
+        <member name="M:KeeperSecurity.Vault.VaultOnline.UploadAttachment(KeeperSecurity.Vault.KeeperRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
             <summary>
             Encrypts and uploads file attachment.
             </summary>
             <param name="record">Keeper record.</param>
             <param name="uploadTask">Upload task</param>
             <returns>Awaitable task.</returns>
-            <seealso cref="M:KeeperSecurity.Vault.IVaultFileAttachment.UploadAttachment(KeeperSecurity.Vault.PasswordRecord,KeeperSecurity.Vault.IAttachmentUploadTask)"/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteAttachment(KeeperSecurity.Vault.KeeperRecord,System.String)">
+            <summary>
+            Downloads and decrypts file attachment.
+            </summary>
+            <param name="record">Keeper record.</param>
+            <param name="attachmentId">Attachment</param>
+            <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.DownloadFile(KeeperSecurity.Vault.FileRecord,System.IO.Stream)">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachmentFile(System.String,KeeperSecurity.Vault.AttachmentFile,System.IO.Stream)">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.UploadPasswordAttachment(KeeperSecurity.Vault.PasswordRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.UploadTypedAttachment(KeeperSecurity.Vault.TypedRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
+            <exclude />
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.PutUserToSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType,KeeperSecurity.Vault.ISharedFolderUserOptions)">
             <summary>
@@ -3504,7 +3676,7 @@
             <returns>Awaitable task</returns>
             <remarks>
             This method does not add a record to shared folder.
-            Use <see cref="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.PasswordRecord,System.String)"/> or <see cref="M:KeeperSecurity.Vault.IVault.MoveRecords(KeeperSecurity.Vault.RecordPath[],System.String,System.Boolean)"/>.
+            Use <see cref="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)"/> or <see cref="M:KeeperSecurity.Vault.IVault.MoveRecords(KeeperSecurity.Vault.RecordPath[],System.String,System.Boolean)"/>.
             </remarks>
             <seealso cref="M:KeeperSecurity.Vault.IVaultSharedFolder.ChangeRecordInSharedFolder(System.String,System.String,KeeperSecurity.Vault.ISharedFolderRecordOptions)"/>
         </member>
@@ -3544,24 +3716,24 @@
             </summary>
             <returns>Awaitable task</returns>
         </member>
-        <member name="M:KeeperSecurity.Vault.VaultOnline.CreateRecord(KeeperSecurity.Vault.PasswordRecord,System.String)">
+        <member name="M:KeeperSecurity.Vault.VaultOnline.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)">
             <summary>
-            Creates a password record.
+            Creates a keeper record.
             </summary>
-            <param name="record">Password Record.</param>
+            <param name="record">Keeper Record.</param>
             <param name="folderUid">Folder UID where the record to be created. Optional.</param>
             <returns>A task returning created password record.</returns>
-            <seealso cref="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.PasswordRecord,System.String)"/>
+            <seealso cref="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)"/>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
         </member>
-        <member name="M:KeeperSecurity.Vault.VaultOnline.UpdateRecord(KeeperSecurity.Vault.PasswordRecord,System.Boolean)">
+        <member name="M:KeeperSecurity.Vault.VaultOnline.UpdateRecord(KeeperSecurity.Vault.KeeperRecord,System.Boolean)">
             <summary>
-            Modifies a password record.
+            Modifies a keeper record.
             </summary>
             <param name="record">Password Record.</param>
             <param name="skipExtra">Do not update file attachment information on the record.</param>
             <returns>A task returning created password record.</returns>
-            <seealso cref="M:KeeperSecurity.Vault.IVault.UpdateRecord(KeeperSecurity.Vault.PasswordRecord,System.Boolean)"/>
+            <seealso cref="M:KeeperSecurity.Vault.IVault.UpdateRecord(KeeperSecurity.Vault.KeeperRecord,System.Boolean)"/>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.StoreNonSharedData``1(System.String,``0)">
@@ -3640,6 +3812,465 @@
             </summary>
             <returns>A list of all enterprise teams. (awaitable)</returns>
         </member>
+        <member name="T:KeeperSecurity.Vault.FieldType">
+            <summary>
+            Record Types Schema: Field Type definition.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldType.#ctor(System.String,System.Type,System.String,System.String[])">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldType.Name">
+            <summary>
+            Type name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldType.Description">
+            <summary>
+            Type description
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldType.Elements">
+            <summary>
+            Complex type properties
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldType.Type">
+            <summary>
+            .Net Type object
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordFieldMultiple">
+            <summary>
+            Specifies if Record Field allows multiple values.
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.RecordFieldMultiple.None">
+            <summary>
+            Single Value only
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.RecordFieldMultiple.Optional">
+            <summary>
+            Maybe multi-valued
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.RecordFieldMultiple.Default">
+            <summary>
+            Multi-Value field
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordField">
+            <summary>
+            Record Types Schema: Field definition.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordField.#ctor(System.String,KeeperSecurity.Vault.FieldType,KeeperSecurity.Vault.RecordFieldMultiple)">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordField.Name">
+            <summary>
+            Record Field Name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordField.Type">
+            <summary>
+            Field Type
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordField.Multiple">
+            <summary>
+            Multi-Value attribute
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.IRecordTypeField">
+            <summary>
+            Defines common properties for Record Field
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IRecordTypeField.FieldName">
+            <summary>
+            Record Field Name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IRecordTypeField.FieldLabel">
+            <summary>
+            Record Field Label
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordTypeField">
+            <summary>
+            Record Types Schema: Record Field definition.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordTypeField.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the RecordTypeField class
+            </summary>
+            <param name="fieldName">Field Name</param>
+            <param name="label">Field Label</param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordTypeField.#ctor(KeeperSecurity.Vault.RecordField,System.String)">
+            <summary>
+            Initializes a new instance of the RecordTypeField class
+            </summary>
+            <param name="recordField">Field</param>
+            <param name="label">Field Label</param>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordTypeField.RecordField">
+            <summary>
+            Gets Record Field
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordTypeField.FieldName">
+            <summary>
+            Gets field name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordTypeField.FieldLabel">
+            <summary>
+            Gets field label
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordType">
+            <summary>
+             Record Types Schema: Record Type definition.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordType.#ctor">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordType.#ctor(System.Int32,System.String,System.String,System.Collections.Generic.IEnumerable{KeeperSecurity.Vault.RecordTypeField})">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordType.Id">
+            <summary>
+            Gets record type ID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordType.Scope">
+            <summary>
+            Gets record type scope
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordType.Name">
+            <summary>
+            Gets record type name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordType.Description">
+            <summary>
+            Gets record type description
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordType.Fields">
+            <summary>
+            Gets record type fields
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.IFieldTypeSerialize">
+            <summary>
+            Defines access methods for compound record types
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IFieldTypeSerialize.ElementValues">
+            <summary>
+            Enumerates property values
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IFieldTypeSerialize.SetElementValue(System.String,System.String)">
+            <summary>
+            Sets property value
+            </summary>
+            <param name="element">Property or element name</param>
+            <param name="value">Property value</param>
+            <returns>true is the property was set</returns>
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypeHost">
+            <summary>
+            "host" field type
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeHost.#ctor">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeHost.HostName">
+            <summary>
+            Gets or sets hostname
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeHost.Port">
+            <summary>
+            Gets or sets port
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeHost.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeHost.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypePhone">
+            <summary>
+            "phone" field type
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypePhone.#ctor">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePhone.Region">
+            <summary>
+            Gets or sets phone region
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePhone.Number">
+            <summary>
+            Gets or sets phone number
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePhone.Ext">
+            <summary>
+            Gets or sets phone extension
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePhone.Type">
+            <summary>
+            Gets or sets phone type
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePhone.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypePhone.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypeName">
+            <summary>
+            "name" field type
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeName.#ctor">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeName.First">
+            <summary>
+            Gets or sets first name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeName.Last">
+            <summary>
+            Gets or sets last name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeName.Middle">
+            <summary>
+            Gets or sets middle name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeName.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeName.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypeAddress">
+            <summary>
+            "address" field type
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeAddress.#ctor">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.Street1">
+            <summary>
+            Gets or sets Street 1
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.Street2">
+            <summary>
+            Gets or sets Street 1
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.City">
+            <summary>
+            Gets or sets City
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.State">
+            <summary>
+            Gets or sets State
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.Zip">
+            <summary>
+            Gets or sets Zip/Postal Code
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.Country">
+            <summary>
+            Gets or sets Country
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeAddress.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypeSecurityQuestion">
+            <summary>
+            "securityQuestion" field type
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeSecurityQuestion.#ctor">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.Question">
+            <summary>
+            Gets or sets Security Question
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.Answer">
+            <summary>
+            Gets or sets Security Answer
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeSecurityQuestion.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypeBankAccount">
+            <summary>
+            "bankAccount" field type
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeBankAccount.#ctor">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.AccountType">
+            <summary>
+            Gets or sets Account Type
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.RoutingNumber">
+            <summary>
+            Gets or sets Routing Number
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.AccountNumber">
+            <summary>
+            Gets or setsAccount Number
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeBankAccount.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypePaymentCard">
+            <summary>
+            "paymentCard" field type
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypePaymentCard.#ctor">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.CardNumber">
+            <summary>
+            Gets or sets Card Number
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.CardExpirationDate">
+            <summary>
+            Gets or sets Card Expiration Date
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.CardSecurityCode">
+            <summary>
+            Gets or sets Card Security Code
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypePaymentCard.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypeKeyPair">
+            <summary>
+            "keyPair" field type
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.PublicKey">
+            <summary>
+            Gets or sets Public Key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.PrivateKey">
+            <summary>
+            Gets or sets Private Key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeKeyPair.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordTypesConstants">
+            <summary>
+            Record Types Schema: Fields
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordTypesConstants.FieldTypes">
+            <summary>
+            Gets supported Field Types
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordTypesConstants.RecordFields">
+            <summary>
+            Gets supported Fields
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordTypesConstants.GetTypedFieldType(System.Type,System.Type@)">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordTypesConstants.GetRecordFieldDataType(System.Type,System.Type@)">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordTypesConstants.GetJsonParser(System.Type,System.Runtime.Serialization.Json.DataContractJsonSerializer@)">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.KeeperRecordTypeStorage">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.TypedRecordFields">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.TypedRecordFacade`1">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.TypedRecordFileRef">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.AddressRecordType">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.PersonBirthDateRecordType">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.PassportRecordType">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.DriverLicenseRecordType">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.LoginRecordType">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Vault.KeyType">
             <summary>
             Specifies key used for entity encryption.
@@ -3673,6 +4304,11 @@
         <member name="F:KeeperSecurity.Vault.KeyType.TeamPrivateKey">
             <summary>
             Key is encrypted with team RSA key.
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.KeyType.RecordKey">
+            <summary>
+            Key is encrypted with record key.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.IUid">
@@ -3717,47 +4353,56 @@
             Can user edit record?
             </summary>
         </member>
-        <member name="T:KeeperSecurity.Vault.IPasswordRecord">
+        <member name="T:KeeperSecurity.Vault.IStorageRecord">
             <summary>
             Defines Password Record properties.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IPasswordRecord.RecordUid">
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.RecordUid">
             <summary>
             Record UID.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IPasswordRecord.Revision">
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.Revision">
             <summary>
             Last Revision.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IPasswordRecord.ClientModifiedTime">
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.Version">
+            <summary>
+            Record Version.
+            2 - Legacy
+            3 - Typed
+            4 - File
+            5 - Application
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.ClientModifiedTime">
             <summary>
             Last modification time. Unix epoch in seconds.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IPasswordRecord.Data">
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.Data">
             <summary>
             Encrypted record data 
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IPasswordRecord.Extra">
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.Extra">
             <summary>
             Encrypted record extra data.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IPasswordRecord.Udata">
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.Udata">
             <summary>
             Unencrypted record data
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IPasswordRecord.Shared">
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.Shared">
             <summary>
             Is record shared?
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IPasswordRecord.Owner">
+        <member name="P:KeeperSecurity.Vault.IStorageRecord.Owner">
             <summary>
             Is user owner of the record?
             </summary>
@@ -4142,6 +4787,61 @@
             Clear offline Keeper vault storage.
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Vault.RecordTypeScope">
+            <summary>
+            Specifies Record Type Scope
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.RecordTypeScope.Standard">
+            <summary>
+            Pre-Defined 
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.RecordTypeScope.User">
+            <summary>
+            User-Defined
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.RecordTypeScope.Enterprise">
+            <summary>
+            Enterprise-Defined
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.IRecordType">
+            <summary>
+            Defines properties for Record Types.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IRecordType.Id">
+            <summary>
+            Record Type ID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IRecordType.Scope">
+            <summary>
+            Record Type Scope
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IRecordType.Content">
+            <summary>
+            Record Type Content (JSON).
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.IKeeperRecordTypeStorage">
+            <summary>
+            Defines properties for offline record types storage.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IKeeperRecordTypeStorage.RecordTypes">
+            <summary>
+            Gets record type storage
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IKeeperRecordTypeStorage.Clear">
+            <summary>
+            Clears storage
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Vault.InMemoryKeeperStorage">
             <summary>
             Provides in memory implementation of IKeeperStorage interface.
@@ -4358,10 +5058,35 @@
             <seealso cref="T:KeeperSecurity.Authentication.IAuthentication" />
             <seealso cref="T:KeeperSecurity.Vault.IVaultData" />
             <seealso cref="T:KeeperSecurity.Vault.VaultOnline" />
-            <seealso cref="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachment(KeeperSecurity.Vault.PasswordRecord,System.String,System.IO.Stream)" />
+            <seealso cref="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachment(KeeperSecurity.Vault.KeeperRecord,System.String,System.IO.Stream)" />
         </member>
         <member name="T:KeeperSecurity.Vault.VaultExtensions">
             <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultExtensions.GetCustomField(KeeperSecurity.Vault.KeeperRecord,System.String)">
+            <summary>
+            Gets a custom field.
+            </summary>
+            <param name="record">KeeperRecord</param>
+            <param name="name">Custom field Name.</param>
+            <returns>Returns custom field or <c>null</c> is it was not found.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultExtensions.DeleteCustomField(KeeperSecurity.Vault.KeeperRecord,System.String)">
+            <summary>
+            Deletes a custom field.
+            </summary>
+            <param name="record">KeeperRecord</param>
+            <param name="name">Custom field Name.</param>
+            <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultExtensions.SetCustomField(KeeperSecurity.Vault.KeeperRecord,System.String,System.String)">
+            <summary>
+            Adds or Changes custom field.
+            </summary>
+            <param name="record">KeeperRecord</param>
+            <param name="name">Name.</param>
+            <param name="value">Value.</param>
+            <returns>Added or modified custom field.</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.SharedFolderRecordOptions">
             <summary>
@@ -4417,14 +5142,27 @@
             Gets the number of all records in the vault.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.IVaultData.Records">
+        <member name="P:KeeperSecurity.Vault.IVaultData.KeeperRecords">
             <summary>
             Get the list of all records in the vault.
             </summary>
         </member>
+        <member name="M:KeeperSecurity.Vault.IVaultData.TryGetKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)">
+            <summary>
+            Gets the legacy record associated with the specified record UID.
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c>.</param>
+            <returns><c>true</c> in the vault contains a record with specified UID; otherwise, <c>false</c></returns>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IVaultData.Records">
+            <summary>
+            Get the list of all legacy records in the vault.
+            </summary>
+        </member>
         <member name="M:KeeperSecurity.Vault.IVaultData.TryGetRecord(System.String,KeeperSecurity.Vault.PasswordRecord@)">
             <summary>
-            Gets the record associated with the specified record UID.
+            Gets the legacy record associated with the specified record UID.
             </summary>
             <param name="recordUid">Record UID.</param>
             <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c>.</param>
@@ -4549,20 +5287,20 @@
             Gets or Sets automatic sync down flag.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.PasswordRecord,System.String)">
+        <member name="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)">
             <summary>
             Creates a password record.
             </summary>
-            <param name="record">Password Record.</param>
+            <param name="record">Keeper Record.</param>
             <param name="folderUid">Folder UID where the record to be created. Optional.</param>
             <returns>A task returning created password record.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
         </member>
-        <member name="M:KeeperSecurity.Vault.IVault.UpdateRecord(KeeperSecurity.Vault.PasswordRecord,System.Boolean)">
+        <member name="M:KeeperSecurity.Vault.IVault.UpdateRecord(KeeperSecurity.Vault.KeeperRecord,System.Boolean)">
             <summary>
             Modifies a password record.
             </summary>
-            <param name="record">Password Record.</param>
+            <param name="record">Keeper Record.</param>
             <param name="skipExtra">Do not update file attachment information on the record.</param>
             <returns>A task returning created password record.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
@@ -4675,7 +5413,7 @@
             <returns></returns>
             <remarks>
             This method does not add a record to shared folder.
-            Use <see cref="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.PasswordRecord,System.String)"/> or <see cref="M:KeeperSecurity.Vault.IVault.MoveRecords(KeeperSecurity.Vault.RecordPath[],System.String,System.Boolean)"/>.
+            Use <see cref="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)"/> or <see cref="M:KeeperSecurity.Vault.IVault.MoveRecords(KeeperSecurity.Vault.RecordPath[],System.String,System.Boolean)"/>.
             </remarks>
             <seealso cref="T:KeeperSecurity.Vault.SharedFolderRecordOptions"/>
         </member>
@@ -4734,7 +5472,14 @@
             Defines methods to manipulate file attachments.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Vault.IVaultFileAttachment.DownloadAttachment(KeeperSecurity.Vault.PasswordRecord,System.String,System.IO.Stream)">
+        <member name="M:KeeperSecurity.Vault.IVaultFileAttachment.RecordAttachments(KeeperSecurity.Vault.KeeperRecord)">
+            <summary>
+            Returns Record attachments
+            </summary>
+            <param name="record">Keeper record</param>
+            <returns>List od attachments</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVaultFileAttachment.DownloadAttachment(KeeperSecurity.Vault.KeeperRecord,System.String,System.IO.Stream)">
             <summary>
             Downloads and decrypts file attachment.
             </summary>
@@ -4743,12 +5488,20 @@
             <param name="destination">Writable stream.</param>
             <returns>Awaitable task.</returns>
         </member>
-        <member name="M:KeeperSecurity.Vault.IVaultFileAttachment.UploadAttachment(KeeperSecurity.Vault.PasswordRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
+        <member name="M:KeeperSecurity.Vault.IVaultFileAttachment.UploadAttachment(KeeperSecurity.Vault.KeeperRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
             <summary>
             Encrypts and uploads file attachment.
             </summary>
-            <param name="record">Keeper record.</param>
+            <param name="record">Keeper record</param>
             <param name="uploadTask">Upload task</param>
+            <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVaultFileAttachment.DeleteAttachment(KeeperSecurity.Vault.KeeperRecord,System.String)">
+            <summary>
+            Downloads and decrypts file attachment.
+            </summary>
+            <param name="record">Keeper record.</param>
+            <param name="attachmentId">Attachment ID</param>
             <returns>Awaitable task.</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.VaultException">
@@ -4765,29 +5518,166 @@
         <member name="P:KeeperSecurity.Vault.VaultException.TranslationKey">
             <exclude />
         </member>
-        <member name="T:KeeperSecurity.Vault.PasswordRecord">
+        <member name="T:KeeperSecurity.Vault.KeeperRecord">
             <summary>
-            Represents a decrypted Keeper Password Record.
+            Represents generic Keeper Record
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.PasswordRecord.Uid">
+        <member name="P:KeeperSecurity.Vault.KeeperRecord.Uid">
             <summary>
             Record UID.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.PasswordRecord.Owner">
+        <member name="P:KeeperSecurity.Vault.KeeperRecord.Version">
             <summary>
-            Is user Owner?
+            Record version
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.PasswordRecord.Shared">
+        <member name="P:KeeperSecurity.Vault.KeeperRecord.Revision">
+            <summary>
+            Record revision
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.KeeperRecord.Title">
+            <summary>
+            Title.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.KeeperRecord.ClientModified">
+            <summary>
+            Last modification time.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.KeeperRecord.Owner">
+            <summary>
+            A list of Custom Fields.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.KeeperRecord.Shared">
             <summary>
             Is record Shared?
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.PasswordRecord.Title">
+        <member name="P:KeeperSecurity.Vault.KeeperRecord.RecordKey">
             <summary>
-            Title.
+            Record key.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.ICustomField">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.ITypedField">
+            <summary>
+            Defines properties for typed record field
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ITypedField.ObjectValue">
+            <summary>
+            Gets or sets the first field value
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ITypedField.AppendValue">
+            <summary>
+            Gets default field value.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ITypedField.GetValueAt(System.Int32)">
+            <summary>
+            Gets value at index
+            </summary>
+            <param name="index">Index</param>
+            <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ITypedField.SetValueAt(System.Int32,System.Object)">
+            <summary>
+            Sets value at index.
+            </summary>
+            <param name="index">Index</param>
+            <param name="value">Value</param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ITypedField.DeleteValueAt(System.Int32)">
+            <summary>
+            Deletes value at index.
+            </summary>
+            <param name="index">Index</param>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ITypedField.Count">
+            <summary>
+            Gets the number of values
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.TypedRecord">
+            <summary>
+            Represents a Typed Record 
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedRecord.Notes">
+            <summary>
+            Record notes
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedRecord.TypeName">
+            <summary>
+            Record type name.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedRecord.#ctor(System.String)">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedRecord.Fields">
+            <summary>
+            Record fields.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedRecord.Custom">
+            <summary>
+            Record custom data.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.UnsupportedField">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.TypedField`1">
+            <summary>
+            Represents a typed field.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.#ctor">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.#ctor(System.String,System.String)">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.FieldName">
+            <summary>
+            Field type name.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.FieldLabel">
+            <summary>
+            Field Label.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.Values">
+            <summary>
+            Field values.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.KeeperSecurity#Vault#ITypedField#AppendValue">
+            <summary>
+            Appends a value.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:KeeperSecurity.Vault.PasswordRecord">
+            <summary>
+            Represents a Legacy Keeper Record.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.PasswordRecord.Notes">
+            <summary>
+            Is user Owner?
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Login">
@@ -4805,19 +5695,9 @@
             Web URL.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.PasswordRecord.Notes">
-            <summary>
-            Notes.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Vault.PasswordRecord.ClientModified">
-            <summary>
-            Last modification time.
-            </summary>
-        </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Custom">
             <summary>
-            A list of Custom Fields.
+            Notes.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Attachments">
@@ -4829,26 +5709,6 @@
             <summary>
             A list of Extra Fields.
             </summary>
-        </member>
-        <member name="P:KeeperSecurity.Vault.PasswordRecord.RecordKey">
-            <summary>
-            Record key.
-            </summary>
-        </member>
-        <member name="M:KeeperSecurity.Vault.PasswordRecord.DeleteCustomField(System.String)">
-            <summary>
-            Deletes a custom field.
-            </summary>
-            <param name="name">Custom field name.</param>
-            <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
-        </member>
-        <member name="M:KeeperSecurity.Vault.PasswordRecord.SetCustomField(System.String,System.String)">
-            <summary>
-            Adds or Changes custom field.
-            </summary>
-            <param name="name">Name.</param>
-            <param name="value">Value.</param>
-            <returns>Added or modified custom field.</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.CustomField">
             <summary>
@@ -4916,6 +5776,47 @@
             Thumbnail size. pixels.
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Vault.IAttachment">
+            <summary>
+            Defines property for file attachment
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IAttachment.Id">
+            <summary>
+            Attachment ID.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IAttachment.Name">
+            <summary>
+            Attachment name.
+            </summary>
+            <remarks>Usually it is an original file name.</remarks>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IAttachment.Title">
+            <summary>
+            Attachment title.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IAttachment.MimeType">
+            <summary>
+            Attachment MIME type.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IAttachment.Size">
+            <summary>
+            Attachment size in bytes.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IAttachment.LastModified">
+            <summary>
+            Last time modified.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IAttachment.AttachmentKey">
+            <summary>
+            Attachment encryption key.
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Vault.AttachmentFile">
             <summary>
             Represents attachment file.
@@ -4942,7 +5843,7 @@
             Attachment title.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.AttachmentFile.Type">
+        <member name="P:KeeperSecurity.Vault.AttachmentFile.MimeType">
             <summary>
             Attachment MIME type.
             </summary>
@@ -4960,6 +5861,46 @@
         <member name="P:KeeperSecurity.Vault.AttachmentFile.Thumbnails">
             <summary>
             A list of thumbnails.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.FileRecord">
+            <summary>
+            Represents a Keeper File Record.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FileRecord.Name">
+            <summary>
+            File Name.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FileRecord.MimeType">
+            <summary>
+            File MIME type.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FileRecord.FileSize">
+            <summary>
+            File size in bytes.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FileRecord.ThumbnailSize">
+            <summary>
+            File size in bytes.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FileRecord.LastModified">
+            <summary>
+            Last time modified.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FileRecord.StorageFileSize">
+            <summary>
+            On storage file size in bytes.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FileRecord.StorageThumbnailSize">
+            <summary>
+            On storage thumbnail size in bytes.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.UserType">
@@ -5277,6 +6218,9 @@
         </member>
         <member name="F:AccountSummary.AccountSummaryElements.DevicesFieldNumber">
             <summary>Field number for the "devices" field.</summary>
+        </member>
+        <member name="F:AccountSummary.AccountSummaryElements.IsShareAdminFieldNumber">
+            <summary>Field number for the "isShareAdmin" field.</summary>
         </member>
         <member name="F:AccountSummary.DeviceInfo.EncryptedDeviceTokenFieldNumber">
             <summary>Field number for the "encryptedDeviceToken" field.</summary>
@@ -6234,6 +7178,64 @@
             maximum allowed expiration
             </summary>
         </member>
+        <member name="F:Authentication.TwoFactorDuoStatus.CapabilitiesFieldNumber">
+            <summary>Field number for the "capabilities" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorDuoStatus.PhoneNumberFieldNumber">
+            <summary>Field number for the "phoneNumber" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorDuoStatus.EnrollUrlFieldNumber">
+            <summary>Field number for the "enroll_url" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorAddRequest.ChannelTypeFieldNumber">
+            <summary>Field number for the "channelType" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorAddRequest.ChannelUidFieldNumber">
+            <summary>Field number for the "channel_uid" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorAddRequest.ChannelNameFieldNumber">
+            <summary>Field number for the "channelName" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorAddRequest.PhoneNumberFieldNumber">
+            <summary>Field number for the "phoneNumber" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorAddRequest.DuoPushTypeFieldNumber">
+            <summary>Field number for the "duoPushType" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorRenameRequest.ChannelUidFieldNumber">
+            <summary>Field number for the "channel_uid" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorRenameRequest.ChannelNameFieldNumber">
+            <summary>Field number for the "channelName" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorAddResponse.ChallengeFieldNumber">
+            <summary>Field number for the "challenge" field.</summary>
+        </member>
+        <member name="P:Authentication.TwoFactorAddResponse.Challenge">
+            <summary>
+            for totp and security keys
+            </summary>
+        </member>
+        <member name="F:Authentication.TwoFactorAddResponse.BackupKeysFieldNumber">
+            <summary>Field number for the "backupKeys" field.</summary>
+        </member>
+        <member name="P:Authentication.TwoFactorAddResponse.BackupKeys">
+            <summary>
+            for backup keys
+            </summary>
+        </member>
+        <member name="F:Authentication.TwoFactorDeleteRequest.ChannelUidFieldNumber">
+            <summary>Field number for the "channel_uid" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorListResponse.ChannelsFieldNumber">
+            <summary>Field number for the "channels" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorListResponse.ExpireOnFieldNumber">
+            <summary>Field number for the "expireOn" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorUpdateExpirationRequest.ExpireInFieldNumber">
+            <summary>Field number for the "expireIn" field.</summary>
+        </member>
         <member name="F:Authentication.TwoFactorValidateRequest.EncryptedLoginTokenFieldNumber">
             <summary>Field number for the "encryptedLoginToken" field.</summary>
         </member>
@@ -6970,6 +7972,15 @@
         <member name="F:Authentication.EnterpriseUserAliasRequest.AliasFieldNumber">
             <summary>Field number for the "alias" field.</summary>
         </member>
+        <member name="F:Authentication.EnterpriseUserAddAliasRequest.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Authentication.EnterpriseUserAddAliasRequest.AliasFieldNumber">
+            <summary>Field number for the "alias" field.</summary>
+        </member>
+        <member name="F:Authentication.EnterpriseUserAddAliasRequest.PrimaryFieldNumber">
+            <summary>Field number for the "primary" field.</summary>
+        </member>
         <member name="F:Authentication.Device.EncryptedDeviceTokenFieldNumber">
             <summary>Field number for the "encryptedDeviceToken" field.</summary>
         </member>
@@ -7280,26 +8291,172 @@
         <member name="F:Authentication.SetEccKeyPairRequest.EncryptedPrivateKeyFieldNumber">
             <summary>Field number for the "encryptedPrivateKey" field.</summary>
         </member>
-        <member name="F:Authentication.AddAppShareRequest.AppRecordUidFieldNumber">
+        <member name="F:Authentication.AddAppSharesRequest.AppRecordUidFieldNumber">
             <summary>Field number for the "appRecordUid" field.</summary>
         </member>
-        <member name="F:Authentication.AddAppShareRequest.SecretUidFieldNumber">
+        <member name="F:Authentication.AddAppSharesRequest.SharesFieldNumber">
+            <summary>Field number for the "shares" field.</summary>
+        </member>
+        <member name="F:Authentication.RemoveAppSharesRequest.AppRecordUidFieldNumber">
+            <summary>Field number for the "appRecordUid" field.</summary>
+        </member>
+        <member name="F:Authentication.RemoveAppSharesRequest.SharesFieldNumber">
+            <summary>Field number for the "shares" field.</summary>
+        </member>
+        <member name="F:Authentication.AppShareAdd.SecretUidFieldNumber">
             <summary>Field number for the "secretUid" field.</summary>
         </member>
-        <member name="F:Authentication.AddAppShareRequest.ShareTypeFieldNumber">
+        <member name="F:Authentication.AppShareAdd.ShareTypeFieldNumber">
             <summary>Field number for the "shareType" field.</summary>
         </member>
-        <member name="F:Authentication.AddAppShareRequest.EncryptedSecretKeyFieldNumber">
+        <member name="F:Authentication.AppShareAdd.EncryptedSecretKeyFieldNumber">
             <summary>Field number for the "encryptedSecretKey" field.</summary>
+        </member>
+        <member name="F:Authentication.AppShareAdd.EditableFieldNumber">
+            <summary>Field number for the "editable" field.</summary>
+        </member>
+        <member name="F:Authentication.AppShare.SecretUidFieldNumber">
+            <summary>Field number for the "secretUid" field.</summary>
+        </member>
+        <member name="F:Authentication.AppShare.ShareTypeFieldNumber">
+            <summary>Field number for the "shareType" field.</summary>
+        </member>
+        <member name="F:Authentication.AppShare.EditableFieldNumber">
+            <summary>Field number for the "editable" field.</summary>
+        </member>
+        <member name="F:Authentication.AppShare.CreatedOnFieldNumber">
+            <summary>Field number for the "createdOn" field.</summary>
         </member>
         <member name="F:Authentication.AddAppClientRequest.AppRecordUidFieldNumber">
             <summary>Field number for the "appRecordUid" field.</summary>
         </member>
-        <member name="F:Authentication.AddAppClientRequest.EncryptedMasterKeyFieldNumber">
-            <summary>Field number for the "encryptedMasterKey" field.</summary>
+        <member name="F:Authentication.AddAppClientRequest.EncryptedAppKeyFieldNumber">
+            <summary>Field number for the "encryptedAppKey" field.</summary>
         </member>
         <member name="F:Authentication.AddAppClientRequest.ClientIdFieldNumber">
             <summary>Field number for the "clientId" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppClientRequest.LockIpFieldNumber">
+            <summary>Field number for the "lockIp" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppClientRequest.FirstAccessExpireOnFieldNumber">
+            <summary>Field number for the "firstAccessExpireOn" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppClientRequest.AccessExpireOnFieldNumber">
+            <summary>Field number for the "accessExpireOn" field.</summary>
+        </member>
+        <member name="F:Authentication.AddAppClientRequest.IdFieldNumber">
+            <summary>Field number for the "id" field.</summary>
+        </member>
+        <member name="P:Authentication.AddAppClientRequest.Id">
+            <summary>
+            optional, defaults to obfuscated device id
+            </summary>
+        </member>
+        <member name="F:Authentication.RemoveAppClientsRequest.AppRecordUidFieldNumber">
+            <summary>Field number for the "appRecordUid" field.</summary>
+        </member>
+        <member name="F:Authentication.RemoveAppClientsRequest.ClientsFieldNumber">
+            <summary>Field number for the "clients" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.IdFieldNumber">
+            <summary>Field number for the "id" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.ClientIdFieldNumber">
+            <summary>Field number for the "clientId" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.CreatedOnFieldNumber">
+            <summary>Field number for the "createdOn" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.FirstAccessFieldNumber">
+            <summary>Field number for the "firstAccess" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.LastAccessFieldNumber">
+            <summary>Field number for the "lastAccess" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.PublicKeyFieldNumber">
+            <summary>Field number for the "publicKey" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.LockIpFieldNumber">
+            <summary>Field number for the "lockIp" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.IpAddressFieldNumber">
+            <summary>Field number for the "ipAddress" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.FirstAccessExpireOnFieldNumber">
+            <summary>Field number for the "firstAccessExpireOn" field.</summary>
+        </member>
+        <member name="F:Authentication.AppClient.AccessExpireOnFieldNumber">
+            <summary>Field number for the "accessExpireOn" field.</summary>
+        </member>
+        <member name="F:Authentication.GetAppInfoRequest.AppRecordUidFieldNumber">
+            <summary>Field number for the "appRecordUid" field.</summary>
+        </member>
+        <member name="F:Authentication.AppInfo.AppRecordUidFieldNumber">
+            <summary>Field number for the "appRecordUid" field.</summary>
+        </member>
+        <member name="F:Authentication.AppInfo.SharesFieldNumber">
+            <summary>Field number for the "shares" field.</summary>
+        </member>
+        <member name="F:Authentication.AppInfo.ClientsFieldNumber">
+            <summary>Field number for the "clients" field.</summary>
+        </member>
+        <member name="F:Authentication.GetAppInfoResponse.AppInfoFieldNumber">
+            <summary>Field number for the "appInfo" field.</summary>
+        </member>
+        <member name="F:Authentication.ApplicationSummary.AppRecordUidFieldNumber">
+            <summary>Field number for the "appRecordUid" field.</summary>
+        </member>
+        <member name="F:Authentication.ApplicationSummary.LastAccessFieldNumber">
+            <summary>Field number for the "lastAccess" field.</summary>
+        </member>
+        <member name="P:Authentication.ApplicationSummary.LastAccess">
+            <summary>
+            last access time across all clients
+            </summary>
+        </member>
+        <member name="F:Authentication.ApplicationSummary.RecordSharesFieldNumber">
+            <summary>Field number for the "recordShares" field.</summary>
+        </member>
+        <member name="P:Authentication.ApplicationSummary.RecordShares">
+            <summary>
+            number of records shared to the application
+            </summary>
+        </member>
+        <member name="F:Authentication.ApplicationSummary.FolderSharesFieldNumber">
+            <summary>Field number for the "folderShares" field.</summary>
+        </member>
+        <member name="P:Authentication.ApplicationSummary.FolderShares">
+            <summary>
+            number of folders shared to the application
+            </summary>
+        </member>
+        <member name="F:Authentication.ApplicationSummary.FolderRecordsFieldNumber">
+            <summary>Field number for the "folderRecords" field.</summary>
+        </member>
+        <member name="P:Authentication.ApplicationSummary.FolderRecords">
+            <summary>
+            number of records in the folders shared to the application
+            </summary>
+        </member>
+        <member name="F:Authentication.ApplicationSummary.ClientCountFieldNumber">
+            <summary>Field number for the "clientCount" field.</summary>
+        </member>
+        <member name="P:Authentication.ApplicationSummary.ClientCount">
+            <summary>
+            total number of clients
+            </summary>
+        </member>
+        <member name="F:Authentication.ApplicationSummary.ExpiredClientCountFieldNumber">
+            <summary>Field number for the "expiredClientCount" field.</summary>
+        </member>
+        <member name="P:Authentication.ApplicationSummary.ExpiredClientCount">
+            <summary>
+            number of clients that no longert can have access
+            </summary>
+        </member>
+        <member name="F:Authentication.GetApplicationsSummaryResponse.ApplicationSummaryFieldNumber">
+            <summary>Field number for the "applicationSummary" field.</summary>
         </member>
         <member name="F:Authentication.GetVerificationTokenRequest.UsernameFieldNumber">
             <summary>Field number for the "username" field.</summary>
@@ -7309,6 +8466,52 @@
         </member>
         <member name="F:Authentication.SendShareInviteRequest.EmailFieldNumber">
             <summary>Field number for the "email" field.</summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.AccountUidFieldNumber">
+            <summary>Field number for the "accountUid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.AccountUid">
+             <summary>
+            list of users that have access to a record or shared folder
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.TeamUid">
+             <summary>
+            list of teams that have access to a shared folder
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.RecordUid">
+             <summary>
+            list of records that have access to a shared folder (aka that are shared via a shared folder)
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.SharedObjectUidFieldNumber">
+            <summary>Field number for the "sharedObjectUid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.SharedObjectUid">
+             <summary>
+            recordUid or sharedFolderUid of which the timer will be set or deleted
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.TimeLimitedAccessTypeFieldNumber">
+            <summary>Field number for the "timeLimitedAccessType" field.</summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.ExpirationFieldNumber">
+            <summary>Field number for the "expiration" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.Expiration">
+             <summary>
+            delete timer when expiration==0
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessResponse.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
         </member>
         <member name="T:BreachWatch.BreachwatchReflection">
             <summary>Holder for reflection information generated from breachwatch.proto</summary>
@@ -7487,11 +8690,111 @@
         <member name="F:BreachWatch.FreePasswordScanResponse.PasswordBreachesFieldNumber">
             <summary>Field number for the "passwordBreaches" field.</summary>
         </member>
+        <member name="T:Tokens.ClientReflection">
+            <summary>Holder for reflection information generated from client.proto</summary>
+        </member>
+        <member name="P:Tokens.ClientReflection.Descriptor">
+            <summary>File descriptor for client.proto</summary>
+        </member>
+        <member name="F:Tokens.BreachWatchInfoType.Record">
+            <summary>
+            note: this also is used for master password where the recordUid is blank
+            </summary>
+        </member>
+        <member name="F:Tokens.BreachWatchInfoType.AlternatePassword">
+            <summary>
+            for any user_auth passwords, including the passwords used through Pythia
+            </summary>
+        </member>
+        <member name="F:Tokens.BreachWatchUpdateRequest.BreachWatchRecordRequestFieldNumber">
+            <summary>Field number for the "breachWatchRecordRequest" field.</summary>
+        </member>
+        <member name="F:Tokens.BreachWatchUpdateRequest.EncryptedDataFieldNumber">
+            <summary>Field number for the "encryptedData" field.</summary>
+        </member>
+        <member name="F:Tokens.BreachWatchRecordRequest.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="P:Tokens.BreachWatchRecordRequest.RecordUid">
+            <summary>
+            if you store the recordUid as a string this is URLSafeBase64.decode(recordUid)
+            </summary>
+        </member>
+        <member name="F:Tokens.BreachWatchRecordRequest.EncryptedDataFieldNumber">
+            <summary>Field number for the "encryptedData" field.</summary>
+        </member>
+        <member name="P:Tokens.BreachWatchRecordRequest.EncryptedData">
+            <summary>
+            This is a BreachWatchRecordData message encrypted with the record key
+            </summary>
+        </member>
+        <member name="F:Tokens.BreachWatchRecordRequest.BreachWatchInfoTypeFieldNumber">
+            <summary>Field number for the "breachWatchInfoType" field.</summary>
+        </member>
+        <member name="F:Tokens.BreachWatchRecordRequest.UpdateUserWhoScannedFieldNumber">
+            <summary>Field number for the "updateUserWhoScanned" field.</summary>
+        </member>
+        <member name="F:Tokens.BreachWatchData.PasswordsFieldNumber">
+            <summary>Field number for the "passwords" field.</summary>
+        </member>
+        <member name="F:Tokens.BreachWatchData.EmailsFieldNumber">
+            <summary>Field number for the "emails" field.</summary>
+        </member>
+        <member name="F:Tokens.BreachWatchData.DomainsFieldNumber">
+            <summary>Field number for the "domains" field.</summary>
+        </member>
+        <member name="F:Tokens.BWPassword.ValueFieldNumber">
+            <summary>Field number for the "value" field.</summary>
+        </member>
+        <member name="P:Tokens.BWPassword.Value">
+            <summary>
+            the original password
+            </summary>
+        </member>
+        <member name="F:Tokens.BWPassword.ResolvedFieldNumber">
+            <summary>Field number for the "resolved" field.</summary>
+        </member>
+        <member name="P:Tokens.BWPassword.Resolved">
+            <summary>
+            time stamp for when it was resolved
+            </summary>
+        </member>
+        <member name="F:Tokens.BWPassword.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Tokens.BWPassword.EuidFieldNumber">
+            <summary>Field number for the "euid" field.</summary>
+        </member>
+        <member name="P:Tokens.BWPassword.Euid">
+            <summary>
+            if breached this is empty, else this is the value returned by keeperapp after submission
+            </summary>
+        </member>
         <member name="T:Enterprise.EnterpriseReflection">
             <summary>Holder for reflection information generated from enterprise.proto</summary>
         </member>
         <member name="P:Enterprise.EnterpriseReflection.Descriptor">
             <summary>File descriptor for enterprise.proto</summary>
+        </member>
+        <member name="F:Enterprise.UserUpdateStatus.UserUpdateOk">
+            <summary>
+             can't use OK because it's already defined in AuditUserStatus
+            </summary>
+        </member>
+        <member name="F:Enterprise.UserUpdateStatus.UserUpdateAccessDenied">
+            <summary>
+             same deal for ACCESS_DENIED
+            </summary>
+        </member>
+        <member name="F:Enterprise.AuditUserStatus.AccessDenied">
+             <summary>
+            on a node with no privilege
+             </summary>
+        </member>
+        <member name="F:Enterprise.AuditUserStatus.NoLongerInEnterprise">
+             <summary>
+            because user isn't in enterprise, i.e. deleted
+             </summary>
         </member>
         <member name="F:Enterprise.EnterpriseKeyPairRequest.EnterprisePublicKeyFieldNumber">
             <summary>Field number for the "enterprisePublicKey" field.</summary>
@@ -7513,6 +8816,9 @@
         </member>
         <member name="F:Enterprise.EnterpriseUser.EnterpriseUsernameFieldNumber">
             <summary>Field number for the "enterpriseUsername" field.</summary>
+        </member>
+        <member name="F:Enterprise.EnterpriseUser.IsShareAdminFieldNumber">
+            <summary>Field number for the "isShareAdmin" field.</summary>
         </member>
         <member name="F:Enterprise.GetTeamMemberResponse.EnterpriseUserFieldNumber">
             <summary>Field number for the "enterpriseUser" field.</summary>
@@ -7697,7 +9003,7 @@
         </member>
         <member name="P:Enterprise.LoginToMcResponse.EncryptedTreeKey">
             <summary>
-            MC’s tree key encrypted with MSP’s tree key
+            MC's tree key encrypted with MSP's tree key
             </summary>
         </member>
         <member name="F:Enterprise.DomainPasswordRulesResponse.DomainPasswordRulesFieldsFieldNumber">
@@ -7801,6 +9107,14 @@
         <member name="F:Enterprise.Node.RestrictVisibilityFieldNumber">
             <summary>Field number for the "restrictVisibility" field.</summary>
         </member>
+        <member name="F:Enterprise.Node.SsoServiceProviderIdsFieldNumber">
+            <summary>Field number for the "ssoServiceProviderIds" field.</summary>
+        </member>
+        <member name="P:Enterprise.Node.SsoServiceProviderIds">
+            <summary>
+            Nov 2021 - Nodes can now have more than one sso ServiceProviderId.
+            </summary>
+        </member>
         <member name="F:Enterprise.Role.RoleIdFieldNumber">
             <summary>Field number for the "roleId" field.</summary>
         </member>
@@ -7849,11 +9163,58 @@
         <member name="F:Enterprise.User.AccountShareExpirationFieldNumber">
             <summary>Field number for the "accountShareExpiration" field.</summary>
         </member>
+        <member name="F:Enterprise.User.FullNameFieldNumber">
+            <summary>Field number for the "fullName" field.</summary>
+        </member>
+        <member name="F:Enterprise.User.JobTitleFieldNumber">
+            <summary>Field number for the "jobTitle" field.</summary>
+        </member>
         <member name="F:Enterprise.UserAlias.EnterpriseUserIdFieldNumber">
             <summary>Field number for the "enterpriseUserId" field.</summary>
         </member>
         <member name="F:Enterprise.UserAlias.UsernameFieldNumber">
             <summary>Field number for the "username" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportMetaData.ReportUidFieldNumber">
+            <summary>Field number for the "reportUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportMetaData.NodeIdFieldNumber">
+            <summary>Field number for the "nodeId" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportMetaData.NodeId">
+            <summary>
+             node where the report was generated
+            </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportMetaData.ReportNameFieldNumber">
+            <summary>Field number for the "reportName" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportMetaData.DateGeneratedFieldNumber">
+            <summary>Field number for the "dateGenerated" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportMetaData.RunByNameFieldNumber">
+            <summary>Field number for the "runByName" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportMetaData.RunByName">
+            <summary>
+             user who generated the report
+            </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportMetaData.NumberOfOwnersFieldNumber">
+            <summary>Field number for the "numberOfOwners" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportMetaData.NumberOfOwners">
+            <summary>
+             number of record owners included in the report
+            </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportMetaData.NumberOfRecordsFieldNumber">
+            <summary>Field number for the "numberOfRecords" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportMetaData.NumberOfRecords">
+            <summary>
+             number of records included in the report
+            </summary>
         </member>
         <member name="F:Enterprise.ManagedNode.RoleIdFieldNumber">
             <summary>Field number for the "roleId" field.</summary>
@@ -7991,6 +9352,12 @@
         </member>
         <member name="F:Enterprise.ManagedCompany.TreeKeyRoleFieldNumber">
             <summary>Field number for the "tree_key_role" field.</summary>
+        </member>
+        <member name="F:Enterprise.ManagedCompany.FilePlanTypeFieldNumber">
+            <summary>Field number for the "filePlanType" field.</summary>
+        </member>
+        <member name="F:Enterprise.ManagedCompany.AddOnsFieldNumber">
+            <summary>Field number for the "addOns" field.</summary>
         </member>
         <member name="F:Enterprise.MSPPool.ProductIdFieldNumber">
             <summary>Field number for the "productId" field.</summary>
@@ -8374,11 +9741,538 @@
         <member name="F:Enterprise.SetRestrictVisibilityRequest.NodeIdFieldNumber">
             <summary>Field number for the "nodeId" field.</summary>
         </member>
+        <member name="T:Enterprise.UserAddRequest">
+            <summary>
+             Note that this guy's not currently used!  We will probably make
+             enterprise_user_add take multiple users like enterprise_user_update.
+            </summary>
+        </member>
+        <member name="F:Enterprise.UserAddRequest.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserAddRequest.NodeIdFieldNumber">
+            <summary>Field number for the "nodeId" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserAddRequest.EncryptedDataFieldNumber">
+            <summary>Field number for the "encryptedData" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserAddRequest.EncryptedData">
+             <summary>
+            Data encrypted with the tree key, i.e. { display_name="first name middle last name"}
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserAddRequest.KeyTypeFieldNumber">
+            <summary>Field number for the "keyType" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserAddRequest.FullNameFieldNumber">
+            <summary>Field number for the "fullName" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserAddRequest.FullName">
+             <summary>
+            The user full name, i.e. {John Doe}
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserAddRequest.JobTitleFieldNumber">
+            <summary>Field number for the "jobTitle" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserAddRequest.JobTitle">
+             <summary>
+            The job tile, i.e. {Chief Financial Officer}
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserAddRequest.EmailFieldNumber">
+            <summary>Field number for the "email" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserAddRequest.Email">
+             <summary>
+            The email address of new the enterprise user
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserAddRequest.SuppressEmailInviteFieldNumber">
+            <summary>Field number for the "suppressEmailInvite" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserAddRequest.SuppressEmailInvite">
+             <summary>
+            Optional field, if true, server will not send the user an invite email, but instead will return the verification code in the response
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserUpdateRequest.UsersFieldNumber">
+            <summary>Field number for the "users" field.</summary>
+        </member>
+        <member name="T:Enterprise.UserUpdate">
+            <summary>
+             Note that ONLY fullName is currently supported!
+            </summary>
+        </member>
+        <member name="F:Enterprise.UserUpdate.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserUpdate.NodeIdFieldNumber">
+            <summary>Field number for the "nodeId" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserUpdate.EncryptedDataFieldNumber">
+            <summary>Field number for the "encryptedData" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserUpdate.EncryptedData">
+             <summary>
+            Data encrypted with the tree key, i.e. { display_name="first name middle last name"}
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserUpdate.KeyTypeFieldNumber">
+            <summary>Field number for the "keyType" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserUpdate.FullNameFieldNumber">
+            <summary>Field number for the "fullName" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserUpdate.FullName">
+             <summary>
+            The user full name, e.g. "Explodin' Dr. Jaggers Flymo".  Sending an empty string will leave the name unchanged; sending all whitespace will clear the name.
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserUpdate.JobTitleFieldNumber">
+            <summary>Field number for the "jobTitle" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserUpdate.JobTitle">
+             <summary>
+            The job tile, e.g. "Drums".  Sending an empty string will leave the title unchanged; sending all whitespace will clear the title.
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserUpdate.EmailFieldNumber">
+            <summary>Field number for the "email" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserUpdate.Email">
+             <summary>
+            The new email address of the enterprise user.
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserUpdateResponse.UsersFieldNumber">
+            <summary>Field number for the "users" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserUpdateResult.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserUpdateResult.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Enterprise.PreliminaryComplianceDataRequest.EnterpriseUserIdsFieldNumber">
+            <summary>Field number for the "enterpriseUserIds" field.</summary>
+        </member>
+        <member name="F:Enterprise.PreliminaryComplianceDataRequest.IncludeNonSharedFieldNumber">
+            <summary>Field number for the "includeNonShared" field.</summary>
+        </member>
+        <member name="P:Enterprise.PreliminaryComplianceDataRequest.IncludeNonShared">
+             <summary>
+            Default is false, meaning we'll consider only records which are shared.  If true, we'll include the list of records that are not shared.
+             </summary>
+        </member>
+        <member name="F:Enterprise.PreliminaryComplianceDataRequest.ContinuationTokenFieldNumber">
+            <summary>Field number for the "continuationToken" field.</summary>
+        </member>
+        <member name="F:Enterprise.PreliminaryComplianceDataResponse.AuditUserDataFieldNumber">
+            <summary>Field number for the "auditUserData" field.</summary>
+        </member>
+        <member name="F:Enterprise.PreliminaryComplianceDataResponse.ContinuationTokenFieldNumber">
+            <summary>Field number for the "continuationToken" field.</summary>
+        </member>
+        <member name="F:Enterprise.PreliminaryComplianceDataResponse.HasMoreFieldNumber">
+            <summary>Field number for the "hasMore" field.</summary>
+        </member>
+        <member name="F:Enterprise.PreliminaryComplianceDataResponse.TotalMatchingRecordsFieldNumber">
+            <summary>Field number for the "totalMatchingRecords" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditUserRecord.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditUserRecord.EncryptedDataFieldNumber">
+            <summary>Field number for the "encryptedData" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditUserRecord.EncryptedData">
+             <summary>
+            audit data encrypted with the audit key.
+             </summary>
+        </member>
+        <member name="F:Enterprise.AuditUserRecord.SharedFieldNumber">
+            <summary>Field number for the "shared" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditUserRecord.Shared">
+             <summary>
+            Default is false. If true, this record is shared.
+             </summary>
+        </member>
+        <member name="F:Enterprise.AuditUserData.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditUserData.AuditUserRecordsFieldNumber">
+            <summary>Field number for the "auditUserRecords" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditUserData.AuditUserRecords">
+             <summary>
+            The list of record owned or owned and shared by this user.
+             </summary>
+        </member>
+        <member name="F:Enterprise.AuditUserData.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditUserData.Status">
+             <summary>
+            Status of user for report
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilters.RecordTitlesFieldNumber">
+            <summary>Field number for the "recordTitles" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportFilters.RecordTitles">
+             <summary>
+            The list of record titles.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilters.RecordUidsFieldNumber">
+            <summary>Field number for the "recordUids" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportFilters.RecordUids">
+             <summary>
+            The list of record UIDs.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilters.JobTitlesFieldNumber">
+            <summary>Field number for the "jobTitles" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportFilters.JobTitles">
+             <summary>
+            The list of user job titles.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilters.UrlsFieldNumber">
+            <summary>Field number for the "urls" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportFilters.Urls">
+             <summary>
+            The list of record URLs.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilters.EnterpriseUserIdsFieldNumber">
+            <summary>Field number for the "enterpriseUserIds" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportFilters.EnterpriseUserIds">
+             <summary>
+            The list of users chosen.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportRequest.ComplianceReportRunFieldNumber">
+            <summary>Field number for the "complianceReportRun" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportRequest.ReportNameFieldNumber">
+            <summary>Field number for the "reportName" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportRequest.ReportName">
+             <summary>
+            The report name (only required when we want to save the report).
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportRequest.SaveReportFieldNumber">
+            <summary>Field number for the "saveReport" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportRequest.SaveReport">
+             <summary>
+            Default is false.  True means we will save the report.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportRun.ReportCriteriaAndFilterFieldNumber">
+            <summary>Field number for the "reportCriteriaAndFilter" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportRun.UsersFieldNumber">
+            <summary>Field number for the "users" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportRun.Users">
+             <summary>
+            List of enterprise user IDs sent to get_preliminary_compliance_data.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportRun.RecordsFieldNumber">
+            <summary>Field number for the "records" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportRun.Records">
+             <summary>
+            These are the records that will be run.  Max number of recordUids is 1000.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteriaAndFilter.NodeIdFieldNumber">
+            <summary>Field number for the "nodeId" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteriaAndFilter.CriteriaUidFieldNumber">
+            <summary>Field number for the "criteriaUid" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportCriteriaAndFilter.CriteriaUid">
+             <summary>
+            Uid provided by the client
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteriaAndFilter.CriteriaNameFieldNumber">
+            <summary>Field number for the "criteriaName" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteriaAndFilter.CriteriaFieldNumber">
+            <summary>Field number for the "criteria" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteriaAndFilter.FiltersFieldNumber">
+            <summary>Field number for the "filters" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteriaAndFilter.LastModifiedFieldNumber">
+            <summary>Field number for the "lastModified" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteriaAndFilter.NodeEncryptedDataFieldNumber">
+            <summary>Field number for the "nodeEncryptedData" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportCriteriaAndFilter.NodeEncryptedData">
+             <summary>
+            The node data object encrypted with the tree key that contains the nodeName 
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteria.JobTitlesFieldNumber">
+            <summary>Field number for the "jobTitles" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportCriteria.JobTitles">
+             <summary>
+            The list of job titles chosen.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteria.EnterpriseUserIdsFieldNumber">
+            <summary>Field number for the "enterpriseUserIds" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportCriteria.EnterpriseUserIds">
+             <summary>
+            The list of users chosen.
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteria.IncludeNonSharedFieldNumber">
+            <summary>Field number for the "includeNonShared" field.</summary>
+        </member>
+        <member name="P:Enterprise.ComplianceReportCriteria.IncludeNonShared">
+             <summary>
+            If true, include the list the records that are not shared
+             </summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilter.RecordTitlesFieldNumber">
+            <summary>Field number for the "recordTitles" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilter.RecordUidsFieldNumber">
+            <summary>Field number for the "recordUids" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilter.JobTitlesFieldNumber">
+            <summary>Field number for the "jobTitles" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilter.UrlsFieldNumber">
+            <summary>Field number for the "urls" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportFilter.RecordTypesFieldNumber">
+            <summary>Field number for the "recordTypes" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.DateGeneratedFieldNumber">
+            <summary>Field number for the "dateGenerated" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.RunByUserNameFieldNumber">
+            <summary>Field number for the "runByUserName" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.ReportNameFieldNumber">
+            <summary>Field number for the "reportName" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.ReportUidFieldNumber">
+            <summary>Field number for the "reportUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.ComplianceReportRunFieldNumber">
+            <summary>Field number for the "complianceReportRun" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.UserProfilesFieldNumber">
+            <summary>Field number for the "userProfiles" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.AuditTeamsFieldNumber">
+            <summary>Field number for the "auditTeams" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.AuditRecordsFieldNumber">
+            <summary>Field number for the "auditRecords" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.UserRecordsFieldNumber">
+            <summary>Field number for the "userRecords" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.SharedFolderRecordsFieldNumber">
+            <summary>Field number for the "sharedFolderRecords" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.SharedFolderUsersFieldNumber">
+            <summary>Field number for the "sharedFolderUsers" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.SharedFolderTeamsFieldNumber">
+            <summary>Field number for the "sharedFolderTeams" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.AuditTeamUsersFieldNumber">
+            <summary>Field number for the "auditTeamUsers" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.AuditRolesFieldNumber">
+            <summary>Field number for the "auditRoles" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportResponse.LinkedRecordsFieldNumber">
+            <summary>Field number for the "linkedRecords" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditRecord.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditRecord.AuditDataFieldNumber">
+            <summary>Field number for the "auditData" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditRecord.HasAttachmentsFieldNumber">
+            <summary>Field number for the "hasAttachments" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditRole.RoleIdFieldNumber">
+            <summary>Field number for the "roleId" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditRole.EncryptedDataFieldNumber">
+            <summary>Field number for the "encryptedData" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditRole.RestrictShareOutsideEnterpriseFieldNumber">
+            <summary>Field number for the "restrictShareOutsideEnterprise" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditRole.RestrictShareOutsideEnterprise">
+             <summary>
+            True means cannot share records to others not in the same enterprise
+             </summary>
+        </member>
+        <member name="F:Enterprise.AuditRole.RestrictShareAllFieldNumber">
+            <summary>Field number for the "restrictShareAll" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditRole.RestrictShareAll">
+             <summary>
+            True means can't share records
+             </summary>
+        </member>
+        <member name="F:Enterprise.AuditRole.RestrictShareOfAttachmentsFieldNumber">
+            <summary>Field number for the "restrictShareOfAttachments" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditRole.RestrictShareOfAttachments">
+             <summary>
+            True means can't share records with attachments
+             </summary>
+        </member>
+        <member name="F:Enterprise.AuditRole.RestrictMaskPasswordsWhileEditingFieldNumber">
+            <summary>Field number for the "restrictMaskPasswordsWhileEditing" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditRole.RestrictMaskPasswordsWhileEditing">
+             <summary>
+            True means you can't even see the password when you are editing
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserProfile.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserProfile.FullNameFieldNumber">
+            <summary>Field number for the "fullName" field.</summary>
+        </member>
+        <member name="P:Enterprise.UserProfile.FullName">
+             <summary>
+            The user's full name.
+             </summary>
+        </member>
+        <member name="F:Enterprise.UserProfile.JobTitleFieldNumber">
+            <summary>Field number for the "jobTitle" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserProfile.EmailFieldNumber">
+            <summary>Field number for the "email" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserProfile.RoleIdsFieldNumber">
+            <summary>Field number for the "roleIds" field.</summary>
+        </member>
+        <member name="F:Enterprise.RecordPermission.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.RecordPermission.PermissionBitsFieldNumber">
+            <summary>Field number for the "permissionBits" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserRecord.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.UserRecord.RecordPermissionsFieldNumber">
+            <summary>Field number for the "recordPermissions" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditTeam.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditTeam.TeamNameFieldNumber">
+            <summary>Field number for the "teamName" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditTeam.RestrictEditFieldNumber">
+            <summary>Field number for the "restrictEdit" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditTeam.RestrictShareFieldNumber">
+            <summary>Field number for the "restrictShare" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditTeamUser.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.AuditTeamUser.EnterpriseUserIdsFieldNumber">
+            <summary>Field number for the "enterpriseUserIds" field.</summary>
+        </member>
+        <member name="F:Enterprise.SharedFolderRecord.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.SharedFolderRecord.RecordPermissionsFieldNumber">
+            <summary>Field number for the "recordPermissions" field.</summary>
+        </member>
+        <member name="F:Enterprise.SharedFolderUser.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.SharedFolderUser.EnterpriseUserIdsFieldNumber">
+            <summary>Field number for the "enterpriseUserIds" field.</summary>
+        </member>
+        <member name="F:Enterprise.SharedFolderTeam.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.SharedFolderTeam.TeamUidsFieldNumber">
+            <summary>Field number for the "teamUids" field.</summary>
+        </member>
+        <member name="F:Enterprise.GetComplianceReportRequest.ReportUidFieldNumber">
+            <summary>Field number for the "reportUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.GetComplianceReportResponse.DownloadUrlFieldNumber">
+            <summary>Field number for the "downloadUrl" field.</summary>
+        </member>
+        <member name="F:Enterprise.ComplianceReportCriteriaRequest.CriteriaUidFieldNumber">
+            <summary>Field number for the "criteriaUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.SaveComplianceReportCriteriaResponse.CriteriaUidFieldNumber">
+            <summary>Field number for the "criteriaUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.LinkedRecord.OwnerUidFieldNumber">
+            <summary>Field number for the "ownerUid" field.</summary>
+        </member>
+        <member name="P:Enterprise.LinkedRecord.OwnerUid">
+            <summary>
+             This is the owner *record* UID.
+            </summary>
+        </member>
+        <member name="F:Enterprise.LinkedRecord.RecordUidsFieldNumber">
+            <summary>Field number for the "recordUids" field.</summary>
+        </member>
+        <member name="P:Enterprise.LinkedRecord.RecordUids">
+            <summary>
+             A child record may have multiple parent/"owner" records, but will not itself be an owner.
+            </summary>
+        </member>
+        <member name="F:Enterprise.GetSharingAdminsRequest.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.GetSharingAdminsResponse.SharingAdminsFieldNumber">
+            <summary>Field number for the "sharingAdmins" field.</summary>
+        </member>
+        <member name="F:Enterprise.SharingAdmin.UsernameFieldNumber">
+            <summary>Field number for the "username" field.</summary>
+        </member>
         <member name="T:Folder.FolderReflection">
             <summary>Holder for reflection information generated from folder.proto</summary>
         </member>
         <member name="P:Folder.FolderReflection.Descriptor">
             <summary>File descriptor for folder.proto</summary>
+        </member>
+        <member name="T:Folder.SharedFolderUpdateOperation">
+             <summary>
+            ADD, UPDATE, REMOVE, DELETE
+             </summary>
         </member>
         <member name="F:Folder.EncryptedDataKey.EncryptedKeyFieldNumber">
             <summary>Field number for the "encryptedKey" field.</summary>
@@ -8519,6 +10413,212 @@
         </member>
         <member name="F:Folder.ImportFolderRecordResponse.RecordResponseFieldNumber">
             <summary>Field number for the "recordResponse" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecord.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecord.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateRecord.SharedFolderUid">
+             <summary>
+            Only used when adding a record, or updating the permission to a record
+             </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecord.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateRecord.TeamUid">
+             <summary>
+            Only used when adding a record, or updating the permission to a record
+             </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecord.CanEditFieldNumber">
+            <summary>Field number for the "canEdit" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecord.CanShareFieldNumber">
+            <summary>Field number for the "canShare" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecord.EncryptedRecordKeyFieldNumber">
+            <summary>Field number for the "encryptedRecordKey" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateRecord.EncryptedRecordKey">
+            <summary>
+            record key encrypted with the shared folder key
+            </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecord.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateUser.UsernameFieldNumber">
+            <summary>Field number for the "username" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateUser.ManageUsersFieldNumber">
+            <summary>Field number for the "manageUsers" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateUser.ManageRecordsFieldNumber">
+            <summary>Field number for the "manageRecords" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateUser.SharedFolderKeyFieldNumber">
+            <summary>Field number for the "sharedFolderKey" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateUser.SharedFolderKey">
+            <summary>
+            shared folder AES key encrypted with user's "key" (for the caller, the user's data key, for a different user, the user's public key)
+            </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateTeam.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateTeam.ManageUsersFieldNumber">
+            <summary>Field number for the "manageUsers" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateTeam.ManageRecordsFieldNumber">
+            <summary>Field number for the "manageRecords" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateTeam.SharedFolderKeyFieldNumber">
+            <summary>Field number for the "sharedFolderKey" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateTeam.SharedFolderKey">
+            <summary>
+            shared folder AES key encrypted with the team key retrieved from team_get_keys, for team member, which is team key; for a non member, the team's public key
+            </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderUpdateOperationFieldNumber">
+            <summary>Field number for the "sharedFolderUpdateOperation" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateV3Request.SharedFolderUid">
+            <summary>
+            required
+            </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.EncryptedSharedFolderNameFieldNumber">
+            <summary>Field number for the "encryptedSharedFolderName" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateV3Request.EncryptedSharedFolderName">
+             <summary>
+            shared folder name encrypted with the shared folder key
+             </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateV3Request.Revision">
+            <summary>
+            clientSharedFolderRevision
+            </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.ForceUpdateFieldNumber">
+            <summary>Field number for the "forceUpdate" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateV3Request.ForceUpdate">
+            <summary>
+            true if the requestor does not want the revision to be validated for out of sync; either force_update must be true, or revision is required
+            </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.FromTeamUidFieldNumber">
+            <summary>Field number for the "fromTeamUid" field.</summary>
+        </member>
+        <member name="P:Folder.SharedFolderUpdateV3Request.FromTeamUid">
+            <summary>
+            for update/delete only; this is the team that gives you the permission to perform the operations you are trying to perform
+            </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.DefaultManageUsersFieldNumber">
+            <summary>Field number for the "defaultManageUsers" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.DefaultManageRecordsFieldNumber">
+            <summary>Field number for the "defaultManageRecords" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.DefaultCanEditFieldNumber">
+            <summary>Field number for the "defaultCanEdit" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.DefaultCanShareFieldNumber">
+            <summary>Field number for the "defaultCanShare" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderAddRecordFieldNumber">
+            <summary>Field number for the "sharedFolderAddRecord" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderAddUserFieldNumber">
+            <summary>Field number for the "sharedFolderAddUser" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderAddTeamFieldNumber">
+            <summary>Field number for the "sharedFolderAddTeam" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderUpdateRecordFieldNumber">
+            <summary>Field number for the "sharedFolderUpdateRecord" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderUpdateUserFieldNumber">
+            <summary>Field number for the "sharedFolderUpdateUser" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderUpdateTeamFieldNumber">
+            <summary>Field number for the "sharedFolderUpdateTeam" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderRemoveRecordFieldNumber">
+            <summary>Field number for the "sharedFolderRemoveRecord" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderRemoveUserFieldNumber">
+            <summary>Field number for the "sharedFolderRemoveUser" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderRemoveTeamFieldNumber">
+            <summary>Field number for the "sharedFolderRemoveTeam" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.EncryptedDeviceTokenFieldNumber">
+            <summary>Field number for the "encryptedDeviceToken" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Request.MessageSessionUidFieldNumber">
+            <summary>Field number for the "messageSessionUid" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecordStatus.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateRecordStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateUserStatus.UsernameFieldNumber">
+            <summary>Field number for the "username" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateUserStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateTeamStatus.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateTeamStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderAddRecordStatusFieldNumber">
+            <summary>Field number for the "sharedFolderAddRecordStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderAddUserStatusFieldNumber">
+            <summary>Field number for the "sharedFolderAddUserStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderAddTeamStatusFieldNumber">
+            <summary>Field number for the "sharedFolderAddTeamStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderUpdateRecordStatusFieldNumber">
+            <summary>Field number for the "sharedFolderUpdateRecordStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderUpdateUserStatusFieldNumber">
+            <summary>Field number for the "sharedFolderUpdateUserStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderUpdateTeamStatusFieldNumber">
+            <summary>Field number for the "sharedFolderUpdateTeamStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderRemoveRecordStatusFieldNumber">
+            <summary>Field number for the "sharedFolderRemoveRecordStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderRemoveUserStatusFieldNumber">
+            <summary>Field number for the "sharedFolderRemoveUserStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderRemoveTeamStatusFieldNumber">
+            <summary>Field number for the "sharedFolderRemoveTeamStatus" field.</summary>
         </member>
         <member name="T:Push.PushReflection">
             <summary>Holder for reflection information generated from push.proto</summary>
@@ -8661,6 +10761,692 @@
         <member name="F:Push.SnsMessage.MessageFieldNumber">
             <summary>Field number for the "message" field.</summary>
         </member>
+        <member name="T:Records.RecordReflection">
+            <summary>Holder for reflection information generated from record.proto</summary>
+        </member>
+        <member name="P:Records.RecordReflection.Descriptor">
+            <summary>File descriptor for record.proto</summary>
+        </member>
+        <member name="F:Records.RecordType.RecordTypeIdFieldNumber">
+            <summary>Field number for the "recordTypeId" field.</summary>
+        </member>
+        <member name="F:Records.RecordType.ContentFieldNumber">
+            <summary>Field number for the "content" field.</summary>
+        </member>
+        <member name="F:Records.RecordType.ScopeFieldNumber">
+            <summary>Field number for the "scope" field.</summary>
+        </member>
+        <member name="F:Records.RecordTypesRequest.StandardFieldNumber">
+            <summary>Field number for the "standard" field.</summary>
+        </member>
+        <member name="F:Records.RecordTypesRequest.UserFieldNumber">
+            <summary>Field number for the "user" field.</summary>
+        </member>
+        <member name="F:Records.RecordTypesRequest.EnterpriseFieldNumber">
+            <summary>Field number for the "enterprise" field.</summary>
+        </member>
+        <member name="F:Records.RecordTypesResponse.RecordTypesFieldNumber">
+            <summary>Field number for the "recordTypes" field.</summary>
+        </member>
+        <member name="F:Records.RecordTypesResponse.StandardCounterFieldNumber">
+            <summary>Field number for the "standardCounter" field.</summary>
+        </member>
+        <member name="F:Records.RecordTypesResponse.UserCounterFieldNumber">
+            <summary>Field number for the "userCounter" field.</summary>
+        </member>
+        <member name="F:Records.RecordTypesResponse.EnterpriseCounterFieldNumber">
+            <summary>Field number for the "enterpriseCounter" field.</summary>
+        </member>
+        <member name="F:Records.RecordTypeModifyResponse.RecordTypeIdFieldNumber">
+            <summary>Field number for the "recordTypeId" field.</summary>
+        </member>
+        <member name="P:Records.RecordTypeModifyResponse.RecordTypeId">
+            <summary>
+            record id of the added, updated or removed record
+            </summary>
+        </member>
+        <member name="F:Records.RecordTypeModifyResponse.CounterFieldNumber">
+            <summary>Field number for the "counter" field.</summary>
+        </member>
+        <member name="P:Records.RecordTypeModifyResponse.Counter">
+            <summary>
+            updated counter for the scope affected
+            </summary>
+        </member>
+        <member name="F:Records.RecordsGetRequest.RecordUidsFieldNumber">
+            <summary>Field number for the "record_uids" field.</summary>
+        </member>
+        <member name="F:Records.RecordsGetRequest.ClientTimeFieldNumber">
+            <summary>Field number for the "client_time" field.</summary>
+        </member>
+        <member name="F:Records.Record.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.Record.RecordKeyFieldNumber">
+            <summary>Field number for the "record_key" field.</summary>
+        </member>
+        <member name="F:Records.Record.RecordKeyTypeFieldNumber">
+            <summary>Field number for the "record_key_type" field.</summary>
+        </member>
+        <member name="F:Records.Record.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.Record.ExtraFieldNumber">
+            <summary>Field number for the "extra" field.</summary>
+        </member>
+        <member name="F:Records.Record.VersionFieldNumber">
+            <summary>Field number for the "version" field.</summary>
+        </member>
+        <member name="F:Records.Record.ClientModifiedTimeFieldNumber">
+            <summary>Field number for the "client_modified_time" field.</summary>
+        </member>
+        <member name="F:Records.Record.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Records.Record.FileIdsFieldNumber">
+            <summary>Field number for the "file_ids" field.</summary>
+        </member>
+        <member name="F:Records.FolderRecordKey.FolderUidFieldNumber">
+            <summary>Field number for the "folder_uid" field.</summary>
+        </member>
+        <member name="F:Records.FolderRecordKey.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.FolderRecordKey.RecordKeyFieldNumber">
+            <summary>Field number for the "record_key" field.</summary>
+        </member>
+        <member name="F:Records.Folder.FolderUidFieldNumber">
+            <summary>Field number for the "folder_uid" field.</summary>
+        </member>
+        <member name="F:Records.Folder.FolderKeyFieldNumber">
+            <summary>Field number for the "folder_key" field.</summary>
+        </member>
+        <member name="F:Records.Folder.FolderKeyTypeFieldNumber">
+            <summary>Field number for the "folder_key_type" field.</summary>
+        </member>
+        <member name="F:Records.Team.TeamUidFieldNumber">
+            <summary>Field number for the "team_uid" field.</summary>
+        </member>
+        <member name="F:Records.Team.TeamKeyFieldNumber">
+            <summary>Field number for the "team_key" field.</summary>
+        </member>
+        <member name="F:Records.Team.TeamPrivateKeyFieldNumber">
+            <summary>Field number for the "team_private_key" field.</summary>
+        </member>
+        <member name="F:Records.Team.TeamKeyTypeFieldNumber">
+            <summary>Field number for the "team_key_type" field.</summary>
+        </member>
+        <member name="F:Records.Team.FoldersFieldNumber">
+            <summary>Field number for the "folders" field.</summary>
+        </member>
+        <member name="F:Records.RecordsGetResponse.RecordsFieldNumber">
+            <summary>Field number for the "records" field.</summary>
+        </member>
+        <member name="F:Records.RecordsGetResponse.FolderRecordKeysFieldNumber">
+            <summary>Field number for the "folder_record_keys" field.</summary>
+        </member>
+        <member name="F:Records.RecordsGetResponse.FoldersFieldNumber">
+            <summary>Field number for the "folders" field.</summary>
+        </member>
+        <member name="F:Records.RecordsGetResponse.TeamsFieldNumber">
+            <summary>Field number for the "teams" field.</summary>
+        </member>
+        <member name="F:Records.RecordLink.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordLink.RecordKeyFieldNumber">
+            <summary>Field number for the "record_key" field.</summary>
+        </member>
+        <member name="F:Records.RecordAudit.VersionFieldNumber">
+            <summary>Field number for the "version" field.</summary>
+        </member>
+        <member name="F:Records.RecordAudit.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.RecordKeyFieldNumber">
+            <summary>Field number for the "record_key" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.ClientModifiedTimeFieldNumber">
+            <summary>Field number for the "client_modified_time" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.NonSharedDataFieldNumber">
+            <summary>Field number for the "non_shared_data" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.FolderTypeFieldNumber">
+            <summary>Field number for the "folder_type" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.FolderUidFieldNumber">
+            <summary>Field number for the "folder_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.FolderKeyFieldNumber">
+            <summary>Field number for the "folder_key" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.RecordLinksFieldNumber">
+            <summary>Field number for the "record_links" field.</summary>
+        </member>
+        <member name="F:Records.RecordAdd.AuditFieldNumber">
+            <summary>Field number for the "audit" field.</summary>
+        </member>
+        <member name="F:Records.RecordsAddRequest.RecordsFieldNumber">
+            <summary>Field number for the "records" field.</summary>
+        </member>
+        <member name="F:Records.RecordsAddRequest.ClientTimeFieldNumber">
+            <summary>Field number for the "client_time" field.</summary>
+        </member>
+        <member name="F:Records.RecordUpdate.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordUpdate.ClientModifiedTimeFieldNumber">
+            <summary>Field number for the "client_modified_time" field.</summary>
+        </member>
+        <member name="F:Records.RecordUpdate.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Records.RecordUpdate.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.RecordUpdate.NonSharedDataFieldNumber">
+            <summary>Field number for the "non_shared_data" field.</summary>
+        </member>
+        <member name="F:Records.RecordUpdate.RecordLinksAddFieldNumber">
+            <summary>Field number for the "record_links_add" field.</summary>
+        </member>
+        <member name="F:Records.RecordUpdate.RecordLinksRemoveFieldNumber">
+            <summary>Field number for the "record_links_remove" field.</summary>
+        </member>
+        <member name="F:Records.RecordUpdate.AuditFieldNumber">
+            <summary>Field number for the "audit" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUpdateRequest.RecordsFieldNumber">
+            <summary>Field number for the "records" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUpdateRequest.ClientTimeFieldNumber">
+            <summary>Field number for the "client_time" field.</summary>
+        </member>
+        <member name="F:Records.RecordFileForConversion.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordFileForConversion.FileFileIdFieldNumber">
+            <summary>Field number for the "file_file_id" field.</summary>
+        </member>
+        <member name="F:Records.RecordFileForConversion.ThumbFileIdFieldNumber">
+            <summary>Field number for the "thumb_file_id" field.</summary>
+        </member>
+        <member name="F:Records.RecordFileForConversion.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.RecordFileForConversion.RecordKeyFieldNumber">
+            <summary>Field number for the "record_key" field.</summary>
+        </member>
+        <member name="P:Records.RecordFileForConversion.RecordKey">
+            <summary>
+            record_ref
+            </summary>
+        </member>
+        <member name="F:Records.RecordFileForConversion.LinkKeyFieldNumber">
+            <summary>Field number for the "link_key" field.</summary>
+        </member>
+        <member name="P:Records.RecordFileForConversion.LinkKey">
+            <summary>
+            record_link
+            </summary>
+        </member>
+        <member name="F:Records.RecordConvertToV3.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordConvertToV3.ClientModifiedTimeFieldNumber">
+            <summary>Field number for the "client_modified_time" field.</summary>
+        </member>
+        <member name="F:Records.RecordConvertToV3.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Records.RecordConvertToV3.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.RecordConvertToV3.NonSharedDataFieldNumber">
+            <summary>Field number for the "non_shared_data" field.</summary>
+        </member>
+        <member name="F:Records.RecordConvertToV3.AuditFieldNumber">
+            <summary>Field number for the "audit" field.</summary>
+        </member>
+        <member name="F:Records.RecordConvertToV3.RecordFileFieldNumber">
+            <summary>Field number for the "record_file" field.</summary>
+        </member>
+        <member name="F:Records.RecordsConvertToV3Request.RecordsFieldNumber">
+            <summary>Field number for the "records" field.</summary>
+        </member>
+        <member name="F:Records.RecordsConvertToV3Request.ClientTimeFieldNumber">
+            <summary>Field number for the "client_time" field.</summary>
+        </member>
+        <member name="T:Records.RecordsRemoveRequest">
+            <summary>
+            to be used with records_remove and records_delete
+            </summary>
+        </member>
+        <member name="F:Records.RecordsRemoveRequest.RecordsFieldNumber">
+            <summary>Field number for the "records" field.</summary>
+        </member>
+        <member name="F:Records.RecordModifyStatus.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordModifyStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Records.RecordModifyStatus.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="F:Records.RecordsModifyResponse.RecordsFieldNumber">
+            <summary>Field number for the "records" field.</summary>
+        </member>
+        <member name="F:Records.RecordsModifyResponse.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Records.RecordAddAuditData.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordAddAuditData.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Records.RecordAddAuditData.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.RecordAddAuditData.VersionFieldNumber">
+            <summary>Field number for the "version" field.</summary>
+        </member>
+        <member name="F:Records.AddAuditDataRequest.RecordsFieldNumber">
+            <summary>Field number for the "records" field.</summary>
+        </member>
+        <member name="F:Records.File.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.File.RecordKeyFieldNumber">
+            <summary>Field number for the "record_key" field.</summary>
+        </member>
+        <member name="F:Records.File.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.File.FileSizeFieldNumber">
+            <summary>Field number for the "fileSize" field.</summary>
+        </member>
+        <member name="F:Records.File.ThumbSizeFieldNumber">
+            <summary>Field number for the "thumbSize" field.</summary>
+        </member>
+        <member name="F:Records.FilesAddRequest.FilesFieldNumber">
+            <summary>Field number for the "files" field.</summary>
+        </member>
+        <member name="F:Records.FilesAddRequest.ClientTimeFieldNumber">
+            <summary>Field number for the "client_time" field.</summary>
+        </member>
+        <member name="F:Records.FileAddStatus.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.FileAddStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Records.FileAddStatus.UrlFieldNumber">
+            <summary>Field number for the "url" field.</summary>
+        </member>
+        <member name="F:Records.FileAddStatus.ParametersFieldNumber">
+            <summary>Field number for the "parameters" field.</summary>
+        </member>
+        <member name="F:Records.FileAddStatus.ThumbnailParametersFieldNumber">
+            <summary>Field number for the "thumbnail_parameters" field.</summary>
+        </member>
+        <member name="F:Records.FileAddStatus.SuccessStatusCodeFieldNumber">
+            <summary>Field number for the "success_status_code" field.</summary>
+        </member>
+        <member name="F:Records.FilesAddResponse.FilesFieldNumber">
+            <summary>Field number for the "files" field.</summary>
+        </member>
+        <member name="F:Records.FilesGetRequest.RecordUidsFieldNumber">
+            <summary>Field number for the "record_uids" field.</summary>
+        </member>
+        <member name="F:Records.FilesGetRequest.ForThumbnailsFieldNumber">
+            <summary>Field number for the "for_thumbnails" field.</summary>
+        </member>
+        <member name="F:Records.FilesGetRequest.EmergencyAccessAccountOwnerFieldNumber">
+            <summary>Field number for the "emergency_access_account_owner" field.</summary>
+        </member>
+        <member name="F:Records.FileGetStatus.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.FileGetStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Records.FileGetStatus.UrlFieldNumber">
+            <summary>Field number for the "url" field.</summary>
+        </member>
+        <member name="F:Records.FileGetStatus.SuccessStatusCodeFieldNumber">
+            <summary>Field number for the "success_status_code" field.</summary>
+        </member>
+        <member name="F:Records.FilesGetResponse.FilesFieldNumber">
+            <summary>Field number for the "files" field.</summary>
+        </member>
+        <member name="F:Records.ApplicationAddRequest.AppUidFieldNumber">
+            <summary>Field number for the "app_uid" field.</summary>
+        </member>
+        <member name="F:Records.ApplicationAddRequest.RecordKeyFieldNumber">
+            <summary>Field number for the "record_key" field.</summary>
+        </member>
+        <member name="F:Records.ApplicationAddRequest.ClientModifiedTimeFieldNumber">
+            <summary>Field number for the "client_modified_time" field.</summary>
+        </member>
+        <member name="F:Records.ApplicationAddRequest.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="F:Records.GetRecordDataWithAccessInfoRequest.ClientTimeFieldNumber">
+            <summary>Field number for the "clientTime" field.</summary>
+        </member>
+        <member name="F:Records.GetRecordDataWithAccessInfoRequest.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.GetRecordDataWithAccessInfoRequest.RecordDetailsIncludeFieldNumber">
+            <summary>Field number for the "recordDetailsInclude" field.</summary>
+        </member>
+        <member name="F:Records.UserPermission.UsernameFieldNumber">
+            <summary>Field number for the "username" field.</summary>
+        </member>
+        <member name="F:Records.UserPermission.OwnerFieldNumber">
+            <summary>Field number for the "owner" field.</summary>
+        </member>
+        <member name="F:Records.UserPermission.ShareAdminFieldNumber">
+            <summary>Field number for the "shareAdmin" field.</summary>
+        </member>
+        <member name="F:Records.UserPermission.SharableFieldNumber">
+            <summary>Field number for the "sharable" field.</summary>
+        </member>
+        <member name="F:Records.UserPermission.EditableFieldNumber">
+            <summary>Field number for the "editable" field.</summary>
+        </member>
+        <member name="F:Records.UserPermission.AwaitingApprovalFieldNumber">
+            <summary>Field number for the "awaitingApproval" field.</summary>
+        </member>
+        <member name="P:Records.UserPermission.AwaitingApproval">
+             <summary>
+            flag indicating if the record is awaiting approval from the user referenced in username
+             </summary>
+        </member>
+        <member name="F:Records.UserPermission.ExpirationFieldNumber">
+            <summary>Field number for the "expiration" field.</summary>
+        </member>
+        <member name="P:Records.UserPermission.Expiration">
+             <summary>
+            time limit for the record directly shared to a user
+             </summary>
+        </member>
+        <member name="F:Records.UserPermission.AccountUidFieldNumber">
+            <summary>Field number for the "accountUid" field.</summary>
+        </member>
+        <member name="F:Records.SharedFolderPermission.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Records.SharedFolderPermission.ResharableFieldNumber">
+            <summary>Field number for the "resharable" field.</summary>
+        </member>
+        <member name="F:Records.SharedFolderPermission.EditableFieldNumber">
+            <summary>Field number for the "editable" field.</summary>
+        </member>
+        <member name="F:Records.SharedFolderPermission.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Records.SharedFolderPermission.ExpirationFieldNumber">
+            <summary>Field number for the "expiration" field.</summary>
+        </member>
+        <member name="P:Records.SharedFolderPermission.Expiration">
+             <summary>
+            time limit for the record in a shared folder
+             </summary>
+        </member>
+        <member name="F:Records.RecordData.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Records.RecordData.VersionFieldNumber">
+            <summary>Field number for the "version" field.</summary>
+        </member>
+        <member name="P:Records.RecordData.Version">
+             <summary>
+            ORIGINAL(1), SUPPORTS_EXTRA(2), RECORD_TYPES(3), FILE(4), APP(5);
+             </summary>
+        </member>
+        <member name="F:Records.RecordData.SharedFieldNumber">
+            <summary>Field number for the "shared" field.</summary>
+        </member>
+        <member name="F:Records.RecordData.EncryptedRecordDataFieldNumber">
+            <summary>Field number for the "encryptedRecordData" field.</summary>
+        </member>
+        <member name="P:Records.RecordData.EncryptedRecordData">
+             <summary>
+            record data encrypted with the record key
+             </summary>
+        </member>
+        <member name="F:Records.RecordData.EncryptedExtraDataFieldNumber">
+            <summary>Field number for the "encryptedExtraData" field.</summary>
+        </member>
+        <member name="P:Records.RecordData.EncryptedExtraData">
+             <summary>
+            extra record data encrypted with the record key
+             </summary>
+        </member>
+        <member name="F:Records.RecordData.ClientModifiedTimeFieldNumber">
+            <summary>Field number for the "clientModifiedTime" field.</summary>
+        </member>
+        <member name="F:Records.RecordData.OwnerRecordUidFieldNumber">
+            <summary>Field number for the "ownerRecordUid" field.</summary>
+        </member>
+        <member name="P:Records.RecordData.OwnerRecordUid">
+             <summary>
+            the record uid of the owner record for a linked record
+             </summary>
+        </member>
+        <member name="F:Records.RecordData.EncryptedLinkedRecordKeyFieldNumber">
+            <summary>Field number for the "encryptedLinkedRecordKey" field.</summary>
+        </member>
+        <member name="P:Records.RecordData.EncryptedLinkedRecordKey">
+             <summary>
+            the record key of the linked record encrypted with the key of the owner record
+             </summary>
+        </member>
+        <member name="F:Records.RecordData.FileIdFieldNumber">
+            <summary>Field number for the "fileId" field.</summary>
+        </member>
+        <member name="P:Records.RecordData.FileId">
+             <summary>
+            json object of unencrypted data (currently contains only file ids)
+             </summary>
+        </member>
+        <member name="F:Records.RecordData.FileSizeFieldNumber">
+            <summary>Field number for the "fileSize" field.</summary>
+        </member>
+        <member name="F:Records.RecordData.ThumbnailSizeFieldNumber">
+            <summary>Field number for the "thumbnailSize" field.</summary>
+        </member>
+        <member name="F:Records.RecordDataWithAccessInfo.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordDataWithAccessInfo.RecordDataFieldNumber">
+            <summary>Field number for the "recordData" field.</summary>
+        </member>
+        <member name="F:Records.RecordDataWithAccessInfo.UserPermissionFieldNumber">
+            <summary>Field number for the "userPermission" field.</summary>
+        </member>
+        <member name="F:Records.RecordDataWithAccessInfo.SharedFolderPermissionFieldNumber">
+            <summary>Field number for the "sharedFolderPermission" field.</summary>
+        </member>
+        <member name="F:Records.GetRecordDataWithAccessInfoResponse.RecordDataWithAccessInfoFieldNumber">
+            <summary>Field number for the "recordDataWithAccessInfo" field.</summary>
+        </member>
+        <member name="F:Records.GetRecordDataWithAccessInfoResponse.NoPermissionRecordUidFieldNumber">
+            <summary>Field number for the "noPermissionRecordUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordShareUpdateRequest.AddSharedRecordFieldNumber">
+            <summary>Field number for the "addSharedRecord" field.</summary>
+        </member>
+        <member name="F:Records.RecordShareUpdateRequest.UpdateSharedRecordFieldNumber">
+            <summary>Field number for the "updateSharedRecord" field.</summary>
+        </member>
+        <member name="F:Records.RecordShareUpdateRequest.RemoveSharedRecordFieldNumber">
+            <summary>Field number for the "removeSharedRecord" field.</summary>
+        </member>
+        <member name="F:Records.RecordShareUpdateRequest.PtFieldNumber">
+            <summary>Field number for the "pt" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.ToUsernameFieldNumber">
+            <summary>Field number for the "toUsername" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.RecordKeyFieldNumber">
+            <summary>Field number for the "recordKey" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.EditableFieldNumber">
+            <summary>Field number for the "editable" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.ShareableFieldNumber">
+            <summary>Field number for the "shareable" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.TransferFieldNumber">
+            <summary>Field number for the "transfer" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.UseEccKeyFieldNumber">
+            <summary>Field number for the "useEccKey" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecord.RemoveVaultDataFieldNumber">
+            <summary>Field number for the "removeVaultData" field.</summary>
+        </member>
+        <member name="F:Records.RecordShareUpdateResponse.AddSharedRecordStatusFieldNumber">
+            <summary>Field number for the "addSharedRecordStatus" field.</summary>
+        </member>
+        <member name="F:Records.RecordShareUpdateResponse.UpdateSharedRecordStatusFieldNumber">
+            <summary>Field number for the "updateSharedRecordStatus" field.</summary>
+        </member>
+        <member name="F:Records.RecordShareUpdateResponse.RemoveSharedRecordStatusFieldNumber">
+            <summary>Field number for the "removeSharedRecordStatus" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecordStatus.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecordStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="P:Records.SharedRecordStatus.Status">
+            <summary>
+            success, pending_accept, user_not_found, already_shared, not_allowed_to_share, access_denied, not_allowed_to_set_permission
+            </summary>
+        </member>
+        <member name="F:Records.SharedRecordStatus.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="F:Records.SharedRecordStatus.UsernameFieldNumber">
+            <summary>Field number for the "username" field.</summary>
+        </member>
+        <member name="F:Records.GetRecordPermissionsRequest.RecordUidsFieldNumber">
+            <summary>Field number for the "recordUids" field.</summary>
+        </member>
+        <member name="F:Records.GetRecordPermissionsRequest.IsShareAdminFieldNumber">
+            <summary>Field number for the "isShareAdmin" field.</summary>
+        </member>
+        <member name="F:Records.GetRecordPermissionsResponse.RecordPermissionsFieldNumber">
+            <summary>Field number for the "recordPermissions" field.</summary>
+        </member>
+        <member name="F:Records.RecordPermission.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordPermission.OwnerFieldNumber">
+            <summary>Field number for the "owner" field.</summary>
+        </member>
+        <member name="F:Records.RecordPermission.CanEditFieldNumber">
+            <summary>Field number for the "canEdit" field.</summary>
+        </member>
+        <member name="F:Records.RecordPermission.CanShareFieldNumber">
+            <summary>Field number for the "canShare" field.</summary>
+        </member>
+        <member name="F:Records.RecordPermission.CanTransferFieldNumber">
+            <summary>Field number for the "canTransfer" field.</summary>
+        </member>
+        <member name="F:Records.GetShareObjectsRequest.StartWithFieldNumber">
+            <summary>Field number for the "startWith" field.</summary>
+        </member>
+        <member name="P:Records.GetShareObjectsRequest.StartWith">
+             <summary>
+            return share objects that start with this value
+             </summary>
+        </member>
+        <member name="F:Records.GetShareObjectsRequest.ContainsFieldNumber">
+            <summary>Field number for the "contains" field.</summary>
+        </member>
+        <member name="P:Records.GetShareObjectsRequest.Contains">
+             <summary>
+            return share objects that contains this value
+             </summary>
+        </member>
+        <member name="F:Records.GetShareObjectsResponse.ShareRelationshipsFieldNumber">
+            <summary>Field number for the "shareRelationships" field.</summary>
+        </member>
+        <member name="F:Records.GetShareObjectsResponse.ShareFamilyUsersFieldNumber">
+            <summary>Field number for the "shareFamilyUsers" field.</summary>
+        </member>
+        <member name="F:Records.GetShareObjectsResponse.ShareEnterpriseUsersFieldNumber">
+            <summary>Field number for the "shareEnterpriseUsers" field.</summary>
+        </member>
+        <member name="F:Records.GetShareObjectsResponse.ShareTeamsFieldNumber">
+            <summary>Field number for the "shareTeams" field.</summary>
+        </member>
+        <member name="F:Records.GetShareObjectsResponse.ShareManagedCompaniesFieldNumber">
+            <summary>Field number for the "shareManagedCompanies" field.</summary>
+        </member>
+        <member name="F:Records.ShareObject.NameFieldNumber">
+            <summary>Field number for the "name" field.</summary>
+        </member>
+        <member name="P:Records.ShareObject.Name">
+            <summary>
+            username, company name, team name
+            </summary>
+        </member>
+        <member name="F:Records.ShareObject.TypeFieldNumber">
+            <summary>Field number for the "type" field.</summary>
+        </member>
+        <member name="P:Records.ShareObject.Type">
+            <summary>
+            share relationship, mc company, team, enterprise, family
+            </summary>
+        </member>
+        <member name="F:Records.ShareObject.IsShareAdminFieldNumber">
+            <summary>Field number for the "isShareAdmin" field.</summary>
+        </member>
+        <member name="P:Records.ShareObject.IsShareAdmin">
+            <summary>
+            only used for enterprise
+            </summary>
+        </member>
+        <member name="F:Records.ShareObject.DisplayNameFieldNumber">
+            <summary>Field number for the "displayName" field.</summary>
+        </member>
+        <member name="P:Records.ShareObject.DisplayName">
+            <summary>
+            full name...
+            </summary>
+        </member>
+        <member name="F:Records.ShareObject.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="P:Records.ShareObject.Status">
+            <summary>
+            active, blocked, invited (only apply to shareRelationships)
+            </summary>
+        </member>
         <member name="T:SsoCloud.SsocloudReflection">
             <summary>Holder for reflection information generated from ssocloud.proto</summary>
         </member>
@@ -8681,6 +11467,11 @@
              <summary>
             * Datatypes of SsoCloudSettings 
              </summary>
+        </member>
+        <member name="F:SsoCloud.DataType.Any">
+            <summary>
+            This is actually type 11 in the DB
+            </summary>
         </member>
         <member name="T:SsoCloud.SsoCloudSettingOperationType">
              <summary>
@@ -9344,6 +12135,14 @@
         <member name="P:SsoCloud.SamlRelayState.IsGeneratedUid">
             <summary>
             Used if the messageSessionUid was generated by Keeper rather than the client
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SamlRelayState.DeviceIdFieldNumber">
+            <summary>Field number for the "deviceId" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SamlRelayState.DeviceId">
+            <summary>
+            Used to differentiate different login attempts by the same user
             </summary>
         </member>
     </members>

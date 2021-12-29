@@ -22,7 +22,7 @@ namespace Tests
         {
             var vault = await GetVault();
             Assert.NotNull(vault);
-            Assert.Equal(3, vault.RecordCount);
+            Assert.Equal(4, vault.RecordCount);
             Assert.Equal(2, vault.SharedFolderCount);
             Assert.Equal(1, vault.TeamCount);
         }
@@ -33,7 +33,7 @@ namespace Tests
             var vault = await GetVault();
             var recordsBefore = vault.RecordCount;
 
-            var recordUids = vault.Records.Where(x => x.Owner && !x.Shared).Select(x => x.Uid).ToArray();
+            var recordUids = vault.KeeperRecords.Where(x => x.Owner && !x.Shared).Select(x => x.Uid).ToArray();
 
             var authMock = Mock.Get(vault.Auth);
             authMock
@@ -68,7 +68,7 @@ namespace Tests
                 }));
             await vault.SyncDown();
 
-            Assert.Equal(2, vault.RecordCount);
+            Assert.Equal(3, vault.RecordCount);
             Assert.Equal(1, vault.SharedFolderCount);
             Assert.Equal(0, vault.TeamCount);
         }
@@ -91,7 +91,7 @@ namespace Tests
                 }));
 
             await vault.SyncDown();
-            Assert.Equal(3, vault.RecordCount);
+            Assert.Equal(4, vault.RecordCount);
             Assert.Equal(2, vault.SharedFolderCount);
             Assert.Equal(1, vault.TeamCount);
 
@@ -107,7 +107,7 @@ namespace Tests
                     removedTeams = teamUids
                 }));
             await vault.SyncDown();
-            Assert.Equal(2, vault.RecordCount);
+            Assert.Equal(3, vault.RecordCount);
             Assert.Equal(0, vault.SharedFolderCount);
             Assert.Equal(0, vault.TeamCount);
         }
@@ -132,7 +132,7 @@ namespace Tests
                 }));
 
             await vault.SyncDown();
-            Assert.Equal(2, vault.RecordCount);
+            Assert.Equal(3, vault.RecordCount);
             Assert.Equal(0, vault.SharedFolderCount);
             Assert.Equal(0, vault.TeamCount);
         }
@@ -143,11 +143,15 @@ namespace Tests
             context.Setup(x => x.SessionToken).Returns(_vaultEnv.SessionToken);
             context.Setup(x => x.ClientKey).Returns(_vaultEnv.ClientKey);
             context.Setup(x => x.DataKey).Returns(_vaultEnv.DataKey);
-            context.Setup(x => x.PrivateKey).Returns(_vaultEnv.PrivateKey);
+            context.Setup(x => x.PrivateRsaKey).Returns(_vaultEnv.PrivateRsaKey);
+            context.Setup(x => x.Settings).Returns(new AccountSettings 
+            {
+                RecordTypesEnabled = true,
+            });
 
             var endpoint = new Mock<IKeeperEndpoint>();
             endpoint.Setup(x => x.DeviceName).Returns("C# Unit Tests");
-            endpoint.Setup(x => x.ClientVersion).Returns("c15.0.0");
+            endpoint.Setup(x => x.ClientVersion).Returns("c16.0.0");
             endpoint.Setup(x => x.Server).Returns(DataVault.DefaultEnvironment);
 
             var auth = new Mock<IAuthentication>();
@@ -168,12 +172,51 @@ namespace Tests
             return auth.Object;
         }
 
-        private async Task<VaultOnline> GetVault() {
+        private async Task<VaultOnline> GetVault()
+        {
             var auth = GetConnectedAuthContext();
             var authMock = Mock.Get(auth);
             authMock
                 .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
-                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)_vaultEnv.GetSyncDownResponse()));
+                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse) _vaultEnv.GetSyncDownResponse()));
+            authMock
+                .Setup(x => x.ExecuteAuthRest("vault/get_record_types", It.IsAny<Records.RecordTypesRequest>(), typeof(Records.RecordTypesResponse)))
+                .Returns<string, Records.RecordTypesRequest, Type>((e, rq, rst) =>
+                {
+                    var rs = new Records.RecordTypesResponse()
+                    {
+                        StandardCounter = 1,
+                    };
+                    rs.RecordTypes.Add(new Records.RecordType 
+                    { 
+                        Scope = Records.RecordTypeScope.RtStandard,
+                        RecordTypeId = 1,
+                        Content = 
+                        @"{
+  ""$id"": ""login"",
+  ""categories"": [""login""],
+  ""description"": ""Login template"",
+  ""fields"": [
+    {
+      ""$ref"": ""login""
+    },
+    {
+      ""$ref"": ""password""
+    },
+    {
+      ""$ref"": ""url""
+    },
+    {
+      ""$ref"": ""fileRef""
+    },
+    {
+      ""$ref"": ""oneTimeCode""
+    }
+  ]
+}",
+                    });
+                    return Task.FromResult((Google.Protobuf.IMessage) rs);
+                });
 
             var vault = new VaultOnline(auth);
             await vault.SyncDown();

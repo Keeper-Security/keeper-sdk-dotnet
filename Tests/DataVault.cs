@@ -403,7 +403,7 @@ fwIDAQAB
         public string OneTimeToken { get; } = DataVault.TwoFactorOneTimeToken;
         public string DeviceToken { get; } = DataVault.TwoFactorDeviceToken;
         public byte[] PrivateKeyData { get; } = DataVault.DerPrivateKey;
-        public RsaPrivateCrtKeyParameters PrivateKey { get; } = DataVault.ImportedPrivateKey;
+        public RsaPrivateCrtKeyParameters PrivateRsaKey { get; } = DataVault.ImportedPrivateKey;
         public string EncryptedPrivateKey { get; } = DataVault.EncryptedPrivateKey.Base64UrlEncode();
         public string EncryptedDataKey { get; } = DataVault.EncryptedDataKey;
         public byte[] EncryptionParams { get; } = DataVault.EncryptionParams;
@@ -411,46 +411,41 @@ fwIDAQAB
         public long Revision { get; } = DataVault.Revision;
         public string TwoFactorOneTimeToken { get; } = DataVault.TwoFactorOneTimeToken;
 
-        private readonly DataContractJsonSerializer _dataSerializer;
-        private readonly DataContractJsonSerializer _extraSerializer;
-
         public VaultEnvironment()
         {
             var settings = new DataContractJsonSerializerSettings
             {
                 UseSimpleDictionaryFormat = true
             };
-            _dataSerializer = new DataContractJsonSerializer(typeof(RecordData), settings);
-            _extraSerializer = new DataContractJsonSerializer(typeof(RecordExtra), settings);
         }
 
-        private Tuple<SyncDownRecord, SyncDownRecordMetaData> GenerateRecord(PasswordRecord record,
+        private Tuple<SyncDownRecord, SyncDownRecordMetaData> GenerateRecord(KeeperRecord record,
             KeyType keyType,
             long revision)
         {
             var sdr = new SyncDownRecord
             {
                 RecordUid = record.Uid,
-                Version = 2,
                 Revision = revision,
                 ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Shared = keyType == KeyType.DataKey
             };
-            var data = record.ExtractRecordData();
-            using (var ms = new MemoryStream())
+            if (record is PasswordRecord password)
             {
-                _dataSerializer.WriteObject(ms, data);
-                sdr.Data = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
-            }
-
-            if (record.Attachments.Count > 0)
-            {
-                var extra = record.ExtractRecordExtra();
-                using (var ms = new MemoryStream())
+                sdr.Version = 2;
+                var data = password.ExtractRecordData();
+                sdr.Data = CryptoUtils.EncryptAesV1(JsonUtils.DumpJson(data), record.RecordKey).Base64UrlEncode();
+                if (password.Attachments.Count > 0)
                 {
-                    _extraSerializer.WriteObject(ms, extra);
-                    sdr.Extra = CryptoUtils.EncryptAesV1(ms.ToArray(), record.RecordKey).Base64UrlEncode();
+                    var extra = password.ExtractRecordExtra();
+                    sdr.Extra = CryptoUtils.EncryptAesV1(JsonUtils.DumpJson(extra), password.RecordKey).Base64UrlEncode();
                 }
+            }
+            else if (record is TypedRecord typed) 
+            {
+                sdr.Version = 3;
+                var data = typed.ExtractRecordV3Data();
+                sdr.Data = CryptoUtils.EncryptAesV2(JsonUtils.DumpJson(data), record.RecordKey).Base64UrlEncode();
             }
 
             SyncDownRecordMetaData sdrmd = null;
@@ -638,6 +633,16 @@ fwIDAQAB
                 Link = "https://google.com",
             };
 
+            var loginType = new TypedRecordFacade<LoginRecordType>();
+            loginType.Fields.Login = "some_fake_user4@company.com";
+            loginType.Fields.Password = "password4";
+            loginType.Fields.Url = "https://google.com";
+            var record4 = loginType.TypedRecord;
+            record4.Uid = CryptoUtils.GenerateUid();
+            record4.RecordKey = CryptoUtils.GenerateEncryptionKey();
+            record4.Title = "Record 4";
+            record4.Notes = "Note 4";
+
             var sharedFolder1 = new SharedFolder
             {
                 Uid = SharedFolder1Uid,
@@ -680,6 +685,7 @@ fwIDAQAB
             var (r1, md1) = GenerateRecord(record1, KeyType.DataKey, 10);
             var (r2, md2) = GenerateRecord(record2, KeyType.PrivateKey, 11);
             var (r3, _) = GenerateRecord(record3, KeyType.NoKey, 12);
+            var (r4, md4) = GenerateRecord(record4, KeyType.DataKey, 12);
             var sf1 = GenerateSharedFolder(sharedFolder1, 12, new[] {record1}, new[] {team1}, true);
             var sf2 = GenerateSharedFolder(sharedFolder2, 12, new[] {record3}, new[] {team1}, false);
             var t1 = GenerateTeam(team1, KeyType.DataKey, new[] {sharedFolder1, sharedFolder2});
@@ -690,8 +696,8 @@ fwIDAQAB
                 result = "success",
                 fullSync = true,
                 revision = Revision,
-                records = new[] {r1, r2, r3},
-                recordMetaData = new[] {md1, md2},
+                records = new[] {r1, r2, r3, r4},
+                recordMetaData = new[] {md1, md2, md4},
                 sharedFolders = new[] {sf1, sf2},
                 teams = new[] {t1},
                 userFolders = new[] {uf1},
@@ -705,6 +711,7 @@ fwIDAQAB
                     new SyncDownFolderRecord {RecordUid = r2.RecordUid, FolderUid = userFolder1.FolderUid},
                     new SyncDownFolderRecord {RecordUid = r1.RecordUid, FolderUid = sharedFolder1.Uid},
                     new SyncDownFolderRecord {RecordUid = r3.RecordUid, FolderUid = sharedFolder1.Uid},
+                    new SyncDownFolderRecord {RecordUid = r4.RecordUid},
                 }
             };
 

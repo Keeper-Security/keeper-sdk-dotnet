@@ -1,7 +1,5 @@
 #requires -Version 5.0
 
-using namespace KeeperSecurity.Sdk
-
 function Get-KeeperSharedFolders {
 <#
 	.Synopsis
@@ -14,7 +12,7 @@ function Get-KeeperSharedFolders {
 	Return matching shared folders only
 #>
 	[CmdletBinding()]
-	[OutputType([Vault.SharedFolder[]])] 
+	[OutputType([KeeperSecurity.Vault.SharedFolder[]])] 
 	Param (
 		[string] $Uid,
 		[string] $Filter
@@ -25,7 +23,7 @@ function Get-KeeperSharedFolders {
 	Process {
 		[Vault.VaultOnline]$vault = $Script:Vault
 		if ($vault) {
-			[Vault.SharedFolder] $sharedFolder = $null
+			[KeeperSecurity.Vault.SharedFolder] $sharedFolder = $null
 			if ($Uid) {
 				if ($vault.TryGetSharedFolder($uid, [ref]$sharedFolder)) {
 					$sharedFolder

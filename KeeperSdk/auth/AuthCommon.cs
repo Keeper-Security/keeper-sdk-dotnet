@@ -196,6 +196,20 @@ namespace KeeperSecurity.Authentication
         /// <summary>
         /// User's RSA Private Key.
         /// </summary>
+        RsaPrivateCrtKeyParameters PrivateRsaKey { get; }
+
+        /// <summary>
+        /// User's EC Private key
+        /// </summary>
+        ECPrivateKeyParameters PrivateEcKey { get; }
+
+        /// <summary>
+        /// Enterprise EC Public key
+        /// </summary>
+        ECPublicKeyParameters EnterprisePublicEcKey { get; }
+
+        /// <exclude/>
+        [Obsolete("Use PrivateRsaKey")]
         RsaPrivateCrtKeyParameters PrivateKey { get; }
 
         /// <summary>
@@ -261,7 +275,9 @@ namespace KeeperSecurity.Authentication
     {
         public byte[] DataKey { get; internal set; }
         public byte[] ClientKey { get; internal set; }
-        public RsaPrivateCrtKeyParameters PrivateKey { get; internal set; }
+        public RsaPrivateCrtKeyParameters PrivateRsaKey { get; internal set; }
+        public ECPrivateKeyParameters PrivateEcKey { get; internal set; }
+        public ECPublicKeyParameters EnterprisePublicEcKey { get; internal set; }
         public byte[] SessionToken { get; internal set; }
         public SessionTokenRestriction SessionTokenRestriction { get; set; }
         public AccountLicense License { get; internal set; }
@@ -285,6 +301,8 @@ namespace KeeperSecurity.Authentication
                 return false;
             }
         }
+        /// <exclude/>
+        public RsaPrivateCrtKeyParameters PrivateKey => PrivateRsaKey;
     }
 
     /// <summary>
@@ -579,7 +597,13 @@ namespace KeeperSecurity.Authentication
                 var privateKeyData =
                     CryptoUtils.DecryptAesV1(keys.EncryptedPrivateKey.Base64UrlDecode(),
                         authContext.DataKey);
-                authContext.PrivateKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+                authContext.PrivateRsaKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+            }
+            if (keys.EncryptedEcPrivateKey != null) {
+                var privateKeyData =
+                    CryptoUtils.DecryptAesV2(keys.EncryptedEcPrivateKey.Base64UrlDecode(),
+                        authContext.DataKey);
+                authContext.PrivateEcKey = CryptoUtils.LoadPrivateEcKey(privateKeyData);
             }
 
             if (!string.IsNullOrEmpty(clientKey))
@@ -598,7 +622,8 @@ namespace KeeperSecurity.Authentication
                 {
                     if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountExpired) != 0)
                     {
-                        var accountExpiredDescription = "Your Keeper account has expired. Please open the Keeper app to renew " +
+                        var accountExpiredDescription =
+                            "Your Keeper account has expired. Please open the Keeper app to renew " +
                             $"or visit the Web Vault at https://{Endpoint.Server}/vault";
                         await postUi.Confirmation(accountExpiredDescription);
                     }
@@ -614,7 +639,8 @@ namespace KeeperSecurity.Authentication
 
                                 var validatorSalt = CryptoUtils.GetRandomBytes(16);
                                 authContext.PasswordValidator =
-                                    CryptoUtils.CreateEncryptionParams(newPassword, validatorSalt, 100000, CryptoUtils.GetRandomBytes(32));
+                                    CryptoUtils.CreateEncryptionParams(newPassword, validatorSalt, 100000,
+                                        CryptoUtils.GetRandomBytes(32));
 
                                 authContext.SessionTokenRestriction &= ~SessionTokenRestriction.AccountRecovery;
                             }
@@ -659,10 +685,12 @@ namespace KeeperSecurity.Authentication
 
                         if ((authContext.SessionTokenRestriction & SessionTokenRestriction.AccountRecovery) != 0)
                         {
-                            throw new KeeperPostLoginErrors("expired_master_password_description", "Your Master Password has expired, you are required to change it before you can login.");
+                            throw new KeeperPostLoginErrors("expired_master_password_description",
+                                "Your Master Password has expired, you are required to change it before you can login.");
                         }
 
-                        throw new KeeperPostLoginErrors("need_vault_settings_update", "Please log into the web Vault to update your account settings.");
+                        throw new KeeperPostLoginErrors("need_vault_settings_update",
+                            "Please log into the web Vault to update your account settings.");
                     }
                 }
             }
@@ -670,9 +698,27 @@ namespace KeeperSecurity.Authentication
             {
                 if (authContext.Settings.LogoutTimerInSec.HasValue)
                 {
-                    if (authContext.Settings.LogoutTimerInSec > TimeSpan.FromMinutes(10).TotalSeconds && authContext.Settings.LogoutTimerInSec < TimeSpan.FromHours(12).TotalSeconds)
+                    if (authContext.Settings.LogoutTimerInSec > TimeSpan.FromMinutes(10).TotalSeconds &&
+                        authContext.Settings.LogoutTimerInSec < TimeSpan.FromHours(12).TotalSeconds)
                     {
-                        SetKeepAliveTimer((int) TimeSpan.FromSeconds(authContext.Settings.LogoutTimerInSec.Value).TotalMinutes, this);
+                        SetKeepAliveTimer(
+                            (int) TimeSpan.FromSeconds(authContext.Settings.LogoutTimerInSec.Value).TotalMinutes, this);
+                    }
+                }
+
+                if (authContext.License.AccountType == 2)
+                {
+                    try
+                    {
+                        var rs = (BreachWatch.EnterprisePublicKeyResponse) await ExecuteAuthRest(
+                            "enterprise/get_enterprise_public_key", null,
+                            typeof(BreachWatch.EnterprisePublicKeyResponse));
+                        authContext.EnterprisePublicEcKey =
+                            CryptoUtils.LoadPublicEcKey(rs.EnterpriseECCPublicKey.ToByteArray());
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
                     }
                 }
             }

@@ -76,6 +76,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// <exclude />
         public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
         {
+            PushNotifications?.Dispose();
             PushNotifications = pushNotifications;
         }
 
@@ -203,6 +204,7 @@ namespace KeeperSecurity.Authentication.Sync
                 _loginContext = new LoginContext();
                 foreach (var password in passwords)
                 {
+                    if (string.IsNullOrEmpty(password)) continue;
                     _loginContext.PasswordQueue.Enqueue(password);
                 }
 

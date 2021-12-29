@@ -257,7 +257,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             GetConnection = getConnection;
             PersonalScopeUid = ownerId;
 
-            Records = new SqliteEntityStorage<IPasswordRecord, ExternalRecord>(getConnection, ownerId);
+            Records = new SqliteEntityStorage<IStorageRecord, ExternalRecord>(getConnection, ownerId);
             SharedFolders = new SqliteEntityStorage<ISharedFolder, ExternalSharedFolder>(getConnection, ownerId);
             Teams = new SqliteEntityStorage<IEnterpriseTeam, ExternalEnterpriseTeam>(getConnection, ownerId);
             NonSharedData = new SqliteEntityStorage<INonSharedData, ExternalNonSharedData>(getConnection, ownerId);
@@ -285,7 +285,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             }
         }
 
-        public IEntityStorage<IPasswordRecord> Records { get; }
+        public IEntityStorage<IStorageRecord> Records { get; }
         public IEntityStorage<ISharedFolder> SharedFolders { get; }
         public IEntityStorage<IEnterpriseTeam> Teams { get; }
         public IEntityStorage<INonSharedData> NonSharedData { get; }

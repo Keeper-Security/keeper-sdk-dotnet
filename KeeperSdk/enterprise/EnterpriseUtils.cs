@@ -118,7 +118,7 @@ namespace KeeperSecurity.Enterprise
                                         key = CryptoUtils.DecryptAesV1(tk.key.Base64UrlDecode(), auth.AuthContext.DataKey);
                                         break;
                                     case 2:
-                                        key = CryptoUtils.DecryptRsa(tk.key.Base64UrlDecode(), auth.AuthContext.PrivateKey);
+                                        key = CryptoUtils.DecryptRsa(tk.key.Base64UrlDecode(), auth.AuthContext.PrivateRsaKey);
                                         break;
                                     default:
                                         warnings?.Invoke($"Team \'{tk.teamUid}\' unsupported key type: {tk.keyType}");

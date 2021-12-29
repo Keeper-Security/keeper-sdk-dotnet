@@ -23,6 +23,17 @@ namespace KeeperSecurity.Vault
         /// <returns></returns>
         internal static async Task RunSyncDown(this VaultOnline vault)
         {
+            var auth = vault.Auth;
+            if (auth.AuthContext.Settings?.RecordTypesEnabled == true)
+            {
+                if (vault.RecordTypeStorage == null)
+                {
+                    var rtStorage = new KeeperRecordTypeStorage();
+                    await rtStorage.Load(auth);
+                    vault.RecordTypeStorage = rtStorage;
+                }
+            }
+
             var storage = vault.Storage;
             var context = vault.Auth.AuthContext;
             var clientKey = vault.ClientKey;
@@ -30,12 +41,12 @@ namespace KeeperSecurity.Vault
             var command = new SyncDownCommand
             {
                 revision = storage.Revision,
-                include = new[] {"sfheaders", "sfrecords", "sfusers", "teams", "folders"},
+                include = new[] {"sfheaders", "sfrecords", "sfusers", "teams", "folders", "typed_record"},
                 deviceName = vault.Auth.Endpoint.DeviceName,
                 deviceId = vault.Auth.Endpoint.DeviceName
             };
 
-            var rs = await vault.Auth.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(command);
+            var rs = await auth.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(command);
 
             Debug.WriteLine("Sync Down: Enter");
             var isFullSync = rs.fullSync;
@@ -47,14 +58,21 @@ namespace KeeperSecurity.Vault
             var result = new RebuildTask(isFullSync);
             if (rs.removedRecords != null)
             {
+                result.AddRecords(rs.removedRecords);
                 storage.RecordKeys.DeleteLinks(
                     rs.removedRecords
                         .Select(recordUid => UidLink.Create(recordUid, storage.PersonalScopeUid)));
 
+                var recordLinks = rs.removedRecords
+                    .SelectMany(x => storage.RecordKeys.GetLinksForSubject(x), (s, md) => md)
+                    .Cast<IUidLink>()
+                    .ToArray();
+                result.AddRecords(recordLinks.Select(x => x.ObjectUid));
+                storage.RecordKeys.DeleteLinks(recordLinks);
+
                 var folderRecords = new List<IUidLink>();
                 foreach (var recordUid in rs.removedRecords)
                 {
-                    result.AddRecord(recordUid);
                     var links = storage.FolderRecords.GetLinksForObject(recordUid).ToArray();
                     foreach (var link in links)
                     {
@@ -146,6 +164,12 @@ namespace KeeperSecurity.Vault
                     .ToArray();
 
                 storage.FolderRecords.DeleteLinks(links);
+            }
+
+            if (rs.removedLinks != null)
+            {
+                result.AddRecords(rs.removedLinks.Select(x => x.recordUid));
+                storage.RecordKeys.DeleteLinks(rs.removedLinks);
             }
 
             if (rs.sharedFolders != null)
@@ -243,17 +267,46 @@ namespace KeeperSecurity.Vault
             {
                 result.AddRecords(rs.records.Select(x => x.RecordUid));
 
+                foreach (var recordUid in rs.records
+                    .Where(x => !recordOwnership.ContainsKey(x.RecordUid))
+                    .Select(x => storage.Records.GetEntity(x.RecordUid))
+                    .Where(x => x != null)
+                    .Where(x => x.Owner)
+                    .Select(x => x.RecordUid)
+                )
+                {
+                    recordOwnership[recordUid] = true;
+                }
+
                 storage.Records.PutEntities(rs.records
                     .Select(x =>
                     {
                         x.AdjustUdata();
-                        if (!recordOwnership.ContainsKey(x.RecordUid)) return x;
-                        
-                        x.Owner = recordOwnership[x.RecordUid];
-                        recordOwnership.Remove(x.RecordUid);
+                        if (recordOwnership.ContainsKey(x.RecordUid))
+                        {
+                            x.Owner = recordOwnership[x.RecordUid];
+                            recordOwnership.Remove(x.RecordUid);
+                        }
 
                         return x;
                     }));
+
+                var recordLinks = rs.records
+                    .Where(x => !string.IsNullOrEmpty(x.OwnerRecordId) && !string.IsNullOrEmpty(x.LinkKey))
+                    .Select(x => new SyncDownRecordMetaData
+                    {
+                        RecordUid = x.RecordUid,
+                        SharedFolderUid = x.OwnerRecordId,
+                        RecordKey = x.LinkKey,
+                        RecordKeyType = (int) KeyType.RecordKey,
+                        CanEdit = false,
+                        CanShare = false,
+                    })
+                    .ToArray();
+                if (recordLinks.Length > 0)
+                {
+                    storage.RecordKeys.PutLinks(recordLinks);
+                }
             }
 
             if (rs.recordMetaData != null)
@@ -294,7 +347,13 @@ namespace KeeperSecurity.Vault
                                     key = CryptoUtils.DecryptAesV1(rmd.RecordKey.Base64UrlDecode(), context.DataKey);
                                     break;
                                 case 2:
-                                    key = CryptoUtils.DecryptRsa(rmd.RecordKey.Base64UrlDecode(), context.PrivateKey);
+                                    key = CryptoUtils.DecryptRsa(rmd.RecordKey.Base64UrlDecode(), context.PrivateRsaKey);
+                                    break;
+                                case 3:
+                                    key = CryptoUtils.DecryptAesV2(rmd.RecordKey.Base64UrlDecode(), context.DataKey);
+                                    break;
+                                case 4:
+                                    key = CryptoUtils.DecryptEc(rmd.RecordKey.Base64UrlDecode(), context.PrivateEcKey);
                                     break;
                                 default:
                                     throw new Exception(
@@ -343,11 +402,17 @@ namespace KeeperSecurity.Vault
                             byte[] teamKey;
                             switch (x.KeyType)
                             {
-                                case (int) KeyType.DataKey:
+                                case 1:
                                     teamKey = CryptoUtils.DecryptAesV1(x.TeamKey.Base64UrlDecode(), context.DataKey);
                                     break;
-                                case (int) KeyType.PrivateKey:
-                                    teamKey = CryptoUtils.DecryptRsa(x.TeamKey.Base64UrlDecode(), context.PrivateKey);
+                                case 2:
+                                    teamKey = CryptoUtils.DecryptRsa(x.TeamKey.Base64UrlDecode(), context.PrivateRsaKey);
+                                    break;
+                                case 3:
+                                    teamKey = CryptoUtils.DecryptAesV2(x.TeamKey.Base64UrlDecode(), context.DataKey);
+                                    break;
+                                case 4:
+                                    teamKey = CryptoUtils.DecryptEc(x.TeamKey.Base64UrlDecode(), context.PrivateEcKey);
                                     break;
                                 default:
                                     throw new Exception($"Team UID {x.TeamUid}: unsupported key type {x.KeyType}");
@@ -402,7 +467,13 @@ namespace KeeperSecurity.Vault
                                     sharedFolderKey = CryptoUtils.DecryptAesV1(sharedFolderKey, context.DataKey);
                                     break;
                                 case 2:
-                                    sharedFolderKey = CryptoUtils.DecryptRsa(sharedFolderKey, context.PrivateKey);
+                                    sharedFolderKey = CryptoUtils.DecryptRsa(sharedFolderKey, context.PrivateRsaKey);
+                                    break;
+                                case 3:
+                                    sharedFolderKey = CryptoUtils.DecryptAesV2(sharedFolderKey, context.DataKey);
+                                    break;
+                                case 4:
+                                    sharedFolderKey = CryptoUtils.DecryptEc(sharedFolderKey, context.PrivateEcKey);
                                     break;
                                 default:
                                     throw new Exception(
@@ -493,11 +564,17 @@ namespace KeeperSecurity.Vault
                             var folderKey = uf.FolderKey.Base64UrlDecode();
                             switch (uf.keyType)
                             {
-                                case (int) KeyType.DataKey:
+                                case 1:
                                     folderKey = CryptoUtils.DecryptAesV1(folderKey, context.DataKey);
                                     break;
-                                case (int) KeyType.PrivateKey:
-                                    folderKey = CryptoUtils.DecryptRsa(folderKey, context.PrivateKey);
+                                case 2:
+                                    folderKey = CryptoUtils.DecryptRsa(folderKey, context.PrivateRsaKey);
+                                    break;
+                                case 3:
+                                    folderKey = CryptoUtils.DecryptAesV1(folderKey, context.DataKey);
+                                    break;
+                                case 4:
+                                    folderKey = CryptoUtils.DecryptEc(folderKey, context.PrivateEcKey);
                                     break;
                                 default:
                                     throw new Exception($"User Folder UID {uf.FolderUid}: unsupported key type {uf.keyType}");
@@ -556,6 +633,17 @@ namespace KeeperSecurity.Vault
 
         private static void AdjustUdata(this SyncDownRecord syncDownRecord)
         {
+            if (syncDownRecord.Version == 4)
+            {
+                if (syncDownRecord.udata == null)
+                {
+                    syncDownRecord.udata = new SyncDownRecordUData();
+                }
+
+                syncDownRecord.udata.FileSize = syncDownRecord.fileSize;
+                syncDownRecord.udata.ThumbnailSize = syncDownRecord.thumbnailSize;
+            }
+
             if (syncDownRecord.udata == null) return;
 
             using (var ms = new MemoryStream())

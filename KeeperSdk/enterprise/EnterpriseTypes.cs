@@ -26,6 +26,7 @@ namespace KeeperSecurity.Enterprise
         int UserCount { get; }
         IEnumerable<EnterpriseTeam> Teams { get; }
         int TeamCount { get; }
+
         bool TryGetNode(long nodeId, out EnterpriseNode node);
         bool TryGetUserById(long userId, out EnterpriseUser user);
         bool TryGetUserByEmail(string email, out EnterpriseUser user);
@@ -79,7 +80,7 @@ namespace KeeperSecurity.Enterprise
     /// <summary>
     ///     Represents Enterprise Node.
     /// </summary>
-    public class EnterpriseNode : IEnterpriseEntity, IParentNodeEntity, IDisplayName
+    public class EnterpriseNode : IEnterpriseEntity, IParentNodeEntity, IEncryptedData, IDisplayName
     {
         /// <summary>
         ///     A list of child node IDs
@@ -105,6 +106,18 @@ namespace KeeperSecurity.Enterprise
         ///     Node Isolation flag.
         /// </summary>
         public bool RestrictVisibility { get; internal set; }
+
+        /// <exclude/>
+        public string EncryptedData { get; internal set; }
+
+        /// <exclude/>
+        public long BridgeId { get; internal set; }
+
+        /// <exclude/>
+        public long ScimId { get; internal set; }
+
+        /// <exclude/>
+        public long[] SsoServiceProviderIds { get; internal set; }
     }
 
     /// <summary>
@@ -145,7 +158,7 @@ namespace KeeperSecurity.Enterprise
     /// <summary>
     ///     Represents Enterprise User
     /// </summary>
-    public class EnterpriseUser : IEnterpriseEntity, IParentNodeEntity, IDisplayName
+    public class EnterpriseUser : IEnterpriseEntity, IParentNodeEntity, IEncryptedData, IDisplayName
     {
         /// <summary>
         ///     User email address.
@@ -171,12 +184,24 @@ namespace KeeperSecurity.Enterprise
         ///     Node that owns the user.
         /// </summary>
         public long ParentNodeId { get; internal set; }
+
+        /// <excluded />
+        public int UserId { get; internal set; }
+
+        /// <excluded />
+        public string KeyType { get; internal set; }
+
+        /// <excluded />
+        public string EncryptedData { get; internal set; }
+
+        /// <excluded />
+        public long AccountShareExpiration { get; internal set; }
     }
 
     /// <summary>
     ///     Represents Enterprise Role
     /// </summary>
-    public class EnterpriseRole : IEnterpriseEntity, IParentNodeEntity, IDisplayName
+    public class EnterpriseRole : IEnterpriseEntity, IParentNodeEntity, IEncryptedData, IDisplayName
     {
         /// <summary>
         ///     Role ID.
@@ -205,6 +230,7 @@ namespace KeeperSecurity.Enterprise
         ///     Node that owns the role.
         /// </summary>
         public long ParentNodeId { get; set; }
+        public string EncryptedData { get; set; }
     }
 
 

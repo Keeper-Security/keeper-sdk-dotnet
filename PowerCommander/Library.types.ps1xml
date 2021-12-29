@@ -20,8 +20,110 @@
   </Type>
 
   <Type>
+    <Name>KeeperSecurity.Vault.FileRecord</Name>
+    <Members>
+      <NoteProperty>
+        <Name>TypeName</Name>
+        <Value>file</Value>
+      </NoteProperty>
+      <ScriptProperty>
+        <Name>PublicInformation</Name>
+        <GetScriptBlock>
+          [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordPublicInformation($this)
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Vault.TypedRecord</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>PublicInformation</Name>
+        <GetScriptBlock>
+          [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordPublicInformation($this)
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>MainFields</Name>
+        <GetScriptBlock>
+          $values = @()
+          foreach ($f in $this.Fields) {
+            if ($f.FieldName -ne 'fileRef') {
+              $name = [KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldName($f)
+              if (Get-KeeperPasswordVisible) {
+                $value = "$([KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldValues($f))"
+              } else {
+                $value = "$([KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldInformation($f))"
+              }
+              $values += , @($name, $value)
+            }
+          }
+          $m = 16
+          foreach ($p in $values) {
+            if ($p[0].Length -gt $m) {
+              $m = $p[0].Length
+            }
+          }
+          $ff = @()
+          $m = -$m
+          foreach ($p in $values) {
+            $ff += "{0, $m} | {1}" -f $p[0], $p[1]
+          } 
+          $ff -join "`n"
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>CustomFields</Name>
+        <GetScriptBlock>
+          $values = @()
+          foreach ($f in $this.Custom) {
+            if ($f.FieldName -ne 'fileRef') {
+              $name = [KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldName($f)
+              if (Get-KeeperPasswordVisible) {
+                $value = "$([KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldValues($f))"
+              } else {
+                $value = "$([KeeperSecurity.Utils.RecordTypesUtils]::GetTypedFieldInformation($f))"
+              }
+              $values += , @($name, $value)
+            }
+          }
+          $m = 16
+          foreach ($p in $values) {
+            if ($p[0].Length -gt $m) {
+              $m = $p[0].Length
+            }
+          }
+          $ff = @()
+          $m = -$m
+          foreach ($p in $values) {
+            $ff += "{0, $m} | {1}" -f $p[0], $p[1]
+          } 
+          $ff -join "`n"
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>AttachmentsInfo</Name>
+        <GetScriptBlock>
+          $vault = Out-Keeper Vault
+          if ($vault) {
+            foreach ($a in $vault.RecordAttachments($this)) {
+              $af += "$($a.Id) | Name=$(if ($a.Title) {$a.Title} else {$a.Name}) ; Size=$($a.Size)"
+            }
+          }
+          $af -join "`n"
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+
+  <Type>
     <Name>KeeperSecurity.Vault.PasswordRecord</Name>
     <Members>
+      <NoteProperty>
+        <Name>TypeName</Name>
+        <Value>legacy</Value>
+      </NoteProperty>
       <ScriptProperty>
         <Name>DisplayedPassword</Name>
         <GetScriptBlock>
@@ -38,11 +140,24 @@
         <Name>CustomFields</Name>
         <GetScriptBlock>
           if ($this.Custom) {
-          $cf = @()
-          foreach ($c in $this.Custom) {
-          $cf += "$($c.Name) : $($c.Value)"
-          }
-          $cf -join "`n"
+            $values = @()
+            foreach ($c in $this.Custom) {
+              $name = $c.Name
+              $value = $c.Value
+              $values += , @($name, $value)
+            }
+            $m = 16
+            foreach ($p in $values) {
+              if ($p[0].Length -gt $m) {
+                $m = $p[0].Length
+              }
+            }
+            $ff = @()
+            $m = -$m
+            foreach ($p in $values) {
+              $ff += "{0, $m} | {1}" -f $p[0], $p[1]
+            } 
+            $ff -join "`n"
           }
         </GetScriptBlock>
       </ScriptProperty>
@@ -52,30 +167,12 @@
           if ($this.Attachments) {
           $af = @()
           foreach ($a in $this.Attachments) {
-          $af += "Id: $($a.Id) ; Name: $(if ($a.Title) {$a.Title} else {$a.Name}) ; Size: $($a.Size)"
+          $af += "$($a.Id) | Name=$(if ($a.Title) {$a.Title} else {$a.Name}) ; Size=$($a.Size)"
           }
           $af -join "`n"
           }
         </GetScriptBlock>
       </ScriptProperty>
-      <MemberSet>
-        <Name>PSStandardMembers</Name>
-        <Members>
-          <PropertySet>
-            <Name>DefaultDisplayPropertySet</Name>
-            <ReferencedProperties>
-              <Name>Uid</Name>
-              <Name>Title</Name>
-              <Name>Login</Name>
-              <Name>DisplayedPassword</Name>
-              <Name>Link</Name>
-              <Name>Notes</Name>
-              <Name>CustomFields</Name>
-              <Name>AttachmentsInfo</Name>
-            </ReferencedProperties>
-          </PropertySet>
-        </Members>
-      </MemberSet>
     </Members>
   </Type>
 
@@ -111,7 +208,7 @@
   </Type>
 
   <Type>
-    <Name>KeeperSecurity.Vault.EnterpriseTeam</Name>
+    <Name>KeeperSecurity.Vault.Team</Name>
     <Members>
       <MemberSet>
         <Name>PSStandardMembers</Name>

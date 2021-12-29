@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
+using KeeperSecurity.Utils;
+using Records;
 #if NET45
 using KeeperSecurity.Utils;
 #endif
 
 namespace KeeperSecurity.Vault
 {
-    /// <summary>
+    /// <summary>passwordRecord
     /// Represents Keeper Vault connected to Keeper server.
     /// </summary>
     public partial class VaultOnline : VaultData, IVault
@@ -143,27 +147,27 @@ namespace KeeperSecurity.Vault
         }
 
         /// <summary>
-        /// Creates a password record.
+        /// Creates a keeper record.
         /// </summary>
-        /// <param name="record">Password Record.</param>
+        /// <param name="record">Keeper Record.</param>
         /// <param name="folderUid">Folder UID where the record to be created. Optional.</param>
         /// <returns>A task returning created password record.</returns>
         /// <seealso cref="IVault.CreateRecord"/>
         /// <exception cref="Authentication.KeeperApiException"></exception>
-        public Task<PasswordRecord> CreateRecord(PasswordRecord record, string folderUid = null)
+        public Task<KeeperRecord> CreateRecord(KeeperRecord record, string folderUid = null)
         {
             return this.AddRecordToFolder(record, folderUid);
         }
 
         /// <summary>
-        /// Modifies a password record.
+        /// Modifies a keeper record.
         /// </summary>
         /// <param name="record">Password Record.</param>
         /// <param name="skipExtra">Do not update file attachment information on the record.</param>
         /// <returns>A task returning created password record.</returns>
         /// <seealso cref="IVault.UpdateRecord"/>
         /// <exception cref="Authentication.KeeperApiException"></exception>
-        public Task<PasswordRecord> UpdateRecord(PasswordRecord record, bool skipExtra = true)
+        public Task<KeeperRecord> UpdateRecord(KeeperRecord record, bool skipExtra = true)
         {
             return this.PutRecord(record, false, skipExtra);
         }
@@ -332,6 +336,81 @@ namespace KeeperSecurity.Vault
             {
                 TeamUid = x.teamUid,
                 Name = x.teamName,
+            });
+        }
+
+        private readonly ISet<string> _recordsForAudit = new HashSet<string>();
+
+        internal void ScheduleForAudit(params string[] recordUids)
+        {
+            if (Auth?.AuthContext?.EnterprisePublicEcKey != null)
+            {
+                lock (_recordsForAudit)
+                {
+                    _recordsForAudit.UnionWith(recordUids);
+                }
+            }
+        }
+
+        internal override void OnDataRebuilt()
+        {
+            base.OnDataRebuilt();
+
+            string[] recordUids = null;
+            lock (_recordsForAudit)
+            {
+                if (_recordsForAudit.Count > 0)
+                {
+                    recordUids = _recordsForAudit.ToArray();
+                    _recordsForAudit.Clear();
+                }
+            }
+
+            if (recordUids == null || recordUids.Length == 0) return;
+            var publicEcKey = Auth?.AuthContext?.EnterprisePublicEcKey;
+            if (publicEcKey == null) return;
+
+            _ = Task.Run(async () =>
+            {
+                var auditData = recordUids
+                    .Select(x => TryGetKeeperRecord(x, out var r) ? r : null)
+                    .OfType<PasswordRecord>()
+                    .Select(x =>
+                    {
+                        var rad = x.ExtractRecordAuditData();
+                        return new Records.RecordAddAuditData
+                        {
+                            RecordUid = ByteString.CopyFrom(x.Uid.Base64UrlDecode()),
+                            Revision = x.Revision,
+                            Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(JsonUtils.DumpJson(rad), publicEcKey))
+                        };
+
+                    })
+                    .ToList();
+
+                try
+                {
+                    while (auditData.Count > 0)
+                    {
+                        var rq = new AddAuditDataRequest();
+                        rq.Records.AddRange(auditData.Take(999));
+                        if (auditData.Count > 999)
+                        {
+                            auditData.RemoveRange(0, 999);
+                        }
+                        else
+                        {
+                            auditData.Clear();
+                        }
+
+                        await Auth.ExecuteAuthRest("vault/record_add_audit_data", rq);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+
             });
         }
     }

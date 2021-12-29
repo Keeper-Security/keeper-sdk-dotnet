@@ -40,25 +40,14 @@ jobs:
       - uses: nuget/setup-nuget@v1
       - run: nuget restore KeeperSdk.sln
 
-      - name: Build Keeper SDK Nuget package
-        working-directory: ./KeeperSdk
-        run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet restore /P:Configuration=Release
-          dotnet clean /P:Configuration=Release
-          dotnet build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          echo "TODO binaries signing"
-          dotnet pack --no-build --no-restore /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
-        shell: powershell      
 
-      - name: Build Security Key library for Windows
-        working-directory: ./WinWebAuthn
+      - name: Load signing certificate
         run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          msbuild /T:Restore,Clean /P:Configuration=Release
-          msbuild /T:Build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-
-          echo "TODO binaries signing"
+          if (Test-Path -Path certificate.txt) { Remove-Item certificate.txt }
+          if (Test-Path -Path certificate.pfx) { Remove-Item certificate.pfx }
+          Set-Content -Path certificate.txt -Value '${{ secrets.PFX_CERT }}'
+          certutil -decode certificate.txt certificate.pfx
+          Remove-Item certificate.txt
         shell: powershell
 
       - name: Build .Net Commander
@@ -67,9 +56,39 @@ jobs:
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           msbuild /T:Restore,Clean /P:Configuration=Release
           msbuild /T:Build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-
-          echo "TODO binaries signing"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
         shell: powershell      
+
+      - name: Build Security Key library for Windows
+        working-directory: ./WinWebAuthn
+        run: |
+          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
+          msbuild /T:Restore,Clean /P:Configuration=Release
+          msbuild /T:Build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\WinWebAuthn.dll"
+        shell: powershell
+
+      - name: Build Keeper SDK Nuget package
+        working-directory: ./KeeperSdk
+        run: |
+          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
+          dotnet restore /P:Configuration=Release
+          dotnet clean /P:Configuration=Release
+          dotnet build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
+          dotnet pack --no-build --no-restore /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
+        shell: powershell      
+
+      - name: Zip Commander
+        run: |
+          $params = @{
+            Path = "Commander/bin/Release/Commander.*", "Commander/bin/Release/CommandLine.dll", "WinWebAuthn/bin/Release/WinWebAuthn.dll", "KeeperSdk/bin/Release/net452/*.dll"
+            CompressionLevel = "Fastest"
+            DestinationPath = "Commander-${Env:PACKAGE_VERSION}.zip"
+          }
+          Compress-Archive @params
+        shell: powershell
 
       - name: Store SDK Nuget artifacts
         uses: actions/upload-artifact@v2
@@ -78,14 +97,11 @@ jobs:
           path: |
             KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg
             KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.snupkg
+          retention-days: 1
 
       - name: Store Commander artifacts
         uses: actions/upload-artifact@v2
         with:
           name: Commander-${{ env.PACKAGE_VERSION }}
-          path: |
-            Commander/bin/Release/Commander.exe
-            Commander/bin/Release/Commander.exe.config
-            Commander/bin/Release/CommandLine.dll
-            WinWebAuthn/bin/Release/WinWebAuthn.dll
-            KeeperSdk/bin/Release/net45/*.dll
+          path: Commander-${{ env.PACKAGE_VERSION }}.zip
+          retention-days: 1
