@@ -1,3 +1,5 @@
+<img src="https://github.com/Keeper-Security/Commander/blob/master/keepercommander/images/commander-black.png" alt="Keeper Commander" height="167"/>
+
 ### .Net and PowerShell SDK for Keeper Password Manager
 
 The Keeper .Net and PowerShell module ("PowerCommander") provides vault and administrative level automation. The current features of the .Net and PowerShell library include the following:
@@ -8,6 +10,8 @@ The Keeper .Net and PowerShell module ("PowerCommander") provides vault and admi
 * Administrative functions (Team Management)
 * Customize integration into your backend systems
 * Update/Rotate passwords in the vault
+
+Additional development tools in Python and other languages is available at our [Secrets Manager](https://docs.keeper.io/secrets-manager/) portal.
 
 ### .Net SDK
 For source integration into your .Net code, please utilize the [KeeperSDK Library source code](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
@@ -35,11 +39,6 @@ Keeper is the leading cybersecurity platform for preventing password-related dat
 
 Learn More at:
 [https://keepersecurity.com](https://keepersecurity.com)
-
-### Documentation 
-To read the Keeper Commander documentation please click here:
-
-[https://docs.keeper.io/secrets-manager/commander-cli/overview](https://docs.keeper.io/secrets-manager/commander-cli/overview)
 
 ### Contact Us
 If you need any assistance or require specific functionality not supported in Commander yet, please contact us at commander@keepersecurity.com.
