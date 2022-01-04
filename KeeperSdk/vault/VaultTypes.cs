@@ -277,6 +277,40 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable task.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task DeleteFolder(string folderUid);
+
+        /// <summary>
+        /// Cancels all shares with a user.
+        /// </summary>
+        /// <param name="username">User account email.</param>
+        /// <returns>Awaitable task.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        Task CancelSharesWithUser(string username);
+
+        /// <summary>
+        /// Shares a record with a user
+        /// </summary>
+        /// <param name="recordUid">Record UID.</param>
+        /// <param name="username">User account email</param>
+        /// <param name="canReshare">Can record be re-shared</param>
+        /// <param name="canEdit">Can record be modified</param>
+        /// <returns>Awaitable task.</returns>
+        Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit);
+
+        /// <summary>
+        /// Transfers a record to user
+        /// </summary>
+        /// <param name="recordUid">Record UID.</param>
+        /// <param name="username">User account email</param>
+        /// <returns>Awaitable task.</returns>
+        Task TransferRecordToUser(string recordUid, string username);
+
+        /// <summary>
+        /// Removes a record share from a user
+        /// </summary>
+        /// <param name="recordUid">Record UID.</param>
+        /// <param name="username">User account email</param>
+        /// <returns>Awaitable task.</returns>
+        Task RevokeShareFromUser(string recordUid, string username);
     }
 
     /// <summary>

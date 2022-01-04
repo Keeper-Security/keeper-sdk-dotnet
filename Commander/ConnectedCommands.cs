@@ -183,6 +183,14 @@ namespace Commander
                         Action = ShareFolderRecordPermissionCommand
                     });
 
+                Commands.Add("share-record",
+                    new ParsableCommand<ShareRecordOptions>
+                    {
+                        Order = 32,
+                        Description = "Change the sharing permissions of an individual record",
+                        Action = ShareRecordCommand
+                    });
+
                 Commands.Add("devices",
                     new ParsableCommand<OtherDevicesOptions>
                     {
@@ -1994,6 +2002,69 @@ namespace Commander
             }
         }
 
+        private async Task ShareRecordCommand(ShareRecordOptions options)
+        {
+
+            if (string.Equals("cancel", options.Action, StringComparison.InvariantCultureIgnoreCase))
+            {
+                Console.Write(
+                    $"Do you want to cancel all shares with user \"{options.Email}\"? (Yes/No) : ");
+                var answer = await Program.GetInputManager().ReadLine();
+                if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    answer = "yes";
+                }
+
+                if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0) return;
+                await _vault.CancelSharesWithUser(options.Email);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(options.RecordName))
+            {
+                Console.WriteLine("Record parameter cannot be empty");
+                return;
+            }
+
+            if (_vault.TryGetKeeperRecord(options.RecordName, out var record))
+            {
+            }
+            else if (TryResolvePath(options.RecordName, out var node, out var title))
+            {
+                foreach (var uid in node.Records)
+                {
+                    if (!_vault.TryGetKeeperRecord(uid, out var r)) continue;
+                    if (string.CompareOrdinal(title, r.Title) != 0) continue;
+
+                    record = r;
+                    break;
+                }
+            }
+
+            if (record == null)
+            {
+                Console.WriteLine($"Cannot resolve record \"{options.RecordName}\"");
+                return;
+            }
+
+            if (string.Equals("share", options.Action, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await _vault.ShareRecordWithUser(record.Uid, options.Email, options.CanShare, options.CanEdit);
+            }
+            else if (string.Equals("revoke", options.Action, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await _vault.RevokeShareFromUser(record.Uid, options.Email);
+            }
+            else if (string.Equals("transfer", options.Action, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await _vault.TransferRecordToUser(record.Uid, options.Email);
+            }
+            else
+            {
+                throw new Exception($"Invalid record share action: {options.Action}");
+            }
+        }
+
         private Task RecordTypeInfoCommand(RecordTypeInfoOptions options)
         {
             Tabulate table = null;
@@ -2332,6 +2403,22 @@ namespace Commander
 
         [Option('u', "manage-users", Required = false, Default = null, SetName = "set", HelpText = "account permission: can manage users.")]
         public bool? ManageUsers { get; set; }
+    }
+
+    class ShareRecordOptions {
+        [Option('a', "action", Required = false, Default = "share", HelpText = "user share action: \'share\' (default), \'revoke\', \'transfer\', \'cancel\'")]
+        public string Action { get; set; }
+
+        [Option('s', "share", Required = false, Default = null, HelpText = "can re-share record")]
+        public bool? CanShare { get; set; }
+
+        [Option('w', "write", Required = false, Default = null, HelpText = "can modify record")]
+        public bool? CanEdit { get; set; }
+
+        [Option('e', "email", Required = true, HelpText = "peer account email")]
+        public string Email { get; set; }
+        [Value(0, Required = false, MetaName = "record", HelpText = "record path or UID")]
+        public string RecordName { get; set; }
     }
 
     class RemoveRecordOptions

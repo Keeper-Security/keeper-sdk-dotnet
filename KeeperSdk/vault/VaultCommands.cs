@@ -717,4 +717,95 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "thumbnail_uploads")]
         public UploadParameters[] ThumbnailUploads;
     }
+
+
+    [DataContract]
+    internal class CancelShareCommand : AuthenticatedCommand
+    {
+        public CancelShareCommand() : base("cancel_share")
+        {
+        }
+
+        [DataMember(Name = "from_email")]
+        public string FromEmail;
+
+        [DataMember(Name = "to_email")]
+        public string ToEmail;
+    }
+
+    [DataContract]
+    internal class RecordShareObject : IRecordAccessPath
+    {
+        [DataMember(Name = "to_username")]
+        public string ToUsername;
+
+        [DataMember(Name = "record_key", EmitDefaultValue = false)]
+        public string RecordKey;
+
+        [DataMember(Name = "use_ecc_key", EmitDefaultValue = false)]
+        public bool? useEccKey;
+
+        [DataMember(Name = "editable", EmitDefaultValue = false)]
+        public bool? Editable;
+
+        [DataMember(Name = "shareable", EmitDefaultValue = false)]
+        public bool? Shareable;
+
+        [DataMember(Name = "transfer", EmitDefaultValue = false)]
+        public bool? Transfer;
+
+        [DataMember(Name = "record_uid", EmitDefaultValue = false)]
+        public string RecordUid { get; set; }
+
+        [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
+        public string SharedFolderUid { get; set; }
+
+        [DataMember(Name = "team_uid", EmitDefaultValue = false)]
+        public string TeamUid { get; set; }
+    }
+
+    [DataContract]
+    internal class RecordShareUpdateCommand : AuthenticatedCommand
+    {
+        public RecordShareUpdateCommand() : base("record_share_update")
+        {
+            Pt = "Commander";
+        }
+
+        [DataMember(Name = "pt")]
+        public string Pt;
+
+        [DataMember(Name = "add_shares", EmitDefaultValue = false)]
+        public RecordShareObject[] AddShares;
+
+        [DataMember(Name = "update_shares", EmitDefaultValue = false)]
+        public RecordShareObject[] UpdateShares;
+
+        [DataMember(Name = "remove_shares", EmitDefaultValue = false)]
+        public RecordShareObject[] RemoveShares;
+    }
+
+    [DataContract]
+    internal class RecordShareStatus
+    {
+        [DataMember(Name = "username")]
+        public string Username;
+        [DataMember(Name = "record_uid")]
+        public string RecordUid;
+        [DataMember(Name = "status")]
+        public string Status;
+        [DataMember(Name = "message")]
+        public string Message;
+    }
+
+    [DataContract]
+    internal class RecordShareUpdateResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "add_statuses")]
+        public RecordShareStatus[] AddStatuses;
+        [DataMember(Name = "update_statuses")]
+        public RecordShareStatus[] UpdateStatuses;
+        [DataMember(Name = "remove_statuses")]
+        public RecordShareStatus[] RemoveStatuses;
+    }
 }
