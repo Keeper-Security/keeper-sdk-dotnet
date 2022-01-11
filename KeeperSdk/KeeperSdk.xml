@@ -3592,7 +3592,7 @@
             <param name="thumbnail">Thumbnail upload task. Optional.</param>
         </member>
         <member name="T:KeeperSecurity.Vault.VaultOnline">
-            <summary>passwordRecord
+            <summary>
             Represents Keeper Vault connected to Keeper server.
             </summary>
         </member>
@@ -3811,6 +3811,40 @@
             Retrieves all enterprise team descriptions.
             </summary>
             <returns>A list of all enterprise teams. (awaitable)</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.CancelSharesWithUser(System.String)">
+            <summary>
+            Cancels all shares with the user.
+            </summary>
+            <param name="username">User account email.</param>
+            <returns>Awaitable task.</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.ShareRecordWithUser(System.String,System.String,System.Nullable{System.Boolean},System.Nullable{System.Boolean})">
+            <summary>
+            Shares a record with a user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <param name="canReshare">Can record be re-shared</param>
+            <param name="canEdit">Can record be modified</param>
+            <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.TransferRecordToUser(System.String,System.String)">
+            <summary>
+            Transfers a record to user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.RevokeShareFromUser(System.String,System.String)">
+            <summary>
+            Removes a record share from a user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <returns>Awaitable task.</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldType">
             <summary>
@@ -5372,6 +5406,40 @@
             <returns>Awaitable task.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
         </member>
+        <member name="M:KeeperSecurity.Vault.IVault.CancelSharesWithUser(System.String)">
+            <summary>
+            Cancels all shares with a user.
+            </summary>
+            <param name="username">User account email.</param>
+            <returns>Awaitable task.</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.ShareRecordWithUser(System.String,System.String,System.Nullable{System.Boolean},System.Nullable{System.Boolean})">
+            <summary>
+            Shares a record with a user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <param name="canReshare">Can record be re-shared</param>
+            <param name="canEdit">Can record be modified</param>
+            <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.TransferRecordToUser(System.String,System.String)">
+            <summary>
+            Transfers a record to user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.RevokeShareFromUser(System.String,System.String)">
+            <summary>
+            Removes a record share from a user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <returns>Awaitable task.</returns>
+        </member>
         <member name="T:KeeperSecurity.Vault.IVaultSharedFolder">
             <summary>
             Defines methods to manipulate Shared Folders.
@@ -5550,7 +5618,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.KeeperRecord.Owner">
             <summary>
-            A list of Custom Fields.
+            Is user Owner?
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.KeeperRecord.Shared">
@@ -5611,6 +5679,7 @@
             <summary>
             Represents a Typed Record 
             </summary>
+            <seealso cref="T:KeeperSecurity.Vault.ITypedField"/>
         </member>
         <member name="P:KeeperSecurity.Vault.TypedRecord.Notes">
             <summary>
@@ -5627,7 +5696,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.TypedRecord.Fields">
             <summary>
-            Record fields.
+            Record mandatory fields.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.TypedRecord.Custom">
@@ -5642,6 +5711,7 @@
             <summary>
             Represents a typed field.
             </summary>
+            <typeparam name="T">Field Data Type</typeparam>
         </member>
         <member name="M:KeeperSecurity.Vault.TypedField`1.#ctor">
             <exclude/>
@@ -5664,6 +5734,39 @@
             Field values.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.TypedValue">
+            <summary>
+            Default field value.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.ObjectValue">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.GetValueAt(System.Int32)">
+            <summary>
+            Gets field value at index
+            </summary>
+            <param name="index">value index</param>
+            <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.DeleteValueAt(System.Int32)">
+            <summary>
+            Deletes field value at index
+            </summary>
+            <param name="index">Value index</param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.SetValueAt(System.Int32,System.Object)">
+            <summary>
+            Sets field value at index
+            </summary>
+            <param name="index">Value index</param>
+            <param name="value">Value</param>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.Count">
+            <summary>
+            Value Count
+            </summary>
+        </member>
         <member name="M:KeeperSecurity.Vault.TypedField`1.KeeperSecurity#Vault#ITypedField#AppendValue">
             <summary>
             Appends a value.
@@ -5677,7 +5780,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Notes">
             <summary>
-            Is user Owner?
+            Notes.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Login">
@@ -5697,7 +5800,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Custom">
             <summary>
-            Notes.
+            A list of Custom Fields.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Attachments">

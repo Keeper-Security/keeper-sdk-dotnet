@@ -15,7 +15,7 @@ using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Vault
 {
-    /// <summary>passwordRecord
+    /// <summary>
     /// Represents Keeper Vault connected to Keeper server.
     /// </summary>
     public partial class VaultOnline : VaultData, IVault
@@ -363,7 +363,7 @@ namespace KeeperSecurity.Vault
         /// <param name="username">User account email</param>
         /// <param name="canReshare">Can record be re-shared</param>
         /// <param name="canEdit">Can record be modified</param>
-        /// <returns></returns>
+        /// <returns>Awaitable task.</returns>
         public async Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit) {
             if (!TryGetKeeperRecord(recordUid, out var record))
             {
@@ -501,6 +501,12 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <summary>
+        /// Removes a record share from a user
+        /// </summary>
+        /// <param name="recordUid">Record UID.</param>
+        /// <param name="username">User account email</param>
+        /// <returns>Awaitable task.</returns>
         public async Task RevokeShareFromUser(string recordUid, string username)
         {
             if (!TryGetKeeperRecord(recordUid, out var record))
