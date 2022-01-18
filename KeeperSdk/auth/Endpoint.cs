@@ -421,7 +421,7 @@ namespace KeeperSecurity.Authentication
                                 throw new KeeperAuthFailed(keeperRs.Message);
 
                             case "login_token_expired":
-                                throw new KeeperCanceled();
+                                throw new KeeperCanceled(keeperRs.Error, keeperRs.Message);
                         }
 
                         throw new KeeperApiException(keeperRs.Error, keeperRs.Message);

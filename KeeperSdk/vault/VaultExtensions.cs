@@ -237,7 +237,7 @@ namespace KeeperSecurity.Vault
         private static readonly DataContractJsonSerializer ExtraSerializer =
             new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
 
-        internal static PasswordRecord LoadV2(this IStorageRecord r, byte[] key)
+        public static PasswordRecord LoadV2(this IStorageRecord r, byte[] key)
         {
             var record = new PasswordRecord()
             {
@@ -379,7 +379,7 @@ namespace KeeperSecurity.Vault
             return new UnsupportedField(field);
         }
 
-        internal static TypedRecord LoadV3(this IStorageRecord r, byte[] key)
+        public static TypedRecord LoadV3(this IStorageRecord r, byte[] key)
         {
             var data = CryptoUtils.DecryptAesV2(r.Data.Base64UrlDecode(), key);
             var rtd = JsonUtils.ParseJson<RecordTypeData>(data);
@@ -410,7 +410,7 @@ namespace KeeperSecurity.Vault
             return typedRecord;
         }
 
-        internal static FileRecord LoadV4(this IStorageRecord r, byte[] key)
+        public static FileRecord LoadV4(this IStorageRecord r, byte[] key)
         {
             var data = CryptoUtils.DecryptAesV2(r.Data.Base64UrlDecode(), key);
             var rfd = JsonUtils.ParseJson<RecordFileData>(data);
@@ -442,7 +442,7 @@ namespace KeeperSecurity.Vault
             return fileRecord;
         }
 
-        internal static SharedFolder Load(this ISharedFolder sf, IEnumerable<IRecordMetadata> records,
+        public static SharedFolder Load(this ISharedFolder sf, IEnumerable<IRecordMetadata> records,
             IEnumerable<ISharedFolderPermission> users, byte[] sharedFolderKey)
         {
             var sharedFolder = new SharedFolder

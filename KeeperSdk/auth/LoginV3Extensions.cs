@@ -421,7 +421,7 @@ namespace KeeperSecurity.Authentication
                             return CryptoUtils.DecryptAesV2(encryptedKey, biometricKey);
                     }
 
-                    throw new KeeperCanceled();
+                    throw new KeeperCanceled("canceled", "Biometric Login: Method not supported");
                 });
             return context;
         }
@@ -451,7 +451,7 @@ namespace KeeperSecurity.Authentication
                         case EncryptedDataKeyType.ByPassword:
                             return CryptoUtils.DecryptEncryptionParams(password, encryptedKey);
                     }
-                    throw new KeeperCanceled();
+                    throw new KeeperCanceled("not_supported", "Master Password Login: Method is not suppoprted");
                 });
             var validatorSalt = CryptoUtils.GetRandomBytes(16);
             context.PasswordValidator =

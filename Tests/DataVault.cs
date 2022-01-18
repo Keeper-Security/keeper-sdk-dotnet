@@ -198,7 +198,7 @@ namespace Tests
                 return Task.FromResult(response);
             }
 
-            return Task.FromException<byte[]>(new KeeperCanceled());
+            return Task.FromException<byte[]>(new KeeperCanceled("not_implemented", $"\"{endpoint}\" is not implemented"));
         }
     }
 
