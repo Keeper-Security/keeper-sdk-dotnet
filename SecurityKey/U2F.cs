@@ -129,7 +129,7 @@ namespace SecurityKey
                 }
 
             }
-            throw new KeeperCanceled();
+            throw new KeeperCanceled("canceled", "Canceled by user");
         }
 
         public async Task<bool> CheckOnly(AuthenticateRequest request)

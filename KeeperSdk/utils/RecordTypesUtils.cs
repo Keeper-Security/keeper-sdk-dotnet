@@ -140,7 +140,20 @@ namespace KeeperSecurity.Utils
         /// <returns>Record field full name.</returns>
         public static string GetTypedFieldName(this IRecordTypeField field)
         {
-            return $"{field.FieldLabel ?? ""} ({(string.IsNullOrEmpty(field.FieldName) ? "text" : field.FieldName)})".Trim();
+            string name = field.FieldName ?? "";
+            if (string.Equals(name, "text"))
+            {
+                name = "";
+            }
+            if (string.IsNullOrEmpty(field.FieldLabel))
+            {
+                return "$" + (string.IsNullOrEmpty(name) ? "text" : name);
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                name = "$" + name + ":";
+            }
+            return name + field.FieldLabel;
         }
 
         /// <summary>
