@@ -75,6 +75,26 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             TypeMap[typeof(string)] = ColumnType.String;
         }
 
+        public static string GetAddColumnStatement(TableSchema schema, string columnName)
+        {
+            var columnInfo = schema.ColumnMap
+                .Where(x => x.Key.Equals(columnName, StringComparison.InvariantCultureIgnoreCase))
+                .Select(x => x.Value)
+                .FirstOrDefault();
+            if (columnInfo == null) {
+                return null;
+            }
+
+            var sqlAttr = columnInfo.GetCustomAttribute<SqlColumnAttribute>();
+
+            if (!TypeMap.TryGetValue(columnInfo.PropertyType, out var colType))
+            {
+                colType = ColumnType.String;
+            }
+
+            return $"ALTER TABLE {schema.TableName} ADD COLUMN {columnName} {GetSqliteType(colType)} NULL";
+        }
+
         public static IEnumerable<string> GetDDLStatements(TableSchema schema)
         {
             var keys = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
@@ -132,7 +152,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             yield return sb.ToString();
 
             var indexNo = 0;
-            foreach (var index in new[] {schema.Index1, schema.Index2})
+            foreach (var index in new[] { schema.Index1, schema.Index2 })
             {
                 if (index == null) continue;
 
@@ -179,55 +199,55 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                     var column = schema.ColumnMap[schema.Columns[i]];
                     if (column.PropertyType == typeof(string))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetString(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetString(i) });
                     }
                     else if (column.PropertyType == typeof(bool))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetBoolean(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetBoolean(i) });
                     }
                     else if (column.PropertyType == typeof(int))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetInt32(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetInt32(i) });
                     }
                     else if (column.PropertyType == typeof(uint))
                     {
-                        column.SetMethod.Invoke(data, new object[] {(uint) reader.GetInt32(i)});
+                        column.SetMethod.Invoke(data, new object[] { (uint) reader.GetInt32(i) });
                     }
                     else if (column.PropertyType == typeof(long))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetInt64(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetInt64(i) });
                     }
                     else if (column.PropertyType == typeof(ulong))
                     {
-                        column.SetMethod.Invoke(data, new object[] {(ulong) reader.GetInt64(i)});
+                        column.SetMethod.Invoke(data, new object[] { (ulong) reader.GetInt64(i) });
                     }
                     else if (column.PropertyType == typeof(byte))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetByte(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetByte(i) });
                     }
                     else if (column.PropertyType == typeof(sbyte))
                     {
-                        column.SetMethod.Invoke(data, new object[] {(sbyte) reader.GetByte(i)});
+                        column.SetMethod.Invoke(data, new object[] { (sbyte) reader.GetByte(i) });
                     }
                     else if (column.PropertyType == typeof(short))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetInt16(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetInt16(i) });
                     }
                     else if (column.PropertyType == typeof(ushort))
                     {
-                        column.SetMethod.Invoke(data, new object[] {(ushort) reader.GetInt16(i)});
+                        column.SetMethod.Invoke(data, new object[] { (ushort) reader.GetInt16(i) });
                     }
                     else if (column.PropertyType == typeof(float))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetFloat(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetFloat(i) });
                     }
                     else if (column.PropertyType == typeof(double))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetDouble(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetDouble(i) });
                     }
                     else if (column.PropertyType == typeof(decimal))
                     {
-                        column.SetMethod.Invoke(data, new object[] {reader.GetDecimal(i)});
+                        column.SetMethod.Invoke(data, new object[] { reader.GetDecimal(i) });
                     }
                 }
 
@@ -237,29 +257,65 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         public static bool VerifyDatabase(bool tryCreateMissingTables, DbConnection connection, IEnumerable<Type> tables, List<string> ddlStatements)
         {
-            var allTables = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            var allTables = new Dictionary<string, ISet<string>>(StringComparer.InvariantCultureIgnoreCase);
 
             var dbTables = connection.GetSchema("Tables");
             if (dbTables.Columns.Contains("TABLE_NAME"))
             {
                 foreach (DataRow row in dbTables.Rows)
                 {
-                    allTables.Add(row["TABLE_NAME"].ToString());
+                    var tableName = row["TABLE_NAME"].ToString();
+                    allTables.Add(tableName, new HashSet<string>(StringComparer.InvariantCultureIgnoreCase));
+                }
+            }
+
+            var dbColumns = connection.GetSchema("Columns");
+            if (dbColumns.Columns.Contains("TABLE_NAME") && dbColumns.Columns.Contains("COLUMN_NAME"))
+            {
+                foreach (DataRow row in dbColumns.Rows)
+                {
+                    var tableName = row["TABLE_NAME"].ToString();
+                    if (allTables.ContainsKey(tableName))
+                    {
+                        allTables[tableName].Add(row["COLUMN_NAME"].ToString());
+                    }
                 }
             }
 
             var result = true;
-            using (var cmd = connection.CreateCommand())
+            var statements = new List<string>();
+            foreach (var table in tables)
             {
                 var schema = new TableSchema();
-
-                foreach (var table in tables)
+                schema.LoadSchema(table);
+                if (allTables.ContainsKey(schema.TableName))
                 {
-                    schema.LoadSchema(table);
-                    if (allTables.Contains(schema.TableName)) continue;
+                    var columns = allTables[schema.TableName];
+                    if (columns.Count > 0)
+                    {
+                        foreach (var columnName in schema.Columns)
+                        {
+                            if (!columns.Contains(columnName))
+                            {
+                                var stmt = GetAddColumnStatement(schema, columnName);
+                                if (!string.IsNullOrEmpty(stmt))
+                                {
+                                    statements.Add(stmt);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    statements.AddRange(GetDDLStatements(schema));
+                }
+            }
 
-                    var stmts = DatabaseUtils.GetDDLStatements(schema).ToArray();
-                    foreach (var stmt in stmts)
+            if (statements.Count > 0) {
+                using (var cmd = connection.CreateCommand())
+                {
+                    foreach (var stmt in statements)
                     {
                         try
                         {
