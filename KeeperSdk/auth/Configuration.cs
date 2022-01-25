@@ -211,9 +211,7 @@ namespace KeeperSecurity.Configuration
         {
         }
 
-        /// <summary>
-        /// Gets / sets device token.
-        /// </summary>
+        /// <inheritdoc/>>
         public string DeviceToken { get; set; }
         /// <exclude/>
         [Obsolete] public string ResumeCode { get; set; }
@@ -248,10 +246,15 @@ namespace KeeperSecurity.Configuration
             }
         }
 
+        /// <inheritdoc/>>
         public string Username { get; }
+        /// <inheritdoc/>>
         public string Password { get; set; }
+        /// <inheritdoc/>>
         public string TwoFactorToken { get; set; }
+        /// <inheritdoc/>>
         public string Server { get; set; }
+        /// <inheritdoc/>>
         public IUserDeviceConfiguration LastDevice { get; set; } 
         /// <exclude/>
         string IConfigurationId.Id => Username;
@@ -280,7 +283,9 @@ namespace KeeperSecurity.Configuration
             ServerKeyId = other.ServerKeyId;
         }
 
+        /// <inheritdoc/>>
         public string Server { get; }
+        /// <inheritdoc/>>
         public int ServerKeyId { get; set; } = 1;
 
         /// <exclude/>
@@ -310,7 +315,9 @@ namespace KeeperSecurity.Configuration
             CloneCode = other.CloneCode;
         }
 
+        /// <inheritdoc/>>
         public string Server { get; }
+        /// <inheritdoc/>>
         public string CloneCode { get; set; }
 
         /// <exclude/>
@@ -350,8 +357,11 @@ namespace KeeperSecurity.Configuration
             }
         }
 
+        /// <inheritdoc/>>
         public string DeviceToken { get; }
+        /// <inheritdoc/>>
         public byte[] DeviceKey { get; set; }
+        /// <inheritdoc/>>
         public IConfigCollection<IDeviceServerConfiguration> ServerInfo => _serverInfo;
         /// <exclude/>
         string IConfigurationId.Id => DeviceToken;

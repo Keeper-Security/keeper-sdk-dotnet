@@ -31,26 +31,19 @@ namespace KeeperSecurity.Vault
             Stream = attachmentStream;
         }
 
-        /// <summary>
-        /// Attachment name.
-        /// </summary>
+        /// <inheritdoc/>
         public string Name { get; set; }
 
-        /// <summary>
-        /// Attachment title.
-        /// </summary>
+        /// <inheritdoc/>
         public string Title { get; set; }
 
-        /// <summary>
-        /// Attachment MIME type.
-        /// </summary>
+        /// <inheritdoc/>
         public string MimeType { get; set; }
 
-        /// <summary>
-        /// Attachment input stream.
-        /// </summary>
+        /// <inheritdoc/>
         public Stream Stream { get; protected set; }
 
+        /// <inheritdoc/>
         public IThumbnailUploadTask Thumbnail { get; protected set; }
     }
 
@@ -96,11 +89,7 @@ namespace KeeperSecurity.Vault
 
     public partial class VaultOnline : IVaultFileAttachment
     {
-        /// <summary>
-        /// Returns Record attachments
-        /// </summary>
-        /// <param name="record">Keeper record</param>
-        /// <returns>List od attachments</returns>
+        /// <inheritdoc/>
         public IEnumerable<IAttachment> RecordAttachments(KeeperRecord record)
         {
             switch (record)
@@ -143,13 +132,7 @@ namespace KeeperSecurity.Vault
         }
 
 
-        /// <summary>
-        /// Downloads and decrypts file attachment.
-        /// </summary>
-        /// <param name="record">Keeper record.</param>
-        /// <param name="attachment">Attachment name, title, or ID.</param>
-        /// <param name="destination">Writable stream.</param>
-        /// <returns>Awaitable task.</returns>
+        /// <inheritdoc/>
         public async Task DownloadAttachment(KeeperRecord record, string attachment, Stream destination)
         {
             var atta = RecordAttachments(record)
@@ -192,12 +175,7 @@ namespace KeeperSecurity.Vault
         }
 
 
-        /// <summary>
-        /// Encrypts and uploads file attachment.
-        /// </summary>
-        /// <param name="record">Keeper record.</param>
-        /// <param name="uploadTask">Upload task</param>
-        /// <returns>Awaitable task.</returns>
+        /// <inheritdoc/>
         public async Task UploadAttachment(KeeperRecord record, IAttachmentUploadTask uploadTask)
         {
             switch (record)
@@ -214,12 +192,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        /// <summary>
-        /// Downloads and decrypts file attachment.
-        /// </summary>
-        /// <param name="record">Keeper record.</param>
-        /// <param name="attachmentId">Attachment</param>
-        /// <returns>Awaitable task.</returns>
+        /// <inheritdoc/>
         public async Task<bool> DeleteAttachment(KeeperRecord record, string attachmentId)
         {
             var deleted = false;

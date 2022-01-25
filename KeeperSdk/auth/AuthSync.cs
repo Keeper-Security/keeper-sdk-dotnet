@@ -49,24 +49,16 @@ namespace KeeperSecurity.Authentication.Sync
             Cancel();
         }
 
-        /// <summary>
-        /// Gets configuration storage.
-        /// </summary>
+        /// <inheritdoc/>>
         public IConfigurationStorage Storage { get; }
 
-        /// <summary>
-        /// Gets or sets session resumption flag
-        /// </summary>
+        /// <inheritdoc/>>
         public bool ResumeSession { get; set; }
 
-        /// <summary>
-        /// Forces master password login for SSO accounts.
-        /// </summary>
+        /// <inheritdoc/>>
         public bool AlternatePassword { get; set; }
 
-        /// <summary>
-        /// Gets or sets username.
-        /// </summary>
+        /// <inheritdoc/>>
         public new string Username
         {
             get => base.Username;
@@ -80,9 +72,7 @@ namespace KeeperSecurity.Authentication.Sync
             PushNotifications = pushNotifications;
         }
 
-        /// <summary>
-        /// Gets or sets device token
-        /// </summary>
+        /// <inheritdoc/>>
         public new byte[] DeviceToken
         {
             get => base.DeviceToken;
@@ -180,13 +170,7 @@ namespace KeeperSecurity.Authentication.Sync
             }
         }
 
-        /// <summary>
-        /// Login to Keeper account with email.
-        /// </summary>
-        /// <param name="username">Keeper account email address.</param>
-        /// <param name="passwords">Master password(s)</param>
-        /// <returns>Awaitable task</returns>
-        /// <seealso cref="LoginSso(string, bool)"/>
+        /// <inheritdoc/>>
         public async Task Login(string username, params string[] passwords)
         {
             await DetectProxySync(async () =>
@@ -221,13 +205,7 @@ namespace KeeperSecurity.Authentication.Sync
             Step = step;
         }
 
-        /// <summary>
-        /// Login to Keeper account with SSO provider.
-        /// </summary>
-        /// <param name="providerName">SSO provider name.</param>
-        /// <param name="forceLogin">Force new login with SSO IdP.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <seealso cref="Login(string, string[])"/>
+        /// <inheritdoc/>>
         public async Task LoginSso(string providerName, bool forceLogin = false)
         {
             await DetectProxySync(async () =>
@@ -238,6 +216,7 @@ namespace KeeperSecurity.Authentication.Sync
             });
         }
 
+        /// <inheritdoc/>>
         public override async Task Logout()
         {
             await base.Logout();

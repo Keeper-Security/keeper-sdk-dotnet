@@ -147,53 +147,25 @@ namespace KeeperSecurity.Vault
             base.Dispose(disposing);
         }
 
-        /// <summary>
-        /// Creates a keeper record.
-        /// </summary>
-        /// <param name="record">Keeper Record.</param>
-        /// <param name="folderUid">Folder UID where the record to be created. Optional.</param>
-        /// <returns>A task returning created password record.</returns>
-        /// <seealso cref="IVault.CreateRecord"/>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <inheritdoc/>>
         public Task<KeeperRecord> CreateRecord(KeeperRecord record, string folderUid = null)
         {
             return this.AddRecordToFolder(record, folderUid);
         }
 
-        /// <summary>
-        /// Modifies a keeper record.
-        /// </summary>
-        /// <param name="record">Password Record.</param>
-        /// <param name="skipExtra">Do not update file attachment information on the record.</param>
-        /// <returns>A task returning created password record.</returns>
-        /// <seealso cref="IVault.UpdateRecord"/>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <inheritdoc/>>
         public Task<KeeperRecord> UpdateRecord(KeeperRecord record, bool skipExtra = true)
         {
             return this.PutRecord(record, false, skipExtra);
         }
 
-        /// <summary>
-        /// Stores non shared (or per user) data associated with the record.
-        /// </summary>
-        /// <typeparam name="T">App specific per-user data type</typeparam>
-        /// <param name="recordUid">Record UID</param>
-        /// <param name="nonSharedData">Non shared data</param>
-        /// <returns>Awaitable task.</returns>
-        /// <exception cref="Authentication.KeeperApiException">Keeper API error</exception>
-        /// <seealso cref="IVault.StoreNonSharedData{T}"/>
+        /// <inheritdoc/>>
         public Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedData, new()
         {
             return this.PutNonSharedData(recordUid, nonSharedData);
         }
 
-        /// <summary>
-        /// Deletes password records.
-        /// </summary>
-        /// <param name="records">an array of record paths.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
-        /// <seealso cref="IVault.DeleteRecords"/>
+        /// <inheritdoc/>>
         public Task DeleteRecords(RecordPath[] records)
         {
             foreach (var path in records)
@@ -213,15 +185,7 @@ namespace KeeperSecurity.Vault
             return this.DeleteVaultObjects(records);
         }
 
-        /// <summary>
-        /// Moves records to a folder.
-        /// </summary>
-        /// <param name="records">an array of record paths.</param>
-        /// <param name="dstFolderUid">Destination folder UID.</param>
-        /// <param name="link"><c>true</c>creates a link. The source record in not deleted; otherwise record will be removed from the source.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
-        /// <seealso cref="MoveRecords"/>
+        /// <inheritdoc/>>
         public async Task MoveRecords(RecordPath[] records, string dstFolderUid, bool link = false)
         {
             foreach (var path in records)
@@ -239,14 +203,7 @@ namespace KeeperSecurity.Vault
             await this.MoveToFolder(records, dstFolder.FolderUid, link);
         }
 
-        /// <summary>
-        /// Moves a folder to the another folder.
-        /// </summary>
-        /// <param name="srcFolderUid">Source Folder UID.</param>
-        /// <param name="dstFolderUid">Destination Folder UID.</param>
-        /// <param name="link"><c>true</c>creates a link. The source folder in not deleted; otherwise source folder will be removed.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <inheritdoc/>>
         public async Task MoveFolder(string srcFolderUid, string dstFolderUid, bool link = false)
         {
             var srcFolder = this.GetFolder(srcFolderUid);
@@ -255,16 +212,7 @@ namespace KeeperSecurity.Vault
             await this.MoveToFolder(new[] {new RecordPath {FolderUid = srcFolder.FolderUid}}, dstFolder.FolderUid, link);
         }
 
-        /// <summary>
-        /// Creates a folder.
-        /// </summary>
-        /// <param name="folderName">Folder Name.</param>
-        /// <param name="parentFolderUid">Parent Folder UID.</param>
-        /// <param name="sharedFolderOptions">Shared Folder creation options. Optional.</param>
-        /// <returns>A task returning created folder.</returns>
-        /// <remarks>Pass <see cref="sharedFolderOptions"/> parameter to create a Shared Folder.</remarks>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
-        /// <seealso cref="SharedFolderOptions"/>
+        /// <inheritdoc/>>
         public Task<FolderNode> CreateFolder(string folderName, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null)
         {
             if (string.IsNullOrEmpty(folderName))
@@ -285,13 +233,7 @@ namespace KeeperSecurity.Vault
             return this.AddFolder(folderName, parentFolderUid, sharedFolderOptions);
         }
 
-        /// <summary>
-        /// Renames a folder.
-        /// </summary>
-        /// <param name="folderUid">Folder UID.</param>
-        /// <param name="newName">New folder name.</param>
-        /// <returns>A task returning renamed folder.</returns>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <inheritdoc/>>
         public Task<FolderNode> RenameFolder(string folderUid, string newName)
         {
             var folder = this.GetFolder(folderUid);
@@ -303,12 +245,7 @@ namespace KeeperSecurity.Vault
             return this.FolderUpdate(folder.FolderUid, newName);
         }
 
-        /// <summary>
-        /// Delete folder.
-        /// </summary>
-        /// <param name="folderUid">Folder UID.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <inheritdoc/>>
         public Task DeleteFolder(string folderUid)
         {
             var folder = this.GetFolder(folderUid);
@@ -325,10 +262,7 @@ namespace KeeperSecurity.Vault
         }
 
 
-        /// <summary>
-        /// Retrieves all enterprise team descriptions.
-        /// </summary>
-        /// <returns>A list of all enterprise teams. (awaitable)</returns>
+        /// <inheritdoc/>>
         public async Task<IEnumerable<TeamInfo>> GetAvailableTeams()
         {
             var request = new GetAvailableTeamsCommand();
@@ -340,12 +274,7 @@ namespace KeeperSecurity.Vault
             });
         }
 
-        /// <summary>
-        /// Cancels all shares with the user.
-        /// </summary>
-        /// <param name="username">User account email.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <inheritdoc/>>
         public async Task CancelSharesWithUser(string username) {
             var rq = new CancelShareCommand
             {
@@ -356,14 +285,7 @@ namespace KeeperSecurity.Vault
             await Auth.ExecuteAuthCommand(rq);
         }
 
-        /// <summary>
-        /// Shares a record with a user
-        /// </summary>
-        /// <param name="recordUid">Record UID.</param>
-        /// <param name="username">User account email</param>
-        /// <param name="canReshare">Can record be re-shared</param>
-        /// <param name="canEdit">Can record be modified</param>
-        /// <returns>Awaitable task.</returns>
+        /// <inheritdoc/>>
         public async Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit) {
             if (!TryGetKeeperRecord(recordUid, out var record))
             {
@@ -442,12 +364,7 @@ namespace KeeperSecurity.Vault
         }
 
 
-        /// <summary>
-        /// Transfers a record to user
-        /// </summary>
-        /// <param name="recordUid">Record UID.</param>
-        /// <param name="username">User account email</param>
-        /// <returns>Awaitable task.</returns>
+        /// <inheritdoc/>>
         public async Task TransferRecordToUser(string recordUid, string username)
         {
             if (!TryGetKeeperRecord(recordUid, out var record))
@@ -501,12 +418,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        /// <summary>
-        /// Removes a record share from a user
-        /// </summary>
-        /// <param name="recordUid">Record UID.</param>
-        /// <param name="username">User account email</param>
-        /// <returns>Awaitable task.</returns>
+        /// <inheritdoc/>>
         public async Task RevokeShareFromUser(string recordUid, string username)
         {
             if (!TryGetKeeperRecord(recordUid, out var record))

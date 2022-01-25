@@ -114,9 +114,21 @@ namespace KeeperSecurity.Vault
         /// <returns>Non shared data associated with the record</returns>
         T LoadNonSharedData<T>(string recordUid) where T : RecordNonSharedData, new();
 
+        /// <summary>
+        /// Is record types supported
+        /// </summary>
         bool RecordTypesSupported { get; }
 
+        /// <summary>
+        /// Gets the list of all registered record types.
+        /// </summary>
         IEnumerable<RecordType> RecordTypes { get; }
+        /// <summary>
+        /// Gets the revord type meta data associated with the record type name.
+        /// </summary>
+        /// <param name="name">Record type name.</param>
+        /// <param name="recordType">When this method returns <c>true</c>, contains requested record type; otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> if record type exists; otherwise, <c>false</c>.</returns>
         bool TryGetRecordTypeByName(string name, out RecordType recordType);
     }
 
@@ -277,6 +289,12 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable task.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task DeleteFolder(string folderUid);
+
+        /// <summary>
+        /// Retrieves all enterprise team descriptions.
+        /// </summary>
+        /// <returns>A list of all enterprise teams. (awaitable)</returns>
+        Task<IEnumerable<TeamInfo>> GetAvailableTeams();
 
         /// <summary>
         /// Cancels all shares with a user.
