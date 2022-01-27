@@ -263,7 +263,7 @@ namespace KeeperSecurity.Vault
                 record.Notes = parsedData.notes;
                 if (parsedData.custom != null)
                 {
-                    foreach (var cr in parsedData.custom)
+                    foreach (var cr in parsedData.custom.Where(x => x != null))
                     {
                         record.Custom.Add(new CustomField
                         {
@@ -283,7 +283,7 @@ namespace KeeperSecurity.Vault
                     var parsedExtra = (RecordExtra) ExtraSerializer.ReadObject(ms);
                     if (parsedExtra.files != null && parsedExtra.files.Length > 0)
                     {
-                        foreach (var file in parsedExtra.files)
+                        foreach (var file in parsedExtra.files.Where(x => x != null))
                         {
                             var atta = new AttachmentFile
                             {
@@ -300,6 +300,7 @@ namespace KeeperSecurity.Vault
                             if (file.thumbs != null)
                             {
                                 atta.Thumbnails = file.thumbs
+                                    .Where(x => x != null)
                                     .Select(t => new AttachmentFileThumb
                                     {
                                         Id = t.id,
