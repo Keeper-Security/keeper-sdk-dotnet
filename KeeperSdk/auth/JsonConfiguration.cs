@@ -511,10 +511,7 @@ namespace KeeperSecurity.Configuration
         /// </summary>
         public string FilePath { get; }
 
-        /// <summary>
-        /// Loads configuration from the file.
-        /// </summary>
-        /// <returns>JSON data</returns>
+        /// <inheritdoc/>>
         public byte[] LoadJson()
         {
             if (File.Exists(FilePath))
@@ -532,10 +529,7 @@ namespace KeeperSecurity.Configuration
             return null;
         }
 
-        /// <summary>
-        /// Stores configuration to the file.
-        /// </summary>
-        /// <param name="json">JSON data</param>
+        /// <inheritdoc/>>
         public void StoreJson(byte[] json)
         {
             try

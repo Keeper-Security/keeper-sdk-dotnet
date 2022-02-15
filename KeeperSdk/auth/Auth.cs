@@ -135,8 +135,6 @@ namespace KeeperSecurity.Authentication.Async
     }
 
 
-
-
     /// <summary>
     /// Represents Keeper authentication. (async)
     /// </summary>
@@ -158,9 +156,7 @@ namespace KeeperSecurity.Authentication.Async
             Ui = authUi;
         }
 
-        /// <summary>
-        /// Gets configuration storage.
-        /// </summary>
+        /// <inheritdoc/>
         public IConfigurationStorage Storage { get; }
 
         /// <summary>
@@ -171,35 +167,27 @@ namespace KeeperSecurity.Authentication.Async
         /// <exclude/>
         public override IAuthCallback AuthCallback => Ui;
 
-        /// <summary>
-        /// Gets or sets session resumption flag
-        /// </summary>
+        /// <inheritdoc/>
         public bool ResumeSession { get; set; }
 
-        /// <summary>
-        /// Forces master password login for SSO accounts.
-        /// </summary>
+        /// <inheritdoc/>
         public bool AlternatePassword { get; set; }
 
-        /// <summary>
-        /// Gets or sets username.
-        /// </summary>
+        /// <inheritdoc/>
         public new string Username
         {
             get => base.Username;
             set => base.Username = value;
         }
 
-        /// <exclude />
+        /// <exclude/>
         public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
         {
             PushNotifications?.Dispose();
             PushNotifications = pushNotifications;
         }
 
-        /// <summary>
-        /// Gets or sets device token
-        /// </summary>
+        /// <inheritdoc/>
         public new byte[] DeviceToken
         {
             get => base.DeviceToken;
@@ -234,12 +222,12 @@ namespace KeeperSecurity.Authentication.Async
                     var uiTask = proxyUi.WaitForHttpProxyCredentials(proxyInfo);
                     var index = Task.WaitAny(uiTask, credentialsTask.Task);
                     var result = await(index == 0 ? uiTask : credentialsTask.Task);
-                    if (!result) throw new KeeperCanceled();
+                    if (!result) throw new KeeperCanceled("proxy_detected", "HTTP proxy credential canceled.");
                     await resumeWhenDone.Invoke();
                 }
                 else
                 {
-                    throw new KeeperCanceled();
+                    throw new KeeperCanceled("proxy_detected", "HTTP proxy credential UI is not implemented.");
                 }
             }
             else
@@ -248,16 +236,7 @@ namespace KeeperSecurity.Authentication.Async
             }
         }
 
-        /// <summary>
-        /// Login to Keeper account with SSO provider.
-        /// </summary>
-        /// <param name="providerName">SSO provider name.</param>
-        /// <param name="forceLogin">Force new login with SSO IdP.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <seealso cref="Login(string, string[])"/>
-        /// <exception cref="KeeperCanceled">Login is cancelled.</exception>
-        /// <exception cref="KeeperStartLoginException">Unrecoverable login exception.</exception>
-        /// <exception cref="Exception">Generic exception.</exception>
+        /// <inheritdoc/>
         public async Task LoginSso(string providerName, bool forceLogin = false)
         {
             var v3 = new LoginContext();
@@ -284,19 +263,10 @@ namespace KeeperSecurity.Authentication.Async
                 return;
             }
 
-            throw new KeeperCanceled();
+            throw new KeeperCanceled("cancelled", "Too many unsuccessful login attempts.");
         }
 
-        /// <summary>
-        /// Login to Keeper account with email.
-        /// </summary>
-        /// <param name="username">Keeper account email address.</param>
-        /// <param name="passwords">Master password(s)</param>
-        /// <returns>Awaitable task</returns>
-        /// <seealso cref="LoginSso(string, bool)"/>
-        /// <exception cref="KeeperStartLoginException">Unrecoverable login error.</exception>
-        /// <exception cref="KeeperCanceled">Login cancelled.</exception>
-        /// <exception cref="Exception">Other exceptions.</exception>
+        /// <inheritdoc/>
         public async Task Login(string username, params string[] passwords)
         {
             await DetectProxyAsync(async () =>
@@ -339,7 +309,7 @@ namespace KeeperSecurity.Authentication.Async
                 return await AuthorizeUsingSso(v3, rs.IsCloud, rs.SpUrl, forceLogin);
             }
 
-            throw new KeeperCanceled();
+            throw new KeeperCanceled("not_implemented", "SSO Login UI is not implemented");
         }
 
         private async Task<AuthContext> LoginV3(LoginContext v3)
@@ -506,7 +476,6 @@ namespace KeeperSecurity.Authentication.Async
                 loginMethod);
         }
 
-
         private Task<AuthContext> ResumeLogin(
             LoginContext v3,
             ByteString loginToken,
@@ -541,7 +510,7 @@ namespace KeeperSecurity.Authentication.Async
                 onDone?.Invoke();
                 if (index == 0)
                 {
-                    if (!await userTask) throw new KeeperCanceled();
+                    if (!await userTask) throw new KeeperCanceled("canceled", "2FA authentication canceled.");
                 }
                 else
                 {
@@ -603,7 +572,7 @@ namespace KeeperSecurity.Authentication.Async
                     return await ResumeLogin(v3, loginToken);
                 }
 
-                throw new KeeperCanceled();
+                throw new KeeperCanceled("canceled", "Enter Master Pasword is canceled");
             }
         }
 
@@ -625,7 +594,7 @@ namespace KeeperSecurity.Authentication.Async
                 {
                     onDone?.Invoke();
                     var resume = await uiTask;
-                    if (!resume) throw new KeeperCanceled();
+                    if (!resume) throw new KeeperCanceled("canceled", "Device approval canceled");
                 }
                 else
                 {
@@ -667,7 +636,7 @@ namespace KeeperSecurity.Authentication.Async
                     if (index == 0)
                     {
                         var result = await uiTask;
-                        if (!result) throw new KeeperCanceled();
+                        if (!result) throw new KeeperCanceled("canceled", "SSO Login canceled");
                     }
                     else
                     {
@@ -684,12 +653,12 @@ namespace KeeperSecurity.Authentication.Async
                 }
             }
 
-            throw new KeeperCanceled();
+            throw new KeeperCanceled("not_implemented", "SSO Login UI is not implemented");
         }
 
         private async Task<AuthContext> RequestDataKey(LoginContext v3, ByteString loginToken)
         {
-            if (!(Ui is IAuthSsoUI ssoUi)) throw new KeeperCanceled();
+            if (!(Ui is IAuthSsoUI ssoUi)) throw new KeeperCanceled("not_implemented", "SSO Login UI is not implemented");
 
             var completeTask = new TaskCompletionSource<bool>();
             var t = this.RequestDataKeyPrepare(
@@ -707,7 +676,7 @@ namespace KeeperSecurity.Authentication.Async
                 if (index == 0)
                 {
                     var result = await uiTask;
-                    if (!result) throw new KeeperCanceled();
+                    if (!result) throw new KeeperCanceled("canceled", "Admin Approval is canceled");
                 }
                 else
                 {
@@ -719,7 +688,6 @@ namespace KeeperSecurity.Authentication.Async
             return await ResumeLogin(v3, loginToken);
         }
 
-        /// <exclude/>
         public override void Dispose()
         {
             Ui = null;

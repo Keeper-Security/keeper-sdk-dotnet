@@ -437,7 +437,7 @@ namespace KeeperSecurity.Vault
                 var command = new RecordUpdateCommand
                 {
                     deviceId = vault.Auth.Endpoint.DeviceName,
-                    UpdateRecords = new[] {updateRecord}
+                    UpdateRecords = new[] { updateRecord }
                 };
 
                 await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
@@ -526,7 +526,7 @@ namespace KeeperSecurity.Vault
             return vault.TryGetKeeperRecord(record.Uid, out var r) ? r : record;
         }
 
-        public static async Task PutNonSharedData<T>(this VaultOnline vault, string recordUid, T nonSharedData) 
+        public static async Task PutNonSharedData<T>(this VaultOnline vault, string recordUid, T nonSharedData)
             where T : RecordNonSharedData, new()
         {
             var existingData = vault.LoadNonSharedData<T>(recordUid) ?? new T();
@@ -543,7 +543,7 @@ namespace KeeperSecurity.Vault
             var command = new RecordUpdateCommand
             {
                 deviceId = vault.Auth.Endpoint.DeviceName,
-                UpdateRecords = new[] {updateRecord}
+                UpdateRecords = new[] { updateRecord }
             };
             await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
             await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
@@ -726,8 +726,8 @@ namespace KeeperSecurity.Vault
                         preDeleteObjects[folder.FolderUid] = new PreDeleteObject
                         {
                             fromUid = string.IsNullOrEmpty(folder.FolderUid) ? null : folder.FolderUid,
-                            fromType = folder.FolderType == FolderType.UserFolder 
-                                ? FolderType.UserFolder.GetFolderTypeText() 
+                            fromType = folder.FolderType == FolderType.UserFolder
+                                ? FolderType.UserFolder.GetFolderTypeText()
                                 : FolderType.SharedFolderFolder.GetFolderTypeText(),
                             objectUid = toDelete.RecordUid,
                             objectType = "record",
@@ -756,8 +756,8 @@ namespace KeeperSecurity.Vault
                         preDeleteObjects[folder.FolderUid] = new PreDeleteObject
                         {
                             fromUid = string.IsNullOrEmpty(parent.FolderUid) ? null : parent.FolderUid,
-                            fromType = parent.FolderType == FolderType.UserFolder 
-                                ? FolderType.UserFolder.GetFolderTypeText() 
+                            fromType = parent.FolderType == FolderType.UserFolder
+                                ? FolderType.UserFolder.GetFolderTypeText()
                                 : FolderType.SharedFolderFolder.GetFolderTypeText(),
                             objectUid = folder.FolderUid,
                             objectType = folder.FolderType.GetFolderTypeText(),

@@ -318,7 +318,8 @@ namespace KeeperSecurity.Authentication
             {
                 attempt++;
 
-                var request = (HttpWebRequest)WebRequest.Create(uri);
+                var request = (HttpWebRequest) WebRequest.Create(uri);
+                request.Timeout = (int) TimeSpan.FromMinutes(5).TotalMilliseconds;
                 if (WebProxy != null)
                 {
                     request.Proxy = WebProxy;
@@ -351,12 +352,12 @@ namespace KeeperSecurity.Authentication
                         var p = apiRequest.ToByteArray();
                         await requestStream.WriteAsync(p, 0, p.Length);
                     }
-                    response = (HttpWebResponse)request.GetResponse();
+                    response = (HttpWebResponse) request.GetResponse();
                 }
 
                 catch (WebException e)
                 {
-                    response = (HttpWebResponse)e.Response;
+                    response = (HttpWebResponse) e.Response;
                     if (response == null) throw;
 
                     if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
@@ -420,7 +421,7 @@ namespace KeeperSecurity.Authentication
                                 throw new KeeperAuthFailed(keeperRs.Message);
 
                             case "login_token_expired":
-                                throw new KeeperCanceled();
+                                throw new KeeperCanceled(keeperRs.Error, keeperRs.Message);
                         }
 
                         throw new KeeperApiException(keeperRs.Error, keeperRs.Message);

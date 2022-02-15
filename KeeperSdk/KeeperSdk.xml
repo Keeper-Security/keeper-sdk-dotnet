@@ -308,9 +308,7 @@
             <param name="endpoint">Keeper Endpoint.</param>
         </member>
         <member name="P:KeeperSecurity.Authentication.Async.Auth.Storage">
-            <summary>
-            Gets configuration storage.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Authentication.Async.Auth.Ui">
             <summary>
@@ -321,54 +319,25 @@
             <exclude/>
         </member>
         <member name="P:KeeperSecurity.Authentication.Async.Auth.ResumeSession">
-            <summary>
-            Gets or sets session resumption flag
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Authentication.Async.Auth.AlternatePassword">
-            <summary>
-            Forces master password login for SSO accounts.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Authentication.Async.Auth.Username">
-            <summary>
-            Gets or sets username.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Authentication.Async.Auth.SetPushNotifications(KeeperSecurity.Utils.IFanOut{KeeperSecurity.Authentication.NotificationEvent})">
-            <exclude />
+            <exclude/>
         </member>
         <member name="P:KeeperSecurity.Authentication.Async.Auth.DeviceToken">
-            <summary>
-            Gets or sets device token
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Authentication.Async.Auth.LoginSso(System.String,System.Boolean)">
-            <summary>
-            Login to Keeper account with SSO provider.
-            </summary>
-            <param name="providerName">SSO provider name.</param>
-            <param name="forceLogin">Force new login with SSO IdP.</param>
-            <returns>Awaitable task.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.Async.Auth.Login(System.String,System.String[])"/>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login is cancelled.</exception>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login exception.</exception>
-            <exception cref="T:System.Exception">Generic exception.</exception>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Authentication.Async.Auth.Login(System.String,System.String[])">
-            <summary>
-            Login to Keeper account with email.
-            </summary>
-            <param name="username">Keeper account email address.</param>
-            <param name="passwords">Master password(s)</param>
-            <returns>Awaitable task</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.Async.Auth.LoginSso(System.String,System.Boolean)"/>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperStartLoginException">Unrecoverable login error.</exception>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperCanceled">Login cancelled.</exception>
-            <exception cref="T:System.Exception">Other exceptions.</exception>
-        </member>
-        <member name="M:KeeperSecurity.Authentication.Async.Auth.Dispose">
-            <exclude/>
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Authentication.Async.NamespaceDoc">
             <summary>
@@ -679,9 +648,6 @@
             Gets SSO Provider base URL
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Authentication.AuthContext.PrivateKey">
-            <exclude/>
-        </member>
         <member name="T:KeeperSecurity.Authentication.AuthCommon">
             <summary>
             Represents base authentication class
@@ -690,56 +656,37 @@
             <seealso cref="!:AuthSync"/>
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.Endpoint">
-            <summary>
-            Gets Keeper endpoint.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.Username">
-            <summary>
-            Gets user email address.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.DeviceToken">
-            <summary>
-            Gets device token
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.AuthContext">
-            <summary>
-            Gets connected user context.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.PushNotifications">
             <exclude/>
         </member>
+        <member name="P:KeeperSecurity.Authentication.AuthCommon.AuthCallback">
+            <exclude/>
+        </member>
         <member name="M:KeeperSecurity.Authentication.AuthCommon.ExecuteAuthCommand(KeeperSecurity.Commands.AuthenticatedCommand,System.Type,System.Boolean)">
-            <summary>
-            Executes Keeper JSON command.
-            </summary>
-            <param name="command">JSON command.</param>
-            <param name="responseType">Type of response.</param>
-            <param name="throwOnError">if <c>True</c> throw exception on Keeper error.</param>
-            <returns>JSON response.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException">Keeper JSON API Exception</exception>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthCommon.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)">
-            <summary>
-            Executes Keeper Protobuf request.
-            </summary>
-            <param name="endpoint">Request endpoint.</param>
-            <param name="request">Protobuf request.</param>
-            <param name="responseType">Expected response type</param>
-            <returns>Task returning Protobuf response.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteRest(System.String,Authentication.ApiRequestPayload)"/>
+            <inheritdoc/>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AuthCommon.SupportRestrictedSession">
+            <exclude/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthCommon.Logout">
-            <summary>
-            Logout from Keeper server.
-            </summary>
-            <returns>Awaitable Task</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthCommon.Dispose">
-            <exclude/>
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Authentication.NotificationEvent">
             <exclude/>
@@ -1075,32 +1022,22 @@
             <param name="endpoint">Keeper Endpoint.</param>
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.Storage">
-            <summary>
-            Gets configuration storage.
-            </summary>
+            <inheritdoc/>>
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.ResumeSession">
-            <summary>
-            Gets or sets session resumption flag
-            </summary>
+            <inheritdoc/>>
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.AlternatePassword">
-            <summary>
-            Forces master password login for SSO accounts.
-            </summary>
+            <inheritdoc/>>
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.Username">
-            <summary>
-            Gets or sets username.
-            </summary>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.SetPushNotifications(KeeperSecurity.Utils.IFanOut{KeeperSecurity.Authentication.NotificationEvent})">
             <exclude />
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.DeviceToken">
-            <summary>
-            Gets or sets device token
-            </summary>
+            <inheritdoc/>>
         </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.IsCompleted">
             <summary>
@@ -1118,22 +1055,13 @@
             </summary>
         </member>
         <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.Login(System.String,System.String[])">
-            <summary>
-            Login to Keeper account with email.
-            </summary>
-            <param name="username">Keeper account email address.</param>
-            <param name="passwords">Master password(s)</param>
-            <returns>Awaitable task</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.Sync.AuthSync.LoginSso(System.String,System.Boolean)"/>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.LoginSso(System.String,System.Boolean)">
-            <summary>
-            Login to Keeper account with SSO provider.
-            </summary>
-            <param name="providerName">SSO provider name.</param>
-            <param name="forceLogin">Force new login with SSO IdP.</param>
-            <returns>Awaitable task.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.Sync.AuthSync.Login(System.String,System.String[])"/>
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.Logout">
+            <inheritdoc/>>
         </member>
         <member name="T:KeeperSecurity.Authentication.AuthExtensions">
             <summary>
@@ -2013,9 +1941,7 @@
             <param name="other">User's device entity</param>
         </member>
         <member name="P:KeeperSecurity.Configuration.UserDeviceConfiguration.DeviceToken">
-            <summary>
-            Gets / sets device token.
-            </summary>
+            <inheritdoc/>>
         </member>
         <member name="P:KeeperSecurity.Configuration.UserDeviceConfiguration.ResumeCode">
             <exclude/>
@@ -2037,6 +1963,21 @@
             </summary>
             <param name="other">User entity.</param>
         </member>
+        <member name="P:KeeperSecurity.Configuration.UserConfiguration.Username">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.UserConfiguration.Password">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.UserConfiguration.TwoFactorToken">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.UserConfiguration.Server">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.UserConfiguration.LastDevice">
+            <inheritdoc/>>
+        </member>
         <member name="P:KeeperSecurity.Configuration.UserConfiguration.KeeperSecurity#Configuration#IConfigurationId#Id">
             <exclude/>
         </member>
@@ -2056,6 +1997,12 @@
             Creates instance from another user entity.
             </summary>
             <param name="other">Keeper server entity.</param>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.ServerConfiguration.Server">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.ServerConfiguration.ServerKeyId">
+            <inheritdoc/>>
         </member>
         <member name="P:KeeperSecurity.Configuration.ServerConfiguration.KeeperSecurity#Configuration#IConfigurationId#Id">
             <exclude/>
@@ -2077,6 +2024,12 @@
             </summary>
             <param name="other">Device server entity.</param>
         </member>
+        <member name="P:KeeperSecurity.Configuration.DeviceServerConfiguration.Server">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.DeviceServerConfiguration.CloneCode">
+            <inheritdoc/>>
+        </member>
         <member name="P:KeeperSecurity.Configuration.DeviceServerConfiguration.KeeperSecurity#Configuration#IConfigurationId#Id">
             <exclude/>
         </member>
@@ -2096,6 +2049,15 @@
             Creates instance from another device entity.
             </summary>
             <param name="other">Device entity.</param>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.DeviceConfiguration.DeviceToken">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.DeviceConfiguration.DeviceKey">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Configuration.DeviceConfiguration.ServerInfo">
+            <inheritdoc/>>
         </member>
         <member name="P:KeeperSecurity.Configuration.DeviceConfiguration.KeeperSecurity#Configuration#IConfigurationId#Id">
             <exclude/>
@@ -2314,16 +2276,10 @@
             </summary>
         </member>
         <member name="M:KeeperSecurity.Configuration.JsonConfigurationFileLoader.LoadJson">
-            <summary>
-            Loads configuration from the file.
-            </summary>
-            <returns>JSON data</returns>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Configuration.JsonConfigurationFileLoader.StoreJson(System.Byte[])">
-            <summary>
-            Stores configuration to the file.
-            </summary>
-            <param name="json">JSON data</param>
+            <inheritdoc/>>
         </member>
         <member name="T:KeeperSecurity.Enterprise.AuditLogExtensions">
             <summary>
@@ -3560,24 +3516,19 @@
             <param name="thumbnail"></param>
         </member>
         <member name="P:KeeperSecurity.Vault.AttachmentUploadTask.Name">
-            <summary>
-            Attachment name.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.AttachmentUploadTask.Title">
-            <summary>
-            Attachment title.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.AttachmentUploadTask.MimeType">
-            <summary>
-            Attachment MIME type.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.AttachmentUploadTask.Stream">
-            <summary>
-            Attachment input stream.
-            </summary>
+            <inheritdoc/>
+        </member>
+        <member name="P:KeeperSecurity.Vault.AttachmentUploadTask.Thumbnail">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FileAttachmentUploadTask">
             <summary>
@@ -3592,41 +3543,21 @@
             <param name="thumbnail">Thumbnail upload task. Optional.</param>
         </member>
         <member name="T:KeeperSecurity.Vault.VaultOnline">
-            <summary>passwordRecord
+            <summary>
             Represents Keeper Vault connected to Keeper server.
             </summary>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.RecordAttachments(KeeperSecurity.Vault.KeeperRecord)">
-            <summary>
-            Returns Record attachments
-            </summary>
-            <param name="record">Keeper record</param>
-            <returns>List od attachments</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachment(KeeperSecurity.Vault.KeeperRecord,System.String,System.IO.Stream)">
-            <summary>
-            Downloads and decrypts file attachment.
-            </summary>
-            <param name="record">Keeper record.</param>
-            <param name="attachment">Attachment name, title, or ID.</param>
-            <param name="destination">Writable stream.</param>
-            <returns>Awaitable task.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.UploadAttachment(KeeperSecurity.Vault.KeeperRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
-            <summary>
-            Encrypts and uploads file attachment.
-            </summary>
-            <param name="record">Keeper record.</param>
-            <param name="uploadTask">Upload task</param>
-            <returns>Awaitable task.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteAttachment(KeeperSecurity.Vault.KeeperRecord,System.String)">
-            <summary>
-            Downloads and decrypts file attachment.
-            </summary>
-            <param name="record">Keeper record.</param>
-            <param name="attachmentId">Attachment</param>
-            <returns>Awaitable task.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DownloadFile(KeeperSecurity.Vault.FileRecord,System.IO.Stream)">
             <exclude/>
@@ -3717,100 +3648,46 @@
             <returns>Awaitable task</returns>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)">
-            <summary>
-            Creates a keeper record.
-            </summary>
-            <param name="record">Keeper Record.</param>
-            <param name="folderUid">Folder UID where the record to be created. Optional.</param>
-            <returns>A task returning created password record.</returns>
-            <seealso cref="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)"/>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.UpdateRecord(KeeperSecurity.Vault.KeeperRecord,System.Boolean)">
-            <summary>
-            Modifies a keeper record.
-            </summary>
-            <param name="record">Password Record.</param>
-            <param name="skipExtra">Do not update file attachment information on the record.</param>
-            <returns>A task returning created password record.</returns>
-            <seealso cref="M:KeeperSecurity.Vault.IVault.UpdateRecord(KeeperSecurity.Vault.KeeperRecord,System.Boolean)"/>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.StoreNonSharedData``1(System.String,``0)">
-            <summary>
-            Stores non shared (or per user) data associated with the record.
-            </summary>
-            <typeparam name="T">App specific per-user data type</typeparam>
-            <param name="recordUid">Record UID</param>
-            <param name="nonSharedData">Non shared data</param>
-            <returns>Awaitable task.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException">Keeper API error</exception>
-            <seealso cref="M:KeeperSecurity.Vault.IVault.StoreNonSharedData``1(System.String,``0)"/>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteRecords(KeeperSecurity.Vault.RecordPath[])">
-            <summary>
-            Deletes password records.
-            </summary>
-            <param name="records">an array of record paths.</param>
-            <returns>Awaitable task.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
-            <seealso cref="M:KeeperSecurity.Vault.IVault.DeleteRecords(KeeperSecurity.Vault.RecordPath[])"/>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.MoveRecords(KeeperSecurity.Vault.RecordPath[],System.String,System.Boolean)">
-            <summary>
-            Moves records to a folder.
-            </summary>
-            <param name="records">an array of record paths.</param>
-            <param name="dstFolderUid">Destination folder UID.</param>
-            <param name="link"><c>true</c>creates a link. The source record in not deleted; otherwise record will be removed from the source.</param>
-            <returns>Awaitable task.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
-            <seealso cref="M:KeeperSecurity.Vault.VaultOnline.MoveRecords(KeeperSecurity.Vault.RecordPath[],System.String,System.Boolean)"/>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.MoveFolder(System.String,System.String,System.Boolean)">
-            <summary>
-            Moves a folder to the another folder.
-            </summary>
-            <param name="srcFolderUid">Source Folder UID.</param>
-            <param name="dstFolderUid">Destination Folder UID.</param>
-            <param name="link"><c>true</c>creates a link. The source folder in not deleted; otherwise source folder will be removed.</param>
-            <returns>Awaitable task.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.CreateFolder(System.String,System.String,KeeperSecurity.Vault.SharedFolderOptions)">
-            <summary>
-            Creates a folder.
-            </summary>
-            <param name="folderName">Folder Name.</param>
-            <param name="parentFolderUid">Parent Folder UID.</param>
-            <param name="sharedFolderOptions">Shared Folder creation options. Optional.</param>
-            <returns>A task returning created folder.</returns>
-            <remarks>Pass <see cref="!:sharedFolderOptions"/> parameter to create a Shared Folder.</remarks>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
-            <seealso cref="T:KeeperSecurity.Vault.SharedFolderOptions"/>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.RenameFolder(System.String,System.String)">
-            <summary>
-            Renames a folder.
-            </summary>
-            <param name="folderUid">Folder UID.</param>
-            <param name="newName">New folder name.</param>
-            <returns>A task returning renamed folder.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteFolder(System.String)">
-            <summary>
-            Delete folder.
-            </summary>
-            <param name="folderUid">Folder UID.</param>
-            <returns>Awaitable task.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.GetAvailableTeams">
-            <summary>
-            Retrieves all enterprise team descriptions.
-            </summary>
-            <returns>A list of all enterprise teams. (awaitable)</returns>
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.CancelSharesWithUser(System.String)">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.ShareRecordWithUser(System.String,System.String,System.Nullable{System.Boolean},System.Nullable{System.Boolean})">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.TransferRecordToUser(System.String,System.String)">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.RevokeShareFromUser(System.String,System.String)">
+            <inheritdoc/>>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldType">
             <summary>
@@ -4849,88 +4726,40 @@
             <seealso cref="T:KeeperSecurity.Vault.IKeeperStorage" />
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.PersonalScopeUid">
-            <summary>
-            Gets pseudo UID for logged in user. 
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.Revision">
-            <summary>
-            Gets or sets revision.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.Records">
-            <summary>
-            Gets record entity storage.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.SharedFolders">
-            <summary>
-            Gets shared folder entity storage.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.Teams">
-            <summary>
-            Gets team entity storage.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.NonSharedData">
-            <summary>
-            Gets non-shared record data entity storage.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.RecordKeys">
-            <summary>
-            Gets record key entity link storage.
-            </summary>
-            <remarks>
-            <list type="bullet">
-            <item><term>Object UID</term><description>Record UID</description></item>
-            <item><term>Subject UID</term><description><c>PersonalScopeUid</c> or Shared Folder UID</description></item>
-            </list>
-            </remarks>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.SharedFolderKeys">
-            <summary>
-            Gets shared folder key entity link storage
-            </summary>
-            <remarks>
-            <list type="bullet">
-            <item><term>Object UID</term><description>Shared Folder UID</description></item>
-            <item><term>Subject UID</term><description><c>PersonalScopeUid</c> or Team UID</description></item>
-            </list>
-            </remarks>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.SharedFolderPermissions">
-            <summary>
-            Gets shared folder user permission entity link storage.
-            </summary>
-            <remarks>
-            <list type="bullet">
-            <item><term>Object UID</term><description>Shared Folder UID</description></item>
-            <item><term>Subject UID</term><description>User Email or Team UID</description></item>
-            </list>
-            </remarks>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.Folders">
-            <summary>
-            Gets folder entity storage.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.InMemoryKeeperStorage.FolderRecords">
-            <summary>
-            Gets folder's record entity link storage.
-            </summary>
-            <remarks>
-            <list type="bullet">
-            <item><term>Object UID</term><description>Folder UID</description></item>
-            <item><term>Subject UID</term><description>Record UID</description></item>
-            </list>
-            </remarks>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.InMemoryKeeperStorage.Clear">
-            <summary>
-            Clear offline Keeper vault storage.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.SyncDownExtensions">
             <summary>
@@ -4955,6 +4784,60 @@
             </summary>
             <param name="clientKey"><see cref="T:KeeperSecurity.Vault.IKeeperStorage"/> encryption key.</param>
             <param name="storage">Vault storage.</param>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.RecordCount">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.KeeperRecords">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultData.TryGetKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.SharedFolderCount">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.SharedFolders">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultData.TryGetSharedFolder(System.String,KeeperSecurity.Vault.SharedFolder@)">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.TeamCount">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.Teams">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultData.TryGetTeam(System.String,KeeperSecurity.Vault.Team@)">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.Folders">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultData.TryGetFolder(System.String,KeeperSecurity.Vault.FolderNode@)">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultData.LoadNonSharedData``1(System.String)">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.RootFolder">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.Storage">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.ClientKey">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.RecordTypesSupported">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.RecordTypes">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultData.TryGetRecordTypeByName(System.String,KeeperSecurity.Vault.RecordType@)">
+            <inheritdoc/>>
         </member>
         <member name="T:KeeperSecurity.Vault.VaultDataExtensions">
             <exclude/>
@@ -5212,6 +5095,24 @@
             <param name="recordUid">Record UID</param>
             <returns>Non shared data associated with the record</returns>
         </member>
+        <member name="P:KeeperSecurity.Vault.IVaultData.RecordTypesSupported">
+            <summary>
+            Is record types supported
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IVaultData.RecordTypes">
+            <summary>
+            Gets the list of all registered record types.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVaultData.TryGetRecordTypeByName(System.String,KeeperSecurity.Vault.RecordType@)">
+            <summary>
+            Gets the revord type meta data associated with the record type name.
+            </summary>
+            <param name="name">Record type name.</param>
+            <param name="recordType">When this method returns <c>true</c>, contains requested record type; otherwise <c>null</c>.</param>
+            <returns><c>true</c> if record type exists; otherwise, <c>false</c>.</returns>
+        </member>
         <member name="T:KeeperSecurity.Vault.RecordPath">
             <summary>
             Represents a record in folder.
@@ -5371,6 +5272,46 @@
             <param name="folderUid">Folder UID.</param>
             <returns>Awaitable task.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.GetAvailableTeams">
+            <summary>
+            Retrieves all enterprise team descriptions.
+            </summary>
+            <returns>A list of all enterprise teams. (awaitable)</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.CancelSharesWithUser(System.String)">
+            <summary>
+            Cancels all shares with a user.
+            </summary>
+            <param name="username">User account email.</param>
+            <returns>Awaitable task.</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.ShareRecordWithUser(System.String,System.String,System.Nullable{System.Boolean},System.Nullable{System.Boolean})">
+            <summary>
+            Shares a record with a user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <param name="canReshare">Can record be re-shared</param>
+            <param name="canEdit">Can record be modified</param>
+            <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.TransferRecordToUser(System.String,System.String)">
+            <summary>
+            Transfers a record to user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.RevokeShareFromUser(System.String,System.String)">
+            <summary>
+            Removes a record share from a user
+            </summary>
+            <param name="recordUid">Record UID.</param>
+            <param name="username">User account email</param>
+            <returns>Awaitable task.</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.IVaultSharedFolder">
             <summary>
@@ -5550,7 +5491,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.KeeperRecord.Owner">
             <summary>
-            A list of Custom Fields.
+            Is user Owner?
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.KeeperRecord.Shared">
@@ -5611,6 +5552,7 @@
             <summary>
             Represents a Typed Record 
             </summary>
+            <seealso cref="T:KeeperSecurity.Vault.ITypedField"/>
         </member>
         <member name="P:KeeperSecurity.Vault.TypedRecord.Notes">
             <summary>
@@ -5627,7 +5569,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.TypedRecord.Fields">
             <summary>
-            Record fields.
+            Record mandatory fields.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.TypedRecord.Custom">
@@ -5642,6 +5584,7 @@
             <summary>
             Represents a typed field.
             </summary>
+            <typeparam name="T">Field Data Type</typeparam>
         </member>
         <member name="M:KeeperSecurity.Vault.TypedField`1.#ctor">
             <exclude/>
@@ -5664,6 +5607,39 @@
             Field values.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.TypedValue">
+            <summary>
+            Default field value.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.ObjectValue">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.GetValueAt(System.Int32)">
+            <summary>
+            Gets field value at index
+            </summary>
+            <param name="index">value index</param>
+            <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.DeleteValueAt(System.Int32)">
+            <summary>
+            Deletes field value at index
+            </summary>
+            <param name="index">Value index</param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.TypedField`1.SetValueAt(System.Int32,System.Object)">
+            <summary>
+            Sets field value at index
+            </summary>
+            <param name="index">Value index</param>
+            <param name="value">Value</param>
+        </member>
+        <member name="P:KeeperSecurity.Vault.TypedField`1.Count">
+            <summary>
+            Value Count
+            </summary>
+        </member>
         <member name="M:KeeperSecurity.Vault.TypedField`1.KeeperSecurity#Vault#ITypedField#AppendValue">
             <summary>
             Appends a value.
@@ -5677,7 +5653,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Notes">
             <summary>
-            Is user Owner?
+            Notes.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Login">
@@ -5697,7 +5673,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Custom">
             <summary>
-            Notes.
+            A list of Custom Fields.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Attachments">
@@ -7178,6 +7154,9 @@
             maximum allowed expiration
             </summary>
         </member>
+        <member name="F:Authentication.TwoFactorChannelInfo.CreatedOnFieldNumber">
+            <summary>Field number for the "createdOn" field.</summary>
+        </member>
         <member name="F:Authentication.TwoFactorDuoStatus.CapabilitiesFieldNumber">
             <summary>Field number for the "capabilities" field.</summary>
         </member>
@@ -7186,6 +7165,9 @@
         </member>
         <member name="F:Authentication.TwoFactorDuoStatus.EnrollUrlFieldNumber">
             <summary>Field number for the "enroll_url" field.</summary>
+        </member>
+        <member name="F:Authentication.TwoFactorDuoStatus.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
         </member>
         <member name="F:Authentication.TwoFactorAddRequest.ChannelTypeFieldNumber">
             <summary>Field number for the "channelType" field.</summary>
@@ -7823,9 +7805,6 @@
         </member>
         <member name="F:Authentication.NodeEnforcementRemoveRequest.EnforcementFieldNumber">
             <summary>Field number for the "enforcement" field.</summary>
-        </member>
-        <member name="F:Authentication.UserAccounts.AccountUidFieldNumber">
-            <summary>Field number for the "accountUid" field.</summary>
         </member>
         <member name="F:Authentication.ApiRequestByKey.KeyIdFieldNumber">
             <summary>Field number for the "keyId" field.</summary>
@@ -8512,6 +8491,27 @@
         </member>
         <member name="F:Authentication.TimeLimitedAccessResponse.RevisionFieldNumber">
             <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Authentication.RequestDownloadRequest.FileNamesFieldNumber">
+            <summary>Field number for the "fileNames" field.</summary>
+        </member>
+        <member name="F:Authentication.RequestDownloadResponse.ResultFieldNumber">
+            <summary>Field number for the "result" field.</summary>
+        </member>
+        <member name="F:Authentication.RequestDownloadResponse.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="F:Authentication.RequestDownloadResponse.DownloadsFieldNumber">
+            <summary>Field number for the "downloads" field.</summary>
+        </member>
+        <member name="F:Authentication.Download.FileNameFieldNumber">
+            <summary>Field number for the "fileName" field.</summary>
+        </member>
+        <member name="F:Authentication.Download.UrlFieldNumber">
+            <summary>Field number for the "url" field.</summary>
+        </member>
+        <member name="F:Authentication.Download.SuccessStatusCodeFieldNumber">
+            <summary>Field number for the "successStatusCode" field.</summary>
         </member>
         <member name="T:BreachWatch.BreachwatchReflection">
             <summary>Holder for reflection information generated from breachwatch.proto</summary>
@@ -9392,6 +9392,12 @@
         <member name="F:Enterprise.LicenseAddOn.CreatedFieldNumber">
             <summary>Field number for the "created" field.</summary>
         </member>
+        <member name="F:Enterprise.LicenseAddOn.SeatsFieldNumber">
+            <summary>Field number for the "seats" field.</summary>
+        </member>
+        <member name="F:Enterprise.LicenseAddOn.ActivationTimeFieldNumber">
+            <summary>Field number for the "activationTime" field.</summary>
+        </member>
         <member name="F:Enterprise.License.PaidFieldNumber">
             <summary>Field number for the "paid" field.</summary>
         </member>
@@ -9442,6 +9448,9 @@
         </member>
         <member name="F:Enterprise.License.AddOnsFieldNumber">
             <summary>Field number for the "addOns" field.</summary>
+        </member>
+        <member name="F:Enterprise.License.NextBillingDateFieldNumber">
+            <summary>Field number for the "nextBillingDate" field.</summary>
         </member>
         <member name="F:Enterprise.Bridge.BridgeIdFieldNumber">
             <summary>Field number for the "bridgeId" field.</summary>
@@ -9651,6 +9660,9 @@
         </member>
         <member name="F:Enterprise.BackupUser.BackupKeysFieldNumber">
             <summary>Field number for the "backupKeys" field.</summary>
+        </member>
+        <member name="F:Enterprise.BackupUser.PrivateECKeyFieldNumber">
+            <summary>Field number for the "privateECKey" field.</summary>
         </member>
         <member name="F:Enterprise.BackupResponse.EnterpriseEccPrivateKeyFieldNumber">
             <summary>Field number for the "enterpriseEccPrivateKey" field.</summary>
@@ -10120,6 +10132,30 @@
         <member name="F:Enterprise.AuditRecord.HasAttachmentsFieldNumber">
             <summary>Field number for the "hasAttachments" field.</summary>
         </member>
+        <member name="F:Enterprise.AuditRecord.InTrashFieldNumber">
+            <summary>Field number for the "inTrash" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditRecord.InTrash">
+            <summary>
+             true if this record is in its owner's trash/"deleted items".  Not set on older saved reports.
+            </summary>
+        </member>
+        <member name="F:Enterprise.AuditRecord.TreeLeftFieldNumber">
+            <summary>Field number for the "treeLeft" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditRecord.TreeLeft">
+            <summary>
+             record's owner's node.  Not set in older saved reports.
+            </summary>
+        </member>
+        <member name="F:Enterprise.AuditRecord.TreeRightFieldNumber">
+            <summary>Field number for the "treeRight" field.</summary>
+        </member>
+        <member name="P:Enterprise.AuditRecord.TreeRight">
+            <summary>
+             record's owner's node.  Not set in older saved reports.
+            </summary>
+        </member>
         <member name="F:Enterprise.AuditRole.RoleIdFieldNumber">
             <summary>Field number for the "roleId" field.</summary>
         </member>
@@ -10157,6 +10193,26 @@
              <summary>
             True means you can't even see the password when you are editing
              </summary>
+        </member>
+        <member name="F:Enterprise.AuditRole.RoleNodeManagementsFieldNumber">
+            <summary>Field number for the "roleNodeManagements" field.</summary>
+        </member>
+        <member name="F:Enterprise.RoleNodeManagement.TreeLeftFieldNumber">
+            <summary>Field number for the "treeLeft" field.</summary>
+        </member>
+        <member name="F:Enterprise.RoleNodeManagement.TreeRightFieldNumber">
+            <summary>Field number for the "treeRight" field.</summary>
+        </member>
+        <member name="F:Enterprise.RoleNodeManagement.CascadeFieldNumber">
+            <summary>Field number for the "cascade" field.</summary>
+        </member>
+        <member name="F:Enterprise.RoleNodeManagement.PrivilegesFieldNumber">
+            <summary>Field number for the "privileges" field.</summary>
+        </member>
+        <member name="P:Enterprise.RoleNodeManagement.Privileges">
+            <summary>
+             bit field; 1 is SHARING_ADMINISTRATOR
+            </summary>
         </member>
         <member name="F:Enterprise.UserProfile.EnterpriseUserIdFieldNumber">
             <summary>Field number for the "enterpriseUserId" field.</summary>
@@ -11018,6 +11074,22 @@
         <member name="F:Records.RecordConvertToV3.RecordFileFieldNumber">
             <summary>Field number for the "record_file" field.</summary>
         </member>
+        <member name="F:Records.RecordConvertToV3.FolderUidFieldNumber">
+            <summary>Field number for the "folder_uid" field.</summary>
+        </member>
+        <member name="P:Records.RecordConvertToV3.FolderUid">
+            <summary>
+            if a part of shared folder
+            </summary>
+        </member>
+        <member name="F:Records.RecordConvertToV3.RecordFolderKeyFieldNumber">
+            <summary>Field number for the "record_folder_key" field.</summary>
+        </member>
+        <member name="P:Records.RecordConvertToV3.RecordFolderKey">
+            <summary>
+            GCM-encrypted shared folder key
+            </summary>
+        </member>
         <member name="F:Records.RecordsConvertToV3Request.RecordsFieldNumber">
             <summary>Field number for the "records" field.</summary>
         </member>
@@ -11124,6 +11196,9 @@
         </member>
         <member name="F:Records.FileGetStatus.SuccessStatusCodeFieldNumber">
             <summary>Field number for the "success_status_code" field.</summary>
+        </member>
+        <member name="F:Records.FileGetStatus.FileKeyTypeFieldNumber">
+            <summary>Field number for the "fileKeyType" field.</summary>
         </member>
         <member name="F:Records.FilesGetResponse.FilesFieldNumber">
             <summary>Field number for the "files" field.</summary>
@@ -12143,6 +12218,194 @@
         <member name="P:SsoCloud.SamlRelayState.DeviceId">
             <summary>
             Used to differentiate different login attempts by the same user
+            </summary>
+        </member>
+        <member name="T:SsoCloud.SsoCloudMigrationStatusRequest">
+             <summary>
+            *
+             This is used when migrating from SSO Connect to SSO Connect Cloud.
+             This retrieves the current status of the migration.
+            
+             If fullStatus == false but limit == 0, a default limit (probably 25) will be used.
+            
+             Example 1: (nodeId=123, fullStatus=true,  includeMigratedUsers=true,  limit=any).  ALL users, migrated and unmigrated, will be returned.
+             Example 2: (nodeId=123, fullStatus=true,  includeMigratedUsers=false, limit=any).  ALL unmigrated users will be returned.
+             Example 3: (nodeId=123, fullStatus=false, includeMigratedUsers=true,  limit=0).    The first 25 users of each type, migrated and unmigrated, will be returned.
+             Example 4: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=0).    The first 25 unmigrated users will be returned.
+             Example 5: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=15).   The first 15 unmigrated users will be returned.
+             Example 6: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=-1).   Just stats will be returned, no users will be returned.
+            
+             @see SsoCloudMigrationStatusResponse
+             @since MH: 2022-01-11
+             </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusRequest.NodeIdFieldNumber">
+            <summary>Field number for the "nodeId" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusRequest.NodeId">
+            <summary>
+            Required.  The node being queried.  It should have an SSO migration in process.
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusRequest.FullStatusFieldNumber">
+            <summary>Field number for the "fullStatus" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusRequest.FullStatus">
+            <summary>
+            If true, the full status will be returned, including a list of all unmigrated users - beware this could be large!
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusRequest.IncludeMigratedUsersFieldNumber">
+            <summary>Field number for the "includeMigratedUsers" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusRequest.IncludeMigratedUsers">
+            <summary>
+            If true, the list of migrated users will also be returned. This applies to both regular status and full status.   Default is false.
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusRequest.LimitFieldNumber">
+            <summary>Field number for the "limit" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusRequest.Limit">
+            <summary>
+            Return, say, the first 50 migrated and/or unmigrated users. 0 means use the default (25). -1 means don't return any.  Ignored if fullStatus is true.
+            </summary>
+        </member>
+        <member name="T:SsoCloud.SsoCloudMigrationStatusResponse">
+             <summary>
+            *
+             Returns the status of an SSO Connect migration in progress.
+             If there is an error, success will be false and message will contain an error message.
+             User records will be sorted by last name.
+            
+             @see SsoCloudMigrationStatusRequest
+             @since MH: 2022-01-11
+             </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.SuccessFieldNumber">
+            <summary>Field number for the "success" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.Success">
+            <summary>
+            If true, the call was successful.  Otherwise check the message field.
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.Message">
+            <summary>
+            Contains an error message if there was an error.
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.NodeIdFieldNumber">
+            <summary>Field number for the "nodeId" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.NodeId">
+            <summary>
+            ID of the node being queried.
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.SsoConnectIdFieldNumber">
+            <summary>Field number for the "ssoConnectId" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.SsoConnectId">
+            <summary>
+            ID of the SSO Connect on-premise service provider
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.SsoConnectNameFieldNumber">
+            <summary>Field number for the "ssoConnectName" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.SsoConnectName">
+            <summary>
+            Name of the SSO Connect on-premise service provider
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.SsoConnectCloudIdFieldNumber">
+            <summary>Field number for the "ssoConnectCloudId" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.SsoConnectCloudId">
+            <summary>
+            ID of the SSO Connect Cloud service provider
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.SsoConnectCloudNameFieldNumber">
+            <summary>Field number for the "ssoConnectCloudName" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.SsoConnectCloudName">
+            <summary>
+            Name of the SSO Connect Cloud service provider
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.TotalUsersCountFieldNumber">
+            <summary>Field number for the "totalUsersCount" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.TotalUsersCount">
+            <summary>
+            The number of users serviced by this node
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.UsersMigratedCountFieldNumber">
+            <summary>Field number for the "usersMigratedCount" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.UsersMigratedCount">
+            <summary>
+            The number of users who have migrated
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.MigratedUsersFieldNumber">
+            <summary>Field number for the "migratedUsers" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.MigratedUsers">
+            <summary>
+            The list of migrated users, can be constrained via the limit parameter in the request
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationStatusResponse.UnmigratedUsersFieldNumber">
+            <summary>Field number for the "unmigratedUsers" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationStatusResponse.UnmigratedUsers">
+            <summary>
+            The list of unmigrated users, can be constrained via the limit parameter in the request
+            </summary>
+        </member>
+        <member name="T:SsoCloud.SsoCloudMigrationUserInfo">
+             <summary>
+            *
+             @since MH: 2022-01-11
+             </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationUserInfo.UserIdFieldNumber">
+            <summary>Field number for the "userId" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationUserInfo.UserId">
+            <summary>
+            The user ID of the user
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationUserInfo.EmailFieldNumber">
+            <summary>Field number for the "email" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationUserInfo.Email">
+            <summary>
+            The primary email address of the user
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationUserInfo.FullNameFieldNumber">
+            <summary>Field number for the "fullName" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationUserInfo.FullName">
+            <summary>
+            The full name of the user
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudMigrationUserInfo.IsMigratedFieldNumber">
+            <summary>Field number for the "isMigrated" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudMigrationUserInfo.IsMigrated">
+            <summary>
+            Whether the user has migrated to SSO Cloud
             </summary>
         </member>
     </members>

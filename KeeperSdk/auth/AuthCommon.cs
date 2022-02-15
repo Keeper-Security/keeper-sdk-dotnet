@@ -301,7 +301,6 @@ namespace KeeperSecurity.Authentication
                 return false;
             }
         }
-        /// <exclude/>
         public RsaPrivateCrtKeyParameters PrivateKey => PrivateRsaKey;
     }
 
@@ -312,32 +311,25 @@ namespace KeeperSecurity.Authentication
     /// <seealso cref="AuthSync"/>
     public abstract class AuthCommon : IAuthentication, IDisposable
     {
-        /// <summary>
-        /// Gets Keeper endpoint.
-        /// </summary>
+        /// <inheritdoc/>
 
         public IKeeperEndpoint Endpoint { get; protected set; }
 
-        /// <summary>
-        /// Gets user email address.
-        /// </summary>
+        /// <inheritdoc/>
         public string Username { get; protected set; }
 
-        /// <summary>
-        /// Gets device token
-        /// </summary>
+        /// <inheritdoc/>
         public byte[] DeviceToken { get; protected set; }
 
         internal AuthContext authContext;
 
-        /// <summary>
-        /// Gets connected user context.
-        /// </summary>
+        /// <inheritdoc/>
         public IAuthContext AuthContext => authContext;
 
         /// <exclude/>
         public IFanOut<NotificationEvent> PushNotifications { get; internal set; }
 
+        /// <exclude/>
         public abstract IAuthCallback AuthCallback { get; }
 
         internal void ResetKeepAliveTimer()
@@ -378,14 +370,7 @@ namespace KeeperSecurity.Authentication
                 (long) timeout.TotalMilliseconds / 2);
         }
 
-        /// <summary>
-        /// Executes Keeper JSON command.
-        /// </summary>
-        /// <param name="command">JSON command.</param>
-        /// <param name="responseType">Type of response.</param>
-        /// <param name="throwOnError">if <c>True</c> throw exception on Keeper error.</param>
-        /// <returns>JSON response.</returns>
-        /// <exception cref="KeeperApiException">Keeper JSON API Exception</exception>
+        /// <inheritdoc/>
         public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType, bool throwOnError)
         {
             command.username = Username;
@@ -410,14 +395,7 @@ namespace KeeperSecurity.Authentication
             return response;
         }
 
-        /// <summary>
-        /// Executes Keeper Protobuf request.
-        /// </summary>
-        /// <param name="endpoint">Request endpoint.</param>
-        /// <param name="request">Protobuf request.</param>
-        /// <param name="responseType">Expected response type</param>
-        /// <returns>Task returning Protobuf response.</returns>
-        /// <seealso cref="IKeeperEndpoint.ExecuteRest"/>
+        /// <inheritdoc/>
         public async Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null)
         {
 #if DEBUG
@@ -526,6 +504,7 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        /// <exclude/>
         public bool SupportRestrictedSession { get; set; }
 
         protected async Task PostLogin()
@@ -742,16 +721,13 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        /// <summary>
-        /// Logout from Keeper server.
-        /// </summary>
-        /// <returns>Awaitable Task</returns>
+        /// <inheritdoc/>
         public virtual async Task Logout()
         {
             await DoLogout();
         }
 
-        /// <exclude/>
+        /// <inheritdoc/>
         public virtual void Dispose()
         {
             authContext = null;

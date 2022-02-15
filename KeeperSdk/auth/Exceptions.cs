@@ -72,6 +72,11 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     public class KeeperCanceled : Exception
     {
+        public KeeperCanceled() : this("canceled", "Login session is canceled. Please start over.") { }
+        public string Reason { get; }
+        public KeeperCanceled(string reason, string message) : base(message) {
+            Reason = reason;
+        }
     }
 
     /// <summary>

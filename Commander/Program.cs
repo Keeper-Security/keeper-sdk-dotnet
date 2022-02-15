@@ -405,7 +405,7 @@ namespace Commander
 
         public async Task<string> AuthenticateRequests(SecurityKeyAuthenticateRequest[] requests)
         {
-            if (requests == null || requests.Length == 0) throw new KeeperCanceled();
+            if (requests == null || requests.Length == 0) throw new Exception("Security key challenge is empty. Try another 2FA method.");
             var cancellationSource = new CancellationTokenSource();
             var clientData = new SecurityKeyClientData
             {
