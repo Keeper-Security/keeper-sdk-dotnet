@@ -48,7 +48,7 @@ namespace KeeperSecurity.Vault
 
             var rs = await auth.ExecuteAuthCommand<SyncDownCommand, SyncDownResponse>(command);
 
-            Debug.WriteLine("Sync Down: Enter");
+            Debug.WriteLine("Sync Down: Process Enter");
             var isFullSync = rs.fullSync;
             if (isFullSync)
             {
@@ -621,7 +621,7 @@ namespace KeeperSecurity.Vault
             }
 
             storage.Revision = rs.revision;
-            Debug.WriteLine("Sync Down: Leave");
+            Debug.WriteLine("Sync Down: Process Leave");
 
             Debug.WriteLine("Rebuild Data: Enter");
             vault.RebuildData(result);

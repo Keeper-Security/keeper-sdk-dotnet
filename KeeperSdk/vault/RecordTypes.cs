@@ -769,7 +769,7 @@ namespace KeeperSecurity.Vault
         public static IEnumerable<RecordField> RecordFields => _recordFields.Values;
         public static bool TryGetRecordField(string name, out RecordField value)
         {
-            return _recordFields.TryGetValue(name, out value);
+            return _recordFields.TryGetValue(name ?? "text", out value);
         }
 
         private static readonly Dictionary<Type, RecordTypeInfo> _recordTypeInfo = new Dictionary<Type, RecordTypeInfo>();

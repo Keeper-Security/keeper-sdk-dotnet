@@ -214,7 +214,14 @@ namespace KeeperSecurity.Authentication
 #endif
             var rs = await endpoint.ExecuteRest("vault/execute_v2_command", apiPayload);
 #if DEBUG
-            Debug.WriteLine("Response: " + Encoding.UTF8.GetString(rs));
+            if (rs.Length < 10000)
+            {
+                Debug.WriteLine("Response: " + Encoding.UTF8.GetString(rs));
+            }
+            else
+            {
+                Debug.WriteLine($"Response: {rs.Length} bytes");
+            }
 #endif
             using (var ms = new MemoryStream(rs))
             {

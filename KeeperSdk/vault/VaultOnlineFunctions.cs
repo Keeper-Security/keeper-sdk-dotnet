@@ -464,6 +464,7 @@ namespace KeeperSecurity.Vault
                 var existingRefs = new HashSet<string>();
                 existingRefs.UnionWith((recordData.Fields ?? Enumerable.Empty<RecordTypeDataFieldBase>()
                         .Concat(recordData.Custom ?? Enumerable.Empty<RecordTypeDataFieldBase>()))
+                    .Where(x => !string.IsNullOrEmpty(x.Type))
                     .Where(x => x.Type.EndsWith("Ref"))
                     .Select(VaultExtensions.ConvertToTypedField)
                     .OfType<TypedField<string>>()

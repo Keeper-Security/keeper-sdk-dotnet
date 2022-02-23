@@ -351,6 +351,10 @@ namespace KeeperSecurity.Vault
         {
             try
             {
+                if (string.IsNullOrEmpty(field.Type))
+                {
+                    field.Type = "text";
+                }
                 if (RecordTypesConstants.TryGetRecordField(field.Type, out var rf))
                 {
                     if (RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
