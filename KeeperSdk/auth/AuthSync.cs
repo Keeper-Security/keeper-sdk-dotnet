@@ -256,7 +256,11 @@ namespace KeeperSecurity.Authentication.Sync
                     return await OnConnected(context);
 
                 case LoginState.RequiresUsername:
-                    return await this.ResumeLogin(_loginContext, StartLoginSync, response.EncryptedLoginToken);
+                    if (!string.IsNullOrEmpty(Username))
+                    {
+                        return await this.ResumeLogin(_loginContext, StartLoginSync, response.EncryptedLoginToken);
+                    }
+                    break;
 
                 case LoginState.Requires2Fa:
                     return TwoFactorValidate(response.EncryptedLoginToken, response.Channels.ToArray());

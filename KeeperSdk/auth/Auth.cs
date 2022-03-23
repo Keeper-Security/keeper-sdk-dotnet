@@ -334,7 +334,7 @@ namespace KeeperSecurity.Authentication.Async
             Debug.WriteLine($"REST Request: endpoint \"start_login\": {request}");
 #endif
 
-            var rs = await Endpoint.ExecuteRest("authentication/start_login", new ApiRequestPayload {Payload = request.ToByteString()});
+            var rs = await Endpoint.ExecuteRest("authentication/start_login", new ApiRequestPayload { Payload = request.ToByteString() });
             var response = LoginResponse.Parser.ParseFrom(rs);
 #if DEBUG
             Debug.WriteLine($"REST Response: endpoint \"start_login\": {response}");
@@ -361,7 +361,11 @@ namespace KeeperSecurity.Authentication.Async
                     return context;
 
                 case LoginState.RequiresUsername:
-                    return await ResumeLogin(v3, response.EncryptedLoginToken);
+                    if (!string.IsNullOrEmpty(Username))
+                    {
+                        return await ResumeLogin(v3, response.EncryptedLoginToken);
+                    }
+                    break;
 
                 case LoginState.Requires2Fa:
                     if (Ui != null)
