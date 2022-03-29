@@ -16,13 +16,13 @@ Additional development tools in Python and other languages is available at our [
 ### .Net SDK
 For source integration into your .Net code, please utilize the [KeeperSDK Library source code](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
 
-[User Guide] (https://docs.keeper.io/secrets-manager/commander-cli/using-commander/dotnet-powershell)
+[User Guide](https://docs.keeper.io/secrets-manager/commander-cli/using-commander/dotnet-powershell)
 
-[API documentation] (https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
+[API documentation](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
 
 ### Sample App
 For help with implementation of SDK features, please see the 
-* [Sample App] (https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Sample). Sample application.
+* [Sample App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Sample). Sample application.
 * [Commander CLI App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Commander).  This application contains several basic operations such as logging in, authentication with two-factor, loading and decrypting the vault and updating passwords.
 
 ### Developer Requirements for KeeperSDK Library
