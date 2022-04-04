@@ -451,7 +451,7 @@ namespace KeeperSecurity.Vault
         Task UploadAttachment(KeeperRecord record, IAttachmentUploadTask uploadTask);
 
         /// <summary>
-        /// Downloads and decrypts file attachment.
+        /// Deletes file attachment.
         /// </summary>
         /// <param name="record">Keeper record.</param>
         /// <param name="attachmentId">Attachment ID</param>
