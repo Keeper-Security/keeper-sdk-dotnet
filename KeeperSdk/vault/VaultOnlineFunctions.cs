@@ -10,7 +10,6 @@ using Google.Protobuf;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace KeeperSecurity.Vault
 {
@@ -646,20 +645,27 @@ namespace KeeperSecurity.Vault
                 SharedFolderUid = string.IsNullOrEmpty(folder.SharedFolderUid) ? null : folder.SharedFolderUid,
             };
 
-            var existingRecord = vault.Storage.Folders.GetEntity(folderUid);
-            var data = string.IsNullOrEmpty(existingRecord?.Data)
-                ? new FolderData()
-                : JsonUtils.ParseJson<FolderData>(existingRecord.Data.Base64UrlDecode());
-            data.name = folderName;
-            var dataBytes = JsonUtils.DumpJson(data);
-
-            var encryptionKey = vault.Auth.AuthContext.DataKey;
-            if (folder.FolderType == FolderType.SharedFolderFolder)
+            FolderData data = null;
+            try
             {
-                encryptionKey = vault.GetSharedFolder(folder.SharedFolderUid).SharedFolderKey;
+                var existingFolder = vault.Storage.Folders.GetEntity(folderUid);
+                if (folder.FolderKey != null && !string.IsNullOrEmpty(existingFolder?.Data))
+                {
+                    data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
+                }
+            }
+            catch
+            {
+                // ignored
             }
 
-            request.Data = CryptoUtils.EncryptAesV1(dataBytes, encryptionKey).Base64UrlEncode();
+            if (data == null)
+            {
+                data = new FolderData();
+            }
+            data.name = folderName;
+            var dataBytes = JsonUtils.DumpJson(data);
+            request.Data = CryptoUtils.EncryptAesV1(dataBytes, folder.FolderKey).Base64UrlEncode();
 
             if (folder.FolderType != FolderType.UserFolder)
             {
@@ -678,17 +684,17 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            if (sharedFolderOptions != null && folder.FolderType == FolderType.SharedFolder)
+            if (folder.FolderType == FolderType.SharedFolder)
             {
-                if (!vault.TryGetSharedFolder(folder.FolderUid, out var sharedFolder))
-                {
-                    request.Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(folderName), sharedFolder.SharedFolderKey).Base64UrlEncode();
-                }
+                request.Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(folderName), folder.FolderKey).Base64UrlEncode();
 
-                request.ManageUsers = sharedFolderOptions.ManageUsers;
-                request.ManageRecords = sharedFolderOptions.ManageRecords;
-                request.CanEdit = sharedFolderOptions.CanEdit;
-                request.CanShare = sharedFolderOptions.CanShare;
+                if (sharedFolderOptions != null)
+                {
+                    request.ManageUsers = sharedFolderOptions.ManageUsers;
+                    request.ManageRecords = sharedFolderOptions.ManageRecords;
+                    request.CanEdit = sharedFolderOptions.CanEdit;
+                    request.CanShare = sharedFolderOptions.CanShare;
+                }
             }
 
             await vault.Auth.ExecuteAuthCommand(request);

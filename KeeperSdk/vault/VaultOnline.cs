@@ -237,12 +237,24 @@ namespace KeeperSecurity.Vault
         public Task<FolderNode> RenameFolder(string folderUid, string newName)
         {
             var folder = this.GetFolder(folderUid);
-            if (string.IsNullOrEmpty(folder.ParentUid))
+            if (folder == null)
             {
-                throw new VaultException("Cannot rename the root folder");
+                throw new VaultException($"Folder \"{folderUid}\" does not exist");
             }
 
             return this.FolderUpdate(folder.FolderUid, newName);
+        }
+
+        /// <inheritdoc/>>
+        public Task<FolderNode> UpdateFolder(string folderUid, string newName, SharedFolderOptions sharedFolderOptions = null)
+        {
+            var folder = this.GetFolder(folderUid);
+            if (folder == null)
+            {
+                throw new VaultException($"Folder \"{folderUid}\" does not exist");
+            }
+
+            return this.FolderUpdate(folder.FolderUid, newName, sharedFolderOptions);
         }
 
         /// <inheritdoc/>>
