@@ -127,10 +127,18 @@ namespace Commander
                         Action = RemoveFolderCommand
                     });
 
+                Commands.Add("update-dir",
+                    new ParsableCommand<UpdateFolderOptions>
+                    {
+                        Order = 25,
+                        Description = "Update folder",
+                        Action = UpdateFolderCommand
+                    });
+
                 Commands.Add("mv",
                     new ParsableCommand<MoveOptions>
                     {
-                        Order = 25,
+                        Order = 26,
                         Description = "Move record or folder",
                         Action = MoveCommand
                     });
@@ -138,7 +146,7 @@ namespace Commander
                 Commands.Add("rm",
                     new ParsableCommand<RemoveRecordOptions>
                     {
-                        Order = 26,
+                        Order = 27,
                         Description = "Remove record(s)",
                         Action = RemoveRecordCommand
                     });
@@ -146,7 +154,7 @@ namespace Commander
                 Commands.Add("download-attachment",
                     new ParsableCommand<DownloadAttachmentOptions>
                     {
-                        Order = 27,
+                        Order = 28,
                         Description = "Download Attachment(s)",
                         Action = DownloadAttachmentCommand
                     });
@@ -154,7 +162,7 @@ namespace Commander
                 Commands.Add("upload-attachment",
                     new ParsableCommand<UploadAttachmentOptions>
                     {
-                        Order = 28,
+                        Order = 29,
                         Description = "Upload file attachment",
                         Action = UploadAttachmentCommand
                     });
@@ -1354,6 +1362,29 @@ namespace Commander
             }
         }
 
+        private async Task UpdateFolderCommand(UpdateFolderOptions options)
+        {
+            if (TryResolvePath(options.FolderName, out var folder))
+            {
+                SharedFolderOptions sharedFolderOptions = null;
+                if (folder.FolderType == FolderType.SharedFolder)
+                {
+                    sharedFolderOptions = new SharedFolderOptions
+                    {
+                        ManageRecords = options.ManageRecords,
+                        ManageUsers = options.ManageUsers,
+                        CanEdit = options.CanEdit,
+                        CanShare = options.CanShare,
+                    };
+                }
+
+                await _vault.UpdateFolder(folder.FolderUid, options.NewName, sharedFolderOptions);
+            }
+            else
+            {
+                Console.WriteLine($"Invalid folder path: {options.FolderName}");
+            }
+        }
 
         private async Task ThisDeviceCommand(ThisDeviceOptions arguments)
         {
@@ -2466,6 +2497,24 @@ namespace Commander
     {
         [Value(0, Required = true, MetaName = "folder name", HelpText = "folder name")]
         public string FolderName { get; set; }
+    }
+
+    class UpdateFolderOptions : FolderOptions
+    {
+        [Option("manage-users", Required = false, Default = null, HelpText = "default manage users")]
+        public bool? ManageUsers { get; set; }
+
+        [Option("manage-records", Required = false, Default = null, HelpText = "default manage records")]
+        public bool? ManageRecords { get; set; }
+
+        [Option("can-share", Required = false, Default = null, HelpText = "default can share")]
+        public bool? CanShare { get; set; }
+
+        [Option("can-edit", Required = false, Default = null, HelpText = "default can edit")]
+        public bool? CanEdit { get; set; }
+
+        [Option("name", Required = false, Default = null, HelpText = "new folder folder")]
+        public string NewName { get; set; }
     }
 
     class MakeFolderOptions : FolderOptions

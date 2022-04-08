@@ -660,12 +660,10 @@ namespace KeeperSecurity.Vault
                 };
                 try
                 {
-                    byte[] data = null;
                     if (folder.FolderType == "user_folder")
                     {
                         node.FolderType = FolderType.UserFolder;
-                        var key = CryptoUtils.DecryptAesV1(folder.FolderKey.Base64UrlDecode(), ClientKey);
-                        data = CryptoUtils.DecryptAesV1(folder.Data.Base64UrlDecode(), key);
+                        node.FolderKey = CryptoUtils.DecryptAesV1(folder.FolderKey.Base64UrlDecode(), ClientKey);
                     }
                     else
                     {
@@ -682,13 +680,13 @@ namespace KeeperSecurity.Vault
                                     node.ParentUid = node.SharedFolderUid;
                                 }
 
-                                var key = CryptoUtils.DecryptAesV1(folder.FolderKey.Base64UrlDecode(),
+                                node.FolderKey = CryptoUtils.DecryptAesV1(folder.FolderKey.Base64UrlDecode(),
                                     sf.SharedFolderKey);
-                                data = CryptoUtils.DecryptAesV1(folder.Data.Base64UrlDecode(), key);
                             }
                             else
                             {
                                 node.Name = sf.Name;
+                                node.FolderKey = sf.SharedFolderKey;
                             }
                         }
                         else
@@ -698,8 +696,9 @@ namespace KeeperSecurity.Vault
                         }
                     }
 
-                    if (data != null)
+                    if (!string.IsNullOrEmpty(folder.Data) && node.FolderKey != null)
                     {
+                        var data = CryptoUtils.DecryptAesV1(folder.Data.Base64UrlDecode(), node.FolderKey);
                         var serializer = new DataContractJsonSerializer(typeof(FolderData));
                         using (var stream = new MemoryStream(data))
                         {

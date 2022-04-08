@@ -274,6 +274,15 @@ namespace KeeperSecurity.Vault
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task<FolderNode> RenameFolder(string folderUid, string newName);
         /// <summary>
+        /// Renames a folder.
+        /// </summary>
+        /// <param name="folderUid">Folder UID.</param>
+        /// <param name="newName">New folder name.</param>
+        /// <param name="sharedFolderOptions">Shared Folder creation options. Optional.</param>
+        /// <returns>A task returning renamed folder.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        Task<FolderNode> UpdateFolder(string folderUid, string newName, SharedFolderOptions sharedFolderOptions = null);
+        /// <summary>
         /// Moves a folder to the another folder.
         /// </summary>
         /// <param name="srcFolderUid">Source Folder UID.</param>
@@ -1263,6 +1272,11 @@ namespace KeeperSecurity.Vault
         /// A UID list of records.
         /// </summary>
         public IList<string> Records { get; } = new List<string>();
+
+        /// <summary>
+        /// Folder key
+        /// </summary>
+        public byte[] FolderKey { get; internal set; }
     }
 
     /// <summary>
