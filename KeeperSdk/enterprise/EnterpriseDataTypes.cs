@@ -196,24 +196,10 @@ namespace KeeperSecurity.Enterprise
         where TD2 : IComparable<TD2>
     {
 
-        private readonly Comparer<TS> comp1;
-        private readonly Comparer<TS> comp2;
-
         protected readonly List<TS> _links = new List<TS>();
 
         public EnterpriseDataLink(EnterpriseDataEntity dataEntity) : base(dataEntity)
         {
-            comp1 = Comparer<TS>.Create((x, y) => {
-                var x1 = GetEntity1Id(x);
-                var y1 = GetEntity1Id(y);
-                return x1.CompareTo(y1);
-            });
-
-            comp2 = Comparer<TS>.Create((x, y) => {
-                var x2 = GetEntity2Id(x);
-                var y2 = GetEntity2Id(y);
-                return x2.CompareTo(y2);
-            });
         }
 
         protected abstract TD1 GetEntity1Id(TS keeperData);
