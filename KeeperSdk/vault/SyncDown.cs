@@ -64,7 +64,7 @@ namespace KeeperSecurity.Vault
                         .Select(recordUid => UidLink.Create(recordUid, storage.PersonalScopeUid)));
 
                 var recordLinks = rs.removedRecords
-                    .SelectMany(x => storage.RecordKeys.GetLinksForSubject(x), (s, md) => md)
+                    .SelectMany(x => storage.RecordKeys.GetLinksForObject(x), (s, md) => md)
                     .Cast<IUidLink>()
                     .ToArray();
                 result.AddRecords(recordLinks.Select(x => x.ObjectUid));
@@ -225,7 +225,7 @@ namespace KeeperSecurity.Vault
                     .ToArray();
 
 
-                if (affectedTeams.Any() || affectedLinks.Any())
+                if (affectedTeams.Any() || affectedUsers.Any())
                 {
                     storage.SharedFolderPermissions.DeleteLinks(affectedTeams.Concat(affectedUsers));
                 }
