@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Enterprise;
 using KeeperSecurity.Authentication;
@@ -12,10 +14,12 @@ namespace KeeperSecurity.Enterprise
         IEnumerable<EnterpriseManagedCompany> ManagedCompanies { get; }
     }
 
+
+
     /// <summary>
     /// Represends Managed Companies enterprise data.
     /// </summary>
-    public class ManagedCompanyData : EnterpriseDataPlugin, IManagedCompanyData
+    public partial class ManagedCompanyData : EnterpriseDataPlugin, IManagedCompanyData
     {
         private readonly ManagedCompanyDictionary _managedCompanies;
         public ManagedCompanyData()
@@ -32,10 +36,21 @@ namespace KeeperSecurity.Enterprise
         /// Get a list of all managed companies in the enterprise.
         /// </summary>
         public IEnumerable<EnterpriseManagedCompany> ManagedCompanies => _managedCompanies.Entities;
+
+        /// <exclude />
+        public const string BusinessLicense = "business";
+        /// <exclude />
+        public const string BusinessPlusLicense = "businessPlus";
+        /// <exclude />
+        public const string EnterpriseLicense = "enterprise";
+        /// <exclude />
+        public const string EnterprisePlusLicense = "enterprisePlus";
+
+
     }
 
     /// <exclude />
-    public class ManagedCompanyDictionary : EnterpriseDataDictionary<int, ManagedCompany, EnterpriseManagedCompany>
+    public class ManagedCompanyDictionary : EnterpriseDataDictionary<int, ManagedCompany, EnterpriseManagedCompany>, IGetEnterprise
     {
         public ManagedCompanyDictionary() : base(EnterpriseDataEntity.ManagedCompanies)
         {
@@ -59,7 +74,33 @@ namespace KeeperSecurity.Enterprise
             sdk.NumberOfUsers = keeper.NumberOfUsers;
             sdk.ParentNodeId = keeper.MspNodeId;
             sdk.IsExpired = keeper.IsExpired;
+            sdk.FilePlanType = keeper.FilePlanType;
+            sdk.TreeKeyRole = keeper.TreeKeyRole;
+            var treeKeyEncoded = keeper.TreeKey;
+            if (!string.IsNullOrEmpty(treeKeyEncoded))
+            {
+                try
+                {
+                    var enterprise = GetEnterprise?.Invoke();
+                    if (enterprise?.TreeKey != null)
+                    {
+                        sdk.TreeKey = CryptoUtils.DecryptAesV2(treeKeyEncoded.Base64UrlDecode(), enterprise.TreeKey);
+                    }
+                }
+                catch { }
+            }
+            sdk.AddOns = keeper.AddOns.Select(x => new ManagedCompanyLicenseAddOn
+            {
+                Name = x.Name,
+                Seats = x.Seats,
+                IsEnabled = x.Enabled,
+                IsTrial = x.IsTrial,
+                Expiration = x.Expiration,
+                Creation = x.Created,
+                Activation = x.ActivationTime,
+            }).ToArray();
         }
+        public Func<IEnterpriseLoader> GetEnterprise { get; set; }
     }
 
     /// <exclude />

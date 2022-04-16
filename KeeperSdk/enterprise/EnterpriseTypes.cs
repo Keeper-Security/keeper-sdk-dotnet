@@ -276,6 +276,47 @@ namespace KeeperSecurity.Enterprise
     }
 
     /// <summary>
+    ///     Represends Managed Company Add-On
+    /// </summary>
+    public class ManagedCompanyLicenseAddOn
+    {
+        /// <summary>
+        ///     Add-On name
+        /// </summary>
+        public string Name { get; internal set; }
+
+        /// <summary>
+        ///     Is Add-On enabled
+        /// </summary>
+        public bool IsEnabled { get; internal set; }
+
+        /// <summary>
+        ///     Is Add-On trial
+        /// </summary>
+        public bool IsTrial { get; internal set; }
+
+        /// <summary>
+        /// Number of Seats
+        /// </summary>
+        public int Seats { get; internal set; }
+
+        /// <summary>
+        /// Add-On expiration time. UNIX epoch
+        /// </summary>
+        public long Expiration { get; internal set; }
+
+        /// <summary>
+        /// Add-On creation time. UNIX epoch
+        /// </summary>
+        public long Creation { get; internal set; }
+
+        /// <summary>
+        /// Add-On activation time. UNIX epoch
+        /// </summary>
+        public long Activation { get; internal set; }
+    }
+
+    /// <summary>
     ///     Represents Enterprise Managed Company.
     /// </summary>
     public class EnterpriseManagedCompany : IParentNodeEntity
@@ -306,6 +347,11 @@ namespace KeeperSecurity.Enterprise
         public int NumberOfUsers { get; internal set; }
 
         /// <summary>
+        ///     File / Storage Plan Type
+        /// </summary>
+        public string FilePlanType { get; internal set; }
+
+        /// <summary>
         ///     Is Managed Company Expired
         /// </summary>
         public bool IsExpired { get; internal set; }
@@ -313,7 +359,15 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         ///     Node that owns the managed company.
         /// </summary>
-        public long ParentNodeId { get; set; }
+        public long ParentNodeId { get; internal set; }
+
+        public ManagedCompanyLicenseAddOn[] AddOns { get; internal set; }
+
+        /// <exclude />
+        public long TreeKeyRole { get; internal set; }
+
+        /// <exclude />
+        public byte[] TreeKey { get; internal set; }
     }
 
     /// <summary>

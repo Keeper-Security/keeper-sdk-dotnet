@@ -148,7 +148,7 @@ namespace Commander
             }
         }
 
-        private static EnterpriseNode ResolveNodeName(this EnterpriseData enterpriseData, string nodeName)
+        internal static EnterpriseNode ResolveNodeName(this EnterpriseData enterpriseData, string nodeName)
         {
             if (nodeName.All(x => char.IsDigit(x)))
             {
@@ -1547,7 +1547,7 @@ namespace Commander
         }
     }
 
-    public partial class ConnectedContext: IEnterpriseContext
+    public partial class ConnectedContext : IEnterpriseContext
     {
         public EnterpriseLoader Enterprise { get; private set; }
         public EnterpriseData EnterpriseData { get; private set; }
@@ -1596,10 +1596,31 @@ namespace Commander
                                     Description = "List managed companies",
                                     Action = ListManagedCompanies,
                                 });
-                            Commands.Add("mc-login",
-                                new ParsableCommand<EnterpriseMcLoginOptions>
+                            Commands.Add("mc-create",
+                                new ParsableCommand<ManagedCompanyCreateOptions>
                                 {
-                                    Order = 71,
+                                    Order = 72,
+                                    Description = "Create managed company",
+                                    Action = CreateManagedCompany,
+                                });
+                            Commands.Add("mc-update",
+                                new ParsableCommand<ManagedCompanyUpdateOptions>
+                                {
+                                    Order = 73,
+                                    Description = "Updates managed company",
+                                    Action = UpdateManagedCompany,
+                                });
+                            Commands.Add("mc-delete",
+                                new ParsableCommand<ManagedCompanyRemoveOptions>
+                                {
+                                    Order = 74,
+                                    Description = "Removes managed company",
+                                    Action = RemoveManagedCompany,
+                                });
+                            Commands.Add("mc-login",
+                                new ParsableCommand<ManagedCompanyLoginOptions>
+                                {
+                                    Order = 79,
                                     Description = "Login to managed company",
                                     Action = LoginToManagedCompany,
                                 });
@@ -1640,7 +1661,7 @@ namespace Commander
             return false;
         }
 
-        private async Task LoginToManagedCompany(EnterpriseMcLoginOptions options)
+        private async Task LoginToManagedCompany(ManagedCompanyLoginOptions options)
         {
             var mcAuth = new ManagedCompanyAuth();
             await mcAuth.LoginToManagedCompany(Enterprise, options.CompanyId);
@@ -1653,7 +1674,7 @@ namespace Commander
             tab.AddHeader("Company Name", "Company ID", "License", "# Seats", "# Users", "Paused");
             foreach (var mc in _managedCompanies.ManagedCompanies)
             {
-                tab.AddRow(mc.EnterpriseName, mc.EnterpriseId, mc.ProductId, 
+                tab.AddRow(mc.EnterpriseName, mc.EnterpriseId, mc.ProductId,
                     mc.NumberOfSeats, mc.NumberOfUsers, mc.IsExpired ? "Yes" : "");
             }
             tab.Sort(0);
@@ -1661,7 +1682,151 @@ namespace Commander
             tab.Dump();
             return Task.CompletedTask;
         }
+
+        private async Task CreateManagedCompany(ManagedCompanyCreateOptions options)
+        {
+            var nodeId = this.EnterpriseData.RootNode.Id;
+            if (!string.IsNullOrEmpty(options.Node))
+            {
+                var n = EnterpriseData.ResolveNodeName(options.Node);
+                nodeId = n.Id;
+            }
+            switch (options.Plan)
+            {
+                case ManagedCompanyData.BusinessLicense:
+                case ManagedCompanyData.BusinessPlusLicense:
+                case ManagedCompanyData.EnterpriseLicense:
+                case ManagedCompanyData.EnterprisePlusLicense:
+                    break;
+                default:
+                    Console.WriteLine($"Invalid license plan: {options.Plan}. Supported plans are business, businessPlus, enterprise, enterprisePlus");
+                    return;
+
+            }
+
+            var mcOptions = new ManagedCompanyOptions 
+            { 
+                NodeId = nodeId,
+                ProductId = options.Plan,
+                NumberOfSeats = options.Seats,
+                Name = options.Name,
+            };
+            var mc = await _managedCompanies.CreateManagedCompany( mcOptions);
+            Console.WriteLine($"Managed Company \"{mc.EnterpriseName}\", ID:{mc.EnterpriseId} has been created.");
+        }
+
+
+        private async Task UpdateManagedCompany(ManagedCompanyUpdateOptions options)
+        {
+            int companyId = -1;
+            int.TryParse(options.Company, out companyId);
+
+            var mc = _managedCompanies.ManagedCompanies.FirstOrDefault(x =>
+            {
+                if (companyId > 0)
+                {
+                    if (companyId == x.EnterpriseId)
+                    {
+                        return true;
+                    }
+                }
+
+                return string.Equals(x.EnterpriseName, options.Company, StringComparison.InvariantCultureIgnoreCase);
+            });
+
+            if (mc == null)
+            {
+                Console.WriteLine($"Managed company {options.Company} not found.");
+            }
+            var mcOptions = new ManagedCompanyOptions();
+
+            if (!string.IsNullOrEmpty(options.Node))
+            {
+                var n = EnterpriseData.ResolveNodeName(options.Node);
+                mcOptions.NodeId = n.Id;
+            }
+            if (!string.IsNullOrEmpty(options.Plan))
+            {
+                switch (options.Plan)
+                {
+                    case ManagedCompanyData.BusinessLicense:
+                    case ManagedCompanyData.BusinessPlusLicense:
+                    case ManagedCompanyData.EnterpriseLicense:
+                    case ManagedCompanyData.EnterprisePlusLicense:
+                        break;
+                    default:
+                        Console.WriteLine($"Invalid license plan: {options.Plan}. Supported plans are business, businessPlus, enterprise, enterprisePlus");
+                        return;
+                }
+                mcOptions.ProductId = options.Plan;
+            }
+            if (!string.IsNullOrEmpty(options.Name))
+            {
+                mcOptions.Name = options.Name;
+            }
+            if (!string.IsNullOrEmpty(options.Seats))
+            {
+                char action = '=';
+                var seatAction = options.Seats;
+                if (seatAction[0] == '+' || seatAction[0] == '-')
+                {
+                    action = seatAction[0];
+                    seatAction = seatAction.Remove(0, 1);
+                }
+                if (!int.TryParse(seatAction, out var seats))
+                {
+                    Console.WriteLine($"Invalid number of seats: {options.Seats}.");
+                    return;
+                }
+                switch (action)
+                {
+                    case '+':
+                        seats += mc.NumberOfSeats;
+                        break;
+                    case '-':
+                        seats = mc.NumberOfSeats - seats;
+                        if (seats < 0)
+                        {
+                            seats = 0;
+                        }
+                        break;
+                }
+                mcOptions.NumberOfSeats = seats;
+            }
+            var mc1 = await _managedCompanies.UpdateManagedCompany(mc.EnterpriseId, mcOptions);
+            Console.WriteLine($"Managed Company \"{mc1.EnterpriseName}\", ID:{mc1.EnterpriseId} has been updated.");
+        }
+
+        private async Task RemoveManagedCompany(ManagedCompanyRemoveOptions options)
+        {
+            int companyId = -1;
+            int.TryParse(options.Company, out companyId);
+
+            var mc = _managedCompanies.ManagedCompanies.FirstOrDefault(x =>
+            {
+                if (companyId > 0)
+                {
+                    if (companyId == x.EnterpriseId)
+                    {
+                        return true;
+                    }
+                }
+
+                return string.Equals(x.EnterpriseName, options.Company, StringComparison.InvariantCultureIgnoreCase);
+            });
+
+            if (mc != null)
+            {
+                await _managedCompanies.RemoveManagedCompany(mc.EnterpriseId);
+                Console.WriteLine($"Managed Company \"{mc.EnterpriseName}\", ID:{mc.EnterpriseId} has been removed.");
+            }
+            else
+            {
+                Console.WriteLine($"Managed company {options.Company} not found.");
+            }
+        }
     }
+
     class EnterpriseGenericOptions
     {
         [Option('f', "force", Required = false, Default = false, HelpText = "force reload enterprise data")]
@@ -1789,10 +1954,48 @@ namespace Commander
         public string SharedFolderUid { get; set; }
     }
 
-    class EnterpriseMcLoginOptions : EnterpriseGenericOptions
+    class ManagedCompanyLoginOptions : EnterpriseGenericOptions
     {
         [Value(0, Required = true, HelpText = "mc-login <mc-company-id>")]
         public int CompanyId { get; set; }
     }
-    
+
+    class ManagedCompanyRemoveOptions : EnterpriseGenericOptions
+    {
+        [Value(0, Required = true, HelpText = "Managed company name or ID")]
+        public string Company { get; set; }
+    }
+
+    class ManagedCompanyCreateOptions : EnterpriseGenericOptions
+    {
+        [Option("node", Required = false, HelpText = "Node Name or ID.")]
+        public string Node { get; set; }
+
+        [Option("seats", Required = true, HelpText = "Number of seats.")]
+        public int Seats { get; set; }
+
+        [Option("plan", Required = true, HelpText = "License Plan: business, businessPlus, enterprise, enterprisePlus")]
+        public string Plan { get; set; }
+
+        [Value(0, Required = true, HelpText = "Managed Company Name")]
+        public string Name { get; set; }
+    }
+
+    class ManagedCompanyUpdateOptions : EnterpriseGenericOptions
+    {
+        [Option("node", Required = false, HelpText = "Node Name or ID.")]
+        public string Node { get; set; }
+
+        [Option("seats", Required = false, HelpText = "Number of seats.")]
+        public string Seats { get; set; }
+
+        [Option("plan", Required = false, HelpText = "Change License Plan: business, businessPlus, enterprise, enterprisePlus")]
+        public string Plan { get; set; }
+
+        [Option("name", Required = false, HelpText = "New Managed Company Name.")]
+        public string Name { get; set; }
+
+        [Value(0, Required = true, HelpText = "Managed company name or ID")]
+        public string Company { get; set; }
+    }
 }
