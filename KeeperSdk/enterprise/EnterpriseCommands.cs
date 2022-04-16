@@ -416,12 +416,98 @@ namespace KeeperSecurity.Commands
         {
         }
 
-        [DataMember(Name = "lock", EmitDefaultValue = false)] 
+        [DataMember(Name = "lock", EmitDefaultValue = false)]
         public string Lock { get; set; }  // one of: locked, disabled, unlocked
 
         [DataMember(Name = "delete_if_pending", EmitDefaultValue = false)]
         public bool? DeleteIfPending { get; set; }
     }
 
+    [DataContract]
+    public class MspAddon
+    {
+        [DataMember(Name = "seats")]
+        public int Seats { get; set; }
 
+        [DataMember(Name = "add_on")]
+        public string AddOn { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseManagedCompanyByMspCommand : AuthenticatedCommand
+    {
+        public EnterpriseManagedCompanyByMspCommand(string command) : base(command)
+        {
+        }
+
+        [DataMember(Name = "enterprise_name")]
+        public string EnterpriseName { get; set; }
+
+        [DataMember(Name = "node_id", EmitDefaultValue = false)]
+        public long? NodeId { get; set; }
+
+        [DataMember(Name = "product_id")]
+        public string ProductId { get; set; }
+
+        [DataMember(Name = "seats")]
+        public int Seats { get; set; }
+
+        [DataMember(Name = "file_plan_type", EmitDefaultValue = false)]
+        public string FilePlanType { get; set; }
+
+        [DataMember(Name = "add_ons", EmitDefaultValue = false)]
+        public MspAddon[] AddOns { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseRegistrationByMspCommand : EnterpriseManagedCompanyByMspCommand
+    {
+        public EnterpriseRegistrationByMspCommand() : base("enterprise_registration_by_msp")
+        {
+        }
+
+        [DataMember(Name = "role_data")]
+        public string RoleData { get; set; }
+
+        [DataMember(Name = "root_node")]
+        public string RootNode { get; set; }
+
+        [DataMember(Name = "encrypted_tree_key")]
+        public string EncryptedTreeKey { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseUpdateByMspCommand : EnterpriseManagedCompanyByMspCommand
+    {
+        public EnterpriseUpdateByMspCommand() : base("enterprise_update_by_msp")
+        {
+        }
+
+        [DataMember(Name = "enterprise_id")]
+        public int EnterpriseId { get; set; }
+
+        [DataMember(Name = "notification", EmitDefaultValue = false)]
+        public int Notification { get; set; }
+
+        [DataMember(Name = "price", EmitDefaultValue = false)]
+        public string Price { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseManagedCompanyByMspResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "enterprise_id")]
+        public int EnterpriseId { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseRemoveByMspCommand : AuthenticatedCommand
+    {
+        public EnterpriseRemoveByMspCommand() : base("enterprise_remove_by_msp")
+        {
+        }
+
+        [DataMember(Name = "enterprise_id")]
+        public int EnterpriseId { get; set; }
+    }
 }
