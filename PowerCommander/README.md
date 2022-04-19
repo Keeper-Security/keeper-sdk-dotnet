@@ -6,23 +6,34 @@ To install the PowerCommander module copy PowerCommander\ directory to
 
 ### Cmdlets
 
-| Cmdlet name               | Alias  | Description
-|---------------------------|--------|----------------------------
-| Connect-Keeper            | kc     | Login to Keeper server
-| Sync-Keeper               | ks     | Sync with Keeper server 
-| Disconnect-Keeper         |        | Logout and clear the data
-| Get-KeeperLocation        | kpwd   | Print current Keeper folder
-| Set-KeeperLocation        | kcd    | Change Keeper folder
-| Get-KeeperChildItems      | kdir   | Display subfolder and record names in the current Keeper folder
-| Get-KeeperRecords         | kr     | Enumerate all records
-| Get-KeeperSharedFolders   | ksf    | Enumerate all shared folders
-| Add-KeeperRecord          | kadd   | Add/Modify Keeper record
-| Remove-KeeperRecord       | kdel   | Delete Keeper record
-| Add-KeeperFolder          | kmkdir | Create Keeper Folder
-| Remove-KeeperFolder       | krmdir | Remove Keeper Folder
-| Move-RecordToFolder       | kmv    | Move owned record to Keeper folder
-| Copy-KeeperToClipboard    | kcc    | Copy record password to clipboard
-| Show-TwoFactorCode        | 2fa    | Display Two Factor Code 
+| Cmdlet name                 | Alias  | Description
+|-----------------------------|--------|----------------------------
+| Connect-Keeper              | kc     | Login to Keeper server
+| Sync-Keeper                 | ks     | Sync with Keeper server 
+| Disconnect-Keeper           |        | Logout and clear the data
+| Get-KeeperLocation          | kpwd   | Print current Keeper folder
+| Set-KeeperLocation          | kcd    | Change Keeper folder
+| Get-KeeperChildItems        | kdir   | Display subfolder and record names in the current Keeper folder
+| Get-KeeperRecords           | kr     | Enumerate all records
+| Get-KeeperSharedFolders     | ksf    | Enumerate all shared folders
+| Add-KeeperRecord            | kadd   | Add/Modify Keeper record
+| Remove-KeeperRecord         | kdel   | Delete Keeper record
+| Add-KeeperFolder            | kmkdir | Create Keeper Folder
+| Remove-KeeperFolder         | krmdir | Remove Keeper Folder
+| Move-RecordToFolder         | kmv    | Move owned record to Keeper folder
+| Copy-KeeperToClipboard      | kcc    | Copy record password to clipboard
+| Show-TwoFactorCode          | 2fa    | Display Two Factor Code 
+
+### Enterprise Cmdlets
+| Cmdlet name                 | Alias  | Description
+|-----------------------------|--------|----------------------------
+| Sync-KeeperEnterprise       | ked    | Sync Keeper enterprise information
+| Get-KeeperEnterpriseNodes   | ken    | Enumerate all enterprise nodes
+| Get-KeeperEnterpriseUsers   | keu    | Enumerate all enterprise users
+| Get-KeeperManagedCompanies  | kmc    | Enumerate all enterprise managed companies
+| New-KeeperManagedCompany    | kamc   | Create Managed Company
+| Remove-KeeperManagedCompany | krmc   | Remove Managed Company
+| Edit-KeeperManagedCompany   | kemc   | Edit Managed Company
 
 
 #### Examples

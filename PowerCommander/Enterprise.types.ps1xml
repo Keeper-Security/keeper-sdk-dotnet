@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Types>
+  <Type>
+    <Name>KeeperSecurity.Enterprise.EnterpriseUser</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>NodeName</Name>
+        <GetScriptBlock>
+          Get-KeeperNodeName $this.ParentNodeId
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Enterprise.EnterpriseNode</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>ParentNodeName</Name>
+        <GetScriptBlock>
+          Get-KeeperNodeName $this.ParentNodeId
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Provisioning</Name>
+        <GetScriptBlock>
+          $provisioning = @()
+          if ($this.BridgeId -gt 0) {
+              $provisioning += "Bridge"
+          }
+          if ($this.ScimId -gt 0) {
+              $provisioning += "SCIM"
+          }
+          if ($this.SsoServiceProviderIds -and $this.SsoServiceProviderIds.Length -gt 0) {
+              $provisioning += "SSO"
+          }
+          $provisioning
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Enterprise.EnterpriseManagedCompany</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>ProductName</Name>
+        <GetScriptBlock>
+          Switch ($this.ProductId) {
+            "business" {"Business"}
+            "businessPlus" {"Business Plus"}
+            "enterprise" {"Enterprise"}
+            "enterprisePlus" {"Enterprise Plus"}
+            Default {$this.ProductId}
+          }
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>ParentNodeName</Name>
+        <GetScriptBlock>
+          Get-KeeperNodeName $this.ParentNodeId
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+</Types>

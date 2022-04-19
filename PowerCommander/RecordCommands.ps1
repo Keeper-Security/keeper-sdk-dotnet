@@ -231,7 +231,6 @@ function Show-TwoFactorCode {
 		$output | Format-Table
 	}
 }
-
 New-Alias -Name 2fa -Value Show-TwoFactorCode
 
 function Add-KeeperRecord {
@@ -526,7 +525,7 @@ function Move-RecordToFolder {
 		}
 	}
 	End {
-		$_ = $vault.MoveRecords($sourceRecords, $folderUid, $Link.IsPresent).GetAwaiter().GetResult()
+		$vault.MoveRecords($sourceRecords, $folderUid, $Link.IsPresent).GetAwaiter().GetResult() | Out-Null
 	}
 }
 New-Alias -Name kmv -Value Move-RecordToFolder
