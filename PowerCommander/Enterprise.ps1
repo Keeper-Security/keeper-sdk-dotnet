@@ -42,6 +42,17 @@ function Get-KeeperEnterpriseNodes {
 }
 New-Alias -Name ken -Value Get-KeeperEnterpriseNodes
 
+function Get-KeeperMspLicenses {
+    <#
+        .Synopsis
+    	Get the list of MSP licenses
+    #>
+    [CmdletBinding()]
+    [Enterprise]$enterprise = getMspEnterprise
+    $enterprise.enterpriseData.EnterpriseLicense.MspPool
+}
+New-Alias -Name kmspl -Value Get-KeeperMspLicenses
+
 function Get-KeeperManagedCompanies {
     <#
         .Synopsis

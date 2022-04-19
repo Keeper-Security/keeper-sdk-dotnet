@@ -63,4 +63,23 @@
       </ScriptProperty>
     </Members>
   </Type>
+
+  <Type>
+    <Name>Enterprise.MspPool</Name>
+    <Members>
+      <AliasProperty>
+        <Name>PlanId</Name>
+        <ReferencedMemberName>ProductId</ReferencedMemberName>
+      </AliasProperty>    
+      <AliasProperty>
+        <Name>AvailableLicenses</Name>
+        <ReferencedMemberName>AvailableSeats</ReferencedMemberName>
+      </AliasProperty>    
+      <AliasProperty>
+        <Name>TotalLicenses</Name>
+        <ReferencedMemberName>Seats</ReferencedMemberName>
+      </AliasProperty>    
+    </Members>
+  </Type>
+
 </Types>

@@ -1589,31 +1589,38 @@ namespace Commander
 
                         if (!string.IsNullOrEmpty(EnterpriseData.EnterpriseLicense?.LicenseStatus) && EnterpriseData.EnterpriseLicense.LicenseStatus.StartsWith("msp"))
                         {
-                            Commands.Add("mc-list",
+                            Commands.Add("msp-license",
                                 new SimpleCommand
                                 {
                                     Order = 70,
+                                    Description = "Display MSP licenses.",
+                                    Action = ListMspLicenses,
+                                });
+                            Commands.Add("mc-list",
+                                new SimpleCommand
+                                {
+                                    Order = 72,
                                     Description = "List managed companies",
                                     Action = ListManagedCompanies,
                                 });
                             Commands.Add("mc-create",
                                 new ParsableCommand<ManagedCompanyCreateOptions>
                                 {
-                                    Order = 72,
+                                    Order = 73,
                                     Description = "Create managed company",
                                     Action = CreateManagedCompany,
                                 });
                             Commands.Add("mc-update",
                                 new ParsableCommand<ManagedCompanyUpdateOptions>
                                 {
-                                    Order = 73,
+                                    Order = 74,
                                     Description = "Updates managed company",
                                     Action = UpdateManagedCompany,
                                 });
                             Commands.Add("mc-delete",
                                 new ParsableCommand<ManagedCompanyRemoveOptions>
                                 {
-                                    Order = 74,
+                                    Order = 75,
                                     Description = "Removes managed company",
                                     Action = RemoveManagedCompany,
                                 });
@@ -1668,6 +1675,24 @@ namespace Commander
             NextState = new McEnterpriseContext(mcAuth);
         }
 
+        private Task ListMspLicenses(string _)
+        {
+            var tab = new Tabulate(4);
+            tab.AddHeader("Plan Id", "Available Licenses", "Total Licenses", "Stash");
+            foreach (var plan in EnterpriseData.EnterpriseLicense.MspPool)
+            {
+                tab.AddRow(plan.ProductId, plan.AvailableSeats, plan.Seats, plan.Stash);
+            }
+            tab.Sort(0);
+            tab.DumpRowNo = true;
+            tab.SetColumnRightAlign(1, true);
+            tab.SetColumnRightAlign(2, true);
+            tab.SetColumnRightAlign(3, true);
+            Console.WriteLine();
+            tab.Dump();
+            return Task.CompletedTask;
+        }
+
         private Task ListManagedCompanies(string _)
         {
             var tab = new Tabulate(6);
@@ -1679,6 +1704,8 @@ namespace Commander
             }
             tab.Sort(0);
             tab.DumpRowNo = true;
+            tab.SetColumnRightAlign(3, true);
+            tab.SetColumnRightAlign(4, true);
             tab.Dump();
             return Task.CompletedTask;
         }
