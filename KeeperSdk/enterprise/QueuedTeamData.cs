@@ -9,12 +9,18 @@ using KeeperEnterpriseData = Enterprise.EnterpriseData;
 
 namespace KeeperSecurity.Enterprise
 {
+    /// <summary>
+    ///     Defines Queued Team storage
+    /// </summary>
     public interface IQueuedTeamData
     {
         IEnumerable<EnterpriseQueuedTeam> QueuedTeams { get; }
         IEnumerable<long> GetQueuedUsersForTeam(string teamUid);
     }
 
+    /// <summary>
+    ///     Represents Queued Team
+    /// </summary>
     public class EnterpriseQueuedTeam : IParentNodeEntity, IEncryptedData
     {
         public string Uid { get; internal set; }
@@ -24,11 +30,17 @@ namespace KeeperSecurity.Enterprise
         public string EncryptedData { get; internal set; }
     }
 
+    /// <summary>
+    /// Represents Queued Team Enterprise Plugin
+    /// </summary>
     public class QueuedTeamData : EnterpriseDataPlugin, IQueuedTeamData
     {
         private readonly QueuedTeamDictionary _queuedTeams;
         private readonly QueuedUserDictionary _queuedUsers;
 
+        /// <summary>
+        /// Instantiates <see cref="QueuedTeamData"/> instance.
+        /// </summary>
         public QueuedTeamData() : base()
         {
             _queuedTeams = new QueuedTeamDictionary();
@@ -37,11 +49,23 @@ namespace KeeperSecurity.Enterprise
             Entities = new IKeeperEnterpriseEntity[] { _queuedTeams, _queuedUsers };
         }
 
+        /// <exclude />
         public override IEnumerable<IKeeperEnterpriseEntity> Entities { get; }
 
+        /// <summary>
+        /// Gets list of all queued teams
+        /// </summary>
         public IEnumerable<EnterpriseQueuedTeam> QueuedTeams => _queuedTeams.Entities;
+        /// <summary>
+        /// Gets the number of all queued teams in the enterprise.
+        /// </summary>
         public int QueuedTeamCount => _queuedTeams.Count;
 
+        /// <summary>
+        /// Gets Gets a list of user IDs for specified queued team.
+        /// </summary>
+        /// <param name="teamUid">Queued Team UID</param>
+        /// <returns>A list of user IDs</returns>
         public IEnumerable<long> GetQueuedUsersForTeam(string teamUid)
         {
             if (_queuedUsers.TryGetMembers(teamUid, out var users))
@@ -52,6 +76,7 @@ namespace KeeperSecurity.Enterprise
         }
     }
 
+    /// <exclude />
     public class QueuedTeamDictionary : EnterpriseDataDictionary<string, QueuedTeam, EnterpriseQueuedTeam>, IGetEnterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
@@ -78,6 +103,7 @@ namespace KeeperSecurity.Enterprise
         }
     }
 
+    /// <exclude />
     public class QueuedUserDictionary : KeeperEnterpriseDataEntity<QueuedTeamUser>, IGetEnterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }

@@ -8,11 +8,13 @@ using KeeperEnterpriseData = Enterprise.EnterpriseData;
 
 namespace KeeperSecurity.Enterprise
 {
+    /// <exclude />
     public interface IUserAliasData
     {
         IEnumerable<string> GetAliasesForUser(long userId);
     }
 
+    /// <exclude />
     public class UserAliasData : EnterpriseDataPlugin, IUserAliasData
     {
         private readonly EnterpriseUserAliasDictionary _aliases = new EnterpriseUserAliasDictionary();
@@ -33,6 +35,7 @@ namespace KeeperSecurity.Enterprise
         public override IEnumerable<IKeeperEnterpriseEntity> Entities { get; }
     }
 
+    /// <exclude />
     public class EnterpriseUserAliasDictionary : KeeperEnterpriseDataEntity<UserAlias>, IGetEnterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
