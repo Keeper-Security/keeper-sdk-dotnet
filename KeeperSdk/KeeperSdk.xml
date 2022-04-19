@@ -2878,6 +2878,46 @@
                 Node that owns the team.
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Enterprise.ManagedCompanyLicenseAddOn">
+            <summary>
+                Represends Managed Company Add-On
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyLicenseAddOn.Name">
+            <summary>
+                Add-On name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyLicenseAddOn.IsEnabled">
+            <summary>
+                Is Add-On enabled
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyLicenseAddOn.IsTrial">
+            <summary>
+                Is Add-On trial
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyLicenseAddOn.Seats">
+            <summary>
+            Number of Seats
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyLicenseAddOn.Expiration">
+            <summary>
+            Add-On expiration time. UNIX epoch
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyLicenseAddOn.Creation">
+            <summary>
+            Add-On creation time. UNIX epoch
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyLicenseAddOn.Activation">
+            <summary>
+            Add-On activation time. UNIX epoch
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseManagedCompany">
             <summary>
                 Represents Enterprise Managed Company.
@@ -2908,6 +2948,11 @@
                 Number of Users
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.FilePlanType">
+            <summary>
+                File / Storage Plan Type
+            </summary>
+        </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.IsExpired">
             <summary>
                 Is Managed Company Expired
@@ -2917,6 +2962,12 @@
             <summary>
                 Node that owns the managed company.
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.TreeKeyRole">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseManagedCompany.TreeKey">
+            <exclude />
         </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseException">
             <summary>
@@ -2942,10 +2993,134 @@
             Get a list of all managed companies in the enterprise.
             </summary>
         </member>
+        <member name="F:KeeperSecurity.Enterprise.ManagedCompanyData.BusinessLicense">
+            <exclude />
+        </member>
+        <member name="F:KeeperSecurity.Enterprise.ManagedCompanyData.BusinessPlusLicense">
+            <exclude />
+        </member>
+        <member name="F:KeeperSecurity.Enterprise.ManagedCompanyData.EnterpriseLicense">
+            <exclude />
+        </member>
+        <member name="F:KeeperSecurity.Enterprise.ManagedCompanyData.EnterprisePlusLicense">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.ManagedCompanyData.CreateManagedCompany(KeeperSecurity.Enterprise.ManagedCompanyOptions)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.ManagedCompanyData.UpdateManagedCompany(System.Int32,KeeperSecurity.Enterprise.ManagedCompanyOptions)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.ManagedCompanyData.RemoveManagedCompany(System.Int32)">
+            <inheritdoc/>
+        </member>
         <member name="T:KeeperSecurity.Enterprise.ManagedCompanyDictionary">
             <exclude />
         </member>
         <member name="T:KeeperSecurity.Enterprise.ManagedCompanyAuth">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.ManagedCompanyOptions">
+            <summary>
+            Represends Managed Companies create/update options
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyOptions.Name">
+            <summary>
+                Managed Company Name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyOptions.NodeId">
+            <summary>
+                Enterprise Node ID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyOptions.ProductId">
+            <summary>
+                Managed Company Product ID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyOptions.NumberOfSeats">
+            <summary>
+                Number of Seats
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.ManagedCompanyOptions.FilePlanType">
+            <summary>
+                File/Storage Plan
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IMspManagement">
+            <summary>
+            Defines Managed Company actions
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IMspManagement.CreateManagedCompany(KeeperSecurity.Enterprise.ManagedCompanyOptions)">
+            <summary>
+            Creates Managed Company
+            </summary>
+            <param name="options">Company options</param>
+            <returns>Created managed company</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IMspManagement.UpdateManagedCompany(System.Int32,KeeperSecurity.Enterprise.ManagedCompanyOptions)">
+            <summary>
+            Updates Managed Company
+            </summary>
+            <param name="companyId">Managed Company ID</param>
+            <param name="options">Company options</param>
+            <returns>Updated managed company</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IMspManagement.RemoveManagedCompany(System.Int32)">
+            <summary>
+            Removes Managed Company
+            </summary>
+            <param name="companyId">Managed Company ID</param>
+            <returns></returns>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IQueuedTeamData">
+            <summary>
+                Defines Queued Team storage
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseQueuedTeam">
+            <summary>
+                Represents Queued Team
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.QueuedTeamData">
+            <summary>
+            Represents Queued Team Enterprise Plugin
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.QueuedTeamData.#ctor">
+            <summary>
+            Instantiates <see cref="T:KeeperSecurity.Enterprise.QueuedTeamData"/> instance.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.QueuedTeamData.Entities">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.QueuedTeamData.QueuedTeams">
+            <summary>
+            Gets list of all queued teams
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.QueuedTeamData.QueuedTeamCount">
+            <summary>
+            Gets the number of all queued teams in the enterprise.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.QueuedTeamData.GetQueuedUsersForTeam(System.String)">
+            <summary>
+            Gets Gets a list of user IDs for specified queued team.
+            </summary>
+            <param name="teamUid">Queued Team UID</param>
+            <returns>A list of user IDs</returns>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.QueuedTeamDictionary">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.QueuedUserDictionary">
             <exclude />
         </member>
         <member name="T:KeeperSecurity.Enterprise.IRoleData">
@@ -3043,6 +3218,15 @@
         </member>
         <member name="T:KeeperSecurity.Enterprise.RolePrivilegesList">
             <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.IUserAliasData">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.UserAliasData">
+            <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Enterprise.EnterpriseUserAliasDictionary">
+            <exclude />
         </member>
         <member name="T:KeeperSecurity.Utils.CredentialManager">
             <exclude />
@@ -3669,6 +3853,9 @@
             <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.RenameFolder(System.String,System.String)">
+            <inheritdoc/>>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.UpdateFolder(System.String,System.String,KeeperSecurity.Vault.SharedFolderOptions)">
             <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteFolder(System.String)">
@@ -4786,58 +4973,58 @@
             <param name="storage">Vault storage.</param>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.RecordCount">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.KeeperRecords">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultData.TryGetKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.SharedFolderCount">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.SharedFolders">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultData.TryGetSharedFolder(System.String,KeeperSecurity.Vault.SharedFolder@)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.TeamCount">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.Teams">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultData.TryGetTeam(System.String,KeeperSecurity.Vault.Team@)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.Folders">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultData.TryGetFolder(System.String,KeeperSecurity.Vault.FolderNode@)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultData.LoadNonSharedData``1(System.String)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.RootFolder">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.Storage">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.ClientKey">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.RecordTypesSupported">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.RecordTypes">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultData.TryGetRecordTypeByName(System.String,KeeperSecurity.Vault.RecordType@)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.VaultDataExtensions">
             <exclude/>
@@ -5255,6 +5442,16 @@
             <returns>A task returning renamed folder.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
         </member>
+        <member name="M:KeeperSecurity.Vault.IVault.UpdateFolder(System.String,System.String,KeeperSecurity.Vault.SharedFolderOptions)">
+            <summary>
+            Renames a folder.
+            </summary>
+            <param name="folderUid">Folder UID.</param>
+            <param name="newName">New folder name.</param>
+            <param name="sharedFolderOptions">Shared Folder creation options. Optional.</param>
+            <returns>A task returning renamed folder.</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+        </member>
         <member name="M:KeeperSecurity.Vault.IVault.MoveFolder(System.String,System.String,System.Boolean)">
             <summary>
             Moves a folder to the another folder.
@@ -5439,7 +5636,7 @@
         </member>
         <member name="M:KeeperSecurity.Vault.IVaultFileAttachment.DeleteAttachment(KeeperSecurity.Vault.KeeperRecord,System.String)">
             <summary>
-            Downloads and decrypts file attachment.
+            Deletes file attachment.
             </summary>
             <param name="record">Keeper record.</param>
             <param name="attachmentId">Attachment ID</param>
@@ -6094,6 +6291,11 @@
         <member name="P:KeeperSecurity.Vault.FolderNode.Records">
             <summary>
             A UID list of records.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FolderNode.FolderKey">
+            <summary>
+            Folder key
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.IRecordAccessPath">

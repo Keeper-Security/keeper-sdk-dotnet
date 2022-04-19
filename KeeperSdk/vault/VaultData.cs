@@ -85,11 +85,11 @@ namespace KeeperSecurity.Vault
             };
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public int RecordCount => keeperRecords.Count;
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public IEnumerable<KeeperRecord> KeeperRecords => keeperRecords.Values;
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool TryGetKeeperRecord(string recordUid, out KeeperRecord record)
         {
             return keeperRecords.TryGetValue(recordUid, out record);
@@ -108,38 +108,38 @@ namespace KeeperSecurity.Vault
             return false;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public int SharedFolderCount => keeperSharedFolders.Count;
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public IEnumerable<SharedFolder> SharedFolders => keeperSharedFolders.Values;
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool TryGetSharedFolder(string sharedFolderUid, out SharedFolder sharedFolder)
         {
             return keeperSharedFolders.TryGetValue(sharedFolderUid, out sharedFolder);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public int TeamCount => keeperTeams.Count;
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public IEnumerable<Team> Teams => keeperTeams.Values;
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool TryGetTeam(string teamUid, out Team team)
         {
             return keeperTeams.TryGetValue(teamUid, out team);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public IEnumerable<FolderNode> Folders => keeperFolders.Values;
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool TryGetFolder(string folderUid, out FolderNode node)
         {
             return keeperFolders.TryGetValue(folderUid, out node);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public T LoadNonSharedData<T>(string recordUid)
             where T : RecordNonSharedData, new()
         {
@@ -158,7 +158,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public FolderNode RootFolder => rootFolder;
 
         protected readonly ConcurrentDictionary<string, KeeperRecord> keeperRecords =
@@ -175,13 +175,13 @@ namespace KeeperSecurity.Vault
 
         protected readonly FolderNode rootFolder;
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public IKeeperStorage Storage { get; }
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public byte[] ClientKey { get; }
 
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool RecordTypesSupported => RecordTypeStorage != null;
         private IKeeperRecordTypeStorage _recordTypeStorage;
         internal IKeeperRecordTypeStorage RecordTypeStorage
@@ -197,10 +197,10 @@ namespace KeeperSecurity.Vault
         protected readonly ConcurrentDictionary<string, RecordType> keeperRecordTypes =
             new ConcurrentDictionary<string, RecordType>(StringComparer.InvariantCultureIgnoreCase);
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public IEnumerable<RecordType> RecordTypes => keeperRecordTypes.Values;
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool TryGetRecordTypeByName(string name, out RecordType recordType)
         {
             return keeperRecordTypes.TryGetValue(name, out recordType);

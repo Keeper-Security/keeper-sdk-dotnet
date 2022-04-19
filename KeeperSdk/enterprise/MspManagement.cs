@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace KeeperSecurity.Enterprise
 {
+    /// <summary>
+    /// Represends Managed Companies create/update options
+    /// </summary>
     public class ManagedCompanyOptions
     {
         /// <summary>
@@ -34,16 +37,36 @@ namespace KeeperSecurity.Enterprise
         public string FilePlanType { get; set; }
     }
 
+    /// <summary>
+    /// Defines Managed Company actions
+    /// </summary>
     public interface IMspManagement
     {
+        /// <summary>
+        /// Creates Managed Company
+        /// </summary>
+        /// <param name="options">Company options</param>
+        /// <returns>Created managed company</returns>
         Task<EnterpriseManagedCompany> CreateManagedCompany(ManagedCompanyOptions options);
+        /// <summary>
+        /// Updates Managed Company
+        /// </summary>
+        /// <param name="companyId">Managed Company ID</param>
+        /// <param name="options">Company options</param>
+        /// <returns>Updated managed company</returns>
         Task<EnterpriseManagedCompany> UpdateManagedCompany(int companyId, ManagedCompanyOptions options);
-        Task RemoveManagedCompany(int enterpriseId);
+        /// <summary>
+        /// Removes Managed Company
+        /// </summary>
+        /// <param name="companyId">Managed Company ID</param>
+        /// <returns></returns>
+        Task RemoveManagedCompany(int companyId);
     }
 
 
     public partial class ManagedCompanyData : IMspManagement
     {
+        /// <inheritdoc/>
         public async Task<EnterpriseManagedCompany> CreateManagedCompany(ManagedCompanyOptions options)
         {
             if (string.IsNullOrEmpty(options.Name))
@@ -80,6 +103,7 @@ namespace KeeperSecurity.Enterprise
             return ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == rs.EnterpriseId);
         }
 
+        /// <inheritdoc/>
         public async Task<EnterpriseManagedCompany> UpdateManagedCompany(int companyId, ManagedCompanyOptions options)
         {
             if (!_managedCompanies.TryGetEntity(companyId, out var mc))
@@ -103,11 +127,12 @@ namespace KeeperSecurity.Enterprise
         }
 
 
-        public async Task RemoveManagedCompany(int enterpriseId)
+        /// <inheritdoc/>
+        public async Task RemoveManagedCompany(int companyId)
         {
             var rq = new EnterpriseRemoveByMspCommand
             {
-                EnterpriseId = enterpriseId,
+                EnterpriseId = companyId,
             };
 
             await Enterprise.Auth.ExecuteAuthCommand(rq);
