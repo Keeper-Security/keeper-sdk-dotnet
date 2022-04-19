@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <ViewDefinitions>
+    <View>
+      <Name>KeeperSecurity.Enterprise.EnterpriseUser_TableView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Enterprise.EnterpriseUser</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>User</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Email</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Enterprise ID</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>DisplayName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Email</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Id</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>UserStatus</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Enterprise.EnterpriseUser_ListView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Enterprise.EnterpriseUser</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Enterprise Id</Label>
+                <PropertyName>Id</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>User</Label>
+                <PropertyName>DisplayName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>Email</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Status</Label>
+                <PropertyName>UserStatus</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Node ID</Label>
+                <PropertyName>ParentNodeId</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Node Name</Label>
+                <PropertyName>NodeName</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Enterprise.EnterpriseNode_TableView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Enterprise.EnterpriseNode</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Node ID</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Parent Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Isolated?</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Provisioning</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Id</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DisplayName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ParentNodeName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RestrictVisibility</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Provisioning</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Enterprise.EnterpriseNode_ListView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Enterprise.EnterpriseNode</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Node Id</Label>
+                <PropertyName>Id</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Name</Label>
+                <PropertyName>DisplayName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>Email</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Parent Node ID</Label>
+                <PropertyName>ParentNodeId</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Parent Node Name</Label>
+                <PropertyName>ParentNodeName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Isolated?</Label>
+                <PropertyName>RestrictVisibility</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>Provisioning</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Enterprise.EnterpriseManagedCompany_TableView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Enterprise.EnterpriseManagedCompany</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Company ID</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Company Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Plan Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Allocated</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Active</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>EnterpriseId</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>EnterpriseName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ProductName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>NumberOfSeats</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>NumberOfUsers</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Enterprise.EnterpriseManagedCompany_ListView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Enterprise.EnterpriseManagedCompany</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Company Id</Label>
+                <PropertyName>EnterpriseId</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Company Name</Label>
+                <PropertyName>EnterpriseName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Plan ID</Label>
+                <PropertyName>ProductId</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Plan</Label>
+                <PropertyName>ProductName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Seats Allocated</Label>
+                <PropertyName>NumberOfSeats</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Seats Used</Label>
+                <PropertyName>NumberOfUsers</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Parent Node Name</Label>
+                <PropertyName>ParentNodeName</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+  </ViewDefinitions>
+</Configuration>

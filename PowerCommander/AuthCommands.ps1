@@ -345,7 +345,7 @@ function Connect-Keeper {
 
     Disconnect-Keeper -Resume | Out-Null
 
-	$storage = New-Object Configuration.JsonConfigurationStorage
+	$storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
     if (-not $Server) {
         $Server = $storage.LastServer
         if ($Server) {
@@ -356,9 +356,10 @@ function Connect-Keeper {
     }
     
 
-	$endpoint = New-Object Authentication.KeeperEndpoint($Server, $storage.Servers)
+	$endpoint = New-Object KeeperSecurity.Authentication.KeeperEndpoint($Server, $storage.Servers)
     $endpoint.DeviceName = 'PowerShell Commander'
-    $authFlow = New-Object Authentication.Sync.AuthSync($storage, $endpoint)
+    $endpoint.ClientVersion = 'c16.1.0'
+    $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
 
     $authFlow.ResumeSession = $true
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
@@ -438,7 +439,7 @@ function Connect-Keeper {
         $Script:Auth = $auth
         Write-Debug -Message "Connected to Keeper as $Username"
 
-        $Script:Vault = New-Object Vault.VaultOnline($auth)
+        $Script:Vault = New-Object KeeperSecurity.Vault.VaultOnline($auth)
         $task = $Script:Vault.SyncDown()
         Write-Information -MessageData 'Syncing ...'
         $task.GetAwaiter().GetResult() | Out-Null
