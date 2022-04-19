@@ -123,9 +123,9 @@ namespace KeeperSecurity.Utils
                 var len = 0;
                 if (_header != null)
                 {
-                    if (_maxChars[i] < _header.Length)
+                    if (i < _header.Length)
                     {
-                        len = _header[i].Length;
+                        len = _header[i]?.Length ?? 0;
                     }
                 }
 

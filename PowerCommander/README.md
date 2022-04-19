@@ -27,6 +27,7 @@ To install the PowerCommander module copy PowerCommander\ directory to
 ### Enterprise Cmdlets
 | Cmdlet name                 | Alias  | Description
 |-----------------------------|--------|----------------------------
+| Get-KeeperMspLicenses       | kmspl  | Display MSP licenses
 | Sync-KeeperEnterprise       | ked    | Sync Keeper enterprise information
 | Get-KeeperEnterpriseNodes   | ken    | Enumerate all enterprise nodes
 | Get-KeeperEnterpriseUsers   | keu    | Enumerate all enterprise users
@@ -115,3 +116,13 @@ To install the PowerCommander module copy PowerCommander\ directory to
     PS > Get-KeeperChildItem -ObjectType Record | Move-RecordToFolder 'Shared Folder'
     ```
     copies all records in the current Keeper folder to the folder with name 'Shared Folder'
+
+8. List all enterprise users
+    ```
+    PS > Get-KeeperEnterpriseUsers
+    ```
+
+9. Create a new Managed Company
+    ```
+    PS> New-KeeperManagedCompany -Name "Company Name" -PlanId enterprisePlus -Allocated 5
+    ```
