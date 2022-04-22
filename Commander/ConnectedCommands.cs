@@ -2167,10 +2167,10 @@ namespace Commander
                     table.AddRow("Value Type:", valueType);
                     if (fieldInfo.Type != null)
                     {
-                        if (fieldInfo.Type.Elements.Length > 0)
+                        if (typeof(IFieldTypeSerialize).IsAssignableFrom(fieldInfo.Type.Type))
                         {
-                            table.AddRow("Value Elements:",
-                                string.Join(", ", fieldInfo.Type.Elements.Select(x => $"\"{x}\"")));
+                            IFieldTypeSerialize fts = (IFieldTypeSerialize) Activator.CreateInstance(fieldInfo.Type.Type);
+                            table.AddRow("Value Elements:", string.Join(", ", fts.Elements.Select(x => $"\"{x}\"")));
                         }
                     }
                 }

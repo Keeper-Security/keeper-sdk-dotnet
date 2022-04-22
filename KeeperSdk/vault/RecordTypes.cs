@@ -16,12 +16,11 @@ namespace KeeperSecurity.Vault
     public class FieldType
     {
         /// <exclude />
-        public FieldType(string name, Type type, string description, params string[] elements)
+        public FieldType(string name, Type type, string description)
         {
             Name = name;
             Type = type;
             Description = description;
-            Elements = elements;
         }
 
         /// <summary>
@@ -32,11 +31,6 @@ namespace KeeperSecurity.Vault
         /// Type description
         /// </summary>
         public string Description { get; }
-        /// <summary>
-        /// Complex type properties
-        /// </summary>
-        public string[] Elements { get; }
-
         /// <summary>
         /// .Net Type object
         /// </summary>
@@ -196,6 +190,10 @@ namespace KeeperSecurity.Vault
     public interface IFieldTypeSerialize
     {
         /// <summary>
+        /// Enumerates property names
+        /// </summary>
+        IEnumerable<string> Elements { get; }
+        /// <summary>
         /// Enumerates property values
         /// </summary>
         IEnumerable<string> ElementValues { get; }
@@ -232,7 +230,11 @@ namespace KeeperSecurity.Vault
         public string Port { get; set; }
 
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { HostName, Port};
+        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { HostName, Port };
+
+        private static readonly string[] HostElements = new[] { "hostName", "port" };
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => HostElements;
 
         /// <exclude />
         bool IFieldTypeSerialize.SetElementValue(string element, string value)
@@ -290,8 +292,13 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "type", EmitDefaultValue = true)]
         public string Type { get; set; }
 
+        private static readonly string[] PhoneElements = new[] { "region", "number", "ext", "type" };
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => PhoneElements;
+
         /// <exclude />
         IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { Region, Number, Ext, Type };
+
         /// <exclude />
         bool IFieldTypeSerialize.SetElementValue(string element, string value)
         {
@@ -351,6 +358,10 @@ namespace KeeperSecurity.Vault
         /// </summary>
         [DataMember(Name = "middle", EmitDefaultValue = true)]
         public string Middle { get; set; }
+
+        private static readonly string[] NameElements = new string[] { "first", "middle", "last" };
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => NameElements;
 
         /// <exclude />
         IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { First, Middle, Last };
@@ -432,8 +443,13 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "country", EmitDefaultValue = true)]
         public string Country { get; set; }
 
+        private static readonly string[] AddressElements = new string[] { "street1", "street2", "city", "state", "zip", "country" };
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => AddressElements;
+
         /// <exclude />
         IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { Street1, Street2, City, State, Zip, Country };
+
         /// <exclude />
         bool IFieldTypeSerialize.SetElementValue(string element, string value)
         {
@@ -495,8 +511,14 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "answer", EmitDefaultValue = true)]
         public string Answer { get; set; }
 
+        private static readonly string[] QAElements = new[] { "question", "answer" };
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => QAElements;
+
         /// <exclude />
         IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { Question, Answer };
+
+
         /// <exclude />
         bool IFieldTypeSerialize.SetElementValue(string element, string value)
         {
@@ -550,8 +572,13 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "accountNumber", EmitDefaultValue = true)]
         public string AccountNumber { get; set; }
 
+        private static readonly string[] AccountElements = new[] { "accountType", "routingNumber", "accountNumber" };
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => AccountElements;
+
         /// <exclude />
         IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { AccountType, RoutingNumber, AccountNumber };
+
         /// <exclude />
         bool IFieldTypeSerialize.SetElementValue(string element, string value)
         {
@@ -579,6 +606,7 @@ namespace KeeperSecurity.Vault
     /// "paymentCard" field type
     /// </summary>
     [DataContract]
+
     public class FieldTypePaymentCard : IFieldTypeSerialize
     {
         /// <exclude />
@@ -605,6 +633,10 @@ namespace KeeperSecurity.Vault
         /// </summary>
         [DataMember(Name = "cardSecurityCode", EmitDefaultValue = true)]
         public string CardSecurityCode { get; set; }
+
+        private static string[] CardElements = new[] { "cardNumber", "cardExpirationDate", "cardSecurityCode" };
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => CardElements;
 
         /// <exclude />
         IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { CardNumber, CardExpirationDate, CardSecurityCode };
@@ -655,6 +687,10 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "privateKey", EmitDefaultValue = true)]
         public string PrivateKey { get; set; }
 
+        private static string[] KeyPairElements = new[] { "publicKey", "privateKey" };
+        /// <exclude />
+        IEnumerable<string> IFieldTypeSerialize.Elements => KeyPairElements;
+
         /// <exclude />
         IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { PublicKey, PrivateKey };
 
@@ -701,21 +737,21 @@ namespace KeeperSecurity.Vault
                 new FieldType("multiline", typeof(string), "multiline text"),
                 new FieldType("fileRef", typeof(string), "reference to the file field on another record"),
                 new FieldType("email", typeof(string), "valid email address plus tag"),
-                new FieldType("host", typeof(FieldTypeHost), "multiple fields to capture host information", "hostName", "port"),
-                new FieldType("phone", typeof(FieldTypePhone), "numbers and symbols only plus tag", "region", "number", "ext", "type"),
-                new FieldType("name", typeof(FieldTypeName), "multiple fields to capture name", "first", "middle", "last"),
-                new FieldType("address", typeof(FieldTypeAddress), "multiple fields to capture address", "street1", "street2", "city", "state", "zip", "country"),
+                new FieldType("host", typeof(FieldTypeHost), "multiple fields to capture host information"),
+                new FieldType("phone", typeof(FieldTypePhone), "numbers and symbols only plus tag"),
+                new FieldType("name", typeof(FieldTypeName), "multiple fields to capture name"),
+                new FieldType("address", typeof(FieldTypeAddress), "multiple fields to capture address"),
                 new FieldType("addressRef", typeof(string), "reference to the address field on another record"),
                 new FieldType("cardRef", typeof(string), "reference to the card record type"),
                 new FieldType("secret", typeof(string), "the field value is masked"),
                 new FieldType("login", typeof(string), "Login field, detected as the website login for browser extension or KFFA."),
                 new FieldType("password", typeof(string), "Field value is masked and allows for generation. Also complexity enforcements."),
-                new FieldType("securityQuestion", typeof(FieldTypeSecurityQuestion), "Security Question and Answer", "Q", "A"),
+                new FieldType("securityQuestion", typeof(FieldTypeSecurityQuestion), "Security Question and Answer"),
                 new FieldType("otp", typeof(string), "captures the seed, displays QR code"),
-                new FieldType("paymentCard", typeof(FieldTypePaymentCard), "Field consisting of validated card number, expiration date and security code.", "cardNumber", "cardExpirationDate", "cardSecurityCode"),
+                new FieldType("paymentCard", typeof(FieldTypePaymentCard), "Field consisting of validated card number, expiration date and security code."),
                 new FieldType("date", typeof(long), "calendar date with validation, stored as unix milliseconds"),
-                new FieldType("bankAccount", typeof(FieldTypeBankAccount), "bank account information", "accountType", "routingNumber", "accountNumber"),
-                new FieldType("privateKey", typeof(FieldTypeKeyPair), "private and/or public keys in ASN.1 format", "publicKey", "privateKey"),
+                new FieldType("bankAccount", typeof(FieldTypeBankAccount), "bank account information"),
+                new FieldType("privateKey", typeof(FieldTypeKeyPair), "private and/or public keys in ASN.1 format"),
             };
 
             foreach (var t in types)
