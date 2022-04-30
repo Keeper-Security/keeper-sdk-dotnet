@@ -549,27 +549,19 @@ namespace Commander
                 if (record is PasswordRecord legacy)
                 {
                     tab.AddRow("Notes:", legacy.Notes);
-                    tab.AddRow("(login):", legacy.Login);
-                    tab.AddRow("(password):", legacy.Password);
-                    tab.AddRow("(url):", legacy.Link);
+                    tab.AddRow("$login:", legacy.Login);
+                    tab.AddRow("$password:", legacy.Password);
+                    tab.AddRow("$url:", legacy.Link);
+                    if (!string.IsNullOrEmpty(legacy.Totp)) 
+                    {
+                        tab.AddRow("$oneTimeCode:", legacy.Totp);
+                    }
                     if (legacy.Custom != null && legacy.Custom.Count > 0)
                     {
                         foreach (var c in legacy.Custom)
                         {
                             tab.AddRow(c.Name + ":", c.Value);
                         }
-                    }
-
-                    if (legacy.ExtraFields != null)
-                    {
-                        totps = legacy.ExtraFields
-                            .Where(x =>
-                                string.Equals(x.FieldType, "totp", StringComparison.InvariantCultureIgnoreCase) &&
-                                x.Custom != null)
-                            .Where(x => x.Custom.ContainsKey("data"))
-                            .Select(x => x.Custom["data"] as string)
-                            .Where(x => !string.IsNullOrEmpty(x))
-                            .ToList();
                     }
                 }
                 else if (record is TypedRecord typed)

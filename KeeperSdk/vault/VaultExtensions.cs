@@ -108,6 +108,45 @@ namespace KeeperSecurity.Vault
                 }
             }
 
+            List<Dictionary<string, object>> extraFields = new List<Dictionary<string, object>>();
+            if (existingExtra?.fields != null && existingExtra.fields.Length > 0)
+            {
+                extraFields.AddRange(existingExtra.fields);
+            }
+            Dictionary<string, object> totpField = extraFields.FirstOrDefault(x =>
+            {
+                if (x.TryGetValue("field_type", out var value))
+                {
+                    if (value is string field_type)
+                    {
+                        return string.Equals(field_type, "totp", StringComparison.InvariantCultureIgnoreCase);
+                    }
+                }
+                return false;
+            });
+
+            if (string.IsNullOrEmpty(record.Totp))
+            {
+                if (totpField != null)
+                {
+                    extraFields.Remove(totpField);
+                }
+            }
+            else
+            {
+                if (totpField == null)
+                {
+                    totpField = new Dictionary<string, object>
+                    {
+                        ["id"] = CryptoUtils.GetRandomBytes(8).Base64UrlEncode(),
+                        ["field_type"] = "totp",
+                        ["field_title"] = "",
+                        ["data"] = record.Totp,
+                    };
+                    extraFields.Add(totpField);
+                }
+            }
+
             return new RecordExtra
             {
                 files = record.Attachments?.Select(x =>
@@ -144,21 +183,7 @@ namespace KeeperSecurity.Vault
 
                     return extraFile;
                 }).ToArray(),
-                fields = record.ExtraFields?.Select(x =>
-                {
-                    var map = new Dictionary<string, object>
-                    {
-                        ["id"] = x.Id ?? "",
-                        ["field_type"] = x.FieldType ?? "",
-                        ["field_title"] = x.FieldTitle ?? ""
-                    };
-                    foreach (var pair in x.Custom.Where(pair => pair.Value != null))
-                    {
-                        map[pair.Key] = pair.Value;
-                    }
-
-                    return map;
-                }).ToArray(),
+                fields = extraFields.ToArray(),
                 ExtensionData = existingExtra?.ExtensionData
             };
         }
@@ -316,29 +341,26 @@ namespace KeeperSecurity.Vault
 
                     if (parsedExtra.fields != null)
                     {
-                        foreach (var field in parsedExtra.fields)
+                        var totpField = parsedExtra.fields.FirstOrDefault(x =>
                         {
-                            var fld = new ExtraField();
-                            foreach (var pair in field)
+                            if (x.TryGetValue("field_type", out var value))
                             {
-                                switch (pair.Key)
+                                if (value is string field_type)
                                 {
-                                    case "id":
-                                        fld.Id = pair.Value.ToString();
-                                        break;
-                                    case "field_type":
-                                        fld.FieldType = pair.Value.ToString();
-                                        break;
-                                    case "field_title":
-                                        fld.FieldTitle = pair.Value.ToString();
-                                        break;
-                                    default:
-                                        fld.Custom[pair.Key] = pair.Value;
-                                        break;
+                                    return string.Equals(field_type, "totp", StringComparison.InvariantCultureIgnoreCase);
                                 }
                             }
-
-                            record.ExtraFields.Add(fld);
+                            return false;
+                        });
+                        if (totpField != null)
+                        {
+                            if (totpField.TryGetValue("data", out var value))
+                            {
+                                if (value is string totpUrl)
+                                {
+                                    record.Totp = totpUrl;
+                                }
+                            }
                         }
                     }
                 }
