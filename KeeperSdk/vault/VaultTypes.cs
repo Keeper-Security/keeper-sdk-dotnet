@@ -850,6 +850,11 @@ namespace KeeperSecurity.Vault
         public string Link { get; set; }
 
         /// <summary>
+        /// TOTP URL.
+        /// </summary>
+        public string Totp { get; set; }
+
+        /// <summary>
         /// A list of Custom Fields.
         /// </summary>
         public IList<CustomField> Custom { get; } = new List<CustomField>();
@@ -858,11 +863,6 @@ namespace KeeperSecurity.Vault
         /// A list of Attachments.
         /// </summary>
         public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
-
-        /// <summary>
-        /// A list of Extra Fields.
-        /// </summary>
-        public IList<ExtraField> ExtraFields { get; } = new List<ExtraField>();
     }
 
     /// <summary>
