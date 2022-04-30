@@ -59,6 +59,9 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        /// <exclude />
+        public bool RecordTypesLoaded { get; set; } 
+
         /// <summary>
         /// Gets User Interaction interface.
         /// </summary>

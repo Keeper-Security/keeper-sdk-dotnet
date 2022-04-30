@@ -46,6 +46,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 typeof(ExternalSharedFolderPermission),
                 typeof(ExternalFolder),
                 typeof(ExternalFolderRecordLink),
+                typeof(ExternalRecordType),
                 typeof(InternalUserAccount),
                 typeof(InternalConfiguration),
             };

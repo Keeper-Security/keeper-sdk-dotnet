@@ -115,11 +115,6 @@ namespace KeeperSecurity.Vault
         T LoadNonSharedData<T>(string recordUid) where T : RecordNonSharedData, new();
 
         /// <summary>
-        /// Is record types supported
-        /// </summary>
-        bool RecordTypesSupported { get; }
-
-        /// <summary>
         /// Gets the list of all registered record types.
         /// </summary>
         IEnumerable<RecordType> RecordTypes { get; }
