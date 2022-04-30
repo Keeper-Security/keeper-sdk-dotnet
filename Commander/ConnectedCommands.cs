@@ -241,7 +241,9 @@ namespace Commander
 
                             var fullSync = _vault.Storage.Revision == 0;
                             Console.WriteLine("Syncing...");
+                            _vault.RecordTypesLoaded = false;
                             await _vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
+                            
 
                             if (fullSync)
                             {

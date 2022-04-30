@@ -180,40 +180,42 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public byte[] ClientKey { get; }
 
-
-        /// <inheritdoc/>
-        public bool RecordTypesSupported => RecordTypeStorage != null;
-        private IKeeperRecordTypeStorage _recordTypeStorage;
-        internal IKeeperRecordTypeStorage RecordTypeStorage
-        {
-            get => _recordTypeStorage;
-            set
-            {
-                _recordTypeStorage = value;
-                LoadRecordTypes();
-            }
-        }
-
-        protected readonly ConcurrentDictionary<string, RecordType> keeperRecordTypes =
+        protected readonly ConcurrentDictionary<string, RecordType> _keeperRecordTypes =
             new ConcurrentDictionary<string, RecordType>(StringComparer.InvariantCultureIgnoreCase);
 
+        protected readonly ConcurrentBag<RecordType> _customRecordTypes =
+            new ConcurrentBag<RecordType>();
+
         /// <inheritdoc/>
-        public IEnumerable<RecordType> RecordTypes => keeperRecordTypes.Values;
+        public IEnumerable<RecordType> RecordTypes => _keeperRecordTypes.Values.Concat(_customRecordTypes);
 
         /// <inheritdoc/>
         public bool TryGetRecordTypeByName(string name, out RecordType recordType)
         {
-            return keeperRecordTypes.TryGetValue(name, out recordType);
+            if (_keeperRecordTypes.TryGetValue(name, out recordType))
+            {
+                return true;
+            }
+            foreach (var rt in _customRecordTypes)
+            {
+                if (string.Equals(name, rt.Name, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    recordType = rt;
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void LoadRecordTypes()
         {
-            keeperRecordTypes.Clear();
+            _keeperRecordTypes.Clear();
+            while (!_customRecordTypes.IsEmpty)
+            {
+                _customRecordTypes.TryTake(out _);
+            }
 
-            var storage = _recordTypeStorage;
-            if (storage == null) return;
-
-            foreach (var field in storage.RecordTypes.GetAll())
+            foreach (var field in Storage.RecordTypes.GetAll())
             {
                 var content = JsonUtils.ParseJson<RecordTypeContent>(Encoding.UTF8.GetBytes(field.Content));
                 var recordType = new RecordType
@@ -238,8 +240,14 @@ namespace KeeperSecurity.Vault
                     .Where(x => x != null)
                     .ToArray(),
                 };
-
-                keeperRecordTypes.TryAdd(recordType.Name, recordType);
+                if (recordType.Scope == RecordTypeScope.Standard)
+                {
+                    _keeperRecordTypes.TryAdd(recordType.Name, recordType);
+                }
+                else if (recordType.Scope == RecordTypeScope.Enterprise)
+                {
+                    _customRecordTypes.Add(recordType);
+                }
             }
         }
 
@@ -615,6 +623,7 @@ namespace KeeperSecurity.Vault
         internal virtual void OnDataRebuilt()
         {
             BuildFolders();
+            LoadRecordTypes();
         }
 
         internal void BuildFolders()

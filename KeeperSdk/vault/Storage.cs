@@ -479,6 +479,11 @@ namespace KeeperSecurity.Vault
         IPredicateStorage<IFolderRecordLink> FolderRecords { get; } // FolderUid / RecordUid
 
         /// <summary>
+        /// Gets record type's entity storage
+        /// </summary>
+        IEntityStorage<IRecordType> RecordTypes { get; }
+
+        /// <summary>
         /// Clear offline Keeper vault storage.
         /// </summary>
         void Clear();
@@ -521,22 +526,6 @@ namespace KeeperSecurity.Vault
         /// </summary>
         string Content { get; }
     }
-
-    /// <summary>
-    /// Defines properties for offline record types storage.
-    /// </summary>
-    public interface IKeeperRecordTypeStorage
-    {
-        /// <summary>
-        /// Gets record type storage
-        /// </summary>
-        IEntityStorage<IRecordType> RecordTypes { get; }
-        /// <summary>
-        /// Clears storage
-        /// </summary>
-        void Clear();
-    }
-
 
     internal class InMemoryItemStorage<T> : IEntityStorage<T> where T : IUid
     {
@@ -711,6 +700,9 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public IPredicateStorage<IFolderRecordLink> FolderRecords { get; private set; }
 
+        public IEntityStorage<IRecordType> RecordTypes { get; private set; }
+
+
         /// <inheritdoc/>
         public void Clear()
         {
@@ -723,6 +715,7 @@ namespace KeeperSecurity.Vault
             SharedFolderPermissions = new InMemorySentenceStorage<ISharedFolderPermission>();
             Folders = new InMemoryItemStorage<IFolder>();
             FolderRecords = new InMemorySentenceStorage<IFolderRecordLink>();
+            RecordTypes = new InMemoryItemStorage<IRecordType>();
 
             Revision = 0;
         }
