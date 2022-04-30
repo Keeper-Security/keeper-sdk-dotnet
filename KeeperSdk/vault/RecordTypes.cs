@@ -1,12 +1,9 @@
-﻿using KeeperSecurity.Authentication;
-using KeeperSecurity.Utils;
-using Records;
+﻿using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
-using System.Threading.Tasks;
 
 namespace KeeperSecurity.Vault
 {
@@ -872,54 +869,34 @@ namespace KeeperSecurity.Vault
 
     internal class ApiRecordType : IRecordType
     {
+        private readonly string _uid;
         public ApiRecordType(Records.RecordType recordType)
         {
+            string scopeName;
             Id = recordType.RecordTypeId;
             switch (recordType.Scope)
             {
                 case Records.RecordTypeScope.RtStandard:
                     Scope = RecordTypeScope.Standard;
+                    scopeName = "standard";
                     break;
                 case Records.RecordTypeScope.RtEnterprise:
                     Scope = RecordTypeScope.Enterprise;
+                    scopeName = "enterprise";
                     break;
-                case Records.RecordTypeScope.RtUser:
+                default:
                     Scope = RecordTypeScope.User;
+                    scopeName = "user";
                     break;
             }
+            _uid = $"{scopeName}:{Id}";
             Content = recordType.Content;
         }
 
         public int Id { get; }
         public RecordTypeScope Scope { get; }
         public string Content { get; }
-
-        string IUid.Uid => Id.ToString();
-    }
-
-    /// <exclude />
-    public class KeeperRecordTypeStorage : IKeeperRecordTypeStorage
-    {
-        private InMemoryItemStorage<IRecordType> _recordTypes;
-        public async Task Load(IAuthentication auth)
-        {
-            Clear();
-            var rq = new RecordTypesRequest
-            {
-                Standard = true,
-                Enterprise = true,
-                User = true,
-            };
-            var rs = await auth.ExecuteAuthRest<RecordTypesRequest, RecordTypesResponse>("vault/get_record_types", rq);
-            _recordTypes.PutEntities(rs.RecordTypes.Select(x => new ApiRecordType(x)));
-        }
-
-        public IEntityStorage<IRecordType> RecordTypes => _recordTypes;
-
-        public void Clear()
-        {
-            _recordTypes = new InMemoryItemStorage<IRecordType>();
-        }
+        string IUid.Uid => _uid;
     }
 
     [DataContract]

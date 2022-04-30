@@ -266,6 +266,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             SharedFolderPermissions = new SqliteLinkStorage<ISharedFolderPermission, ExternalSharedFolderPermission>(getConnection, ownerId);
             Folders = new SqliteEntityStorage<IFolder, ExternalFolder>(getConnection, ownerId);
             FolderRecords = new SqliteLinkStorage<IFolderRecordLink, ExternalFolderRecordLink>(getConnection, ownerId);
+            RecordTypes = new SqliteEntityStorage<IRecordType, ExternalRecordType>(getConnection, ownerId);
 
             _userStorage = new SqliteRecordStorage<InternalUserAccount>(getConnection, ownerId);
         }
@@ -294,6 +295,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
         public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; }
         public IEntityStorage<IFolder> Folders { get; }
         public IPredicateStorage<IFolderRecordLink> FolderRecords { get; }
+        public IEntityStorage<IRecordType> RecordTypes { get; }
 
         public void Clear()
         {

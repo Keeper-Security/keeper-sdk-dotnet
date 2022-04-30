@@ -8,6 +8,7 @@ using System.Linq;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+using Records;
 
 namespace KeeperSecurity.Vault
 {
@@ -24,16 +25,6 @@ namespace KeeperSecurity.Vault
         internal static async Task RunSyncDown(this VaultOnline vault)
         {
             var auth = vault.Auth;
-            if (auth.AuthContext.Settings?.RecordTypesEnabled == true)
-            {
-                if (vault.RecordTypeStorage == null)
-                {
-                    var rtStorage = new KeeperRecordTypeStorage();
-                    await rtStorage.Load(auth);
-                    vault.RecordTypeStorage = rtStorage;
-                }
-            }
-
             var storage = vault.Storage;
             var context = vault.Auth.AuthContext;
             var clientKey = vault.ClientKey;
@@ -622,6 +613,26 @@ namespace KeeperSecurity.Vault
 
             storage.Revision = rs.revision;
             Debug.WriteLine("Sync Down: Process Leave");
+
+            if (auth.AuthContext.Settings?.RecordTypesEnabled == true && !vault.RecordTypesLoaded)
+            {
+                var existingRecordTypes = new HashSet<string>(storage.RecordTypes.GetAll().Select(x => x.Uid), StringComparer.InvariantCultureIgnoreCase);
+                var recordTypesRq = new RecordTypesRequest
+                {
+                    Standard = true,
+                    Enterprise = true,
+                    User = true,
+                };
+                var recordTypesRs = await auth.ExecuteAuthRest<RecordTypesRequest, RecordTypesResponse>("vault/get_record_types", recordTypesRq);
+                var recordTypes = recordTypesRs.RecordTypes.Select(x => new ApiRecordType(x)).ToArray();
+                existingRecordTypes.ExceptWith(recordTypes.Select(x => ((IRecordType) x).Uid));
+                if (existingRecordTypes.Count > 0)
+                {
+                    storage.RecordTypes.DeleteUids(existingRecordTypes);
+                }
+                storage.RecordTypes.PutEntities(recordTypes);
+                vault.RecordTypesLoaded = true;
+            }
 
             Debug.WriteLine("Rebuild Data: Enter");
             vault.RebuildData(result);
