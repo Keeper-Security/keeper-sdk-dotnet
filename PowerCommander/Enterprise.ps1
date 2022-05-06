@@ -1,7 +1,27 @@
-Class Enterprise {
-    [KeeperSecurity.Enterprise.EnterpriseLoader] $loader
-    [KeeperSecurity.Enterprise.EnterpriseData] $enterpriseData
-    [KeeperSecurity.Enterprise.ManagedCompanyData] $mspData
+function getEnterprise {
+    [KeeperSecurity.Authentication.IAuthentication] $auth = $Script:Context.Auth
+    if (-not $auth) {
+        Write-Error -Message "Not Connected" -ErrorAction Stop
+    }
+    if (-not $auth.AuthContext.IsEnterpriseAdmin) {
+        Write-Error -Message "Not an Enterprise Administrator" -ErrorAction Stop
+    }
+    $enterprise = $Script:Context.Enterprise
+    if (-not $enterprise) {
+        $enterprise = New-Object Enterprise
+
+        $enterprise.enterpriseData = New-Object KeeperSecurity.Enterprise.EnterpriseData
+        $enterprise.mspData = New-Object KeeperSecurity.Enterprise.ManagedCompanyData
+
+        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterprise.enterpriseData, $enterprise.mspData
+
+        $enterprise.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($auth, $plugins, $null)
+        $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
+
+        $Script:Context.Enterprise =  $enterprise
+    }
+
+    return $enterprise
 }
 
 function Sync-KeeperEnterprise {
@@ -29,6 +49,133 @@ function Get-KeeperEnterpriseUsers {
     return $enterprise.enterpriseData.Users
 }
 New-Alias -Name keu -Value Get-KeeperEnterpriseUsers
+
+
+$Keeper_ActiveUserCompleter = {
+	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+	$result = @()
+    [Enterprise]$enterprise = $Script:Context.Enterprise
+    if (-not $enterprise) {
+        return $null
+    }
+    if ($wordToComplete) {
+        $to_complete = '*' + $wordToComplete + '*'
+    } else {
+        $to_complete = '*'
+    }
+    foreach($user in $enterprise.enterpriseData.Users) {
+        if ($user.UserStatus -in @([KeeperSecurity.Enterprise.UserStatus]::Active,[KeeperSecurity.Enterprise.UserStatus]::Disabled,[KeeperSecurity.Enterprise.UserStatus]::Blocked)) {
+            if ($user.Email -like $to_complete) {
+                $result += $user.Email
+            }
+        }
+    }
+	if ($result.Count -gt 0) {
+		return $result
+	} else {
+		return $null
+	}
+}
+
+function Lock-KeeperEnterpriseUser {
+    <#
+        .Synopsis
+    	Locks Enterprise Users
+    	
+        .Parameter User
+	    User email, enterprise Id, or instance.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$User
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $userObject = resolveUser $enterprise.enterpriseData $User 
+    if ($userObject) {
+        $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $true).GetAwaiter().GetResult()
+        Write-Host "User `"$($saved.Email)`" was locked"
+    }
+}
+Register-ArgumentCompleter -CommandName Lock-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_ActiveUserCompleter
+New-Alias -Name keul -Value Lock-KeeperEnterpriseUser
+
+$Keeper_LockedUserCompleter = {
+	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+	$result = @()
+    [Enterprise]$enterprise = $Script:Context.Enterprise
+    if (-not $enterprise) {
+        return $null
+    }
+    if ($wordToComplete) {
+        $to_complete = '*' + $wordToComplete + '*'
+    } else {
+        $to_complete = '*'
+    }
+    foreach($user in $enterprise.enterpriseData.Users) {
+        if ($user.UserStatus -eq [KeeperSecurity.Enterprise.UserStatus]::Locked) {
+            if ($user.Email -like $to_complete) {
+                $result += $user.Email
+            }
+        }
+    }
+	if ($result.Count -gt 0) {
+		return $result
+	} else {
+		return $null
+	}
+}
+
+function Unlock-KeeperEnterpriseUser {
+    <#
+        .Synopsis
+    	Unlocks Enterprise Users
+    	
+        .Parameter User
+	    User email, enterprise Id, or instance.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$User
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $userObject = resolveUser $enterprise.enterpriseData $User
+    if ($userObject) {
+        $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $false).GetAwaiter().GetResult()
+        Write-Host "User `"$($saved.Email)`" was unlocked"
+    }
+}
+Register-ArgumentCompleter -CommandName Unlock-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_LockedUserCompleter
+New-Alias -Name keuu -Value Unlock-KeeperEnterpriseUser
+
+
+function resolveUser {
+    Param (
+        $enterpriseData,
+        $user
+    )
+    [KeeperSecurity.Enterprise.EnterpriseUser] $u = $null
+
+    if ($user -is [long]) {
+        if ($enterpriseData.TryGetUserById($user, [ref]$u)) {
+            return $u
+        }
+    }
+    elseif ($user -is [string]) {
+        if ($enterpriseData.TryGetUserByEmail($user, [ref]$u)) {
+            return $u
+        }
+    }
+    elseif ($user -is [KeeperSecurity.Enterprise.EnterpriseUser]) {
+        if ($enterpriseData.TryGetUserById($user.Id, [ref]$u)) {
+            return $u
+        }
+    }
+    Write-Host "`"${user}`" cannot be resolved as enterprise user"
+}
 
 function Get-KeeperEnterpriseNodes {
     <#
@@ -190,7 +337,7 @@ function Edit-KeeperManagedCompany {
 }
 New-Alias -Name kemc -Value Edit-KeeperManagedCompany
 
-function Get-KeeperNodeName {
+function Script:Get-KeeperNodeName {
 	Param (
 		[long]$nodeId
 	)
@@ -230,30 +377,4 @@ function getMspEnterprise {
         return $enterprise
     } 
     Write-Error -Message "Not a MSP (Managed Service Provider)" -ErrorAction Stop
-}
-
-function getEnterprise {
-    [KeeperSecurity.Authentication.IAuthentication] $auth = $Script:Auth
-    if (-not $auth) {
-        Write-Error -Message "Not Connected" -ErrorAction Stop
-    }
-    if (-not $auth.AuthContext.IsEnterpriseAdmin) {
-        Write-Error -Message "Not an Enterprise Administrator" -ErrorAction Stop
-    }
-    $enterprise = $Script:Enterprise
-    if (-not $enterprise) {
-        $enterprise = New-Object Enterprise
-
-        $enterprise.enterpriseData = New-Object KeeperSecurity.Enterprise.EnterpriseData
-        $enterprise.mspData = New-Object KeeperSecurity.Enterprise.ManagedCompanyData
-
-        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterprise.enterpriseData, $enterprise.mspData
-
-        $enterprise.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($auth, $plugins, $null)
-        $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
-
-        $Script:Enterprise =  $enterprise
-    }
-
-    return $enterprise
 }

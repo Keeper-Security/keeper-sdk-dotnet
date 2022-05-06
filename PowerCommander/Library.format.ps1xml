@@ -2,9 +2,9 @@
 <Configuration>
   <ViewDefinitions>
     <View>
-      <Name>KeeperSecurity.Authentication.Auth_TableView</Name>
+      <Name>KeeperSecurity.Authentication.AuthCommon_TableView</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Authentication.Auth</TypeName>
+        <TypeName>KeeperSecurity.Authentication.AuthCommon</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -26,7 +26,7 @@
                 <PropertyName>Username</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>if ($_.SessionToken) {$_.IsEnterpriseAdmin}</ScriptBlock>
+                <ScriptBlock>$_.AuthContext.IsEnterpriseAdmin</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>$_.Endpoint.Server</ScriptBlock>
@@ -38,9 +38,9 @@
     </View>
     
     <View>
-      <Name>KeeperSecurity.Authentication.Auth_ListView</Name>
+      <Name>KeeperSecurity.Authentication.AuthCommon_ListView</Name>
       <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Authentication.Auth</TypeName>
+        <TypeName>KeeperSecurity.Authentication.AuthCommon</TypeName>
       </ViewSelectedBy>
       <ListControl>
         <ListEntries>
@@ -51,13 +51,7 @@
               </ListItem>
               <ListItem>
                 <Label>Enterprise Admin</Label>
-                <ScriptBlock>if ($_.SessionToken) {$_.IsEnterpriseAdmin}</ScriptBlock>
-              </ListItem>
-              <ListItem>
-                <PropertyName>TwoFactorToken</PropertyName>
-              </ListItem>
-              <ListItem>
-                <PropertyName>SessionToken</PropertyName>
+                <ScriptBlock>$_.AuthContext.IsEnterpriseAdmin</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>Keeper Endpoint</Label>
@@ -244,11 +238,9 @@
               </ListItem>
               <ListItem>
                 <PropertyName>MimeType</PropertyName>
-                <Label>Mime Type</Label>
               </ListItem>
               <ListItem>
                 <PropertyName>FileSize</PropertyName>
-                <Label>File Size</Label>
               </ListItem>
             </ListItems>
           </ListEntry>
@@ -262,7 +254,7 @@
                 <PropertyName>Uid</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Record Type</Label>
+                <Label>RecordType</Label>
                 <PropertyName>TypeName</PropertyName>
               </ListItem>
               <ListItem>
@@ -272,11 +264,9 @@
                 <PropertyName>Notes</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Main Fields</Label>
                 <PropertyName>MainFields</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Custom Fields</Label>
                 <PropertyName>CustomFields</PropertyName>
               </ListItem>
               <ListItem>
@@ -337,21 +327,17 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader>
-            <Label>UID</Label>
-          </TableColumnHeader>
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
           <TableColumnHeader />
           <TableColumnHeader>
-            <Label>Manage Records</Label>
+            <Alignment>Right</Alignment>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>Manage Users</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Can Edit</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Can Share</Label>
+            <Alignment>Right</Alignment>
           </TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -375,6 +361,12 @@
               <TableColumnItem>
                 <PropertyName>DefaultCanShare</PropertyName>
               </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>UserCount</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RecordCount</PropertyName>
+              </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>
@@ -391,33 +383,141 @@
           <ListEntry>
             <ListItems>
               <ListItem>
-                <Label>UID</Label>
                 <PropertyName>Uid</PropertyName>
               </ListItem>
               <ListItem>
                 <PropertyName>Name</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Manage Records</Label>
                 <PropertyName>DefaultManageRecords</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Manage Users</Label>
                 <PropertyName>DefaultManageUsers</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Can Edit</Label>
                 <PropertyName>DefaultCanEdit</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Can Share</Label>
                 <PropertyName>DefaultCanShare</PropertyName>
               </ListItem>
               <ListItem>
                 <PropertyName>Users</PropertyName>
               </ListItem>
               <ListItem>
-                <PropertyName>Records</PropertyName>
+                <PropertyName>RecordCount</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Vault.FolderNode_TableView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Vault.FolderNode</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>FolderUid</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FolderType</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>ParentUid</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>SubfolderCount</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RecordCount</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Vault.RecordSharePermissions_TableView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Vault.RecordSharePermissions</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap />
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>RecordUid</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RecordTitle</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Owner</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Users</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Folders</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Vault.RecordSharePermissions_ListView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Vault.RecordSharePermissions</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <PropertyName>RecordUid</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>RecordTitle</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>Owner</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>UserShares</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>FolderShares</PropertyName>
               </ListItem>
             </ListItems>
           </ListEntry>

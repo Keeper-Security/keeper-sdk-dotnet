@@ -2,6 +2,16 @@
 
 $Script:PathDelimiter = [System.IO.Path]::DirectorySeparatorChar
 
+function getVault {
+    if (-not $Script:Context.Auth) {
+        Write-Error -Message "Not Connected" -ErrorAction Stop
+    }
+    if (-not $Script:Context.Vault) {
+        Write-Error -Message "Not Connected" -ErrorAction Stop
+    }
+	$Script:Context.Vault
+}
+
 function Get-KeeperLocation {
 <#
 	.Synopsis
@@ -9,17 +19,14 @@ function Get-KeeperLocation {
 #>
 	[CmdletBinding()]
 
-	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-	if ($vault) {
-		[string]$currentFolder = $Script:CurrentFolder
-		[KeeperSecurity.Vault.FolderNode]$folder = $vault.RootFolder
-		if ($currentFolder) {
-			$vault.TryGetFolder($currentFolder, [ref]$folder) | Out-Null
-		}
-		exportKeeperNode $folder
-	} else {
-		Write-Error -Message "Not connected"
+	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+	[string]$currentFolder = $Script:Context.CurrentFolder
+	[KeeperSecurity.Vault.FolderNode]$folder = $vault.RootFolder
+	if ($currentFolder) {
+		$vault.TryGetFolder($currentFolder, [ref]$folder) | Out-Null
 	}
+	exportKeeperNode $folder
 }
 New-Alias -Name kpwd -Value Get-KeeperLocation
 
@@ -36,40 +43,37 @@ function Set-KeeperLocation {
 	Param (
 		[Parameter(Position = 0)][string] $Path
 	)
-	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-	if ($vault) {
-		if ($Path) {
-			[KeeperSecurity.Vault.FolderNode]$folder = $null
-			if (!$vault.TryGetFolder($Script:CurrentFolder, [ref]$folder)) {
-				$folder = $vault.RootFolder
-			}
+	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
-			$components = splitKeeperPath $Path
-			$rs = parseKeeperPath $components $vault $folder
-			if ($rs -and !$rs[1]) {
-				$folder = $rs[0]
-				$uid =  $folder.FolderUid
-				if ($vault.TryGetFolder($uid, [ref]$folder)) {
-					$Script:CurrentFolder = $uid
-				} else {
-					$Script:CurrentFolder = ''
-				}
+	if ($Path) {
+		[KeeperSecurity.Vault.FolderNode]$folder = $null
+		if (!$vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
+			$folder = $vault.RootFolder
+		}
+
+		$components = splitKeeperPath $Path
+		$rs = parseKeeperPath $components $vault $folder
+		if ($rs -and !$rs[1]) {
+			$folder = $rs[0]
+			$uid =  $folder.FolderUid
+			if ($vault.TryGetFolder($uid, [ref]$folder)) {
+				$Script:Context.CurrentFolder = $uid
+			} else {
+				$Script:Context.CurrentFolder = ''
 			}
 		}
-		getVaultFolderPath $vault $Script:CurrentFolder 
-	} else {
-		Write-Error -Message "Not connected"
 	}
+	getVaultFolderPath $vault $Script:Context.CurrentFolder 
 }
 
 $Keeper_FolderPathRecordCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
 	$result = @()
-	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
+	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Context.Vault
 	if ($vault) {
 		[KeeperSecurity.Vault.FolderNode] $folder = $null
-		if (!$vault.TryGetFolder($Script:CurrentFolder, [ref]$folder)) {
+		if (!$vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
 			$folder = $vault.RootFolder
 		}
 
@@ -183,123 +187,120 @@ function Get-KeeperChildItems {
 		$showRecord = !$showFolder
 	}
 
-	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-	if ($vault) {
-		[KeeperSecurity.Vault.FolderNode] $baseDir = $null
-		if (!$vault.TryGetFolder($Script:CurrentFolder, [ref]$baseDir)) {
-			$baseDir = $vault.RootFolder
-		}
-		if ($Path) {
-			$components = splitKeeperPath $Path
-			$rs = parseKeeperPath $components $vault $baseDir
-			$baseDir = $rs[0]
-		}
-		[KeeperSecurity.Vault.FolderNode[]]$folders = @($baseDir)
-		if ($Recursive.IsPresent) {
-			$pos = 0
-			$dep = 0
-			while ($pos -lt $folders.Count) {
-				if ($Depth -gt 0) {
-					if ($dep -ge $Depth) {
-						break
-					}
-				}
-				$lastPos = $folders.Count
-				for ($i = $pos; $i -lt $lastPos; $i++) {
-					foreach($uid in $folders[$i].Subfolders) {
-						[KeeperSecurity.Vault.FolderNode] $sf = $null;
-						if ($vault.TryGetFolder($uid, [ref]$sf)) {
-							$folders += $sf
-						}
-					}
-				}
-				$pos = $lastPos
-				$dep++
-			}
-		}
-		$entries = @()
-		$recordEntries = @{}
-		for ($i = 0; $i -lt $folders.Count; $i++) {
-			[KeeperSecurity.Vault.FolderNode]$f = $folders[$i]
-			$path = getVaultFolderPath $vault $f.FolderUid
-			if ($showFolder) {
-				foreach ($uid in $f.Subfolders) {
-					[KeeperSecurity.Vault.FolderNode]$sf = $null
-					if ($vault.TryGetFolder($uid, [ref]$sf)) {
-						$match = $true
-						if ($Filter) {
-							$match = @($sf.Name, $sf.FolderUid) | Select-String $Filter | Select-Object -First 1
-						}
-						if ($match) {
-							$entry = [PSCustomObject]@{
-								PSTypeName = "KeeperSecurity.Commander.FolderEntry$(if ($SkipGrouping.IsPresent) {'Flat'} else {''})"
-								Uid = $sf.FolderUid
-								Name = $sf.Name
-								OwnerFolder = $path
-								FolderType = $sf.FolderType
-								Shared = $sf.FolderType -ne [KeeperSecurity.Vault.FolderType]::UserFolder
-								SortGroup = 0
-							}
-							$entries += $entry
-						}
-					}
-				}
-			}
-			if ($showRecord) {
-				foreach ($uid in $f.Records) {
-					[KeeperSecurity.Vault.KeeperRecord] $r = $null
-					if ($vault.TryGetKeeperRecord($uid, [ref]$r)) {
-						if ($r.Version -ne 2 -and $r.Version -ne 3) {
-							continue
-						}
-						$match = $true
-						if ($Filter) {
-							$match = @($r.Title, $r.Uid) | Select-String $Filter | Select-Object -First 1
-						}
-						if ($match) {
-							if ($Flat.IsPresent -and $recordEntries.ContainsKey($uid)) {
-								$entry = $recordEntries[$uid]
-								$entry.OwnerFolder += $path
-							} else {
-								$type = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($r)
-								$publicInfo = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordPublicInformation($r)
-								$entry = [PSCustomObject]@{
-									PSTypeName  = "KeeperSecurity.Commander.RecordEntry$(if ($SkipGrouping.IsPresent) {'Flat'} else {''})"
-									Uid = $r.Uid
-									Name = $r.Title
-									Shared = $r.Shared
-									Owner = $r.Owner
-									Type = $type
-									PublicInformation = $publicInfo
-									HasAttachments = ($vault.RecordAttachments($r).Count -gt 0)
-									SortGroup = 1
-								}
-								if ($SkipGrouping.IsPresent) {
-									Add-Member -InputObject $entry -NotePropertyName OwnerFolder -NotePropertyValue @($path)
-								} else {
-									Add-Member -InputObject $entry -NotePropertyName OwnerFolder -NotePropertyValue $path
-								}
+	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
-								$recordEntries[$uid] = $entry
-								$entry = $null
+	[KeeperSecurity.Vault.FolderNode] $baseDir = $null
+	if (!$vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$baseDir)) {
+		$baseDir = $vault.RootFolder
+	}
+	if ($Path) {
+		$components = splitKeeperPath $Path
+		$rs = parseKeeperPath $components $vault $baseDir
+		$baseDir = $rs[0]
+	}
+	[KeeperSecurity.Vault.FolderNode[]]$folders = @($baseDir)
+	if ($Recursive.IsPresent) {
+		$pos = 0
+		$dep = 0
+		while ($pos -lt $folders.Count) {
+			if ($Depth -gt 0) {
+				if ($dep -ge $Depth) {
+					break
+				}
+			}
+			$lastPos = $folders.Count
+			for ($i = $pos; $i -lt $lastPos; $i++) {
+				foreach($uid in $folders[$i].Subfolders) {
+					[KeeperSecurity.Vault.FolderNode] $sf = $null;
+					if ($vault.TryGetFolder($uid, [ref]$sf)) {
+						$folders += $sf
+					}
+				}
+			}
+			$pos = $lastPos
+			$dep++
+		}
+	}
+	$entries = @()
+	$recordEntries = @{}
+	for ($i = 0; $i -lt $folders.Count; $i++) {
+		[KeeperSecurity.Vault.FolderNode]$f = $folders[$i]
+		$path = getVaultFolderPath $vault $f.FolderUid
+		if ($showFolder) {
+			foreach ($uid in $f.Subfolders) {
+				[KeeperSecurity.Vault.FolderNode]$sf = $null
+				if ($vault.TryGetFolder($uid, [ref]$sf)) {
+					$match = $true
+					if ($Filter) {
+						$match = @($sf.Name, $sf.FolderUid) | Select-String $Filter | Select-Object -First 1
+					}
+					if ($match) {
+						$entry = [PSCustomObject]@{
+							PSTypeName = "KeeperSecurity.Commander.FolderEntry$(if ($SkipGrouping.IsPresent) {'Flat'} else {''})"
+							Uid = $sf.FolderUid
+							Name = $sf.Name
+							OwnerFolder = $path
+							FolderType = $sf.FolderType
+							Shared = $sf.FolderType -ne [KeeperSecurity.Vault.FolderType]::UserFolder
+							SortGroup = 0
+						}
+						$entries += $entry
+					}
+				}
+			}
+		}
+		if ($showRecord) {
+			foreach ($uid in $f.Records) {
+				[KeeperSecurity.Vault.KeeperRecord] $r = $null
+				if ($vault.TryGetKeeperRecord($uid, [ref]$r)) {
+					if ($r.Version -ne 2 -and $r.Version -ne 3) {
+						continue
+					}
+					$match = $true
+					if ($Filter) {
+						$match = @($r.Title, $r.Uid) | Select-String $Filter | Select-Object -First 1
+					}
+					if ($match) {
+						if ($Flat.IsPresent -and $recordEntries.ContainsKey($uid)) {
+							$entry = $recordEntries[$uid]
+							$entry.OwnerFolder += $path
+						} else {
+							$type = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordType($r)
+							$publicInfo = [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordPublicInformation($r)
+							$entry = [PSCustomObject]@{
+								PSTypeName  = "KeeperSecurity.Commander.RecordEntry$(if ($SkipGrouping.IsPresent) {'Flat'} else {''})"
+								Uid = $r.Uid
+								Name = $r.Title
+								Shared = $r.Shared
+								Owner = $r.Owner
+								Type = $type
+								PublicInformation = $publicInfo
+								HasAttachments = ($vault.RecordAttachments($r).Count -gt 0)
+								SortGroup = 1
 							}
+							if ($SkipGrouping.IsPresent) {
+								Add-Member -InputObject $entry -NotePropertyName OwnerFolder -NotePropertyValue @($path)
+							} else {
+								Add-Member -InputObject $entry -NotePropertyName OwnerFolder -NotePropertyValue $path
+							}
+
+							$recordEntries[$uid] = $entry
+							$entry = $null
 						}
 					}
 				}
 			}
 		}
-		if ($recordEntries) {
-			$entries += $recordEntries.Values
+	}
+	if ($recordEntries) {
+		$entries += $recordEntries.Values
+	}
+	if ($entries) {
+		if ($SkipGrouping.IsPresent) {
+			$entries | Sort-Object SortGroup, Name
+		} else {
+			$entries | Sort-Object OwnerFolder, SortGroup, Name
 		}
-		if ($entries) {
-			if ($SkipGrouping.IsPresent) {
-				$entries | Sort-Object SortGroup, Name
-			} else {
-				$entries | Sort-Object OwnerFolder, SortGroup, Name
-			}
-		}
-	} else {
-		Write-Error -Message "Not connected"
 	}
 }
 Register-ArgumentCompleter -CommandName Get-KeeperChildItems -ParameterName Path -ScriptBlock $Keeper_FolderPathRecordCompleter
@@ -328,11 +329,7 @@ function Get-KeeperObject {
 	)
 
 	Begin {
-		[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-		if (-not $vault) {
-			Write-Error -Message 'Not connected'
-			return
-		}
+		[KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
 		$testRecord = if ($ObjectType) {$ObjectType -eq 'Record'} else {$true} 
 		$testSharedFolder = if ($ObjectType) {$ObjectType -eq 'SharedFolder'} else {$true} 
@@ -396,13 +393,25 @@ function Get-KeeperObject {
 					}
 					continue
 				}
+				ensureAvalableLoaded
+				[KeeperSecurity.Vault.TeamInfo] $teamInfo = $null
+				$teamInfo = $Script:Context.AvailableTeams | Where-Object { $_.TeamUid -ceq $oid } | Select-Object -First 1
+				if ($teamInfo) {
+					if ($PropertyName) {
+						$mp = $teamInfo | Get-Member -MemberType Properties -Name $PropertyName
+						if ($mp) {
+							$teamInfo | Select-Object -ExpandProperty $PropertyName
+						}
+					} else {
+						$teamInfo
+					}
+					continue
+				}
 			}
-
 		}
 	}
 }
 New-Alias -Name ko -Value Get-KeeperObject
-
 
 function parseKeeperPath {
 	Param (

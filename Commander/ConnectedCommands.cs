@@ -536,7 +536,7 @@ namespace Commander
             }
         }
 
-        private Task GetCommand(string uid)
+        private async Task GetCommand(string uid)
         {
             var tab = new Tabulate(3);
             if (_vault.TryGetKeeperRecord(uid, out var record))
@@ -552,7 +552,7 @@ namespace Commander
                     tab.AddRow("$login:", legacy.Login);
                     tab.AddRow("$password:", legacy.Password);
                     tab.AddRow("$url:", legacy.Link);
-                    if (!string.IsNullOrEmpty(legacy.Totp)) 
+                    if (!string.IsNullOrEmpty(legacy.Totp))
                     {
                         tab.AddRow("$oneTimeCode:", legacy.Totp);
                     }
@@ -626,7 +626,83 @@ namespace Commander
                 }
 
                 tab.AddRow("Last Modified:", record.ClientModified.LocalDateTime.ToString("F"));
+                var shareInfo = (await _vault.GetSharesForRecords(new[] { record.Uid }))
+                    .FirstOrDefault(x => x.RecordUid == record.Uid);
+                if (shareInfo != null)
+                {
+                    if (shareInfo?.UserPermissions.Length > 0)
+                    {
+                        tab.AddRow("", "");
+                        tab.AddRow("User Shares:", "");
+                        foreach (var rs in shareInfo.UserPermissions)
+                        {
+                            var status = "";
 
+                            if (rs.Owner)
+                            {
+                                status = "Owner";
+                            }
+                            else
+                            {
+                                if (rs.AwaitingApproval)
+                                {
+                                    status = "Awaiting Approval";
+                                }
+                                else
+                                {
+                                    if (!rs.CanEdit && !rs.CanShare)
+                                    {
+                                        status = "Read Only";
+                                    }
+                                    else if (rs.CanEdit && rs.CanShare)
+                                    {
+                                        status = "Can Edit & Share";
+                                    }
+                                    else if (rs.CanEdit)
+                                    {
+                                        status = "Can Edit";
+                                    }
+                                    else
+                                    {
+                                        status = "Can Share";
+                                    }
+                                }
+                            }
+                            tab.AddRow(rs.Username, status);
+                        }
+                    }
+                    if (shareInfo?.SharedFolderPermissions.Length > 0)
+                    {
+                        tab.AddRow("", "");
+                        tab.AddRow("Shared Folders:", "");
+                        foreach (var sfs in shareInfo.SharedFolderPermissions)
+                        {
+                            var status = "";
+                            if (!sfs.CanEdit && !sfs.CanShare)
+                            {
+                                status = "Read Only";
+                            }
+                            else if (sfs.CanEdit && sfs.CanShare)
+                            {
+                                status = "Can Edit & Share";
+                            }
+                            else if (sfs.CanEdit)
+                            {
+                                status = "Can Edit";
+                            }
+                            else
+                            {
+                                status = "Can Share";
+                            }
+                            var name = sfs.SharedFolderUid;
+                            if (_vault.TryGetSharedFolder(sfs.SharedFolderUid, out var sf))
+                            {
+                                name = sf.Name;
+                            }
+                            tab.AddRow(name, status);
+                        }
+                    }
+                }
             }
             else if (_vault.TryGetSharedFolder(uid, out var sf))
             {
@@ -694,14 +770,12 @@ namespace Commander
             else
             {
                 Console.WriteLine($"UID {uid} is not a valid Keeper object");
-                return Task.FromResult(false);
             }
 
             Console.WriteLine();
             tab.SetColumnRightAlign(0, true);
             tab.LeftPadding = 4;
             tab.Dump();
-            return Task.FromResult(true);
         }
 
         private Task TreeCommand(TreeCommandOptions options)
@@ -1891,16 +1965,35 @@ namespace Commander
                     else
                     {
                         Console.WriteLine(
-                            $"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder {sf.Name}");
+                            $"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder \'{sf.Name}\'");
                     }
                 }
                 else if (options.ManageUsers.HasValue || options.ManageRecords.HasValue)
                 {
-                    await _vault.PutUserToSharedFolder(sf.Uid, userId, userType, new SharedFolderUserOptions
+                    try
                     {
-                        ManageUsers = options.ManageUsers ?? sf.DefaultManageUsers,
-                        ManageRecords = options.ManageRecords ?? sf.DefaultManageRecords,
-                    });
+                        await _vault.PutUserToSharedFolder(sf.Uid, userId, userType, new SharedFolderUserOptions
+                        {
+                            ManageUsers = options.ManageUsers ?? sf.DefaultManageUsers,
+                            ManageRecords = options.ManageRecords ?? sf.DefaultManageRecords,
+                        });
+                    }
+                    catch (NoActiveShareWithUserException e)
+                    {
+                        Console.WriteLine(e.Message);
+                        Console.Write(
+                            $"Do you want to send share invitation request to \"{e.Username}\"? (Yes/No) : ");
+                        var answer = await Program.GetInputManager().ReadLine();
+                        if (string.Equals("y", answer, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            answer = "yes";
+                        }
+                        if (string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            await _vault.SendShareInvitationRequest(e.Username);
+                            Console.WriteLine($"Invitation has been sent to {e.Username}\nPlease repeat this command when your invitation is accepted.");
+                        }
+                    }
                 }
                 else
                 {
@@ -2074,7 +2167,26 @@ namespace Commander
 
             if (string.Equals("share", options.Action, StringComparison.InvariantCultureIgnoreCase))
             {
-                await _vault.ShareRecordWithUser(record.Uid, options.Email, options.CanShare, options.CanEdit);
+                try
+                {
+                    await _vault.ShareRecordWithUser(record.Uid, options.Email, options.CanShare, options.CanEdit);
+                }
+                catch (NoActiveShareWithUserException e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.Write(
+                        $"Do you want to send share invitation request to \"{e.Username}\"? (Yes/No) : ");
+                    var answer = await Program.GetInputManager().ReadLine();
+                    if (string.Equals("y", answer, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        answer = "yes";
+                    }
+                    if (string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        await _vault.SendShareInvitationRequest(e.Username);
+                        Console.WriteLine($"Invitation has been sent to {e.Username}\nPlease repeat this command when your invitation is accepted.");
+                    }
+                }
             }
             else if (string.Equals("revoke", options.Action, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -2417,10 +2529,10 @@ namespace Commander
     class ShareFolderUserPermissionOptions : FolderOptions
     {
 
-        [Option('u', "user", Required = false, Default = null, HelpText = "account email, team name, or team uid")]
+        [Option("user", Required = false, Default = null, HelpText = "account email, team name, or team uid")]
         public string User { get; set; }
 
-        [Option('d', "delete", Required = false, Default = false, SetName = "delete", HelpText = "delete user from shared folder")]
+        [Option("delete", Required = false, Default = false, SetName = "delete", HelpText = "delete user from shared folder")]
         public bool Delete { get; set; }
 
         [Option('r', "manage-records", Required = false, Default = null, SetName = "set", HelpText = "account permission: can manage records.")]
