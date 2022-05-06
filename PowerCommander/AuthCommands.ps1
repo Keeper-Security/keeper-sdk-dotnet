@@ -50,27 +50,27 @@ function twoFactorDurationToExpire ([KeeperSecurity.Authentication.TwoFactorDura
 
 function getStepPrompt ([KeeperSecurity.Authentication.IAuthentication] $auth) {
     $prompt = "`nUnsupported ($($auth.step.State.ToString()))"
-    if ($auth.step -is [Authentication.Sync.DeviceApprovalStep]) {
+    if ($auth.step -is [KeeperSecurity.Authentication.Sync.DeviceApprovalStep]) {
         $prompt = "`nDevice Approval ($(deviceApprovalChannelToText $auth.step.DefaultChannel))"
     }
-    elseif ($auth.step -is [Authentication.Sync.TwoFactorStep]) {
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.TwoFactorStep]) {
         $channelText = twoFactorChannelToText $auth.step.DefaultChannel
         $prompt = "`n2FA channel($($channelText)) expire[$(twoFactorDurationToExpire $auth.step.Duration)]"
     }
 
-    elseif ($auth.step -is [Authentication.Sync.PasswordStep]) {
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
         $prompt = "`nMaster Password"
     }
-    elseif ($auth.step -is [Authentication.Sync.SsoTokenStep]) {
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoTokenStep]) {
         $prompt = "`nSSO Token"
     }
-    elseif ($auth.step -is [Authentication.Sync.SsoDataKeyStep]) {
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoDataKeyStep]) {
         $prompt = "`nSSO Login Approval"
     }
-    elseif ($auth.step -is [Authentication.Sync.ReadyToLoginStep]) {
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.ReadyToLoginStep]) {
         $prompt = "`nLogin"
     }
-    elseif ($auth.step -is [Authentication.Sync.HttpProxyStep]) {
+    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.HttpProxyStep]) {
         $prompt = "`nHTTP Proxy Login"
     }
 
@@ -436,17 +436,19 @@ function Connect-Keeper {
 
     $auth = $authFlow
     if ([KeeperSecurity.Authentication.AuthExtensions]::IsAuthenticated($auth)) {
-        $Script:Auth = $auth
         Write-Debug -Message "Connected to Keeper as $Username"
 
-        $Script:Vault = New-Object KeeperSecurity.Vault.VaultOnline($auth)
-        $task = $Script:Vault.SyncDown()
+        $vault = New-Object KeeperSecurity.Vault.VaultOnline($auth)
+        $task = $vault.SyncDown()
         Write-Information -MessageData 'Syncing ...'
         $task.GetAwaiter().GetResult() | Out-Null
-        $Script:Vault.AutoSync = $true
+        $vault.AutoSync = $true
 
-        [KeeperSecurity.Vault.VaultData]$vault = $Script:Vault
-        Write-Information -MessageData "Decrypted $($vault.RecordCount) record(s)"
+        $Script:Context.Auth = $auth
+        $Script:Context.Vault = $vault
+
+        [KeeperSecurity.Vault.VaultData]$vaultData = $vault
+        Write-Information -MessageData "Decrypted $($vaultData.RecordCount) record(s)"
         Set-KeeperLocation -Path '\' | Out-Null
     }
 }
@@ -457,10 +459,9 @@ $Keeper_ConfigServerCompleter = {
     $prefixes = @('', 'dev.', 'qa.')
     $suffixes = $('.com', '.eu')
 
-    $prefixes | % { $p = $_; $suffixes | % {$s = $_; "${p}keepersecurity${s}" }} | Where {$_.StartsWith($wordToComplete)}
+    $prefixes | % { $p = $_; $suffixes | % {$s = $_; "${p}keepersecurity${s}" }} | Where-Object {$_.StartsWith($wordToComplete)}
 }
 Register-ArgumentCompleter -Command Connect-Keeper -ParameterName Server -ScriptBlock $Keeper_ConfigServerCompleter
-
 New-Alias -Name kc -Value Connect-Keeper
 
 function Disconnect-Keeper {
@@ -474,21 +475,26 @@ function Disconnect-Keeper {
         [Parameter()][switch] $Resume
     )
 
-    $vault = $Script.Vault
-    if ($null -ne $vault) {
+    $Script:Context.AvailableTeams = $null
+    $Script:Context.AvailableUsers = $null
+
+    $Script:Context.Enterprise = $null
+
+    $vault = $Script:Context.Vault
+    if ($vault) {
         $vault.Dispose() | Out-Null
     }
-    $Script:Vault = $null
+    $Script:Context.Vault = $null
 
-    [KeeperSecurity.Authentication.IAuthentication] $auth = $Script:Auth
-    if ($null -ne $auth) {
+    [KeeperSecurity.Authentication.IAuthentication] $auth = $Script:Context.Auth
+    if ($auth) {
         if (-not $Resume.IsPresent) {
             $auth.Logout().GetAwaiter().GetResult() | Out-Null
         }
         $auth.Dispose() | Out-Null
 
     }
-    $Script:Auth = $null
+    $Script:Context.Auth = $null
 }
 New-Alias -Name kq -Value Disconnect-Keeper
 
@@ -499,32 +505,12 @@ function Sync-Keeper {
 #>
 
     [CmdletBinding()]
-    [KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
+    [KeeperSecurity.Vault.VaultOnline]$vault = $Script:Context.Vault
     if ($vault) {
         $task = $vault.SyncDown()
         $task.GetAwaiter().GetResult() | Out-Null
     } else {
-        Write-Error -Message "Not connected"
+        Write-Error -Message "Not connected" -ErrorAction Stop
     }
 }
 New-Alias -Name ks -Value Sync-Keeper
-
-function Out-Keeper {
-<#
-    .Synopsis
-    Get access to SDK Library classes
-
-    .Parameter ObjectType
-    Object Type 
-
-#>
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory=$true, Position=0)][ValidateSet('Vault' ,'Auth')][string] $ObjectType
-    )
-    switch ($ObjectType) {
-        'Auth' { $Script:Auth }
-        'Vault' { $Script:Vault }
-    }
-}
-

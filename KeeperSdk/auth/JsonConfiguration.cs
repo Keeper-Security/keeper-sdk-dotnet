@@ -132,6 +132,9 @@ namespace KeeperSecurity.Configuration
             WriteTimeout = 2000;
         }
 
+        /// <exclude/>
+        public IJsonConfigurationLoader Loader => _loader;
+
         /// <summary>
         /// Gets / sets read timeout in milliseconds.
         /// </summary>

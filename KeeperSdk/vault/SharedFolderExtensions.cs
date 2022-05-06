@@ -5,24 +5,13 @@ using System.Threading.Tasks;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+using AuthProto = Authentication;
 
 namespace KeeperSecurity.Vault
 {
     public partial class VaultOnline : IVaultSharedFolder
     {
-        /// <summary>
-        /// Adds (if needed) user or team to the shared folder and set user access permissions.
-        /// </summary>
-        /// <param name="sharedFolderUid">Shared Folder UID.</param>
-        /// <param name="userId">User email or Team UID.</param>
-        /// <param name="userType">Type of <see cref="userId"/> parameter.</param>
-        /// <param name="options">Shared Folder User Permissions.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <remarks>
-        /// If <c>options</c> parameter is <c>null</c> then user gets default user permissions when added.
-        /// </remarks>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
-        /// <seealso cref="IVaultSharedFolder.PutUserToSharedFolder"/>
+        /// <inheritdoc/>>
         public async Task PutUserToSharedFolder(string sharedFolderUid,
             string userId,
             UserType userType,
@@ -60,23 +49,8 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    var pkRq = new PublicKeysCommand
-                    {
-                        keyOwners = new[] {userId},
-                    };
-                    var pkRs = await Auth.ExecuteAuthCommand<PublicKeysCommand, PublicKeysResponse>(pkRq);
-                    if (pkRs.publicKeys == null || pkRs.publicKeys.Length == 0)
-                    {
-                        throw new VaultException($"Cannot get public key of user: {userId}");
-                    }
-
-                    var pk = pkRs.publicKeys[0];
-                    if (!string.IsNullOrEmpty(pk.resultCode))
-                    {
-                        throw new KeeperApiException(pk.resultCode, pk.message);
-                    }
-
-                    var publicKey = CryptoUtils.LoadPublicKey(pk.publicKey.Base64UrlDecode());
+                    var keyTuple = await GetUserPublicKeys(userId);
+                    var publicKey = CryptoUtils.LoadPublicKey(keyTuple.Item1);
                     request.addUsers = new[]
                     {
                         new SharedFolderUpdateUser
@@ -168,15 +142,7 @@ namespace KeeperSecurity.Vault
             await ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
 
-        /// <summary>
-        /// Removes user or team from shared folder.
-        /// </summary>
-        /// <param name="sharedFolderUid">Shared Folder UID.</param>
-        /// <param name="userId">User email or Team UID.</param>
-        /// <param name="userType">Type of <c>userId</c> parameter.</param>
-        /// <returns>Awaitable task.</returns>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
-        /// <seealso cref="IVaultSharedFolder.RemoveUserFromSharedFolder"/>
+        /// <inheritdoc/>>
         public async Task RemoveUserFromSharedFolder(string sharedFolderUid, string userId, UserType userType)
         {
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);
@@ -232,18 +198,7 @@ namespace KeeperSecurity.Vault
             await ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
 
-        /// <summary>
-        /// Changes record permissions in shared folder.
-        /// </summary>
-        /// <param name="sharedFolderUid">Shared Folder UID.</param>
-        /// <param name="recordUid">Record UID.</param>
-        /// <param name="options">Record permissions.</param>
-        /// <returns>Awaitable task</returns>
-        /// <remarks>
-        /// This method does not add a record to shared folder.
-        /// Use <see cref="IVault.CreateRecord"/> or <see cref="IVault.MoveRecords"/>.
-        /// </remarks>
-        /// <seealso cref="IVaultSharedFolder.ChangeRecordInSharedFolder"/>
+        /// <inheritdoc/>>
         public async Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, ISharedFolderRecordOptions options)
         {
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);

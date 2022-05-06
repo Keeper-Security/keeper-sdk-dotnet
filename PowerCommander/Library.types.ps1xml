@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Types>
   <Type>
-    <Name>KeeperSecurity.Authentication.Auth</Name>
+    <Name>KeeperSecurity.Authentication.AuthCommon</Name>
     <Members>
       <ScriptProperty>
         <Name>ConfigurationInfo</Name>
         <GetScriptBlock>
           $conf = @()
           if ($this.Storage -is [KeeperSecurity.Configuration.JsonConfigurationStorage]) {
-          $conf += $this.Storage.FilePath
+            if ($this.Storage.Cache.Loader -is [KeeperSecurity.Configuration.JsonConfigurationFileLoader]) {
+              $conf += $this.Storage.Cache.Loader.FilePath
+            }
           }
-          $c = $this.Storage.Get()
-          $conf += "Last Login: $($c.LastLogin)"
-          $conf += "Last Server: $($c.LastServer)"
           $conf -join "`n"
         </GetScriptBlock>
       </ScriptProperty>
@@ -105,7 +104,7 @@
       <ScriptProperty>
         <Name>AttachmentsInfo</Name>
         <GetScriptBlock>
-          $vault = Out-Keeper Vault
+          $private:vault = $Script:Vault
           if ($vault) {
             foreach ($a in $vault.RecordAttachments($this)) {
               $af += "$($a.Id) | Name=$(if ($a.Title) {$a.Title} else {$a.Name}) ; Size=$($a.Size)"
@@ -169,7 +168,7 @@
           foreach ($a in $this.Attachments) {
           $af += "$($a.Id) | Name=$(if ($a.Title) {$a.Title} else {$a.Name}) ; Size=$($a.Size)"
           }
-          $af -join "`n"
+          $af -join "`r`n"
           }
         </GetScriptBlock>
       </ScriptProperty>
@@ -181,29 +180,22 @@
     <Members>
       <ScriptProperty>
         <Name>Users</Name>
+        <GetScriptBlock>
+          $ul = @()
+          foreach ($up in $this.UsersPermissions) {
+            $ul += "$($up.UserType): $($up.Name) ($($up.ShareStatus))"
+          }
+           $ul -join "`r`n"
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>UserCount</Name>
         <GetScriptBlock>$this.UsersPermissions.Count</GetScriptBlock>
       </ScriptProperty>
       <ScriptProperty>
-        <Name>Records</Name>
+        <Name>RecordCount</Name>
         <GetScriptBlock>$this.RecordPermissions.Count</GetScriptBlock>
       </ScriptProperty>
-
-      <MemberSet>
-        <Name>PSStandardMembers</Name>
-        <Members>
-          <PropertySet>
-            <Name>DefaultDisplayPropertySet</Name>
-            <ReferencedProperties>
-              <Name>Uid</Name>
-              <Name>Name</Name>
-              <Name>DefaultManageRecords</Name>
-              <Name>DefaultManageUsers</Name>
-              <Name>DefaultCanEdit</Name>
-              <Name>DefaultCanShare</Name>
-            </ReferencedProperties>
-          </PropertySet>
-        </Members>
-      </MemberSet>
     </Members>
   </Type>
 
@@ -234,13 +226,29 @@
       <ScriptProperty>
         <Name>Name</Name>
         <GetScriptBlock>
-          if ($this.UserType -eq [KeeperSecurity.Sdk.UserType]::Team) {
-          Get-KeeperObject $this.UserId -ObjectType Team -PropertyName Name
+          if ($this.UserType -eq [KeeperSecurity.Vault.UserType]::Team) {
+            Get-KeeperObject $this.UserId -ObjectType Team -PropertyName Name
           } else {
-          $this.UserId
+            $this.UserId
           }
         </GetScriptBlock>
       </ScriptProperty>
+      <ScriptProperty>
+        <Name>ShareStatus</Name>
+        <GetScriptBlock>
+          if ($this.ManageRecords -and $this.ManageUsers) {
+            $status = "Can Manage Users &amp; Records"
+          } elseif ($this.ManageRecords) {
+            $status = "Can Manage Records"
+          } elseif ($this.ManageUsers) {
+            $status = "Can Manage Users"
+          } else {
+            $status = "No User Permission"
+          }
+          $status
+        </GetScriptBlock>
+      </ScriptProperty>
+
       <MemberSet>
         <Name>PSStandardMembers</Name>
         <Members>
@@ -281,6 +289,177 @@
           </PropertySet>
         </Members>
       </MemberSet>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Vault.FolderNode</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>RecordCount</Name>
+        <GetScriptBlock>
+          $this.Records.Count
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>SubfolderCount</Name>
+        <GetScriptBlock>
+          $this.Subfolders.Count
+        </GetScriptBlock>
+      </ScriptProperty>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>FolderUid</Name>
+              <Name>Name</Name>
+              <Name>FolderType</Name>
+              <Name>ParentUid</Name>
+              <Name>SharedFolderUid</Name>
+              <Name>Subfolders</Name>
+              <Name>Records</Name>
+              <Name>SubfolderCount</Name>
+              <Name>RecordCount</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Vault.RecordSharePermissions</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>RecordTitle</Name>
+        <GetScriptBlock>
+          (Get-KeeperObject -Uid $this.RecordUid -ObjectType Record).Title
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Vault.UserRecordPermissions</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>ShareStatus</Name>
+        <GetScriptBlock>
+          if ($this.Owner) {
+            "Owner"
+          } elseif ($this.AwaitingApproval) {
+            "Awaiting Approval"
+          } elseif ($this.CanShare -and $this.CanEdit) {
+            "Can Edit &amp; Share"
+          } elseif ($this.CanShare) {
+            "Can Share"
+          } elseif ($this.CanEdit) {
+            "Can Edit"
+          } else {
+            "Read Only"
+          }
+        </GetScriptBlock>
+      </ScriptProperty>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Username</Name>
+              <Name>ShareStatus</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Vault.SharedFolderRecordPermissions</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>ShareStatus</Name>
+        <GetScriptBlock>
+          if ($this.CanShare -and $this.CanEdit) {
+            "Can Edit &amp; Share"
+          } elseif ($this.CanShare) {
+            "Can Share"
+          } elseif ($this.CanEdit) {
+            "Can Edit"
+          } else {
+            "Read Only"
+          }
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>SharedFolderName</Name>
+        <GetScriptBlock>
+          (Get-KeeperObject -Uid $this.SharedFolderUid -ObjectType SharedFolder).Name
+        </GetScriptBlock>
+      </ScriptProperty>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>SharedFolderUid</Name>
+              <Name>SharedFolderName</Name>
+              <Name>ShareStatus</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+
+  <Type>
+    <Name>KeeperSecurity.Vault.RecordSharePermissions</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>Owner</Name>
+        <GetScriptBlock>
+          $this.UserPermissions | Where-Object  { $_.Owner } | Select-Object -ExpandProperty Username
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Users</Name>
+        <GetScriptBlock>
+          ($this.UserPermissions | Where-Object  { -not $_.Owner }).Count
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Folders</Name>
+        <GetScriptBlock>
+          $this.SharedFolderPermissions.Count
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>UserShares</Name>
+        <GetScriptBlock>
+          $shares = @()
+          foreach($up in $this.UserPermissions) {
+            if ($up.Owner) {
+              continue
+            }
+            $shares += "$($up.Username) ($($up.ShareStatus))"
+          }
+          $shares -join "`r`n"
+        </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>FolderShares</Name>
+        <GetScriptBlock>
+          $shares = @()
+          foreach($Sp in $this.SharedFolderPermissions) {
+            $shares += "$($sp.SharedFolderName)[$($sp.SharedFolderUid)] ($($sp.ShareStatus))"
+          }
+          $shares -join "`r`n"
+        </GetScriptBlock>
+      </ScriptProperty>
     </Members>
   </Type>
 

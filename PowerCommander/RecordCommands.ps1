@@ -17,34 +17,23 @@ function Get-KeeperRecords {
 		[string] $Uid,
 		[string] $Filter
 	)
-	Begin {
-	}
 
-	Process {
-		[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-		if ($vault) {
-			if ($Uid) {
-				[KeeperSecurity.Vault.KeeperRecord] $record = $null
-				if ($vault.TryGetKeeperRecord($uid, [ref]$record)) {
-					$record
-				}
-			} else {
-				foreach ($record in $vault.KeeperRecords) {
-					if ($Filter) {
-						$match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
-						if (-not $match) {
-							continue
-						}
-					}
-					$record
+	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
+	if ($Uid) {
+		[KeeperSecurity.Vault.KeeperRecord] $record = $null
+		if ($vault.TryGetKeeperRecord($uid, [ref]$record)) {
+			$record
+		}
+	} else {
+		foreach ($record in $vault.KeeperRecords) {
+			if ($Filter) {
+				$match = $($record.Uid, $record.TypeName, $record.Title, $record.Notes) | Select-String $Filter | Select-Object -First 1
+				if (-not $match) {
+					continue
 				}
 			}
-		} else {
-			Write-Error -Message "Not connected"
+			$record
 		}
-	}
-
-	End {
 	}
 }
 New-Alias -Name kr -Value Get-KeeperRecords
@@ -56,7 +45,7 @@ function Copy-KeeperToClipboard {
 	Copy record password to clipboard
 
 	.Parameter Record
-	Record UID or any object containg record UID
+	Record UID or any object containing property Uid
 
 	.Parameter Field
 	Record field to copy to clipboard. Record password is default.
@@ -76,11 +65,7 @@ function Copy-KeeperToClipboard {
 			$Record = $Record[0]
 		}
 
-		[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-		if (-not $vault) {
-			Write-Error -Message 'Not connected'
-			return
-		}
+		[KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
 		$uid = $null
 		if ($Record -is [String]) {
@@ -162,11 +147,7 @@ function Show-TwoFactorCode {
 	)
 
 	Begin {
-		[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-		if (-not $vault) {
-			Write-Error -Message 'Not connected'
-			return
-		}
+		[KeeperSecurity.Vault.VaultOnline]$vault = getVault
 		$totps = @()
 	}
 
@@ -217,7 +198,7 @@ function Show-TwoFactorCode {
 	End {
 		$output = @()
 		foreach ($totp in $totps) {
-			[Tuple[string, int, int]]$code = [Utils.CryptoUtils]::GetTotpCode($totps.TotpData)
+			[Tuple[string, int, int]]$code = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($totps.TotpData)
 			if ($code) {
 				$output += [PSCustomObject]@{
 					PSTypeName   = 'TOTP.Codes'
@@ -274,11 +255,7 @@ function Add-KeeperRecord {
 	)
 
 	Begin {
-		[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-		if (-not $vault) {
-			Write-Error -Message 'Not connected'
-			return
-		}
+		[KeeperSecurity.Vault.VaultOnline]$vault = getVault
         [KeeperSecurity.Vault.KeeperRecord]$record = $null
 	}
 
@@ -377,7 +354,7 @@ function Add-KeeperRecord {
 		if ($record.Uid) {
 	        $task = $vault.UpdateRecord($record)
 		} else {
-			$task = $vault.CreateRecord($record, $Script:CurrentFolder)
+			$task = $vault.CreateRecord($record, $Script:Context.CurrentFolder)
 		}
 		$task.GetAwaiter().GetResult()
     }
@@ -399,11 +376,8 @@ function Remove-KeeperRecord {
 		[Parameter(Position = 0, Mandatory = $true)][string] $Name
 	)
 
-	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-	if (-not $vault) {
-		Write-Error -Message 'Not connected'
-		return
-	}
+	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
 	$folderUid = $null
 	$recordUid = $null
 	[KeeperSecurity.Vault.KeeperRecord] $record = $null
@@ -429,7 +403,7 @@ function Remove-KeeperRecord {
 			return
 		}
 		$recordUid = $objs[0].Uid
-		$folderUid = $Script:CurrentFolder
+		$folderUid = $Script:Context.CurrentFolder
 	}
 
 	$recordPath = New-Object KeeperSecurity.Vault.RecordPath
@@ -446,7 +420,7 @@ function Move-RecordToFolder {
 	Moves owned records to Folder.
 
 	.Parameter Record
-	Record UID, Title or any object containg property UID.
+	Record UID, Title or any object containing property Uid.
 
 	.Parameter Folder 
 	Folder Name, Path, or UID
@@ -460,15 +434,11 @@ function Move-RecordToFolder {
 	)
 	
 	Begin {
-		[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-		if (-not $vault) {
-			Write-Error -Message 'Not connected'
-			return
-		}
+		[KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
 		$folderUid = resolveFolderUid $vault $Folder
 		[KeeperSecurity.Vault.FolderNode]$folderNode = $null
-		$_ = $vault.TryGetFolder($folderUid, [ref]$folderNode)
+		$vault.TryGetFolder($folderUid, [ref]$folderNode) |  Out-Null
 
 		$sourceRecords = @()
 	}
