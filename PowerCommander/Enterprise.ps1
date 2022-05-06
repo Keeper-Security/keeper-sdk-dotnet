@@ -81,7 +81,7 @@ $Keeper_ActiveUserCompleter = {
 function Lock-KeeperEnterpriseUser {
     <#
         .Synopsis
-    	Locks Enterprise Users
+    	Locks Enterprise User
     	
         .Parameter User
 	    User email, enterprise Id, or instance.
@@ -131,7 +131,7 @@ $Keeper_LockedUserCompleter = {
 function Unlock-KeeperEnterpriseUser {
     <#
         .Synopsis
-    	Unlocks Enterprise Users
+    	Unlocks Enterprise User
     	
         .Parameter User
 	    User email, enterprise Id, or instance.

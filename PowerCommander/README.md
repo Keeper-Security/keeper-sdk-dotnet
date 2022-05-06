@@ -39,6 +39,8 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Sync-KeeperEnterprise          | ked    | Sync Keeper enterprise information
 | Get-KeeperEnterpriseNodes      | ken    | Enumerate all enterprise nodes
 | Get-KeeperEnterpriseUsers      | keu    | Enumerate all enterprise users
+| Lock-KeeperEnterpriseUser      | keul   | Locks Enterprise User
+| Unlock-KeeperEnterpriseUser    | keuu   | Unlocks Enterprise User
 | Get-KeeperMspLicenses          | kmspl  | Returns MSP licenses
 | Get-KeeperManagedCompanies     | kmc    | Enumerate all enterprise managed companies
 | New-KeeperManagedCompany       | kamc   | Create Managed Company
