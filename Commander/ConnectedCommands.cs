@@ -300,7 +300,7 @@ namespace Commander
         {
             if (_teamCache == null)
             {
-                _teamCache = (await _vault.GetAvailableTeams()).ToArray();
+                _teamCache = (await _vault.GetTeamsForShare()).ToArray();
             }
 
             return _teamCache;

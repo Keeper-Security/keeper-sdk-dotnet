@@ -151,25 +151,25 @@ namespace KeeperSecurity.Vault
             base.Dispose(disposing);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public Task<KeeperRecord> CreateRecord(KeeperRecord record, string folderUid = null)
         {
             return this.AddRecordToFolder(record, folderUid);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public Task<KeeperRecord> UpdateRecord(KeeperRecord record, bool skipExtra = true)
         {
             return this.PutRecord(record, false, skipExtra);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedData, new()
         {
             return this.PutNonSharedData(recordUid, nonSharedData);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public Task DeleteRecords(RecordPath[] records)
         {
             foreach (var path in records)
@@ -189,7 +189,7 @@ namespace KeeperSecurity.Vault
             return this.DeleteVaultObjects(records);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public async Task MoveRecords(RecordPath[] records, string dstFolderUid, bool link = false)
         {
             foreach (var path in records)
@@ -207,7 +207,7 @@ namespace KeeperSecurity.Vault
             await this.MoveToFolder(records, dstFolder.FolderUid, link);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public async Task MoveFolder(string srcFolderUid, string dstFolderUid, bool link = false)
         {
             var srcFolder = this.GetFolder(srcFolderUid);
@@ -216,7 +216,7 @@ namespace KeeperSecurity.Vault
             await this.MoveToFolder(new[] {new RecordPath {FolderUid = srcFolder.FolderUid}}, dstFolder.FolderUid, link);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public Task<FolderNode> CreateFolder(string folderName, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null)
         {
             if (string.IsNullOrEmpty(folderName))
@@ -237,7 +237,7 @@ namespace KeeperSecurity.Vault
             return this.AddFolder(folderName, parentFolderUid, sharedFolderOptions);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public Task<FolderNode> RenameFolder(string folderUid, string newName)
         {
             var folder = this.GetFolder(folderUid);
@@ -249,7 +249,7 @@ namespace KeeperSecurity.Vault
             return this.FolderUpdate(folder.FolderUid, newName);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public Task<FolderNode> UpdateFolder(string folderUid, string newName, SharedFolderOptions sharedFolderOptions = null)
         {
             var folder = this.GetFolder(folderUid);
@@ -261,7 +261,7 @@ namespace KeeperSecurity.Vault
             return this.FolderUpdate(folder.FolderUid, newName, sharedFolderOptions);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public Task DeleteFolder(string folderUid)
         {
             var folder = this.GetFolder(folderUid);
@@ -277,7 +277,7 @@ namespace KeeperSecurity.Vault
                 1));
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public async Task<IEnumerable<TeamInfo>> GetTeamsForShare()
         {
             var request = new GetAvailableTeamsCommand();
@@ -289,6 +289,7 @@ namespace KeeperSecurity.Vault
             });
         }
 
+        /// <inheritdoc/>
         public async Task<ShareWithUsers> GetUsersForShare()
         {
             var request = new GetShareAutoCompleteCommand();
@@ -301,6 +302,7 @@ namespace KeeperSecurity.Vault
             };
         }
 
+        /// <inheritdoc/>
         public async Task<IEnumerable<RecordSharePermissions>> GetSharesForRecords(IEnumerable<string> recordUids)
         {
             var permissions = new List<RecordSharePermissions>();
@@ -371,7 +373,7 @@ namespace KeeperSecurity.Vault
             return permissions;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public async Task CancelSharesWithUser(string username) {
             var rq = new CancelShareCommand
             {
@@ -382,6 +384,7 @@ namespace KeeperSecurity.Vault
             await Auth.ExecuteAuthCommand(rq);
         }
 
+        /// <inheritdoc/>
         public async Task<Tuple<byte[], byte[]>> GetUserPublicKeys(string username)
         {
             var pkRq = new AuthProto.GetPublicKeysRequest();
@@ -408,7 +411,7 @@ namespace KeeperSecurity.Vault
             return Tuple.Create(pkRs.PublicKey?.ToByteArray(), pkRs.PublicEccKey?.ToByteArray());
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public async Task SendShareInvitationRequest(string username)
         {
             var inviteRq = new AuthProto.SendShareInviteRequest
@@ -418,7 +421,7 @@ namespace KeeperSecurity.Vault
             await Auth.ExecuteAuthRest("vault/send_share_invite", inviteRq);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public async Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit)
         {
             if (!TryGetKeeperRecord(recordUid, out var record))
@@ -482,7 +485,7 @@ namespace KeeperSecurity.Vault
         }
 
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public async Task TransferRecordToUser(string recordUid, string username)
         {
             if (!TryGetKeeperRecord(recordUid, out var record))
@@ -536,7 +539,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public async Task RevokeShareFromUser(string recordUid, string username)
         {
             if (!TryGetKeeperRecord(recordUid, out var record))
