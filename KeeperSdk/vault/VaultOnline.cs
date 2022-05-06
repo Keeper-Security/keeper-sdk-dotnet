@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -276,9 +277,8 @@ namespace KeeperSecurity.Vault
                 1));
         }
 
-
         /// <inheritdoc/>>
-        public async Task<IEnumerable<TeamInfo>> GetAvailableTeams()
+        public async Task<IEnumerable<TeamInfo>> GetTeamsForShare()
         {
             var request = new GetAvailableTeamsCommand();
             var response = await Auth.ExecuteAuthCommand<GetAvailableTeamsCommand, GetAvailableTeamsResponse>(request);
@@ -287,6 +287,88 @@ namespace KeeperSecurity.Vault
                 TeamUid = x.teamUid,
                 Name = x.teamName,
             });
+        }
+
+        public async Task<ShareWithUsers> GetUsersForShare()
+        {
+            var request = new GetShareAutoCompleteCommand();
+            var response = await Auth.ExecuteAuthCommand<GetShareAutoCompleteCommand, GetShareAutoCompleteResponse>(request);
+            return new ShareWithUsers
+            {
+                SharesWith = response.SharesWithUsers?.Select(x => x.Email).ToArray() ?? new string [0],
+                SharesFrom = response.SharesFromUsers?.Select(x => x.Email).ToArray() ?? new string[0],
+                GroupUsers = response.GroupUsers?.Select(x => x.Email).ToArray() ?? new string[0]
+            };
+        }
+
+        public async Task<IEnumerable<RecordSharePermissions>> GetSharesForRecords(IEnumerable<string> recordUids)
+        {
+            var permissions = new List<RecordSharePermissions>();
+
+            var records = new List<RecordAccessPath>();
+            foreach (var recordUid in recordUids)
+            {
+                if (TryGetKeeperRecord(recordUid, out var record))
+                {
+                    if (record.Shared)
+                    {
+                        var rap = new RecordAccessPath
+                        {
+                            RecordUid = recordUid
+                        };
+                        this.ResolveRecordAccessPath(rap);
+                        records.Add(rap);
+                    }
+                    else
+                    {
+                        permissions.Add(new RecordSharePermissions
+                        {
+                            RecordUid = recordUid,
+                            UserPermissions = new[] { new UserRecordPermissions {
+                                Username = Auth.Username,
+                                Owner = true,
+                                CanEdit = true,
+                                CanShare = true
+                            } }
+                        });
+                    }
+                }
+            }
+            if (records.Count == 0)
+            {
+                return Enumerable.Empty<RecordSharePermissions>();
+            }
+            var rq = new GetRecordsCommand
+            {
+                Include = new[] { "shares" },
+                Records = records.ToArray()
+            };
+
+            var rs = await Auth.ExecuteAuthCommand<GetRecordsCommand, GetRecordsResponse>(rq);
+
+            permissions.AddRange(rs.Records?.Select(x =>
+            {
+                return new RecordSharePermissions
+                {
+                    RecordUid = x.RecordUid,
+                    UserPermissions = x.UserPermissions?.Select(y => new UserRecordPermissions
+                    {
+                        Username = y.Username,
+                        Owner = y.Owner,
+                        CanEdit = y.Editable,
+                        CanShare = y.Sharable,
+                        AwaitingApproval = y.AwaitingApproval
+                    }).ToArray(),
+                    SharedFolderPermissions = x.SharedFolderPermissions?.Select(y => new SharedFolderRecordPermissions
+                    {
+                        SharedFolderUid = y.SharedFolderUid,
+                        CanEdit = y.Editable,
+                        CanShare = y.Reshareable,
+                    }).ToArray()
+                };
+            }));
+
+            return permissions;
         }
 
         /// <inheritdoc/>>
@@ -300,32 +382,56 @@ namespace KeeperSecurity.Vault
             await Auth.ExecuteAuthCommand(rq);
         }
 
+        public async Task<Tuple<byte[], byte[]>> GetUserPublicKeys(string username)
+        {
+            var pkRq = new AuthProto.GetPublicKeysRequest();
+            pkRq.Usernames.Add(username);
+
+            var pkRss = await Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>("vault/get_public_keys", pkRq);
+            var pkRs = pkRss.KeyResponses.FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            if (pkRs == null)
+            {
+                throw new KeeperApiException("no_user_in_response", "User cannot be found");
+            }
+            if (!string.IsNullOrEmpty(pkRs.ErrorCode))
+            {
+                if (string.Equals(pkRs.ErrorCode, "no_active_share_exist"))
+                {
+                    throw new NoActiveShareWithUserException(username, pkRs.ErrorCode, pkRs.Message);
+                }
+                else
+                {
+                    throw new KeeperApiException(pkRs.ErrorCode, pkRs.Message);
+                }
+            }
+
+            return Tuple.Create(pkRs.PublicKey?.ToByteArray(), pkRs.PublicEccKey?.ToByteArray());
+        }
+
         /// <inheritdoc/>>
-        public async Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit) {
+        public async Task SendShareInvitationRequest(string username)
+        {
+            var inviteRq = new AuthProto.SendShareInviteRequest
+            {
+                Email = username
+            };
+            await Auth.ExecuteAuthRest("vault/send_share_invite", inviteRq);
+        }
+
+        /// <inheritdoc/>>
+        public async Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit)
+        {
             if (!TryGetKeeperRecord(recordUid, out var record))
             {
                 throw new KeeperApiException("not_found", "Record not found");
             }
 
+            var recordShares = (await GetSharesForRecords(new[] { recordUid})).FirstOrDefault(x => x.RecordUid == recordUid);
 
-            var recordUidBytes = recordUid.Base64UrlDecode();
-            var rdRq = new GetRecordDataWithAccessInfoRequest();
-            rdRq.RecordUid.Add(ByteString.CopyFrom(recordUidBytes));
-            rdRq.RecordDetailsInclude = RecordDetailsInclude.ShareOnly;
+            var targetPermission = recordShares?.UserPermissions
+                .FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
 
-            var rdRss = await Auth.ExecuteAuthRest<GetRecordDataWithAccessInfoRequest, GetRecordDataWithAccessInfoResponse>("vault/get_records_details", rdRq);
-            var rdRs = rdRss.RecordDataWithAccessInfo.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUidBytes));
-            if (rdRs == null) {
-                throw new KeeperApiException("record_access_error", "");
-            }
-            var ownPermission = rdRs.UserPermission.FirstOrDefault(x => string.Equals(x.Username, Auth.Username, StringComparison.InvariantCultureIgnoreCase));
-            if (ownPermission != null) { 
-                // TODO 
-            }
-
-            var targetPermission = rdRs.UserPermission.FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
-
-            var rq = new RecordShareUpdateCommand();
+            var rsuRq = new RecordShareUpdateCommand();
             var ro = new RecordShareObject
             {
                 ToUsername = username,
@@ -335,44 +441,41 @@ namespace KeeperSecurity.Vault
 
             if (targetPermission == null)
             {
-                var pkRq = new AuthProto.GetPublicKeysRequest();
-                pkRq.Usernames.Add(username);
-
-                var pkRss = await Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>("vault/get_public_keys", pkRq);
-                var pkRs = pkRss.KeyResponses[0];
-                if (pkRs.PublicKey.IsEmpty && pkRs.PublicEccKey.IsEmpty)
-                {
-                    throw new KeeperApiException("public_key_error", pkRs.Message);
-                }
-                var useEcKey = !pkRs.PublicEccKey.IsEmpty && record?.Version != 2;
+                var keyTuple = await GetUserPublicKeys(username);
+                var rsaKey = keyTuple.Item1;
+                var ecKey = keyTuple.Item2;
+                var useEcKey = ecKey != null && record?.Version != 2;
                 if (useEcKey)
                 {
-                    var pk = CryptoUtils.LoadPublicEcKey(pkRs.PublicEccKey.ToByteArray());
+                    var pk = CryptoUtils.LoadPublicEcKey(ecKey);
                     ro.RecordKey = CryptoUtils.EncryptEc(record.RecordKey, pk).Base64UrlEncode();
                     ro.useEccKey = true;
                 }
-                else 
+                else
                 {
-                    var pk = CryptoUtils.LoadPublicKey(pkRs.PublicKey.ToByteArray());
+                    var pk = CryptoUtils.LoadPublicKey(rsaKey);
                     ro.RecordKey = CryptoUtils.EncryptRsa(record.RecordKey, pk).Base64UrlEncode();
                 }
                 ro.Shareable = canReshare ?? false;
                 ro.Editable = canEdit ?? false;
 
-                rq.AddShares = new[] { ro };
+                rsuRq.AddShares = new[] { ro };
             }
-            else {
-                ro.Shareable = canReshare ?? targetPermission.Sharable;
-                ro.Editable = canEdit ?? targetPermission.Editable;
+            else
+            {
+                ro.Shareable = canReshare ?? targetPermission.CanShare;
+                ro.Editable = canEdit ?? targetPermission.CanEdit;
 
-                rq.UpdateShares = new[] { ro };
+                rsuRq.UpdateShares = new[] { ro };
             }
 
-            var rs = await Auth.ExecuteAuthCommand<RecordShareUpdateCommand, Commands.RecordShareUpdateResponse>(rq);
-            var statuses = targetPermission == null ? rs.AddStatuses : rs.UpdateStatuses;
-            if (statuses != null) {
+            var rsuRs = await Auth.ExecuteAuthCommand<RecordShareUpdateCommand, Commands.RecordShareUpdateResponse>(rsuRq);
+            var statuses = targetPermission == null ? rsuRs.AddStatuses : rsuRs.UpdateStatuses;
+            if (statuses != null)
+            {
                 var status = statuses.FirstOrDefault(x => string.Equals(x.RecordUid, recordUid) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
-                if (status != null && !string.Equals(status.Status, "success", StringComparison.InvariantCultureIgnoreCase)) {
+                if (status != null && !string.Equals(status.Status, "success", StringComparison.InvariantCultureIgnoreCase))
+                {
                     throw new KeeperApiException(status.Status, status.Message);
                 }
             }

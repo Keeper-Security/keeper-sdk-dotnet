@@ -39,23 +39,18 @@ function Add-KeeperFolder {
 		[Parameter()][switch] $ManageRecords
 	)
 
-	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-	if (-not $vault) {
-		Write-Error -Message 'Not connected'
-		return
-	}
+	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
 	$objs = Get-KeeperChildItems -ObjectType Folder | Where-Object Name -eq $Name
 	if ($objs.Length -gt 0 ) {
-        Write-Error -Message "Folder `"$Name`" already exists"
-		return
+        Write-Error -Message "Folder `"$Name`" already exists" -ErrorAction Stop
 	}
 
 	$parentUid = $Script:CurrentFolder
 	if ($ParentFolderUid) {
 		[KeeperSecurity.Vault.FolderNode]$folder = $null
 		if (-not $vault.TryGetFolder($ParentFolderUid, [ref]$folder)) {
-	        Write-Error -Message "Folder UID `"$ParentFolderUid`" does not exist"
-			return
+	        Write-Error -Message "Folder UID `"$ParentFolderUid`" does not exist" -ErrorAction Stop
 		}
 		$parentUid = $ParentFolderUid
 	}
@@ -75,9 +70,9 @@ function Add-KeeperFolder {
 		if ($ManageRecords.IsPresent) {
 			$options.ManageRecords = $true
 		}
+
 	}
-	$task = $vault.CreateFolder($Name, $parentUid, $options)
-	$task.GetAwaiter().GetResult()
+	$vault.CreateFolder($Name, $parentUid, $options).GetAwaiter().GetResult()
 }
 New-Alias -Name kmkdir -Value Add-KeeperFolder
 
@@ -95,11 +90,8 @@ function Remove-KeeperFolder {
 		[Parameter(Position = 0, Mandatory = $true)][string] $Name
 	)
 
-	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Vault
-	if (-not $vault) {
-		Write-Error -Message 'Not connected'
-		return
-	}
+	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
 	$folderUid = $null
 	$folder = $null
 	if ($vault.TryGetFolder($Name, [ref]$folder)) {
@@ -108,17 +100,14 @@ function Remove-KeeperFolder {
 	if (-not $folderUid) {
 		$objs = Get-KeeperChildItems -ObjectType Folder | Where-Object Name -eq $Name
 		if (-not $objs) {
-			Write-Error -Message "Folder `"$Name`" does not exist"
-			return
+			Write-Error -Message "Folder `"$Name`" does not exist" -ErrorAction Stop
 		}
 		if ($objs.Length -gt 1) {
-			Write-Error -Message "There are more than one folders with name `"$Name`". Use Folder UID do delete the correct one."
-			return
+			Write-Error -Message "There are more than one folders with name `"$Name`". Use Folder UID do delete the correct one." -ErrorAction Stop
 		}
 		$folderUid = $objs[0].Uid
 	}
 
-	$task = $vault.DeleteFolder($folderUid)
-	$task.GetAwaiter().GetResult() | Out-Null
+	$vault.DeleteFolder($folderUid).GetAwaiter().GetResult() | Out-Null
 }
 New-Alias -Name krmdir -Value Remove-KeeperFolder

@@ -8,23 +8,19 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader>
-            <Label>User</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Email</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Enterprise ID</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Status</Label>
-          </TableColumnHeader>
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
             <Wrap/>
             <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Id</PropertyName>
+              </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>DisplayName</PropertyName>
               </TableColumnItem>
@@ -32,10 +28,10 @@
                 <PropertyName>Email</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>Id</PropertyName>
+                <PropertyName>UserStatus</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>UserStatus</PropertyName>
+                <PropertyName>NodeName</PropertyName>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
@@ -53,26 +49,21 @@
           <ListEntry>
             <ListItems>
               <ListItem>
-                <Label>Enterprise Id</Label>
                 <PropertyName>Id</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>User</Label>
                 <PropertyName>DisplayName</PropertyName>
               </ListItem>
               <ListItem>
                 <PropertyName>Email</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Status</Label>
                 <PropertyName>UserStatus</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Node ID</Label>
                 <PropertyName>ParentNodeId</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Node Name</Label>
                 <PropertyName>NodeName</PropertyName>
               </ListItem>
             </ListItems>
@@ -88,21 +79,11 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
-          <TableColumnHeader>
-            <Label>Node ID</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Name</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Parent Name</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Isolated?</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Provisioning</Label>
-          </TableColumnHeader>
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
@@ -139,26 +120,21 @@
           <ListEntry>
             <ListItems>
               <ListItem>
-                <Label>Node Id</Label>
                 <PropertyName>Id</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Name</Label>
                 <PropertyName>DisplayName</PropertyName>
               </ListItem>
               <ListItem>
                 <PropertyName>Email</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Parent Node ID</Label>
                 <PropertyName>ParentNodeId</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Parent Node Name</Label>
                 <PropertyName>ParentNodeName</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Isolated?</Label>
                 <PropertyName>RestrictVisibility</PropertyName>
               </ListItem>
               <ListItem>
@@ -177,20 +153,15 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
           <TableColumnHeader>
-            <Label>Company ID</Label>
+            <Alignment>Right</Alignment>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>Company Name</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Plan Name</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Allocated</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Active</Label>
+            <Alignment>Right</Alignment>
           </TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -198,19 +169,22 @@
             <Wrap/>
             <TableColumnItems>
               <TableColumnItem>
-                <PropertyName>EnterpriseId</PropertyName>
+                <PropertyName>CompanyId</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>EnterpriseName</PropertyName>
+                <PropertyName>CompanyName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>ProductName</PropertyName>
+                <PropertyName>PlanId</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>NumberOfSeats</PropertyName>
+                <PropertyName>PlanName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>NumberOfUsers</PropertyName>
+                <PropertyName>Allocated</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Active</PropertyName>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
@@ -228,31 +202,27 @@
           <ListEntry>
             <ListItems>
               <ListItem>
-                <Label>Company Id</Label>
-                <PropertyName>EnterpriseId</PropertyName>
+                <PropertyName>CompanyId</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Company Name</Label>
-                <PropertyName>EnterpriseName</PropertyName>
+                <PropertyName>CompanyName</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Plan ID</Label>
-                <PropertyName>ProductId</PropertyName>
+                <PropertyName>PlanId</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Plan</Label>
-                <PropertyName>ProductName</PropertyName>
+                <PropertyName>PlanName</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Seats Allocated</Label>
-                <PropertyName>NumberOfSeats</PropertyName>
+                <PropertyName>Allocated</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Seats Used</Label>
-                <PropertyName>NumberOfUsers</PropertyName>
+                <PropertyName>Active</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>Parent Node Name</Label>
+                <PropertyName>ParentNodeId</PropertyName>
+              </ListItem>
+              <ListItem>
                 <PropertyName>ParentNodeName</PropertyName>
               </ListItem>
             </ListItems>
@@ -268,19 +238,14 @@
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
+          <TableColumnHeader />
           <TableColumnHeader>
-            <Label>Plan Id</Label>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Available Licenses</Label>
             <Alignment>Right</Alignment>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>Total Licenses</Label>
             <Alignment>Right</Alignment>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>Stash</Label>
             <Alignment>Right</Alignment>
           </TableColumnHeader>
         </TableHeaders>

@@ -9,6 +9,19 @@ using KeeperSecurity.Utils;
 namespace KeeperSecurity.Commands
 {
     [DataContract]
+    public class RecordAccessPath : IRecordAccessPath
+    {
+        [DataMember(Name = "record_uid", EmitDefaultValue = false)]
+        public string RecordUid { get; set; }
+
+        [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
+        public string SharedFolderUid { get; set; }
+
+        [DataMember(Name = "team_uid", EmitDefaultValue = false)]
+        public string TeamUid { get; set; }
+    }
+
+    [DataContract]
     internal class RecordAddCommand : AuthenticatedCommand
     {
         public RecordAddCommand() : base("record_add")
@@ -569,6 +582,38 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
+    internal class GetShareAutoCompleteCommand : AuthenticatedCommand
+    {
+        public GetShareAutoCompleteCommand() : base("get_share_auto_complete")
+        {
+        }
+
+        [DataMember(Name = "starts_with", EmitDefaultValue = false)]
+        public string StartsWith { get; set; }
+    }
+
+    [DataContract]
+    internal class ShareUserInfo
+    {
+        [DataMember(Name = "email")]
+        public string Email { get; set; }
+    }
+
+    [DataContract]
+    internal class GetShareAutoCompleteResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "shares_from_users")]
+        public ShareUserInfo[] SharesFromUsers;
+
+        [DataMember(Name = "shares_with_users")]
+        public ShareUserInfo[] SharesWithUsers;
+
+        [DataMember(Name = "group_users	")]
+        public ShareUserInfo[] GroupUsers;
+    }
+
+
+    [DataContract]
     internal class PublicKeysCommand : AuthenticatedCommand
     {
         public PublicKeysCommand() : base("public_keys")
@@ -807,5 +852,96 @@ namespace KeeperSecurity.Commands
         public RecordShareStatus[] UpdateStatuses;
         [DataMember(Name = "remove_statuses")]
         public RecordShareStatus[] RemoveStatuses;
+    }
+
+    [DataContract]
+    internal class GetRecordsCommand : AuthenticatedCommand
+    {
+        public GetRecordsCommand() : base("get_records")
+        {
+        }
+
+        [DataMember(Name = "include", EmitDefaultValue = false)]
+        public string[] Include;
+
+        [DataMember(Name = "client_time")]
+        public long ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+        [DataMember(Name = "records", EmitDefaultValue = false)]
+        public RecordAccessPath[] Records;
+    }
+
+
+    [DataContract]
+    internal class RecordUserPermission
+    {
+        [DataMember(Name = "username")]
+        public string Username;
+
+        [DataMember(Name = "owner")]
+        public bool Owner { get; set; }
+
+        [DataMember(Name = "sharable")]
+        public bool Sharable { get; set; }
+
+        [DataMember(Name = "editable")]
+        public bool Editable { get; set; }
+
+        [DataMember(Name = "awaiting_approval")]
+        public bool AwaitingApproval { get; set; }
+    }
+
+    [DataContract]
+    internal class RecordSharedFolderPermission
+    {
+        [DataMember(Name = "shared_folder_uid")]
+        public string SharedFolderUid;
+
+        [DataMember(Name = "revision")]
+        public long Revision;
+
+        [DataMember(Name = "reshareable")]
+        public bool Reshareable { get; set; }
+
+        [DataMember(Name = "editable")]
+        public bool Editable { get; set; }
+    }
+
+    [DataContract]
+    internal class RecordDetail
+    {
+        [DataMember(Name = "record_uid")]
+        public string RecordUid;
+
+        [DataMember(Name = "revision")]
+        public long Revision;
+
+        [DataMember(Name = "version")]
+        public int Version;
+
+        [DataMember(Name = "shared")]
+        public bool Shared;
+
+        [DataMember(Name = "data")]
+        public string Data;
+
+        [DataMember(Name = "extra")]
+        public string Extra;
+
+        [DataMember(Name = "non_shared_data")]
+        public string NonSharedData;
+
+        [DataMember(Name = "user_permissions")]
+        public RecordUserPermission[] UserPermissions;
+
+        [DataMember(Name = "shared_folder_permissions")]
+        public RecordSharedFolderPermission[] SharedFolderPermissions;
+    }
+
+    [DataContract]
+    internal class GetRecordsResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "records", EmitDefaultValue = false)]
+        public RecordDetail[] Records;
     }
 }

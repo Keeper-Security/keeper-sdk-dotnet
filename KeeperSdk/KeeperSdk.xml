@@ -11441,7 +11441,8 @@
         <member name="F:Records.UserPermission.EditableFieldNumber">
             <summary>Field number for the "editable" field.</summary>
         </member>
-        <member name="F:Records.UserPermission.AwaitingApprovalFieldNumber">
+        <member name="F:Records.UserPermission.
+                FieldNumber">
             <summary>Field number for the "awaitingApproval" field.</summary>
         </member>
         <member name="P:Records.UserPermission.AwaitingApproval">

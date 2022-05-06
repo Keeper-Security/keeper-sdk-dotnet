@@ -188,6 +188,22 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
+    /// Represents an exception that occurs when current user requests other user's public for the first time.
+    /// </summary>
+    public class NoActiveShareWithUserException : Authentication.KeeperApiException
+    {
+        public NoActiveShareWithUserException(string username, string code, string message) : base(code, message)
+        {
+            Username = username;
+        }
+
+        /// <summary>
+        /// Gets user email to send share invite
+        /// </summary>
+        public string Username { get; }
+    }
+
+    /// <summary>
     /// Defines methods for modifying the vault records and folders. 
     /// </summary>
     /// <seealso cref="VaultOnline"/>
@@ -298,7 +314,32 @@ namespace KeeperSecurity.Vault
         /// Retrieves all enterprise team descriptions.
         /// </summary>
         /// <returns>A list of all enterprise teams. (awaitable)</returns>
-        Task<IEnumerable<TeamInfo>> GetAvailableTeams();
+        Task<IEnumerable<TeamInfo>> GetTeamsForShare();
+
+        /// <summary>
+        /// Retrieves all known users for sharing
+        /// </summary>
+        /// <returns></returns>
+        Task<ShareWithUsers> GetUsersForShare();
+
+        /// <summary>
+        /// Gets user public keys.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <exception cref="NoActiveShareWithUserException"/>
+        /// <returns>Awaitable task returning RSA and ECC public keys</returns>
+        Task<Tuple<byte[], byte[]>> GetUserPublicKeys(string username);
+
+        /// <summary>
+        /// Sends share invitation request to the user.
+        /// </summary>
+        /// <param name="username">User email</param>
+        /// <returns>Awaitable task</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        Task SendShareInvitationRequest(string username);
+
+        Task<IEnumerable<RecordSharePermissions>> GetSharesForRecords(IEnumerable<string> recordUids);
 
         /// <summary>
         /// Cancels all shares with a user.
@@ -315,6 +356,7 @@ namespace KeeperSecurity.Vault
         /// <param name="username">User account email</param>
         /// <param name="canReshare">Can record be re-shared</param>
         /// <param name="canEdit">Can record be modified</param>
+        /// <exception cref="NoActiveShareWithUserException"/>
         /// <returns>Awaitable task.</returns>
         Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit);
 
@@ -353,6 +395,7 @@ namespace KeeperSecurity.Vault
         /// If <seealso cref="options"/> parameter is <c>null</c> then user gets default user permissions when added./>
         /// </remarks>
         /// <exception cref="Authentication.KeeperApiException"></exception>
+        /// <exception cref="NoActiveShareWithUserException" />
         /// <seealso cref="SharedFolderUserOptions"/>
         Task PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, ISharedFolderUserOptions options = null);
         /// <summary>
@@ -1050,6 +1093,77 @@ namespace KeeperSecurity.Vault
         byte[] IAttachment.AttachmentKey => RecordKey;
     }
 
+    /// <summary>
+    /// Represents record permissions for user.
+    /// </summary>
+    public class UserRecordPermissions
+    {
+        /// <summary>
+        /// Keeper username.
+        /// </summary>
+        public string Username { get; internal set; }
+        /// <summary>
+        /// Flag indicating if the user has share permissions.
+        /// </summary>
+        public bool CanShare { get; internal set; }
+        /// <summary>
+        /// Flag indicating if the user has rights to edit the record
+        /// </summary>
+        public bool CanEdit { get; internal set; }
+        /// <summary>
+        /// Flag indicating if the user is record owner.
+        /// </summary>
+        public bool Owner { get; internal set; }
+        /// <summary>
+        /// Flag indicating if the user has pending invitation.
+        /// </summary>
+        public bool AwaitingApproval { get; internal set; }
+    }
+
+    /// <summary>
+    /// Represents record permissions in shared folder.
+    /// </summary>
+    public class SharedFolderRecordPermissions
+    {
+        /// <summary>
+        /// Shared Folder UID.
+        /// </summary>
+        public string SharedFolderUid { get; internal set; }
+        /// <summary>
+        /// Flag indicating if the shared folder has share permissions.
+        /// </summary>
+        public bool CanShare { get; internal set; }
+        /// <summary>
+        /// Flag indicating if the shared folder has rights to edit the record
+        /// </summary>
+        public bool CanEdit { get; internal set; }
+    }
+
+    public class RecordSharePermissions 
+    {
+        public string RecordUid { get; internal set; }
+        public UserRecordPermissions[] UserPermissions { get; internal set; }
+        public SharedFolderRecordPermissions[] SharedFolderPermissions { get; internal set; }
+    }
+
+    /// <summary>
+    /// Represent user list available for sharing
+    /// </summary>
+    public class ShareWithUsers
+    { 
+        /// <summary>
+        /// Array of users shared from
+        /// </summary>
+        public string[] SharesFrom { get; internal set; }
+        /// <summary>
+        /// Array of users shared to
+        /// </summary>
+        public string[] SharesWith { get; internal set; }
+        /// <summary>
+        /// Array of users in the enterprise
+        /// </summary>
+        public string[] GroupUsers { get; internal set; }
+    }
     /// <summary>
     /// Specifies shared folder user type.
     /// </summary>

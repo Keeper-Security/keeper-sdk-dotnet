@@ -44,7 +44,7 @@
     <Name>KeeperSecurity.Enterprise.EnterpriseManagedCompany</Name>
     <Members>
       <ScriptProperty>
-        <Name>ProductName</Name>
+        <Name>PlanName</Name>
         <GetScriptBlock>
           Switch ($this.ProductId) {
             "business" {"Business"}
@@ -61,6 +61,26 @@
           Get-KeeperNodeName $this.ParentNodeId
         </GetScriptBlock>
       </ScriptProperty>
+      <AliasProperty>
+        <Name>PlanId</Name>
+        <ReferencedMemberName>ProductId</ReferencedMemberName>
+      </AliasProperty>    
+      <AliasProperty>
+        <Name>CompanyId</Name>
+        <ReferencedMemberName>EnterpriseId</ReferencedMemberName>
+      </AliasProperty>    
+      <AliasProperty>
+        <Name>CompanyName</Name>
+        <ReferencedMemberName>EnterpriseName</ReferencedMemberName>
+      </AliasProperty>    
+      <AliasProperty>
+        <Name>Active</Name>
+        <ReferencedMemberName>NumberOfUsers</ReferencedMemberName>
+      </AliasProperty>    
+      <AliasProperty>
+        <Name>Allocated</Name>
+        <ReferencedMemberName>	NumberOfSeats</ReferencedMemberName>
+      </AliasProperty>    
     </Members>
   </Type>
 
