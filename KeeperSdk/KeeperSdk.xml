@@ -2185,6 +2185,9 @@
             </summary>
             <param name="loader">JSON loader</param>
         </member>
+        <member name="P:KeeperSecurity.Configuration.JsonConfigurationCache.Loader">
+            <exclude/>
+        </member>
         <member name="P:KeeperSecurity.Configuration.JsonConfigurationCache.ReadTimeout">
             <summary>
             Gets / sets read timeout in milliseconds.
@@ -3531,6 +3534,9 @@
         <member name="T:KeeperSecurity.Utils.ExternalFolderRecordLink">
             <exclude/>
         </member>
+        <member name="T:KeeperSecurity.Utils.ExternalRecordType">
+            <exclude/>
+        </member>
         <member name="T:KeeperSecurity.Utils.NotificationCallback`1">
             <summary>
                 Notification callback delegate.
@@ -3756,44 +3762,13 @@
             <exclude />
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.PutUserToSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType,KeeperSecurity.Vault.ISharedFolderUserOptions)">
-            <summary>
-            Adds (if needed) user or team to the shared folder and set user access permissions.
-            </summary>
-            <param name="sharedFolderUid">Shared Folder UID.</param>
-            <param name="userId">User email or Team UID.</param>
-            <param name="userType">Type of <see cref="!:userId"/> parameter.</param>
-            <param name="options">Shared Folder User Permissions.</param>
-            <returns>Awaitable task.</returns>
-            <remarks>
-            If <c>options</c> parameter is <c>null</c> then user gets default user permissions when added.
-            </remarks>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
-            <seealso cref="M:KeeperSecurity.Vault.IVaultSharedFolder.PutUserToSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType,KeeperSecurity.Vault.ISharedFolderUserOptions)"/>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.RemoveUserFromSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType)">
-            <summary>
-            Removes user or team from shared folder.
-            </summary>
-            <param name="sharedFolderUid">Shared Folder UID.</param>
-            <param name="userId">User email or Team UID.</param>
-            <param name="userType">Type of <c>userId</c> parameter.</param>
-            <returns>Awaitable task.</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
-            <seealso cref="M:KeeperSecurity.Vault.IVaultSharedFolder.RemoveUserFromSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType)"/>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.ChangeRecordInSharedFolder(System.String,System.String,KeeperSecurity.Vault.ISharedFolderRecordOptions)">
-            <summary>
-            Changes record permissions in shared folder.
-            </summary>
-            <param name="sharedFolderUid">Shared Folder UID.</param>
-            <param name="recordUid">Record UID.</param>
-            <param name="options">Record permissions.</param>
-            <returns>Awaitable task</returns>
-            <remarks>
-            This method does not add a record to shared folder.
-            Use <see cref="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)"/> or <see cref="M:KeeperSecurity.Vault.IVault.MoveRecords(KeeperSecurity.Vault.RecordPath[],System.String,System.Boolean)"/>.
-            </remarks>
-            <seealso cref="M:KeeperSecurity.Vault.IVaultSharedFolder.ChangeRecordInSharedFolder(System.String,System.String,KeeperSecurity.Vault.ISharedFolderRecordOptions)"/>
+            <inheritdoc/>>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.#ctor(KeeperSecurity.Authentication.IAuthentication,KeeperSecurity.Vault.IKeeperStorage)">
             <summary>
@@ -3812,6 +3787,9 @@
             Gets or sets vault auto sync flag.
             </summary>
             <remarks>When <c>True</c> the library subscribes to the Vault change notifications.</remarks>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultOnline.RecordTypesLoaded">
+            <exclude />
         </member>
         <member name="P:KeeperSecurity.Vault.VaultOnline.VaultUi">
             <summary>
@@ -3832,56 +3810,68 @@
             <returns>Awaitable task</returns>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.UpdateRecord(KeeperSecurity.Vault.KeeperRecord,System.Boolean)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.StoreNonSharedData``1(System.String,``0)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteRecords(KeeperSecurity.Vault.RecordPath[])">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.MoveRecords(KeeperSecurity.Vault.RecordPath[],System.String,System.Boolean)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.MoveFolder(System.String,System.String,System.Boolean)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.CreateFolder(System.String,System.String,KeeperSecurity.Vault.SharedFolderOptions)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.RenameFolder(System.String,System.String)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.UpdateFolder(System.String,System.String,KeeperSecurity.Vault.SharedFolderOptions)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteFolder(System.String)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
-        <member name="M:KeeperSecurity.Vault.VaultOnline.GetAvailableTeams">
-            <inheritdoc/>>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.GetTeamsForShare">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.GetUsersForShare">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.GetSharesForRecords(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.CancelSharesWithUser(System.String)">
-            <inheritdoc/>>
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.GetUserPublicKeys(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.SendShareInvitationRequest(System.String)">
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.ShareRecordWithUser(System.String,System.String,System.Nullable{System.Boolean},System.Nullable{System.Boolean})">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.TransferRecordToUser(System.String,System.String)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.RevokeShareFromUser(System.String,System.String)">
-            <inheritdoc/>>
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldType">
             <summary>
             Record Types Schema: Field Type definition.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldType.#ctor(System.String,System.Type,System.String,System.String[])">
+        <member name="M:KeeperSecurity.Vault.FieldType.#ctor(System.String,System.Type,System.String)">
             <exclude />
         </member>
         <member name="P:KeeperSecurity.Vault.FieldType.Name">
@@ -3892,11 +3882,6 @@
         <member name="P:KeeperSecurity.Vault.FieldType.Description">
             <summary>
             Type description
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Vault.FieldType.Elements">
-            <summary>
-            Complex type properties
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.FieldType.Type">
@@ -4037,6 +4022,11 @@
             Defines access methods for compound record types
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.IFieldTypeSerialize.Elements">
+            <summary>
+            Enumerates property names
+            </summary>
+        </member>
         <member name="P:KeeperSecurity.Vault.IFieldTypeSerialize.ElementValues">
             <summary>
             Enumerates property values
@@ -4071,6 +4061,9 @@
         <member name="P:KeeperSecurity.Vault.FieldTypeHost.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
             <exclude />
         </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeHost.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+            <exclude />
+        </member>
         <member name="M:KeeperSecurity.Vault.FieldTypeHost.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
             <exclude />
         </member>
@@ -4102,6 +4095,9 @@
             Gets or sets phone type
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePhone.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+            <exclude />
+        </member>
         <member name="P:KeeperSecurity.Vault.FieldTypePhone.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
             <exclude />
         </member>
@@ -4130,6 +4126,9 @@
             <summary>
             Gets or sets middle name
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeName.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+            <exclude />
         </member>
         <member name="P:KeeperSecurity.Vault.FieldTypeName.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
             <exclude />
@@ -4175,6 +4174,9 @@
             Gets or sets Country
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+            <exclude />
+        </member>
         <member name="P:KeeperSecurity.Vault.FieldTypeAddress.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
             <exclude />
         </member>
@@ -4198,6 +4200,9 @@
             <summary>
             Gets or sets Security Answer
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+            <exclude />
         </member>
         <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
             <exclude />
@@ -4228,6 +4233,9 @@
             Gets or setsAccount Number
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+            <exclude />
+        </member>
         <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
             <exclude />
         </member>
@@ -4257,6 +4265,9 @@
             Gets or sets Card Security Code
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+            <exclude />
+        </member>
         <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
             <exclude />
         </member>
@@ -4277,6 +4288,9 @@
             <summary>
             Gets or sets Private Key
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+            <exclude />
         </member>
         <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
             <exclude />
@@ -4306,9 +4320,6 @@
             <exclude />
         </member>
         <member name="M:KeeperSecurity.Vault.RecordTypesConstants.GetJsonParser(System.Type,System.Runtime.Serialization.Json.DataContractJsonSerializer@)">
-            <exclude />
-        </member>
-        <member name="T:KeeperSecurity.Vault.KeeperRecordTypeStorage">
             <exclude />
         </member>
         <member name="T:KeeperSecurity.Vault.TypedRecordFields">
@@ -4846,6 +4857,11 @@
             </list>
             </remarks>
         </member>
+        <member name="P:KeeperSecurity.Vault.IKeeperStorage.RecordTypes">
+            <summary>
+            Gets record type's entity storage
+            </summary>
+        </member>
         <member name="M:KeeperSecurity.Vault.IKeeperStorage.Clear">
             <summary>
             Clear offline Keeper vault storage.
@@ -4889,21 +4905,6 @@
         <member name="P:KeeperSecurity.Vault.IRecordType.Content">
             <summary>
             Record Type Content (JSON).
-            </summary>
-        </member>
-        <member name="T:KeeperSecurity.Vault.IKeeperRecordTypeStorage">
-            <summary>
-            Defines properties for offline record types storage.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Vault.IKeeperRecordTypeStorage.RecordTypes">
-            <summary>
-            Gets record type storage
-            </summary>
-        </member>
-        <member name="M:KeeperSecurity.Vault.IKeeperRecordTypeStorage.Clear">
-            <summary>
-            Clears storage
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.InMemoryKeeperStorage">
@@ -5015,9 +5016,6 @@
             <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.ClientKey">
-            <inheritdoc/>
-        </member>
-        <member name="P:KeeperSecurity.Vault.VaultData.RecordTypesSupported">
             <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.VaultData.RecordTypes">
@@ -5282,11 +5280,6 @@
             <param name="recordUid">Record UID</param>
             <returns>Non shared data associated with the record</returns>
         </member>
-        <member name="P:KeeperSecurity.Vault.IVaultData.RecordTypesSupported">
-            <summary>
-            Is record types supported
-            </summary>
-        </member>
         <member name="P:KeeperSecurity.Vault.IVaultData.RecordTypes">
             <summary>
             Gets the list of all registered record types.
@@ -5358,6 +5351,16 @@
             <returns>Task returning <c>bool</c>; <c>true</c> means Yes/Accept; <c>false</c> No/Decline</returns>
             <seealso cref="M:KeeperSecurity.Vault.IVault.DeleteRecords(KeeperSecurity.Vault.RecordPath[])"/>
             <seealso cref="M:KeeperSecurity.Vault.IVault.DeleteFolder(System.String)"/>
+        </member>
+        <member name="T:KeeperSecurity.Vault.NoActiveShareWithUserException">
+            <summary>
+            Represents an exception that occurs when current user requests other user's public for the first time.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.NoActiveShareWithUserException.Username">
+            <summary>
+            Gets user email to send share invite
+            </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.IVault">
             <summary>
@@ -5470,11 +5473,41 @@
             <returns>Awaitable task.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
         </member>
-        <member name="M:KeeperSecurity.Vault.IVault.GetAvailableTeams">
+        <member name="M:KeeperSecurity.Vault.IVault.GetTeamsForShare">
             <summary>
             Retrieves all enterprise team descriptions.
             </summary>
             <returns>A list of all enterprise teams. (awaitable)</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.GetUsersForShare">
+            <summary>
+            Retrieves all known users for sharing
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.GetUserPublicKeys(System.String)">
+            <summary>
+            Gets user public keys.
+            </summary>
+            <param name="username"></param>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+            <exception cref="T:KeeperSecurity.Vault.NoActiveShareWithUserException"/>
+            <returns>Awaitable task returning RSA and ECC public keys</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.SendShareInvitationRequest(System.String)">
+            <summary>
+            Sends share invitation request to the user.
+            </summary>
+            <param name="username">User email</param>
+            <returns>Awaitable task</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.GetSharesForRecords(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Retrieves record sharing information. 
+            </summary>
+            <param name="recordUids">List of record UIDs</param>
+            <returns>Awaitable task returning record share details</returns>
         </member>
         <member name="M:KeeperSecurity.Vault.IVault.CancelSharesWithUser(System.String)">
             <summary>
@@ -5492,6 +5525,7 @@
             <param name="username">User account email</param>
             <param name="canReshare">Can record be re-shared</param>
             <param name="canEdit">Can record be modified</param>
+            <exception cref="T:KeeperSecurity.Vault.NoActiveShareWithUserException"/>
             <returns>Awaitable task.</returns>
         </member>
         <member name="M:KeeperSecurity.Vault.IVault.TransferRecordToUser(System.String,System.String)">
@@ -5529,6 +5563,7 @@
             If <seealso cref="!:options"/> parameter is <c>null</c> then user gets default user permissions when added./>
             </remarks>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+            <exception cref="T:KeeperSecurity.Vault.NoActiveShareWithUserException" />
             <seealso cref="T:KeeperSecurity.Vault.SharedFolderUserOptions"/>
         </member>
         <member name="M:KeeperSecurity.Vault.IVaultSharedFolder.RemoveUserFromSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType)">
@@ -5868,6 +5903,11 @@
             Web URL.
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.PasswordRecord.Totp">
+            <summary>
+            TOTP URL.
+            </summary>
+        </member>
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Custom">
             <summary>
             A list of Custom Fields.
@@ -5876,11 +5916,6 @@
         <member name="P:KeeperSecurity.Vault.PasswordRecord.Attachments">
             <summary>
             A list of Attachments.
-            </summary>
-        </member>
-        <member name="P:KeeperSecurity.Vault.PasswordRecord.ExtraFields">
-            <summary>
-            A list of Extra Fields.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.CustomField">
@@ -6074,6 +6109,96 @@
         <member name="P:KeeperSecurity.Vault.FileRecord.StorageThumbnailSize">
             <summary>
             On storage thumbnail size in bytes.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.UserRecordPermissions">
+            <summary>
+            Represents record permissions for user.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.UserRecordPermissions.Username">
+            <summary>
+            Keeper username.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.UserRecordPermissions.CanShare">
+            <summary>
+            Flag indicating if the user has share permissions.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.UserRecordPermissions.CanEdit">
+            <summary>
+            Flag indicating if the user has rights to edit the record
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.UserRecordPermissions.Owner">
+            <summary>
+            Flag indicating if the user is record owner.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.UserRecordPermissions.AwaitingApproval">
+            <summary>
+            Flag indicating if the user has pending invitation.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.SharedFolderRecordPermissions">
+            <summary>
+            Represents record permissions in shared folder.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderRecordPermissions.SharedFolderUid">
+            <summary>
+            Shared Folder UID.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderRecordPermissions.CanShare">
+            <summary>
+            Flag indicating if the shared folder has share permissions.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderRecordPermissions.CanEdit">
+            <summary>
+            Flag indicating if the shared folder has rights to edit the record
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordSharePermissions">
+            <summary>
+            Represent record sharing information
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordSharePermissions.RecordUid">
+            <summary>
+            Record UID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordSharePermissions.UserPermissions">
+            <summary>
+            List of direct record share permissions
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordSharePermissions.SharedFolderPermissions">
+            <summary>
+            List of shared folder permissions
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.ShareWithUsers">
+            <summary>
+            Represent user list available for sharing
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ShareWithUsers.SharesFrom">
+            <summary>
+            Array of users shared from
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ShareWithUsers.SharesWith">
+            <summary>
+            Array of users shared to
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ShareWithUsers.GroupUsers">
+            <summary>
+            Array of users in the enterprise
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.UserType">
@@ -11441,8 +11566,7 @@
         <member name="F:Records.UserPermission.EditableFieldNumber">
             <summary>Field number for the "editable" field.</summary>
         </member>
-        <member name="F:Records.UserPermission.
-                FieldNumber">
+        <member name="F:Records.UserPermission.AwaitingApprovalFieldNumber">
             <summary>Field number for the "awaitingApproval" field.</summary>
         </member>
         <member name="P:Records.UserPermission.AwaitingApproval">

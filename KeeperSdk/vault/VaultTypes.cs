@@ -339,6 +339,11 @@ namespace KeeperSecurity.Vault
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task SendShareInvitationRequest(string username);
 
+        /// <summary>
+        /// Retrieves record sharing information. 
+        /// </summary>
+        /// <param name="recordUids">List of record UIDs</param>
+        /// <returns>Awaitable task returning record share details</returns>
         Task<IEnumerable<RecordSharePermissions>> GetSharesForRecords(IEnumerable<string> recordUids);
 
         /// <summary>
@@ -1139,10 +1144,22 @@ namespace KeeperSecurity.Vault
         public bool CanEdit { get; internal set; }
     }
 
+    /// <summary>
+    /// Represent record sharing information
+    /// </summary>
     public class RecordSharePermissions 
     {
+        /// <summary>
+        /// Record UID
+        /// </summary>
         public string RecordUid { get; internal set; }
+        /// <summary>
+        /// List of direct record share permissions
+        /// </summary>
         public UserRecordPermissions[] UserPermissions { get; internal set; }
+        /// <summary>
+        /// List of shared folder permissions
+        /// </summary>
         public SharedFolderRecordPermissions[] SharedFolderPermissions { get; internal set; }
     }
 
