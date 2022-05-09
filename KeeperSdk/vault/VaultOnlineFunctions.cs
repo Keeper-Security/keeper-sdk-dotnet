@@ -811,30 +811,26 @@ namespace KeeperSecurity.Vault
                     }
                 }
             }
-            else
+            if (preDeleteObjects.Count > 0)
             {
-                if (preDeleteObjects.Count > 0)
+                var preRequest = new PreDeleteCommand
                 {
-                    var preRequest = new PreDeleteCommand
-                    {
-                        objects = preDeleteObjects.Values.ToArray(),
-                    };
+                    objects = preDeleteObjects.Values.ToArray(),
+                };
 
-                    var preResponse = await vault.Auth.ExecuteAuthCommand<PreDeleteCommand, PreDeleteResponse>(preRequest);
-                    var ok = forceDelete || vault.VaultUi == null;
-                    if (!ok)
-                    {
-                        ok = await vault.VaultUi.Confirmation(string.Join("\n", preResponse.preDeleteResponse.wouldDelete.deletionSummary));
-                    }
+                var preResponse = await vault.Auth.ExecuteAuthCommand<PreDeleteCommand, PreDeleteResponse>(preRequest);
+                var ok = forceDelete || vault.VaultUi == null;
+                if (!ok)
+                {
+                    ok = await vault.VaultUi.Confirmation(string.Join("\n", preResponse.preDeleteResponse.wouldDelete.deletionSummary));
+                }
 
-                    if (ok)
+                if (ok)
+                {
+                    await vault.Auth.ExecuteAuthCommand(new DeleteCommand
                     {
-                        await vault.Auth.ExecuteAuthCommand(new DeleteCommand
-                        {
-                            preDeleteToken = preResponse.preDeleteResponse.preDeleteToken,
-                        });
-                        await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
-                    }
+                        preDeleteToken = preResponse.preDeleteResponse.preDeleteToken,
+                    });
                 }
             }
 
