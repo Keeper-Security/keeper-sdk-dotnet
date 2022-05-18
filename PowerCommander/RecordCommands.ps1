@@ -113,6 +113,9 @@ function Copy-KeeperToClipboard {
 
 				if ($value) {
 					Set-Clipboard -Value $value
+					if ($Field -eq 'Password') {
+						$vault.AuditLogRecordCopyPassword($rec.Uid)
+					}
 					Write-Host "Copied to clipboard: $Field for $($rec.Title)"
 				} else {
 					Write-Host "Record $($rec.Title) has no $Field"

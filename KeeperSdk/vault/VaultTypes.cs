@@ -226,6 +226,12 @@ namespace KeeperSecurity.Vault
         void AuditLogRecordOpen(string recordUid);
 
         /// <summary>
+        /// Records "copy_password" audit event for enterprise accounts
+        /// </summary>
+        /// <param name="recordUid"></param>
+        void AuditLogRecordCopyPassword(string recordUid);
+
+        /// <summary>
         /// Creates a password record.
         /// </summary>
         /// <param name="record">Keeper Record.</param>

@@ -34,18 +34,20 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Revoke-KeeperSharedFolderAccess| kushf  | Adds a user or team to a shared foler
 
 ### Enterprise Cmdlets
-| Cmdlet name                    | Alias  | Description
-|--------------------------------|--------|----------------------------
-| Sync-KeeperEnterprise          | ked    | Sync Keeper enterprise information
-| Get-KeeperEnterpriseNodes      | ken    | Enumerate all enterprise nodes
-| Get-KeeperEnterpriseUsers      | keu    | Enumerate all enterprise users
-| Lock-KeeperEnterpriseUser      | keul   | Locks Enterprise User
-| Unlock-KeeperEnterpriseUser    | keuu   | Unlocks Enterprise User
-| Get-KeeperMspLicenses          | kmspl  | Returns MSP licenses
-| Get-KeeperManagedCompanies     | kmc    | Enumerate all enterprise managed companies
-| New-KeeperManagedCompany       | kamc   | Create Managed Company
-| Remove-KeeperManagedCompany    | krmc   | Remove Managed Company
-| Edit-KeeperManagedCompany      | kemc   | Edit Managed Company
+| Cmdlet name                    | Alias       | Description
+|--------------------------------|-------------|----------------------------
+| Sync-KeeperEnterprise          | ked         | Sync Keeper enterprise information
+| Get-KeeperEnterpriseNodes      | ken         | Enumerate all enterprise nodes
+| Get-KeeperEnterpriseUsers      | keu         | Enumerate all enterprise users
+| Lock-KeeperEnterpriseUser      | lock-user   | Locks Enterprise User
+| Unlock-KeeperEnterpriseUser    | unlock-user | Unlocks Enterprise User
+| Move-KeeperEnterpriseUser      |transfer-user| Transfers user account to another user
+| Remove-KeeperEnterpriseUser    | delete-user | Deletes Enterprise User
+| Get-KeeperMspLicenses          | msp-license | Returns MSP licenses
+| Get-KeeperManagedCompanies     | kmc         | Enumerate all enterprise managed companies
+| New-KeeperManagedCompany       | kamc        | Create Managed Company
+| Remove-KeeperManagedCompany    | krmc        | Remove Managed Company
+| Edit-KeeperManagedCompany      | kemc        | Edit Managed Company
 
 
 #### Examples
