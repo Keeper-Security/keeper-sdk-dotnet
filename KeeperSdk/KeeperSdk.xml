@@ -562,6 +562,9 @@
             </summary>
             <returns>Awaitable Task</returns>
         </member>
+        <member name="M:KeeperSecurity.Authentication.IAuthentication.AuditEventLogging(System.String,KeeperSecurity.Commands.AuditEventInput)">
+            <exclude/>
+        </member>
         <member name="T:KeeperSecurity.Authentication.IAuthContext">
             <summary>
             Defines properties of connected user.
@@ -680,6 +683,9 @@
             <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.SupportRestrictedSession">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.AuditEventLogging(System.String,KeeperSecurity.Commands.AuditEventInput)">
             <exclude/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthCommon.Logout">
@@ -2436,44 +2442,29 @@
             <param name="fullName">Full Name</param>
             <returns>Invited User</returns>
         </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.SetUserLocked(KeeperSecurity.Enterprise.EnterpriseUser,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.DeleteUser(KeeperSecurity.Enterprise.EnterpriseUser)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.EnterpriseData.TransferUserAccount(KeeperSecurity.Enterprise.IRoleData,KeeperSecurity.Enterprise.EnterpriseUser,KeeperSecurity.Enterprise.EnterpriseUser)">
+            <inheritdoc/>
+        </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.CreateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
-            <summary>
-                Creates Enterprise Team.
-            </summary>
-            <param name="team">Enterprise Team</param>
-            <returns>Created Team</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.UpdateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
-            <summary>
-                Updates Enterprise Team
-            </summary>
-            <param name="team">Enterprise Team</param>
-            <returns>Updated Team</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.DeleteTeam(System.String)">
-            <summary>
-                Deletes Enterprise Team.
-            </summary>
-            <param name="teamUid">Enterprise Team UID.</param>
-            <returns>Awaitable task.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.AddUsersToTeams(System.String[],System.String[],System.Action{System.String})">
-            <summary>
-                Add Enterprise User(s) to Team(s).
-            </summary>
-            <param name="emails">A list of user emails</param>
-            <param name="teamUids">A list of team UIDs</param>
-            <param name="warnings">A callback that receives warnings</param>
-            <returns>Awaitable task.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseData.RemoveUsersFromTeams(System.String[],System.String[],System.Action{System.String})">
-            <summary>
-                Removes Users(s) from Team(s)
-            </summary>
-            <param name="emails">A list of user emails</param>
-            <param name="teamUids">A list of team UIDs</param>
-            <param name="warnings">A callback that receives warnings</param>
-            <returns>Awaitable task.</returns>
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Enterprise.NodeDictionary">
             <exclude/>
@@ -2675,14 +2666,80 @@
             Enterprise Node ID
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Enterprise.InviteUserOptions.SuppressEmail">
-            <summary>
-            Callback method that receives enterprise invitation code.
-            When provided the enterprise invitation email will not be sent.
-            </summary>
-        </member>
         <member name="T:KeeperSecurity.Enterprise.IEnterpriseDataManagement">
-            <exclude/>
+            <summary>
+            Defines methods for modifying enterprise users and teams. 
+            </summary>
+            <seealso cref="!:VaultOnline"/>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.InviteUser(System.String,KeeperSecurity.Enterprise.InviteUserOptions)">
+            <summary>
+                Invides User to Enterprise.
+            </summary>
+            <param name="email">User email</param>
+            <param name="options">Invided user options</param>
+            <returns>Invited User</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.SetUserLocked(KeeperSecurity.Enterprise.EnterpriseUser,System.Boolean)">
+            <summary>
+                Locks or Unlocks Enterprise User.
+            </summary>
+            <param name="user">Enterprise User</param>
+            <param name="locked">Lock flag</param>
+            <returns>User</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.DeleteUser(KeeperSecurity.Enterprise.EnterpriseUser)">
+            <summary>
+                Deletes Enterprise User.
+            </summary>
+            <param name="user">Enterprise User</param>
+            <returns>Task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.TransferUserAccount(KeeperSecurity.Enterprise.IRoleData,KeeperSecurity.Enterprise.EnterpriseUser,KeeperSecurity.Enterprise.EnterpriseUser)">
+            <summary>
+                Transfers Enterprise User account to another user.
+            </summary>
+            <param name="roleData">Enterprise Role data</param>
+            <param name="fromUser">Enterprise User to transfer account from</param>
+            <param name="targetUser">Target Enterprise User</param>
+            <returns>Task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.CreateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
+            <summary>
+                Creates Enterprise Team.
+            </summary>
+            <param name="team">Enterprise Team</param>
+            <returns>Created Team</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.UpdateTeam(KeeperSecurity.Enterprise.EnterpriseTeam)">
+            <summary>
+                Modifies Enterprise Team.
+            </summary>
+            <param name="team">Enterprise Team</param>
+            <returns>Updated Team</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.DeleteTeam(System.String)">
+            <summary>
+                Deletes Enterprise Team.
+            </summary>
+            <param name="team">Enterprise Team</param>
+            <returns>Task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.AddUsersToTeams(System.String[],System.String[],System.Action{System.String})">
+            <summary>
+                Adds Users to Team.
+            </summary>
+            <param name="teamUid">Team Uid</param>
+            <returns>Task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IEnterpriseDataManagement.RemoveUsersFromTeams(System.String[],System.String[],System.Action{System.String})">
+            <summary>
+                Removes Users(s) from Team(s)
+            </summary>
+            <param name="emails">A list of user emails</param>
+            <param name="teamUids">A list of team UIDs</param>
+            <param name="warnings">A callback that receives warnings</param>
+            <returns>Awaitable task.</returns>
         </member>
         <member name="T:KeeperSecurity.Enterprise.IEnterpriseEntity">
             <exclude />
@@ -3127,7 +3184,69 @@
             <exclude />
         </member>
         <member name="T:KeeperSecurity.Enterprise.IRoleData">
-            <exclude/>
+            <summary>
+            Defines Role enterprise data.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.IRoleData.Roles">
+            <summary>
+            Get a list of all roles in the enterprise
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.IRoleData.RoleCount">
+            <summary>
+            Gets the number of all roles in the enterprise.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IRoleData.TryGetRole(System.Int64,KeeperSecurity.Enterprise.EnterpriseRole@)">
+            <summary>
+            Gets the enterprise role assocoated with the specified ID.
+            </summary>
+            <param name="roleId">Enterprise Role ID</param>
+            <param name="role">When this method returns <c>true</c>, contains requested enterprise role; otherwise <c>null</c>.</param>
+            <returns><c>true</c> if the enterprise contains a role with specified ID; otherwise, <c>false</c></returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IRoleData.GetUsersForRole(System.Int64)">
+            <summary>
+            Gets a list of user IDs for specified role.
+            </summary>
+            <param name="roleId">Enterprise Role ID.</param>
+            <returns>List of Enterprise User IDs.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IRoleData.GetRolesForUser(System.Int64)">
+            <summary>
+            Gets a list of role IDs for specified user.
+            </summary>
+            <param name="userId">Enterprise User ID.</param>
+            <returns>List of Enterprise Role IDs</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IRoleData.GetTeamsForRole(System.Int64)">
+            <summary>
+            Gets a list of team UIDs for specified role.
+            </summary>
+            <param name="roleId">Enterprise Role ID.</param>
+            <returns>List of Enterprise Team UIDs.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IRoleData.GetRolesForTeam(System.String)">
+            <summary>
+            Gets a list of role IDs for specified team.
+            </summary>
+            <param name="teamUid">Team UID.</param>
+            <returns>List of Enterprise Role IDs</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IRoleData.GetEnforcementsForRole(System.Int64)">
+            <summary>
+            Gets a list of role enforcements for specified role.
+            </summary>
+            <param name="roleId">Enterprise Role ID.</param>
+            <returns>List of Role Enforcements</returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.IRoleData.GetRoleKey(System.Int64)">
+            <summary>
+            Gets role key.
+            </summary>
+            <param name="roleId">Enterprise Role ID.</param>
+            <returns>Role Key</returns>
         </member>
         <member name="T:KeeperSecurity.Enterprise.RoleData">
             <summary>
@@ -3138,57 +3257,28 @@
             <exclude/>
         </member>
         <member name="P:KeeperSecurity.Enterprise.RoleData.Roles">
-            <summary>
-            Get a list of all roles in the enterprise
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Enterprise.RoleData.RoleCount">
-            <summary>
-            Gets the number of all roles in the enterprise.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.RoleData.TryGetRole(System.Int64,KeeperSecurity.Enterprise.EnterpriseRole@)">
-            <summary>
-            Gets the enterprise role assocoated with the specified ID.
-            </summary>
-            <param name="roleId">Enterprise Role ID</param>
-            <param name="role">When this method returns <c>true</c>, contains requested enterprise role; otherwise <c>null</c>.</param>
-            <returns><c>true</c> if the enterprise contains a role with specified ID; otherwise, <c>false</c></returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.RoleData.GetUsersForRole(System.Int64)">
-            <summary>
-            Gets a list of user IDs for specified role.
-            </summary>
-            <param name="roleId">Enterprise Role ID.</param>
-            <returns>List of Enterprise User IDs.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.RoleData.GetRolesForUser(System.Int64)">
-            <summary>
-            Gets a list of role IDs for specified user.
-            </summary>
-            <param name="userId">Enterprise User ID.</param>
-            <returns>List of Enterprise Role IDs</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.RoleData.GetTeamsForRole(System.Int64)">
-            <summary>
-            Gets a list of team UIDs for specified role.
-            </summary>
-            <param name="roleId">Enterprise Role ID.</param>
-            <returns>List of Enterprise Team UIDs.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.RoleData.GetRolesForTeam(System.String)">
-            <summary>
-            Gets a list of role IDs for specified team.
-            </summary>
-            <param name="teamUid">Team UID.</param>
-            <returns>List of Enterprise Role IDs</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.RoleData.GetEnforcementsForRole(System.Int64)">
-            <summary>
-            Gets a list of role enforcements for specified role.
-            </summary>
-            <param name="roleId">Enterprise Role ID.</param>
-            <returns>List of Role Enforcements</returns>
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Enterprise.RoleData.GetPrivilegesForRoleAndNode(System.Int64,System.Int64)">
             <summary>
@@ -3203,6 +3293,9 @@
             Gets a list of all managed nodes in the enterprise
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Enterprise.RoleData.GetRoleKey(System.Int64)">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Enterprise.RoleDictionary">
             <exclude/>
@@ -3809,6 +3902,12 @@
             </summary>
             <returns>Awaitable task</returns>
         </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.AuditLogRecordOpen(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.AuditLogRecordCopyPassword(System.String)">
+            <inheritdoc/>
+        </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)">
             <inheritdoc/>
         </member>
@@ -3951,6 +4050,12 @@
             <summary>
             Record Types Schema: Record Field definition.
             </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.RecordTypeField.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the RecordTypeField class
+            </summary>
+            <param name="fieldName">Field Name</param>
         </member>
         <member name="M:KeeperSecurity.Vault.RecordTypeField.#ctor(System.String,System.String)">
             <summary>
@@ -5377,6 +5482,18 @@
             <summary>
             Gets or Sets automatic sync down flag.
             </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.AuditLogRecordOpen(System.String)">
+            <summary>
+            Records "open_record" audit event for enterprise accounts
+            </summary>
+            <param name="recordUid"></param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.AuditLogRecordCopyPassword(System.String)">
+            <summary>
+            Records "copy_password" audit event for enterprise accounts
+            </summary>
+            <param name="recordUid"></param>
         </member>
         <member name="M:KeeperSecurity.Vault.IVault.CreateRecord(KeeperSecurity.Vault.KeeperRecord,System.String)">
             <summary>
