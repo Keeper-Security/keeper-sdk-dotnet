@@ -220,6 +220,12 @@ namespace KeeperSecurity.Vault
         bool AutoSync { get; set; }
 
         /// <summary>
+        /// Records "open_record" audit event for enterprise accounts
+        /// </summary>
+        /// <param name="recordUid"></param>
+        void AuditLogRecordOpen(string recordUid);
+
+        /// <summary>
         /// Creates a password record.
         /// </summary>
         /// <param name="record">Keeper Record.</param>

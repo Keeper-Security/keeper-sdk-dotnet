@@ -104,8 +104,15 @@ namespace KeeperSecurity.Vault
         /// Initializes a new instance of the RecordTypeField class
         /// </summary>
         /// <param name="fieldName">Field Name</param>
+        public RecordTypeField(string fieldName): this(fieldName, null)
+        {
+        }
+        /// <summary>
+        /// Initializes a new instance of the RecordTypeField class
+        /// </summary>
+        /// <param name="fieldName">Field Name</param>
         /// <param name="label">Field Label</param>
-        public RecordTypeField(string fieldName, string label = null)
+        public RecordTypeField(string fieldName, string label)
         {
             if (RecordTypesConstants.TryGetRecordField(fieldName, out var rf))
             {

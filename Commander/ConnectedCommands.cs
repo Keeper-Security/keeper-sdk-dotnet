@@ -702,6 +702,8 @@ namespace Commander
                             tab.AddRow(name, status);
                         }
                     }
+
+                    _vault.AuditLogRecordOpen(record.Uid);
                 }
             }
             else if (_vault.TryGetSharedFolder(uid, out var sf))

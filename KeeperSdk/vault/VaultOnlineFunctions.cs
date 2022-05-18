@@ -350,8 +350,7 @@ namespace KeeperSecurity.Vault
             await vault.Auth.ExecuteAuthCommand(request);
         }
 
-        public static async Task<KeeperRecord> PutRecord(this VaultOnline vault, KeeperRecord record,
-            bool skipData = false, bool skipExtra = true)
+        public static async Task<KeeperRecord> PutRecord(this VaultOnline vault, KeeperRecord record, bool skipExtra = true)
         {
             IStorageRecord existingRecord = null;
             if (!string.IsNullOrEmpty(record.Uid))
@@ -363,7 +362,6 @@ namespace KeeperSecurity.Vault
             {
                 return await vault.AddRecordToFolder(record);
             }
-
 
             if (record is PasswordRecord passwordRecord)
             {
@@ -384,12 +382,9 @@ namespace KeeperSecurity.Vault
                     }
                 }
 
-                if (!skipData)
-                {
-                    var data = passwordRecord.ExtractRecordData();
-                    var unencryptedData = JsonUtils.DumpJson(data);
-                    updateRecord.Data = CryptoUtils.EncryptAesV1(unencryptedData, record.RecordKey).Base64UrlEncode();
-                }
+                var data = passwordRecord.ExtractRecordData();
+                var unencryptedData = JsonUtils.DumpJson(data);
+                updateRecord.Data = CryptoUtils.EncryptAesV1(unencryptedData, record.RecordKey).Base64UrlEncode();
 
                 if (!skipExtra)
                 {
@@ -519,6 +514,46 @@ namespace KeeperSecurity.Vault
             else
             {
                 throw new Exception($"Unsupported record type: {record.GetType().Name}");
+            }
+
+            if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    bool logPasswordChanged = false;
+                    switch (existingRecord.Version)
+                    {
+                        case 2:
+                        {
+                            if (record is PasswordRecord pr)
+                            {
+                                var er = existingRecord.LoadV2(record.RecordKey);
+                                logPasswordChanged = (er.Password ?? "") != (pr.Password ?? "");
+                            }
+                        }
+                        break;
+                        case 3:
+                        {
+                            if (record is TypedRecord tr)
+                            {
+                                var er = existingRecord.LoadV3(record.RecordKey);
+                                if (tr.FindTypedField(new RecordTypeField("password"), out var f1) &&
+                                    er.FindTypedField(new RecordTypeField("password"), out var f2))
+                                {
+                                    var password1 = (f1.Value ?? "").ToString();
+                                    var password2 = (f2.Value ?? "").ToString();
+
+                                    logPasswordChanged = password1 != password2;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    if (logPasswordChanged)
+                    {
+                        await vault.Auth.AuditEventLogging("record_password_change", new AuditEventInput { RecordUid = record.Uid });
+                    }
+                });
             }
 
             await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
