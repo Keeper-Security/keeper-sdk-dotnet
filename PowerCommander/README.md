@@ -31,7 +31,7 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Grant-KeeperRecordAccess       | kshr   | Shares a record with user
 | Revoke-KeeperRecordAccess      | kushr  | Removes record share from user
 | Grant-KeeperSharedFolderAccess | kshf   | Adds a user or team to a shared foler
-| Revoke-KeeperSharedFolderAccess| kushf  | Adds a user or team to a shared foler
+| Revoke-KeeperSharedFolderAccess| kushf  | Removes a user or team from a shared foler
 
 ### Enterprise Cmdlets
 | Cmdlet name                    | Alias       | Description

@@ -399,7 +399,7 @@ function Remove-KeeperManagedCompany {
     }
 
     $enterprise.mspData.RemoveManagedCompany($mc.EnterpriseId).GetAwaiter().GetResult() | Out-Null
-    Write-Information -MessageData "Removed Managed Company `"${mc.EnterpriseName}`" ID: ${mc.EnterpriseId}"
+    Write-Information "Removed Managed Company `"$($mc.EnterpriseName)`" ID: $($mc.EnterpriseId)"
 }
 New-Alias -Name krmc -Value Remove-KeeperManagedCompany
 
