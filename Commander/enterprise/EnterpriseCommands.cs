@@ -89,14 +89,22 @@ namespace Commander
                     Description = "Manage User Devices",
                     Action = async options => { await context.EnterpriseDeviceCommand(options); },
                 });
+            cli.Commands.Add("transfer-user",
+                new ParsableCommand<EnterpriseTransferUserOptions>
+                {
+                    Order = 66,
+                    Description = "Transfer User Account",
+                    Action = async options => { await context.TransferUserCommand(options); },
+                });
 
             cli.Commands.Add("audit-report",
                 new ParsableCommand<AuditReportOptions>
                 {
-                    Order = 66,
+                    Order = 70,
                     Description = "Run an audit trail report.",
                     Action = async options => { await context.RunAuditEventsReport(options); },
                 });
+
 
             cli.CommandAliases["eget"] = "enterprise-get-data";
             cli.CommandAliases["en"] = "enterprise-node";
@@ -466,10 +474,111 @@ namespace Commander
                     Console.WriteLine($"User {singleUser.Email} deleted");
                 }
             }
+            else if (arguments.Command == "delete")
+            {
+                if (!arguments.Confirm) {
+                    Console.WriteLine("Deleting a user will also delete any records owned and shared by this user.\n" +
+                        "Before you delete this user, we strongly recommend you lock their account\n" +
+                        "and transfer any important records to other user.\nThis action cannot be undone.\n");
+                    Console.Write("Do you want to proceed with deletion (Yes/No)? > ");
+                    var answer = await Program.GetInputManager().ReadLine();
+                    if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+                    {
+                        answer = "yes";
+                    }
+                    arguments.Confirm = string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase);
+                }
+                if (!arguments.Confirm) return;
+
+                await context.EnterpriseData.DeleteUser(singleUser);
+
+                Console.WriteLine($"User {singleUser.Email} deleted");
+            }
             else
             {
                 Console.WriteLine($"Unsupported command \"{arguments.Command}\". Commands are \"list\", \"view\", \"invite\", \"team-add\", \"team-remove\"");
             }
+        }
+
+        public static async Task TransferUserCommand(this IEnterpriseContext context, EnterpriseTransferUserOptions arguments)
+        {
+            KeeperSecurity.Enterprise.EnterpriseUser fromUser = null;
+            if (arguments.FromUser.All(x => char.IsDigit(x)))
+            {
+                if (long.TryParse(arguments.FromUser, out var userId))
+                {
+                    context.EnterpriseData.TryGetUserById(userId, out fromUser);
+                }
+            }
+            if (fromUser == null)
+            {
+                context.EnterpriseData.TryGetUserByEmail(arguments.FromUser, out fromUser);
+            }
+            if (fromUser == null)
+            {
+                Console.WriteLine($"Enterprise user \"{arguments.FromUser}\" not found");
+                return;
+            }
+            KeeperSecurity.Enterprise.EnterpriseUser targetUser = null;
+            if (arguments.TargetUser.All(x => char.IsDigit(x)))
+            {
+                if (long.TryParse(arguments.TargetUser, out var userId))
+                {
+                    context.EnterpriseData.TryGetUserById(userId, out targetUser);
+                }
+            }
+            if (targetUser == null)
+            {
+                context.EnterpriseData.TryGetUserByEmail(arguments.TargetUser, out targetUser);
+            }
+            if (targetUser == null)
+            {
+                Console.WriteLine($"Enterprise user \"{arguments.TargetUser}\" not found");
+                return;
+            }
+
+            if (fromUser.Id == targetUser.Id)
+            {
+                Console.WriteLine($"From and Target users cannot be the same.");
+                return;
+            }
+            Console.Write($"This action cannot be undone.\n\nDo you want to proceed with transferring {fromUser.Email} account (Yes/No)? > ");
+            var answer = await Program.GetInputManager().ReadLine();
+            if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+            {
+                answer = "yes";
+            }
+
+            if (!string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase)) return;
+
+            var result = await context.EnterpriseData.TransferUserAccount(context.RoleManagement, fromUser, targetUser);
+            var tab = new Tabulate(2)
+            {
+                DumpRowNo = false
+            };
+
+            tab.SetColumnRightAlign(0, true);
+            tab.AddRow("Successfully Transfered  ", "");
+            tab.AddRow("Records:", result.RecordsTransfered);
+            tab.AddRow("Shared Folders:", result.SharedFoldersTransfered);
+            tab.AddRow("Teams:", result.TeamsTransfered);
+            if (result.RecordsCorrupted > 0 || result.SharedFoldersCorrupted > 0 || result.TeamsCorrupted > 0)
+            {
+                tab.AddRow("Failed to Transfer       ", "");
+                if (result.RecordsCorrupted > 0)
+                {
+                    tab.AddRow("Records:", result.RecordsCorrupted);
+                }
+                if (result.SharedFoldersCorrupted > 0)
+                {
+                    tab.AddRow("Shared Folders:", result.SharedFoldersCorrupted);
+                }
+                if (result.TeamsCorrupted > 0)
+                {
+                    tab.AddRow("Teams:", result.TeamsCorrupted);
+                }
+            }
+            tab.Dump();
         }
 
         private static string[] _privilegeNames = new string[] { "MANAGE_NODES", "MANAGE_USER", "MANAGE_ROLES", "MANAGE_TEAMS", "RUN_REPORTS", "MANAGE_BRIDGE", "APPROVE_DEVICE", "TRANSFER_ACCOUNT" };
@@ -1893,11 +2002,23 @@ namespace Commander
         [Option("name", Required = false, HelpText = "user full name. \"invite\"")]
         public string FullName { get; set; }
 
-        [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"invite\", \"lock\", \"unlock\", \"team-add\", \"team-remove\"")]
+        [Option("yes", Required = false, HelpText = "delete user without confirmation prompt. \"delete\"")]
+        public bool Confirm { get; set; }
+
+        [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"invite\", \"lock\", \"unlock\", \"team-add\", \"team-remove\", \"delete\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "enterprise user email, ID (except \"invite\")")]
         public string User { get; set; }
+    }
+
+    class EnterpriseTransferUserOptions : EnterpriseGenericOptions 
+    {
+        [Value(0, Required = true, HelpText = "email or user ID to transfer vault from user")]
+        public string FromUser { get; set; }
+
+        [Value(1, Required = true, HelpText = "email or user ID to transfer vault to user")]
+        public string TargetUser { get; set; }
     }
 
     class EnterpriseTeamOptions : EnterpriseGenericOptions
