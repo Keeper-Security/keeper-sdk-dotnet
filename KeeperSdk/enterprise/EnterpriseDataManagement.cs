@@ -74,6 +74,7 @@ namespace KeeperSecurity.Enterprise
             };
 
             await Enterprise.Auth.ExecuteAuthCommand(rq);
+            await Enterprise.Load();
         }
 
         /// <inheritdoc/>
@@ -288,6 +289,7 @@ namespace KeeperSecurity.Enterprise
             }
 
             await Enterprise.Auth.ExecuteAuthCommand(tdRq);
+            await Enterprise.Load();
 
             return new AccountTransferResult
             {

@@ -159,6 +159,15 @@ namespace KeeperSecurity.Vault
             });
         }
 
+        /// <inheritdoc/>
+        public void AuditLogRecordCopyPassword(string recordUid)
+        {
+            _ = Task.Run(async () =>
+            {
+                await Auth.AuditEventLogging("copy_password", new AuditEventInput { RecordUid = recordUid });
+            });
+        }
+
 
         /// <inheritdoc/>
         public Task<KeeperRecord> CreateRecord(KeeperRecord record, string folderUid = null)

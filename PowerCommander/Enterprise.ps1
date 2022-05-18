@@ -11,9 +11,10 @@ function getEnterprise {
         $enterprise = New-Object Enterprise
 
         $enterprise.enterpriseData = New-Object KeeperSecurity.Enterprise.EnterpriseData
+        $enterprise.roleData = New-Object KeeperSecurity.Enterprise.RoleData
         $enterprise.mspData = New-Object KeeperSecurity.Enterprise.ManagedCompanyData
 
-        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterprise.enterpriseData, $enterprise.mspData
+        [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterprise.enterpriseData, $enterprise.roleData, $enterprise.mspData
 
         $enterprise.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($auth, $plugins, $null)
         $enterprise.loader.Load().GetAwaiter().GetResult() | Out-Null
@@ -99,7 +100,7 @@ function Lock-KeeperEnterpriseUser {
     }
 }
 Register-ArgumentCompleter -CommandName Lock-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_ActiveUserCompleter
-New-Alias -Name keul -Value Lock-KeeperEnterpriseUser
+New-Alias -Name lock-user -Value Lock-KeeperEnterpriseUser
 
 $Keeper_LockedUserCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
@@ -149,8 +150,126 @@ function Unlock-KeeperEnterpriseUser {
     }
 }
 Register-ArgumentCompleter -CommandName Unlock-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_LockedUserCompleter
-New-Alias -Name keuu -Value Unlock-KeeperEnterpriseUser
+New-Alias -Name unlock-user -Value Unlock-KeeperEnterpriseUser
 
+$Keeper_EnterpriseUserCompleter = {
+	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+	$result = @()
+    [Enterprise]$enterprise = $Script:Context.Enterprise
+    if (-not $enterprise) {
+        return $null
+    }
+    if ($wordToComplete) {
+        $to_complete = '*' + $wordToComplete + '*'
+    } else {
+        $to_complete = '*'
+    }
+    foreach($user in $enterprise.enterpriseData.Users) {
+        if ($user.Email -like $to_complete) {
+            $result += $user.Email
+        }
+    }
+	if ($result.Count -gt 0) {
+		return $result
+	} else {
+		return $null
+	}
+}
+
+function Move-KeeperEnterpriseUser {
+    <#
+        .Synopsis
+    	Transfers enterprise user account to another user
+    	
+        .Parameter FromUser
+	    email or user ID to transfer vault from user
+        
+        .Parameter TargetUser
+	    email or user ID to transfer vault to user
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$FromUser,
+        [Parameter(Position = 1, Mandatory = $true)]$TargetUser,
+        [Switch] $Force
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+
+    $fromUserObject = resolveUser $enterprise.enterpriseData $FromUser
+    if (-not $fromUserObject) {
+        return
+    }
+    $targetUserObject = resolveUser $enterprise.enterpriseData $TargetUser
+    if (-not $targetUserObject) {
+        return
+    }
+    if (-not $Force.IsPresent) {
+        Write-Host "This action cannot be undone.`n"
+        $answer = Read-Host -Prompt "Do you want to proceed with transferring $($fromUserObject.Email) account (Yes/No)? > "
+        if ($answer -ne 'yes' -and $answer -ne 'y') {
+            return
+        }
+    }
+    $transferResult = $enterprise.enterpriseData.TransferUserAccount($enterprise.roleData, $fromUserObject, $targetUserObject).GetAwaiter().GetResult()
+    if ($transferResult) {
+        Write-Information "Successfully Transfered:" 
+        Write-Information "        Records: $($transferResult.RecordsTransfered)"
+        Write-Information " Shared Folders: $($transferResult.SharedFoldersTransfered)"
+        Write-Information "           Team: $($transferResult.TeamsTransfered)"
+        if ($transferResult.RecordsCorrupted -gt 0 -or $transferResult.SharedFoldersCorrupted -gt 0 -or $transferResult.TeamsCorrupted -gt 0) {
+            Write-Information "Failed to Transfer:"
+            if ($transferResult.RecordsCorrupted -gt 0) {
+                Write-Information "        Records: $($transferResult.RecordsCorrupted)"
+            }
+            if ($transferResult.SharedFoldersCorrupted -gt 0) {
+                Write-Information " Shared Folders: $($transferResult.SharedFoldersCorrupted)"
+            }
+            if ($transferResult.TeamsCorrupted -gt 0) {
+                Write-Information "           Team: $($transferResult.TeamsCorrupted)"
+            }
+        }
+    }
+}
+Register-ArgumentCompleter -CommandName Move-KeeperEnterpriseUser -ParameterName FromUser -ScriptBlock $Keeper_LockedUserCompleter
+Register-ArgumentCompleter -CommandName Move-KeeperEnterpriseUser -ParameterName TargetUser -ScriptBlock $Keeper_ActiveUserCompleter
+New-Alias -Name transfer-user -Value Move-KeeperEnterpriseUser
+
+function Remove-KeeperEnterpriseUser {
+    <#
+        .Synopsis
+    	Removes Enterprise User
+    	
+        .Parameter User
+	    User email, enterprise Id, or instance.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$User,
+        [Switch] $Force
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $userObject = resolveUser $enterprise.enterpriseData $User
+    if ($userObject) {
+        if (-not $Force.IsPresent) {
+            Write-Host  "Deleting a user will also delete any records owned and shared by this user.`n" +
+                        "Before you delete this user, we strongly recommend you lock their account`n" +
+                        "and transfer any important records to other user.`n" +
+                        "This action cannot be undone."
+            $answer = Read-Host -Prompt "Do you want to proceed with deleting $($userObject.Email) account (Yes/No)? > "
+            if ($answer -ne 'yes' -and $answer -ne 'y') {
+                return
+            }
+        }
+
+        $enterprise.enterpriseData.DeleteUser($userObject).GetAwaiter().GetResult() | Out-Null
+        Write-Host "User $($userObject.Email) has been deleted"
+    }
+}
+Register-ArgumentCompleter -CommandName Remove-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_EnterpriseUserCompleter
+New-Alias -Name delete-user -Value Remove-KeeperEnterpriseUser
 
 function resolveUser {
     Param (
@@ -198,7 +317,7 @@ function Get-KeeperMspLicenses {
     [Enterprise]$enterprise = getMspEnterprise
     $enterprise.enterpriseData.EnterpriseLicense.MspPool
 }
-New-Alias -Name kmspl -Value Get-KeeperMspLicenses
+New-Alias -Name msp-license -Value Get-KeeperMspLicenses
 
 function Get-KeeperManagedCompanies {
     <#
