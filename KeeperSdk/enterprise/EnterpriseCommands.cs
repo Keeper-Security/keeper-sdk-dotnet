@@ -32,13 +32,68 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
-    public class PreAccountTransferDataResponse : KeeperApiResponse
+    public class PreAccountTransferRecordKey
+    {
+        [DataMember(Name = "record_uid")]
+        public string RecordUid { get; set; }
+
+        [DataMember(Name = "record_key")]
+        public string RecordKey { get; set; }
+
+        [DataMember(Name = "record_key_type")]
+        public int RecordKeyType { get; set; }
+    }
+
+    [DataContract]
+    public class PreAccountTransferSharedFolderKey
+    {
+        [DataMember(Name = "shared_folder_uid")]
+        public string SharedFolderUid { get; set; }
+
+        [DataMember(Name = "shared_folder_key")]
+        public string SharedFolderKey { get; set; }
+
+        [DataMember(Name = "shared_folder_key_type")]
+        public int SharedFolderKeyType { get; set; }
+    }
+
+    [DataContract]
+    public class PreAccountTransferTeamKey
+    {
+        [DataMember(Name = "team_uid")]
+        public string TeamUid { get; set; }
+
+        [DataMember(Name = "team_key")]
+        public string TeamKey { get; set; }
+
+        [DataMember(Name = "team_key_type")]
+        public int TeamKeyType { get; set; }
+    }
+
+    [DataContract]
+    public class PreAccountTransferUserFolderKey
+    {
+        [DataMember(Name = "user_folder_uid")]
+        public string UserFolderUid { get; set; }
+
+        [DataMember(Name = "user_folder_key")]
+        public string UserFolderKey { get; set; }
+
+        [DataMember(Name = "user_folder_key_type")]
+        public int UserFolderKeyType { get; set; }
+    }
+
+    [DataContract]
+    public class PreAccountTransferResponse : KeeperApiResponse
     {
         [DataMember(Name = "username")]
         public string Username { get; set; }
 
         [DataMember(Name = "user_private_key")]
         public string UserPrivateKey { get; set; }
+
+        [DataMember(Name = "user_ecc_private_key")]
+        public string UserEccPrivateKey { get; set; }
 
         [DataMember(Name = "role_key")]
         public string RoleKey { get; set; }
@@ -51,6 +106,111 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "transfer_key")]
         public string TransferKey { get; set; }
+
+        [DataMember(Name = "record_keys")]
+        public PreAccountTransferRecordKey[] RecordKeys { get; set; }
+
+        [DataMember(Name = "shared_folder_keys")]
+        public PreAccountTransferSharedFolderKey[] SharedFolderKeys { get; set; }
+
+        [DataMember(Name = "team_keys")]
+        public PreAccountTransferTeamKey[] TeamKeys { get; set; }
+
+        [DataMember(Name = "user_folder_keys")]
+        public PreAccountTransferUserFolderKey[] UserFolderKeys { get; set; }
+    }
+
+    [DataContract]
+    public class TransferAndDeleteRecordKey
+    {
+        [DataMember(Name = "record_uid", EmitDefaultValue = false)]
+        public string RecordUid { get; set; }
+
+        [DataMember(Name = "record_key", EmitDefaultValue = false)]
+        public string RecordKey { get; set; }
+    }
+
+    [DataContract]
+    public class TransferAndDeleteSharedFolderKey
+    {
+        [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
+        public string SharedFolderUid { get; set; }
+
+        [DataMember(Name = "shared_folder_key", EmitDefaultValue = false)]
+        public string SharedFolderKey { get; set; }
+    }
+
+    [DataContract]
+    public class TransferAndDeleteTeamKey
+    {
+        [DataMember(Name = "team_uid", EmitDefaultValue = false)]
+        public string TeamUid { get; set; }
+
+        [DataMember(Name = "team_key", EmitDefaultValue = false)]
+        public string TeamKey { get; set; }
+    }
+
+    [DataContract]
+    public class TransferAndDeleteUserFolderKey
+    {
+        [DataMember(Name = "user_folder_uid", EmitDefaultValue = false)]
+        public string UserFolderUid { get; set; }
+
+        [DataMember(Name = "user_folder_key", EmitDefaultValue = false)]
+        public string UserFolderKey { get; set; }
+    }
+
+    [DataContract]
+    public class TransferAndDeleteUserFolderTransfer
+    {
+        [DataMember(Name = "transfer_folder_uid", EmitDefaultValue = false)]
+        public string TransferFolderUid { get; set; }
+
+        [DataMember(Name = "transfer_parent_uid", EmitDefaultValue = false)]
+        public string TransferParentUid { get; set; }
+
+        [DataMember(Name = "transfer_folder_data", EmitDefaultValue = false)]
+        public string TransferFolderData { get; set; }
+
+        [DataMember(Name = "transfer_folder_key", EmitDefaultValue = false)]
+        public string TransferFolderKey { get; set; }
+    }
+
+    [DataContract]
+    public class TransferAndDeleteUserCommand : AuthenticatedCommand
+    {
+        public TransferAndDeleteUserCommand() : base("transfer_and_delete_user") { }
+
+        [DataMember(Name = "from_user", EmitDefaultValue = false)]
+        public string FromUser { get; set; }
+
+        [DataMember(Name = "to_user", EmitDefaultValue = false)]
+        public string ToUser { get; set; }
+
+        [DataMember(Name = "record_keys", EmitDefaultValue = false)]
+        public TransferAndDeleteRecordKey[] RecordKeys { get; set; }
+
+        [DataMember(Name = "shared_folder_keys", EmitDefaultValue = false)]
+        public TransferAndDeleteSharedFolderKey[] SharedFolderKeys { get; set; }
+
+        [DataMember(Name = "team_keys", EmitDefaultValue = false)]
+        public TransferAndDeleteTeamKey[] TeamKeys { get; set; }
+
+        [DataMember(Name = "user_folder_keys", EmitDefaultValue = false)]
+        public TransferAndDeleteUserFolderKey[] UserFolderKeys { get; set; }
+        
+
+        [DataMember(Name = "corrupted_record_keys")]
+        public PreAccountTransferRecordKey[] CorruptedRecordKeys { get; set; }
+        [DataMember(Name = "corrupted_shared_folder_keys")]
+        public PreAccountTransferSharedFolderKey[] CorruptedSharedFolderKeys { get; set; }
+        [DataMember(Name = "corrupted_team_keys")]
+        public PreAccountTransferTeamKey[] CorruptedTeamKeys { get; set; }
+        [DataMember(Name = "corrupted_user_folder_keys")]
+        public PreAccountTransferUserFolderKey[] CorruptedUserFolderKeys { get; set; }
+
+        [DataMember(Name = "user_folder_transfer")]
+        public TransferAndDeleteUserFolderTransfer UserFolderTransfer { get; set; }
     }
 
 
@@ -421,6 +581,14 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "delete_if_pending", EmitDefaultValue = false)]
         public bool? DeleteIfPending { get; set; }
+    }
+
+    [DataContract]
+    public class EnterpriseUserDeleteCommand : EnterpriseUserCommand
+    {
+        public EnterpriseUserDeleteCommand() : base("enterprise_user_delete")
+        {
+        }
     }
 
     [DataContract]

@@ -3,20 +3,69 @@ using System;
 using System.Collections.Generic;
 using KeeperSecurity.Utils;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using KeeperSecurity.Authentication;
 
 namespace KeeperSecurity.Enterprise
 {
-    /// <exclude/>
+    /// <summary>
+    /// Defines Role enterprise data.
+    /// </summary>
     public interface IRoleData 
-    { 
+    {
+        /// <summary>
+        /// Get a list of all roles in the enterprise
+        /// </summary>
         IEnumerable<EnterpriseRole> Roles { get; }
+        /// <summary>
+        /// Gets the number of all roles in the enterprise.
+        /// </summary>
         int RoleCount { get; }
+        /// <summary>
+        /// Gets the enterprise role assocoated with the specified ID.
+        /// </summary>
+        /// <param name="roleId">Enterprise Role ID</param>
+        /// <param name="role">When this method returns <c>true</c>, contains requested enterprise role; otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> if the enterprise contains a role with specified ID; otherwise, <c>false</c></returns>
         bool TryGetRole(long roleId, out EnterpriseRole role);
+        /// <summary>
+        /// Gets a list of user IDs for specified role.
+        /// </summary>
+        /// <param name="roleId">Enterprise Role ID.</param>
+        /// <returns>List of Enterprise User IDs.</returns>
         IEnumerable<long> GetUsersForRole(long roleId);
+        /// <summary>
+        /// Gets a list of role IDs for specified user.
+        /// </summary>
+        /// <param name="userId">Enterprise User ID.</param>
+        /// <returns>List of Enterprise Role IDs</returns>
         IEnumerable<long> GetRolesForUser(long userId);
+        /// <summary>
+        /// Gets a list of team UIDs for specified role.
+        /// </summary>
+        /// <param name="roleId">Enterprise Role ID.</param>
+        /// <returns>List of Enterprise Team UIDs.</returns>
         IEnumerable<string> GetTeamsForRole(long roleId);
+        /// <summary>
+        /// Gets a list of role IDs for specified team.
+        /// </summary>
+        /// <param name="teamUid">Team UID.</param>
+        /// <returns>List of Enterprise Role IDs</returns>
         IEnumerable<long> GetRolesForTeam(string teamUid);
+        /// <summary>
+        /// Gets a list of role enforcements for specified role.
+        /// </summary>
+        /// <param name="roleId">Enterprise Role ID.</param>
+        /// <returns>List of Role Enforcements</returns>
         IEnumerable<RoleEnforcement> GetEnforcementsForRole(long roleId);
+
+        /// <summary>
+        /// Gets role key.
+        /// </summary>
+        /// <param name="roleId">Enterprise Role ID.</param>
+        /// <returns>Role Key</returns>
+        Task<byte[]> GetRoleKey(long roleId);
     }
 
     /// <summary>
@@ -39,73 +88,44 @@ namespace KeeperSecurity.Enterprise
         /// <exclude/>
         public override IEnumerable<IKeeperEnterpriseEntity> Entities { get; }
 
-        /// <summary>
-        /// Get a list of all roles in the enterprise
-        /// </summary>
+        /// <inheritdoc/>
         public IEnumerable<EnterpriseRole> Roles => _roles.Entities;
 
-        /// <summary>
-        /// Gets the number of all roles in the enterprise.
-        /// </summary>
+        /// <inheritdoc/>
         public int RoleCount => _roles.Count;
 
 
-        /// <summary>
-        /// Gets the enterprise role assocoated with the specified ID.
-        /// </summary>
-        /// <param name="roleId">Enterprise Role ID</param>
-        /// <param name="role">When this method returns <c>true</c>, contains requested enterprise role; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> if the enterprise contains a role with specified ID; otherwise, <c>false</c></returns>
+        /// <inheritdoc/>
         public bool TryGetRole(long roleId, out EnterpriseRole role)
         {
             return _roles.TryGetEntity(roleId, out role);
         }
 
-        /// <summary>
-        /// Gets a list of user IDs for specified role.
-        /// </summary>
-        /// <param name="roleId">Enterprise Role ID.</param>
-        /// <returns>List of Enterprise User IDs.</returns>
+        /// <inheritdoc/>
         public IEnumerable<long> GetUsersForRole(long roleId)
         {
             return _roleUsers.LinksForPrimaryKey(roleId).Select(x => x.EnterpriseUserId);
         }
 
-        /// <summary>
-        /// Gets a list of role IDs for specified user.
-        /// </summary>
-        /// <param name="userId">Enterprise User ID.</param>
-        /// <returns>List of Enterprise Role IDs</returns>
+        /// <inheritdoc/>
         public IEnumerable<long> GetRolesForUser(long userId)
         {
             return _roleUsers.LinksForSecondaryKey(userId).Select(x => x.RoleId);
         }
 
-        /// <summary>
-        /// Gets a list of team UIDs for specified role.
-        /// </summary>
-        /// <param name="roleId">Enterprise Role ID.</param>
-        /// <returns>List of Enterprise Team UIDs.</returns>
+        /// <inheritdoc/>
         public IEnumerable<string> GetTeamsForRole(long roleId)
         {
             return _roleTeams.LinksForPrimaryKey(roleId).Select(x => x.TeamUid.ToByteArray().Base64UrlEncode());
         }
 
-        /// <summary>
-        /// Gets a list of role IDs for specified team.
-        /// </summary>
-        /// <param name="teamUid">Team UID.</param>
-        /// <returns>List of Enterprise Role IDs</returns>
+        /// <inheritdoc/>
         public IEnumerable<long> GetRolesForTeam(string teamUid)
         {
             return _roleTeams.LinksForSecondaryKey(teamUid).Select(x => x.RoleId);
         }
 
-        /// <summary>
-        /// Gets a list of role enforcements for specified role.
-        /// </summary>
-        /// <param name="roleId">Enterprise Role ID.</param>
-        /// <returns>List of Role Enforcements</returns>
+        /// <inheritdoc/>
         public IEnumerable<RoleEnforcement> GetEnforcementsForRole(long roleId)
         {
             return _roleEnforcements.LinksForPrimaryKey(roleId);
@@ -129,6 +149,94 @@ namespace KeeperSecurity.Enterprise
         public IList<ManagedNode> GetManagedNodes() {
             return _managedNodes.GetAllLinks();
         }
+
+        private Dictionary<long, byte[]> _adminRoleKeys = new Dictionary<long, byte[]>();
+
+        /// <inheritdoc/>
+        public async Task<byte[]> GetRoleKey(long roleId)
+        {
+            lock (_adminRoleKeys)
+            {
+                if (_adminRoleKeys.TryGetValue(roleId, out var result))
+                {
+                    return result;
+                }
+            }
+
+            var krq = new GetEnterpriseDataKeysRequest();
+            krq.RoleId.Add(roleId);
+            var krs = await Enterprise.Auth.ExecuteAuthRest<GetEnterpriseDataKeysRequest, GetEnterpriseDataKeysResponse>("enterprise/get_enterprise_data_keys", krq);
+            foreach (var rKey in krs.ReEncryptedRoleKey)
+            {
+                if (rKey.RoleId == roleId)
+                {
+                    try
+                    {
+                        var roleKey = CryptoUtils.DecryptAesV2(rKey.EncryptedRoleKey.ToByteArray(), Enterprise.TreeKey);
+                        lock (_adminRoleKeys)
+                        {
+                            if (!_adminRoleKeys.ContainsKey(roleId))
+                            {
+                                _adminRoleKeys.Add(roleId, roleKey);
+                            }
+                            return roleKey;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
+                    }
+                }
+            }
+
+            foreach (var rKey in krs.RoleKey)
+            {
+                if (rKey.RoleId == roleId)
+                {
+                    byte[] roleKey = null;
+                    try
+                    {
+                        switch (rKey.KeyType)
+                        {
+                            case EncryptedKeyType.KtEncryptedByDataKey:
+                                roleKey = CryptoUtils.DecryptAesV1(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.DataKey);
+                                break;
+                            case EncryptedKeyType.KtEncryptedByDataKeyGcm:
+                                roleKey = CryptoUtils.DecryptAesV2(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.DataKey);
+                                break;
+                            case EncryptedKeyType.KtEncryptedByPublicKey:
+                                roleKey = CryptoUtils.DecryptRsa(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.PrivateRsaKey);
+                                break;
+                            case EncryptedKeyType.KtEncryptedByPublicKeyEcc:
+                                if (Enterprise.Auth.AuthContext.PrivateEcKey != null)
+                                {
+                                    roleKey = CryptoUtils.DecryptEc(rKey.EncryptedKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.PrivateEcKey);
+                                }
+                                break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
+                    }
+
+                    if (roleKey != null)
+                    {
+                        lock (_adminRoleKeys)
+                        {
+                            if (!_adminRoleKeys.ContainsKey(roleId))
+                            {
+                                _adminRoleKeys.Add(roleId, roleKey);
+                            }
+                            return roleKey;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
     }
 
     /// <exclude/>
