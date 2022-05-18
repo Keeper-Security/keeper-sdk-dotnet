@@ -171,6 +171,9 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         /// <returns>Awaitable Task</returns>
         Task Logout();
+
+        /// <exclude/>
+        Task AuditEventLogging(string eventType, AuditEventInput input = null);
     }
 
     /// <summary>
@@ -700,6 +703,25 @@ namespace KeeperSecurity.Authentication
                         Debug.WriteLine(e.Message);
                     }
                 }
+            }
+        }
+
+        /// <exclude/>
+        public async Task AuditEventLogging(string eventType, AuditEventInput input = null)
+        {
+            if (AuthContext.EnterprisePublicEcKey != null)
+            {
+                var rq = new AuditEventLoggingCommand
+                {
+                    ItemLogs = new[] {
+                        new AuditEventItem
+                        {
+                            AuditEventType = eventType,
+                            Inputs = input
+                        }
+                    }
+                };
+                _ = await AuthExtensions.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(this, rq);
             }
         }
 

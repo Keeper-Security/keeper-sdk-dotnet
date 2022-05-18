@@ -168,4 +168,46 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "results")]
         public IList<KeeperApiResponse> Results { get; set; }
     }
+
+    [DataContract]
+    public class AuditEventInput
+    {
+        [DataMember(Name = "record_uid", EmitDefaultValue = false)]
+        public string RecordUid { get; set; }
+
+        [DataMember(Name = "attachment_id", EmitDefaultValue = false)]
+        public string AttachmentId { get; set; }
+    }
+
+    [DataContract]
+    public class AuditEventItem
+    {
+        [DataMember(Name = "audit_event_type", EmitDefaultValue = false)]
+        public string AuditEventType { get; set; }
+
+        [DataMember(Name = "inputs", EmitDefaultValue = false)]
+        public AuditEventInput Inputs { get; set; }
+
+        [DataMember(Name = "event_time", EmitDefaultValue = false)]
+        public long? EventTime { get; set; }
+        
+    }
+
+    [DataContract]
+    public class AuditEventLoggingCommand : AuthenticatedCommand
+    {
+        public AuditEventLoggingCommand() : base("audit_event_client_logging") { }
+
+        [DataMember(Name = "item_logs", EmitDefaultValue = false)]
+        public AuditEventItem[] ItemLogs { get; set; }
+    }
+
+    [DataContract]
+    public class AuditEventLoggingResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "ignored", EmitDefaultValue = false)]
+        public AuditEventItem[] Ignored { get; set; }
+    }
+
 }
+

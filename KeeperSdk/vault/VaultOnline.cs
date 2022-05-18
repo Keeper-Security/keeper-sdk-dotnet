@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -152,6 +151,16 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public void AuditLogRecordOpen(string recordUid)
+        {
+            _ = Task.Run(async () =>
+            {
+                await Auth.AuditEventLogging("open_record", new AuditEventInput { RecordUid = recordUid });
+            });
+        }
+
+
+        /// <inheritdoc/>
         public Task<KeeperRecord> CreateRecord(KeeperRecord record, string folderUid = null)
         {
             return this.AddRecordToFolder(record, folderUid);
@@ -160,7 +169,7 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public Task<KeeperRecord> UpdateRecord(KeeperRecord record, bool skipExtra = true)
         {
-            return this.PutRecord(record, false, skipExtra);
+            return this.PutRecord(record, skipExtra);
         }
 
         /// <inheritdoc/>
