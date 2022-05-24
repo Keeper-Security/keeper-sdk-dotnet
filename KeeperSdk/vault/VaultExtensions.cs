@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using KeeperSecurity.Commands;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Vault
@@ -467,6 +468,26 @@ namespace KeeperSecurity.Vault
             }
 
             return fileRecord;
+        }
+
+        public static ApplicationRecord LoadV5(this IStorageRecord r, byte[] key) 
+        {
+            var data = CryptoUtils.DecryptAesV2(r.Data.Base64UrlDecode(), key);
+            var rad = JsonUtils.ParseJson<RecordApplicationData>(data);
+            var applicationRecord = new ApplicationRecord()
+            {
+                RecordKey = key,
+                Uid = r.RecordUid,
+                Version = 5,
+                Shared = r.Shared,
+                Owner = r.Owner,
+                ClientModified = r.ClientModifiedTime != 0
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
+                    : DateTimeOffset.Now,
+                Title = rad.Title,
+                Type = rad.Type,
+            };
+            return applicationRecord;
         }
 
         public static SharedFolder Load(this ISharedFolder sf, IEnumerable<IRecordMetadata> records,

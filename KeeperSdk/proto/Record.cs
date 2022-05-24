@@ -71,118 +71,120 @@ namespace Records {
             "RmlsZUZvckNvbnZlcnNpb24SEgoKcmVjb3JkX3VpZBgBIAEoDBIUCgxmaWxl",
             "X2ZpbGVfaWQYAiABKAkSFQoNdGh1bWJfZmlsZV9pZBgDIAEoCRIMCgRkYXRh",
             "GAQgASgMEhIKCnJlY29yZF9rZXkYBSABKAwSEAoIbGlua19rZXkYBiABKAwi",
-            "iQIKEVJlY29yZENvbnZlcnRUb1YzEhIKCnJlY29yZF91aWQYASABKAwSHAoU",
-            "Y2xpZW50X21vZGlmaWVkX3RpbWUYAiABKAMSEAoIcmV2aXNpb24YAyABKAMS",
-            "DAoEZGF0YRgEIAEoDBIXCg9ub25fc2hhcmVkX2RhdGEYBSABKAwSIwoFYXVk",
-            "aXQYBiABKAsyFC5SZWNvcmRzLlJlY29yZEF1ZGl0EjUKC3JlY29yZF9maWxl",
-            "GAcgAygLMiAuUmVjb3Jkcy5SZWNvcmRGaWxlRm9yQ29udmVyc2lvbhISCgpm",
-            "b2xkZXJfdWlkGAggASgMEhkKEXJlY29yZF9mb2xkZXJfa2V5GAkgASgMIl0K",
-            "GVJlY29yZHNDb252ZXJ0VG9WM1JlcXVlc3QSKwoHcmVjb3JkcxgBIAMoCzIa",
-            "LlJlY29yZHMuUmVjb3JkQ29udmVydFRvVjMSEwoLY2xpZW50X3RpbWUYAiAB",
-            "KAMiJwoUUmVjb3Jkc1JlbW92ZVJlcXVlc3QSDwoHcmVjb3JkcxgBIAMoDCJm",
-            "ChJSZWNvcmRNb2RpZnlTdGF0dXMSEgoKcmVjb3JkX3VpZBgBIAEoDBIrCgZz",
-            "dGF0dXMYAiABKA4yGy5SZWNvcmRzLlJlY29yZE1vZGlmeVJlc3VsdBIPCgdt",
-            "ZXNzYWdlGAMgASgJIlcKFVJlY29yZHNNb2RpZnlSZXNwb25zZRIsCgdyZWNv",
-            "cmRzGAEgAygLMhsuUmVjb3Jkcy5SZWNvcmRNb2RpZnlTdGF0dXMSEAoIcmV2",
-            "aXNpb24YAiABKAMiWQoSUmVjb3JkQWRkQXVkaXREYXRhEhIKCnJlY29yZF91",
-            "aWQYASABKAwSEAoIcmV2aXNpb24YAiABKAMSDAoEZGF0YRgDIAEoDBIPCgd2",
-            "ZXJzaW9uGAQgASgFIkMKE0FkZEF1ZGl0RGF0YVJlcXVlc3QSLAoHcmVjb3Jk",
-            "cxgBIAMoCzIbLlJlY29yZHMuUmVjb3JkQWRkQXVkaXREYXRhImEKBEZpbGUS",
-            "EgoKcmVjb3JkX3VpZBgBIAEoDBISCgpyZWNvcmRfa2V5GAIgASgMEgwKBGRh",
-            "dGEYAyABKAwSEAoIZmlsZVNpemUYBCABKAMSEQoJdGh1bWJTaXplGAUgASgF",
-            "IkQKD0ZpbGVzQWRkUmVxdWVzdBIcCgVmaWxlcxgBIAMoCzINLlJlY29yZHMu",
-            "RmlsZRITCgtjbGllbnRfdGltZRgCIAEoAyKnAQoNRmlsZUFkZFN0YXR1cxIS",
-            "CgpyZWNvcmRfdWlkGAEgASgMEiYKBnN0YXR1cxgCIAEoDjIWLlJlY29yZHMu",
-            "RmlsZUFkZFJlc3VsdBILCgN1cmwYAyABKAkSEgoKcGFyYW1ldGVycxgEIAEo",
-            "CRIcChR0aHVtYm5haWxfcGFyYW1ldGVycxgFIAEoCRIbChNzdWNjZXNzX3N0",
-            "YXR1c19jb2RlGAYgASgFIjkKEEZpbGVzQWRkUmVzcG9uc2USJQoFZmlsZXMY",
-            "ASADKAsyFi5SZWNvcmRzLkZpbGVBZGRTdGF0dXMiZgoPRmlsZXNHZXRSZXF1",
-            "ZXN0EhMKC3JlY29yZF91aWRzGAEgAygMEhYKDmZvcl90aHVtYm5haWxzGAIg",
-            "ASgIEiYKHmVtZXJnZW5jeV9hY2Nlc3NfYWNjb3VudF9vd25lchgDIAEoCSKi",
-            "AQoNRmlsZUdldFN0YXR1cxISCgpyZWNvcmRfdWlkGAEgASgMEiYKBnN0YXR1",
-            "cxgCIAEoDjIWLlJlY29yZHMuRmlsZUdldFJlc3VsdBILCgN1cmwYAyABKAkS",
-            "GwoTc3VjY2Vzc19zdGF0dXNfY29kZRgEIAEoBRIrCgtmaWxlS2V5VHlwZRgF",
-            "IAEoDjIWLlJlY29yZHMuUmVjb3JkS2V5VHlwZSI5ChBGaWxlc0dldFJlc3Bv",
-            "bnNlEiUKBWZpbGVzGAEgAygLMhYuUmVjb3Jkcy5GaWxlR2V0U3RhdHVzImgK",
-            "FUFwcGxpY2F0aW9uQWRkUmVxdWVzdBIPCgdhcHBfdWlkGAEgASgMEhIKCnJl",
-            "Y29yZF9rZXkYAiABKAwSHAoUY2xpZW50X21vZGlmaWVkX3RpbWUYAyABKAMS",
-            "DAoEZGF0YRgEIAEoDCKIAQoiR2V0UmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZv",
-            "UmVxdWVzdBISCgpjbGllbnRUaW1lGAEgASgDEhEKCXJlY29yZFVpZBgCIAMo",
-            "DBI7ChRyZWNvcmREZXRhaWxzSW5jbHVkZRgDIAEoDjIdLlJlY29yZHMuUmVj",
-            "b3JkRGV0YWlsc0luY2x1ZGUiqwEKDlVzZXJQZXJtaXNzaW9uEhAKCHVzZXJu",
-            "YW1lGAEgASgJEg0KBW93bmVyGAIgASgIEhIKCnNoYXJlQWRtaW4YAyABKAgS",
-            "EAoIc2hhcmFibGUYBCABKAgSEAoIZWRpdGFibGUYBSABKAgSGAoQYXdhaXRp",
-            "bmdBcHByb3ZhbBgGIAEoCBISCgpleHBpcmF0aW9uGAcgASgDEhIKCmFjY291",
-            "bnRVaWQYCCABKAwifQoWU2hhcmVkRm9sZGVyUGVybWlzc2lvbhIXCg9zaGFy",
-            "ZWRGb2xkZXJVaWQYASABKAwSEgoKcmVzaGFyYWJsZRgCIAEoCBIQCghlZGl0",
-            "YWJsZRgDIAEoCBIQCghyZXZpc2lvbhgEIAEoAxISCgpleHBpcmF0aW9uGAUg",
-            "ASgDIocCCgpSZWNvcmREYXRhEhAKCHJldmlzaW9uGAEgASgDEg8KB3ZlcnNp",
-            "b24YAiABKAUSDgoGc2hhcmVkGAMgASgIEhsKE2VuY3J5cHRlZFJlY29yZERh",
-            "dGEYBCABKAkSGgoSZW5jcnlwdGVkRXh0cmFEYXRhGAUgASgJEhoKEmNsaWVu",
-            "dE1vZGlmaWVkVGltZRgGIAEoAxIWCg5vd25lclJlY29yZFVpZBgHIAEoDBIg",
-            "ChhlbmNyeXB0ZWRMaW5rZWRSZWNvcmRLZXkYCCABKAwSDgoGZmlsZUlkGAkg",
-            "AygDEhAKCGZpbGVTaXplGAogASgDEhUKDXRodW1ibmFpbFNpemUYCyABKAMi",
-            "yAEKGFJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxIRCglyZWNvcmRVaWQYASAB",
-            "KAwSJwoKcmVjb3JkRGF0YRgCIAEoCzITLlJlY29yZHMuUmVjb3JkRGF0YRIv",
-            "Cg51c2VyUGVybWlzc2lvbhgDIAMoCzIXLlJlY29yZHMuVXNlclBlcm1pc3Np",
-            "b24SPwoWc2hhcmVkRm9sZGVyUGVybWlzc2lvbhgEIAMoCzIfLlJlY29yZHMu",
-            "U2hhcmVkRm9sZGVyUGVybWlzc2lvbiKJAQojR2V0UmVjb3JkRGF0YVdpdGhB",
-            "Y2Nlc3NJbmZvUmVzcG9uc2USQwoYcmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZv",
-            "GAEgAygLMiEuUmVjb3Jkcy5SZWNvcmREYXRhV2l0aEFjY2Vzc0luZm8SHQoV",
-            "bm9QZXJtaXNzaW9uUmVjb3JkVWlkGAIgAygMIrwBChhSZWNvcmRTaGFyZVVw",
-            "ZGF0ZVJlcXVlc3QSLgoPYWRkU2hhcmVkUmVjb3JkGAEgAygLMhUuUmVjb3Jk",
-            "cy5TaGFyZWRSZWNvcmQSMQoSdXBkYXRlU2hhcmVkUmVjb3JkGAIgAygLMhUu",
-            "UmVjb3Jkcy5TaGFyZWRSZWNvcmQSMQoScmVtb3ZlU2hhcmVkUmVjb3JkGAMg",
-            "AygLMhUuUmVjb3Jkcy5TaGFyZWRSZWNvcmQSCgoCcHQYBCABKAki1QEKDFNo",
-            "YXJlZFJlY29yZBISCgp0b1VzZXJuYW1lGAEgASgJEhEKCXJlY29yZFVpZBgC",
-            "IAEoDBIRCglyZWNvcmRLZXkYAyABKAwSFwoPc2hhcmVkRm9sZGVyVWlkGAQg",
-            "ASgMEg8KB3RlYW1VaWQYBSABKAwSEAoIZWRpdGFibGUYBiABKAgSEQoJc2hh",
-            "cmVhYmxlGAcgASgIEhAKCHRyYW5zZmVyGAggASgIEhEKCXVzZUVjY0tleRgJ",
-            "IAEoCBIXCg9yZW1vdmVWYXVsdERhdGEYCiABKAgi1QEKGVJlY29yZFNoYXJl",
-            "VXBkYXRlUmVzcG9uc2USOgoVYWRkU2hhcmVkUmVjb3JkU3RhdHVzGAEgAygL",
-            "MhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMSPQoYdXBkYXRlU2hhcmVk",
-            "UmVjb3JkU3RhdHVzGAIgAygLMhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0",
-            "dXMSPQoYcmVtb3ZlU2hhcmVkUmVjb3JkU3RhdHVzGAMgAygLMhsuUmVjb3Jk",
-            "cy5TaGFyZWRSZWNvcmRTdGF0dXMiWgoSU2hhcmVkUmVjb3JkU3RhdHVzEhEK",
-            "CXJlY29yZFVpZBgBIAEoDBIOCgZzdGF0dXMYAiABKAkSDwoHbWVzc2FnZRgD",
-            "IAEoCRIQCgh1c2VybmFtZRgEIAEoCSJHChtHZXRSZWNvcmRQZXJtaXNzaW9u",
-            "c1JlcXVlc3QSEgoKcmVjb3JkVWlkcxgBIAMoDBIUCgxpc1NoYXJlQWRtaW4Y",
-            "AiABKAgiVAocR2V0UmVjb3JkUGVybWlzc2lvbnNSZXNwb25zZRI0ChFyZWNv",
-            "cmRQZXJtaXNzaW9ucxgBIAMoCzIZLlJlY29yZHMuUmVjb3JkUGVybWlzc2lv",
-            "biJsChBSZWNvcmRQZXJtaXNzaW9uEhEKCXJlY29yZFVpZBgBIAEoDBINCgVv",
-            "d25lchgCIAEoCBIPCgdjYW5FZGl0GAMgASgIEhAKCGNhblNoYXJlGAQgASgI",
-            "EhMKC2NhblRyYW5zZmVyGAUgASgIIj0KFkdldFNoYXJlT2JqZWN0c1JlcXVl",
-            "c3QSEQoJc3RhcnRXaXRoGAEgASgJEhAKCGNvbnRhaW5zGAIgASgJIo4CChdH",
-            "ZXRTaGFyZU9iamVjdHNSZXNwb25zZRIwChJzaGFyZVJlbGF0aW9uc2hpcHMY",
-            "ASADKAsyFC5SZWNvcmRzLlNoYXJlT2JqZWN0Ei4KEHNoYXJlRmFtaWx5VXNl",
-            "cnMYAiADKAsyFC5SZWNvcmRzLlNoYXJlT2JqZWN0EjIKFHNoYXJlRW50ZXJw",
-            "cmlzZVVzZXJzGAMgAygLMhQuUmVjb3Jkcy5TaGFyZU9iamVjdBIoCgpzaGFy",
-            "ZVRlYW1zGAQgAygLMhQuUmVjb3Jkcy5TaGFyZU9iamVjdBIzChVzaGFyZU1h",
-            "bmFnZWRDb21wYW5pZXMYBSADKAsyFC5SZWNvcmRzLlNoYXJlT2JqZWN0Io4B",
-            "CgtTaGFyZU9iamVjdBIMCgRuYW1lGAEgASgJEiAKBHR5cGUYAiABKA4yEi5S",
-            "ZWNvcmRzLlNoYXJlVHlwZRIUCgxpc1NoYXJlQWRtaW4YAyABKAgSEwoLZGlz",
-            "cGxheU5hbWUYBCABKAkSJAoGc3RhdHVzGAUgASgOMhQuUmVjb3Jkcy5TaGFy",
-            "ZVN0YXR1cypCCg9SZWNvcmRUeXBlU2NvcGUSDwoLUlRfU1RBTkRBUkQQABIL",
-            "CgdSVF9VU0VSEAESEQoNUlRfRU5URVJQUklTRRACKpMBCg1SZWNvcmRLZXlU",
-            "eXBlEgoKBk5PX0tFWRAAEhkKFUVOQ1JZUFRFRF9CWV9EQVRBX0tFWRABEhsK",
-            "F0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZEAISHQoZRU5DUllQVEVEX0JZX0RB",
-            "VEFfS0VZX0dDTRADEh8KG0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAE",
-            "KlAKEFJlY29yZEZvbGRlclR5cGUSDwoLdXNlcl9mb2xkZXIQABIRCg1zaGFy",
-            "ZWRfZm9sZGVyEAESGAoUc2hhcmVkX2ZvbGRlcl9mb2xkZXIQAiruAQoSUmVj",
-            "b3JkTW9kaWZ5UmVzdWx0Eg4KClJTX1NVQ0NFU1MQABISCg5SU19PVVRfT0Zf",
-            "U1lOQxABEhQKEFJTX0FDQ0VTU19ERU5JRUQQAhITCg9SU19TSEFSRV9ERU5J",
-            "RUQQAxIUChBSU19SRUNPUkRfRVhJU1RTEAQSHgoaUlNfT0xEX1JFQ09SRF9W",
-            "RVJTSU9OX1RZUEUQBRIeChpSU19ORVdfUkVDT1JEX1ZFUlNJT05fVFlQRRAG",
-            "EhYKElJTX0ZJTEVTX05PVF9NQVRDSBAHEhsKF1JTX1JFQ09SRF9OT1RfU0hB",
-            "UkVBQkxFEAgqLQoNRmlsZUFkZFJlc3VsdBIOCgpGQV9TVUNDRVNTEAASDAoI",
-            "RkFfRVJST1IQASpDCg1GaWxlR2V0UmVzdWx0Eg4KCkZHX1NVQ0NFU1MQABIM",
-            "CghGR19FUlJPUhABEhQKEEZHX0FDQ0VTU19ERU5JRUQQAipKChRSZWNvcmRE",
-            "ZXRhaWxzSW5jbHVkZRITCg9EQVRBX1BMVVNfU0hBUkUQABINCglEQVRBX09O",
-            "TFkQARIOCgpTSEFSRV9PTkxZEAIqawoJU2hhcmVUeXBlEhgKFFNIQVJJTkdf",
-            "UkVMQVRJT05TSElQEAASEwoPRU5URVJQUklTRV9VU0VSEAESEQoNRkFNSUxZ",
-            "X01FTUJFUhACEggKBFRFQU0QAxISCg5NQU5BR0VfQ09NUEFOWRAEKjEKC1No",
-            "YXJlU3RhdHVzEgoKBkFDVElWRRAAEgkKBUJMT0NLEAESCwoHSU5WSVRFRBAC",
-            "QiMKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IHUmVjb3Jkc2IGcHJvdG8z"));
+            "SgoZUmVjb3JkRm9sZGVyRm9yQ29udmVyc2lvbhISCgpmb2xkZXJfdWlkGAEg",
+            "ASgMEhkKEXJlY29yZF9mb2xkZXJfa2V5GAIgASgMIpICChFSZWNvcmRDb252",
+            "ZXJ0VG9WMxISCgpyZWNvcmRfdWlkGAEgASgMEhwKFGNsaWVudF9tb2RpZmll",
+            "ZF90aW1lGAIgASgDEhAKCHJldmlzaW9uGAMgASgDEgwKBGRhdGEYBCABKAwS",
+            "FwoPbm9uX3NoYXJlZF9kYXRhGAUgASgMEiMKBWF1ZGl0GAYgASgLMhQuUmVj",
+            "b3Jkcy5SZWNvcmRBdWRpdBI1CgtyZWNvcmRfZmlsZRgHIAMoCzIgLlJlY29y",
+            "ZHMuUmVjb3JkRmlsZUZvckNvbnZlcnNpb24SNgoKZm9sZGVyX2tleRgIIAMo",
+            "CzIiLlJlY29yZHMuUmVjb3JkRm9sZGVyRm9yQ29udmVyc2lvbiJdChlSZWNv",
+            "cmRzQ29udmVydFRvVjNSZXF1ZXN0EisKB3JlY29yZHMYASADKAsyGi5SZWNv",
+            "cmRzLlJlY29yZENvbnZlcnRUb1YzEhMKC2NsaWVudF90aW1lGAIgASgDIicK",
+            "FFJlY29yZHNSZW1vdmVSZXF1ZXN0Eg8KB3JlY29yZHMYASADKAwiZgoSUmVj",
+            "b3JkTW9kaWZ5U3RhdHVzEhIKCnJlY29yZF91aWQYASABKAwSKwoGc3RhdHVz",
+            "GAIgASgOMhsuUmVjb3Jkcy5SZWNvcmRNb2RpZnlSZXN1bHQSDwoHbWVzc2Fn",
+            "ZRgDIAEoCSJXChVSZWNvcmRzTW9kaWZ5UmVzcG9uc2USLAoHcmVjb3JkcxgB",
+            "IAMoCzIbLlJlY29yZHMuUmVjb3JkTW9kaWZ5U3RhdHVzEhAKCHJldmlzaW9u",
+            "GAIgASgDIlkKElJlY29yZEFkZEF1ZGl0RGF0YRISCgpyZWNvcmRfdWlkGAEg",
+            "ASgMEhAKCHJldmlzaW9uGAIgASgDEgwKBGRhdGEYAyABKAwSDwoHdmVyc2lv",
+            "bhgEIAEoBSJDChNBZGRBdWRpdERhdGFSZXF1ZXN0EiwKB3JlY29yZHMYASAD",
+            "KAsyGy5SZWNvcmRzLlJlY29yZEFkZEF1ZGl0RGF0YSJhCgRGaWxlEhIKCnJl",
+            "Y29yZF91aWQYASABKAwSEgoKcmVjb3JkX2tleRgCIAEoDBIMCgRkYXRhGAMg",
+            "ASgMEhAKCGZpbGVTaXplGAQgASgDEhEKCXRodW1iU2l6ZRgFIAEoBSJECg9G",
+            "aWxlc0FkZFJlcXVlc3QSHAoFZmlsZXMYASADKAsyDS5SZWNvcmRzLkZpbGUS",
+            "EwoLY2xpZW50X3RpbWUYAiABKAMipwEKDUZpbGVBZGRTdGF0dXMSEgoKcmVj",
+            "b3JkX3VpZBgBIAEoDBImCgZzdGF0dXMYAiABKA4yFi5SZWNvcmRzLkZpbGVB",
+            "ZGRSZXN1bHQSCwoDdXJsGAMgASgJEhIKCnBhcmFtZXRlcnMYBCABKAkSHAoU",
+            "dGh1bWJuYWlsX3BhcmFtZXRlcnMYBSABKAkSGwoTc3VjY2Vzc19zdGF0dXNf",
+            "Y29kZRgGIAEoBSI5ChBGaWxlc0FkZFJlc3BvbnNlEiUKBWZpbGVzGAEgAygL",
+            "MhYuUmVjb3Jkcy5GaWxlQWRkU3RhdHVzImYKD0ZpbGVzR2V0UmVxdWVzdBIT",
+            "CgtyZWNvcmRfdWlkcxgBIAMoDBIWCg5mb3JfdGh1bWJuYWlscxgCIAEoCBIm",
+            "Ch5lbWVyZ2VuY3lfYWNjZXNzX2FjY291bnRfb3duZXIYAyABKAkiogEKDUZp",
+            "bGVHZXRTdGF0dXMSEgoKcmVjb3JkX3VpZBgBIAEoDBImCgZzdGF0dXMYAiAB",
+            "KA4yFi5SZWNvcmRzLkZpbGVHZXRSZXN1bHQSCwoDdXJsGAMgASgJEhsKE3N1",
+            "Y2Nlc3Nfc3RhdHVzX2NvZGUYBCABKAUSKwoLZmlsZUtleVR5cGUYBSABKA4y",
+            "Fi5SZWNvcmRzLlJlY29yZEtleVR5cGUiOQoQRmlsZXNHZXRSZXNwb25zZRIl",
+            "CgVmaWxlcxgBIAMoCzIWLlJlY29yZHMuRmlsZUdldFN0YXR1cyJoChVBcHBs",
+            "aWNhdGlvbkFkZFJlcXVlc3QSDwoHYXBwX3VpZBgBIAEoDBISCgpyZWNvcmRf",
+            "a2V5GAIgASgMEhwKFGNsaWVudF9tb2RpZmllZF90aW1lGAMgASgDEgwKBGRh",
+            "dGEYBCABKAwiiAEKIkdldFJlY29yZERhdGFXaXRoQWNjZXNzSW5mb1JlcXVl",
+            "c3QSEgoKY2xpZW50VGltZRgBIAEoAxIRCglyZWNvcmRVaWQYAiADKAwSOwoU",
+            "cmVjb3JkRGV0YWlsc0luY2x1ZGUYAyABKA4yHS5SZWNvcmRzLlJlY29yZERl",
+            "dGFpbHNJbmNsdWRlIqsBCg5Vc2VyUGVybWlzc2lvbhIQCgh1c2VybmFtZRgB",
+            "IAEoCRINCgVvd25lchgCIAEoCBISCgpzaGFyZUFkbWluGAMgASgIEhAKCHNo",
+            "YXJhYmxlGAQgASgIEhAKCGVkaXRhYmxlGAUgASgIEhgKEGF3YWl0aW5nQXBw",
+            "cm92YWwYBiABKAgSEgoKZXhwaXJhdGlvbhgHIAEoAxISCgphY2NvdW50VWlk",
+            "GAggASgMIn0KFlNoYXJlZEZvbGRlclBlcm1pc3Npb24SFwoPc2hhcmVkRm9s",
+            "ZGVyVWlkGAEgASgMEhIKCnJlc2hhcmFibGUYAiABKAgSEAoIZWRpdGFibGUY",
+            "AyABKAgSEAoIcmV2aXNpb24YBCABKAMSEgoKZXhwaXJhdGlvbhgFIAEoAyKH",
+            "AgoKUmVjb3JkRGF0YRIQCghyZXZpc2lvbhgBIAEoAxIPCgd2ZXJzaW9uGAIg",
+            "ASgFEg4KBnNoYXJlZBgDIAEoCBIbChNlbmNyeXB0ZWRSZWNvcmREYXRhGAQg",
+            "ASgJEhoKEmVuY3J5cHRlZEV4dHJhRGF0YRgFIAEoCRIaChJjbGllbnRNb2Rp",
+            "ZmllZFRpbWUYBiABKAMSFgoOb3duZXJSZWNvcmRVaWQYByABKAwSIAoYZW5j",
+            "cnlwdGVkTGlua2VkUmVjb3JkS2V5GAggASgMEg4KBmZpbGVJZBgJIAMoAxIQ",
+            "CghmaWxlU2l6ZRgKIAEoAxIVCg10aHVtYm5haWxTaXplGAsgASgDIsgBChhS",
+            "ZWNvcmREYXRhV2l0aEFjY2Vzc0luZm8SEQoJcmVjb3JkVWlkGAEgASgMEicK",
+            "CnJlY29yZERhdGEYAiABKAsyEy5SZWNvcmRzLlJlY29yZERhdGESLwoOdXNl",
+            "clBlcm1pc3Npb24YAyADKAsyFy5SZWNvcmRzLlVzZXJQZXJtaXNzaW9uEj8K",
+            "FnNoYXJlZEZvbGRlclBlcm1pc3Npb24YBCADKAsyHy5SZWNvcmRzLlNoYXJl",
+            "ZEZvbGRlclBlcm1pc3Npb24iiQEKI0dldFJlY29yZERhdGFXaXRoQWNjZXNz",
+            "SW5mb1Jlc3BvbnNlEkMKGHJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxgBIAMo",
+            "CzIhLlJlY29yZHMuUmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvEh0KFW5vUGVy",
+            "bWlzc2lvblJlY29yZFVpZBgCIAMoDCK8AQoYUmVjb3JkU2hhcmVVcGRhdGVS",
+            "ZXF1ZXN0Ei4KD2FkZFNoYXJlZFJlY29yZBgBIAMoCzIVLlJlY29yZHMuU2hh",
+            "cmVkUmVjb3JkEjEKEnVwZGF0ZVNoYXJlZFJlY29yZBgCIAMoCzIVLlJlY29y",
+            "ZHMuU2hhcmVkUmVjb3JkEjEKEnJlbW92ZVNoYXJlZFJlY29yZBgDIAMoCzIV",
+            "LlJlY29yZHMuU2hhcmVkUmVjb3JkEgoKAnB0GAQgASgJItUBCgxTaGFyZWRS",
+            "ZWNvcmQSEgoKdG9Vc2VybmFtZRgBIAEoCRIRCglyZWNvcmRVaWQYAiABKAwS",
+            "EQoJcmVjb3JkS2V5GAMgASgMEhcKD3NoYXJlZEZvbGRlclVpZBgEIAEoDBIP",
+            "Cgd0ZWFtVWlkGAUgASgMEhAKCGVkaXRhYmxlGAYgASgIEhEKCXNoYXJlYWJs",
+            "ZRgHIAEoCBIQCgh0cmFuc2ZlchgIIAEoCBIRCgl1c2VFY2NLZXkYCSABKAgS",
+            "FwoPcmVtb3ZlVmF1bHREYXRhGAogASgIItUBChlSZWNvcmRTaGFyZVVwZGF0",
+            "ZVJlc3BvbnNlEjoKFWFkZFNoYXJlZFJlY29yZFN0YXR1cxgBIAMoCzIbLlJl",
+            "Y29yZHMuU2hhcmVkUmVjb3JkU3RhdHVzEj0KGHVwZGF0ZVNoYXJlZFJlY29y",
+            "ZFN0YXR1cxgCIAMoCzIbLlJlY29yZHMuU2hhcmVkUmVjb3JkU3RhdHVzEj0K",
+            "GHJlbW92ZVNoYXJlZFJlY29yZFN0YXR1cxgDIAMoCzIbLlJlY29yZHMuU2hh",
+            "cmVkUmVjb3JkU3RhdHVzIloKElNoYXJlZFJlY29yZFN0YXR1cxIRCglyZWNv",
+            "cmRVaWQYASABKAwSDgoGc3RhdHVzGAIgASgJEg8KB21lc3NhZ2UYAyABKAkS",
+            "EAoIdXNlcm5hbWUYBCABKAkiRwobR2V0UmVjb3JkUGVybWlzc2lvbnNSZXF1",
+            "ZXN0EhIKCnJlY29yZFVpZHMYASADKAwSFAoMaXNTaGFyZUFkbWluGAIgASgI",
+            "IlQKHEdldFJlY29yZFBlcm1pc3Npb25zUmVzcG9uc2USNAoRcmVjb3JkUGVy",
+            "bWlzc2lvbnMYASADKAsyGS5SZWNvcmRzLlJlY29yZFBlcm1pc3Npb24ibAoQ",
+            "UmVjb3JkUGVybWlzc2lvbhIRCglyZWNvcmRVaWQYASABKAwSDQoFb3duZXIY",
+            "AiABKAgSDwoHY2FuRWRpdBgDIAEoCBIQCghjYW5TaGFyZRgEIAEoCBITCgtj",
+            "YW5UcmFuc2ZlchgFIAEoCCI9ChZHZXRTaGFyZU9iamVjdHNSZXF1ZXN0EhEK",
+            "CXN0YXJ0V2l0aBgBIAEoCRIQCghjb250YWlucxgCIAEoCSKOAgoXR2V0U2hh",
+            "cmVPYmplY3RzUmVzcG9uc2USMAoSc2hhcmVSZWxhdGlvbnNoaXBzGAEgAygL",
+            "MhQuUmVjb3Jkcy5TaGFyZU9iamVjdBIuChBzaGFyZUZhbWlseVVzZXJzGAIg",
+            "AygLMhQuUmVjb3Jkcy5TaGFyZU9iamVjdBIyChRzaGFyZUVudGVycHJpc2VV",
+            "c2VycxgDIAMoCzIULlJlY29yZHMuU2hhcmVPYmplY3QSKAoKc2hhcmVUZWFt",
+            "cxgEIAMoCzIULlJlY29yZHMuU2hhcmVPYmplY3QSMwoVc2hhcmVNYW5hZ2Vk",
+            "Q29tcGFuaWVzGAUgAygLMhQuUmVjb3Jkcy5TaGFyZU9iamVjdCKOAQoLU2hh",
+            "cmVPYmplY3QSDAoEbmFtZRgBIAEoCRIgCgR0eXBlGAIgASgOMhIuUmVjb3Jk",
+            "cy5TaGFyZVR5cGUSFAoMaXNTaGFyZUFkbWluGAMgASgIEhMKC2Rpc3BsYXlO",
+            "YW1lGAQgASgJEiQKBnN0YXR1cxgFIAEoDjIULlJlY29yZHMuU2hhcmVTdGF0",
+            "dXMqQgoPUmVjb3JkVHlwZVNjb3BlEg8KC1JUX1NUQU5EQVJEEAASCwoHUlRf",
+            "VVNFUhABEhEKDVJUX0VOVEVSUFJJU0UQAiqTAQoNUmVjb3JkS2V5VHlwZRIK",
+            "CgZOT19LRVkQABIZChVFTkNSWVBURURfQllfREFUQV9LRVkQARIbChdFTkNS",
+            "WVBURURfQllfUFVCTElDX0tFWRACEh0KGUVOQ1JZUFRFRF9CWV9EQVRBX0tF",
+            "WV9HQ00QAxIfChtFTkNSWVBURURfQllfUFVCTElDX0tFWV9FQ0MQBCpQChBS",
+            "ZWNvcmRGb2xkZXJUeXBlEg8KC3VzZXJfZm9sZGVyEAASEQoNc2hhcmVkX2Zv",
+            "bGRlchABEhgKFHNoYXJlZF9mb2xkZXJfZm9sZGVyEAIq7gEKElJlY29yZE1v",
+            "ZGlmeVJlc3VsdBIOCgpSU19TVUNDRVNTEAASEgoOUlNfT1VUX09GX1NZTkMQ",
+            "ARIUChBSU19BQ0NFU1NfREVOSUVEEAISEwoPUlNfU0hBUkVfREVOSUVEEAMS",
+            "FAoQUlNfUkVDT1JEX0VYSVNUUxAEEh4KGlJTX09MRF9SRUNPUkRfVkVSU0lP",
+            "Tl9UWVBFEAUSHgoaUlNfTkVXX1JFQ09SRF9WRVJTSU9OX1RZUEUQBhIWChJS",
+            "U19GSUxFU19OT1RfTUFUQ0gQBxIbChdSU19SRUNPUkRfTk9UX1NIQVJFQUJM",
+            "RRAIKi0KDUZpbGVBZGRSZXN1bHQSDgoKRkFfU1VDQ0VTUxAAEgwKCEZBX0VS",
+            "Uk9SEAEqQwoNRmlsZUdldFJlc3VsdBIOCgpGR19TVUNDRVNTEAASDAoIRkdf",
+            "RVJST1IQARIUChBGR19BQ0NFU1NfREVOSUVEEAIqSgoUUmVjb3JkRGV0YWls",
+            "c0luY2x1ZGUSEwoPREFUQV9QTFVTX1NIQVJFEAASDQoJREFUQV9PTkxZEAES",
+            "DgoKU0hBUkVfT05MWRACKmsKCVNoYXJlVHlwZRIYChRTSEFSSU5HX1JFTEFU",
+            "SU9OU0hJUBAAEhMKD0VOVEVSUFJJU0VfVVNFUhABEhEKDUZBTUlMWV9NRU1C",
+            "RVIQAhIICgRURUFNEAMSEgoOTUFOQUdFX0NPTVBBTlkQBCoxCgtTaGFyZVN0",
+            "YXR1cxIKCgZBQ1RJVkUQABIJCgVCTE9DSxABEgsKB0lOVklURUQQAkIjChhj",
+            "b20ua2VlcGVyc2VjdXJpdHkucHJvdG9CB1JlY29yZHNiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.ShareType), typeof(global::Records.ShareStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -203,7 +205,8 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordUpdate), global::Records.RecordUpdate.Parser, new[]{ "RecordUid", "ClientModifiedTime", "Revision", "Data", "NonSharedData", "RecordLinksAdd", "RecordLinksRemove", "Audit" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUpdateRequest), global::Records.RecordsUpdateRequest.Parser, new[]{ "Records", "ClientTime" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordFileForConversion), global::Records.RecordFileForConversion.Parser, new[]{ "RecordUid", "FileFileId", "ThumbFileId", "Data", "RecordKey", "LinkKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordConvertToV3), global::Records.RecordConvertToV3.Parser, new[]{ "RecordUid", "ClientModifiedTime", "Revision", "Data", "NonSharedData", "Audit", "RecordFile", "FolderUid", "RecordFolderKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordFolderForConversion), global::Records.RecordFolderForConversion.Parser, new[]{ "FolderUid", "RecordFolderKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordConvertToV3), global::Records.RecordConvertToV3.Parser, new[]{ "RecordUid", "ClientModifiedTime", "Revision", "Data", "NonSharedData", "Audit", "RecordFile", "FolderKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsConvertToV3Request), global::Records.RecordsConvertToV3Request.Parser, new[]{ "Records", "ClientTime" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsRemoveRequest), global::Records.RecordsRemoveRequest.Parser, new[]{ "Records" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordModifyStatus), global::Records.RecordModifyStatus.Parser, new[]{ "RecordUid", "Status", "Message" }, null, null, null, null),
@@ -306,31 +309,23 @@ namespace Records {
   #endregion
 
   #region Messages
-  public sealed partial class RecordType : pb::IMessage<RecordType>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordType : pb::IMessage<RecordType> {
     private static readonly pb::MessageParser<RecordType> _parser = new pb::MessageParser<RecordType>(() => new RecordType());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordType> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordType() {
       OnConstruction();
     }
@@ -338,7 +333,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordType(RecordType other) : this() {
       recordTypeId_ = other.recordTypeId_;
       content_ = other.content_;
@@ -347,7 +341,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordType Clone() {
       return new RecordType(this);
     }
@@ -356,7 +349,6 @@ namespace Records {
     public const int RecordTypeIdFieldNumber = 1;
     private int recordTypeId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int RecordTypeId {
       get { return recordTypeId_; }
       set {
@@ -368,7 +360,6 @@ namespace Records {
     public const int ContentFieldNumber = 2;
     private string content_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Content {
       get { return content_; }
       set {
@@ -380,7 +371,6 @@ namespace Records {
     public const int ScopeFieldNumber = 3;
     private global::Records.RecordTypeScope scope_ = global::Records.RecordTypeScope.RtStandard;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordTypeScope Scope {
       get { return scope_; }
       set {
@@ -389,13 +379,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordType);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordType other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -410,7 +398,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordTypeId != 0) hash ^= RecordTypeId.GetHashCode();
@@ -423,17 +410,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordTypeId != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(RecordTypeId);
@@ -449,33 +431,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordTypeId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(RecordTypeId);
-      }
-      if (Content.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Content);
-      }
-      if (Scope != global::Records.RecordTypeScope.RtStandard) {
-        output.WriteRawTag(24);
-        output.WriteEnum((int) Scope);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordTypeId != 0) {
@@ -494,7 +452,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordType other) {
       if (other == null) {
         return;
@@ -512,11 +469,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -537,63 +490,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            RecordTypeId = input.ReadInt32();
-            break;
-          }
-          case 18: {
-            Content = input.ReadString();
-            break;
-          }
-          case 24: {
-            Scope = (global::Records.RecordTypeScope) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordTypesRequest : pb::IMessage<RecordTypesRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordTypesRequest : pb::IMessage<RecordTypesRequest> {
     private static readonly pb::MessageParser<RecordTypesRequest> _parser = new pb::MessageParser<RecordTypesRequest>(() => new RecordTypesRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordTypesRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypesRequest() {
       OnConstruction();
     }
@@ -601,7 +518,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypesRequest(RecordTypesRequest other) : this() {
       standard_ = other.standard_;
       user_ = other.user_;
@@ -610,7 +526,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypesRequest Clone() {
       return new RecordTypesRequest(this);
     }
@@ -619,7 +534,6 @@ namespace Records {
     public const int StandardFieldNumber = 1;
     private bool standard_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Standard {
       get { return standard_; }
       set {
@@ -631,7 +545,6 @@ namespace Records {
     public const int UserFieldNumber = 2;
     private bool user_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool User {
       get { return user_; }
       set {
@@ -643,7 +556,6 @@ namespace Records {
     public const int EnterpriseFieldNumber = 3;
     private bool enterprise_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Enterprise {
       get { return enterprise_; }
       set {
@@ -652,13 +564,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordTypesRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordTypesRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -673,7 +583,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Standard != false) hash ^= Standard.GetHashCode();
@@ -686,17 +595,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (Standard != false) {
         output.WriteRawTag(8);
         output.WriteBool(Standard);
@@ -712,33 +616,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Standard != false) {
-        output.WriteRawTag(8);
-        output.WriteBool(Standard);
-      }
-      if (User != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(User);
-      }
-      if (Enterprise != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(Enterprise);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Standard != false) {
@@ -757,7 +637,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordTypesRequest other) {
       if (other == null) {
         return;
@@ -775,11 +654,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -800,63 +675,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            Standard = input.ReadBool();
-            break;
-          }
-          case 16: {
-            User = input.ReadBool();
-            break;
-          }
-          case 24: {
-            Enterprise = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordTypesResponse : pb::IMessage<RecordTypesResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordTypesResponse : pb::IMessage<RecordTypesResponse> {
     private static readonly pb::MessageParser<RecordTypesResponse> _parser = new pb::MessageParser<RecordTypesResponse>(() => new RecordTypesResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordTypesResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypesResponse() {
       OnConstruction();
     }
@@ -864,7 +703,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypesResponse(RecordTypesResponse other) : this() {
       recordTypes_ = other.recordTypes_.Clone();
       standardCounter_ = other.standardCounter_;
@@ -874,7 +712,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypesResponse Clone() {
       return new RecordTypesResponse(this);
     }
@@ -885,7 +722,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.RecordType.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordType> recordTypes_ = new pbc::RepeatedField<global::Records.RecordType>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordType> RecordTypes {
       get { return recordTypes_; }
     }
@@ -894,7 +730,6 @@ namespace Records {
     public const int StandardCounterFieldNumber = 2;
     private int standardCounter_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int StandardCounter {
       get { return standardCounter_; }
       set {
@@ -906,7 +741,6 @@ namespace Records {
     public const int UserCounterFieldNumber = 3;
     private int userCounter_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int UserCounter {
       get { return userCounter_; }
       set {
@@ -918,7 +752,6 @@ namespace Records {
     public const int EnterpriseCounterFieldNumber = 4;
     private int enterpriseCounter_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int EnterpriseCounter {
       get { return enterpriseCounter_; }
       set {
@@ -927,13 +760,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordTypesResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordTypesResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -949,7 +780,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= recordTypes_.GetHashCode();
@@ -963,17 +793,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       recordTypes_.WriteTo(output, _repeated_recordTypes_codec);
       if (StandardCounter != 0) {
         output.WriteRawTag(16);
@@ -990,34 +815,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      recordTypes_.WriteTo(ref output, _repeated_recordTypes_codec);
-      if (StandardCounter != 0) {
-        output.WriteRawTag(16);
-        output.WriteInt32(StandardCounter);
-      }
-      if (UserCounter != 0) {
-        output.WriteRawTag(24);
-        output.WriteInt32(UserCounter);
-      }
-      if (EnterpriseCounter != 0) {
-        output.WriteRawTag(32);
-        output.WriteInt32(EnterpriseCounter);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += recordTypes_.CalculateSize(_repeated_recordTypes_codec);
@@ -1037,7 +837,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordTypesResponse other) {
       if (other == null) {
         return;
@@ -1056,11 +855,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1085,67 +880,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            recordTypes_.AddEntriesFrom(ref input, _repeated_recordTypes_codec);
-            break;
-          }
-          case 16: {
-            StandardCounter = input.ReadInt32();
-            break;
-          }
-          case 24: {
-            UserCounter = input.ReadInt32();
-            break;
-          }
-          case 32: {
-            EnterpriseCounter = input.ReadInt32();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordTypeModifyResponse : pb::IMessage<RecordTypeModifyResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordTypeModifyResponse : pb::IMessage<RecordTypeModifyResponse> {
     private static readonly pb::MessageParser<RecordTypeModifyResponse> _parser = new pb::MessageParser<RecordTypeModifyResponse>(() => new RecordTypeModifyResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordTypeModifyResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypeModifyResponse() {
       OnConstruction();
     }
@@ -1153,7 +908,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypeModifyResponse(RecordTypeModifyResponse other) : this() {
       recordTypeId_ = other.recordTypeId_;
       counter_ = other.counter_;
@@ -1161,7 +915,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordTypeModifyResponse Clone() {
       return new RecordTypeModifyResponse(this);
     }
@@ -1173,7 +926,6 @@ namespace Records {
     /// record id of the added, updated or removed record
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int RecordTypeId {
       get { return recordTypeId_; }
       set {
@@ -1188,7 +940,6 @@ namespace Records {
     /// updated counter for the scope affected
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Counter {
       get { return counter_; }
       set {
@@ -1197,13 +948,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordTypeModifyResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordTypeModifyResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1217,7 +966,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordTypeId != 0) hash ^= RecordTypeId.GetHashCode();
@@ -1229,17 +977,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordTypeId != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(RecordTypeId);
@@ -1251,29 +994,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordTypeId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(RecordTypeId);
-      }
-      if (Counter != 0) {
-        output.WriteRawTag(16);
-        output.WriteInt32(Counter);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordTypeId != 0) {
@@ -1289,7 +1012,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordTypeModifyResponse other) {
       if (other == null) {
         return;
@@ -1304,11 +1026,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1325,59 +1043,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            RecordTypeId = input.ReadInt32();
-            break;
-          }
-          case 16: {
-            Counter = input.ReadInt32();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordsGetRequest : pb::IMessage<RecordsGetRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordsGetRequest : pb::IMessage<RecordsGetRequest> {
     private static readonly pb::MessageParser<RecordsGetRequest> _parser = new pb::MessageParser<RecordsGetRequest>(() => new RecordsGetRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordsGetRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsGetRequest() {
       OnConstruction();
     }
@@ -1385,7 +1071,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsGetRequest(RecordsGetRequest other) : this() {
       recordUids_ = other.recordUids_.Clone();
       clientTime_ = other.clientTime_;
@@ -1393,7 +1078,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsGetRequest Clone() {
       return new RecordsGetRequest(this);
     }
@@ -1404,7 +1088,6 @@ namespace Records {
         = pb::FieldCodec.ForBytes(10);
     private readonly pbc::RepeatedField<pb::ByteString> recordUids_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> RecordUids {
       get { return recordUids_; }
     }
@@ -1413,7 +1096,6 @@ namespace Records {
     public const int ClientTimeFieldNumber = 2;
     private long clientTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientTime {
       get { return clientTime_; }
       set {
@@ -1422,13 +1104,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordsGetRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordsGetRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1442,7 +1122,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= recordUids_.GetHashCode();
@@ -1454,17 +1133,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       recordUids_.WriteTo(output, _repeated_recordUids_codec);
       if (ClientTime != 0L) {
         output.WriteRawTag(16);
@@ -1473,26 +1147,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      recordUids_.WriteTo(ref output, _repeated_recordUids_codec);
-      if (ClientTime != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(ClientTime);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += recordUids_.CalculateSize(_repeated_recordUids_codec);
@@ -1506,7 +1163,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordsGetRequest other) {
       if (other == null) {
         return;
@@ -1519,11 +1175,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1540,59 +1192,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            recordUids_.AddEntriesFrom(ref input, _repeated_recordUids_codec);
-            break;
-          }
-          case 16: {
-            ClientTime = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class Record : pb::IMessage<Record>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class Record : pb::IMessage<Record> {
     private static readonly pb::MessageParser<Record> _parser = new pb::MessageParser<Record>(() => new Record());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<Record> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Record() {
       OnConstruction();
     }
@@ -1600,7 +1220,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Record(Record other) : this() {
       recordUid_ = other.recordUid_;
       recordKey_ = other.recordKey_;
@@ -1615,7 +1234,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Record Clone() {
       return new Record(this);
     }
@@ -1624,7 +1242,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -1636,7 +1253,6 @@ namespace Records {
     public const int RecordKeyFieldNumber = 2;
     private pb::ByteString recordKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -1648,7 +1264,6 @@ namespace Records {
     public const int RecordKeyTypeFieldNumber = 3;
     private global::Records.RecordKeyType recordKeyType_ = global::Records.RecordKeyType.NoKey;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordKeyType RecordKeyType {
       get { return recordKeyType_; }
       set {
@@ -1660,7 +1275,6 @@ namespace Records {
     public const int DataFieldNumber = 4;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -1672,7 +1286,6 @@ namespace Records {
     public const int ExtraFieldNumber = 5;
     private pb::ByteString extra_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Extra {
       get { return extra_; }
       set {
@@ -1684,7 +1297,6 @@ namespace Records {
     public const int VersionFieldNumber = 6;
     private int version_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Version {
       get { return version_; }
       set {
@@ -1696,7 +1308,6 @@ namespace Records {
     public const int ClientModifiedTimeFieldNumber = 7;
     private long clientModifiedTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientModifiedTime {
       get { return clientModifiedTime_; }
       set {
@@ -1708,7 +1319,6 @@ namespace Records {
     public const int RevisionFieldNumber = 8;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -1722,19 +1332,16 @@ namespace Records {
         = pb::FieldCodec.ForBytes(74);
     private readonly pbc::RepeatedField<pb::ByteString> fileIds_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> FileIds {
       get { return fileIds_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as Record);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(Record other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1755,7 +1362,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -1774,17 +1380,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -1821,54 +1422,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (RecordKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(RecordKey);
-      }
-      if (RecordKeyType != global::Records.RecordKeyType.NoKey) {
-        output.WriteRawTag(24);
-        output.WriteEnum((int) RecordKeyType);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(Data);
-      }
-      if (Extra.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteBytes(Extra);
-      }
-      if (Version != 0) {
-        output.WriteRawTag(48);
-        output.WriteInt32(Version);
-      }
-      if (ClientModifiedTime != 0L) {
-        output.WriteRawTag(56);
-        output.WriteInt64(ClientModifiedTime);
-      }
-      if (Revision != 0L) {
-        output.WriteRawTag(64);
-        output.WriteInt64(Revision);
-      }
-      fileIds_.WriteTo(ref output, _repeated_fileIds_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -1903,7 +1459,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(Record other) {
       if (other == null) {
         return;
@@ -1937,11 +1492,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1986,87 +1537,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            RecordKey = input.ReadBytes();
-            break;
-          }
-          case 24: {
-            RecordKeyType = (global::Records.RecordKeyType) input.ReadEnum();
-            break;
-          }
-          case 34: {
-            Data = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            Extra = input.ReadBytes();
-            break;
-          }
-          case 48: {
-            Version = input.ReadInt32();
-            break;
-          }
-          case 56: {
-            ClientModifiedTime = input.ReadInt64();
-            break;
-          }
-          case 64: {
-            Revision = input.ReadInt64();
-            break;
-          }
-          case 74: {
-            fileIds_.AddEntriesFrom(ref input, _repeated_fileIds_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class FolderRecordKey : pb::IMessage<FolderRecordKey>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class FolderRecordKey : pb::IMessage<FolderRecordKey> {
     private static readonly pb::MessageParser<FolderRecordKey> _parser = new pb::MessageParser<FolderRecordKey>(() => new FolderRecordKey());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<FolderRecordKey> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FolderRecordKey() {
       OnConstruction();
     }
@@ -2074,7 +1565,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FolderRecordKey(FolderRecordKey other) : this() {
       folderUid_ = other.folderUid_;
       recordUid_ = other.recordUid_;
@@ -2083,7 +1573,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FolderRecordKey Clone() {
       return new FolderRecordKey(this);
     }
@@ -2092,7 +1581,6 @@ namespace Records {
     public const int FolderUidFieldNumber = 1;
     private pb::ByteString folderUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString FolderUid {
       get { return folderUid_; }
       set {
@@ -2104,7 +1592,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 2;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -2116,7 +1603,6 @@ namespace Records {
     public const int RecordKeyFieldNumber = 3;
     private pb::ByteString recordKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -2125,13 +1611,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as FolderRecordKey);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(FolderRecordKey other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2146,7 +1630,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
@@ -2159,17 +1642,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (FolderUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(FolderUid);
@@ -2185,33 +1663,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (FolderUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(FolderUid);
-      }
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(RecordUid);
-      }
-      if (RecordKey.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(RecordKey);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (FolderUid.Length != 0) {
@@ -2230,7 +1684,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(FolderRecordKey other) {
       if (other == null) {
         return;
@@ -2248,11 +1701,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2273,63 +1722,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            FolderUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 26: {
-            RecordKey = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class Folder : pb::IMessage<Folder>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class Folder : pb::IMessage<Folder> {
     private static readonly pb::MessageParser<Folder> _parser = new pb::MessageParser<Folder>(() => new Folder());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<Folder> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Folder() {
       OnConstruction();
     }
@@ -2337,7 +1750,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Folder(Folder other) : this() {
       folderUid_ = other.folderUid_;
       folderKey_ = other.folderKey_;
@@ -2346,7 +1758,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Folder Clone() {
       return new Folder(this);
     }
@@ -2355,7 +1766,6 @@ namespace Records {
     public const int FolderUidFieldNumber = 1;
     private pb::ByteString folderUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString FolderUid {
       get { return folderUid_; }
       set {
@@ -2367,7 +1777,6 @@ namespace Records {
     public const int FolderKeyFieldNumber = 2;
     private pb::ByteString folderKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString FolderKey {
       get { return folderKey_; }
       set {
@@ -2379,7 +1788,6 @@ namespace Records {
     public const int FolderKeyTypeFieldNumber = 3;
     private global::Records.RecordKeyType folderKeyType_ = global::Records.RecordKeyType.NoKey;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordKeyType FolderKeyType {
       get { return folderKeyType_; }
       set {
@@ -2388,13 +1796,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as Folder);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(Folder other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2409,7 +1815,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
@@ -2422,17 +1827,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (FolderUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(FolderUid);
@@ -2448,33 +1848,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (FolderUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(FolderUid);
-      }
-      if (FolderKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(FolderKey);
-      }
-      if (FolderKeyType != global::Records.RecordKeyType.NoKey) {
-        output.WriteRawTag(24);
-        output.WriteEnum((int) FolderKeyType);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (FolderUid.Length != 0) {
@@ -2493,7 +1869,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(Folder other) {
       if (other == null) {
         return;
@@ -2511,11 +1886,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2536,63 +1907,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            FolderUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            FolderKey = input.ReadBytes();
-            break;
-          }
-          case 24: {
-            FolderKeyType = (global::Records.RecordKeyType) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class Team : pb::IMessage<Team>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class Team : pb::IMessage<Team> {
     private static readonly pb::MessageParser<Team> _parser = new pb::MessageParser<Team>(() => new Team());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<Team> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Team() {
       OnConstruction();
     }
@@ -2600,7 +1935,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Team(Team other) : this() {
       teamUid_ = other.teamUid_;
       teamKey_ = other.teamKey_;
@@ -2611,7 +1945,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Team Clone() {
       return new Team(this);
     }
@@ -2620,7 +1953,6 @@ namespace Records {
     public const int TeamUidFieldNumber = 1;
     private pb::ByteString teamUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString TeamUid {
       get { return teamUid_; }
       set {
@@ -2632,7 +1964,6 @@ namespace Records {
     public const int TeamKeyFieldNumber = 2;
     private pb::ByteString teamKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString TeamKey {
       get { return teamKey_; }
       set {
@@ -2644,7 +1975,6 @@ namespace Records {
     public const int TeamPrivateKeyFieldNumber = 3;
     private pb::ByteString teamPrivateKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString TeamPrivateKey {
       get { return teamPrivateKey_; }
       set {
@@ -2656,7 +1986,6 @@ namespace Records {
     public const int TeamKeyTypeFieldNumber = 4;
     private global::Records.RecordKeyType teamKeyType_ = global::Records.RecordKeyType.NoKey;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordKeyType TeamKeyType {
       get { return teamKeyType_; }
       set {
@@ -2670,19 +1999,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(42, global::Records.Folder.Parser);
     private readonly pbc::RepeatedField<global::Records.Folder> folders_ = new pbc::RepeatedField<global::Records.Folder>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.Folder> Folders {
       get { return folders_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as Team);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(Team other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2699,7 +2025,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (TeamUid.Length != 0) hash ^= TeamUid.GetHashCode();
@@ -2714,17 +2039,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (TeamUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(TeamUid);
@@ -2745,38 +2065,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (TeamUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(TeamUid);
-      }
-      if (TeamKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(TeamKey);
-      }
-      if (TeamPrivateKey.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(TeamPrivateKey);
-      }
-      if (TeamKeyType != global::Records.RecordKeyType.NoKey) {
-        output.WriteRawTag(32);
-        output.WriteEnum((int) TeamKeyType);
-      }
-      folders_.WriteTo(ref output, _repeated_folders_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (TeamUid.Length != 0) {
@@ -2799,7 +2090,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(Team other) {
       if (other == null) {
         return;
@@ -2821,11 +2111,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2854,71 +2140,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            TeamUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            TeamKey = input.ReadBytes();
-            break;
-          }
-          case 26: {
-            TeamPrivateKey = input.ReadBytes();
-            break;
-          }
-          case 32: {
-            TeamKeyType = (global::Records.RecordKeyType) input.ReadEnum();
-            break;
-          }
-          case 42: {
-            folders_.AddEntriesFrom(ref input, _repeated_folders_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordsGetResponse : pb::IMessage<RecordsGetResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordsGetResponse : pb::IMessage<RecordsGetResponse> {
     private static readonly pb::MessageParser<RecordsGetResponse> _parser = new pb::MessageParser<RecordsGetResponse>(() => new RecordsGetResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordsGetResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsGetResponse() {
       OnConstruction();
     }
@@ -2926,7 +2168,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsGetResponse(RecordsGetResponse other) : this() {
       records_ = other.records_.Clone();
       folderRecordKeys_ = other.folderRecordKeys_.Clone();
@@ -2936,7 +2177,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsGetResponse Clone() {
       return new RecordsGetResponse(this);
     }
@@ -2947,7 +2187,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.Record.Parser);
     private readonly pbc::RepeatedField<global::Records.Record> records_ = new pbc::RepeatedField<global::Records.Record>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.Record> Records {
       get { return records_; }
     }
@@ -2958,7 +2197,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(18, global::Records.FolderRecordKey.Parser);
     private readonly pbc::RepeatedField<global::Records.FolderRecordKey> folderRecordKeys_ = new pbc::RepeatedField<global::Records.FolderRecordKey>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.FolderRecordKey> FolderRecordKeys {
       get { return folderRecordKeys_; }
     }
@@ -2969,7 +2207,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(26, global::Records.Folder.Parser);
     private readonly pbc::RepeatedField<global::Records.Folder> folders_ = new pbc::RepeatedField<global::Records.Folder>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.Folder> Folders {
       get { return folders_; }
     }
@@ -2980,19 +2217,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(34, global::Records.Team.Parser);
     private readonly pbc::RepeatedField<global::Records.Team> teams_ = new pbc::RepeatedField<global::Records.Team>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.Team> Teams {
       get { return teams_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordsGetResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordsGetResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3008,7 +2242,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= records_.GetHashCode();
@@ -3022,17 +2255,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       records_.WriteTo(output, _repeated_records_codec);
       folderRecordKeys_.WriteTo(output, _repeated_folderRecordKeys_codec);
       folders_.WriteTo(output, _repeated_folders_codec);
@@ -3040,25 +2268,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      records_.WriteTo(ref output, _repeated_records_codec);
-      folderRecordKeys_.WriteTo(ref output, _repeated_folderRecordKeys_codec);
-      folders_.WriteTo(ref output, _repeated_folders_codec);
-      teams_.WriteTo(ref output, _repeated_teams_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += records_.CalculateSize(_repeated_records_codec);
@@ -3072,7 +2284,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordsGetResponse other) {
       if (other == null) {
         return;
@@ -3085,11 +2296,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3114,67 +2321,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            records_.AddEntriesFrom(ref input, _repeated_records_codec);
-            break;
-          }
-          case 18: {
-            folderRecordKeys_.AddEntriesFrom(ref input, _repeated_folderRecordKeys_codec);
-            break;
-          }
-          case 26: {
-            folders_.AddEntriesFrom(ref input, _repeated_folders_codec);
-            break;
-          }
-          case 34: {
-            teams_.AddEntriesFrom(ref input, _repeated_teams_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordLink : pb::IMessage<RecordLink>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordLink : pb::IMessage<RecordLink> {
     private static readonly pb::MessageParser<RecordLink> _parser = new pb::MessageParser<RecordLink>(() => new RecordLink());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordLink> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordLink() {
       OnConstruction();
     }
@@ -3182,7 +2349,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordLink(RecordLink other) : this() {
       recordUid_ = other.recordUid_;
       recordKey_ = other.recordKey_;
@@ -3190,7 +2356,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordLink Clone() {
       return new RecordLink(this);
     }
@@ -3199,7 +2364,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -3211,7 +2375,6 @@ namespace Records {
     public const int RecordKeyFieldNumber = 2;
     private pb::ByteString recordKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -3220,13 +2383,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordLink);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordLink other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3240,7 +2401,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -3252,17 +2412,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -3274,29 +2429,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (RecordKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(RecordKey);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -3312,7 +2447,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordLink other) {
       if (other == null) {
         return;
@@ -3327,11 +2461,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3348,59 +2478,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            RecordKey = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordAudit : pb::IMessage<RecordAudit>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordAudit : pb::IMessage<RecordAudit> {
     private static readonly pb::MessageParser<RecordAudit> _parser = new pb::MessageParser<RecordAudit>(() => new RecordAudit());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordAudit> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAudit() {
       OnConstruction();
     }
@@ -3408,7 +2506,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAudit(RecordAudit other) : this() {
       version_ = other.version_;
       data_ = other.data_;
@@ -3416,7 +2513,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAudit Clone() {
       return new RecordAudit(this);
     }
@@ -3425,7 +2521,6 @@ namespace Records {
     public const int VersionFieldNumber = 1;
     private int version_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Version {
       get { return version_; }
       set {
@@ -3437,7 +2532,6 @@ namespace Records {
     public const int DataFieldNumber = 2;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -3446,13 +2540,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordAudit);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordAudit other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3466,7 +2558,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Version != 0) hash ^= Version.GetHashCode();
@@ -3478,17 +2569,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (Version != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(Version);
@@ -3500,29 +2586,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Version != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(Version);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(Data);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Version != 0) {
@@ -3538,7 +2604,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordAudit other) {
       if (other == null) {
         return;
@@ -3553,11 +2618,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3574,59 +2635,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            Version = input.ReadInt32();
-            break;
-          }
-          case 18: {
-            Data = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordAdd : pb::IMessage<RecordAdd>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordAdd : pb::IMessage<RecordAdd> {
     private static readonly pb::MessageParser<RecordAdd> _parser = new pb::MessageParser<RecordAdd>(() => new RecordAdd());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordAdd> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAdd() {
       OnConstruction();
     }
@@ -3634,7 +2663,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAdd(RecordAdd other) : this() {
       recordUid_ = other.recordUid_;
       recordKey_ = other.recordKey_;
@@ -3650,7 +2678,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAdd Clone() {
       return new RecordAdd(this);
     }
@@ -3659,7 +2686,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -3671,7 +2697,6 @@ namespace Records {
     public const int RecordKeyFieldNumber = 2;
     private pb::ByteString recordKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -3683,7 +2708,6 @@ namespace Records {
     public const int ClientModifiedTimeFieldNumber = 3;
     private long clientModifiedTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientModifiedTime {
       get { return clientModifiedTime_; }
       set {
@@ -3695,7 +2719,6 @@ namespace Records {
     public const int DataFieldNumber = 4;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -3707,7 +2730,6 @@ namespace Records {
     public const int NonSharedDataFieldNumber = 5;
     private pb::ByteString nonSharedData_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString NonSharedData {
       get { return nonSharedData_; }
       set {
@@ -3719,7 +2741,6 @@ namespace Records {
     public const int FolderTypeFieldNumber = 6;
     private global::Records.RecordFolderType folderType_ = global::Records.RecordFolderType.UserFolder;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordFolderType FolderType {
       get { return folderType_; }
       set {
@@ -3731,7 +2752,6 @@ namespace Records {
     public const int FolderUidFieldNumber = 7;
     private pb::ByteString folderUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString FolderUid {
       get { return folderUid_; }
       set {
@@ -3743,7 +2763,6 @@ namespace Records {
     public const int FolderKeyFieldNumber = 8;
     private pb::ByteString folderKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString FolderKey {
       get { return folderKey_; }
       set {
@@ -3757,7 +2776,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(74, global::Records.RecordLink.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordLink> recordLinks_ = new pbc::RepeatedField<global::Records.RecordLink>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordLink> RecordLinks {
       get { return recordLinks_; }
     }
@@ -3766,7 +2784,6 @@ namespace Records {
     public const int AuditFieldNumber = 10;
     private global::Records.RecordAudit audit_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordAudit Audit {
       get { return audit_; }
       set {
@@ -3775,13 +2792,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordAdd);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordAdd other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3803,7 +2818,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -3823,17 +2837,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -3874,58 +2883,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (RecordKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(RecordKey);
-      }
-      if (ClientModifiedTime != 0L) {
-        output.WriteRawTag(24);
-        output.WriteInt64(ClientModifiedTime);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(Data);
-      }
-      if (NonSharedData.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteBytes(NonSharedData);
-      }
-      if (FolderType != global::Records.RecordFolderType.UserFolder) {
-        output.WriteRawTag(48);
-        output.WriteEnum((int) FolderType);
-      }
-      if (FolderUid.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteBytes(FolderUid);
-      }
-      if (FolderKey.Length != 0) {
-        output.WriteRawTag(66);
-        output.WriteBytes(FolderKey);
-      }
-      recordLinks_.WriteTo(ref output, _repeated_recordLinks_codec);
-      if (audit_ != null) {
-        output.WriteRawTag(82);
-        output.WriteMessage(Audit);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -3963,7 +2923,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordAdd other) {
       if (other == null) {
         return;
@@ -4003,11 +2962,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4059,94 +3014,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            RecordKey = input.ReadBytes();
-            break;
-          }
-          case 24: {
-            ClientModifiedTime = input.ReadInt64();
-            break;
-          }
-          case 34: {
-            Data = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            NonSharedData = input.ReadBytes();
-            break;
-          }
-          case 48: {
-            FolderType = (global::Records.RecordFolderType) input.ReadEnum();
-            break;
-          }
-          case 58: {
-            FolderUid = input.ReadBytes();
-            break;
-          }
-          case 66: {
-            FolderKey = input.ReadBytes();
-            break;
-          }
-          case 74: {
-            recordLinks_.AddEntriesFrom(ref input, _repeated_recordLinks_codec);
-            break;
-          }
-          case 82: {
-            if (audit_ == null) {
-              Audit = new global::Records.RecordAudit();
-            }
-            input.ReadMessage(Audit);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordsAddRequest : pb::IMessage<RecordsAddRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordsAddRequest : pb::IMessage<RecordsAddRequest> {
     private static readonly pb::MessageParser<RecordsAddRequest> _parser = new pb::MessageParser<RecordsAddRequest>(() => new RecordsAddRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordsAddRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsAddRequest() {
       OnConstruction();
     }
@@ -4154,7 +3042,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsAddRequest(RecordsAddRequest other) : this() {
       records_ = other.records_.Clone();
       clientTime_ = other.clientTime_;
@@ -4162,7 +3049,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsAddRequest Clone() {
       return new RecordsAddRequest(this);
     }
@@ -4173,7 +3059,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.RecordAdd.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordAdd> records_ = new pbc::RepeatedField<global::Records.RecordAdd>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordAdd> Records {
       get { return records_; }
     }
@@ -4182,7 +3067,6 @@ namespace Records {
     public const int ClientTimeFieldNumber = 2;
     private long clientTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientTime {
       get { return clientTime_; }
       set {
@@ -4191,13 +3075,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordsAddRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordsAddRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4211,7 +3093,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= records_.GetHashCode();
@@ -4223,17 +3104,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       records_.WriteTo(output, _repeated_records_codec);
       if (ClientTime != 0L) {
         output.WriteRawTag(16);
@@ -4242,26 +3118,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      records_.WriteTo(ref output, _repeated_records_codec);
-      if (ClientTime != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(ClientTime);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += records_.CalculateSize(_repeated_records_codec);
@@ -4275,7 +3134,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordsAddRequest other) {
       if (other == null) {
         return;
@@ -4288,11 +3146,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4309,59 +3163,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            records_.AddEntriesFrom(ref input, _repeated_records_codec);
-            break;
-          }
-          case 16: {
-            ClientTime = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordUpdate : pb::IMessage<RecordUpdate>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordUpdate : pb::IMessage<RecordUpdate> {
     private static readonly pb::MessageParser<RecordUpdate> _parser = new pb::MessageParser<RecordUpdate>(() => new RecordUpdate());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordUpdate> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordUpdate() {
       OnConstruction();
     }
@@ -4369,7 +3191,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordUpdate(RecordUpdate other) : this() {
       recordUid_ = other.recordUid_;
       clientModifiedTime_ = other.clientModifiedTime_;
@@ -4383,7 +3204,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordUpdate Clone() {
       return new RecordUpdate(this);
     }
@@ -4392,7 +3212,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -4404,7 +3223,6 @@ namespace Records {
     public const int ClientModifiedTimeFieldNumber = 2;
     private long clientModifiedTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientModifiedTime {
       get { return clientModifiedTime_; }
       set {
@@ -4416,7 +3234,6 @@ namespace Records {
     public const int RevisionFieldNumber = 3;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -4428,7 +3245,6 @@ namespace Records {
     public const int DataFieldNumber = 4;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -4440,7 +3256,6 @@ namespace Records {
     public const int NonSharedDataFieldNumber = 5;
     private pb::ByteString nonSharedData_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString NonSharedData {
       get { return nonSharedData_; }
       set {
@@ -4454,7 +3269,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(50, global::Records.RecordLink.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordLink> recordLinksAdd_ = new pbc::RepeatedField<global::Records.RecordLink>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordLink> RecordLinksAdd {
       get { return recordLinksAdd_; }
     }
@@ -4465,7 +3279,6 @@ namespace Records {
         = pb::FieldCodec.ForBytes(58);
     private readonly pbc::RepeatedField<pb::ByteString> recordLinksRemove_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> RecordLinksRemove {
       get { return recordLinksRemove_; }
     }
@@ -4474,7 +3287,6 @@ namespace Records {
     public const int AuditFieldNumber = 8;
     private global::Records.RecordAudit audit_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordAudit Audit {
       get { return audit_; }
       set {
@@ -4483,13 +3295,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordUpdate);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordUpdate other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4509,7 +3319,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -4527,17 +3336,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -4567,47 +3371,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (ClientModifiedTime != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(ClientModifiedTime);
-      }
-      if (Revision != 0L) {
-        output.WriteRawTag(24);
-        output.WriteInt64(Revision);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(Data);
-      }
-      if (NonSharedData.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteBytes(NonSharedData);
-      }
-      recordLinksAdd_.WriteTo(ref output, _repeated_recordLinksAdd_codec);
-      recordLinksRemove_.WriteTo(ref output, _repeated_recordLinksRemove_codec);
-      if (audit_ != null) {
-        output.WriteRawTag(66);
-        output.WriteMessage(Audit);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -4637,7 +3403,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordUpdate other) {
       if (other == null) {
         return;
@@ -4669,11 +3434,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4717,86 +3478,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 16: {
-            ClientModifiedTime = input.ReadInt64();
-            break;
-          }
-          case 24: {
-            Revision = input.ReadInt64();
-            break;
-          }
-          case 34: {
-            Data = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            NonSharedData = input.ReadBytes();
-            break;
-          }
-          case 50: {
-            recordLinksAdd_.AddEntriesFrom(ref input, _repeated_recordLinksAdd_codec);
-            break;
-          }
-          case 58: {
-            recordLinksRemove_.AddEntriesFrom(ref input, _repeated_recordLinksRemove_codec);
-            break;
-          }
-          case 66: {
-            if (audit_ == null) {
-              Audit = new global::Records.RecordAudit();
-            }
-            input.ReadMessage(Audit);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordsUpdateRequest : pb::IMessage<RecordsUpdateRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordsUpdateRequest : pb::IMessage<RecordsUpdateRequest> {
     private static readonly pb::MessageParser<RecordsUpdateRequest> _parser = new pb::MessageParser<RecordsUpdateRequest>(() => new RecordsUpdateRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordsUpdateRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsUpdateRequest() {
       OnConstruction();
     }
@@ -4804,7 +3506,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsUpdateRequest(RecordsUpdateRequest other) : this() {
       records_ = other.records_.Clone();
       clientTime_ = other.clientTime_;
@@ -4812,7 +3513,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsUpdateRequest Clone() {
       return new RecordsUpdateRequest(this);
     }
@@ -4823,7 +3523,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.RecordUpdate.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordUpdate> records_ = new pbc::RepeatedField<global::Records.RecordUpdate>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordUpdate> Records {
       get { return records_; }
     }
@@ -4832,7 +3531,6 @@ namespace Records {
     public const int ClientTimeFieldNumber = 2;
     private long clientTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientTime {
       get { return clientTime_; }
       set {
@@ -4841,13 +3539,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordsUpdateRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordsUpdateRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4861,7 +3557,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= records_.GetHashCode();
@@ -4873,17 +3568,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       records_.WriteTo(output, _repeated_records_codec);
       if (ClientTime != 0L) {
         output.WriteRawTag(16);
@@ -4892,26 +3582,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      records_.WriteTo(ref output, _repeated_records_codec);
-      if (ClientTime != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(ClientTime);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += records_.CalculateSize(_repeated_records_codec);
@@ -4925,7 +3598,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordsUpdateRequest other) {
       if (other == null) {
         return;
@@ -4938,11 +3610,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4959,59 +3627,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            records_.AddEntriesFrom(ref input, _repeated_records_codec);
-            break;
-          }
-          case 16: {
-            ClientTime = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordFileForConversion : pb::IMessage<RecordFileForConversion>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordFileForConversion : pb::IMessage<RecordFileForConversion> {
     private static readonly pb::MessageParser<RecordFileForConversion> _parser = new pb::MessageParser<RecordFileForConversion>(() => new RecordFileForConversion());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordFileForConversion> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordFileForConversion() {
       OnConstruction();
     }
@@ -5019,7 +3655,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordFileForConversion(RecordFileForConversion other) : this() {
       recordUid_ = other.recordUid_;
       fileFileId_ = other.fileFileId_;
@@ -5031,7 +3666,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordFileForConversion Clone() {
       return new RecordFileForConversion(this);
     }
@@ -5040,7 +3674,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -5052,7 +3685,6 @@ namespace Records {
     public const int FileFileIdFieldNumber = 2;
     private string fileFileId_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string FileFileId {
       get { return fileFileId_; }
       set {
@@ -5064,7 +3696,6 @@ namespace Records {
     public const int ThumbFileIdFieldNumber = 3;
     private string thumbFileId_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ThumbFileId {
       get { return thumbFileId_; }
       set {
@@ -5076,7 +3707,6 @@ namespace Records {
     public const int DataFieldNumber = 4;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -5091,7 +3721,6 @@ namespace Records {
     /// record_ref
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -5106,7 +3735,6 @@ namespace Records {
     /// record_link
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString LinkKey {
       get { return linkKey_; }
       set {
@@ -5115,13 +3743,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordFileForConversion);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordFileForConversion other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5139,7 +3765,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -5155,17 +3780,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -5193,45 +3813,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (FileFileId.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(FileFileId);
-      }
-      if (ThumbFileId.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(ThumbFileId);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(Data);
-      }
-      if (RecordKey.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteBytes(RecordKey);
-      }
-      if (LinkKey.Length != 0) {
-        output.WriteRawTag(50);
-        output.WriteBytes(LinkKey);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -5259,7 +3843,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordFileForConversion other) {
       if (other == null) {
         return;
@@ -5286,11 +3869,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5323,75 +3902,187 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            FileFileId = input.ReadString();
-            break;
-          }
-          case 26: {
-            ThumbFileId = input.ReadString();
-            break;
-          }
-          case 34: {
-            Data = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            RecordKey = input.ReadBytes();
-            break;
-          }
-          case 50: {
-            LinkKey = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordConvertToV3 : pb::IMessage<RecordConvertToV3>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
-    private static readonly pb::MessageParser<RecordConvertToV3> _parser = new pb::MessageParser<RecordConvertToV3>(() => new RecordConvertToV3());
+  public sealed partial class RecordFolderForConversion : pb::IMessage<RecordFolderForConversion> {
+    private static readonly pb::MessageParser<RecordFolderForConversion> _parser = new pb::MessageParser<RecordFolderForConversion>(() => new RecordFolderForConversion());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<RecordConvertToV3> Parser { get { return _parser; } }
+    public static pb::MessageParser<RecordFolderForConversion> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Records.RecordReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordFolderForConversion() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public RecordFolderForConversion(RecordFolderForConversion other) : this() {
+      folderUid_ = other.folderUid_;
+      recordFolderKey_ = other.recordFolderKey_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public RecordFolderForConversion Clone() {
+      return new RecordFolderForConversion(this);
+    }
+
+    /// <summary>Field number for the "folder_uid" field.</summary>
+    public const int FolderUidFieldNumber = 1;
+    private pb::ByteString folderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString FolderUid {
+      get { return folderUid_; }
+      set {
+        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "record_folder_key" field.</summary>
+    public const int RecordFolderKeyFieldNumber = 2;
+    private pb::ByteString recordFolderKey_ = pb::ByteString.Empty;
+    /// <summary>
+    /// GCM-encrypted shared folder key
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString RecordFolderKey {
+      get { return recordFolderKey_; }
+      set {
+        recordFolderKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as RecordFolderForConversion);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(RecordFolderForConversion other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (FolderUid != other.FolderUid) return false;
+      if (RecordFolderKey != other.RecordFolderKey) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
+      if (RecordFolderKey.Length != 0) hash ^= RecordFolderKey.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (FolderUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(FolderUid);
+      }
+      if (RecordFolderKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(RecordFolderKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (FolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
+      }
+      if (RecordFolderKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordFolderKey);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(RecordFolderForConversion other) {
+      if (other == null) {
+        return;
+      }
+      if (other.FolderUid.Length != 0) {
+        FolderUid = other.FolderUid;
+      }
+      if (other.RecordFolderKey.Length != 0) {
+        RecordFolderKey = other.RecordFolderKey;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            FolderUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            RecordFolderKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class RecordConvertToV3 : pb::IMessage<RecordConvertToV3> {
+    private static readonly pb::MessageParser<RecordConvertToV3> _parser = new pb::MessageParser<RecordConvertToV3>(() => new RecordConvertToV3());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<RecordConvertToV3> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[18]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public RecordConvertToV3() {
       OnConstruction();
     }
@@ -5399,7 +4090,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordConvertToV3(RecordConvertToV3 other) : this() {
       recordUid_ = other.recordUid_;
       clientModifiedTime_ = other.clientModifiedTime_;
@@ -5408,13 +4098,11 @@ namespace Records {
       nonSharedData_ = other.nonSharedData_;
       audit_ = other.audit_ != null ? other.audit_.Clone() : null;
       recordFile_ = other.recordFile_.Clone();
-      folderUid_ = other.folderUid_;
-      recordFolderKey_ = other.recordFolderKey_;
+      folderKey_ = other.folderKey_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordConvertToV3 Clone() {
       return new RecordConvertToV3(this);
     }
@@ -5423,7 +4111,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -5435,7 +4122,6 @@ namespace Records {
     public const int ClientModifiedTimeFieldNumber = 2;
     private long clientModifiedTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientModifiedTime {
       get { return clientModifiedTime_; }
       set {
@@ -5447,7 +4133,6 @@ namespace Records {
     public const int RevisionFieldNumber = 3;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -5459,7 +4144,6 @@ namespace Records {
     public const int DataFieldNumber = 4;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -5471,7 +4155,6 @@ namespace Records {
     public const int NonSharedDataFieldNumber = 5;
     private pb::ByteString nonSharedData_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString NonSharedData {
       get { return nonSharedData_; }
       set {
@@ -5483,7 +4166,6 @@ namespace Records {
     public const int AuditFieldNumber = 6;
     private global::Records.RecordAudit audit_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordAudit Audit {
       get { return audit_; }
       set {
@@ -5497,49 +4179,26 @@ namespace Records {
         = pb::FieldCodec.ForMessage(58, global::Records.RecordFileForConversion.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordFileForConversion> recordFile_ = new pbc::RepeatedField<global::Records.RecordFileForConversion>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordFileForConversion> RecordFile {
       get { return recordFile_; }
     }
 
-    /// <summary>Field number for the "folder_uid" field.</summary>
-    public const int FolderUidFieldNumber = 8;
-    private pb::ByteString folderUid_ = pb::ByteString.Empty;
-    /// <summary>
-    /// if a part of shared folder
-    /// </summary>
+    /// <summary>Field number for the "folder_key" field.</summary>
+    public const int FolderKeyFieldNumber = 8;
+    private static readonly pb::FieldCodec<global::Records.RecordFolderForConversion> _repeated_folderKey_codec
+        = pb::FieldCodec.ForMessage(66, global::Records.RecordFolderForConversion.Parser);
+    private readonly pbc::RepeatedField<global::Records.RecordFolderForConversion> folderKey_ = new pbc::RepeatedField<global::Records.RecordFolderForConversion>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString FolderUid {
-      get { return folderUid_; }
-      set {
-        folderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "record_folder_key" field.</summary>
-    public const int RecordFolderKeyFieldNumber = 9;
-    private pb::ByteString recordFolderKey_ = pb::ByteString.Empty;
-    /// <summary>
-    /// GCM-encrypted shared folder key
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString RecordFolderKey {
-      get { return recordFolderKey_; }
-      set {
-        recordFolderKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
+    public pbc::RepeatedField<global::Records.RecordFolderForConversion> FolderKey {
+      get { return folderKey_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordConvertToV3);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordConvertToV3 other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5554,13 +4213,11 @@ namespace Records {
       if (NonSharedData != other.NonSharedData) return false;
       if (!object.Equals(Audit, other.Audit)) return false;
       if(!recordFile_.Equals(other.recordFile_)) return false;
-      if (FolderUid != other.FolderUid) return false;
-      if (RecordFolderKey != other.RecordFolderKey) return false;
+      if(!folderKey_.Equals(other.folderKey_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -5570,8 +4227,7 @@ namespace Records {
       if (NonSharedData.Length != 0) hash ^= NonSharedData.GetHashCode();
       if (audit_ != null) hash ^= Audit.GetHashCode();
       hash ^= recordFile_.GetHashCode();
-      if (FolderUid.Length != 0) hash ^= FolderUid.GetHashCode();
-      if (RecordFolderKey.Length != 0) hash ^= RecordFolderKey.GetHashCode();
+      hash ^= folderKey_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5579,17 +4235,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -5615,65 +4266,13 @@ namespace Records {
         output.WriteMessage(Audit);
       }
       recordFile_.WriteTo(output, _repeated_recordFile_codec);
-      if (FolderUid.Length != 0) {
-        output.WriteRawTag(66);
-        output.WriteBytes(FolderUid);
-      }
-      if (RecordFolderKey.Length != 0) {
-        output.WriteRawTag(74);
-        output.WriteBytes(RecordFolderKey);
-      }
+      folderKey_.WriteTo(output, _repeated_folderKey_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (ClientModifiedTime != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(ClientModifiedTime);
-      }
-      if (Revision != 0L) {
-        output.WriteRawTag(24);
-        output.WriteInt64(Revision);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(Data);
-      }
-      if (NonSharedData.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteBytes(NonSharedData);
-      }
-      if (audit_ != null) {
-        output.WriteRawTag(50);
-        output.WriteMessage(Audit);
-      }
-      recordFile_.WriteTo(ref output, _repeated_recordFile_codec);
-      if (FolderUid.Length != 0) {
-        output.WriteRawTag(66);
-        output.WriteBytes(FolderUid);
-      }
-      if (RecordFolderKey.Length != 0) {
-        output.WriteRawTag(74);
-        output.WriteBytes(RecordFolderKey);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -5695,12 +4294,7 @@ namespace Records {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Audit);
       }
       size += recordFile_.CalculateSize(_repeated_recordFile_codec);
-      if (FolderUid.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(FolderUid);
-      }
-      if (RecordFolderKey.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordFolderKey);
-      }
+      size += folderKey_.CalculateSize(_repeated_folderKey_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -5708,7 +4302,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordConvertToV3 other) {
       if (other == null) {
         return;
@@ -5735,21 +4328,12 @@ namespace Records {
         Audit.MergeFrom(other.Audit);
       }
       recordFile_.Add(other.recordFile_);
-      if (other.FolderUid.Length != 0) {
-        FolderUid = other.FolderUid;
-      }
-      if (other.RecordFolderKey.Length != 0) {
-        RecordFolderKey = other.RecordFolderKey;
-      }
+      folderKey_.Add(other.folderKey_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5788,99 +4372,32 @@ namespace Records {
             break;
           }
           case 66: {
-            FolderUid = input.ReadBytes();
-            break;
-          }
-          case 74: {
-            RecordFolderKey = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    #endif
-    }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 16: {
-            ClientModifiedTime = input.ReadInt64();
-            break;
-          }
-          case 24: {
-            Revision = input.ReadInt64();
-            break;
-          }
-          case 34: {
-            Data = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            NonSharedData = input.ReadBytes();
-            break;
-          }
-          case 50: {
-            if (audit_ == null) {
-              Audit = new global::Records.RecordAudit();
-            }
-            input.ReadMessage(Audit);
-            break;
-          }
-          case 58: {
-            recordFile_.AddEntriesFrom(ref input, _repeated_recordFile_codec);
-            break;
-          }
-          case 66: {
-            FolderUid = input.ReadBytes();
-            break;
-          }
-          case 74: {
-            RecordFolderKey = input.ReadBytes();
+            folderKey_.AddEntriesFrom(input, _repeated_folderKey_codec);
             break;
           }
         }
       }
     }
-    #endif
 
   }
 
-  public sealed partial class RecordsConvertToV3Request : pb::IMessage<RecordsConvertToV3Request>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordsConvertToV3Request : pb::IMessage<RecordsConvertToV3Request> {
     private static readonly pb::MessageParser<RecordsConvertToV3Request> _parser = new pb::MessageParser<RecordsConvertToV3Request>(() => new RecordsConvertToV3Request());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordsConvertToV3Request> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[18]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsConvertToV3Request() {
       OnConstruction();
     }
@@ -5888,7 +4405,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsConvertToV3Request(RecordsConvertToV3Request other) : this() {
       records_ = other.records_.Clone();
       clientTime_ = other.clientTime_;
@@ -5896,7 +4412,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsConvertToV3Request Clone() {
       return new RecordsConvertToV3Request(this);
     }
@@ -5907,7 +4422,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.RecordConvertToV3.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordConvertToV3> records_ = new pbc::RepeatedField<global::Records.RecordConvertToV3>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordConvertToV3> Records {
       get { return records_; }
     }
@@ -5916,7 +4430,6 @@ namespace Records {
     public const int ClientTimeFieldNumber = 2;
     private long clientTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientTime {
       get { return clientTime_; }
       set {
@@ -5925,13 +4438,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordsConvertToV3Request);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordsConvertToV3Request other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5945,7 +4456,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= records_.GetHashCode();
@@ -5957,17 +4467,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       records_.WriteTo(output, _repeated_records_codec);
       if (ClientTime != 0L) {
         output.WriteRawTag(16);
@@ -5976,26 +4481,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      records_.WriteTo(ref output, _repeated_records_codec);
-      if (ClientTime != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(ClientTime);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += records_.CalculateSize(_repeated_records_codec);
@@ -6009,7 +4497,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordsConvertToV3Request other) {
       if (other == null) {
         return;
@@ -6022,11 +4509,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6043,62 +4526,30 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            records_.AddEntriesFrom(ref input, _repeated_records_codec);
-            break;
-          }
-          case 16: {
-            ClientTime = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   /// to be used with records_remove and records_delete
   /// </summary>
-  public sealed partial class RecordsRemoveRequest : pb::IMessage<RecordsRemoveRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordsRemoveRequest : pb::IMessage<RecordsRemoveRequest> {
     private static readonly pb::MessageParser<RecordsRemoveRequest> _parser = new pb::MessageParser<RecordsRemoveRequest>(() => new RecordsRemoveRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordsRemoveRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[19]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsRemoveRequest() {
       OnConstruction();
     }
@@ -6106,14 +4557,12 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsRemoveRequest(RecordsRemoveRequest other) : this() {
       records_ = other.records_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsRemoveRequest Clone() {
       return new RecordsRemoveRequest(this);
     }
@@ -6124,19 +4573,16 @@ namespace Records {
         = pb::FieldCodec.ForBytes(10);
     private readonly pbc::RepeatedField<pb::ByteString> records_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> Records {
       get { return records_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordsRemoveRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordsRemoveRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6149,7 +4595,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= records_.GetHashCode();
@@ -6160,37 +4605,19 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       records_.WriteTo(output, _repeated_records_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      records_.WriteTo(ref output, _repeated_records_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += records_.CalculateSize(_repeated_records_codec);
@@ -6201,7 +4628,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordsRemoveRequest other) {
       if (other == null) {
         return;
@@ -6211,11 +4637,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6228,55 +4650,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            records_.AddEntriesFrom(ref input, _repeated_records_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordModifyStatus : pb::IMessage<RecordModifyStatus>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordModifyStatus : pb::IMessage<RecordModifyStatus> {
     private static readonly pb::MessageParser<RecordModifyStatus> _parser = new pb::MessageParser<RecordModifyStatus>(() => new RecordModifyStatus());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordModifyStatus> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[20]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordModifyStatus() {
       OnConstruction();
     }
@@ -6284,7 +4678,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordModifyStatus(RecordModifyStatus other) : this() {
       recordUid_ = other.recordUid_;
       status_ = other.status_;
@@ -6293,7 +4686,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordModifyStatus Clone() {
       return new RecordModifyStatus(this);
     }
@@ -6302,7 +4694,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -6314,7 +4705,6 @@ namespace Records {
     public const int StatusFieldNumber = 2;
     private global::Records.RecordModifyResult status_ = global::Records.RecordModifyResult.RsSuccess;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordModifyResult Status {
       get { return status_; }
       set {
@@ -6326,7 +4716,6 @@ namespace Records {
     public const int MessageFieldNumber = 3;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -6335,13 +4724,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordModifyStatus);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordModifyStatus other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6356,7 +4743,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -6369,17 +4755,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -6395,33 +4776,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (Status != global::Records.RecordModifyResult.RsSuccess) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) Status);
-      }
-      if (Message.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Message);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -6440,7 +4797,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordModifyStatus other) {
       if (other == null) {
         return;
@@ -6458,11 +4814,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6483,63 +4835,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 16: {
-            Status = (global::Records.RecordModifyResult) input.ReadEnum();
-            break;
-          }
-          case 26: {
-            Message = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordsModifyResponse : pb::IMessage<RecordsModifyResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordsModifyResponse : pb::IMessage<RecordsModifyResponse> {
     private static readonly pb::MessageParser<RecordsModifyResponse> _parser = new pb::MessageParser<RecordsModifyResponse>(() => new RecordsModifyResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordsModifyResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[21]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsModifyResponse() {
       OnConstruction();
     }
@@ -6547,7 +4863,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsModifyResponse(RecordsModifyResponse other) : this() {
       records_ = other.records_.Clone();
       revision_ = other.revision_;
@@ -6555,7 +4870,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordsModifyResponse Clone() {
       return new RecordsModifyResponse(this);
     }
@@ -6566,7 +4880,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.RecordModifyStatus.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordModifyStatus> records_ = new pbc::RepeatedField<global::Records.RecordModifyStatus>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordModifyStatus> Records {
       get { return records_; }
     }
@@ -6575,7 +4888,6 @@ namespace Records {
     public const int RevisionFieldNumber = 2;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -6584,13 +4896,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordsModifyResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordsModifyResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6604,7 +4914,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= records_.GetHashCode();
@@ -6616,17 +4925,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       records_.WriteTo(output, _repeated_records_codec);
       if (Revision != 0L) {
         output.WriteRawTag(16);
@@ -6635,26 +4939,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      records_.WriteTo(ref output, _repeated_records_codec);
-      if (Revision != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(Revision);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += records_.CalculateSize(_repeated_records_codec);
@@ -6668,7 +4955,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordsModifyResponse other) {
       if (other == null) {
         return;
@@ -6681,11 +4967,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6702,59 +4984,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            records_.AddEntriesFrom(ref input, _repeated_records_codec);
-            break;
-          }
-          case 16: {
-            Revision = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordAddAuditData : pb::IMessage<RecordAddAuditData>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordAddAuditData : pb::IMessage<RecordAddAuditData> {
     private static readonly pb::MessageParser<RecordAddAuditData> _parser = new pb::MessageParser<RecordAddAuditData>(() => new RecordAddAuditData());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordAddAuditData> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[22]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAddAuditData() {
       OnConstruction();
     }
@@ -6762,7 +5012,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAddAuditData(RecordAddAuditData other) : this() {
       recordUid_ = other.recordUid_;
       revision_ = other.revision_;
@@ -6772,7 +5021,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordAddAuditData Clone() {
       return new RecordAddAuditData(this);
     }
@@ -6781,7 +5029,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -6793,7 +5040,6 @@ namespace Records {
     public const int RevisionFieldNumber = 2;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -6805,7 +5051,6 @@ namespace Records {
     public const int DataFieldNumber = 3;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -6817,7 +5062,6 @@ namespace Records {
     public const int VersionFieldNumber = 4;
     private int version_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Version {
       get { return version_; }
       set {
@@ -6826,13 +5070,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordAddAuditData);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordAddAuditData other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6848,7 +5090,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -6862,17 +5103,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -6892,37 +5128,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (Revision != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(Revision);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(Data);
-      }
-      if (Version != 0) {
-        output.WriteRawTag(32);
-        output.WriteInt32(Version);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -6944,7 +5152,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordAddAuditData other) {
       if (other == null) {
         return;
@@ -6965,11 +5172,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6994,67 +5197,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 16: {
-            Revision = input.ReadInt64();
-            break;
-          }
-          case 26: {
-            Data = input.ReadBytes();
-            break;
-          }
-          case 32: {
-            Version = input.ReadInt32();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class AddAuditDataRequest : pb::IMessage<AddAuditDataRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class AddAuditDataRequest : pb::IMessage<AddAuditDataRequest> {
     private static readonly pb::MessageParser<AddAuditDataRequest> _parser = new pb::MessageParser<AddAuditDataRequest>(() => new AddAuditDataRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AddAuditDataRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[23]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAuditDataRequest() {
       OnConstruction();
     }
@@ -7062,14 +5225,12 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAuditDataRequest(AddAuditDataRequest other) : this() {
       records_ = other.records_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAuditDataRequest Clone() {
       return new AddAuditDataRequest(this);
     }
@@ -7080,19 +5241,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.RecordAddAuditData.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordAddAuditData> records_ = new pbc::RepeatedField<global::Records.RecordAddAuditData>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordAddAuditData> Records {
       get { return records_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AddAuditDataRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AddAuditDataRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7105,7 +5263,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= records_.GetHashCode();
@@ -7116,37 +5273,19 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       records_.WriteTo(output, _repeated_records_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      records_.WriteTo(ref output, _repeated_records_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += records_.CalculateSize(_repeated_records_codec);
@@ -7157,7 +5296,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AddAuditDataRequest other) {
       if (other == null) {
         return;
@@ -7167,11 +5305,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7184,55 +5318,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            records_.AddEntriesFrom(ref input, _repeated_records_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class File : pb::IMessage<File>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class File : pb::IMessage<File> {
     private static readonly pb::MessageParser<File> _parser = new pb::MessageParser<File>(() => new File());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<File> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[24]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public File() {
       OnConstruction();
     }
@@ -7240,7 +5346,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public File(File other) : this() {
       recordUid_ = other.recordUid_;
       recordKey_ = other.recordKey_;
@@ -7251,7 +5356,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public File Clone() {
       return new File(this);
     }
@@ -7260,7 +5364,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -7272,7 +5375,6 @@ namespace Records {
     public const int RecordKeyFieldNumber = 2;
     private pb::ByteString recordKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -7284,7 +5386,6 @@ namespace Records {
     public const int DataFieldNumber = 3;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -7296,7 +5397,6 @@ namespace Records {
     public const int FileSizeFieldNumber = 4;
     private long fileSize_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long FileSize {
       get { return fileSize_; }
       set {
@@ -7308,7 +5408,6 @@ namespace Records {
     public const int ThumbSizeFieldNumber = 5;
     private int thumbSize_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int ThumbSize {
       get { return thumbSize_; }
       set {
@@ -7317,13 +5416,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as File);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(File other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7340,7 +5437,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -7355,17 +5451,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -7389,41 +5480,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (RecordKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(RecordKey);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(Data);
-      }
-      if (FileSize != 0L) {
-        output.WriteRawTag(32);
-        output.WriteInt64(FileSize);
-      }
-      if (ThumbSize != 0) {
-        output.WriteRawTag(40);
-        output.WriteInt32(ThumbSize);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -7448,7 +5507,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(File other) {
       if (other == null) {
         return;
@@ -7472,11 +5530,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7505,71 +5559,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            RecordKey = input.ReadBytes();
-            break;
-          }
-          case 26: {
-            Data = input.ReadBytes();
-            break;
-          }
-          case 32: {
-            FileSize = input.ReadInt64();
-            break;
-          }
-          case 40: {
-            ThumbSize = input.ReadInt32();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class FilesAddRequest : pb::IMessage<FilesAddRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class FilesAddRequest : pb::IMessage<FilesAddRequest> {
     private static readonly pb::MessageParser<FilesAddRequest> _parser = new pb::MessageParser<FilesAddRequest>(() => new FilesAddRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<FilesAddRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[25]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesAddRequest() {
       OnConstruction();
     }
@@ -7577,7 +5587,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesAddRequest(FilesAddRequest other) : this() {
       files_ = other.files_.Clone();
       clientTime_ = other.clientTime_;
@@ -7585,7 +5594,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesAddRequest Clone() {
       return new FilesAddRequest(this);
     }
@@ -7596,7 +5604,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.File.Parser);
     private readonly pbc::RepeatedField<global::Records.File> files_ = new pbc::RepeatedField<global::Records.File>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.File> Files {
       get { return files_; }
     }
@@ -7605,7 +5612,6 @@ namespace Records {
     public const int ClientTimeFieldNumber = 2;
     private long clientTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientTime {
       get { return clientTime_; }
       set {
@@ -7614,13 +5620,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as FilesAddRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(FilesAddRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7634,7 +5638,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= files_.GetHashCode();
@@ -7646,17 +5649,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       files_.WriteTo(output, _repeated_files_codec);
       if (ClientTime != 0L) {
         output.WriteRawTag(16);
@@ -7665,26 +5663,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      files_.WriteTo(ref output, _repeated_files_codec);
-      if (ClientTime != 0L) {
-        output.WriteRawTag(16);
-        output.WriteInt64(ClientTime);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += files_.CalculateSize(_repeated_files_codec);
@@ -7698,7 +5679,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(FilesAddRequest other) {
       if (other == null) {
         return;
@@ -7711,11 +5691,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7732,59 +5708,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            files_.AddEntriesFrom(ref input, _repeated_files_codec);
-            break;
-          }
-          case 16: {
-            ClientTime = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class FileAddStatus : pb::IMessage<FileAddStatus>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class FileAddStatus : pb::IMessage<FileAddStatus> {
     private static readonly pb::MessageParser<FileAddStatus> _parser = new pb::MessageParser<FileAddStatus>(() => new FileAddStatus());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<FileAddStatus> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[26]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FileAddStatus() {
       OnConstruction();
     }
@@ -7792,7 +5736,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FileAddStatus(FileAddStatus other) : this() {
       recordUid_ = other.recordUid_;
       status_ = other.status_;
@@ -7804,7 +5747,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FileAddStatus Clone() {
       return new FileAddStatus(this);
     }
@@ -7813,7 +5755,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -7825,7 +5766,6 @@ namespace Records {
     public const int StatusFieldNumber = 2;
     private global::Records.FileAddResult status_ = global::Records.FileAddResult.FaSuccess;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.FileAddResult Status {
       get { return status_; }
       set {
@@ -7837,7 +5777,6 @@ namespace Records {
     public const int UrlFieldNumber = 3;
     private string url_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Url {
       get { return url_; }
       set {
@@ -7849,7 +5788,6 @@ namespace Records {
     public const int ParametersFieldNumber = 4;
     private string parameters_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Parameters {
       get { return parameters_; }
       set {
@@ -7861,7 +5799,6 @@ namespace Records {
     public const int ThumbnailParametersFieldNumber = 5;
     private string thumbnailParameters_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ThumbnailParameters {
       get { return thumbnailParameters_; }
       set {
@@ -7873,7 +5810,6 @@ namespace Records {
     public const int SuccessStatusCodeFieldNumber = 6;
     private int successStatusCode_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int SuccessStatusCode {
       get { return successStatusCode_; }
       set {
@@ -7882,13 +5818,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as FileAddStatus);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(FileAddStatus other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7906,7 +5840,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -7922,17 +5855,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -7960,45 +5888,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (Status != global::Records.FileAddResult.FaSuccess) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) Status);
-      }
-      if (Url.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Url);
-      }
-      if (Parameters.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Parameters);
-      }
-      if (ThumbnailParameters.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(ThumbnailParameters);
-      }
-      if (SuccessStatusCode != 0) {
-        output.WriteRawTag(48);
-        output.WriteInt32(SuccessStatusCode);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -8026,7 +5918,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(FileAddStatus other) {
       if (other == null) {
         return;
@@ -8053,11 +5944,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8090,75 +5977,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 16: {
-            Status = (global::Records.FileAddResult) input.ReadEnum();
-            break;
-          }
-          case 26: {
-            Url = input.ReadString();
-            break;
-          }
-          case 34: {
-            Parameters = input.ReadString();
-            break;
-          }
-          case 42: {
-            ThumbnailParameters = input.ReadString();
-            break;
-          }
-          case 48: {
-            SuccessStatusCode = input.ReadInt32();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class FilesAddResponse : pb::IMessage<FilesAddResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class FilesAddResponse : pb::IMessage<FilesAddResponse> {
     private static readonly pb::MessageParser<FilesAddResponse> _parser = new pb::MessageParser<FilesAddResponse>(() => new FilesAddResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<FilesAddResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[27]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesAddResponse() {
       OnConstruction();
     }
@@ -8166,14 +6005,12 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesAddResponse(FilesAddResponse other) : this() {
       files_ = other.files_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesAddResponse Clone() {
       return new FilesAddResponse(this);
     }
@@ -8184,19 +6021,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.FileAddStatus.Parser);
     private readonly pbc::RepeatedField<global::Records.FileAddStatus> files_ = new pbc::RepeatedField<global::Records.FileAddStatus>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.FileAddStatus> Files {
       get { return files_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as FilesAddResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(FilesAddResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -8209,7 +6043,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= files_.GetHashCode();
@@ -8220,37 +6053,19 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       files_.WriteTo(output, _repeated_files_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      files_.WriteTo(ref output, _repeated_files_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += files_.CalculateSize(_repeated_files_codec);
@@ -8261,7 +6076,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(FilesAddResponse other) {
       if (other == null) {
         return;
@@ -8271,11 +6085,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8288,55 +6098,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            files_.AddEntriesFrom(ref input, _repeated_files_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class FilesGetRequest : pb::IMessage<FilesGetRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class FilesGetRequest : pb::IMessage<FilesGetRequest> {
     private static readonly pb::MessageParser<FilesGetRequest> _parser = new pb::MessageParser<FilesGetRequest>(() => new FilesGetRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<FilesGetRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[28]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesGetRequest() {
       OnConstruction();
     }
@@ -8344,7 +6126,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesGetRequest(FilesGetRequest other) : this() {
       recordUids_ = other.recordUids_.Clone();
       forThumbnails_ = other.forThumbnails_;
@@ -8353,7 +6134,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesGetRequest Clone() {
       return new FilesGetRequest(this);
     }
@@ -8364,7 +6144,6 @@ namespace Records {
         = pb::FieldCodec.ForBytes(10);
     private readonly pbc::RepeatedField<pb::ByteString> recordUids_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> RecordUids {
       get { return recordUids_; }
     }
@@ -8373,7 +6152,6 @@ namespace Records {
     public const int ForThumbnailsFieldNumber = 2;
     private bool forThumbnails_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool ForThumbnails {
       get { return forThumbnails_; }
       set {
@@ -8385,7 +6163,6 @@ namespace Records {
     public const int EmergencyAccessAccountOwnerFieldNumber = 3;
     private string emergencyAccessAccountOwner_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string EmergencyAccessAccountOwner {
       get { return emergencyAccessAccountOwner_; }
       set {
@@ -8394,13 +6171,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as FilesGetRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(FilesGetRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -8415,7 +6190,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= recordUids_.GetHashCode();
@@ -8428,17 +6202,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       recordUids_.WriteTo(output, _repeated_recordUids_codec);
       if (ForThumbnails != false) {
         output.WriteRawTag(16);
@@ -8451,30 +6220,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      recordUids_.WriteTo(ref output, _repeated_recordUids_codec);
-      if (ForThumbnails != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(ForThumbnails);
-      }
-      if (EmergencyAccessAccountOwner.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(EmergencyAccessAccountOwner);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += recordUids_.CalculateSize(_repeated_recordUids_codec);
@@ -8491,7 +6239,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(FilesGetRequest other) {
       if (other == null) {
         return;
@@ -8507,11 +6254,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8532,63 +6275,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            recordUids_.AddEntriesFrom(ref input, _repeated_recordUids_codec);
-            break;
-          }
-          case 16: {
-            ForThumbnails = input.ReadBool();
-            break;
-          }
-          case 26: {
-            EmergencyAccessAccountOwner = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class FileGetStatus : pb::IMessage<FileGetStatus>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class FileGetStatus : pb::IMessage<FileGetStatus> {
     private static readonly pb::MessageParser<FileGetStatus> _parser = new pb::MessageParser<FileGetStatus>(() => new FileGetStatus());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<FileGetStatus> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[29]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[30]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FileGetStatus() {
       OnConstruction();
     }
@@ -8596,7 +6303,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FileGetStatus(FileGetStatus other) : this() {
       recordUid_ = other.recordUid_;
       status_ = other.status_;
@@ -8607,7 +6313,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FileGetStatus Clone() {
       return new FileGetStatus(this);
     }
@@ -8616,7 +6321,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -8628,7 +6332,6 @@ namespace Records {
     public const int StatusFieldNumber = 2;
     private global::Records.FileGetResult status_ = global::Records.FileGetResult.FgSuccess;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.FileGetResult Status {
       get { return status_; }
       set {
@@ -8640,7 +6343,6 @@ namespace Records {
     public const int UrlFieldNumber = 3;
     private string url_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Url {
       get { return url_; }
       set {
@@ -8652,7 +6354,6 @@ namespace Records {
     public const int SuccessStatusCodeFieldNumber = 4;
     private int successStatusCode_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int SuccessStatusCode {
       get { return successStatusCode_; }
       set {
@@ -8664,7 +6365,6 @@ namespace Records {
     public const int FileKeyTypeFieldNumber = 5;
     private global::Records.RecordKeyType fileKeyType_ = global::Records.RecordKeyType.NoKey;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordKeyType FileKeyType {
       get { return fileKeyType_; }
       set {
@@ -8673,13 +6373,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as FileGetStatus);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(FileGetStatus other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -8696,7 +6394,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -8711,17 +6408,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -8745,41 +6437,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (Status != global::Records.FileGetResult.FgSuccess) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) Status);
-      }
-      if (Url.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Url);
-      }
-      if (SuccessStatusCode != 0) {
-        output.WriteRawTag(32);
-        output.WriteInt32(SuccessStatusCode);
-      }
-      if (FileKeyType != global::Records.RecordKeyType.NoKey) {
-        output.WriteRawTag(40);
-        output.WriteEnum((int) FileKeyType);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -8804,7 +6464,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(FileGetStatus other) {
       if (other == null) {
         return;
@@ -8828,11 +6487,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8861,71 +6516,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 16: {
-            Status = (global::Records.FileGetResult) input.ReadEnum();
-            break;
-          }
-          case 26: {
-            Url = input.ReadString();
-            break;
-          }
-          case 32: {
-            SuccessStatusCode = input.ReadInt32();
-            break;
-          }
-          case 40: {
-            FileKeyType = (global::Records.RecordKeyType) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class FilesGetResponse : pb::IMessage<FilesGetResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class FilesGetResponse : pb::IMessage<FilesGetResponse> {
     private static readonly pb::MessageParser<FilesGetResponse> _parser = new pb::MessageParser<FilesGetResponse>(() => new FilesGetResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<FilesGetResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[30]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[31]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesGetResponse() {
       OnConstruction();
     }
@@ -8933,14 +6544,12 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesGetResponse(FilesGetResponse other) : this() {
       files_ = other.files_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public FilesGetResponse Clone() {
       return new FilesGetResponse(this);
     }
@@ -8951,19 +6560,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.FileGetStatus.Parser);
     private readonly pbc::RepeatedField<global::Records.FileGetStatus> files_ = new pbc::RepeatedField<global::Records.FileGetStatus>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.FileGetStatus> Files {
       get { return files_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as FilesGetResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(FilesGetResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -8976,7 +6582,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= files_.GetHashCode();
@@ -8987,37 +6592,19 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       files_.WriteTo(output, _repeated_files_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      files_.WriteTo(ref output, _repeated_files_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += files_.CalculateSize(_repeated_files_codec);
@@ -9028,7 +6615,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(FilesGetResponse other) {
       if (other == null) {
         return;
@@ -9038,11 +6624,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9055,55 +6637,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            files_.AddEntriesFrom(ref input, _repeated_files_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class ApplicationAddRequest : pb::IMessage<ApplicationAddRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class ApplicationAddRequest : pb::IMessage<ApplicationAddRequest> {
     private static readonly pb::MessageParser<ApplicationAddRequest> _parser = new pb::MessageParser<ApplicationAddRequest>(() => new ApplicationAddRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ApplicationAddRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[31]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[32]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApplicationAddRequest() {
       OnConstruction();
     }
@@ -9111,7 +6665,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApplicationAddRequest(ApplicationAddRequest other) : this() {
       appUid_ = other.appUid_;
       recordKey_ = other.recordKey_;
@@ -9121,7 +6674,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApplicationAddRequest Clone() {
       return new ApplicationAddRequest(this);
     }
@@ -9130,7 +6682,6 @@ namespace Records {
     public const int AppUidFieldNumber = 1;
     private pb::ByteString appUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AppUid {
       get { return appUid_; }
       set {
@@ -9142,7 +6693,6 @@ namespace Records {
     public const int RecordKeyFieldNumber = 2;
     private pb::ByteString recordKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -9154,7 +6704,6 @@ namespace Records {
     public const int ClientModifiedTimeFieldNumber = 3;
     private long clientModifiedTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientModifiedTime {
       get { return clientModifiedTime_; }
       set {
@@ -9166,7 +6715,6 @@ namespace Records {
     public const int DataFieldNumber = 4;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -9175,13 +6723,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ApplicationAddRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ApplicationAddRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9197,7 +6743,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (AppUid.Length != 0) hash ^= AppUid.GetHashCode();
@@ -9211,17 +6756,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (AppUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(AppUid);
@@ -9241,37 +6781,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (AppUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(AppUid);
-      }
-      if (RecordKey.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(RecordKey);
-      }
-      if (ClientModifiedTime != 0L) {
-        output.WriteRawTag(24);
-        output.WriteInt64(ClientModifiedTime);
-      }
-      if (Data.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(Data);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (AppUid.Length != 0) {
@@ -9293,7 +6805,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ApplicationAddRequest other) {
       if (other == null) {
         return;
@@ -9314,11 +6825,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9343,67 +6850,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            AppUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            RecordKey = input.ReadBytes();
-            break;
-          }
-          case 24: {
-            ClientModifiedTime = input.ReadInt64();
-            break;
-          }
-          case 34: {
-            Data = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class GetRecordDataWithAccessInfoRequest : pb::IMessage<GetRecordDataWithAccessInfoRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class GetRecordDataWithAccessInfoRequest : pb::IMessage<GetRecordDataWithAccessInfoRequest> {
     private static readonly pb::MessageParser<GetRecordDataWithAccessInfoRequest> _parser = new pb::MessageParser<GetRecordDataWithAccessInfoRequest>(() => new GetRecordDataWithAccessInfoRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetRecordDataWithAccessInfoRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[32]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[33]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordDataWithAccessInfoRequest() {
       OnConstruction();
     }
@@ -9411,7 +6878,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordDataWithAccessInfoRequest(GetRecordDataWithAccessInfoRequest other) : this() {
       clientTime_ = other.clientTime_;
       recordUid_ = other.recordUid_.Clone();
@@ -9420,7 +6886,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordDataWithAccessInfoRequest Clone() {
       return new GetRecordDataWithAccessInfoRequest(this);
     }
@@ -9429,7 +6894,6 @@ namespace Records {
     public const int ClientTimeFieldNumber = 1;
     private long clientTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientTime {
       get { return clientTime_; }
       set {
@@ -9443,7 +6907,6 @@ namespace Records {
         = pb::FieldCodec.ForBytes(18);
     private readonly pbc::RepeatedField<pb::ByteString> recordUid_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> RecordUid {
       get { return recordUid_; }
     }
@@ -9452,7 +6915,6 @@ namespace Records {
     public const int RecordDetailsIncludeFieldNumber = 3;
     private global::Records.RecordDetailsInclude recordDetailsInclude_ = global::Records.RecordDetailsInclude.DataPlusShare;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordDetailsInclude RecordDetailsInclude {
       get { return recordDetailsInclude_; }
       set {
@@ -9461,13 +6923,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetRecordDataWithAccessInfoRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetRecordDataWithAccessInfoRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9482,7 +6942,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ClientTime != 0L) hash ^= ClientTime.GetHashCode();
@@ -9495,17 +6954,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (ClientTime != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(ClientTime);
@@ -9518,30 +6972,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (ClientTime != 0L) {
-        output.WriteRawTag(8);
-        output.WriteInt64(ClientTime);
-      }
-      recordUid_.WriteTo(ref output, _repeated_recordUid_codec);
-      if (RecordDetailsInclude != global::Records.RecordDetailsInclude.DataPlusShare) {
-        output.WriteRawTag(24);
-        output.WriteEnum((int) RecordDetailsInclude);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ClientTime != 0L) {
@@ -9558,7 +6991,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetRecordDataWithAccessInfoRequest other) {
       if (other == null) {
         return;
@@ -9574,11 +7006,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9599,63 +7027,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            ClientTime = input.ReadInt64();
-            break;
-          }
-          case 18: {
-            recordUid_.AddEntriesFrom(ref input, _repeated_recordUid_codec);
-            break;
-          }
-          case 24: {
-            RecordDetailsInclude = (global::Records.RecordDetailsInclude) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class UserPermission : pb::IMessage<UserPermission>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class UserPermission : pb::IMessage<UserPermission> {
     private static readonly pb::MessageParser<UserPermission> _parser = new pb::MessageParser<UserPermission>(() => new UserPermission());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UserPermission> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[33]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[34]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserPermission() {
       OnConstruction();
     }
@@ -9663,7 +7055,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserPermission(UserPermission other) : this() {
       username_ = other.username_;
       owner_ = other.owner_;
@@ -9677,7 +7068,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserPermission Clone() {
       return new UserPermission(this);
     }
@@ -9686,7 +7076,6 @@ namespace Records {
     public const int UsernameFieldNumber = 1;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -9698,7 +7087,6 @@ namespace Records {
     public const int OwnerFieldNumber = 2;
     private bool owner_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Owner {
       get { return owner_; }
       set {
@@ -9710,7 +7098,6 @@ namespace Records {
     public const int ShareAdminFieldNumber = 3;
     private bool shareAdmin_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool ShareAdmin {
       get { return shareAdmin_; }
       set {
@@ -9722,7 +7109,6 @@ namespace Records {
     public const int SharableFieldNumber = 4;
     private bool sharable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Sharable {
       get { return sharable_; }
       set {
@@ -9734,7 +7120,6 @@ namespace Records {
     public const int EditableFieldNumber = 5;
     private bool editable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Editable {
       get { return editable_; }
       set {
@@ -9749,7 +7134,6 @@ namespace Records {
     ///flag indicating if the record is awaiting approval from the user referenced in username
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool AwaitingApproval {
       get { return awaitingApproval_; }
       set {
@@ -9764,7 +7148,6 @@ namespace Records {
     ///time limit for the record directly shared to a user
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Expiration {
       get { return expiration_; }
       set {
@@ -9776,7 +7159,6 @@ namespace Records {
     public const int AccountUidFieldNumber = 8;
     private pb::ByteString accountUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AccountUid {
       get { return accountUid_; }
       set {
@@ -9785,13 +7167,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UserPermission);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UserPermission other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9811,7 +7191,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -9829,17 +7208,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -9875,53 +7249,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Username.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Username);
-      }
-      if (Owner != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(Owner);
-      }
-      if (ShareAdmin != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(ShareAdmin);
-      }
-      if (Sharable != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(Sharable);
-      }
-      if (Editable != false) {
-        output.WriteRawTag(40);
-        output.WriteBool(Editable);
-      }
-      if (AwaitingApproval != false) {
-        output.WriteRawTag(48);
-        output.WriteBool(AwaitingApproval);
-      }
-      if (Expiration != 0L) {
-        output.WriteRawTag(56);
-        output.WriteInt64(Expiration);
-      }
-      if (AccountUid.Length != 0) {
-        output.WriteRawTag(66);
-        output.WriteBytes(AccountUid);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -9955,7 +7285,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UserPermission other) {
       if (other == null) {
         return;
@@ -9988,11 +7317,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -10033,83 +7358,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            Username = input.ReadString();
-            break;
-          }
-          case 16: {
-            Owner = input.ReadBool();
-            break;
-          }
-          case 24: {
-            ShareAdmin = input.ReadBool();
-            break;
-          }
-          case 32: {
-            Sharable = input.ReadBool();
-            break;
-          }
-          case 40: {
-            Editable = input.ReadBool();
-            break;
-          }
-          case 48: {
-            AwaitingApproval = input.ReadBool();
-            break;
-          }
-          case 56: {
-            Expiration = input.ReadInt64();
-            break;
-          }
-          case 66: {
-            AccountUid = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class SharedFolderPermission : pb::IMessage<SharedFolderPermission>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SharedFolderPermission : pb::IMessage<SharedFolderPermission> {
     private static readonly pb::MessageParser<SharedFolderPermission> _parser = new pb::MessageParser<SharedFolderPermission>(() => new SharedFolderPermission());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SharedFolderPermission> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[34]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[35]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedFolderPermission() {
       OnConstruction();
     }
@@ -10117,7 +7386,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedFolderPermission(SharedFolderPermission other) : this() {
       sharedFolderUid_ = other.sharedFolderUid_;
       resharable_ = other.resharable_;
@@ -10128,7 +7396,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedFolderPermission Clone() {
       return new SharedFolderPermission(this);
     }
@@ -10137,7 +7404,6 @@ namespace Records {
     public const int SharedFolderUidFieldNumber = 1;
     private pb::ByteString sharedFolderUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString SharedFolderUid {
       get { return sharedFolderUid_; }
       set {
@@ -10149,7 +7415,6 @@ namespace Records {
     public const int ResharableFieldNumber = 2;
     private bool resharable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Resharable {
       get { return resharable_; }
       set {
@@ -10161,7 +7426,6 @@ namespace Records {
     public const int EditableFieldNumber = 3;
     private bool editable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Editable {
       get { return editable_; }
       set {
@@ -10173,7 +7437,6 @@ namespace Records {
     public const int RevisionFieldNumber = 4;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -10188,7 +7451,6 @@ namespace Records {
     ///time limit for the record in a shared folder
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Expiration {
       get { return expiration_; }
       set {
@@ -10197,13 +7459,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SharedFolderPermission);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SharedFolderPermission other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -10220,7 +7480,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SharedFolderUid.Length != 0) hash ^= SharedFolderUid.GetHashCode();
@@ -10235,17 +7494,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SharedFolderUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(SharedFolderUid);
@@ -10269,41 +7523,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SharedFolderUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(SharedFolderUid);
-      }
-      if (Resharable != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(Resharable);
-      }
-      if (Editable != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(Editable);
-      }
-      if (Revision != 0L) {
-        output.WriteRawTag(32);
-        output.WriteInt64(Revision);
-      }
-      if (Expiration != 0L) {
-        output.WriteRawTag(40);
-        output.WriteInt64(Expiration);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SharedFolderUid.Length != 0) {
@@ -10328,7 +7550,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SharedFolderPermission other) {
       if (other == null) {
         return;
@@ -10352,11 +7573,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -10385,71 +7602,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            SharedFolderUid = input.ReadBytes();
-            break;
-          }
-          case 16: {
-            Resharable = input.ReadBool();
-            break;
-          }
-          case 24: {
-            Editable = input.ReadBool();
-            break;
-          }
-          case 32: {
-            Revision = input.ReadInt64();
-            break;
-          }
-          case 40: {
-            Expiration = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordData : pb::IMessage<RecordData>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordData : pb::IMessage<RecordData> {
     private static readonly pb::MessageParser<RecordData> _parser = new pb::MessageParser<RecordData>(() => new RecordData());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordData> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[35]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[36]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordData() {
       OnConstruction();
     }
@@ -10457,7 +7630,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordData(RecordData other) : this() {
       revision_ = other.revision_;
       version_ = other.version_;
@@ -10474,7 +7646,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordData Clone() {
       return new RecordData(this);
     }
@@ -10483,7 +7654,6 @@ namespace Records {
     public const int RevisionFieldNumber = 1;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -10498,7 +7668,6 @@ namespace Records {
     ///ORIGINAL(1), SUPPORTS_EXTRA(2), RECORD_TYPES(3), FILE(4), APP(5);
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Version {
       get { return version_; }
       set {
@@ -10510,7 +7679,6 @@ namespace Records {
     public const int SharedFieldNumber = 3;
     private bool shared_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Shared {
       get { return shared_; }
       set {
@@ -10525,7 +7693,6 @@ namespace Records {
     ///record data encrypted with the record key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string EncryptedRecordData {
       get { return encryptedRecordData_; }
       set {
@@ -10540,7 +7707,6 @@ namespace Records {
     ///extra record data encrypted with the record key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string EncryptedExtraData {
       get { return encryptedExtraData_; }
       set {
@@ -10552,7 +7718,6 @@ namespace Records {
     public const int ClientModifiedTimeFieldNumber = 6;
     private long clientModifiedTime_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ClientModifiedTime {
       get { return clientModifiedTime_; }
       set {
@@ -10567,7 +7732,6 @@ namespace Records {
     ///the record uid of the owner record for a linked record
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString OwnerRecordUid {
       get { return ownerRecordUid_; }
       set {
@@ -10582,7 +7746,6 @@ namespace Records {
     ///the record key of the linked record encrypted with the key of the owner record
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLinkedRecordKey {
       get { return encryptedLinkedRecordKey_; }
       set {
@@ -10599,7 +7762,6 @@ namespace Records {
     ///json object of unencrypted data (currently contains only file ids)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<long> FileId {
       get { return fileId_; }
     }
@@ -10608,7 +7770,6 @@ namespace Records {
     public const int FileSizeFieldNumber = 10;
     private long fileSize_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long FileSize {
       get { return fileSize_; }
       set {
@@ -10620,7 +7781,6 @@ namespace Records {
     public const int ThumbnailSizeFieldNumber = 11;
     private long thumbnailSize_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ThumbnailSize {
       get { return thumbnailSize_; }
       set {
@@ -10629,13 +7789,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordData);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordData other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -10658,7 +7816,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Revision != 0L) hash ^= Revision.GetHashCode();
@@ -10679,17 +7836,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (Revision != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(Revision);
@@ -10734,62 +7886,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Revision != 0L) {
-        output.WriteRawTag(8);
-        output.WriteInt64(Revision);
-      }
-      if (Version != 0) {
-        output.WriteRawTag(16);
-        output.WriteInt32(Version);
-      }
-      if (Shared != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(Shared);
-      }
-      if (EncryptedRecordData.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(EncryptedRecordData);
-      }
-      if (EncryptedExtraData.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(EncryptedExtraData);
-      }
-      if (ClientModifiedTime != 0L) {
-        output.WriteRawTag(48);
-        output.WriteInt64(ClientModifiedTime);
-      }
-      if (OwnerRecordUid.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteBytes(OwnerRecordUid);
-      }
-      if (EncryptedLinkedRecordKey.Length != 0) {
-        output.WriteRawTag(66);
-        output.WriteBytes(EncryptedLinkedRecordKey);
-      }
-      fileId_.WriteTo(ref output, _repeated_fileId_codec);
-      if (FileSize != 0L) {
-        output.WriteRawTag(80);
-        output.WriteInt64(FileSize);
-      }
-      if (ThumbnailSize != 0L) {
-        output.WriteRawTag(88);
-        output.WriteInt64(ThumbnailSize);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Revision != 0L) {
@@ -10830,7 +7929,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordData other) {
       if (other == null) {
         return;
@@ -10870,11 +7968,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -10928,96 +8022,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            Revision = input.ReadInt64();
-            break;
-          }
-          case 16: {
-            Version = input.ReadInt32();
-            break;
-          }
-          case 24: {
-            Shared = input.ReadBool();
-            break;
-          }
-          case 34: {
-            EncryptedRecordData = input.ReadString();
-            break;
-          }
-          case 42: {
-            EncryptedExtraData = input.ReadString();
-            break;
-          }
-          case 48: {
-            ClientModifiedTime = input.ReadInt64();
-            break;
-          }
-          case 58: {
-            OwnerRecordUid = input.ReadBytes();
-            break;
-          }
-          case 66: {
-            EncryptedLinkedRecordKey = input.ReadBytes();
-            break;
-          }
-          case 74:
-          case 72: {
-            fileId_.AddEntriesFrom(ref input, _repeated_fileId_codec);
-            break;
-          }
-          case 80: {
-            FileSize = input.ReadInt64();
-            break;
-          }
-          case 88: {
-            ThumbnailSize = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordDataWithAccessInfo : pb::IMessage<RecordDataWithAccessInfo>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordDataWithAccessInfo : pb::IMessage<RecordDataWithAccessInfo> {
     private static readonly pb::MessageParser<RecordDataWithAccessInfo> _parser = new pb::MessageParser<RecordDataWithAccessInfo>(() => new RecordDataWithAccessInfo());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordDataWithAccessInfo> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[36]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[37]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordDataWithAccessInfo() {
       OnConstruction();
     }
@@ -11025,7 +8050,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordDataWithAccessInfo(RecordDataWithAccessInfo other) : this() {
       recordUid_ = other.recordUid_;
       recordData_ = other.recordData_ != null ? other.recordData_.Clone() : null;
@@ -11035,7 +8059,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordDataWithAccessInfo Clone() {
       return new RecordDataWithAccessInfo(this);
     }
@@ -11044,7 +8067,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -11056,7 +8078,6 @@ namespace Records {
     public const int RecordDataFieldNumber = 2;
     private global::Records.RecordData recordData_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.RecordData RecordData {
       get { return recordData_; }
       set {
@@ -11070,7 +8091,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(26, global::Records.UserPermission.Parser);
     private readonly pbc::RepeatedField<global::Records.UserPermission> userPermission_ = new pbc::RepeatedField<global::Records.UserPermission>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.UserPermission> UserPermission {
       get { return userPermission_; }
     }
@@ -11081,19 +8101,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(34, global::Records.SharedFolderPermission.Parser);
     private readonly pbc::RepeatedField<global::Records.SharedFolderPermission> sharedFolderPermission_ = new pbc::RepeatedField<global::Records.SharedFolderPermission>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.SharedFolderPermission> SharedFolderPermission {
       get { return sharedFolderPermission_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordDataWithAccessInfo);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordDataWithAccessInfo other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11109,7 +8126,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -11123,17 +8139,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -11147,31 +8158,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (recordData_ != null) {
-        output.WriteRawTag(18);
-        output.WriteMessage(RecordData);
-      }
-      userPermission_.WriteTo(ref output, _repeated_userPermission_codec);
-      sharedFolderPermission_.WriteTo(ref output, _repeated_sharedFolderPermission_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -11189,7 +8178,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordDataWithAccessInfo other) {
       if (other == null) {
         return;
@@ -11209,11 +8197,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11241,70 +8225,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            if (recordData_ == null) {
-              RecordData = new global::Records.RecordData();
-            }
-            input.ReadMessage(RecordData);
-            break;
-          }
-          case 26: {
-            userPermission_.AddEntriesFrom(ref input, _repeated_userPermission_codec);
-            break;
-          }
-          case 34: {
-            sharedFolderPermission_.AddEntriesFrom(ref input, _repeated_sharedFolderPermission_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class GetRecordDataWithAccessInfoResponse : pb::IMessage<GetRecordDataWithAccessInfoResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class GetRecordDataWithAccessInfoResponse : pb::IMessage<GetRecordDataWithAccessInfoResponse> {
     private static readonly pb::MessageParser<GetRecordDataWithAccessInfoResponse> _parser = new pb::MessageParser<GetRecordDataWithAccessInfoResponse>(() => new GetRecordDataWithAccessInfoResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetRecordDataWithAccessInfoResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[37]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[38]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordDataWithAccessInfoResponse() {
       OnConstruction();
     }
@@ -11312,7 +8253,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordDataWithAccessInfoResponse(GetRecordDataWithAccessInfoResponse other) : this() {
       recordDataWithAccessInfo_ = other.recordDataWithAccessInfo_.Clone();
       noPermissionRecordUid_ = other.noPermissionRecordUid_.Clone();
@@ -11320,7 +8260,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordDataWithAccessInfoResponse Clone() {
       return new GetRecordDataWithAccessInfoResponse(this);
     }
@@ -11331,7 +8270,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.RecordDataWithAccessInfo.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordDataWithAccessInfo> recordDataWithAccessInfo_ = new pbc::RepeatedField<global::Records.RecordDataWithAccessInfo>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordDataWithAccessInfo> RecordDataWithAccessInfo {
       get { return recordDataWithAccessInfo_; }
     }
@@ -11342,19 +8280,16 @@ namespace Records {
         = pb::FieldCodec.ForBytes(18);
     private readonly pbc::RepeatedField<pb::ByteString> noPermissionRecordUid_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> NoPermissionRecordUid {
       get { return noPermissionRecordUid_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetRecordDataWithAccessInfoResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetRecordDataWithAccessInfoResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11368,7 +8303,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= recordDataWithAccessInfo_.GetHashCode();
@@ -11380,39 +8314,20 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       recordDataWithAccessInfo_.WriteTo(output, _repeated_recordDataWithAccessInfo_codec);
       noPermissionRecordUid_.WriteTo(output, _repeated_noPermissionRecordUid_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      recordDataWithAccessInfo_.WriteTo(ref output, _repeated_recordDataWithAccessInfo_codec);
-      noPermissionRecordUid_.WriteTo(ref output, _repeated_noPermissionRecordUid_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += recordDataWithAccessInfo_.CalculateSize(_repeated_recordDataWithAccessInfo_codec);
@@ -11424,7 +8339,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetRecordDataWithAccessInfoResponse other) {
       if (other == null) {
         return;
@@ -11435,11 +8349,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11456,59 +8366,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            recordDataWithAccessInfo_.AddEntriesFrom(ref input, _repeated_recordDataWithAccessInfo_codec);
-            break;
-          }
-          case 18: {
-            noPermissionRecordUid_.AddEntriesFrom(ref input, _repeated_noPermissionRecordUid_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordShareUpdateRequest : pb::IMessage<RecordShareUpdateRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordShareUpdateRequest : pb::IMessage<RecordShareUpdateRequest> {
     private static readonly pb::MessageParser<RecordShareUpdateRequest> _parser = new pb::MessageParser<RecordShareUpdateRequest>(() => new RecordShareUpdateRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordShareUpdateRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[38]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[39]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordShareUpdateRequest() {
       OnConstruction();
     }
@@ -11516,7 +8394,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordShareUpdateRequest(RecordShareUpdateRequest other) : this() {
       addSharedRecord_ = other.addSharedRecord_.Clone();
       updateSharedRecord_ = other.updateSharedRecord_.Clone();
@@ -11526,7 +8403,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordShareUpdateRequest Clone() {
       return new RecordShareUpdateRequest(this);
     }
@@ -11537,7 +8413,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.SharedRecord.Parser);
     private readonly pbc::RepeatedField<global::Records.SharedRecord> addSharedRecord_ = new pbc::RepeatedField<global::Records.SharedRecord>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.SharedRecord> AddSharedRecord {
       get { return addSharedRecord_; }
     }
@@ -11548,7 +8423,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(18, global::Records.SharedRecord.Parser);
     private readonly pbc::RepeatedField<global::Records.SharedRecord> updateSharedRecord_ = new pbc::RepeatedField<global::Records.SharedRecord>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.SharedRecord> UpdateSharedRecord {
       get { return updateSharedRecord_; }
     }
@@ -11559,7 +8433,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(26, global::Records.SharedRecord.Parser);
     private readonly pbc::RepeatedField<global::Records.SharedRecord> removeSharedRecord_ = new pbc::RepeatedField<global::Records.SharedRecord>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.SharedRecord> RemoveSharedRecord {
       get { return removeSharedRecord_; }
     }
@@ -11568,7 +8441,6 @@ namespace Records {
     public const int PtFieldNumber = 4;
     private string pt_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Pt {
       get { return pt_; }
       set {
@@ -11577,13 +8449,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordShareUpdateRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordShareUpdateRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11599,7 +8469,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= addSharedRecord_.GetHashCode();
@@ -11613,17 +8482,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       addSharedRecord_.WriteTo(output, _repeated_addSharedRecord_codec);
       updateSharedRecord_.WriteTo(output, _repeated_updateSharedRecord_codec);
       removeSharedRecord_.WriteTo(output, _repeated_removeSharedRecord_codec);
@@ -11634,28 +8498,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      addSharedRecord_.WriteTo(ref output, _repeated_addSharedRecord_codec);
-      updateSharedRecord_.WriteTo(ref output, _repeated_updateSharedRecord_codec);
-      removeSharedRecord_.WriteTo(ref output, _repeated_removeSharedRecord_codec);
-      if (Pt.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Pt);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += addSharedRecord_.CalculateSize(_repeated_addSharedRecord_codec);
@@ -11671,7 +8516,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordShareUpdateRequest other) {
       if (other == null) {
         return;
@@ -11686,11 +8530,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11715,67 +8555,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            addSharedRecord_.AddEntriesFrom(ref input, _repeated_addSharedRecord_codec);
-            break;
-          }
-          case 18: {
-            updateSharedRecord_.AddEntriesFrom(ref input, _repeated_updateSharedRecord_codec);
-            break;
-          }
-          case 26: {
-            removeSharedRecord_.AddEntriesFrom(ref input, _repeated_removeSharedRecord_codec);
-            break;
-          }
-          case 34: {
-            Pt = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class SharedRecord : pb::IMessage<SharedRecord>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SharedRecord : pb::IMessage<SharedRecord> {
     private static readonly pb::MessageParser<SharedRecord> _parser = new pb::MessageParser<SharedRecord>(() => new SharedRecord());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SharedRecord> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[39]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[40]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedRecord() {
       OnConstruction();
     }
@@ -11783,7 +8583,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedRecord(SharedRecord other) : this() {
       toUsername_ = other.toUsername_;
       recordUid_ = other.recordUid_;
@@ -11799,7 +8598,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedRecord Clone() {
       return new SharedRecord(this);
     }
@@ -11808,7 +8606,6 @@ namespace Records {
     public const int ToUsernameFieldNumber = 1;
     private string toUsername_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ToUsername {
       get { return toUsername_; }
       set {
@@ -11820,7 +8617,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 2;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -11832,7 +8628,6 @@ namespace Records {
     public const int RecordKeyFieldNumber = 3;
     private pb::ByteString recordKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -11844,7 +8639,6 @@ namespace Records {
     public const int SharedFolderUidFieldNumber = 4;
     private pb::ByteString sharedFolderUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString SharedFolderUid {
       get { return sharedFolderUid_; }
       set {
@@ -11856,7 +8650,6 @@ namespace Records {
     public const int TeamUidFieldNumber = 5;
     private pb::ByteString teamUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString TeamUid {
       get { return teamUid_; }
       set {
@@ -11868,7 +8661,6 @@ namespace Records {
     public const int EditableFieldNumber = 6;
     private bool editable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Editable {
       get { return editable_; }
       set {
@@ -11880,7 +8672,6 @@ namespace Records {
     public const int ShareableFieldNumber = 7;
     private bool shareable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Shareable {
       get { return shareable_; }
       set {
@@ -11892,7 +8683,6 @@ namespace Records {
     public const int TransferFieldNumber = 8;
     private bool transfer_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Transfer {
       get { return transfer_; }
       set {
@@ -11904,7 +8694,6 @@ namespace Records {
     public const int UseEccKeyFieldNumber = 9;
     private bool useEccKey_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool UseEccKey {
       get { return useEccKey_; }
       set {
@@ -11916,7 +8705,6 @@ namespace Records {
     public const int RemoveVaultDataFieldNumber = 10;
     private bool removeVaultData_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool RemoveVaultData {
       get { return removeVaultData_; }
       set {
@@ -11925,13 +8713,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SharedRecord);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SharedRecord other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11953,7 +8739,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ToUsername.Length != 0) hash ^= ToUsername.GetHashCode();
@@ -11973,17 +8758,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (ToUsername.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(ToUsername);
@@ -12027,61 +8807,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (ToUsername.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(ToUsername);
-      }
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(RecordUid);
-      }
-      if (RecordKey.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(RecordKey);
-      }
-      if (SharedFolderUid.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(SharedFolderUid);
-      }
-      if (TeamUid.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteBytes(TeamUid);
-      }
-      if (Editable != false) {
-        output.WriteRawTag(48);
-        output.WriteBool(Editable);
-      }
-      if (Shareable != false) {
-        output.WriteRawTag(56);
-        output.WriteBool(Shareable);
-      }
-      if (Transfer != false) {
-        output.WriteRawTag(64);
-        output.WriteBool(Transfer);
-      }
-      if (UseEccKey != false) {
-        output.WriteRawTag(72);
-        output.WriteBool(UseEccKey);
-      }
-      if (RemoveVaultData != false) {
-        output.WriteRawTag(80);
-        output.WriteBool(RemoveVaultData);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ToUsername.Length != 0) {
@@ -12121,7 +8849,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SharedRecord other) {
       if (other == null) {
         return;
@@ -12160,11 +8887,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -12213,91 +8936,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            ToUsername = input.ReadString();
-            break;
-          }
-          case 18: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 26: {
-            RecordKey = input.ReadBytes();
-            break;
-          }
-          case 34: {
-            SharedFolderUid = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            TeamUid = input.ReadBytes();
-            break;
-          }
-          case 48: {
-            Editable = input.ReadBool();
-            break;
-          }
-          case 56: {
-            Shareable = input.ReadBool();
-            break;
-          }
-          case 64: {
-            Transfer = input.ReadBool();
-            break;
-          }
-          case 72: {
-            UseEccKey = input.ReadBool();
-            break;
-          }
-          case 80: {
-            RemoveVaultData = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordShareUpdateResponse : pb::IMessage<RecordShareUpdateResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordShareUpdateResponse : pb::IMessage<RecordShareUpdateResponse> {
     private static readonly pb::MessageParser<RecordShareUpdateResponse> _parser = new pb::MessageParser<RecordShareUpdateResponse>(() => new RecordShareUpdateResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordShareUpdateResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[40]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[41]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordShareUpdateResponse() {
       OnConstruction();
     }
@@ -12305,7 +8964,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordShareUpdateResponse(RecordShareUpdateResponse other) : this() {
       addSharedRecordStatus_ = other.addSharedRecordStatus_.Clone();
       updateSharedRecordStatus_ = other.updateSharedRecordStatus_.Clone();
@@ -12314,7 +8972,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordShareUpdateResponse Clone() {
       return new RecordShareUpdateResponse(this);
     }
@@ -12325,7 +8982,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.SharedRecordStatus.Parser);
     private readonly pbc::RepeatedField<global::Records.SharedRecordStatus> addSharedRecordStatus_ = new pbc::RepeatedField<global::Records.SharedRecordStatus>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.SharedRecordStatus> AddSharedRecordStatus {
       get { return addSharedRecordStatus_; }
     }
@@ -12336,7 +8992,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(18, global::Records.SharedRecordStatus.Parser);
     private readonly pbc::RepeatedField<global::Records.SharedRecordStatus> updateSharedRecordStatus_ = new pbc::RepeatedField<global::Records.SharedRecordStatus>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.SharedRecordStatus> UpdateSharedRecordStatus {
       get { return updateSharedRecordStatus_; }
     }
@@ -12347,19 +9002,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(26, global::Records.SharedRecordStatus.Parser);
     private readonly pbc::RepeatedField<global::Records.SharedRecordStatus> removeSharedRecordStatus_ = new pbc::RepeatedField<global::Records.SharedRecordStatus>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.SharedRecordStatus> RemoveSharedRecordStatus {
       get { return removeSharedRecordStatus_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordShareUpdateResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordShareUpdateResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -12374,7 +9026,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= addSharedRecordStatus_.GetHashCode();
@@ -12387,41 +9038,21 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       addSharedRecordStatus_.WriteTo(output, _repeated_addSharedRecordStatus_codec);
       updateSharedRecordStatus_.WriteTo(output, _repeated_updateSharedRecordStatus_codec);
       removeSharedRecordStatus_.WriteTo(output, _repeated_removeSharedRecordStatus_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      addSharedRecordStatus_.WriteTo(ref output, _repeated_addSharedRecordStatus_codec);
-      updateSharedRecordStatus_.WriteTo(ref output, _repeated_updateSharedRecordStatus_codec);
-      removeSharedRecordStatus_.WriteTo(ref output, _repeated_removeSharedRecordStatus_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += addSharedRecordStatus_.CalculateSize(_repeated_addSharedRecordStatus_codec);
@@ -12434,7 +9065,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordShareUpdateResponse other) {
       if (other == null) {
         return;
@@ -12446,11 +9076,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -12471,63 +9097,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            addSharedRecordStatus_.AddEntriesFrom(ref input, _repeated_addSharedRecordStatus_codec);
-            break;
-          }
-          case 18: {
-            updateSharedRecordStatus_.AddEntriesFrom(ref input, _repeated_updateSharedRecordStatus_codec);
-            break;
-          }
-          case 26: {
-            removeSharedRecordStatus_.AddEntriesFrom(ref input, _repeated_removeSharedRecordStatus_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class SharedRecordStatus : pb::IMessage<SharedRecordStatus>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SharedRecordStatus : pb::IMessage<SharedRecordStatus> {
     private static readonly pb::MessageParser<SharedRecordStatus> _parser = new pb::MessageParser<SharedRecordStatus>(() => new SharedRecordStatus());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SharedRecordStatus> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[41]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[42]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedRecordStatus() {
       OnConstruction();
     }
@@ -12535,7 +9125,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedRecordStatus(SharedRecordStatus other) : this() {
       recordUid_ = other.recordUid_;
       status_ = other.status_;
@@ -12545,7 +9134,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedRecordStatus Clone() {
       return new SharedRecordStatus(this);
     }
@@ -12554,7 +9142,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -12569,7 +9156,6 @@ namespace Records {
     /// success, pending_accept, user_not_found, already_shared, not_allowed_to_share, access_denied, not_allowed_to_set_permission
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Status {
       get { return status_; }
       set {
@@ -12581,7 +9167,6 @@ namespace Records {
     public const int MessageFieldNumber = 3;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -12593,7 +9178,6 @@ namespace Records {
     public const int UsernameFieldNumber = 4;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -12602,13 +9186,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SharedRecordStatus);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SharedRecordStatus other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -12624,7 +9206,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -12638,17 +9219,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -12668,37 +9244,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (Status.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Status);
-      }
-      if (Message.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Message);
-      }
-      if (Username.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Username);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -12720,7 +9268,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SharedRecordStatus other) {
       if (other == null) {
         return;
@@ -12741,11 +9288,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -12770,67 +9313,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            Status = input.ReadString();
-            break;
-          }
-          case 26: {
-            Message = input.ReadString();
-            break;
-          }
-          case 34: {
-            Username = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class GetRecordPermissionsRequest : pb::IMessage<GetRecordPermissionsRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class GetRecordPermissionsRequest : pb::IMessage<GetRecordPermissionsRequest> {
     private static readonly pb::MessageParser<GetRecordPermissionsRequest> _parser = new pb::MessageParser<GetRecordPermissionsRequest>(() => new GetRecordPermissionsRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetRecordPermissionsRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[42]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[43]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordPermissionsRequest() {
       OnConstruction();
     }
@@ -12838,7 +9341,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordPermissionsRequest(GetRecordPermissionsRequest other) : this() {
       recordUids_ = other.recordUids_.Clone();
       isShareAdmin_ = other.isShareAdmin_;
@@ -12846,7 +9348,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordPermissionsRequest Clone() {
       return new GetRecordPermissionsRequest(this);
     }
@@ -12857,7 +9358,6 @@ namespace Records {
         = pb::FieldCodec.ForBytes(10);
     private readonly pbc::RepeatedField<pb::ByteString> recordUids_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> RecordUids {
       get { return recordUids_; }
     }
@@ -12866,7 +9366,6 @@ namespace Records {
     public const int IsShareAdminFieldNumber = 2;
     private bool isShareAdmin_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsShareAdmin {
       get { return isShareAdmin_; }
       set {
@@ -12875,13 +9374,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetRecordPermissionsRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetRecordPermissionsRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -12895,7 +9392,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= recordUids_.GetHashCode();
@@ -12907,17 +9403,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       recordUids_.WriteTo(output, _repeated_recordUids_codec);
       if (IsShareAdmin != false) {
         output.WriteRawTag(16);
@@ -12926,26 +9417,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      recordUids_.WriteTo(ref output, _repeated_recordUids_codec);
-      if (IsShareAdmin != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(IsShareAdmin);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += recordUids_.CalculateSize(_repeated_recordUids_codec);
@@ -12959,7 +9433,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetRecordPermissionsRequest other) {
       if (other == null) {
         return;
@@ -12972,11 +9445,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -12993,59 +9462,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            recordUids_.AddEntriesFrom(ref input, _repeated_recordUids_codec);
-            break;
-          }
-          case 16: {
-            IsShareAdmin = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class GetRecordPermissionsResponse : pb::IMessage<GetRecordPermissionsResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class GetRecordPermissionsResponse : pb::IMessage<GetRecordPermissionsResponse> {
     private static readonly pb::MessageParser<GetRecordPermissionsResponse> _parser = new pb::MessageParser<GetRecordPermissionsResponse>(() => new GetRecordPermissionsResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetRecordPermissionsResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[43]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[44]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordPermissionsResponse() {
       OnConstruction();
     }
@@ -13053,14 +9490,12 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordPermissionsResponse(GetRecordPermissionsResponse other) : this() {
       recordPermissions_ = other.recordPermissions_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetRecordPermissionsResponse Clone() {
       return new GetRecordPermissionsResponse(this);
     }
@@ -13071,19 +9506,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.RecordPermission.Parser);
     private readonly pbc::RepeatedField<global::Records.RecordPermission> recordPermissions_ = new pbc::RepeatedField<global::Records.RecordPermission>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.RecordPermission> RecordPermissions {
       get { return recordPermissions_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetRecordPermissionsResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetRecordPermissionsResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -13096,7 +9528,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= recordPermissions_.GetHashCode();
@@ -13107,37 +9538,19 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       recordPermissions_.WriteTo(output, _repeated_recordPermissions_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      recordPermissions_.WriteTo(ref output, _repeated_recordPermissions_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += recordPermissions_.CalculateSize(_repeated_recordPermissions_codec);
@@ -13148,7 +9561,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetRecordPermissionsResponse other) {
       if (other == null) {
         return;
@@ -13158,11 +9570,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -13175,55 +9583,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            recordPermissions_.AddEntriesFrom(ref input, _repeated_recordPermissions_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class RecordPermission : pb::IMessage<RecordPermission>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class RecordPermission : pb::IMessage<RecordPermission> {
     private static readonly pb::MessageParser<RecordPermission> _parser = new pb::MessageParser<RecordPermission>(() => new RecordPermission());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RecordPermission> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[44]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[45]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordPermission() {
       OnConstruction();
     }
@@ -13231,7 +9611,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordPermission(RecordPermission other) : this() {
       recordUid_ = other.recordUid_;
       owner_ = other.owner_;
@@ -13242,7 +9621,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RecordPermission Clone() {
       return new RecordPermission(this);
     }
@@ -13251,7 +9629,6 @@ namespace Records {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -13263,7 +9640,6 @@ namespace Records {
     public const int OwnerFieldNumber = 2;
     private bool owner_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Owner {
       get { return owner_; }
       set {
@@ -13275,7 +9651,6 @@ namespace Records {
     public const int CanEditFieldNumber = 3;
     private bool canEdit_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool CanEdit {
       get { return canEdit_; }
       set {
@@ -13287,7 +9662,6 @@ namespace Records {
     public const int CanShareFieldNumber = 4;
     private bool canShare_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool CanShare {
       get { return canShare_; }
       set {
@@ -13299,7 +9673,6 @@ namespace Records {
     public const int CanTransferFieldNumber = 5;
     private bool canTransfer_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool CanTransfer {
       get { return canTransfer_; }
       set {
@@ -13308,13 +9681,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RecordPermission);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RecordPermission other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -13331,7 +9702,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -13346,17 +9716,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -13380,41 +9745,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (Owner != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(Owner);
-      }
-      if (CanEdit != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(CanEdit);
-      }
-      if (CanShare != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(CanShare);
-      }
-      if (CanTransfer != false) {
-        output.WriteRawTag(40);
-        output.WriteBool(CanTransfer);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -13439,7 +9772,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RecordPermission other) {
       if (other == null) {
         return;
@@ -13463,11 +9795,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -13496,71 +9824,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 16: {
-            Owner = input.ReadBool();
-            break;
-          }
-          case 24: {
-            CanEdit = input.ReadBool();
-            break;
-          }
-          case 32: {
-            CanShare = input.ReadBool();
-            break;
-          }
-          case 40: {
-            CanTransfer = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class GetShareObjectsRequest : pb::IMessage<GetShareObjectsRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class GetShareObjectsRequest : pb::IMessage<GetShareObjectsRequest> {
     private static readonly pb::MessageParser<GetShareObjectsRequest> _parser = new pb::MessageParser<GetShareObjectsRequest>(() => new GetShareObjectsRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetShareObjectsRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[45]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[46]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetShareObjectsRequest() {
       OnConstruction();
     }
@@ -13568,7 +9852,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetShareObjectsRequest(GetShareObjectsRequest other) : this() {
       startWith_ = other.startWith_;
       contains_ = other.contains_;
@@ -13576,7 +9859,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetShareObjectsRequest Clone() {
       return new GetShareObjectsRequest(this);
     }
@@ -13588,7 +9870,6 @@ namespace Records {
     ///return share objects that start with this value
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string StartWith {
       get { return startWith_; }
       set {
@@ -13603,7 +9884,6 @@ namespace Records {
     ///return share objects that contains this value
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Contains {
       get { return contains_; }
       set {
@@ -13612,13 +9892,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetShareObjectsRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetShareObjectsRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -13632,7 +9910,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (StartWith.Length != 0) hash ^= StartWith.GetHashCode();
@@ -13644,17 +9921,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (StartWith.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(StartWith);
@@ -13666,29 +9938,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (StartWith.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(StartWith);
-      }
-      if (Contains.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Contains);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (StartWith.Length != 0) {
@@ -13704,7 +9956,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetShareObjectsRequest other) {
       if (other == null) {
         return;
@@ -13719,11 +9970,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -13740,59 +9987,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            StartWith = input.ReadString();
-            break;
-          }
-          case 18: {
-            Contains = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class GetShareObjectsResponse : pb::IMessage<GetShareObjectsResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class GetShareObjectsResponse : pb::IMessage<GetShareObjectsResponse> {
     private static readonly pb::MessageParser<GetShareObjectsResponse> _parser = new pb::MessageParser<GetShareObjectsResponse>(() => new GetShareObjectsResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetShareObjectsResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[46]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[47]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetShareObjectsResponse() {
       OnConstruction();
     }
@@ -13800,7 +10015,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetShareObjectsResponse(GetShareObjectsResponse other) : this() {
       shareRelationships_ = other.shareRelationships_.Clone();
       shareFamilyUsers_ = other.shareFamilyUsers_.Clone();
@@ -13811,7 +10025,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetShareObjectsResponse Clone() {
       return new GetShareObjectsResponse(this);
     }
@@ -13822,7 +10035,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(10, global::Records.ShareObject.Parser);
     private readonly pbc::RepeatedField<global::Records.ShareObject> shareRelationships_ = new pbc::RepeatedField<global::Records.ShareObject>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.ShareObject> ShareRelationships {
       get { return shareRelationships_; }
     }
@@ -13833,7 +10045,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(18, global::Records.ShareObject.Parser);
     private readonly pbc::RepeatedField<global::Records.ShareObject> shareFamilyUsers_ = new pbc::RepeatedField<global::Records.ShareObject>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.ShareObject> ShareFamilyUsers {
       get { return shareFamilyUsers_; }
     }
@@ -13844,7 +10055,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(26, global::Records.ShareObject.Parser);
     private readonly pbc::RepeatedField<global::Records.ShareObject> shareEnterpriseUsers_ = new pbc::RepeatedField<global::Records.ShareObject>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.ShareObject> ShareEnterpriseUsers {
       get { return shareEnterpriseUsers_; }
     }
@@ -13855,7 +10065,6 @@ namespace Records {
         = pb::FieldCodec.ForMessage(34, global::Records.ShareObject.Parser);
     private readonly pbc::RepeatedField<global::Records.ShareObject> shareTeams_ = new pbc::RepeatedField<global::Records.ShareObject>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.ShareObject> ShareTeams {
       get { return shareTeams_; }
     }
@@ -13866,19 +10075,16 @@ namespace Records {
         = pb::FieldCodec.ForMessage(42, global::Records.ShareObject.Parser);
     private readonly pbc::RepeatedField<global::Records.ShareObject> shareManagedCompanies_ = new pbc::RepeatedField<global::Records.ShareObject>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Records.ShareObject> ShareManagedCompanies {
       get { return shareManagedCompanies_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetShareObjectsResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetShareObjectsResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -13895,7 +10101,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= shareRelationships_.GetHashCode();
@@ -13910,17 +10115,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       shareRelationships_.WriteTo(output, _repeated_shareRelationships_codec);
       shareFamilyUsers_.WriteTo(output, _repeated_shareFamilyUsers_codec);
       shareEnterpriseUsers_.WriteTo(output, _repeated_shareEnterpriseUsers_codec);
@@ -13929,26 +10129,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      shareRelationships_.WriteTo(ref output, _repeated_shareRelationships_codec);
-      shareFamilyUsers_.WriteTo(ref output, _repeated_shareFamilyUsers_codec);
-      shareEnterpriseUsers_.WriteTo(ref output, _repeated_shareEnterpriseUsers_codec);
-      shareTeams_.WriteTo(ref output, _repeated_shareTeams_codec);
-      shareManagedCompanies_.WriteTo(ref output, _repeated_shareManagedCompanies_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += shareRelationships_.CalculateSize(_repeated_shareRelationships_codec);
@@ -13963,7 +10146,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetShareObjectsResponse other) {
       if (other == null) {
         return;
@@ -13977,11 +10159,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -14010,71 +10188,27 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            shareRelationships_.AddEntriesFrom(ref input, _repeated_shareRelationships_codec);
-            break;
-          }
-          case 18: {
-            shareFamilyUsers_.AddEntriesFrom(ref input, _repeated_shareFamilyUsers_codec);
-            break;
-          }
-          case 26: {
-            shareEnterpriseUsers_.AddEntriesFrom(ref input, _repeated_shareEnterpriseUsers_codec);
-            break;
-          }
-          case 34: {
-            shareTeams_.AddEntriesFrom(ref input, _repeated_shareTeams_codec);
-            break;
-          }
-          case 42: {
-            shareManagedCompanies_.AddEntriesFrom(ref input, _repeated_shareManagedCompanies_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class ShareObject : pb::IMessage<ShareObject>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class ShareObject : pb::IMessage<ShareObject> {
     private static readonly pb::MessageParser<ShareObject> _parser = new pb::MessageParser<ShareObject>(() => new ShareObject());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ShareObject> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[47]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[48]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ShareObject() {
       OnConstruction();
     }
@@ -14082,7 +10216,6 @@ namespace Records {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ShareObject(ShareObject other) : this() {
       name_ = other.name_;
       type_ = other.type_;
@@ -14093,7 +10226,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ShareObject Clone() {
       return new ShareObject(this);
     }
@@ -14105,7 +10237,6 @@ namespace Records {
     /// username, company name, team name
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -14120,7 +10251,6 @@ namespace Records {
     /// share relationship, mc company, team, enterprise, family
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.ShareType Type {
       get { return type_; }
       set {
@@ -14135,7 +10265,6 @@ namespace Records {
     /// only used for enterprise
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsShareAdmin {
       get { return isShareAdmin_; }
       set {
@@ -14150,7 +10279,6 @@ namespace Records {
     /// full name...
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DisplayName {
       get { return displayName_; }
       set {
@@ -14165,7 +10293,6 @@ namespace Records {
     /// active, blocked, invited (only apply to shareRelationships)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Records.ShareStatus Status {
       get { return status_; }
       set {
@@ -14174,13 +10301,11 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ShareObject);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ShareObject other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -14197,7 +10322,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Name.Length != 0) hash ^= Name.GetHashCode();
@@ -14212,17 +10336,12 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (Name.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Name);
@@ -14246,41 +10365,9 @@ namespace Records {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Name.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Name);
-      }
-      if (Type != global::Records.ShareType.SharingRelationship) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) Type);
-      }
-      if (IsShareAdmin != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(IsShareAdmin);
-      }
-      if (DisplayName.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(DisplayName);
-      }
-      if (Status != global::Records.ShareStatus.Active) {
-        output.WriteRawTag(40);
-        output.WriteEnum((int) Status);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Name.Length != 0) {
@@ -14305,7 +10392,6 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ShareObject other) {
       if (other == null) {
         return;
@@ -14329,11 +10415,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -14362,43 +10444,7 @@ namespace Records {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            Name = input.ReadString();
-            break;
-          }
-          case 16: {
-            Type = (global::Records.ShareType) input.ReadEnum();
-            break;
-          }
-          case 24: {
-            IsShareAdmin = input.ReadBool();
-            break;
-          }
-          case 34: {
-            DisplayName = input.ReadString();
-            break;
-          }
-          case 40: {
-            Status = (global::Records.ShareStatus) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 

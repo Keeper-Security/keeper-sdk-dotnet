@@ -61,6 +61,10 @@ namespace KeeperSecurity.Utils
                     {
                         text = b ? "X" : "-";
                     }
+                    else if (o is DateTimeOffset dt)
+                    {
+                        text = dt.ToString("g");
+                    }
                     else
                     {
                         text = o.ToString();

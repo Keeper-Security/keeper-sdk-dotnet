@@ -1008,4 +1008,13 @@ namespace KeeperSecurity.Vault
         public long? LastModified { get; set; }
     }
 
+    [DataContract]
+    internal class RecordApplicationData
+    {
+        [DataMember(Name = "title", EmitDefaultValue = false)]
+        public string Title { get; set; }
+
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string Type { get; set; }
+    }
 }

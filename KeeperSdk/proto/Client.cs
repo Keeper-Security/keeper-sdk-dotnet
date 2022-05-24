@@ -75,31 +75,23 @@ namespace Tokens {
   #endregion
 
   #region Messages
-  public sealed partial class BreachWatchUpdateRequest : pb::IMessage<BreachWatchUpdateRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class BreachWatchUpdateRequest : pb::IMessage<BreachWatchUpdateRequest> {
     private static readonly pb::MessageParser<BreachWatchUpdateRequest> _parser = new pb::MessageParser<BreachWatchUpdateRequest>(() => new BreachWatchUpdateRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<BreachWatchUpdateRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Tokens.ClientReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchUpdateRequest() {
       OnConstruction();
     }
@@ -107,7 +99,6 @@ namespace Tokens {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchUpdateRequest(BreachWatchUpdateRequest other) : this() {
       breachWatchRecordRequest_ = other.breachWatchRecordRequest_.Clone();
       encryptedData_ = other.encryptedData_;
@@ -115,7 +106,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchUpdateRequest Clone() {
       return new BreachWatchUpdateRequest(this);
     }
@@ -126,7 +116,6 @@ namespace Tokens {
         = pb::FieldCodec.ForMessage(10, global::Tokens.BreachWatchRecordRequest.Parser);
     private readonly pbc::RepeatedField<global::Tokens.BreachWatchRecordRequest> breachWatchRecordRequest_ = new pbc::RepeatedField<global::Tokens.BreachWatchRecordRequest>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Tokens.BreachWatchRecordRequest> BreachWatchRecordRequest {
       get { return breachWatchRecordRequest_; }
     }
@@ -135,7 +124,6 @@ namespace Tokens {
     public const int EncryptedDataFieldNumber = 2;
     private pb::ByteString encryptedData_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedData {
       get { return encryptedData_; }
       set {
@@ -144,13 +132,11 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as BreachWatchUpdateRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(BreachWatchUpdateRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -164,7 +150,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= breachWatchRecordRequest_.GetHashCode();
@@ -176,17 +161,12 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       breachWatchRecordRequest_.WriteTo(output, _repeated_breachWatchRecordRequest_codec);
       if (EncryptedData.Length != 0) {
         output.WriteRawTag(18);
@@ -195,26 +175,9 @@ namespace Tokens {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      breachWatchRecordRequest_.WriteTo(ref output, _repeated_breachWatchRecordRequest_codec);
-      if (EncryptedData.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EncryptedData);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += breachWatchRecordRequest_.CalculateSize(_repeated_breachWatchRecordRequest_codec);
@@ -228,7 +191,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(BreachWatchUpdateRequest other) {
       if (other == null) {
         return;
@@ -241,11 +203,7 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -262,59 +220,27 @@ namespace Tokens {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            breachWatchRecordRequest_.AddEntriesFrom(ref input, _repeated_breachWatchRecordRequest_codec);
-            break;
-          }
-          case 18: {
-            EncryptedData = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class BreachWatchRecordRequest : pb::IMessage<BreachWatchRecordRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class BreachWatchRecordRequest : pb::IMessage<BreachWatchRecordRequest> {
     private static readonly pb::MessageParser<BreachWatchRecordRequest> _parser = new pb::MessageParser<BreachWatchRecordRequest>(() => new BreachWatchRecordRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<BreachWatchRecordRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Tokens.ClientReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchRecordRequest() {
       OnConstruction();
     }
@@ -322,7 +248,6 @@ namespace Tokens {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchRecordRequest(BreachWatchRecordRequest other) : this() {
       recordUid_ = other.recordUid_;
       encryptedData_ = other.encryptedData_;
@@ -332,7 +257,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchRecordRequest Clone() {
       return new BreachWatchRecordRequest(this);
     }
@@ -344,7 +268,6 @@ namespace Tokens {
     /// if you store the recordUid as a string this is URLSafeBase64.decode(recordUid)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -359,7 +282,6 @@ namespace Tokens {
     /// This is a BreachWatchRecordData message encrypted with the record key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedData {
       get { return encryptedData_; }
       set {
@@ -371,7 +293,6 @@ namespace Tokens {
     public const int BreachWatchInfoTypeFieldNumber = 3;
     private global::Tokens.BreachWatchInfoType breachWatchInfoType_ = global::Tokens.BreachWatchInfoType.Record;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Tokens.BreachWatchInfoType BreachWatchInfoType {
       get { return breachWatchInfoType_; }
       set {
@@ -383,7 +304,6 @@ namespace Tokens {
     public const int UpdateUserWhoScannedFieldNumber = 4;
     private bool updateUserWhoScanned_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool UpdateUserWhoScanned {
       get { return updateUserWhoScanned_; }
       set {
@@ -392,13 +312,11 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as BreachWatchRecordRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(BreachWatchRecordRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -414,7 +332,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -428,17 +345,12 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -458,37 +370,9 @@ namespace Tokens {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (RecordUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(RecordUid);
-      }
-      if (EncryptedData.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EncryptedData);
-      }
-      if (BreachWatchInfoType != global::Tokens.BreachWatchInfoType.Record) {
-        output.WriteRawTag(24);
-        output.WriteEnum((int) BreachWatchInfoType);
-      }
-      if (UpdateUserWhoScanned != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(UpdateUserWhoScanned);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -510,7 +394,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(BreachWatchRecordRequest other) {
       if (other == null) {
         return;
@@ -531,11 +414,7 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -560,67 +439,27 @@ namespace Tokens {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            RecordUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            EncryptedData = input.ReadBytes();
-            break;
-          }
-          case 24: {
-            BreachWatchInfoType = (global::Tokens.BreachWatchInfoType) input.ReadEnum();
-            break;
-          }
-          case 32: {
-            UpdateUserWhoScanned = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class BreachWatchData : pb::IMessage<BreachWatchData>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class BreachWatchData : pb::IMessage<BreachWatchData> {
     private static readonly pb::MessageParser<BreachWatchData> _parser = new pb::MessageParser<BreachWatchData>(() => new BreachWatchData());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<BreachWatchData> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Tokens.ClientReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchData() {
       OnConstruction();
     }
@@ -628,7 +467,6 @@ namespace Tokens {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchData(BreachWatchData other) : this() {
       passwords_ = other.passwords_.Clone();
       emails_ = other.emails_.Clone();
@@ -637,7 +475,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BreachWatchData Clone() {
       return new BreachWatchData(this);
     }
@@ -648,7 +485,6 @@ namespace Tokens {
         = pb::FieldCodec.ForMessage(10, global::Tokens.BWPassword.Parser);
     private readonly pbc::RepeatedField<global::Tokens.BWPassword> passwords_ = new pbc::RepeatedField<global::Tokens.BWPassword>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Tokens.BWPassword> Passwords {
       get { return passwords_; }
     }
@@ -659,7 +495,6 @@ namespace Tokens {
         = pb::FieldCodec.ForMessage(18, global::Tokens.BWPassword.Parser);
     private readonly pbc::RepeatedField<global::Tokens.BWPassword> emails_ = new pbc::RepeatedField<global::Tokens.BWPassword>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Tokens.BWPassword> Emails {
       get { return emails_; }
     }
@@ -670,19 +505,16 @@ namespace Tokens {
         = pb::FieldCodec.ForMessage(26, global::Tokens.BWPassword.Parser);
     private readonly pbc::RepeatedField<global::Tokens.BWPassword> domains_ = new pbc::RepeatedField<global::Tokens.BWPassword>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Tokens.BWPassword> Domains {
       get { return domains_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as BreachWatchData);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(BreachWatchData other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -697,7 +529,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= passwords_.GetHashCode();
@@ -710,41 +541,21 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       passwords_.WriteTo(output, _repeated_passwords_codec);
       emails_.WriteTo(output, _repeated_emails_codec);
       domains_.WriteTo(output, _repeated_domains_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      passwords_.WriteTo(ref output, _repeated_passwords_codec);
-      emails_.WriteTo(ref output, _repeated_emails_codec);
-      domains_.WriteTo(ref output, _repeated_domains_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += passwords_.CalculateSize(_repeated_passwords_codec);
@@ -757,7 +568,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(BreachWatchData other) {
       if (other == null) {
         return;
@@ -769,11 +579,7 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -794,63 +600,27 @@ namespace Tokens {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            passwords_.AddEntriesFrom(ref input, _repeated_passwords_codec);
-            break;
-          }
-          case 18: {
-            emails_.AddEntriesFrom(ref input, _repeated_emails_codec);
-            break;
-          }
-          case 26: {
-            domains_.AddEntriesFrom(ref input, _repeated_domains_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
-  public sealed partial class BWPassword : pb::IMessage<BWPassword>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class BWPassword : pb::IMessage<BWPassword> {
     private static readonly pb::MessageParser<BWPassword> _parser = new pb::MessageParser<BWPassword>(() => new BWPassword());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<BWPassword> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Tokens.ClientReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BWPassword() {
       OnConstruction();
     }
@@ -858,7 +628,6 @@ namespace Tokens {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BWPassword(BWPassword other) : this() {
       value_ = other.value_;
       resolved_ = other.resolved_;
@@ -868,7 +637,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BWPassword Clone() {
       return new BWPassword(this);
     }
@@ -880,7 +648,6 @@ namespace Tokens {
     /// the original password
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -895,7 +662,6 @@ namespace Tokens {
     /// time stamp for when it was resolved
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong Resolved {
       get { return resolved_; }
       set {
@@ -907,7 +673,6 @@ namespace Tokens {
     public const int StatusFieldNumber = 3;
     private global::Tokens.BWStatus status_ = global::Tokens.BWStatus.Good;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Tokens.BWStatus Status {
       get { return status_; }
       set {
@@ -922,7 +687,6 @@ namespace Tokens {
     /// if breached this is empty, else this is the value returned by keeperapp after submission
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Euid {
       get { return euid_; }
       set {
@@ -931,13 +695,11 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as BWPassword);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(BWPassword other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -953,7 +715,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Value.Length != 0) hash ^= Value.GetHashCode();
@@ -967,17 +728,12 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (Value.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Value);
@@ -997,37 +753,9 @@ namespace Tokens {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Value.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Value);
-      }
-      if (Resolved != 0UL) {
-        output.WriteRawTag(16);
-        output.WriteUInt64(Resolved);
-      }
-      if (Status != global::Tokens.BWStatus.Good) {
-        output.WriteRawTag(24);
-        output.WriteEnum((int) Status);
-      }
-      if (Euid.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(Euid);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Value.Length != 0) {
@@ -1049,7 +777,6 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(BWPassword other) {
       if (other == null) {
         return;
@@ -1070,11 +797,7 @@ namespace Tokens {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1099,39 +822,7 @@ namespace Tokens {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            Value = input.ReadString();
-            break;
-          }
-          case 16: {
-            Resolved = input.ReadUInt64();
-            break;
-          }
-          case 24: {
-            Status = (global::Tokens.BWStatus) input.ReadEnum();
-            break;
-          }
-          case 34: {
-            Euid = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 

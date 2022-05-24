@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
-using AuthProto = Authentication;
 
 namespace KeeperSecurity.Vault
 {

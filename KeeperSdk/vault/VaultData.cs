@@ -95,6 +95,16 @@ namespace KeeperSecurity.Vault
             return keeperRecords.TryGetValue(recordUid, out record);
         }
 
+        /// <inheritdoc/>
+        public int ApplicationCount => keeperApplications.Count;
+        /// <inheritdoc/>
+        public IEnumerable<ApplicationRecord> KeeperApplications => keeperApplications.Values;
+        /// <inheritdoc/>
+        public bool TryGetKeeperApplication(string applicationUid, out ApplicationRecord record)
+        {
+            return keeperApplications.TryGetValue(applicationUid, out record);
+        }
+
         IEnumerable<PasswordRecord> IVaultData.Records => keeperRecords.Values.OfType<PasswordRecord>();
 
         bool IVaultData.TryGetRecord(string recordUid, out PasswordRecord record)
@@ -174,6 +184,9 @@ namespace KeeperSecurity.Vault
             new ConcurrentDictionary<string, FolderNode>();
 
         protected readonly FolderNode rootFolder;
+
+        protected readonly ConcurrentDictionary<string, ApplicationRecord> keeperApplications =
+            new ConcurrentDictionary<string, ApplicationRecord>();
 
         /// <inheritdoc/>
         public IKeeperStorage Storage { get; }
@@ -470,6 +483,7 @@ namespace KeeperSecurity.Vault
                 if (fullRebuild)
                 {
                     keeperRecords.Clear();
+                    keeperApplications.Clear();
                     foreach (var record in Storage.Records.GetAll())
                     {
                         recordsToLoad[record.RecordUid] = record;
@@ -513,7 +527,10 @@ namespace KeeperSecurity.Vault
                             if (r == null) continue;
                             recordsToLoad[r.RecordUid] = r;
 
-                            keeperRecords.TryRemove(recordUid, out _);
+                            if (!keeperRecords.TryRemove(recordUid, out _))
+                            {
+                                keeperApplications.TryRemove(recordUid, out _);
+                            }
 
                             foreach (var rmd in Storage.RecordKeys.GetLinksForSubject(r.RecordUid))
                             {
@@ -581,15 +598,22 @@ namespace KeeperSecurity.Vault
                                     record = r.LoadV4(rKey);
                                     break;
                                 case 5:
+                                    record = r.LoadV5(rKey);
                                     break;
                             }
 
                             if (record != null)
                             {
                                 record.Revision = r.Revision;
-                                keeperRecords.TryAdd(r.RecordUid, record);
+                                if (record is ApplicationRecord ar)
+                                {
+                                    keeperApplications.TryAdd(r.RecordUid, ar);
+                                }
+                                else
+                                {
+                                    keeperRecords.TryAdd(r.RecordUid, record);
+                                }
                             }
-
                         }
                         catch (Exception e)
                         {

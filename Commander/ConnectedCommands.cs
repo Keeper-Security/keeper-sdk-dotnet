@@ -199,6 +199,20 @@ namespace Commander
                         Action = ShareRecordCommand
                     });
 
+                if (auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
+                {
+                    if (value is bool b && b)
+                    {
+                        Commands.Add("ksm",
+                            new ParsableCommand<SecretManagerOptions>
+                            {
+                                Order = 40,
+                                Description = "Keeper Secret Manager commands",
+                                Action = SecretManagerCommand
+                            });
+                    }
+                }
+
                 Commands.Add("devices",
                     new ParsableCommand<OtherDevicesOptions>
                     {
@@ -243,7 +257,7 @@ namespace Commander
                             Console.WriteLine("Syncing...");
                             _vault.RecordTypesLoaded = false;
                             await _vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
-                            
+
 
                             if (fullSync)
                             {
@@ -352,7 +366,7 @@ namespace Commander
 
                     if (record is PasswordRecord legacy)
                     {
-                        return new[] {legacy.Notes, legacy.Login, legacy.Password, legacy.Notes}
+                        return new[] { legacy.Notes, legacy.Login, legacy.Password, legacy.Notes }
                             .Where(x => !string.IsNullOrEmpty(x))
                             .Any(x => pattern.IsMatch(x));
                     }
@@ -800,7 +814,7 @@ namespace Commander
             return Task.FromResult(true);
         }
 
-        private static readonly Tuple<string, bool>[] Prefixes = {Tuple.Create("field.",true), Tuple.Create("f.", true), Tuple.Create("custom.", false), Tuple.Create("c.", false)};
+        private static readonly Tuple<string, bool>[] Prefixes = { Tuple.Create("field.", true), Tuple.Create("f.", true), Tuple.Create("custom.", false), Tuple.Create("c.", false) };
         private const string FieldPattern = "^(\\w+)(\\.[^\\[]+)?(\\[*.\\])?\\s*=\\s*(.*)$";
 
         private static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)
@@ -1048,7 +1062,7 @@ namespace Commander
                 Console.WriteLine($"Cannot resolve folder {options.Folder}");
                 return;
             }
-            if (string.IsNullOrEmpty(options.Title)) 
+            if (string.IsNullOrEmpty(options.Title))
             {
                 Console.WriteLine($"\"Title\" parameter is missing.");
                 return;
@@ -1066,7 +1080,7 @@ namespace Commander
             }
 
             KeeperRecord record = null;
-            if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) || 
+            if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) ||
                 string.Equals(options.RecordType, "legacy", StringComparison.InvariantCultureIgnoreCase))
             {
                 record = new PasswordRecord
@@ -1196,7 +1210,7 @@ namespace Commander
                     var m = Regex.Match(record.Title, pattern, RegexOptions.IgnoreCase);
                     if (m.Success)
                     {
-                        records.Add(new RecordPath {FolderUid = folder.FolderUid, RecordUid = recordUid});
+                        records.Add(new RecordPath { FolderUid = folder.FolderUid, RecordUid = recordUid });
                     }
                 }
 
@@ -1371,7 +1385,7 @@ namespace Commander
                       ?? folders.FirstOrDefault(x => x.FolderType == FolderType.UserFolder)
                       ?? folders[0];
 
-                await _vault.MoveRecords(new[] {new RecordPath {FolderUid = folder.FolderUid, RecordUid = record.Uid}},
+                await _vault.MoveRecords(new[] { new RecordPath { FolderUid = folder.FolderUid, RecordUid = record.Uid } },
                     dstFolder.FolderUid, options.Link);
             }
             else
@@ -1405,7 +1419,7 @@ namespace Commander
                         var m = Regex.Match(record.Title, pattern, RegexOptions.IgnoreCase);
                         if (m.Success)
                         {
-                            records.Add(new RecordPath {FolderUid = srcFolder.FolderUid, RecordUid = recordUid});
+                            records.Add(new RecordPath { FolderUid = srcFolder.FolderUid, RecordUid = recordUid });
                         }
                     }
 
@@ -1536,7 +1550,7 @@ namespace Commander
                     Console.WriteLine();
                     Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
                 }
-                    break;
+                break;
 
                 case "rename":
                     if (string.IsNullOrEmpty(arguments.Parameter))
@@ -1569,7 +1583,7 @@ namespace Commander
                     }
 
                 }
-                    break;
+                break;
 
                 case "ip_disable_auto_approve":
                 case "persistent_login":
@@ -1598,7 +1612,7 @@ namespace Commander
 
                     await _auth.SetSessionParameter(arguments.Command, enabled.Value ? "1" : "0");
                 }
-                    break;
+                break;
 
                 case "timeout":
                 {
@@ -1620,7 +1634,7 @@ namespace Commander
                         }
                     }
                 }
-                    break;
+                break;
 
                 case "bio":
                 {
@@ -1665,13 +1679,13 @@ namespace Commander
                         }
                     }
                 }
-                    break;
+                break;
 
                 default:
                 {
                     Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
                 }
-                    break;
+                break;
             }
         }
 
@@ -1713,6 +1727,216 @@ namespace Commander
             }
         }
 
+        private void DumpSecretManagerApplicationInfo(VaultData vault, SecretsManagerApplication application)
+        {
+            var shareTab = new Tabulate(5)
+            {
+                DumpRowNo = true
+            };
+            shareTab.AddHeader("Share Type", "Share UID", "Share Title", "Editable", "Created");
+            foreach (var share in application.Shares)
+            {
+                var shareType = share.SecretType == SecretManagerSecretType.Record ? "Record" : "SharedFolder";
+                var shareTitle = "";
+                if (share.SecretType == SecretManagerSecretType.Record)
+                {
+                    if (vault.TryGetKeeperRecord(share.SecretUid, out var r))
+                    {
+                        shareTitle = r.Title;
+                    }
+                }
+                else
+                {
+                    if (vault.TryGetSharedFolder(share.SecretUid, out var sf))
+                    {
+                        shareTitle = sf.Name;
+                    }
+                }
+                shareTab.AddRow(shareType, share.SecretUid, shareTitle, share.Editable, share.CreatedOn);
+            }
+
+            var clientTab = new Tabulate(4)
+            {
+                DumpRowNo = true
+            };
+
+            clientTab.AddHeader("Name", "Created", "Last Accessed", "Expires");
+            foreach (var client in application.Devices) 
+            {
+                clientTab.AddRow(client.Name, client.CreatedOn, client.LastAccess, client.AccessExpireOn);
+            }
+
+            Console.WriteLine("{0, 20}: {1}", "Application UID", application.Uid);
+            Console.WriteLine("{0, 20}: {1}", "Title", application.Title);
+            Console.WriteLine();
+            Console.WriteLine("Shares");
+            shareTab.Dump();
+
+            Console.WriteLine("Devices");
+            clientTab.Dump();
+        }
+
+        private async Task SecretManagerCommand(SecretManagerOptions arguments)
+        {
+            var action = (string.IsNullOrEmpty(arguments.Command) ? "list" : arguments.Command).ToLowerInvariant();
+
+            if (action == "list")
+            {
+                var tab = new Tabulate(2)
+                {
+                    DumpRowNo = true
+                };
+                tab.AddHeader(new[] { "Application UID", "Title" });
+                foreach (var app in _vault.KeeperApplications)
+                {
+                    tab.AddRow(app.Uid, app.Title);
+                }
+
+                Console.WriteLine();
+                tab.Dump();
+                return;
+            }
+            if (string.IsNullOrEmpty(arguments.KsmId))
+            {
+                Console.Write("KSM application UID or Title is required.");
+                return;
+            }
+            if (action == "create")
+            {
+                var record = await _vault.CreateSecretManagerApplication(arguments.KsmId);
+                Console.WriteLine("{0, 20}: {1}", "Application UID", record.Uid);
+                Console.WriteLine("{0, 20}: {1}", "Title", record.Title);
+                return;
+            }
+
+            var application = _vault.KeeperApplications.FirstOrDefault(x => x.Uid == arguments.KsmId || string.Equals(x.Title, arguments.KsmId, StringComparison.InvariantCultureIgnoreCase));
+            if (application == null)
+            {
+                Console.Write($"KSM application {arguments.KsmId} not found");
+                return;
+            }
+
+            if (action == "view")
+            {
+                var app = await _vault.GetSecretManagerApplication(application.Uid);
+                DumpSecretManagerApplicationInfo(_vault, app);
+            }
+            else if (action == "delete")
+            {
+                await _vault.DeleteSecretManagerApplication(application.Uid);
+                Console.Write($"KSM Application {application.Title} has been deleted.");
+            }
+            else if (action == "share")
+            {
+                if (string.IsNullOrEmpty(arguments.Secret))
+                {
+                    Console.Write("Secret (Shared Folder/Record UID/Title) parameter is required.");
+                    return;
+                }
+                string uid = "";
+
+                if (_vault.TryGetKeeperRecord(arguments.Secret, out var record))
+                {
+                    uid = record.Uid;
+                }
+                else if (_vault.TryGetSharedFolder(arguments.Secret, out var sf))
+                {
+                    uid = sf.Uid;
+                }
+                else
+                {
+                    if (TryResolvePath(arguments.Secret, out var folder, out var title))
+                    {
+                        if (string.IsNullOrEmpty(title))
+                        {
+                            if (folder.FolderType == FolderType.SharedFolder)
+                            {
+                                uid = folder.FolderUid;
+                            }
+                            else
+                            {
+                                Console.Write($"Folder \"{arguments.Secret}\" is not Shared Folder.");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            record = folder.Records.Select(x => _vault.GetRecord(x)).FirstOrDefault(x =>
+                                string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0);
+                            if (record != null)
+                            {
+                                uid = record.Uid;
+                            }
+                        }
+                    }
+                }
+                if (string.IsNullOrEmpty(uid))
+                {
+                    Console.Write($"Record or Shared Folder \"{arguments.Secret}\" does not exist.");
+                    return;
+                }
+                var app = await _vault.ShareToSecretManagerApplication(application.Uid, uid, arguments.CanEdit);
+                DumpSecretManagerApplicationInfo(_vault, app);
+            }
+            else if (action == "unshare")
+            {
+                if (string.IsNullOrEmpty(arguments.Secret))
+                {
+                    Console.Write("Secret (Shared Folder/Record UID/Title) parameter is required.");
+                    return;
+                }
+
+                var uid = "";
+                if (_vault.TryGetKeeperRecord(arguments.Secret, out var record))
+                {
+                    uid = record.Uid;
+                }
+                else if (_vault.TryGetSharedFolder(arguments.Secret, out var sf))
+                {
+                    uid = sf.Uid;
+                }
+                else
+                {
+                    if (TryResolvePath(arguments.Secret, out var folder, out var title))
+                    {
+                        if (string.IsNullOrEmpty(title))
+                        {
+                            if (folder.FolderType == FolderType.SharedFolder)
+                            {
+                                uid = folder.FolderUid;
+                            }
+                        }
+                        else
+                        {
+                            record = folder.Records.Select(x => _vault.GetRecord(x)).FirstOrDefault(x =>
+                                string.Compare(x.Title, title, StringComparison.CurrentCultureIgnoreCase) == 0);
+                            if (record != null)
+                            {
+                                uid = record.Uid;
+                            }
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(uid)) {
+                    uid = arguments.Secret;
+                }
+                var app = await _vault.GetSecretManagerApplication(application.Uid);
+                var share = app.Shares.FirstOrDefault(x => x.SecretUid == uid);
+                
+                if (share == null)
+                {
+                    Console.Write($"\"{arguments.Secret}\" is not shared to application {application.Title}");
+                }
+                app = await _vault.UnshareFromSecretManagerApplication(application.Uid, uid);
+                DumpSecretManagerApplicationInfo(_vault, app);
+            }
+            else
+            {
+                Console.Write($"Unsupported KSM command {arguments.Command}");
+            }
+        }
+
         private async Task DeviceCommand(OtherDevicesOptions arguments)
         {
             if (arguments.Force)
@@ -1748,7 +1972,7 @@ namespace Commander
                 {
                     DumpRowNo = true
                 };
-                tab.AddHeader(new[] {"Device Name", "Client", "ID", "Status", "Data Key"});
+                tab.AddHeader(new[] { "Device Name", "Client", "ID", "Status", "Data Key" });
                 foreach (var device in devices)
                 {
                     var deviceToken = device.EncryptedDeviceToken.ToByteArray();
@@ -1830,10 +2054,10 @@ namespace Commander
             {
                 DumpRowNo = true
             };
-            tab.AddHeader(new[] {"Shared Folder UID", "Name", "# Records", "# Users"});
+            tab.AddHeader(new[] { "Shared Folder UID", "Name", "# Records", "# Users" });
             foreach (var sf in _vault.SharedFolders)
             {
-                tab.AddRow(new object[] {sf.Uid, sf.Name, sf.RecordPermissions.Count, sf.UsersPermissions.Count});
+                tab.AddRow(new object[] { sf.Uid, sf.Name, sf.RecordPermissions.Count, sf.UsersPermissions.Count });
             }
 
             tab.Sort(1);
@@ -1889,7 +2113,7 @@ namespace Commander
                 };
                 tab.SetColumnRightAlign(2, true);
                 tab.SetColumnRightAlign(3, true);
-                tab.AddHeader(new[] {"User ID", "User Type", "Manage Records", "Manage Users"});
+                tab.AddHeader(new[] { "User ID", "User Type", "Manage Records", "Manage Users" });
                 foreach (var p in sf.UsersPermissions.OrderBy(x => $"{(int) x.UserType} {x.UserId.ToLowerInvariant()}"))
                 {
                     if (p.UserType == UserType.User)
@@ -2060,7 +2284,7 @@ namespace Commander
                 {
                     DumpRowNo = true
                 };
-                tab.AddHeader(new[] {"Record Title", "Record UID", "Can Edit", "Can Share"});
+                tab.AddHeader(new[] { "Record Title", "Record UID", "Can Edit", "Can Share" });
                 foreach (var p in sf.RecordPermissions)
                 {
                     if (_vault.TryGetKeeperRecord(p.RecordUid, out var record))
@@ -2409,7 +2633,7 @@ namespace Commander
             if (!(e is KeeperAuthFailed)) return await base.ProcessException(e);
 
             Console.WriteLine("Session is expired. Disconnecting...");
-            await LogoutCommand(new LogoutOptions {Resume = true});
+            await LogoutCommand(new LogoutOptions { Resume = true });
             return true;
         }
 
@@ -2491,7 +2715,7 @@ namespace Commander
         [Option('t', "type", Required = true, HelpText = "record type. legacy if omitted.")]
         public string RecordType { get; set; }
 
-        [Option( "title", Required = true, HelpText = "record title.")]
+        [Option("title", Required = true, HelpText = "record title.")]
         public string Title { get; set; }
 
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
@@ -2544,7 +2768,8 @@ namespace Commander
         public bool? ManageUsers { get; set; }
     }
 
-    class ShareRecordOptions {
+    class ShareRecordOptions
+    {
         [Option('a', "action", Required = false, Default = "share", HelpText = "user share action: \'share\' (default), \'revoke\', \'transfer\', \'cancel\'")]
         public string Action { get; set; }
 
@@ -2643,6 +2868,20 @@ namespace Commander
         public bool? CanEdit { get; set; }
     }
 
+    class SecretManagerOptions
+    {
+        [Option("folder", Required = false, HelpText = "Shared Folder UID or name")]
+        public string Secret { get; set; }
+        [Option('e', "can-edit", Required = false, HelpText = "Can secret be edited")]
+        public bool CanEdit { get; set; }
+
+
+        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"delete\", \"share\", \"unshare\", \"list\"")]
+        public string Command { get; set; }
+
+        [Value(1, Required = false, HelpText = "Secret Manager application UID or Title")]
+        public string KsmId { get; set; }
+    }
     class OtherDevicesOptions
     {
         [Option('f', "force", Required = false, Default = false, HelpText = "reload device list")]
@@ -2682,7 +2921,7 @@ namespace Commander
         public string Name { get; set; }
     }
 
-    class CmdLineRecordField: IRecordTypeField
+    class CmdLineRecordField : IRecordTypeField
     {
         public bool? IsRecordField { get; set; }
         public string FieldName { get; set; }

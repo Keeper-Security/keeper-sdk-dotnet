@@ -32,7 +32,7 @@ namespace KeeperSecurity.Vault
             var command = new SyncDownCommand
             {
                 revision = storage.Revision,
-                include = new[] {"sfheaders", "sfrecords", "sfusers", "teams", "folders", "typed_record"},
+                include = new[] {"sfheaders", "sfrecords", "sfusers", "teams", "folders", "typed_record", "app_record" },
                 deviceName = vault.Auth.Endpoint.DeviceName,
                 deviceId = vault.Auth.Endpoint.DeviceName
             };
