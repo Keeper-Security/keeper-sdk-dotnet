@@ -5,50 +5,57 @@ To install the PowerCommander module copy PowerCommander\ directory to
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
 ### Cmdlets
-| Cmdlet name                    | Alias  | Description
-|--------------------------------|--------|----------------------------
-| Connect-Keeper                 | kc     | Login to Keeper server
-| Sync-Keeper                    | ks     | Sync with Keeper server 
-| Disconnect-Keeper              |        | Logout and clear the data
-| Get-KeeperLocation             | kpwd   | Print current Keeper folder
-| Set-KeeperLocation             | kcd    | Change Keeper folder
-| Get-KeeperChildItems           | kdir   | Display subfolder and record names in the current Keeper folder
-| Get-KeeperObject               | ko     | Get Keeper object by Uid
-| Get-KeeperRecords              | kr     | Enumerate all records
-| Get-KeeperSharedFolders        | ksf    | Enumerate all shared folders
-| Add-KeeperRecord               | kadd   | Add/Modify Keeper record
-| Remove-KeeperRecord            | kdel   | Delete Keeper record
-| Move-RecordToFolder            | kmv    | Move owned record to Keeper folder
-| Add-KeeperFolder               | kmkdir | Create Keeper Folder
-| Remove-KeeperFolder            | krmdir | Remove Keeper Folder
-| Copy-KeeperToClipboard         | kcc    | Copy record password to clipboard
-| Show-TwoFactorCode             | 2fa    | Display Two Factor Code 
+| Cmdlet name                            | Alias       | Description
+|----------------------------------------|-------------|----------------------------
+| Connect-Keeper                         | kc          | Login to Keeper server
+| Sync-Keeper                            | ks          | Sync with Keeper server 
+| Disconnect-Keeper                      |             | Logout and clear the data
+| Get-KeeperLocation                     | kpwd        | Print current Keeper folder
+| Set-KeeperLocation                     | kcd         | Change Keeper folder
+| Get-KeeperChildItems                   | kdir        | Display subfolder and record names in the current Keeper folder
+| Get-KeeperObject                       | ko          | Get Keeper object by Uid
+| Get-KeeperRecords                      | kr          | Enumerate all records
+| Get-KeeperSharedFolders                | ksf         | Enumerate all shared folders
+| Add-KeeperRecord                       | kadd        | Add/Modify Keeper record
+| Remove-KeeperRecord                    | kdel        | Delete Keeper record
+| Move-RecordToFolder                    | kmv         | Move owned record to Keeper folder
+| Add-KeeperFolder                       | kmkdir      | Create Keeper Folder
+| Remove-KeeperFolder                    | krmdir      | Remove Keeper Folder
+| Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard
+| Show-TwoFactorCode                     | 2fa         | Display Two Factor Code 
 
 ### Sharing Cmdlets
-| Cmdlet name                    | Alias  | Description
-|--------------------------------|--------|----------------------------
-| Show-KeeperRecordShares        | kshrsh | Shows a record sharing information
-| Grant-KeeperRecordAccess       | kshr   | Shares a record with user
-| Revoke-KeeperRecordAccess      | kushr  | Removes record share from user
-| Grant-KeeperSharedFolderAccess | kshf   | Adds a user or team to a shared foler
-| Revoke-KeeperSharedFolderAccess| kushf  | Removes a user or team from a shared foler
+| Cmdlet name                            | Alias       | Description
+|----------------------------------------|-------------|----------------------------
+| Show-KeeperRecordShares                | kshrsh      | Show a record sharing information
+| Grant-KeeperRecordAccess               | kshr        | Share a record with user
+| Revoke-KeeperRecordAccess              | kushr       | Remove record share from user
+| Grant-KeeperSharedFolderAccess         | kshf        | Add a user or team to a shared foler
+| Revoke-KeeperSharedFolderAccess        | kushf       | Remove a user or team from a shared foler
 
 ### Enterprise Cmdlets
-| Cmdlet name                    | Alias       | Description
-|--------------------------------|-------------|----------------------------
-| Sync-KeeperEnterprise          | ked         | Sync Keeper enterprise information
-| Get-KeeperEnterpriseNodes      | ken         | Enumerate all enterprise nodes
-| Get-KeeperEnterpriseUsers      | keu         | Enumerate all enterprise users
-| Lock-KeeperEnterpriseUser      | lock-user   | Locks Enterprise User
-| Unlock-KeeperEnterpriseUser    | unlock-user | Unlocks Enterprise User
-| Move-KeeperEnterpriseUser      |transfer-user| Transfers user account to another user
-| Remove-KeeperEnterpriseUser    | delete-user | Deletes Enterprise User
-| Get-KeeperMspLicenses          | msp-license | Returns MSP licenses
-| Get-KeeperManagedCompanies     | kmc         | Enumerate all enterprise managed companies
-| New-KeeperManagedCompany       | kamc        | Create Managed Company
-| Remove-KeeperManagedCompany    | krmc        | Remove Managed Company
-| Edit-KeeperManagedCompany      | kemc        | Edit Managed Company
+| Cmdlet name                            | Alias       | Description
+|----------------------------------------|-------------|----------------------------
+| Sync-KeeperEnterprise                  | ked         | Sync Keeper enterprise information
+| Get-KeeperEnterpriseNodes              | ken         | Enumerate all enterprise nodes
+| Get-KeeperEnterpriseUsers              | keu         | Enumerate all enterprise users
+| Lock-KeeperEnterpriseUser              | lock-user   | Lock Enterprise User
+| Unlock-KeeperEnterpriseUser            | unlock-user | Unlock Enterprise User
+| Move-KeeperEnterpriseUser              |transfer-user| Transfer user account to another user
+| Remove-KeeperEnterpriseUser            | delete-user | Delete Enterprise User
+| Get-KeeperMspLicenses                  | msp-license | Return MSP licenses
+| Get-KeeperManagedCompanies             | kmc         | Enumerate all enterprise managed companies
+| New-KeeperManagedCompany               | kamc        | Create Managed Company
+| Remove-KeeperManagedCompany            | krmc        | Remove Managed Company
+| Edit-KeeperManagedCompany              | kemc        | Edit Managed Company
 
+### Secret Manager Cmdlets
+| Cmdlet name                            | Alias       | Description
+|----------------------------------------|-------------|----------------------------
+| Get-KeeperSecretManagerApps            | ksm         | Enumerate all Keeper Secret Manager Applications
+| New-KeeperSecretManagerApp             | ksm-create  | Create Keeper Secret Manager Application
+| Grant-KeeperSecretManagerFolderAccess  | ksm-share   | Add shared folder to KSM Application
+| Revoke-KeeperSecretManagerFolderAccess | ksm-unshare | Remove Shared Folder from KSM Application
 
 #### Examples
 
