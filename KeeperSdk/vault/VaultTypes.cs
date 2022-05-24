@@ -75,7 +75,7 @@ namespace KeeperSecurity.Vault
         bool TryGetRecord(string recordUid, out PasswordRecord record);
 
         /// <summary>
-        /// Gets the number of all shared folders in the vault.
+        /// Gets  number of all shared folders in the vault.
         /// </summary>
         int SharedFolderCount { get; }
         /// <summary>
@@ -83,7 +83,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         IEnumerable<SharedFolder> SharedFolders { get; }
         /// <summary>
-        /// Gets the shared folder associated with the specified record UID.
+        /// Gets shared folder associated with a specified record UID.
         /// </summary>
         /// <param name="sharedFolderUid">Shared Folder UID</param>
         /// <param name="sharedFolder">When this method returns <c>true</c>, contains requested shared folder; otherwise <c>null</c>.</param>
@@ -95,11 +95,11 @@ namespace KeeperSecurity.Vault
         /// </summary>
         int TeamCount { get; }
         /// <summary>
-        /// Get the list of all teams user is member of.
+        /// Get list of all teams user is member of.
         /// </summary>
         IEnumerable<Team> Teams { get; }
         /// <summary>
-        /// Gets the team associated with the specified team UID.
+        /// Gets a team associated with a specified team UID.
         /// </summary>
         /// <param name="teamUid">Team UID.</param>
         /// <param name="team">When this method returns <c>true</c>, contains requested team; otherwise <c>null</c>.</param>
@@ -115,16 +115,32 @@ namespace KeeperSecurity.Vault
         T LoadNonSharedData<T>(string recordUid) where T : RecordNonSharedData, new();
 
         /// <summary>
-        /// Gets the list of all registered record types.
+        /// Gets list of all registered record types.
         /// </summary>
         IEnumerable<RecordType> RecordTypes { get; }
         /// <summary>
-        /// Gets the revord type meta data associated with the record type name.
+        /// Gets record type meta data associated with the record type name.
         /// </summary>
         /// <param name="name">Record type name.</param>
         /// <param name="recordType">When this method returns <c>true</c>, contains requested record type; otherwise <c>null</c>.</param>
         /// <returns><c>true</c> if record type exists; otherwise, <c>false</c>.</returns>
         bool TryGetRecordTypeByName(string name, out RecordType recordType);
+
+        /// <summary>
+        /// Gets number of all Keeper Secret Manager Applications.
+        /// </summary>
+        int ApplicationCount { get; }
+        /// <summary>
+        /// Gets list of all Keeper Secret Manager Applications.
+        /// </summary>
+        IEnumerable<ApplicationRecord> KeeperApplications { get; }
+        /// <summary>
+        /// Gets a KSM application associated with a specified team UID.
+        /// </summary>
+        /// <param name="applicationUid">Team UID.</param>
+        /// <param name="application">When this method returns <c>true</c>, contains requested team; otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> in the vault contains a application with specified UID; otherwise, <c>false</c>.</returns>
+        bool TryGetKeeperApplication(string applicationUid, out ApplicationRecord application);
     }
 
     /// <summary>
@@ -392,6 +408,49 @@ namespace KeeperSecurity.Vault
         /// <param name="username">User account email</param>
         /// <returns>Awaitable task.</returns>
         Task RevokeShareFromUser(string recordUid, string username);
+    }
+
+    public interface ISecretManager 
+    {
+        /// <summary>
+        /// Gets Keeper Secret Manager Application Details
+        /// </summary>
+        /// <param name="applicationUid">Application UID.</param>
+        /// <returns>Secret Manager Application Info</returns>
+        Task<SecretsManagerApplication> GetSecretManagerApplication(string applicationUid, bool force = true);
+
+        /// <summary>
+        /// Creates Secret Manager Application
+        /// </summary>
+        /// <param name="title">Application Title</param>
+        /// <returns>Application Record</returns>
+        Task<ApplicationRecord> CreateSecretManagerApplication(string title);
+
+        /// <summary>
+        /// Deletes Secret Manager Application
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <returns>Awaitable Task</returns>
+        Task DeleteSecretManagerApplication(string applicationId);
+
+
+        /// <summary>
+        /// Grants Shared Folder or Record Access to Secret Manager Application
+        /// </summary>
+        /// <param name="applicationId">Application ID</param>
+        /// <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
+        /// <param name="canEdit">permission to edit</param>
+        /// <returns>Secret Manager Application</returns>
+        Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid, bool canEdit);
+
+        /// <summary>
+        /// Revokes Shared Folder or Record access from Secret Manager Application
+        /// </summary>
+        /// <param name="applicationId">Application ID</param>
+        /// <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
+        /// <returns>Secret Manager Application</returns>
+        Task<SecretsManagerApplication> UnshareFromSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid);
+
     }
 
     /// <summary>
@@ -1108,6 +1167,51 @@ namespace KeeperSecurity.Vault
         string IAttachment.Id => Uid;
         long IAttachment.Size => FileSize;
         byte[] IAttachment.AttachmentKey => RecordKey;
+    }
+
+    /// <summary>
+    /// Represents a Keeper Secret Manager Application Record.
+    /// </summary>
+    public class ApplicationRecord : KeeperRecord
+    {
+        /// <summary>
+        /// Application Type.
+        /// </summary>
+        public string Type { get; set; }
+    }
+
+    public class SecretsManagerDevice
+    {
+        public string Name { get; internal set; }
+        public string ClientId { get; internal set; }
+        public DateTimeOffset CreatedOn { get; internal set; }
+        public DateTimeOffset? FirstAccess { get; internal set; }
+        public DateTimeOffset? LastAccess { get; internal set; }
+        public byte[] PublicKey { get; internal set; }
+        public bool LockIp { get; internal set; }
+        public string IpAddress { get; internal set; }
+        public DateTimeOffset? FirstAccessExpireOn { get; internal set; }
+        public DateTimeOffset? AccessExpireOn { get; internal set; }
+    }
+
+    public enum SecretManagerSecretType 
+    { 
+        Record = 0,
+        Folder = 1,
+    }
+    public class SecretManagerShare
+    {
+        public string SecretUid { get; internal set; }
+        public SecretManagerSecretType SecretType { get; internal set; }
+        public bool Editable { get; internal set; }
+        public DateTimeOffset CreatedOn { get; internal set; }
+    }
+
+    public class SecretsManagerApplication : ApplicationRecord
+    {
+        public SecretsManagerDevice[] Devices { get; internal set; }
+        public SecretManagerShare[] Shares { get; internal set; }
+        public bool IsExternalShare { get; internal set; }
     }
 
     /// <summary>

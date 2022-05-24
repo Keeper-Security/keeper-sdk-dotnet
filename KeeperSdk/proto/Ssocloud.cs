@@ -66,53 +66,54 @@ namespace SsoCloud {
             "Q2xvdWRDb25maWd1cmF0aW9uVmFsaWRhdGlvblJlc3BvbnNlEjYKEXZhbGlk",
             "YXRpb25Db250ZW50GAEgAygLMhsuU3NvQ2xvdWQuVmFsaWRhdGlvbkNvbnRl",
             "bnQiTwovU3NvQ2xvdWRTZXJ2aWNlUHJvdmlkZXJDb25maWd1cmF0aW9uTGlz",
-            "dFJlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQiVwoVQ29u",
+            "dFJlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQidQoVQ29u",
             "ZmlndXJhdGlvbkxpc3RJdGVtEhwKFHNzb1NwQ29uZmlndXJhdGlvbklkGAEg",
-            "ASgEEgwKBG5hbWUYAiABKAkSEgoKaXNTZWxlY3RlZBgDIAEoCCJuCjBTc29D",
-            "bG91ZFNlcnZpY2VQcm92aWRlckNvbmZpZ3VyYXRpb25MaXN0UmVzcG9uc2US",
-            "OgoRY29uZmlndXJhdGlvbkl0ZW0YASADKAsyHy5Tc29DbG91ZC5Db25maWd1",
-            "cmF0aW9uTGlzdEl0ZW0irQEKD1Nzb0Nsb3VkUmVxdWVzdBIZChFtZXNzYWdl",
-            "U2Vzc2lvblVpZBgBIAEoDBIVCg1jbGllbnRWZXJzaW9uGAIgASgJEhAKCGVt",
-            "YmVkZGVkGAMgASgIEgwKBGpzb24YBCABKAgSDAoEZGVzdBgFIAEoCRIUCgxp",
-            "ZHBTZXNzaW9uSWQYBiABKAkSEgoKZm9yY2VMb2dpbhgHIAEoCBIQCgh1c2Vy",
-            "bmFtZRgIIAEoCSLJAQoQU3NvQ2xvdWRSZXNwb25zZRIPCgdjb21tYW5kGAEg",
-            "ASgJEhkKEW1lc3NhZ2VTZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMgASgJ",
-            "EhsKE2VuY3J5cHRlZExvZ2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJOYW1l",
-            "GAUgASgJEhQKDGlkcFNlc3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRTZXNz",
-            "aW9uVG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSJaChJTc29DbG91",
-            "ZExvZ1JlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQSEwoL",
-            "c2VydmljZU5hbWUYAiABKAkSEQoJc2VydmljZUlkGAMgASgNIvYBCg5TYW1s",
-            "UmVsYXlTdGF0ZRIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIQCgh1c2Vy",
-            "bmFtZRgCIAEoCRIQCghlbWJlZGRlZBgDIAEoCBIMCgRqc29uGAQgASgIEg4K",
-            "BmRlc3RJZBgFIAEoDRINCgVrZXlJZBgGIAEoBRI8ChFzdXBwb3J0ZWRMYW5n",
-            "dWFnZRgHIAEoDjIhLkF1dGhlbnRpY2F0aW9uLlN1cHBvcnRlZExhbmd1YWdl",
-            "EhAKCGNoZWNrc3VtGAggASgEEhYKDmlzR2VuZXJhdGVkVWlkGAkgASgIEhAK",
-            "CGRldmljZUlkGAogASgDInEKHlNzb0Nsb3VkTWlncmF0aW9uU3RhdHVzUmVx",
-            "dWVzdBIOCgZub2RlSWQYASABKAQSEgoKZnVsbFN0YXR1cxgCIAEoCBIcChRp",
-            "bmNsdWRlTWlncmF0ZWRVc2VycxgDIAEoCBINCgVsaW1pdBgEIAEoBSLoAgof",
-            "U3NvQ2xvdWRNaWdyYXRpb25TdGF0dXNSZXNwb25zZRIPCgdzdWNjZXNzGAEg",
-            "ASgIEg8KB21lc3NhZ2UYAiABKAkSDgoGbm9kZUlkGAMgASgEEhQKDHNzb0Nv",
-            "bm5lY3RJZBgEIAEoBBIWCg5zc29Db25uZWN0TmFtZRgFIAEoCRIZChFzc29D",
-            "b25uZWN0Q2xvdWRJZBgGIAEoBBIbChNzc29Db25uZWN0Q2xvdWROYW1lGAcg",
-            "ASgJEhcKD3RvdGFsVXNlcnNDb3VudBgIIAEoDRIaChJ1c2Vyc01pZ3JhdGVk",
-            "Q291bnQYCSABKA0SOgoNbWlncmF0ZWRVc2VycxgKIAMoCzIjLlNzb0Nsb3Vk",
-            "LlNzb0Nsb3VkTWlncmF0aW9uVXNlckluZm8SPAoPdW5taWdyYXRlZFVzZXJz",
-            "GAsgAygLMiMuU3NvQ2xvdWQuU3NvQ2xvdWRNaWdyYXRpb25Vc2VySW5mbyJg",
-            "ChlTc29DbG91ZE1pZ3JhdGlvblVzZXJJbmZvEg4KBnVzZXJJZBgBIAEoDRIN",
-            "CgVlbWFpbBgCIAEoCRIQCghmdWxsTmFtZRgDIAEoCRISCgppc01pZ3JhdGVk",
-            "GAQgASgIKh0KEEF1dGhQcm90b2NvbFR5cGUSCQoFU0FNTDIQACqAAgoIRGF0",
-            "YVR5cGUSBwoDQU5ZEAASCwoHQk9PTEVBThABEgsKB0lOVEVHRVIQAhIKCgZT",
-            "VFJJTkcQAxIJCgVCWVRFUxAEEgcKA1VSTBAFEi4KKmNvbV9rZWVwZXJzZWN1",
-            "cml0eV9wcm90b19Tc29DbG91ZF9EYXRhVHlwZRAGEjYKMmNvbV9rZWVwZXJz",
-            "ZWN1cml0eV9wcm90b19Tc29DbG91ZF9BdXRoUHJvdG9jb2xUeXBlEAcSMAos",
-            "Y29tX2tlZXBlcnNlY3VyaXR5X3Byb3RvX1Nzb0Nsb3VkX1Nzb0lkcFR5cGUQ",
-            "CBIICgRMT05HEAkSDQoJVElNRVNUQU1QEAoqUgocU3NvQ2xvdWRTZXR0aW5n",
-            "T3BlcmF0aW9uVHlwZRIHCgNTRVQQABIHCgNHRVQQARIKCgZERUxFVEUQAhIU",
-            "ChBSRVNFVF9UT19ERUZBVUxUEAMqggEKClNzb0lkcFR5cGUSDQoJWFhfVU5V",
-            "U0VEEAASCwoHR0VORVJJQxABEgYKAkY1EAISCgoGR09PR0xFEAMSCAoET0tU",
-            "QRAEEggKBEFERlMQBRIJCgVBWlVSRRAGEgwKCE9ORUxPR0lOEAcSCAoEUElO",
-            "RxAIEg0KCUpVTVBDTE9VRBAJQiQKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90",
-            "b0IIU3NvQ2xvdWRiBnByb3RvMw=="));
+            "ASgEEgwKBG5hbWUYAiABKAkSEgoKaXNTZWxlY3RlZBgDIAEoCBIcChRzc29T",
+            "ZXJ2aWNlUHJvdmlkZXJJZBgEIAMoBCJuCjBTc29DbG91ZFNlcnZpY2VQcm92",
+            "aWRlckNvbmZpZ3VyYXRpb25MaXN0UmVzcG9uc2USOgoRY29uZmlndXJhdGlv",
+            "bkl0ZW0YASADKAsyHy5Tc29DbG91ZC5Db25maWd1cmF0aW9uTGlzdEl0ZW0i",
+            "rQEKD1Nzb0Nsb3VkUmVxdWVzdBIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEo",
+            "DBIVCg1jbGllbnRWZXJzaW9uGAIgASgJEhAKCGVtYmVkZGVkGAMgASgIEgwK",
+            "BGpzb24YBCABKAgSDAoEZGVzdBgFIAEoCRIUCgxpZHBTZXNzaW9uSWQYBiAB",
+            "KAkSEgoKZm9yY2VMb2dpbhgHIAEoCBIQCgh1c2VybmFtZRgIIAEoCSLJAQoQ",
+            "U3NvQ2xvdWRSZXNwb25zZRIPCgdjb21tYW5kGAEgASgJEhkKEW1lc3NhZ2VT",
+            "ZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMgASgJEhsKE2VuY3J5cHRlZExv",
+            "Z2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJOYW1lGAUgASgJEhQKDGlkcFNl",
+            "c3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRTZXNzaW9uVG9rZW4YByABKAwS",
+            "EgoKZXJyb3JUb2tlbhgIIAEoCSJaChJTc29DbG91ZExvZ1JlcXVlc3QSHAoU",
+            "c3NvU2VydmljZVByb3ZpZGVySWQYASABKAQSEwoLc2VydmljZU5hbWUYAiAB",
+            "KAkSEQoJc2VydmljZUlkGAMgASgNIvYBCg5TYW1sUmVsYXlTdGF0ZRIZChFt",
+            "ZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIQCgh1c2VybmFtZRgCIAEoCRIQCghl",
+            "bWJlZGRlZBgDIAEoCBIMCgRqc29uGAQgASgIEg4KBmRlc3RJZBgFIAEoDRIN",
+            "CgVrZXlJZBgGIAEoBRI8ChFzdXBwb3J0ZWRMYW5ndWFnZRgHIAEoDjIhLkF1",
+            "dGhlbnRpY2F0aW9uLlN1cHBvcnRlZExhbmd1YWdlEhAKCGNoZWNrc3VtGAgg",
+            "ASgEEhYKDmlzR2VuZXJhdGVkVWlkGAkgASgIEhAKCGRldmljZUlkGAogASgD",
+            "InEKHlNzb0Nsb3VkTWlncmF0aW9uU3RhdHVzUmVxdWVzdBIOCgZub2RlSWQY",
+            "ASABKAQSEgoKZnVsbFN0YXR1cxgCIAEoCBIcChRpbmNsdWRlTWlncmF0ZWRV",
+            "c2VycxgDIAEoCBINCgVsaW1pdBgEIAEoBSLoAgofU3NvQ2xvdWRNaWdyYXRp",
+            "b25TdGF0dXNSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEg8KB21lc3NhZ2UY",
+            "AiABKAkSDgoGbm9kZUlkGAMgASgEEhQKDHNzb0Nvbm5lY3RJZBgEIAEoBBIW",
+            "Cg5zc29Db25uZWN0TmFtZRgFIAEoCRIZChFzc29Db25uZWN0Q2xvdWRJZBgG",
+            "IAEoBBIbChNzc29Db25uZWN0Q2xvdWROYW1lGAcgASgJEhcKD3RvdGFsVXNl",
+            "cnNDb3VudBgIIAEoDRIaChJ1c2Vyc01pZ3JhdGVkQ291bnQYCSABKA0SOgoN",
+            "bWlncmF0ZWRVc2VycxgKIAMoCzIjLlNzb0Nsb3VkLlNzb0Nsb3VkTWlncmF0",
+            "aW9uVXNlckluZm8SPAoPdW5taWdyYXRlZFVzZXJzGAsgAygLMiMuU3NvQ2xv",
+            "dWQuU3NvQ2xvdWRNaWdyYXRpb25Vc2VySW5mbyJgChlTc29DbG91ZE1pZ3Jh",
+            "dGlvblVzZXJJbmZvEg4KBnVzZXJJZBgBIAEoDRINCgVlbWFpbBgCIAEoCRIQ",
+            "CghmdWxsTmFtZRgDIAEoCRISCgppc01pZ3JhdGVkGAQgASgIKh0KEEF1dGhQ",
+            "cm90b2NvbFR5cGUSCQoFU0FNTDIQACqAAgoIRGF0YVR5cGUSBwoDQU5ZEAAS",
+            "CwoHQk9PTEVBThABEgsKB0lOVEVHRVIQAhIKCgZTVFJJTkcQAxIJCgVCWVRF",
+            "UxAEEgcKA1VSTBAFEi4KKmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29D",
+            "bG91ZF9EYXRhVHlwZRAGEjYKMmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19T",
+            "c29DbG91ZF9BdXRoUHJvdG9jb2xUeXBlEAcSMAosY29tX2tlZXBlcnNlY3Vy",
+            "aXR5X3Byb3RvX1Nzb0Nsb3VkX1Nzb0lkcFR5cGUQCBIICgRMT05HEAkSDQoJ",
+            "VElNRVNUQU1QEAoqUgocU3NvQ2xvdWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIH",
+            "CgNTRVQQABIHCgNHRVQQARIKCgZERUxFVEUQAhIUChBSRVNFVF9UT19ERUZB",
+            "VUxUEAMqggEKClNzb0lkcFR5cGUSDQoJWFhfVU5VU0VEEAASCwoHR0VORVJJ",
+            "QxABEgYKAkY1EAISCgoGR09PR0xFEAMSCAoET0tUQRAEEggKBEFERlMQBRIJ",
+            "CgVBWlVSRRAGEgwKCE9ORUxPR0lOEAcSCAoEUElORxAIEg0KCUpVTVBDTE9V",
+            "RBAJQiQKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IIU3NvQ2xvdWRiBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::SsoCloud.AuthProtocolType), typeof(global::SsoCloud.DataType), typeof(global::SsoCloud.SsoCloudSettingOperationType), typeof(global::SsoCloud.SsoIdpType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -131,7 +132,7 @@ namespace SsoCloud {
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.ValidationContent), global::SsoCloud.ValidationContent.Parser, new[]{ "SsoSpConfigurationId", "IsSuccessful", "ErrorMessage" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudConfigurationValidationResponse), global::SsoCloud.SsoCloudConfigurationValidationResponse.Parser, new[]{ "ValidationContent" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudServiceProviderConfigurationListRequest), global::SsoCloud.SsoCloudServiceProviderConfigurationListRequest.Parser, new[]{ "SsoServiceProviderId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.ConfigurationListItem), global::SsoCloud.ConfigurationListItem.Parser, new[]{ "SsoSpConfigurationId", "Name", "IsSelected" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.ConfigurationListItem), global::SsoCloud.ConfigurationListItem.Parser, new[]{ "SsoSpConfigurationId", "Name", "IsSelected", "SsoServiceProviderId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudServiceProviderConfigurationListResponse), global::SsoCloud.SsoCloudServiceProviderConfigurationListResponse.Parser, new[]{ "ConfigurationItem" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudRequest), global::SsoCloud.SsoCloudRequest.Parser, new[]{ "MessageSessionUid", "ClientVersion", "Embedded", "Json", "Dest", "IdpSessionId", "ForceLogin", "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudResponse), global::SsoCloud.SsoCloudResponse.Parser, new[]{ "Command", "MessageSessionUid", "Email", "EncryptedLoginToken", "ProviderName", "IdpSessionId", "EncryptedSessionToken", "ErrorToken" }, null, null, null, null),
@@ -223,31 +224,23 @@ namespace SsoCloud {
   /// <summary>
   ///* This is the value of a Configuration setting 
   /// </summary>
-  public sealed partial class SsoCloudSettingValue : pb::IMessage<SsoCloudSettingValue>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudSettingValue : pb::IMessage<SsoCloudSettingValue> {
     private static readonly pb::MessageParser<SsoCloudSettingValue> _parser = new pb::MessageParser<SsoCloudSettingValue>(() => new SsoCloudSettingValue());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudSettingValue> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSettingValue() {
       OnConstruction();
     }
@@ -255,7 +248,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSettingValue(SsoCloudSettingValue other) : this() {
       settingId_ = other.settingId_;
       settingName_ = other.settingName_;
@@ -270,7 +262,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSettingValue Clone() {
       return new SsoCloudSettingValue(this);
     }
@@ -282,7 +273,6 @@ namespace SsoCloud {
     /// The sso_cloud_setting_value_id
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SettingId {
       get { return settingId_; }
       set {
@@ -297,7 +287,6 @@ namespace SsoCloud {
     /// A string such as sso_signing_key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SettingName {
       get { return settingName_; }
       set {
@@ -312,7 +301,6 @@ namespace SsoCloud {
     /// A translated label; the name of the setting
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Label {
       get { return label_; }
       set {
@@ -327,7 +315,6 @@ namespace SsoCloud {
     /// The value of the setting, as a string
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -339,7 +326,6 @@ namespace SsoCloud {
     public const int ValueTypeFieldNumber = 5;
     private global::SsoCloud.DataType valueType_ = global::SsoCloud.DataType.Any;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::SsoCloud.DataType ValueType {
       get { return valueType_; }
       set {
@@ -354,7 +340,6 @@ namespace SsoCloud {
     /// Will be formatted for the Locale
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string LastModified {
       get { return lastModified_; }
       set {
@@ -366,7 +351,6 @@ namespace SsoCloud {
     public const int IsFromFileFieldNumber = 8;
     private bool isFromFile_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsFromFile {
       get { return isFromFile_; }
       set {
@@ -378,7 +362,6 @@ namespace SsoCloud {
     public const int IsEditableFieldNumber = 9;
     private bool isEditable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsEditable {
       get { return isEditable_; }
       set {
@@ -390,7 +373,6 @@ namespace SsoCloud {
     public const int IsRequiredFieldNumber = 10;
     private bool isRequired_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsRequired {
       get { return isRequired_; }
       set {
@@ -399,13 +381,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudSettingValue);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudSettingValue other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -426,7 +406,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SettingId != 0UL) hash ^= SettingId.GetHashCode();
@@ -445,17 +424,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SettingId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SettingId);
@@ -495,57 +469,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SettingId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SettingId);
-      }
-      if (SettingName.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(SettingName);
-      }
-      if (Label.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Label);
-      }
-      if (Value.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Value);
-      }
-      if (ValueType != global::SsoCloud.DataType.Any) {
-        output.WriteRawTag(40);
-        output.WriteEnum((int) ValueType);
-      }
-      if (LastModified.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteString(LastModified);
-      }
-      if (IsFromFile != false) {
-        output.WriteRawTag(64);
-        output.WriteBool(IsFromFile);
-      }
-      if (IsEditable != false) {
-        output.WriteRawTag(72);
-        output.WriteBool(IsEditable);
-      }
-      if (IsRequired != false) {
-        output.WriteRawTag(80);
-        output.WriteBool(IsRequired);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SettingId != 0UL) {
@@ -582,7 +508,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudSettingValue other) {
       if (other == null) {
         return;
@@ -618,11 +543,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -667,90 +588,30 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SettingId = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            SettingName = input.ReadString();
-            break;
-          }
-          case 26: {
-            Label = input.ReadString();
-            break;
-          }
-          case 34: {
-            Value = input.ReadString();
-            break;
-          }
-          case 40: {
-            ValueType = (global::SsoCloud.DataType) input.ReadEnum();
-            break;
-          }
-          case 58: {
-            LastModified = input.ReadString();
-            break;
-          }
-          case 64: {
-            IsFromFile = input.ReadBool();
-            break;
-          }
-          case 72: {
-            IsEditable = input.ReadBool();
-            break;
-          }
-          case 80: {
-            IsRequired = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///* This performs an edit operation on a Configuration setting 
   /// </summary>
-  public sealed partial class SsoCloudSettingAction : pb::IMessage<SsoCloudSettingAction>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudSettingAction : pb::IMessage<SsoCloudSettingAction> {
     private static readonly pb::MessageParser<SsoCloudSettingAction> _parser = new pb::MessageParser<SsoCloudSettingAction>(() => new SsoCloudSettingAction());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudSettingAction> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSettingAction() {
       OnConstruction();
     }
@@ -758,7 +619,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSettingAction(SsoCloudSettingAction other) : this() {
       settingId_ = other.settingId_;
       settingName_ = other.settingName_;
@@ -768,7 +628,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSettingAction Clone() {
       return new SsoCloudSettingAction(this);
     }
@@ -780,7 +639,6 @@ namespace SsoCloud {
     /// The sso_cloud_setting_value_id to modify.  You can use settingId or settingName to identify a value.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SettingId {
       get { return settingId_; }
       set {
@@ -795,7 +653,6 @@ namespace SsoCloud {
     /// A string-based ID such as sso_signing_key that alternatively identifies the setting to change.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SettingName {
       get { return settingName_; }
       set {
@@ -810,7 +667,6 @@ namespace SsoCloud {
     /// Set, Reset to Default, etc.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::SsoCloud.SsoCloudSettingOperationType Operation {
       get { return operation_; }
       set {
@@ -825,7 +681,6 @@ namespace SsoCloud {
     /// The value of the setting, as a string.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -834,13 +689,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudSettingAction);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudSettingAction other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -856,7 +709,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SettingId != 0UL) hash ^= SettingId.GetHashCode();
@@ -870,17 +722,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SettingId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SettingId);
@@ -900,37 +747,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SettingId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SettingId);
-      }
-      if (SettingName.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(SettingName);
-      }
-      if (Operation != global::SsoCloud.SsoCloudSettingOperationType.Set) {
-        output.WriteRawTag(24);
-        output.WriteEnum((int) Operation);
-      }
-      if (Value.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Value);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SettingId != 0UL) {
@@ -952,7 +771,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudSettingAction other) {
       if (other == null) {
         return;
@@ -973,11 +791,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1002,70 +816,30 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SettingId = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            SettingName = input.ReadString();
-            break;
-          }
-          case 24: {
-            Operation = (global::SsoCloud.SsoCloudSettingOperationType) input.ReadEnum();
-            break;
-          }
-          case 34: {
-            Value = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///* Requesting the value of or a change to an SSO Configuration 
   /// </summary>
-  public sealed partial class SsoCloudConfigurationRequest : pb::IMessage<SsoCloudConfigurationRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudConfigurationRequest : pb::IMessage<SsoCloudConfigurationRequest> {
     private static readonly pb::MessageParser<SsoCloudConfigurationRequest> _parser = new pb::MessageParser<SsoCloudConfigurationRequest>(() => new SsoCloudConfigurationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudConfigurationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationRequest() {
       OnConstruction();
     }
@@ -1073,7 +847,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationRequest(SsoCloudConfigurationRequest other) : this() {
       ssoServiceProviderId_ = other.ssoServiceProviderId_;
       ssoSpConfigurationId_ = other.ssoSpConfigurationId_;
@@ -1084,7 +857,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationRequest Clone() {
       return new SsoCloudConfigurationRequest(this);
     }
@@ -1093,7 +865,6 @@ namespace SsoCloud {
     public const int SsoServiceProviderIdFieldNumber = 1;
     private ulong ssoServiceProviderId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoServiceProviderId {
       get { return ssoServiceProviderId_; }
       set {
@@ -1105,7 +876,6 @@ namespace SsoCloud {
     public const int SsoSpConfigurationIdFieldNumber = 2;
     private ulong ssoSpConfigurationId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoSpConfigurationId {
       get { return ssoSpConfigurationId_; }
       set {
@@ -1120,7 +890,6 @@ namespace SsoCloud {
     /// Name of the configuration
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -1132,7 +901,6 @@ namespace SsoCloud {
     public const int SsoAuthProtocolTypeFieldNumber = 4;
     private global::SsoCloud.AuthProtocolType ssoAuthProtocolType_ = global::SsoCloud.AuthProtocolType.Saml2;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::SsoCloud.AuthProtocolType SsoAuthProtocolType {
       get { return ssoAuthProtocolType_; }
       set {
@@ -1146,19 +914,16 @@ namespace SsoCloud {
         = pb::FieldCodec.ForMessage(42, global::SsoCloud.SsoCloudSettingAction.Parser);
     private readonly pbc::RepeatedField<global::SsoCloud.SsoCloudSettingAction> ssoCloudSettingAction_ = new pbc::RepeatedField<global::SsoCloud.SsoCloudSettingAction>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::SsoCloud.SsoCloudSettingAction> SsoCloudSettingAction {
       get { return ssoCloudSettingAction_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudConfigurationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudConfigurationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1175,7 +940,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
@@ -1190,17 +954,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoServiceProviderId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoServiceProviderId);
@@ -1221,38 +980,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoServiceProviderId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoServiceProviderId);
-      }
-      if (SsoSpConfigurationId != 0UL) {
-        output.WriteRawTag(16);
-        output.WriteUInt64(SsoSpConfigurationId);
-      }
-      if (Name.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Name);
-      }
-      if (SsoAuthProtocolType != global::SsoCloud.AuthProtocolType.Saml2) {
-        output.WriteRawTag(32);
-        output.WriteEnum((int) SsoAuthProtocolType);
-      }
-      ssoCloudSettingAction_.WriteTo(ref output, _repeated_ssoCloudSettingAction_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoServiceProviderId != 0UL) {
@@ -1275,7 +1005,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudConfigurationRequest other) {
       if (other == null) {
         return;
@@ -1297,11 +1026,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1330,74 +1055,30 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoServiceProviderId = input.ReadUInt64();
-            break;
-          }
-          case 16: {
-            SsoSpConfigurationId = input.ReadUInt64();
-            break;
-          }
-          case 26: {
-            Name = input.ReadString();
-            break;
-          }
-          case 32: {
-            SsoAuthProtocolType = (global::SsoCloud.AuthProtocolType) input.ReadEnum();
-            break;
-          }
-          case 42: {
-            ssoCloudSettingAction_.AddEntriesFrom(ref input, _repeated_ssoCloudSettingAction_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///* This is the response to an SsoConfigurationRequest 
   /// </summary>
-  public sealed partial class SsoCloudConfigurationResponse : pb::IMessage<SsoCloudConfigurationResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudConfigurationResponse : pb::IMessage<SsoCloudConfigurationResponse> {
     private static readonly pb::MessageParser<SsoCloudConfigurationResponse> _parser = new pb::MessageParser<SsoCloudConfigurationResponse>(() => new SsoCloudConfigurationResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudConfigurationResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationResponse() {
       OnConstruction();
     }
@@ -1405,7 +1086,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationResponse(SsoCloudConfigurationResponse other) : this() {
       ssoServiceProviderId_ = other.ssoServiceProviderId_;
       ssoSpConfigurationId_ = other.ssoSpConfigurationId_;
@@ -1418,7 +1098,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationResponse Clone() {
       return new SsoCloudConfigurationResponse(this);
     }
@@ -1427,7 +1106,6 @@ namespace SsoCloud {
     public const int SsoServiceProviderIdFieldNumber = 1;
     private ulong ssoServiceProviderId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoServiceProviderId {
       get { return ssoServiceProviderId_; }
       set {
@@ -1439,7 +1117,6 @@ namespace SsoCloud {
     public const int SsoSpConfigurationIdFieldNumber = 2;
     private ulong ssoSpConfigurationId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoSpConfigurationId {
       get { return ssoSpConfigurationId_; }
       set {
@@ -1451,7 +1128,6 @@ namespace SsoCloud {
     public const int EnterpriseIdFieldNumber = 3;
     private ulong enterpriseId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong EnterpriseId {
       get { return enterpriseId_; }
       set {
@@ -1466,7 +1142,6 @@ namespace SsoCloud {
     /// Name of the configuration
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -1481,7 +1156,6 @@ namespace SsoCloud {
     /// For now, will always be SAML2
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Protocol {
       get { return protocol_; }
       set {
@@ -1496,7 +1170,6 @@ namespace SsoCloud {
     /// Will be formatted for the Locale
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string LastModified {
       get { return lastModified_; }
       set {
@@ -1510,19 +1183,16 @@ namespace SsoCloud {
         = pb::FieldCodec.ForMessage(58, global::SsoCloud.SsoCloudSettingValue.Parser);
     private readonly pbc::RepeatedField<global::SsoCloud.SsoCloudSettingValue> ssoCloudSettingValue_ = new pbc::RepeatedField<global::SsoCloud.SsoCloudSettingValue>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::SsoCloud.SsoCloudSettingValue> SsoCloudSettingValue {
       get { return ssoCloudSettingValue_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudConfigurationResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudConfigurationResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1541,7 +1211,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
@@ -1558,17 +1227,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoServiceProviderId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoServiceProviderId);
@@ -1597,46 +1261,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoServiceProviderId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoServiceProviderId);
-      }
-      if (SsoSpConfigurationId != 0UL) {
-        output.WriteRawTag(16);
-        output.WriteUInt64(SsoSpConfigurationId);
-      }
-      if (EnterpriseId != 0UL) {
-        output.WriteRawTag(24);
-        output.WriteUInt64(EnterpriseId);
-      }
-      if (Name.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Name);
-      }
-      if (Protocol.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(Protocol);
-      }
-      if (LastModified.Length != 0) {
-        output.WriteRawTag(50);
-        output.WriteString(LastModified);
-      }
-      ssoCloudSettingValue_.WriteTo(ref output, _repeated_ssoCloudSettingValue_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoServiceProviderId != 0UL) {
@@ -1665,7 +1292,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudConfigurationResponse other) {
       if (other == null) {
         return;
@@ -1693,11 +1319,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1734,82 +1356,30 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoServiceProviderId = input.ReadUInt64();
-            break;
-          }
-          case 16: {
-            SsoSpConfigurationId = input.ReadUInt64();
-            break;
-          }
-          case 24: {
-            EnterpriseId = input.ReadUInt64();
-            break;
-          }
-          case 34: {
-            Name = input.ReadString();
-            break;
-          }
-          case 42: {
-            Protocol = input.ReadString();
-            break;
-          }
-          case 50: {
-            LastModified = input.ReadString();
-            break;
-          }
-          case 58: {
-            ssoCloudSettingValue_.AddEntriesFrom(ref input, _repeated_ssoCloudSettingValue_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///* This is a request to the IdpType API. 
   /// </summary>
-  public sealed partial class SsoIdpTypeRequest : pb::IMessage<SsoIdpTypeRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoIdpTypeRequest : pb::IMessage<SsoIdpTypeRequest> {
     private static readonly pb::MessageParser<SsoIdpTypeRequest> _parser = new pb::MessageParser<SsoIdpTypeRequest>(() => new SsoIdpTypeRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoIdpTypeRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoIdpTypeRequest() {
       OnConstruction();
     }
@@ -1817,7 +1387,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoIdpTypeRequest(SsoIdpTypeRequest other) : this() {
       ssoIdpTypeId_ = other.ssoIdpTypeId_;
       tag_ = other.tag_;
@@ -1826,7 +1395,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoIdpTypeRequest Clone() {
       return new SsoIdpTypeRequest(this);
     }
@@ -1838,7 +1406,6 @@ namespace SsoCloud {
     /// The caller can use the ID or the tag to identify the IdpType to operate on.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public uint SsoIdpTypeId {
       get { return ssoIdpTypeId_; }
       set {
@@ -1853,7 +1420,6 @@ namespace SsoCloud {
     /// If both are specified, the ID takes precedence
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Tag {
       get { return tag_; }
       set {
@@ -1868,7 +1434,6 @@ namespace SsoCloud {
     /// Used when adding a new IdPType or renaming one.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Label {
       get { return label_; }
       set {
@@ -1877,13 +1442,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoIdpTypeRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoIdpTypeRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1898,7 +1461,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoIdpTypeId != 0) hash ^= SsoIdpTypeId.GetHashCode();
@@ -1911,17 +1473,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoIdpTypeId != 0) {
         output.WriteRawTag(8);
         output.WriteUInt32(SsoIdpTypeId);
@@ -1937,33 +1494,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoIdpTypeId != 0) {
-        output.WriteRawTag(8);
-        output.WriteUInt32(SsoIdpTypeId);
-      }
-      if (Tag.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Tag);
-      }
-      if (Label.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Label);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoIdpTypeId != 0) {
@@ -1982,7 +1515,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoIdpTypeRequest other) {
       if (other == null) {
         return;
@@ -2000,11 +1532,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2025,66 +1553,30 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoIdpTypeId = input.ReadUInt32();
-            break;
-          }
-          case 18: {
-            Tag = input.ReadString();
-            break;
-          }
-          case 26: {
-            Label = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///* This is a response from the IdpType API calls. 
   /// </summary>
-  public sealed partial class SsoIdpTypeResponse : pb::IMessage<SsoIdpTypeResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoIdpTypeResponse : pb::IMessage<SsoIdpTypeResponse> {
     private static readonly pb::MessageParser<SsoIdpTypeResponse> _parser = new pb::MessageParser<SsoIdpTypeResponse>(() => new SsoIdpTypeResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoIdpTypeResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoIdpTypeResponse() {
       OnConstruction();
     }
@@ -2092,7 +1584,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoIdpTypeResponse(SsoIdpTypeResponse other) : this() {
       ssoIdpTypeId_ = other.ssoIdpTypeId_;
       tag_ = other.tag_;
@@ -2101,7 +1592,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoIdpTypeResponse Clone() {
       return new SsoIdpTypeResponse(this);
     }
@@ -2113,7 +1603,6 @@ namespace SsoCloud {
     /// unique ID
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int SsoIdpTypeId {
       get { return ssoIdpTypeId_; }
       set {
@@ -2128,7 +1617,6 @@ namespace SsoCloud {
     /// Internal tag
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Tag {
       get { return tag_; }
       set {
@@ -2143,7 +1631,6 @@ namespace SsoCloud {
     /// User-friendly display name
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Label {
       get { return label_; }
       set {
@@ -2152,13 +1639,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoIdpTypeResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoIdpTypeResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2173,7 +1658,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoIdpTypeId != 0) hash ^= SsoIdpTypeId.GetHashCode();
@@ -2186,17 +1670,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoIdpTypeId != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(SsoIdpTypeId);
@@ -2212,33 +1691,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoIdpTypeId != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(SsoIdpTypeId);
-      }
-      if (Tag != 0) {
-        output.WriteRawTag(16);
-        output.WriteInt32(Tag);
-      }
-      if (Label != 0) {
-        output.WriteRawTag(24);
-        output.WriteInt32(Label);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoIdpTypeId != 0) {
@@ -2257,7 +1712,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoIdpTypeResponse other) {
       if (other == null) {
         return;
@@ -2275,11 +1729,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2300,66 +1750,30 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoIdpTypeId = input.ReadInt32();
-            break;
-          }
-          case 16: {
-            Tag = input.ReadInt32();
-            break;
-          }
-          case 24: {
-            Label = input.ReadInt32();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///* This is the request for the SAML logs of a service provider.  Used for both saml_log_get and saml_log_clear  
   /// </summary>
-  public sealed partial class SsoCloudSAMLLogRequest : pb::IMessage<SsoCloudSAMLLogRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudSAMLLogRequest : pb::IMessage<SsoCloudSAMLLogRequest> {
     private static readonly pb::MessageParser<SsoCloudSAMLLogRequest> _parser = new pb::MessageParser<SsoCloudSAMLLogRequest>(() => new SsoCloudSAMLLogRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudSAMLLogRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogRequest() {
       OnConstruction();
     }
@@ -2367,14 +1781,12 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogRequest(SsoCloudSAMLLogRequest other) : this() {
       ssoServiceProviderId_ = other.ssoServiceProviderId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogRequest Clone() {
       return new SsoCloudSAMLLogRequest(this);
     }
@@ -2383,7 +1795,6 @@ namespace SsoCloud {
     public const int SsoServiceProviderIdFieldNumber = 1;
     private ulong ssoServiceProviderId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoServiceProviderId {
       get { return ssoServiceProviderId_; }
       set {
@@ -2392,13 +1803,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudSAMLLogRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudSAMLLogRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2411,7 +1820,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
@@ -2422,17 +1830,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoServiceProviderId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoServiceProviderId);
@@ -2440,25 +1843,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoServiceProviderId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoServiceProviderId);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoServiceProviderId != 0UL) {
@@ -2471,7 +1858,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudSAMLLogRequest other) {
       if (other == null) {
         return;
@@ -2483,11 +1869,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2500,58 +1882,30 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoServiceProviderId = input.ReadUInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///* This represents one SAML message in the log. 
   /// </summary>
-  public sealed partial class SsoCloudSAMLLogEntry : pb::IMessage<SsoCloudSAMLLogEntry>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudSAMLLogEntry : pb::IMessage<SsoCloudSAMLLogEntry> {
     private static readonly pb::MessageParser<SsoCloudSAMLLogEntry> _parser = new pb::MessageParser<SsoCloudSAMLLogEntry>(() => new SsoCloudSAMLLogEntry());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudSAMLLogEntry> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogEntry() {
       OnConstruction();
     }
@@ -2559,7 +1913,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogEntry(SsoCloudSAMLLogEntry other) : this() {
       serverTime_ = other.serverTime_;
       direction_ = other.direction_;
@@ -2575,7 +1928,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogEntry Clone() {
       return new SsoCloudSAMLLogEntry(this);
     }
@@ -2584,7 +1936,6 @@ namespace SsoCloud {
     public const int ServerTimeFieldNumber = 1;
     private string serverTime_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ServerTime {
       get { return serverTime_; }
       set {
@@ -2596,7 +1947,6 @@ namespace SsoCloud {
     public const int DirectionFieldNumber = 2;
     private string direction_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Direction {
       get { return direction_; }
       set {
@@ -2608,7 +1958,6 @@ namespace SsoCloud {
     public const int MessageTypeFieldNumber = 3;
     private string messageType_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string MessageType {
       get { return messageType_; }
       set {
@@ -2620,7 +1969,6 @@ namespace SsoCloud {
     public const int MessageIssuedFieldNumber = 4;
     private string messageIssued_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string MessageIssued {
       get { return messageIssued_; }
       set {
@@ -2632,7 +1980,6 @@ namespace SsoCloud {
     public const int FromEntityIdFieldNumber = 5;
     private string fromEntityId_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string FromEntityId {
       get { return fromEntityId_; }
       set {
@@ -2644,7 +1991,6 @@ namespace SsoCloud {
     public const int SamlStatusFieldNumber = 6;
     private string samlStatus_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SamlStatus {
       get { return samlStatus_; }
       set {
@@ -2656,7 +2002,6 @@ namespace SsoCloud {
     public const int RelayStateFieldNumber = 7;
     private string relayState_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string RelayState {
       get { return relayState_; }
       set {
@@ -2668,7 +2013,6 @@ namespace SsoCloud {
     public const int SamlContentFieldNumber = 8;
     private string samlContent_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SamlContent {
       get { return samlContent_; }
       set {
@@ -2680,7 +2024,6 @@ namespace SsoCloud {
     public const int IsSignedFieldNumber = 9;
     private bool isSigned_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsSigned {
       get { return isSigned_; }
       set {
@@ -2692,7 +2035,6 @@ namespace SsoCloud {
     public const int IsOKFieldNumber = 10;
     private bool isOK_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsOK {
       get { return isOK_; }
       set {
@@ -2701,13 +2043,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudSAMLLogEntry);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudSAMLLogEntry other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2729,7 +2069,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ServerTime.Length != 0) hash ^= ServerTime.GetHashCode();
@@ -2749,17 +2088,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (ServerTime.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(ServerTime);
@@ -2803,61 +2137,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (ServerTime.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(ServerTime);
-      }
-      if (Direction.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Direction);
-      }
-      if (MessageType.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(MessageType);
-      }
-      if (MessageIssued.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(MessageIssued);
-      }
-      if (FromEntityId.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(FromEntityId);
-      }
-      if (SamlStatus.Length != 0) {
-        output.WriteRawTag(50);
-        output.WriteString(SamlStatus);
-      }
-      if (RelayState.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteString(RelayState);
-      }
-      if (SamlContent.Length != 0) {
-        output.WriteRawTag(66);
-        output.WriteString(SamlContent);
-      }
-      if (IsSigned != false) {
-        output.WriteRawTag(72);
-        output.WriteBool(IsSigned);
-      }
-      if (IsOK != false) {
-        output.WriteRawTag(80);
-        output.WriteBool(IsOK);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ServerTime.Length != 0) {
@@ -2897,7 +2179,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudSAMLLogEntry other) {
       if (other == null) {
         return;
@@ -2936,11 +2217,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2989,94 +2266,30 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            ServerTime = input.ReadString();
-            break;
-          }
-          case 18: {
-            Direction = input.ReadString();
-            break;
-          }
-          case 26: {
-            MessageType = input.ReadString();
-            break;
-          }
-          case 34: {
-            MessageIssued = input.ReadString();
-            break;
-          }
-          case 42: {
-            FromEntityId = input.ReadString();
-            break;
-          }
-          case 50: {
-            SamlStatus = input.ReadString();
-            break;
-          }
-          case 58: {
-            RelayState = input.ReadString();
-            break;
-          }
-          case 66: {
-            SamlContent = input.ReadString();
-            break;
-          }
-          case 72: {
-            IsSigned = input.ReadBool();
-            break;
-          }
-          case 80: {
-            IsOK = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///* This represents an array of SAML responses from the log. 
   /// </summary>
-  public sealed partial class SsoCloudSAMLLogResponse : pb::IMessage<SsoCloudSAMLLogResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudSAMLLogResponse : pb::IMessage<SsoCloudSAMLLogResponse> {
     private static readonly pb::MessageParser<SsoCloudSAMLLogResponse> _parser = new pb::MessageParser<SsoCloudSAMLLogResponse>(() => new SsoCloudSAMLLogResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudSAMLLogResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogResponse() {
       OnConstruction();
     }
@@ -3084,7 +2297,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogResponse(SsoCloudSAMLLogResponse other) : this() {
       ssoServiceProviderId_ = other.ssoServiceProviderId_;
       entry_ = other.entry_.Clone();
@@ -3092,7 +2304,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudSAMLLogResponse Clone() {
       return new SsoCloudSAMLLogResponse(this);
     }
@@ -3101,7 +2312,6 @@ namespace SsoCloud {
     public const int SsoServiceProviderIdFieldNumber = 1;
     private ulong ssoServiceProviderId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoServiceProviderId {
       get { return ssoServiceProviderId_; }
       set {
@@ -3115,19 +2325,16 @@ namespace SsoCloud {
         = pb::FieldCodec.ForMessage(18, global::SsoCloud.SsoCloudSAMLLogEntry.Parser);
     private readonly pbc::RepeatedField<global::SsoCloud.SsoCloudSAMLLogEntry> entry_ = new pbc::RepeatedField<global::SsoCloud.SsoCloudSAMLLogEntry>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::SsoCloud.SsoCloudSAMLLogEntry> Entry {
       get { return entry_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudSAMLLogResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudSAMLLogResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3141,7 +2348,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
@@ -3153,17 +2359,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoServiceProviderId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoServiceProviderId);
@@ -3172,26 +2373,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoServiceProviderId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoServiceProviderId);
-      }
-      entry_.WriteTo(ref output, _repeated_entry_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoServiceProviderId != 0UL) {
@@ -3205,7 +2389,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudSAMLLogResponse other) {
       if (other == null) {
         return;
@@ -3218,11 +2401,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3239,31 +2418,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoServiceProviderId = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            entry_.AddEntriesFrom(ref input, _repeated_entry_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -3272,31 +2427,23 @@ namespace SsoCloud {
   /// This is a request to set the SSO Configuration for an SSO Service Provider, by ID.
   /// The response is an instance of SsoCloudConfigurationRequest.
   /// </summary>
-  public sealed partial class SsoCloudServiceProviderUpdateRequest : pb::IMessage<SsoCloudServiceProviderUpdateRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudServiceProviderUpdateRequest : pb::IMessage<SsoCloudServiceProviderUpdateRequest> {
     private static readonly pb::MessageParser<SsoCloudServiceProviderUpdateRequest> _parser = new pb::MessageParser<SsoCloudServiceProviderUpdateRequest>(() => new SsoCloudServiceProviderUpdateRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudServiceProviderUpdateRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderUpdateRequest() {
       OnConstruction();
     }
@@ -3304,7 +2451,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderUpdateRequest(SsoCloudServiceProviderUpdateRequest other) : this() {
       ssoServiceProviderId_ = other.ssoServiceProviderId_;
       ssoSpConfigurationId_ = other.ssoSpConfigurationId_;
@@ -3312,7 +2458,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderUpdateRequest Clone() {
       return new SsoCloudServiceProviderUpdateRequest(this);
     }
@@ -3321,7 +2466,6 @@ namespace SsoCloud {
     public const int SsoServiceProviderIdFieldNumber = 1;
     private ulong ssoServiceProviderId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoServiceProviderId {
       get { return ssoServiceProviderId_; }
       set {
@@ -3333,7 +2477,6 @@ namespace SsoCloud {
     public const int SsoSpConfigurationIdFieldNumber = 2;
     private ulong ssoSpConfigurationId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoSpConfigurationId {
       get { return ssoSpConfigurationId_; }
       set {
@@ -3342,13 +2485,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudServiceProviderUpdateRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudServiceProviderUpdateRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3362,7 +2503,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
@@ -3374,17 +2514,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoServiceProviderId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoServiceProviderId);
@@ -3396,29 +2531,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoServiceProviderId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoServiceProviderId);
-      }
-      if (SsoSpConfigurationId != 0UL) {
-        output.WriteRawTag(16);
-        output.WriteUInt64(SsoSpConfigurationId);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoServiceProviderId != 0UL) {
@@ -3434,7 +2549,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudServiceProviderUpdateRequest other) {
       if (other == null) {
         return;
@@ -3449,11 +2563,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3470,31 +2580,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoServiceProviderId = input.ReadUInt64();
-            break;
-          }
-          case 16: {
-            SsoSpConfigurationId = input.ReadUInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -3503,31 +2589,23 @@ namespace SsoCloud {
   /// This request is to upload the IdP metadata file as its UTF-8 byte content.
   /// The response is an SsoCloudConfigurationValidationResponse.
   /// </summary>
-  public sealed partial class SsoCloudIdpMetadataRequest : pb::IMessage<SsoCloudIdpMetadataRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudIdpMetadataRequest : pb::IMessage<SsoCloudIdpMetadataRequest> {
     private static readonly pb::MessageParser<SsoCloudIdpMetadataRequest> _parser = new pb::MessageParser<SsoCloudIdpMetadataRequest>(() => new SsoCloudIdpMetadataRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudIdpMetadataRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudIdpMetadataRequest() {
       OnConstruction();
     }
@@ -3535,7 +2613,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudIdpMetadataRequest(SsoCloudIdpMetadataRequest other) : this() {
       ssoSpConfigurationId_ = other.ssoSpConfigurationId_;
       filename_ = other.filename_;
@@ -3544,7 +2621,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudIdpMetadataRequest Clone() {
       return new SsoCloudIdpMetadataRequest(this);
     }
@@ -3553,7 +2629,6 @@ namespace SsoCloud {
     public const int SsoSpConfigurationIdFieldNumber = 1;
     private ulong ssoSpConfigurationId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoSpConfigurationId {
       get { return ssoSpConfigurationId_; }
       set {
@@ -3565,7 +2640,6 @@ namespace SsoCloud {
     public const int FilenameFieldNumber = 2;
     private string filename_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Filename {
       get { return filename_; }
       set {
@@ -3580,7 +2654,6 @@ namespace SsoCloud {
     /// UTF-8 bytes of the file content
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Content {
       get { return content_; }
       set {
@@ -3589,13 +2662,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudIdpMetadataRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudIdpMetadataRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3610,7 +2681,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoSpConfigurationId != 0UL) hash ^= SsoSpConfigurationId.GetHashCode();
@@ -3623,17 +2693,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoSpConfigurationId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoSpConfigurationId);
@@ -3649,33 +2714,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoSpConfigurationId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoSpConfigurationId);
-      }
-      if (Filename.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Filename);
-      }
-      if (Content.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteBytes(Content);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoSpConfigurationId != 0UL) {
@@ -3694,7 +2735,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudIdpMetadataRequest other) {
       if (other == null) {
         return;
@@ -3712,11 +2752,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3737,35 +2773,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoSpConfigurationId = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            Filename = input.ReadString();
-            break;
-          }
-          case 26: {
-            Content = input.ReadBytes();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -3774,31 +2782,23 @@ namespace SsoCloud {
   /// Request validation of one or more SsoCloudConfigurations.
   /// The response is SsoCloudConfigurationValidationResponse.
   /// </summary>
-  public sealed partial class SsoCloudConfigurationValidationRequest : pb::IMessage<SsoCloudConfigurationValidationRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudConfigurationValidationRequest : pb::IMessage<SsoCloudConfigurationValidationRequest> {
     private static readonly pb::MessageParser<SsoCloudConfigurationValidationRequest> _parser = new pb::MessageParser<SsoCloudConfigurationValidationRequest>(() => new SsoCloudConfigurationValidationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudConfigurationValidationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationValidationRequest() {
       OnConstruction();
     }
@@ -3806,14 +2806,12 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationValidationRequest(SsoCloudConfigurationValidationRequest other) : this() {
       ssoSpConfigurationId_ = other.ssoSpConfigurationId_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationValidationRequest Clone() {
       return new SsoCloudConfigurationValidationRequest(this);
     }
@@ -3824,19 +2822,16 @@ namespace SsoCloud {
         = pb::FieldCodec.ForUInt64(10);
     private readonly pbc::RepeatedField<ulong> ssoSpConfigurationId_ = new pbc::RepeatedField<ulong>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<ulong> SsoSpConfigurationId {
       get { return ssoSpConfigurationId_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudConfigurationValidationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudConfigurationValidationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3849,7 +2844,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= ssoSpConfigurationId_.GetHashCode();
@@ -3860,37 +2854,19 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       ssoSpConfigurationId_.WriteTo(output, _repeated_ssoSpConfigurationId_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      ssoSpConfigurationId_.WriteTo(ref output, _repeated_ssoSpConfigurationId_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += ssoSpConfigurationId_.CalculateSize(_repeated_ssoSpConfigurationId_codec);
@@ -3901,7 +2877,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudConfigurationValidationRequest other) {
       if (other == null) {
         return;
@@ -3911,11 +2886,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3929,28 +2900,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10:
-          case 8: {
-            ssoSpConfigurationId_.AddEntriesFrom(ref input, _repeated_ssoSpConfigurationId_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -3958,31 +2908,23 @@ namespace SsoCloud {
   ///*
   /// This is part of SsoCloudConfigurationValidationResponse.
   /// </summary>
-  public sealed partial class ValidationContent : pb::IMessage<ValidationContent>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class ValidationContent : pb::IMessage<ValidationContent> {
     private static readonly pb::MessageParser<ValidationContent> _parser = new pb::MessageParser<ValidationContent>(() => new ValidationContent());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ValidationContent> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidationContent() {
       OnConstruction();
     }
@@ -3990,7 +2932,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidationContent(ValidationContent other) : this() {
       ssoSpConfigurationId_ = other.ssoSpConfigurationId_;
       isSuccessful_ = other.isSuccessful_;
@@ -3999,7 +2940,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidationContent Clone() {
       return new ValidationContent(this);
     }
@@ -4008,7 +2948,6 @@ namespace SsoCloud {
     public const int SsoSpConfigurationIdFieldNumber = 1;
     private ulong ssoSpConfigurationId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoSpConfigurationId {
       get { return ssoSpConfigurationId_; }
       set {
@@ -4020,7 +2959,6 @@ namespace SsoCloud {
     public const int IsSuccessfulFieldNumber = 2;
     private bool isSuccessful_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsSuccessful {
       get { return isSuccessful_; }
       set {
@@ -4037,19 +2975,16 @@ namespace SsoCloud {
     /// will be null or empty if isSuccessful is true
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> ErrorMessage {
       get { return errorMessage_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ValidationContent);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ValidationContent other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4064,7 +2999,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoSpConfigurationId != 0UL) hash ^= SsoSpConfigurationId.GetHashCode();
@@ -4077,17 +3011,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoSpConfigurationId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoSpConfigurationId);
@@ -4100,30 +3029,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoSpConfigurationId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoSpConfigurationId);
-      }
-      if (IsSuccessful != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(IsSuccessful);
-      }
-      errorMessage_.WriteTo(ref output, _repeated_errorMessage_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoSpConfigurationId != 0UL) {
@@ -4140,7 +3048,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ValidationContent other) {
       if (other == null) {
         return;
@@ -4156,11 +3063,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4181,35 +3084,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoSpConfigurationId = input.ReadUInt64();
-            break;
-          }
-          case 16: {
-            IsSuccessful = input.ReadBool();
-            break;
-          }
-          case 26: {
-            errorMessage_.AddEntriesFrom(ref input, _repeated_errorMessage_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -4217,31 +3092,23 @@ namespace SsoCloud {
   ///*
   /// This response is sent for a configuration validation request and for a Metadata upload request.
   /// </summary>
-  public sealed partial class SsoCloudConfigurationValidationResponse : pb::IMessage<SsoCloudConfigurationValidationResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudConfigurationValidationResponse : pb::IMessage<SsoCloudConfigurationValidationResponse> {
     private static readonly pb::MessageParser<SsoCloudConfigurationValidationResponse> _parser = new pb::MessageParser<SsoCloudConfigurationValidationResponse>(() => new SsoCloudConfigurationValidationResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudConfigurationValidationResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationValidationResponse() {
       OnConstruction();
     }
@@ -4249,14 +3116,12 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationValidationResponse(SsoCloudConfigurationValidationResponse other) : this() {
       validationContent_ = other.validationContent_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudConfigurationValidationResponse Clone() {
       return new SsoCloudConfigurationValidationResponse(this);
     }
@@ -4267,19 +3132,16 @@ namespace SsoCloud {
         = pb::FieldCodec.ForMessage(10, global::SsoCloud.ValidationContent.Parser);
     private readonly pbc::RepeatedField<global::SsoCloud.ValidationContent> validationContent_ = new pbc::RepeatedField<global::SsoCloud.ValidationContent>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::SsoCloud.ValidationContent> ValidationContent {
       get { return validationContent_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudConfigurationValidationResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudConfigurationValidationResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4292,7 +3154,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= validationContent_.GetHashCode();
@@ -4303,37 +3164,19 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       validationContent_.WriteTo(output, _repeated_validationContent_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      validationContent_.WriteTo(ref output, _repeated_validationContent_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += validationContent_.CalculateSize(_repeated_validationContent_codec);
@@ -4344,7 +3187,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudConfigurationValidationResponse other) {
       if (other == null) {
         return;
@@ -4354,11 +3196,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4371,59 +3209,31 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            validationContent_.AddEntriesFrom(ref input, _repeated_validationContent_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///*
-  /// This request is sent to retrieve the list of configurations availble to a service provider.
+  /// This request is sent to retrieve the list of configurations defined in an enterprise.
   /// </summary>
-  public sealed partial class SsoCloudServiceProviderConfigurationListRequest : pb::IMessage<SsoCloudServiceProviderConfigurationListRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudServiceProviderConfigurationListRequest : pb::IMessage<SsoCloudServiceProviderConfigurationListRequest> {
     private static readonly pb::MessageParser<SsoCloudServiceProviderConfigurationListRequest> _parser = new pb::MessageParser<SsoCloudServiceProviderConfigurationListRequest>(() => new SsoCloudServiceProviderConfigurationListRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudServiceProviderConfigurationListRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderConfigurationListRequest() {
       OnConstruction();
     }
@@ -4431,14 +3241,12 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderConfigurationListRequest(SsoCloudServiceProviderConfigurationListRequest other) : this() {
       ssoServiceProviderId_ = other.ssoServiceProviderId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderConfigurationListRequest Clone() {
       return new SsoCloudServiceProviderConfigurationListRequest(this);
     }
@@ -4446,8 +3254,10 @@ namespace SsoCloud {
     /// <summary>Field number for the "ssoServiceProviderId" field.</summary>
     public const int SsoServiceProviderIdFieldNumber = 1;
     private ulong ssoServiceProviderId_;
+    /// <summary>
+    /// Not required, may be zero.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoServiceProviderId {
       get { return ssoServiceProviderId_; }
       set {
@@ -4456,13 +3266,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudServiceProviderConfigurationListRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudServiceProviderConfigurationListRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4475,7 +3283,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
@@ -4486,17 +3293,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoServiceProviderId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoServiceProviderId);
@@ -4504,25 +3306,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoServiceProviderId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoServiceProviderId);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoServiceProviderId != 0UL) {
@@ -4535,7 +3321,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudServiceProviderConfigurationListRequest other) {
       if (other == null) {
         return;
@@ -4547,11 +3332,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4564,60 +3345,32 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoServiceProviderId = input.ReadUInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
   /// <summary>
   ///*
   /// This represents one configuration in the list.
-  /// If isSelected is true this configuration is the one currently being used.
+  /// If isSelected is true this configuration is currently being used by the sso service provider(s) listed.
   /// </summary>
-  public sealed partial class ConfigurationListItem : pb::IMessage<ConfigurationListItem>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class ConfigurationListItem : pb::IMessage<ConfigurationListItem> {
     private static readonly pb::MessageParser<ConfigurationListItem> _parser = new pb::MessageParser<ConfigurationListItem>(() => new ConfigurationListItem());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ConfigurationListItem> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ConfigurationListItem() {
       OnConstruction();
     }
@@ -4625,16 +3378,15 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ConfigurationListItem(ConfigurationListItem other) : this() {
       ssoSpConfigurationId_ = other.ssoSpConfigurationId_;
       name_ = other.name_;
       isSelected_ = other.isSelected_;
+      ssoServiceProviderId_ = other.ssoServiceProviderId_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ConfigurationListItem Clone() {
       return new ConfigurationListItem(this);
     }
@@ -4642,8 +3394,10 @@ namespace SsoCloud {
     /// <summary>Field number for the "ssoSpConfigurationId" field.</summary>
     public const int SsoSpConfigurationIdFieldNumber = 1;
     private ulong ssoSpConfigurationId_;
+    /// <summary>
+    /// The ID of the configuration
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoSpConfigurationId {
       get { return ssoSpConfigurationId_; }
       set {
@@ -4654,8 +3408,10 @@ namespace SsoCloud {
     /// <summary>Field number for the "name" field.</summary>
     public const int NameFieldNumber = 2;
     private string name_ = "";
+    /// <summary>
+    /// The name of the configuration
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -4666,8 +3422,10 @@ namespace SsoCloud {
     /// <summary>Field number for the "isSelected" field.</summary>
     public const int IsSelectedFieldNumber = 3;
     private bool isSelected_;
+    /// <summary>
+    /// If true, this configuration is in use
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsSelected {
       get { return isSelected_; }
       set {
@@ -4675,14 +3433,25 @@ namespace SsoCloud {
       }
     }
 
+    /// <summary>Field number for the "ssoServiceProviderId" field.</summary>
+    public const int SsoServiceProviderIdFieldNumber = 4;
+    private static readonly pb::FieldCodec<ulong> _repeated_ssoServiceProviderId_codec
+        = pb::FieldCodec.ForUInt64(34);
+    private readonly pbc::RepeatedField<ulong> ssoServiceProviderId_ = new pbc::RepeatedField<ulong>();
+    /// <summary>
+    /// If the configuration is in use, this is a list of service providers that use it.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<ulong> SsoServiceProviderId {
+      get { return ssoServiceProviderId_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as ConfigurationListItem);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ConfigurationListItem other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4693,16 +3462,17 @@ namespace SsoCloud {
       if (SsoSpConfigurationId != other.SsoSpConfigurationId) return false;
       if (Name != other.Name) return false;
       if (IsSelected != other.IsSelected) return false;
+      if(!ssoServiceProviderId_.Equals(other.ssoServiceProviderId_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoSpConfigurationId != 0UL) hash ^= SsoSpConfigurationId.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       if (IsSelected != false) hash ^= IsSelected.GetHashCode();
+      hash ^= ssoServiceProviderId_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -4710,17 +3480,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoSpConfigurationId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoSpConfigurationId);
@@ -4733,36 +3498,13 @@ namespace SsoCloud {
         output.WriteRawTag(24);
         output.WriteBool(IsSelected);
       }
+      ssoServiceProviderId_.WriteTo(output, _repeated_ssoServiceProviderId_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoSpConfigurationId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoSpConfigurationId);
-      }
-      if (Name.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Name);
-      }
-      if (IsSelected != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(IsSelected);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoSpConfigurationId != 0UL) {
@@ -4774,6 +3516,7 @@ namespace SsoCloud {
       if (IsSelected != false) {
         size += 1 + 1;
       }
+      size += ssoServiceProviderId_.CalculateSize(_repeated_ssoServiceProviderId_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -4781,7 +3524,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ConfigurationListItem other) {
       if (other == null) {
         return;
@@ -4795,15 +3537,12 @@ namespace SsoCloud {
       if (other.IsSelected != false) {
         IsSelected = other.IsSelected;
       }
+      ssoServiceProviderId_.Add(other.ssoServiceProviderId_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4822,37 +3561,14 @@ namespace SsoCloud {
             IsSelected = input.ReadBool();
             break;
           }
-        }
-      }
-    #endif
-    }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoSpConfigurationId = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            Name = input.ReadString();
-            break;
-          }
-          case 24: {
-            IsSelected = input.ReadBool();
+          case 34:
+          case 32: {
+            ssoServiceProviderId_.AddEntriesFrom(input, _repeated_ssoServiceProviderId_codec);
             break;
           }
         }
       }
     }
-    #endif
 
   }
 
@@ -4860,31 +3576,23 @@ namespace SsoCloud {
   ///*
   /// This represents a list of Configuration entries.
   /// </summary>
-  public sealed partial class SsoCloudServiceProviderConfigurationListResponse : pb::IMessage<SsoCloudServiceProviderConfigurationListResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudServiceProviderConfigurationListResponse : pb::IMessage<SsoCloudServiceProviderConfigurationListResponse> {
     private static readonly pb::MessageParser<SsoCloudServiceProviderConfigurationListResponse> _parser = new pb::MessageParser<SsoCloudServiceProviderConfigurationListResponse>(() => new SsoCloudServiceProviderConfigurationListResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudServiceProviderConfigurationListResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderConfigurationListResponse() {
       OnConstruction();
     }
@@ -4892,14 +3600,12 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderConfigurationListResponse(SsoCloudServiceProviderConfigurationListResponse other) : this() {
       configurationItem_ = other.configurationItem_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudServiceProviderConfigurationListResponse Clone() {
       return new SsoCloudServiceProviderConfigurationListResponse(this);
     }
@@ -4909,20 +3615,20 @@ namespace SsoCloud {
     private static readonly pb::FieldCodec<global::SsoCloud.ConfigurationListItem> _repeated_configurationItem_codec
         = pb::FieldCodec.ForMessage(10, global::SsoCloud.ConfigurationListItem.Parser);
     private readonly pbc::RepeatedField<global::SsoCloud.ConfigurationListItem> configurationItem_ = new pbc::RepeatedField<global::SsoCloud.ConfigurationListItem>();
+    /// <summary>
+    /// A list of all of the SSO Cloud configurations in an enterprise
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::SsoCloud.ConfigurationListItem> ConfigurationItem {
       get { return configurationItem_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudServiceProviderConfigurationListResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudServiceProviderConfigurationListResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4935,7 +3641,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= configurationItem_.GetHashCode();
@@ -4946,37 +3651,19 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       configurationItem_.WriteTo(output, _repeated_configurationItem_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      configurationItem_.WriteTo(ref output, _repeated_configurationItem_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += configurationItem_.CalculateSize(_repeated_configurationItem_codec);
@@ -4987,7 +3674,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudServiceProviderConfigurationListResponse other) {
       if (other == null) {
         return;
@@ -4997,11 +3683,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5014,27 +3696,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            configurationItem_.AddEntriesFrom(ref input, _repeated_configurationItem_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -5043,31 +3705,23 @@ namespace SsoCloud {
   /// For security, this structure is used to make a Cloud SSO login or logout request rather than sending the parameters in the URL or in a form.
   /// A typical call is: https://www.keepersecurity.com/api/rest/sso/saml/login/123456789?payload=encodedEncryptedAPIRequestContainingAnSsoCloudRequest
   /// </summary>
-  public sealed partial class SsoCloudRequest : pb::IMessage<SsoCloudRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudRequest : pb::IMessage<SsoCloudRequest> {
     private static readonly pb::MessageParser<SsoCloudRequest> _parser = new pb::MessageParser<SsoCloudRequest>(() => new SsoCloudRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudRequest() {
       OnConstruction();
     }
@@ -5075,7 +3729,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudRequest(SsoCloudRequest other) : this() {
       messageSessionUid_ = other.messageSessionUid_;
       clientVersion_ = other.clientVersion_;
@@ -5089,7 +3742,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudRequest Clone() {
       return new SsoCloudRequest(this);
     }
@@ -5101,7 +3753,6 @@ namespace SsoCloud {
     /// Required, 16 bytes
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -5116,7 +3767,6 @@ namespace SsoCloud {
     /// version id string
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -5131,7 +3781,6 @@ namespace SsoCloud {
     /// If true, the login/logout result is embedded in a web page
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Embedded {
       get { return embedded_; }
       set {
@@ -5146,7 +3795,6 @@ namespace SsoCloud {
     /// If true, the login/logout result is returned as a JSON object
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Json {
       get { return json_; }
       set {
@@ -5161,7 +3809,6 @@ namespace SsoCloud {
     /// redirect to: "vault", "console", or "app.fooo", where the user is redirected to fooo:// (used for mobile)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Dest {
       get { return dest_; }
       set {
@@ -5176,7 +3823,6 @@ namespace SsoCloud {
     /// If this value was provided in an SSO login response, send it when performing a logut request.  Otherwise unused.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string IdpSessionId {
       get { return idpSessionId_; }
       set {
@@ -5191,7 +3837,6 @@ namespace SsoCloud {
     /// On login, whether the user should be forced to re-enter their password even if they have an active session.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool ForceLogin {
       get { return forceLogin_; }
       set {
@@ -5206,7 +3851,6 @@ namespace SsoCloud {
     /// Only used on Logout at this time.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -5215,13 +3859,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5241,7 +3883,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MessageSessionUid.Length != 0) hash ^= MessageSessionUid.GetHashCode();
@@ -5259,17 +3900,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (MessageSessionUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(MessageSessionUid);
@@ -5305,53 +3941,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (MessageSessionUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(MessageSessionUid);
-      }
-      if (ClientVersion.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(ClientVersion);
-      }
-      if (Embedded != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(Embedded);
-      }
-      if (Json != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(Json);
-      }
-      if (Dest.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(Dest);
-      }
-      if (IdpSessionId.Length != 0) {
-        output.WriteRawTag(50);
-        output.WriteString(IdpSessionId);
-      }
-      if (ForceLogin != false) {
-        output.WriteRawTag(56);
-        output.WriteBool(ForceLogin);
-      }
-      if (Username.Length != 0) {
-        output.WriteRawTag(66);
-        output.WriteString(Username);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MessageSessionUid.Length != 0) {
@@ -5385,7 +3977,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudRequest other) {
       if (other == null) {
         return;
@@ -5418,11 +4009,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5463,55 +4050,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            MessageSessionUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            ClientVersion = input.ReadString();
-            break;
-          }
-          case 24: {
-            Embedded = input.ReadBool();
-            break;
-          }
-          case 32: {
-            Json = input.ReadBool();
-            break;
-          }
-          case 42: {
-            Dest = input.ReadString();
-            break;
-          }
-          case 50: {
-            IdpSessionId = input.ReadString();
-            break;
-          }
-          case 56: {
-            ForceLogin = input.ReadBool();
-            break;
-          }
-          case 66: {
-            Username = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -5520,31 +4059,23 @@ namespace SsoCloud {
   /// For security, this structure is used to return values from a Cloud SSO login or logout.
   /// It is encrypted with the key sent along with the SsoCloudRequest.
   /// </summary>
-  public sealed partial class SsoCloudResponse : pb::IMessage<SsoCloudResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudResponse : pb::IMessage<SsoCloudResponse> {
     private static readonly pb::MessageParser<SsoCloudResponse> _parser = new pb::MessageParser<SsoCloudResponse>(() => new SsoCloudResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudResponse() {
       OnConstruction();
     }
@@ -5552,7 +4083,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudResponse(SsoCloudResponse other) : this() {
       command_ = other.command_;
       messageSessionUid_ = other.messageSessionUid_;
@@ -5566,7 +4096,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudResponse Clone() {
       return new SsoCloudResponse(this);
     }
@@ -5578,7 +4107,6 @@ namespace SsoCloud {
     /// The value will be "sso_login" or "sso_logout"
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Command {
       get { return command_; }
       set {
@@ -5593,7 +4121,6 @@ namespace SsoCloud {
     /// If available, 16 bytes.  Can not be zeros.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -5608,7 +4135,6 @@ namespace SsoCloud {
     /// The user's email address
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Email {
       get { return email_; }
       set {
@@ -5623,7 +4149,6 @@ namespace SsoCloud {
     /// Login only.  Returned from a successful login.  Send this to start_login.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -5638,7 +4163,6 @@ namespace SsoCloud {
     /// The "domain name" associated with this user.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ProviderName {
       get { return providerName_; }
       set {
@@ -5653,7 +4177,6 @@ namespace SsoCloud {
     /// Some IdPs associate a sessionId with the session.  If present, remember this and send it in the SsoCloudRequest when you logout.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string IdpSessionId {
       get { return idpSessionId_; }
       set {
@@ -5668,7 +4191,6 @@ namespace SsoCloud {
     /// If available.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedSessionToken {
       get { return encryptedSessionToken_; }
       set {
@@ -5683,7 +4205,6 @@ namespace SsoCloud {
     /// If there is an error this is a stringified JSON object.  The "userInstructions" and "errorMessage" fields can be shown to the user.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ErrorToken {
       get { return errorToken_; }
       set {
@@ -5692,13 +4213,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5718,7 +4237,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Command.Length != 0) hash ^= Command.GetHashCode();
@@ -5736,17 +4254,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (Command.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Command);
@@ -5782,53 +4295,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Command.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Command);
-      }
-      if (MessageSessionUid.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(MessageSessionUid);
-      }
-      if (Email.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(Email);
-      }
-      if (EncryptedLoginToken.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteBytes(EncryptedLoginToken);
-      }
-      if (ProviderName.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(ProviderName);
-      }
-      if (IdpSessionId.Length != 0) {
-        output.WriteRawTag(50);
-        output.WriteString(IdpSessionId);
-      }
-      if (EncryptedSessionToken.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteBytes(EncryptedSessionToken);
-      }
-      if (ErrorToken.Length != 0) {
-        output.WriteRawTag(66);
-        output.WriteString(ErrorToken);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Command.Length != 0) {
@@ -5862,7 +4331,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudResponse other) {
       if (other == null) {
         return;
@@ -5895,11 +4363,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5940,55 +4404,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            Command = input.ReadString();
-            break;
-          }
-          case 18: {
-            MessageSessionUid = input.ReadBytes();
-            break;
-          }
-          case 26: {
-            Email = input.ReadString();
-            break;
-          }
-          case 34: {
-            EncryptedLoginToken = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            ProviderName = input.ReadString();
-            break;
-          }
-          case 50: {
-            IdpSessionId = input.ReadString();
-            break;
-          }
-          case 58: {
-            EncryptedSessionToken = input.ReadBytes();
-            break;
-          }
-          case 66: {
-            ErrorToken = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -5996,31 +4412,23 @@ namespace SsoCloud {
   ///*
   /// This allows the user to retrieve or clear SSO logs related to a service provider.
   /// </summary>
-  public sealed partial class SsoCloudLogRequest : pb::IMessage<SsoCloudLogRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudLogRequest : pb::IMessage<SsoCloudLogRequest> {
     private static readonly pb::MessageParser<SsoCloudLogRequest> _parser = new pb::MessageParser<SsoCloudLogRequest>(() => new SsoCloudLogRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudLogRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudLogRequest() {
       OnConstruction();
     }
@@ -6028,7 +4436,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudLogRequest(SsoCloudLogRequest other) : this() {
       ssoServiceProviderId_ = other.ssoServiceProviderId_;
       serviceName_ = other.serviceName_;
@@ -6037,7 +4444,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudLogRequest Clone() {
       return new SsoCloudLogRequest(this);
     }
@@ -6049,7 +4455,6 @@ namespace SsoCloud {
     /// The ID of the service provider
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoServiceProviderId {
       get { return ssoServiceProviderId_; }
       set {
@@ -6064,7 +4469,6 @@ namespace SsoCloud {
     /// Either the service name, such as "Cloud SSO Connect"
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ServiceName {
       get { return serviceName_; }
       set {
@@ -6079,7 +4483,6 @@ namespace SsoCloud {
     /// Or the ID of the service, such as 1.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public uint ServiceId {
       get { return serviceId_; }
       set {
@@ -6088,13 +4491,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudLogRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudLogRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6109,7 +4510,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
@@ -6122,17 +4522,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (SsoServiceProviderId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(SsoServiceProviderId);
@@ -6148,33 +4543,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SsoServiceProviderId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(SsoServiceProviderId);
-      }
-      if (ServiceName.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(ServiceName);
-      }
-      if (ServiceId != 0) {
-        output.WriteRawTag(24);
-        output.WriteUInt32(ServiceId);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SsoServiceProviderId != 0UL) {
@@ -6193,7 +4564,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudLogRequest other) {
       if (other == null) {
         return;
@@ -6211,11 +4581,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6236,35 +4602,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            SsoServiceProviderId = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            ServiceName = input.ReadString();
-            break;
-          }
-          case 24: {
-            ServiceId = input.ReadUInt32();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -6272,31 +4610,23 @@ namespace SsoCloud {
   ///*
   /// This is used internally by Cloud SSO.  Clients do not use it.
   /// </summary>
-  public sealed partial class SamlRelayState : pb::IMessage<SamlRelayState>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SamlRelayState : pb::IMessage<SamlRelayState> {
     private static readonly pb::MessageParser<SamlRelayState> _parser = new pb::MessageParser<SamlRelayState>(() => new SamlRelayState());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SamlRelayState> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SamlRelayState() {
       OnConstruction();
     }
@@ -6304,7 +4634,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SamlRelayState(SamlRelayState other) : this() {
       messageSessionUid_ = other.messageSessionUid_;
       username_ = other.username_;
@@ -6320,7 +4649,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SamlRelayState Clone() {
       return new SamlRelayState(this);
     }
@@ -6332,7 +4660,6 @@ namespace SsoCloud {
     /// Required, 16 bytes
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -6347,7 +4674,6 @@ namespace SsoCloud {
     /// Required for logout
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -6362,7 +4688,6 @@ namespace SsoCloud {
     /// If true, the login/logout result is embedded in a web page
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Embedded {
       get { return embedded_; }
       set {
@@ -6377,7 +4702,6 @@ namespace SsoCloud {
     /// If true, the login/logout result is returned as a JSON object
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Json {
       get { return json_; }
       set {
@@ -6392,7 +4716,6 @@ namespace SsoCloud {
     /// ID of the dest: lookup from the DB on return.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public uint DestId {
       get { return destId_; }
       set {
@@ -6407,7 +4730,6 @@ namespace SsoCloud {
     /// Which transmission key is used
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int KeyId {
       get { return keyId_; }
       set {
@@ -6422,7 +4744,6 @@ namespace SsoCloud {
     /// Passed in by the caller, or defaults to English
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.SupportedLanguage SupportedLanguage {
       get { return supportedLanguage_; }
       set {
@@ -6437,7 +4758,6 @@ namespace SsoCloud {
     /// Used to verify contents after transmission
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong Checksum {
       get { return checksum_; }
       set {
@@ -6452,7 +4772,6 @@ namespace SsoCloud {
     /// Used if the messageSessionUid was generated by Keeper rather than the client
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsGeneratedUid {
       get { return isGeneratedUid_; }
       set {
@@ -6467,7 +4786,6 @@ namespace SsoCloud {
     /// Used to differentiate different login attempts by the same user
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long DeviceId {
       get { return deviceId_; }
       set {
@@ -6476,13 +4794,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SamlRelayState);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SamlRelayState other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6504,7 +4820,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MessageSessionUid.Length != 0) hash ^= MessageSessionUid.GetHashCode();
@@ -6524,17 +4839,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (MessageSessionUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(MessageSessionUid);
@@ -6578,61 +4888,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (MessageSessionUid.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(MessageSessionUid);
-      }
-      if (Username.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Username);
-      }
-      if (Embedded != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(Embedded);
-      }
-      if (Json != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(Json);
-      }
-      if (DestId != 0) {
-        output.WriteRawTag(40);
-        output.WriteUInt32(DestId);
-      }
-      if (KeyId != 0) {
-        output.WriteRawTag(48);
-        output.WriteInt32(KeyId);
-      }
-      if (SupportedLanguage != global::Authentication.SupportedLanguage.English) {
-        output.WriteRawTag(56);
-        output.WriteEnum((int) SupportedLanguage);
-      }
-      if (Checksum != 0UL) {
-        output.WriteRawTag(64);
-        output.WriteUInt64(Checksum);
-      }
-      if (IsGeneratedUid != false) {
-        output.WriteRawTag(72);
-        output.WriteBool(IsGeneratedUid);
-      }
-      if (DeviceId != 0L) {
-        output.WriteRawTag(80);
-        output.WriteInt64(DeviceId);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MessageSessionUid.Length != 0) {
@@ -6672,7 +4930,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SamlRelayState other) {
       if (other == null) {
         return;
@@ -6711,11 +4968,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6764,63 +5017,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            MessageSessionUid = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            Username = input.ReadString();
-            break;
-          }
-          case 24: {
-            Embedded = input.ReadBool();
-            break;
-          }
-          case 32: {
-            Json = input.ReadBool();
-            break;
-          }
-          case 40: {
-            DestId = input.ReadUInt32();
-            break;
-          }
-          case 48: {
-            KeyId = input.ReadInt32();
-            break;
-          }
-          case 56: {
-            SupportedLanguage = (global::Authentication.SupportedLanguage) input.ReadEnum();
-            break;
-          }
-          case 64: {
-            Checksum = input.ReadUInt64();
-            break;
-          }
-          case 72: {
-            IsGeneratedUid = input.ReadBool();
-            break;
-          }
-          case 80: {
-            DeviceId = input.ReadInt64();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -6833,39 +5030,32 @@ namespace SsoCloud {
   ///
   /// Example 1: (nodeId=123, fullStatus=true,  includeMigratedUsers=true,  limit=any).  ALL users, migrated and unmigrated, will be returned.
   /// Example 2: (nodeId=123, fullStatus=true,  includeMigratedUsers=false, limit=any).  ALL unmigrated users will be returned.
-  /// Example 3: (nodeId=123, fullStatus=false, includeMigratedUsers=true,  limit=0).    The first 25 users of each type, migrated and unmigrated, will be returned.
-  /// Example 4: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=0).    The first 25 unmigrated users will be returned.
-  /// Example 5: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=15).   The first 15 unmigrated users will be returned.
-  /// Example 6: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=-1).   Just stats will be returned, no users will be returned.
+  /// Example 3: (nodeId=123, fullStatus=false, includeMigratedUsers=true,  limit=-1).   No users will be returned
+  /// Example 4: (nodeId=123, fullStatus=false, includeMigratedUsers=true,  limit=0).    The first 25 users of each type, migrated and unmigrated, will be returned.
+  /// Example 5: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=0).    The first 25 unmigrated users will be returned.
+  /// Example 6: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=15).   The first 15 unmigrated users will be returned.
+  /// Example 7: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=-1).   Just stats will be returned, no users will be returned.
   ///
   /// @see SsoCloudMigrationStatusResponse
   /// @since MH: 2022-01-11
   /// </summary>
-  public sealed partial class SsoCloudMigrationStatusRequest : pb::IMessage<SsoCloudMigrationStatusRequest>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudMigrationStatusRequest : pb::IMessage<SsoCloudMigrationStatusRequest> {
     private static readonly pb::MessageParser<SsoCloudMigrationStatusRequest> _parser = new pb::MessageParser<SsoCloudMigrationStatusRequest>(() => new SsoCloudMigrationStatusRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudMigrationStatusRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationStatusRequest() {
       OnConstruction();
     }
@@ -6873,7 +5063,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationStatusRequest(SsoCloudMigrationStatusRequest other) : this() {
       nodeId_ = other.nodeId_;
       fullStatus_ = other.fullStatus_;
@@ -6883,7 +5072,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationStatusRequest Clone() {
       return new SsoCloudMigrationStatusRequest(this);
     }
@@ -6895,7 +5083,6 @@ namespace SsoCloud {
     /// Required.  The node being queried.  It should have an SSO migration in process.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong NodeId {
       get { return nodeId_; }
       set {
@@ -6910,7 +5097,6 @@ namespace SsoCloud {
     /// If true, the full status will be returned, including a list of all unmigrated users - beware this could be large!
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool FullStatus {
       get { return fullStatus_; }
       set {
@@ -6925,7 +5111,6 @@ namespace SsoCloud {
     /// If true, the list of migrated users will also be returned. This applies to both regular status and full status.   Default is false.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IncludeMigratedUsers {
       get { return includeMigratedUsers_; }
       set {
@@ -6940,7 +5125,6 @@ namespace SsoCloud {
     /// Return, say, the first 50 migrated and/or unmigrated users. 0 means use the default (25). -1 means don't return any.  Ignored if fullStatus is true.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Limit {
       get { return limit_; }
       set {
@@ -6949,13 +5133,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudMigrationStatusRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudMigrationStatusRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6971,7 +5153,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (NodeId != 0UL) hash ^= NodeId.GetHashCode();
@@ -6985,17 +5166,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (NodeId != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(NodeId);
@@ -7015,37 +5191,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (NodeId != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(NodeId);
-      }
-      if (FullStatus != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(FullStatus);
-      }
-      if (IncludeMigratedUsers != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(IncludeMigratedUsers);
-      }
-      if (Limit != 0) {
-        output.WriteRawTag(32);
-        output.WriteInt32(Limit);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (NodeId != 0UL) {
@@ -7067,7 +5215,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudMigrationStatusRequest other) {
       if (other == null) {
         return;
@@ -7088,11 +5235,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7117,39 +5260,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            NodeId = input.ReadUInt64();
-            break;
-          }
-          case 16: {
-            FullStatus = input.ReadBool();
-            break;
-          }
-          case 24: {
-            IncludeMigratedUsers = input.ReadBool();
-            break;
-          }
-          case 32: {
-            Limit = input.ReadInt32();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -7162,31 +5273,23 @@ namespace SsoCloud {
   /// @see SsoCloudMigrationStatusRequest
   /// @since MH: 2022-01-11
   /// </summary>
-  public sealed partial class SsoCloudMigrationStatusResponse : pb::IMessage<SsoCloudMigrationStatusResponse>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudMigrationStatusResponse : pb::IMessage<SsoCloudMigrationStatusResponse> {
     private static readonly pb::MessageParser<SsoCloudMigrationStatusResponse> _parser = new pb::MessageParser<SsoCloudMigrationStatusResponse>(() => new SsoCloudMigrationStatusResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudMigrationStatusResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationStatusResponse() {
       OnConstruction();
     }
@@ -7194,7 +5297,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationStatusResponse(SsoCloudMigrationStatusResponse other) : this() {
       success_ = other.success_;
       message_ = other.message_;
@@ -7211,7 +5313,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationStatusResponse Clone() {
       return new SsoCloudMigrationStatusResponse(this);
     }
@@ -7223,7 +5324,6 @@ namespace SsoCloud {
     /// If true, the call was successful.  Otherwise check the message field.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Success {
       get { return success_; }
       set {
@@ -7238,7 +5338,6 @@ namespace SsoCloud {
     /// Contains an error message if there was an error.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -7253,7 +5352,6 @@ namespace SsoCloud {
     /// ID of the node being queried.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong NodeId {
       get { return nodeId_; }
       set {
@@ -7268,7 +5366,6 @@ namespace SsoCloud {
     /// ID of the SSO Connect on-premise service provider
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoConnectId {
       get { return ssoConnectId_; }
       set {
@@ -7283,7 +5380,6 @@ namespace SsoCloud {
     /// Name of the SSO Connect on-premise service provider
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SsoConnectName {
       get { return ssoConnectName_; }
       set {
@@ -7298,7 +5394,6 @@ namespace SsoCloud {
     /// ID of the SSO Connect Cloud service provider
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong SsoConnectCloudId {
       get { return ssoConnectCloudId_; }
       set {
@@ -7313,7 +5408,6 @@ namespace SsoCloud {
     /// Name of the SSO Connect Cloud service provider
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SsoConnectCloudName {
       get { return ssoConnectCloudName_; }
       set {
@@ -7328,7 +5422,6 @@ namespace SsoCloud {
     /// The number of users serviced by this node
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public uint TotalUsersCount {
       get { return totalUsersCount_; }
       set {
@@ -7343,7 +5436,6 @@ namespace SsoCloud {
     /// The number of users who have migrated
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public uint UsersMigratedCount {
       get { return usersMigratedCount_; }
       set {
@@ -7360,7 +5452,6 @@ namespace SsoCloud {
     /// The list of migrated users, can be constrained via the limit parameter in the request
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::SsoCloud.SsoCloudMigrationUserInfo> MigratedUsers {
       get { return migratedUsers_; }
     }
@@ -7374,19 +5465,16 @@ namespace SsoCloud {
     /// The list of unmigrated users, can be constrained via the limit parameter in the request
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::SsoCloud.SsoCloudMigrationUserInfo> UnmigratedUsers {
       get { return unmigratedUsers_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudMigrationStatusResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudMigrationStatusResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7409,7 +5497,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Success != false) hash ^= Success.GetHashCode();
@@ -7430,17 +5517,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (Success != false) {
         output.WriteRawTag(8);
         output.WriteBool(Success);
@@ -7482,59 +5564,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Success != false) {
-        output.WriteRawTag(8);
-        output.WriteBool(Success);
-      }
-      if (Message.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Message);
-      }
-      if (NodeId != 0UL) {
-        output.WriteRawTag(24);
-        output.WriteUInt64(NodeId);
-      }
-      if (SsoConnectId != 0UL) {
-        output.WriteRawTag(32);
-        output.WriteUInt64(SsoConnectId);
-      }
-      if (SsoConnectName.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(SsoConnectName);
-      }
-      if (SsoConnectCloudId != 0UL) {
-        output.WriteRawTag(48);
-        output.WriteUInt64(SsoConnectCloudId);
-      }
-      if (SsoConnectCloudName.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteString(SsoConnectCloudName);
-      }
-      if (TotalUsersCount != 0) {
-        output.WriteRawTag(64);
-        output.WriteUInt32(TotalUsersCount);
-      }
-      if (UsersMigratedCount != 0) {
-        output.WriteRawTag(72);
-        output.WriteUInt32(UsersMigratedCount);
-      }
-      migratedUsers_.WriteTo(ref output, _repeated_migratedUsers_codec);
-      unmigratedUsers_.WriteTo(ref output, _repeated_unmigratedUsers_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Success != false) {
@@ -7573,7 +5605,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudMigrationStatusResponse other) {
       if (other == null) {
         return;
@@ -7611,11 +5642,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7668,67 +5695,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            Success = input.ReadBool();
-            break;
-          }
-          case 18: {
-            Message = input.ReadString();
-            break;
-          }
-          case 24: {
-            NodeId = input.ReadUInt64();
-            break;
-          }
-          case 32: {
-            SsoConnectId = input.ReadUInt64();
-            break;
-          }
-          case 42: {
-            SsoConnectName = input.ReadString();
-            break;
-          }
-          case 48: {
-            SsoConnectCloudId = input.ReadUInt64();
-            break;
-          }
-          case 58: {
-            SsoConnectCloudName = input.ReadString();
-            break;
-          }
-          case 64: {
-            TotalUsersCount = input.ReadUInt32();
-            break;
-          }
-          case 72: {
-            UsersMigratedCount = input.ReadUInt32();
-            break;
-          }
-          case 82: {
-            migratedUsers_.AddEntriesFrom(ref input, _repeated_migratedUsers_codec);
-            break;
-          }
-          case 90: {
-            unmigratedUsers_.AddEntriesFrom(ref input, _repeated_unmigratedUsers_codec);
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 
@@ -7736,31 +5703,23 @@ namespace SsoCloud {
   ///*
   /// @since MH: 2022-01-11
   /// </summary>
-  public sealed partial class SsoCloudMigrationUserInfo : pb::IMessage<SsoCloudMigrationUserInfo>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
+  public sealed partial class SsoCloudMigrationUserInfo : pb::IMessage<SsoCloudMigrationUserInfo> {
     private static readonly pb::MessageParser<SsoCloudMigrationUserInfo> _parser = new pb::MessageParser<SsoCloudMigrationUserInfo>(() => new SsoCloudMigrationUserInfo());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoCloudMigrationUserInfo> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationUserInfo() {
       OnConstruction();
     }
@@ -7768,7 +5727,6 @@ namespace SsoCloud {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationUserInfo(SsoCloudMigrationUserInfo other) : this() {
       userId_ = other.userId_;
       email_ = other.email_;
@@ -7778,7 +5736,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoCloudMigrationUserInfo Clone() {
       return new SsoCloudMigrationUserInfo(this);
     }
@@ -7790,7 +5747,6 @@ namespace SsoCloud {
     /// The user ID of the user
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public uint UserId {
       get { return userId_; }
       set {
@@ -7805,7 +5761,6 @@ namespace SsoCloud {
     /// The primary email address of the user
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Email {
       get { return email_; }
       set {
@@ -7820,7 +5775,6 @@ namespace SsoCloud {
     /// The full name of the user
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string FullName {
       get { return fullName_; }
       set {
@@ -7835,7 +5789,6 @@ namespace SsoCloud {
     /// Whether the user has migrated to SSO Cloud
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsMigrated {
       get { return isMigrated_; }
       set {
@@ -7844,13 +5797,11 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudMigrationUserInfo);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoCloudMigrationUserInfo other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7866,7 +5817,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (UserId != 0) hash ^= UserId.GetHashCode();
@@ -7880,17 +5830,12 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
       if (UserId != 0) {
         output.WriteRawTag(8);
         output.WriteUInt32(UserId);
@@ -7910,37 +5855,9 @@ namespace SsoCloud {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
-    #endif
     }
 
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (UserId != 0) {
-        output.WriteRawTag(8);
-        output.WriteUInt32(UserId);
-      }
-      if (Email.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Email);
-      }
-      if (FullName.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(FullName);
-      }
-      if (IsMigrated != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(IsMigrated);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (UserId != 0) {
@@ -7962,7 +5879,6 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoCloudMigrationUserInfo other) {
       if (other == null) {
         return;
@@ -7983,11 +5899,7 @@ namespace SsoCloud {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8012,39 +5924,7 @@ namespace SsoCloud {
           }
         }
       }
-    #endif
     }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            UserId = input.ReadUInt32();
-            break;
-          }
-          case 18: {
-            Email = input.ReadString();
-            break;
-          }
-          case 26: {
-            FullName = input.ReadString();
-            break;
-          }
-          case 32: {
-            IsMigrated = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
   }
 

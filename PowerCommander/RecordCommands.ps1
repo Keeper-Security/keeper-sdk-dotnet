@@ -292,6 +292,11 @@ function Add-KeeperRecord {
             $record.Notes += $Notes
         }
 
+		if ($GeneratePassword.IsPresent) {
+			$generatedPassword = [Keepersecurity.Utils.CryptoUtils]::GenerateUid()
+			$Fields +=  "password=${generatedPassword}"
+		}
+
 		foreach ($field in $Fields) {
 			if ($field -match '^([^=\.]+)(\.[^=]+)?=(.*)$') {
 				$fieldName = $Matches[1]
@@ -302,9 +307,6 @@ function Add-KeeperRecord {
 				$fieldValue = $Matches[3]
 				if ($fieldValue) {
 					$fieldValue = $fieldValue.Trim()
-				}
-				if ($fieldName -eq 'password' -and -not $fieldValue -and $GeneratePassword.IsPresent) {
-					$fieldValue = [Utils.CryptoUtils]::GenerateUid()
 				}
 				if ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
 					switch($fieldName) {

@@ -28,7 +28,7 @@ function Get-KeeperSharedFolders {
 	} else {
 		foreach ($sharedFolder in $vault.SharedFolders) {
 			if ($Filter) {
-				$match = $($record.Uid, $sharedFolder.Name) | Select-String $Filter | Select-Object -First 1
+				$match = $($sharedFolder.Uid, $sharedFolder.Name) | Select-String $Filter | Select-Object -First 1
 				if (-not $match) {
 					continue
 				}

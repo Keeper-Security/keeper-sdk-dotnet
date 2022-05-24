@@ -48,6 +48,10 @@ Export-ModuleMember -Function Show-KeeperRecordShares, Grant-KeeperRecordAccess,
                               Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess
 Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf
 
+Export-ModuleMember -Function Get-KeeperSecretManagerApps, New-KeeperSecretManagerApp, Grant-KeeperSecretManagerFolderAccess,
+                              Revoke-KeeperSecretManagerFolderAccess
+Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare
+
 
 # function Test-Keeper {
 #     [CmdletBinding()]
