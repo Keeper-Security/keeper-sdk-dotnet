@@ -348,6 +348,7 @@ namespace KeeperSecurity.Vault
             };
 
             await vault.Auth.ExecuteAuthCommand(request);
+            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
 
         public static async Task<KeeperRecord> PutRecord(this VaultOnline vault, KeeperRecord record, bool skipExtra = true)

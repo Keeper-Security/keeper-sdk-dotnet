@@ -124,7 +124,6 @@ $Keeper_FolderPathRecordCompleter = {
 						$path = @()
 						$components | ForEach-Object { $path += $_ }
 						$path[-1] = $subfolder.Name
-						$path += ''
 						$expansion = ($path | ForEach-Object {$_ -replace '\\', '\\'}) -join $Script:PathDelimiter 
 						if ($expansion -match '[\s'']') {
 							$expansion = $expansion -replace '''', ''''''
@@ -458,7 +457,7 @@ function parseKeeperPath {
 			}
 		}
 		$folder
-		($components | ForEach-Object {escapePathComponent $_}) -join $Script:PathDelimiter
+		$components -join $Script:PathDelimiter
 	} else {
 		$folder
 		$path

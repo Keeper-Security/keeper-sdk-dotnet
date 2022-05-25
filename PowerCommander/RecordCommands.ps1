@@ -422,10 +422,10 @@ New-Alias -Name kdel -Value Remove-KeeperRecord
 function Move-RecordToFolder {
 <#
 	.Synopsis
-	Moves owned records to Folder.
+	Moves records to Folder.
 
 	.Parameter Record
-	Record UID, Title or any object containing property Uid.
+	Record UID, Path or any object containing property Uid.
 
 	.Parameter Folder 
 	Folder Name, Path, or UID
@@ -433,77 +433,87 @@ function Move-RecordToFolder {
 
 	[CmdletBinding()]
 	Param (
-		[Parameter(Mandatory = $true, ValueFromPipeline = $true)] $Records,
-		[Parameter(Position = 0, Mandatory = $true)][string] $Folder,
-		[Parameter()][switch] $Link
+		[Parameter(Mandatory = $true, ValueFromPipeline = $true)]$Records,
+		[Parameter(Position = 0, Mandatory = $true)][string]$Folder,
+		[Parameter()][switch]$Link
 	)
 	
 	Begin {
 		[KeeperSecurity.Vault.VaultOnline]$vault = getVault
-
-		$folderUid = resolveFolderUid $vault $Folder
-		[KeeperSecurity.Vault.FolderNode]$folderNode = $null
-		$vault.TryGetFolder($folderUid, [ref]$folderNode) |  Out-Null
-
+		$folderNode = resolveFolderNode $vault $Folder
 		$sourceRecords = @()
 	}
 
 	Process {
-		$recordUids = @{}
 		foreach ($r in $Records) {
-    		$uid = $null
+			if ($null -ne $r.Uid) {
+				$r = $r.Uid
+			}
+			[KeeperSecurity.Vault.FolderNode]$folder = $null
+			[KeeperSecurity.Vault.KeeperRecord]$record = $null
+			if ($vault.TryGetKeeperRecord($r, [ref]$record)) {
+				if ($record -is [KeeperSecurity.Vault.PasswordRecord] -or $record -is [KeeperSecurity.Vault.TypedRecord]) {
+					if ($folderNode.FolderUid -and $vault.RootFolder.Records.Contains($record.Uid)) {
+						$folder = $vault.RootFolder
+					} else {
+						foreach ($fol in $vault.Folders) {
+							if ($fol.FolderUid -eq $folderNode.FolderUid) {
+								continue
+							}
+							if ($fol.Records.Contains($record.Uid)) {
+								$folder = $fol
+								break
+							}
+						}
+					}
+				} else {
+					Write-Error "`$r`" record type is not supported." -ErrorAction Stop
+				}
+			} else {
+				[KeeperSecurity.Vault.FolderNode]$fol = $null
+				if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$fol)) {
+					$fol = $vault.RootFolder
+				}
+			
+				$comps = splitKeeperPath $r
+				$folder, $rest = parseKeeperPath $comps $vault $fol
+				if (-not $rest) {
+					Write-Error "`"$r`" should be a record" -ErrorAction Stop
+				}
+				[KeeperSecurity.Vault.KeeperRecord]$rec = $null
+				foreach ($recordUid in $folder.Records) {
+					if ($vault.TryGetKeeperRecord($recordUid, [ref]$rec)) {
+						if ($rec.Title -eq $rest) {
+							if ($rec -is [KeeperSecurity.Vault.PasswordRecord] -or $rec -is [KeeperSecurity.Vault.TypedRecord]) {
+								$record = $rec
+								break
+							}
+						}
+					}
+				}
+			}
 
-			if ($r -is [String]) {
-				$uid = $r
-			} 
-			elseif ($null -ne $r.Uid) {
-				$uid = $r.Uid
+			if (-not $record -or -not $folder) {
+				Write-Error "Record `"$r`" cannot be found" -ErrorAction Stop
 			}
-			if ($uid) {
-				[KeeperSecurity.Vault.PasswordRecord] $rec = $null
-				if ($vault.TryGetRecord($uid, [ref]$rec)) {
-					if ($rec.Owner) {
-						$recordUids[$rec.Uid] = $true
-					}
-				} else {
-					$recs = Get-KeeperRecords -Filter $uid | Where-Object Title -eq $uid
-					foreach ($rec in $recs) {
-						if ($rec.Owner) {
-							$recordUids[$rec.Uid] = $true
-						}
-					}
-				}
-			}
-		}
-		if ($recordUids.Count -gt 0) {
-			foreach ($recordUid in $recordUids.Keys) {
-				if ($folderNode.Records.Contains($recordUid)) {
-					continue
-				}
-				$rp = New-Object KeeperSecurity.Vault.RecordPath 
-				$rp.RecordUid = $recordUid
-				if ($vault.RootFolder.Records.Contains($recordUid)) {
-					$sourceRecords += $rp
-				} else {
-					foreach ($fol in $vault.Folders) {
-						if ($fol.FolderUid -eq $folderUid) {
-							continue
-						}
-						if ($fol.Records.Contains($recordUid)) {
-							$rp.FolderUid = $fol.FolderUid
-							$sourceRecords += $rp
-							break
-						}
-					}
-				}
-			}
+
+			$rp = New-Object KeeperSecurity.Vault.RecordPath 
+			$rp.RecordUid = $record.Uid
+			$rp.FolderUid = $folder.FolderUid
+			$sourceRecords += $rp
 		}
 	}
 	End {
-		$vault.MoveRecords($sourceRecords, $folderUid, $Link.IsPresent).GetAwaiter().GetResult() | Out-Null
+		if (-not $sourceRecords) {
+			Write-Error "There are no records to move" -ErrorAction Stop
+		}
+		$vault.MoveRecords($sourceRecords, $folderNode.FolderUid, $Link.IsPresent).GetAwaiter().GetResult() | Out-Null
+		$vault.ScheduleSyncDown([System.TimeSpan]::FromSeconds(0)).GetAwaiter().GetResult() | Out-Null
 	}
 }
 New-Alias -Name kmv -Value Move-RecordToFolder
+Register-ArgumentCompleter -CommandName Move-RecordToFolder -ParameterName Folder -ScriptBlock $Keeper_FolderPathRecordCompleter
+
 <#
 $Keeper_SharedFolderNameCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
@@ -524,28 +534,18 @@ Register-ArgumentCompleter -Command Move-RecordToFolder -ParameterName Folder -S
 Register-ArgumentCompleter -Command Copy-RecordToFolder -ParameterName Folder -ScriptBlock $Keeper_SharedFolderNameCompleter
 #>
 
-function resolveFolderUid {
-	Param ([KeeperSecurity.Vault.VaultOnline]$vault, $folder)
+function resolveFolderNode {
+	Param ([KeeperSecurity.Vault.VaultOnline]$vault, $path)
 
-	[KeeperSecurity.Vault.FolderNode]$targetFolder = $null
-	if ($vault.TryGetFolder($folder, [ref]$targetFolder)) {
-		return $targetFolder.FolderUid
-	}
-
-	$fols = Get-KeeperChildItems -ObjectType Folder -Filter $folder
-	if ($fols.Length -gt 0) {
-		return $fols[0].Uid
+	[KeeperSecurity.Vault.FolderNode]$folder = $null
+	if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
+		$folder = $vault.RootFolder
 	}
 
-	$fols = @()
-	foreach ($fol in $vault.Folders) {
-		if ($fol.Name -eq $folder) {
-			$fols += $fol.FolderUid
-		}
+    $comps = splitKeeperPath $path
+    $folder, $rest = parseKeeperPath $comps $vault $folder	
+	if ($rest) {
+		Write-Error "Folder $path not found" -ErrorAction Stop
 	}
-	if ($fols.Length -eq 1) {
-		return $fols[0]
-	}
-	# TODO resolve folder full path
-	Write-Error "Folder $($folder) not found"
+	$folder
 }

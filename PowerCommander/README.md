@@ -18,9 +18,9 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Get-KeeperSharedFolders                | ksf         | Enumerate all shared folders
 | Add-KeeperRecord                       | kadd        | Add/Modify Keeper record
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
-| Move-RecordToFolder                    | kmv         | Move owned record to Keeper folder
-| Add-KeeperFolder                       | kmkdir      | Create Keeper Folder
-| Remove-KeeperFolder                    | krmdir      | Remove Keeper Folder
+| Move-RecordToFolder                    | kmv         | Move records to Keeper folder
+| Add-KeeperFolder                       | kmkdir      | Create Keeper folder
+| Remove-KeeperFolder                    | krmdir      | Remove Keeper folder
 | Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard
 | Show-TwoFactorCode                     | 2fa         | Display Two Factor Code 
 

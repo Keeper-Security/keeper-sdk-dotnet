@@ -56,14 +56,16 @@ Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
-#         [Parameter(Mandatory = $true, ParameterSetName='user')]$User,
-#         [Parameter(Mandatory = $true, ParameterSetName='team')]$Team
+#         [Parameter(Mandatory = $true)]$Path
 #     )
+#     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
-#     ensureAvalableLoaded
-#     $Script:Context.AvailableTeams
+#     [KeeperSecurity.Vault.FolderNode]$folder = $null
+# 	if (!$vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
+# 		$folder = $vault.RootFolder
+# 	}
+
+#     $comps = splitKeeperPath $Path
+#     parseKeeperPath $comps $vault $folder
 # }
-# Register-ArgumentCompleter -CommandName Test-Keeper -ParameterName Team -ScriptBlock $Keeper_TeamCompleter
-# Register-ArgumentCompleter -CommandName Test-Keeper -ParameterName User -ScriptBlock $Keeper_UserCompleter
-
 # Export-ModuleMember -Function Test-Keeper
