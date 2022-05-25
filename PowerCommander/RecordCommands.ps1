@@ -217,6 +217,26 @@ function Show-TwoFactorCode {
 }
 New-Alias -Name 2fa -Value Show-TwoFactorCode
 
+$Keeper_RecordTypeNameCompleter = {
+	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+	$result = @()
+	[KeeperSecurity.Vault.VaultOnline]$vault = $Script:Context.Vault
+	if ($vault) {
+		$toComplete = $wordToComplete + '*'
+		foreach ($rt in $vault.RecordTypes) {
+			if ($rt.Name -like $toComplete) {
+				$result += $rt.Name
+			}
+		}
+	} 
+	if ($result.Count -gt 0) {
+		return $result
+	} else {
+		return $null
+	}
+
+}
+
 function Add-KeeperRecord {
 <#
 	.Synopsis
@@ -251,6 +271,7 @@ function Add-KeeperRecord {
 	Param (
 		[Parameter()][switch] $GeneratePassword,
 		[Parameter(ParameterSetName='add')][string] $RecordType,
+		[Parameter(ParameterSetName='add')][string] $Folder,
 		[Parameter(ParameterSetName='edit', Mandatory = $True)][string] $Uid,
 		[Parameter(ParameterSetName='add', Mandatory = $True)][string] $Title,
 		[Parameter()][string] $Notes,
@@ -359,12 +380,20 @@ function Add-KeeperRecord {
 		if ($record.Uid) {
 	        $task = $vault.UpdateRecord($record)
 		} else {
-			$task = $vault.CreateRecord($record, $Script:Context.CurrentFolder)
+			$folderUid = $Script:Context.CurrentFolder
+			if ($Folder) {
+				$folderNode = resolveFolderNode $vault $Folder
+				$folderUid = $folderNode.FolderUid
+			}
+
+			$task = $vault.CreateRecord($record, $folderUid)
 		}
 		$task.GetAwaiter().GetResult()
     }
 }
 New-Alias -Name kadd -Value Add-KeeperRecord
+Register-ArgumentCompleter -CommandName Add-KeeperRecord -ParameterName Folder -ScriptBlock $Keeper_FolderPathRecordCompleter
+Register-ArgumentCompleter -CommandName Add-KeeperRecord -ParameterName RecordType -ScriptBlock $Keeper_RecordTypeNameCompleter
 
 
 function Remove-KeeperRecord {
@@ -514,38 +543,21 @@ function Move-RecordToFolder {
 New-Alias -Name kmv -Value Move-RecordToFolder
 Register-ArgumentCompleter -CommandName Move-RecordToFolder -ParameterName Folder -ScriptBlock $Keeper_FolderPathRecordCompleter
 
-<#
-$Keeper_SharedFolderNameCompleter = {
-	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-	Get-KeeperSharedFolders -Filter $wordToComplete `
-        | ForEach-Object -MemberName Name `
-        | Sort-Object `
-        | ForEach-Object { 
-            if ($_.Contains(' ')) {
-                "'$($_)'"
-            } else {
-                $_
-            }
-        }
-}
-# TODO
-Register-ArgumentCompleter -Command Move-RecordToFolder -ParameterName Folder -ScriptBlock $Keeper_SharedFolderNameCompleter
-Register-ArgumentCompleter -Command Copy-RecordToFolder -ParameterName Folder -ScriptBlock $Keeper_SharedFolderNameCompleter
-#>
-
 function resolveFolderNode {
 	Param ([KeeperSecurity.Vault.VaultOnline]$vault, $path)
 
 	[KeeperSecurity.Vault.FolderNode]$folder = $null
-	if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
-		$folder = $vault.RootFolder
+	if (-not $vault.TryGetFolder($path, [ref]$folder)) {
+		if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
+			$folder = $vault.RootFolder
+		}
+	
+		$comps = splitKeeperPath $path
+		$folder, $rest = parseKeeperPath $comps $vault $folder	
+		if ($rest) {
+			Write-Error "Folder $path not found" -ErrorAction Stop
+		}
 	}
 
-    $comps = splitKeeperPath $path
-    $folder, $rest = parseKeeperPath $comps $vault $folder	
-	if ($rest) {
-		Write-Error "Folder $path not found" -ErrorAction Stop
-	}
 	$folder
 }
