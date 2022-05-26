@@ -192,11 +192,11 @@ function Grant-KeeperSharedFolderAccess {
         .Parameter Team
 	    Team Name or UID
  
-        .Parameter CanEdit
-        Grant edit permission
+        .Parameter ManageRecords
+        Grant Manage Records permission
 
-        .Parameter CanShare
-        Grant re-share permission
+        .Parameter ManageUsers
+        Grant Manage Users permission
 
     #>
     
