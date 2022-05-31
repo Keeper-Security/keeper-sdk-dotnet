@@ -35,10 +35,10 @@ Export-ModuleMember -Alias ksf
 Export-ModuleMember -Function Add-KeeperFolder, Remove-KeeperFolder
 Export-ModuleMember -Alias kmkdir, krmdir
 
-Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUsers, Get-KeeperEnterpriseNodes,
-                              Get-KeeperNodeName, Lock-KeeperEnterpriseUser, Unlock-KeeperEnterpriseUser,
-                              Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser
-Export-ModuleMember -Alias ked, keu, ken, lock-user, unlock-user, transfer-user, delete-user
+Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUsers, Get-KeeperEnterpriseTeams, 
+                              Get-KeeperEnterpriseNodes, Get-KeeperNodeName, Lock-KeeperEnterpriseUser, 
+                              Unlock-KeeperEnterpriseUser, Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser
+Export-ModuleMember -Alias ked, keu, ket, ken, lock-user, unlock-user, transfer-user, delete-user
 
 Export-ModuleMember -Function Get-KeeperMspLicenses, Get-KeeperManagedCompanies, New-KeeperManagedCompany, 
                               Remove-KeeperManagedCompany, Edit-KeeperManagedCompany
