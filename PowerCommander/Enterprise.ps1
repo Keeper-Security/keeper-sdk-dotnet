@@ -51,6 +51,17 @@ function Get-KeeperEnterpriseUsers {
 }
 New-Alias -Name keu -Value Get-KeeperEnterpriseUsers
 
+function Get-KeeperEnterpriseTeams {
+    <#
+        .Synopsis
+    	Get the list of enterprise teams
+    #>
+    [CmdletBinding()]
+
+    [Enterprise]$enterprise = getEnterprise
+    return $enterprise.enterpriseData.Teams
+}
+New-Alias -Name ket -Value Get-KeeperEnterpriseTeams
 
 $Keeper_ActiveUserCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
