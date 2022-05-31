@@ -39,6 +39,7 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Sync-KeeperEnterprise                  | ked         | Sync Keeper enterprise information
 | Get-KeeperEnterpriseNodes              | ken         | Enumerate all enterprise nodes
 | Get-KeeperEnterpriseUsers              | keu         | Enumerate all enterprise users
+| Get-KeeperEnterpriseTeams              | ket         | Enumerate all enterprise teams
 | Lock-KeeperEnterpriseUser              | lock-user   | Lock Enterprise User
 | Unlock-KeeperEnterpriseUser            | unlock-user | Unlock Enterprise User
 | Move-KeeperEnterpriseUser              |transfer-user| Transfer user account to another user
