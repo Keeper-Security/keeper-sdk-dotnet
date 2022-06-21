@@ -147,6 +147,84 @@
     </View>
 
     <View>
+      <Name>KeeperSecurity.Enterprise.EnterpriseTeam_TableView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Enterprise.EnterpriseTeam</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+          <TableColumnHeader />
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Uid</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RestrictSharing</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RestrictEdit</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>RestrictView</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>NodeName</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>KeeperSecurity.Enterprise.EnterpriseTeam_ListView</Name>
+      <ViewSelectedBy>
+        <TypeName>KeeperSecurity.Enterprise.EnterpriseTeam</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <PropertyName>Uid</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>Name</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>RestrictSharing</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>RestrictEdit</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>RestrictView</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>ParentNodeId</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>NodeName</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <View>
       <Name>KeeperSecurity.Enterprise.EnterpriseManagedCompany_TableView</Name>
       <ViewSelectedBy>
         <TypeName>KeeperSecurity.Enterprise.EnterpriseManagedCompany</TypeName>
