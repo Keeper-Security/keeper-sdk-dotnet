@@ -41,6 +41,18 @@
   </Type>
 
   <Type>
+    <Name>KeeperSecurity.Enterprise.EnterpriseTeam</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>NodeName</Name>
+        <GetScriptBlock>
+          Get-KeeperNodeName $this.ParentNodeId
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+
+  <Type>
     <Name>KeeperSecurity.Enterprise.EnterpriseManagedCompany</Name>
     <Members>
       <ScriptProperty>
