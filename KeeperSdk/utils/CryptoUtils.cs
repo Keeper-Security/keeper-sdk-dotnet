@@ -514,7 +514,7 @@ namespace KeeperSecurity.Utils
             const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
             var output = new List<byte>();
             var bytes = base32.ToCharArray();
-            for (var bitIndex = 0; bitIndex < base32.Length * 5; bitIndex += 8)
+            for (var bitIndex = 0; bitIndex / 5 + 1 < bytes.Length; bitIndex += 8)
             {
                 var dualByte = alphabet.IndexOf(bytes[bitIndex / 5]) << 10;
                 if (bitIndex / 5 + 1 < bytes.Length)
@@ -585,6 +585,9 @@ namespace KeeperSecurity.Utils
                     break;
                 case "SHA256":
                     hmac = new HMACSHA256(secretBytes);
+                    break;
+                case "SHA512":
+                    hmac = new HMACSHA512(secretBytes);
                     break;
                 case "MD5":
                     hmac = new HMACMD5(secretBytes);

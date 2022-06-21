@@ -568,6 +568,11 @@ namespace Commander
                     tab.AddRow("$url:", legacy.Link);
                     if (!string.IsNullOrEmpty(legacy.Totp))
                     {
+                        if (totps == null)
+                        {
+                            totps = new List<string>();
+                        }
+                        totps.Add(legacy.Totp);
                         tab.AddRow("$oneTimeCode:", legacy.Totp);
                     }
                     if (legacy.Custom != null && legacy.Custom.Count > 0)
@@ -583,7 +588,7 @@ namespace Commander
                     tab.AddRow("Notes:", typed.Notes);
                     foreach (var f in typed.Fields.Concat(typed.Custom))
                     {
-                        if (f.FieldName == "totp")
+                        if (f.FieldName == "oneTimeCode")
                         {
                             if (totps == null)
                             {
@@ -627,10 +632,14 @@ namespace Commander
                 {
                     foreach (var url in totps)
                     {
+                        tab.AddRow("$oneTimeCode:", url);
                         try
                         {
                             var tup = CryptoUtils.GetTotpCode(url);
-                            tab.AddRow($"{tup.Item1}:", $"expires in {tup.Item3 - tup.Item2} sec.");
+                            if (tup != null)
+                            {
+                                tab.AddRow($"{tup.Item1}:", $"expires in {tup.Item3 - tup.Item2} sec.");
+                            }
                         }
                         catch (Exception e)
                         {
