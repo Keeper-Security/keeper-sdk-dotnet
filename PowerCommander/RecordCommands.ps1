@@ -201,7 +201,7 @@ function Show-TwoFactorCode {
 	End {
 		$output = @()
 		foreach ($totp in $totps) {
-			[Tuple[string, int, int]]$code = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($totps.TotpData)
+			[Tuple[string, int, int]]$code = [KeeperSecurity.Utils.CryptoUtils]::GetTotpCode($totp.TotpData)
 			if ($code) {
 				$output += [PSCustomObject]@{
 					PSTypeName   = 'TOTP.Codes'
