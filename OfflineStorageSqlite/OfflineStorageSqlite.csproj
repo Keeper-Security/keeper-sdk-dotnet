@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>KeeperSecurity.OfflineStorage.Sqlite</RootNamespace>
-    <Version>0.5.3</Version>
+    <Version>0.5.4</Version>
     <PackageId>Keeper.Storage.Sqlite</PackageId>
     <Authors>Keeper Security Inc.</Authors>
     <Company>Keeper Security Inc.</Company>
@@ -15,8 +15,8 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyVersion>0.5.3.3</AssemblyVersion>
-    <FileVersion>0.5.3.2</FileVersion>
+    <AssemblyVersion>0.5.4.4</AssemblyVersion>
+    <FileVersion>0.5.4.4</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

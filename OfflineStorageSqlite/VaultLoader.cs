@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Linq;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
@@ -51,15 +52,17 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 typeof(InternalConfiguration),
             };
 
-            return DatabaseUtils.VerifyDatabase(true, connection, tables, null);
+            return DatabaseUtils.VerifyDatabase(true, connection, tables.Select(x => new TableSchema(x, SqliteKeeperStorage.OwnerColumnName)), null);
         }
         public IConfigurationStorage GetConfigurationStorage(string configurationName, IConfigurationProtectionFactory protection)
         {
             if (string.IsNullOrEmpty(configurationName)) configurationName = "default";
-            var loader = new SqliteConfigurationLoader(GetConnection, configurationName);
+            var owner = Tuple.Create<string, object>(SqliteKeeperStorage.OwnerColumnName, configurationName);
+
+            var loader = new SqliteConfigurationLoader(GetConnection, owner);
             var cache = new JsonConfigurationCache(loader)
             {
-                WriteTimeout = 1000, 
+                WriteTimeout = 1000,
                 ConfigurationProtection = protection
             };
             return new JsonConfigurationStorage(cache);
