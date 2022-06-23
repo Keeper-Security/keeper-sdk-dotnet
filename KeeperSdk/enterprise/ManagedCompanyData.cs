@@ -15,7 +15,6 @@ namespace KeeperSecurity.Enterprise
     }
 
 
-
     /// <summary>
     /// Represends Managed Companies enterprise data.
     /// </summary>

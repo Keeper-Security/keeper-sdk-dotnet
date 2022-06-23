@@ -16,14 +16,14 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
         public string[] PrimaryKey { get; private set; }
         public string[] Index1 { get; private set; }
         public string[] Index2 { get; private set; }
-        public string PartitionColumnName { get; set; }
+        public string OwnerColumnName { get; set; }
 
         public readonly List<string> Columns = new List<string>();
 
         public readonly Dictionary<string, PropertyInfo> ColumnMap =
             new Dictionary<string, PropertyInfo>(StringComparer.InvariantCultureIgnoreCase);
 
-        public void LoadSchema(Type tableType)
+        public TableSchema(Type tableType, string ownerColumnName = null)
         {
             foreach (var attr in tableType.GetCustomAttributes<SqlTableAttribute>(true))
             {
@@ -38,9 +38,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 throw new Exception($"Class {tableType.FullName} is SQL table class");
             }
 
-            PartitionColumnName = null;
-            Columns.Clear();
-            ColumnMap.Clear();
+            OwnerColumnName = ownerColumnName;
             foreach (var member in tableType.GetProperties())
             {
                 if (member.MemberType != MemberTypes.Property) continue;
@@ -73,6 +71,25 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             TypeMap[typeof(decimal)] = ColumnType.Decimal;
             TypeMap[typeof(bool)] = ColumnType.Boolean;
             TypeMap[typeof(string)] = ColumnType.String;
+        }
+
+        public static DbType GetDbType(ColumnType columnType)
+        {
+            switch (columnType)
+            {
+                case ColumnType.Boolean:
+                    return DbType.Boolean;
+                case ColumnType.Integer:
+                    return DbType.Int32;
+                case ColumnType.Long:
+                    return DbType.Int64;
+                case ColumnType.Decimal:
+                    return DbType.Decimal;
+                case ColumnType.String:
+                    return DbType.String;
+                default:
+                    return DbType.String;
+            }
         }
 
         public static string GetAddColumnStatement(TableSchema schema, string columnName)
@@ -115,9 +132,9 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
             var sb = new StringBuilder();
             sb.Append($"CREATE TABLE {schema.TableName} (\n");
-            if (!string.IsNullOrEmpty(schema.PartitionColumnName))
+            if (!string.IsNullOrEmpty(schema.OwnerColumnName))
             {
-                sb.Append($"\t{schema.PartitionColumnName} TEXT NOT NULL,\n");
+                sb.Append($"\t{schema.OwnerColumnName} TEXT NOT NULL,\n");
             }
 
             foreach (var column in schema.Columns)
@@ -136,9 +153,9 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             }
 
             var idx = new List<string>();
-            if (!string.IsNullOrEmpty(schema.PartitionColumnName))
+            if (!string.IsNullOrEmpty(schema.OwnerColumnName))
             {
-                idx.Add(schema.PartitionColumnName);
+                idx.Add(schema.OwnerColumnName);
             }
 
             if (schema.PrimaryKey != null)
@@ -159,9 +176,9 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 indexNo++;
                 sb.Length = 0;
                 idx.Clear();
-                if (!string.IsNullOrEmpty(schema.PartitionColumnName))
+                if (!string.IsNullOrEmpty(schema.OwnerColumnName))
                 {
-                    idx.Add(schema.PartitionColumnName);
+                    idx.Add(schema.OwnerColumnName);
                 }
 
                 idx.AddRange(index);
@@ -255,7 +272,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             }
         }
 
-        public static bool VerifyDatabase(bool tryCreateMissingTables, DbConnection connection, IEnumerable<Type> tables, List<string> ddlStatements)
+        public static bool VerifyDatabase(bool tryCreateMissingTables, DbConnection connection, IEnumerable<TableSchema> schemas, List<string> ddlStatements)
         {
             var allTables = new Dictionary<string, ISet<string>>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -284,10 +301,8 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
             var result = true;
             var statements = new List<string>();
-            foreach (var table in tables)
+            foreach (var schema in schemas)
             {
-                var schema = new TableSchema();
-                schema.LoadSchema(table);
                 if (allTables.ContainsKey(schema.TableName))
                 {
                     var columns = allTables[schema.TableName];
@@ -333,185 +348,6 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             }
 
             return result;
-        }
-    }
-
-    internal abstract class SqliteStorage : TableSchema
-    {
-        public const string OwnerColumnName = "OwnerId";
-
-        protected SqliteStorage(Func<IDbConnection> getConnection, string ownerId, Type tableType)
-        {
-            LoadSchema(tableType);
-            PartitionColumnName = OwnerColumnName;
-            GetConnection = getConnection;
-            OwnerId = ownerId;
-        }
-
-        private string _selectStatement;
-
-        public IDbCommand GetSelectStatement()
-        {
-            lock (this)
-            {
-                if (string.IsNullOrEmpty(_selectStatement))
-                {
-                    _selectStatement = $"SELECT {string.Join(", ", Columns)} "
-                        + $"FROM {TableName} "
-                        + $"WHERE {PartitionColumnName} = @{PartitionColumnName}";
-                }
-            }
-
-            var cmd = GetConnection().CreateCommand();
-            cmd.CommandText = _selectStatement;
-            var ownerParameter = cmd.CreateParameter();
-            ownerParameter.ParameterName = $"@{PartitionColumnName}";
-            ownerParameter.DbType = DbType.String;
-            ownerParameter.Direction = ParameterDirection.Input;
-            ownerParameter.Value = OwnerId;
-            cmd.Parameters.Add(ownerParameter);
-
-            return cmd;
-        }
-
-        private string _deleteStatement;
-
-        public IDbCommand GetDeleteStatement()
-        {
-            lock (this)
-            {
-                if (string.IsNullOrEmpty(_deleteStatement))
-                {
-                    _deleteStatement = $"DELETE FROM {TableName} WHERE @{PartitionColumnName} = @{PartitionColumnName}";
-                }
-            }
-
-            var cmd = GetConnection().CreateCommand();
-            cmd.CommandText = _deleteStatement;
-            var ownerParameter = cmd.CreateParameter();
-            ownerParameter.ParameterName = $"@{PartitionColumnName}";
-            ownerParameter.DbType = DbType.String;
-            ownerParameter.Direction = ParameterDirection.Input;
-            ownerParameter.Value = OwnerId;
-            cmd.Parameters.Add(ownerParameter);
-
-            return cmd;
-        }
-
-        private string _putStatement;
-
-        public IDbCommand GetPutStatement()
-        {
-            lock (this)
-            {
-                if (string.IsNullOrEmpty(_putStatement))
-                {
-                    _putStatement = $"INSERT OR REPLACE INTO {TableName} ({PartitionColumnName}, {string.Join(", ", Columns)}) "
-                        + $"VALUES (@{PartitionColumnName}, {string.Join(", ", Columns.Select(x => "@" + x))})";
-                }
-            }
-
-            var cmd = GetConnection().CreateCommand();
-            cmd.CommandText = _putStatement;
-
-            var ownerParameter = cmd.CreateParameter();
-            ownerParameter.ParameterName = $"@{PartitionColumnName}";
-            ownerParameter.DbType = DbType.String;
-            ownerParameter.Direction = ParameterDirection.Input;
-            ownerParameter.Value = OwnerId;
-            cmd.Parameters.Add(ownerParameter);
-            foreach (var column in Columns)
-            {
-                var prop = ColumnMap[column];
-                var parameter = cmd.CreateParameter();
-                parameter.ParameterName = $"@{column}";
-                parameter.Direction = ParameterDirection.Input;
-                DbType dbType;
-                var columnType = DatabaseUtils.TypeMap[prop.PropertyType];
-                switch (columnType)
-                {
-                    case ColumnType.Boolean:
-                        dbType = DbType.Boolean;
-                        break;
-                    case ColumnType.Integer:
-                        dbType = DbType.Int32;
-                        break;
-                    case ColumnType.Long:
-                        dbType = DbType.Int64;
-                        break;
-                    case ColumnType.Decimal:
-                        dbType = DbType.Decimal;
-                        break;
-                    case ColumnType.String:
-                        dbType = DbType.String;
-                        break;
-                    default:
-                        dbType = DbType.String;
-                        break;
-                }
-
-                parameter.DbType = dbType;
-                cmd.Parameters.Add(parameter);
-            }
-
-            return cmd;
-        }
-
-        protected string OwnerId { get; }
-        protected Func<IDbConnection> GetConnection { get; }
-    }
-
-    internal class SqliteDataStorage<TD> : SqliteStorage
-        where TD : class, new()
-    {
-        public SqliteDataStorage(Func<IDbConnection> getConnection, string ownerId) 
-            : base(getConnection, ownerId, typeof(TD))
-        {
-        }
-
-        public void PopulateCommandParameters(IDbCommand command, TD data)
-        {
-            foreach (IDataParameter parameter in command.Parameters)
-            {
-                var parameterName = parameter.ParameterName.Substring(1);
-                if (parameterName == PartitionColumnName)
-                {
-                    parameter.Value = OwnerId;
-                }
-                else
-                {
-                    var column = ColumnMap[parameterName];
-                    parameter.Value = column.GetMethod.Invoke(data, null);
-                }
-            }
-        }
-    }
-
-    internal class SqliteRecordStorage<TD> : SqliteDataStorage<TD> where TD : class, new()
-    {
-        public SqliteRecordStorage(Func<IDbConnection> getConnection, string ownerId) : base(getConnection, ownerId)
-        {
-        }
-
-        public TD Get()
-        {
-            var cmd = GetSelectStatement();
-            using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-            {
-                return this.PopulateDataObjects<TD>(reader).FirstOrDefault();
-            }
-        }
-
-        public void Put(TD data)
-        {
-            var cmd = GetPutStatement();
-            using (var txn = GetConnection().BeginTransaction())
-            {
-                cmd.Transaction = txn;
-                PopulateCommandParameters(cmd, data);
-                cmd.ExecuteNonQuery();
-                txn.Commit();
-            }
         }
     }
 }

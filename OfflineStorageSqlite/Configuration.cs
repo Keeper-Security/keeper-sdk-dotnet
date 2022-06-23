@@ -15,7 +15,8 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
     internal class SqliteConfigurationLoader : SqliteRecordStorage<InternalConfiguration>, IJsonConfigurationLoader
     {
-        public SqliteConfigurationLoader(Func<IDbConnection> getConnection, string ownerId) : base(getConnection, ownerId)
+        public SqliteConfigurationLoader(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
+            : base(getConnection, owner)
         {
         }
 

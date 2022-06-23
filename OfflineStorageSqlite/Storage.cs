@@ -2,37 +2,287 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
 namespace KeeperSecurity.OfflineStorage.Sqlite
 {
-    internal class SqliteEntityStorage<T, TD> : SqliteDataStorage<TD>, IEntityStorage<T>
+
+    public abstract class SqliteStorage
+    {
+        private readonly TableSchema _schema;
+
+        protected SqliteStorage(Func<IDbConnection> getConnection, TableSchema schema, object ownerId = null)
+        {
+            _schema = schema;
+            GetConnection = getConnection;
+            if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
+            {
+                OwnerId = ownerId ?? throw new Exception($"Schema {Schema.TableName} requires owner column value");
+            }
+        }
+
+        private string _selectStatement;
+
+        public IDbCommand GetSelectStatement(IEnumerable<string> filterColumns = null)
+        {
+            lock (this)
+            {
+                if (string.IsNullOrEmpty(_selectStatement))
+                {
+                    _selectStatement = $"SELECT {string.Join(", ", Schema.Columns)} "
+                        + $"FROM {Schema.TableName}";
+                }
+            }
+
+            var cmd = GetConnection().CreateCommand();
+
+            if (filterColumns == null && string.IsNullOrEmpty(Schema.OwnerColumnName))
+            {
+                cmd.CommandText = _selectStatement;
+                return cmd;
+            }
+
+            StringBuilder selectQuery = new StringBuilder(_selectStatement);
+            var whereAdded = false;
+            if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
+            {
+                selectQuery.Append($" WHERE {Schema.OwnerColumnName} = @{Schema.OwnerColumnName}");
+                whereAdded = true;
+                var ownerParameter = cmd.CreateParameter();
+                ownerParameter.ParameterName = $"@{Schema.OwnerColumnName}";
+                ownerParameter.DbType =
+                    DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[OwnerId.GetType()]);
+                ownerParameter.Direction = ParameterDirection.Input;
+                ownerParameter.Value = OwnerId;
+                cmd.Parameters.Add(ownerParameter);
+            }
+
+            if (filterColumns != null)
+            {
+                foreach (var column in filterColumns)
+                {
+                    if (Schema.ColumnMap.TryGetValue(column, out var prop))
+                    {
+                        if (whereAdded)
+                        {
+                            selectQuery.Append(" AND ");
+                        }
+                        else
+                        {
+                            selectQuery.Append(" WHERE ");
+                            whereAdded = true;
+                        }
+                        selectQuery.Append($"{column} = @{column}");
+
+                        var filterParameter = cmd.CreateParameter();
+                        filterParameter.ParameterName = $"@{column}";
+                        filterParameter.DbType =
+                            DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[prop.PropertyType]);
+                        filterParameter.Direction = ParameterDirection.Input;
+                        cmd.Parameters.Add(filterParameter);
+                    }
+                    else
+                    {
+                        throw new Exception($"Schema {Schema.TableName} does not contain column {column}");
+                    }
+                }
+            }
+            cmd.CommandText = selectQuery.ToString();
+            return cmd;
+        }
+
+        public IDbCommand GetDeleteStatement(IEnumerable<string> filterColumns = null)
+        {
+            var cmd = GetConnection().CreateCommand();
+
+            StringBuilder deleteQuery = new StringBuilder($"DELETE FROM {Schema.TableName}");
+
+            var whereAdded = false;
+            if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
+            {
+                deleteQuery.Append($" WHERE {Schema.OwnerColumnName} = @{Schema.OwnerColumnName}");
+                whereAdded = true;
+                var ownerParameter = cmd.CreateParameter();
+                ownerParameter.ParameterName = $"@{Schema.OwnerColumnName}";
+                ownerParameter.DbType =
+                    DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[OwnerId.GetType()]);
+                ownerParameter.Direction = ParameterDirection.Input;
+                ownerParameter.Value = OwnerId;
+                cmd.Parameters.Add(ownerParameter);
+            }
+
+            if (filterColumns != null)
+            {
+                foreach (var columnName in filterColumns)
+                {
+                    if (Schema.ColumnMap.TryGetValue(columnName, out var prop))
+                    {
+
+                        if (whereAdded)
+                        {
+                            deleteQuery.Append(" AND ");
+                        }
+                        else
+                        {
+                            deleteQuery.Append(" WHERE ");
+                            whereAdded = true;
+                        }
+                        deleteQuery.Append($"{columnName} = @{columnName}");
+
+                        var filterParameter = cmd.CreateParameter();
+                        filterParameter.ParameterName = $"@{columnName}";
+                        filterParameter.DbType =
+                            DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[prop.PropertyType]);
+                        filterParameter.Direction = ParameterDirection.Input;
+                        cmd.Parameters.Add(filterParameter);
+                    }
+                }
+            }
+            cmd.CommandText = deleteQuery.ToString();
+
+            return cmd;
+        }
+
+        private string _putStatement;
+
+        public IDbCommand GetPutStatement()
+        {
+            lock (this)
+            {
+                if (string.IsNullOrEmpty(_putStatement))
+                {
+                    var stmt = new StringBuilder($"INSERT OR REPLACE INTO {Schema.TableName} (");
+                    if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
+                    {
+                        stmt.Append($"{Schema.OwnerColumnName}, ");
+                    }
+                    stmt.Append(string.Join(", ", Schema.Columns));
+                    stmt.Append(") VALUES (");
+                    if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
+                    {
+                        stmt.Append($"@{Schema.OwnerColumnName}, ");
+                    }
+                    stmt.Append(string.Join(", ", Schema.Columns.Select(x => $"@{x}")));
+                    stmt.Append(")");
+
+                    _putStatement = stmt.ToString();
+                }
+            }
+
+            var cmd = GetConnection().CreateCommand();
+            cmd.CommandText = _putStatement;
+
+            if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
+            {
+                var ownerParameter = cmd.CreateParameter();
+                ownerParameter.ParameterName = $"@{Schema.OwnerColumnName}";
+                ownerParameter.DbType =
+                    DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[OwnerId.GetType()]);
+                ownerParameter.Direction = ParameterDirection.Input;
+                ownerParameter.Value = OwnerId;
+                cmd.Parameters.Add(ownerParameter);
+            }
+
+            foreach (var column in Schema.Columns)
+            {
+                var prop = Schema.ColumnMap[column];
+                var parameter = cmd.CreateParameter();
+                parameter.ParameterName = $"@{column}";
+                parameter.Direction = ParameterDirection.Input;
+                parameter.DbType =
+                    DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[prop.PropertyType]); ;
+                cmd.Parameters.Add(parameter);
+            }
+
+            return cmd;
+        }
+
+        protected TableSchema Schema => _schema;
+        protected object OwnerId { get; }
+        protected Func<IDbConnection> GetConnection { get; }
+    }
+
+    public class SqliteDataStorage<TD> : SqliteStorage
+        where TD : class, new()
+    {
+        public SqliteDataStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
+            : base(getConnection, new TableSchema(typeof(TD), owner != null ? owner.Item1 : null), 
+                  owner != null ? owner.Item2 : null)
+        {
+        }
+
+        public void PopulateCommandParameters(IDbCommand command, TD data)
+        {
+            foreach (IDataParameter parameter in command.Parameters)
+            {
+                var parameterName = parameter.ParameterName.Substring(1);
+                if (parameterName == Schema.OwnerColumnName)
+                {
+                    parameter.Value = OwnerId;
+                }
+                else
+                {
+                    var column = Schema.ColumnMap[parameterName];
+                    parameter.Value = column.GetMethod.Invoke(data, null);
+                }
+            }
+        }
+    }
+
+    public class SqliteRecordStorage<TD> : SqliteDataStorage<TD> where TD : class, new()
+    {
+        public SqliteRecordStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null) 
+            : base(getConnection, owner)
+        {
+        }
+
+        public TD Get()
+        {
+            var cmd = GetSelectStatement();
+            using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
+            }
+        }
+
+        public void Put(TD data)
+        {
+            var cmd = GetPutStatement();
+            using (var txn = GetConnection().BeginTransaction())
+            {
+                cmd.Transaction = txn;
+                PopulateCommandParameters(cmd, data);
+                cmd.ExecuteNonQuery();
+                txn.Commit();
+            }
+        }
+    }
+
+
+    public class SqliteEntityStorage<T, TD> : SqliteDataStorage<TD>, IEntityStorage<T>
         where T : IUid
         where TD : class, IEntity, T, IEntityCopy<T>, new()
     {
 
         protected string EntityColumnName { get; }
 
-        public SqliteEntityStorage(Func<IDbConnection> getConnection, string ownerId) : base(getConnection, ownerId)
+        public SqliteEntityStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null) 
+            : base(getConnection, owner)
         {
-            EntityColumnName = PrimaryKey[0];
+            EntityColumnName = Schema.PrimaryKey[0];
         }
 
         public T GetEntity(string uid)
         {
-            var cmd = GetSelectStatement();
-            cmd.CommandText += $" AND {EntityColumnName} = @{EntityColumnName}";
-            var entityParameter = cmd.CreateParameter();
-            entityParameter.ParameterName = $"@{EntityColumnName}";
-            entityParameter.DbType = DbType.String;
-            entityParameter.Direction = ParameterDirection.Input;
+            var cmd = GetSelectStatement(new[] { EntityColumnName  });
+            var entityParameter = (IDbDataParameter) cmd.Parameters[$"@{EntityColumnName}"];
             entityParameter.Value = uid;
-            cmd.Parameters.Add(entityParameter);
 
             using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
             {
-                return this.PopulateDataObjects<TD>(reader).FirstOrDefault();
+                return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
             }
         }
 
@@ -56,14 +306,8 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         public void DeleteUids(IEnumerable<string> uids)
         {
-            var cmd = GetDeleteStatement();
-            cmd.CommandText += $" AND {EntityColumnName} = @{EntityColumnName}";
-            var entityParameter = cmd.CreateParameter();
-            entityParameter.ParameterName = $"@{EntityColumnName}";
-            entityParameter.DbType = DbType.String;
-            entityParameter.Direction = ParameterDirection.Input;
-            cmd.Parameters.Add(entityParameter);
-
+            var cmd = GetDeleteStatement(new[] { EntityColumnName });
+            var entityParameter = (IDbDataParameter) cmd.Parameters[$"@{EntityColumnName}"];
             using (var txn = GetConnection().BeginTransaction())
             {
                 cmd.Transaction = txn;
@@ -82,23 +326,23 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             var cmd = GetSelectStatement();
             using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
             {
-                return this.PopulateDataObjects<TD>(reader).ToArray();
+                return Schema.PopulateDataObjects<TD>(reader).ToArray();
             }
         }
     }
 
-    internal class SqliteLinkStorage<T, TD> : SqliteDataStorage<TD>, IPredicateStorage<T>
+    public class SqliteLinkStorage<T, TD> : SqliteDataStorage<TD>, IPredicateStorage<T>
         where T : IUidLink
         where TD : class, IEntityLink, T, IEntityCopy<T>, new()
     {
         protected string SubjectColumnName { get; }
         protected string ObjectColumnName { get; }
 
-        public SqliteLinkStorage(Func<IDbConnection> getConnection, string ownerId)
-            : base(getConnection, ownerId)
+        public SqliteLinkStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
+            : base(getConnection, owner)
         {
-            SubjectColumnName = PrimaryKey[0];
-            ObjectColumnName = PrimaryKey[1];
+            SubjectColumnName = Schema.PrimaryKey[0];
+            ObjectColumnName = Schema.PrimaryKey[1];
         }
 
         public void PutLinks(IEnumerable<T> links)
@@ -121,20 +365,9 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         public void DeleteLinks(IEnumerable<IUidLink> links)
         {
-            var cmd = GetDeleteStatement();
-            cmd.CommandText += $" AND {SubjectColumnName} = @{SubjectColumnName} AND {ObjectColumnName} = @{ObjectColumnName}";
-
-            var subjectParameter = cmd.CreateParameter();
-            subjectParameter.ParameterName = $"@{SubjectColumnName}";
-            subjectParameter.DbType = DbType.String;
-            subjectParameter.Direction = ParameterDirection.Input;
-            cmd.Parameters.Add(subjectParameter);
-
-            var objectParameter = cmd.CreateParameter();
-            objectParameter.ParameterName = $"@{ObjectColumnName}";
-            objectParameter.DbType = DbType.String;
-            objectParameter.Direction = ParameterDirection.Input;
-            cmd.Parameters.Add(objectParameter);
+            var cmd = GetDeleteStatement(new[] { SubjectColumnName, ObjectColumnName  });
+            var subjectParameter = (IDbDataParameter) cmd.Parameters[$"@{SubjectColumnName}"];
+            var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
 
             using (var txn = GetConnection().BeginTransaction())
             {
@@ -152,14 +385,8 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         public void DeleteLinksForSubjects(IEnumerable<string> subjectUids)
         {
-            var cmd = GetDeleteStatement();
-            cmd.CommandText += $" AND {SubjectColumnName} = @{SubjectColumnName}";
-
-            var subjectParameter = cmd.CreateParameter();
-            subjectParameter.ParameterName = $"@{SubjectColumnName}";
-            subjectParameter.DbType = DbType.String;
-            subjectParameter.Direction = ParameterDirection.Input;
-            cmd.Parameters.Add(subjectParameter);
+            var cmd = GetDeleteStatement(new[] { SubjectColumnName });
+            var subjectParameter = (IDbDataParameter) cmd.Parameters[$"@{SubjectColumnName}"];
 
             using (var txn = GetConnection().BeginTransaction())
             {
@@ -176,14 +403,8 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         public void DeleteLinksForObjects(IEnumerable<string> objectUids)
         {
-            var cmd = GetDeleteStatement();
-            cmd.CommandText += $" AND {ObjectColumnName} = @{ObjectColumnName}";
-
-            var objectParameter = cmd.CreateParameter();
-            objectParameter.ParameterName = $"@{ObjectColumnName}";
-            objectParameter.DbType = DbType.String;
-            objectParameter.Direction = ParameterDirection.Input;
-            cmd.Parameters.Add(objectParameter);
+            var cmd = GetDeleteStatement(new[] { ObjectColumnName });
+            var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
 
             using (var txn = GetConnection().BeginTransaction())
             {
@@ -200,33 +421,23 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         public IEnumerable<T> GetLinksForSubject(string subjectUid)
         {
-            var cmd = GetSelectStatement();
-            cmd.CommandText += $" AND {SubjectColumnName} = @{SubjectColumnName}";
-            var subjectParameter = cmd.CreateParameter();
-            subjectParameter.ParameterName = $"@{SubjectColumnName}";
-            subjectParameter.DbType = DbType.String;
-            subjectParameter.Direction = ParameterDirection.Input;
+            var cmd = GetSelectStatement(new[] { SubjectColumnName });
+            var subjectParameter = (IDbDataParameter) cmd.Parameters[$"@{SubjectColumnName}"];
             subjectParameter.Value = subjectUid;
-            cmd.Parameters.Add(subjectParameter);
             using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
             {
-                return this.PopulateDataObjects<TD>(reader).ToArray();
+                return Schema.PopulateDataObjects<TD>(reader).ToArray();
             }
         }
 
         public IEnumerable<T> GetLinksForObject(string objectUid)
         {
-            var cmd = GetSelectStatement();
-            cmd.CommandText += $" AND {ObjectColumnName} = @{ObjectColumnName}";
-            var objectParameter = cmd.CreateParameter();
-            objectParameter.ParameterName = $"@{ObjectColumnName}";
-            objectParameter.DbType = DbType.String;
-            objectParameter.Direction = ParameterDirection.Input;
+            var cmd = GetSelectStatement(new[] { ObjectColumnName });
+            var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
             objectParameter.Value = objectUid;
-            cmd.Parameters.Add(objectParameter);
             using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
             {
-                return this.PopulateDataObjects<TD>(reader).ToArray();
+                return Schema.PopulateDataObjects<TD>(reader).ToArray();
             }
         }
 
@@ -235,86 +446,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             var cmd = GetSelectStatement();
             using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
             {
-                return this.PopulateDataObjects<TD>(reader).ToArray();
-            }
-        }
-    }
-
-    [SqlTable(Name = "UserSettings")]
-    internal class InternalUserAccount
-    {
-        [SqlColumn]
-        public long Revision { get; set; }
-    }
-
-
-    internal class SqliteKeeperStorage : IKeeperStorage
-    {
-        private readonly Func<IDbConnection> GetConnection;
-
-        public SqliteKeeperStorage(Func<IDbConnection> getConnection, string ownerId)
-        {
-            GetConnection = getConnection;
-            PersonalScopeUid = ownerId;
-
-            Records = new SqliteEntityStorage<IStorageRecord, ExternalRecord>(getConnection, ownerId);
-            SharedFolders = new SqliteEntityStorage<ISharedFolder, ExternalSharedFolder>(getConnection, ownerId);
-            Teams = new SqliteEntityStorage<IEnterpriseTeam, ExternalEnterpriseTeam>(getConnection, ownerId);
-            NonSharedData = new SqliteEntityStorage<INonSharedData, ExternalNonSharedData>(getConnection, ownerId);
-            RecordKeys = new SqliteLinkStorage<IRecordMetadata, ExternalRecordMetadata>(getConnection, ownerId);
-            SharedFolderKeys = new SqliteLinkStorage<ISharedFolderKey, ExternalSharedFolderKey>(getConnection, ownerId);
-            SharedFolderPermissions = new SqliteLinkStorage<ISharedFolderPermission, ExternalSharedFolderPermission>(getConnection, ownerId);
-            Folders = new SqliteEntityStorage<IFolder, ExternalFolder>(getConnection, ownerId);
-            FolderRecords = new SqliteLinkStorage<IFolderRecordLink, ExternalFolderRecordLink>(getConnection, ownerId);
-            RecordTypes = new SqliteEntityStorage<IRecordType, ExternalRecordType>(getConnection, ownerId);
-
-            _userStorage = new SqliteRecordStorage<InternalUserAccount>(getConnection, ownerId);
-        }
-
-        public string PersonalScopeUid { get; }
-
-        private SqliteRecordStorage<InternalUserAccount> _userStorage;
-
-        public long Revision
-        {
-            get => _userStorage.Get()?.Revision ?? 0;
-            set
-            {
-                var user = _userStorage.Get() ?? new InternalUserAccount();
-                user.Revision = value;
-                _userStorage.Put(user);
-            }
-        }
-
-        public IEntityStorage<IStorageRecord> Records { get; }
-        public IEntityStorage<ISharedFolder> SharedFolders { get; }
-        public IEntityStorage<IEnterpriseTeam> Teams { get; }
-        public IEntityStorage<INonSharedData> NonSharedData { get; }
-        public IPredicateStorage<IRecordMetadata> RecordKeys { get; }
-        public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; }
-        public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; }
-        public IEntityStorage<IFolder> Folders { get; }
-        public IPredicateStorage<IFolderRecordLink> FolderRecords { get; }
-        public IEntityStorage<IRecordType> RecordTypes { get; }
-
-        public void Clear()
-        {
-            Revision = 0;
-            var tables = new object[]
-            {
-                Records, SharedFolders, Teams, NonSharedData, RecordKeys, SharedFolderKeys,
-                SharedFolderPermissions, Folders, FolderRecords, _userStorage
-            };
-            using (var txn = GetConnection().BeginTransaction())
-            {
-                foreach (var table in tables.Cast<SqliteStorage>())
-                {
-                    var cmd = table.GetDeleteStatement();
-                    cmd.Transaction = txn;
-                    cmd.ExecuteNonQuery();
-                }
-
-                txn.Commit();
+                return Schema.PopulateDataObjects<TD>(reader).ToArray();
             }
         }
     }
