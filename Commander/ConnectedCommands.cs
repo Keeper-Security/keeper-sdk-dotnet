@@ -1769,10 +1769,23 @@ namespace Commander
                 DumpRowNo = true
             };
 
-            clientTab.AddHeader("Name", "Created", "Last Accessed", "Expires");
-            foreach (var client in application.Devices) 
+            var nameLength = 6;
+            var s = new HashSet<string>();
+            while (true)
             {
-                clientTab.AddRow(client.Name, client.CreatedOn, client.LastAccess, client.AccessExpireOn);
+                s.Clear();
+                s.UnionWith(application.Devices.Select(x => x.DeviceId.Substring(0, nameLength)));
+                if (s.Count == application.Devices.Length)
+                {
+                    break;
+                }
+                nameLength++;
+            }
+
+            clientTab.AddHeader("Name", "Device ID", "Created", "Last Accessed", "Expires");
+            foreach (var client in application.Devices)
+            {
+                clientTab.AddRow(client.Name, client.DeviceId.Substring(0, nameLength), client.CreatedOn, client.LastAccess, client.AccessExpireOn);
             }
 
             Console.WriteLine("{0, 20}: {1}", "Application UID", application.Uid);
@@ -1927,18 +1940,58 @@ namespace Commander
                     }
                 }
 
-                if (string.IsNullOrEmpty(uid)) {
+                if (string.IsNullOrEmpty(uid))
+                {
                     uid = arguments.Secret;
                 }
                 var app = await _vault.GetSecretManagerApplication(application.Uid);
                 var share = app.Shares.FirstOrDefault(x => x.SecretUid == uid);
-                
+
                 if (share == null)
                 {
                     Console.Write($"\"{arguments.Secret}\" is not shared to application {application.Title}");
                 }
                 app = await _vault.UnshareFromSecretManagerApplication(application.Uid, uid);
                 DumpSecretManagerApplicationInfo(_vault, app);
+            }
+            else if (action == "add-client")
+            {
+                var unlockIp = arguments.UnlockIP;
+                int? firstAccess = arguments.CreateExpire > 0 ? arguments.CreateExpire : (int?) null;
+                int? accessExpire = arguments.AccessExpire > 0 ? arguments.AccessExpire : (int?) null;
+                var t = await _vault.AddSecretManagerClient(application.Uid, unlockIp: unlockIp,
+                    firstAccessExpireInMinutes: firstAccess, accessExpiresInMinutes: accessExpire,
+                    name: arguments.ClientName);
+
+                var device = t.Item1;
+                var clientKey = t.Item2;
+
+                Console.WriteLine("Successfully generated Client Device\n");
+                Console.WriteLine($"One-Time Access Token: { clientKey}");
+                var ipLock = device.LockIp ? "Enabled" : "Disabled";
+                Console.WriteLine($"IP Lock: {ipLock}");
+                var firstAccessOn = device.FirstAccessExpireOn.HasValue ? device.FirstAccessExpireOn.Value.ToString("G") : "Taken";
+                Console.WriteLine($"Token Expires On: {device.FirstAccessExpireOn.Value}");
+                var accessExpireOn = device.AccessExpireOn.HasValue ? device.AccessExpireOn.Value.ToString("G") : "Never";
+                Console.WriteLine($"App Access Expires On: {accessExpireOn}");
+            }
+            else if (action == "delete-client")
+            {
+                if (string.IsNullOrEmpty(arguments.ClientName)) 
+                {
+                    Console.Write("\"client-name\" parameter is required");
+                    return;
+                }
+
+                var app = await _vault.GetSecretManagerApplication(application.Uid);
+                var device = app.Devices.FirstOrDefault(x => x.Name == arguments.ClientName || x.DeviceId.StartsWith(arguments.ClientName));
+                if (device == null)
+                {
+                    Console.Write($"Device \"{arguments.ClientName}\" is not found in application {application.Title}");
+                    return;
+                }
+                await _vault.DeleteSecretManagerClient(application.Uid, device.DeviceId);
+                Console.Write($"Client \"{device.Name}\" has been deleted from application {application.Title}");
             }
             else
             {
@@ -2879,13 +2932,22 @@ namespace Commander
 
     class SecretManagerOptions
     {
-        [Option("folder", Required = false, HelpText = "Shared Folder UID or name")]
+        [Option("folder", Required = false, HelpText = "Shared Folder UID or name. \"share\", \"unshare\" only")]
         public string Secret { get; set; }
-        [Option('e', "can-edit", Required = false, HelpText = "Can secret be edited")]
+        [Option('e', "can-edit", Required = false, HelpText = "Can secret be edited?  \"share\", \"unshare\" only")]
         public bool CanEdit { get; set; }
 
+        [Option("client-name", Required = false, HelpText = "Client name. \"add-client\", \"remove-client\" only")]
+        public string ClientName { get; set; }
+        [Option("unlock-ip", Required = false, HelpText = "Unlock IP Address? \"add-client\" only")]
+        public bool UnlockIP { get; set; }
+        [Option("create-expire", Required = false, HelpText = "Device creation expitation in minutes.  \"add-client\" only")]
+        public int CreateExpire { get; set; }
+        [Option("access-expire", Required = false, HelpText = "Device access expitation in minutes.  \"add-client\" only")]
+        public int AccessExpire { get; set; }
 
-        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"delete\", \"share\", \"unshare\", \"list\"")]
+
+        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"delete\", \"share\", \"unshare\", \"add-client\", \"delete-client\", \"list\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "Secret Manager application UID or Title")]

@@ -130,6 +130,10 @@ function Copy-KeeperToClipboard {
 New-Alias -Name kcc -Value Copy-KeeperToClipboard
 
 function Get-KeeperPasswordVisible {
+<#
+	.Synopsis
+	Show/hide secret fields
+#>
 	if ($Script:PasswordVisible) {
 		$true
 	} else {

@@ -204,3 +204,37 @@ function Revoke-KeeperSecretManagerFolderAccess {
 Register-ArgumentCompleter -CommandName Revoke-KeeperSecretManagerFolderAccess -ParameterName Secret -ScriptBlock $Keeper_SharedFolderCompleter
 Register-ArgumentCompleter -CommandName Revoke-KeeperSecretManagerFolderAccess -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter
 New-Alias -Name ksm-unshare -Value Revoke-KeeperSecretManagerFolderAccess
+
+function Add-KeeperSecretManagerClient {
+    <#
+        .Synopsis
+        Adds client/device to KSM Application
+    
+        .Parameter App
+        KSM Application UID or Title
+
+        .Parameter Name
+        Client or Device Name
+
+        .Parameter UnlockIP
+        Enable write access to shared secrets
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string]$App,
+        [Parameter()][string]$Name,
+        [Parameter()][switch]$UnlockIP
+    )
+    
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $apps = Get-KeeperSecretManagerApps -Filter $App
+    if (-not $apps) {
+        Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
+    }
+    [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
+
+    $rs = $vault.AddSecretManagerClient($application.Uid, $UnlockIP.IsPresent, $null, $null, $name).GetAwaiter().GetResult()
+    $rs.Item2
+}
+Register-ArgumentCompleter -CommandName Add-KeeperSecretManagerClient -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter
+New-Alias -Name ksm-addclient -Value Add-KeeperSecretManagerClient
