@@ -26,7 +26,8 @@ Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-Keeper
 Export-ModuleMember -Alias kpwd, kcd, kdir, ko
 
 Export-ModuleMember -Function Get-KeeperRecords, Copy-KeeperToClipboard, Show-TwoFactorCode,
-                              Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder
+                              Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,
+                              Get-KeeperPasswordVisible
 Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv
 
 Export-ModuleMember -Function Get-KeeperSharedFolders
@@ -49,8 +50,8 @@ Export-ModuleMember -Function Show-KeeperRecordShares, Grant-KeeperRecordAccess,
 Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf
 
 Export-ModuleMember -Function Get-KeeperSecretManagerApps, New-KeeperSecretManagerApp, Grant-KeeperSecretManagerFolderAccess,
-                              Revoke-KeeperSecretManagerFolderAccess
-Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare
+                              Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient
+Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare, ksm-addclient
 
 
 # function Test-Keeper {

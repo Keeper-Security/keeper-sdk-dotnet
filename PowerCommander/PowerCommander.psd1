@@ -71,7 +71,7 @@ NestedModules = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1',
 # Functions to export from this module
 FunctionsToExport = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation', 
 'Get-KeeperChildItems',	'Get-KeeperObject', 'Get-KeeperRecords', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode', 
-'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder',
+'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible',
 'Get-KeeperSharedFolders', 'Add-KeeperFolder', 'Remove-KeeperFolder', 
 'Get-KeeperEnterpriseUsers', 'Get-KeeperEnterpriseTeams', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNodes', 'Get-KeeperNodeName',
 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 'Remove-KeeperEnterpriseUser',
@@ -79,7 +79,7 @@ FunctionsToExport = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get
 # 'Test-Keeper',
 'Show-KeeperRecordShares', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess', 
 'Revoke-KeeperSharedFolderAccess', 'Get-KeeperSecretManagerApps', 'New-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess',
-'Revoke-KeeperSecretManagerFolderAccess'
+'Revoke-KeeperSecretManagerFolderAccess', 'Add-KeeperSecretManagerClient'
 )
 
 # Cmdlets to export from this module
@@ -91,7 +91,7 @@ CmdletsToExport = @( )
 # Aliases to export from this module
 AliasesToExport = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 
 	'ked', 'keu', 'ken', 'ket', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
-	'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare')
+	'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient')
 
 # List of all modules packaged with this module
 # ModuleList = @()

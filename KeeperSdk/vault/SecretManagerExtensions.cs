@@ -4,6 +4,8 @@ using KeeperSecurity.Utils;
 using Records;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using AuthProto = Authentication;
 
@@ -45,7 +47,7 @@ namespace KeeperSecurity.Vault
                 Devices = appInfo.Clients.Select(x => new SecretsManagerDevice
                 {
                     Name = x.Id,
-                    ClientId = x.ClientId.ToByteArray().Base64UrlEncode(),
+                    DeviceId = x.ClientId.ToByteArray().Base64UrlEncode(),
                     CreatedOn = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.CreatedOn),
                     FirstAccess = x.FirstAccess > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.FirstAccess) : (DateTimeOffset?) null,
                     LastAccess = x.LastAccess > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x.LastAccess) : (DateTimeOffset?) null,
@@ -82,6 +84,7 @@ namespace KeeperSecurity.Vault
             return application;
         }
 
+        /// <inheritdoc/>
         public async Task<ApplicationRecord> CreateSecretManagerApplication(string title)
         {
             if (string.IsNullOrEmpty(title))
@@ -112,12 +115,14 @@ namespace KeeperSecurity.Vault
             return null;
         }
 
+        /// <inheritdoc/>
         public async Task DeleteSecretManagerApplication(string applicationId)
         {
             await this.DeleteVaultObjects(new[] { new RecordPath { RecordUid = applicationId } }, true);
         }
 
 
+        /// <inheritdoc/>
         public async Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid, bool editable)
         {
             if (!TryGetKeeperApplication(applicationId, out var application))
@@ -163,6 +168,7 @@ namespace KeeperSecurity.Vault
             return await GetSecretManagerApplication(application.Uid, true);
         }
 
+        /// <inheritdoc/>
         public async Task<SecretsManagerApplication> UnshareFromSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid)
         {
             if (!TryGetKeeperApplication(applicationId, out var application))
@@ -175,7 +181,7 @@ namespace KeeperSecurity.Vault
                 AppRecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode())
             };
             var uidBytes = sharedFolderOrRecordUid.Base64UrlDecode();
-            if (uidBytes.Length > 0) 
+            if (uidBytes.Length > 0)
             {
                 rq.Shares.Add(ByteString.CopyFrom(uidBytes));
             }
@@ -183,6 +189,91 @@ namespace KeeperSecurity.Vault
             await Auth.ExecuteAuthRest("vault/app_share_remove", rq);
 
             return await GetSecretManagerApplication(application.Uid, true);
+        }
+
+
+        /// <inheritdoc/>
+        public async Task<Tuple<SecretsManagerDevice, string>> AddSecretManagerClient(
+            string applicationId, bool? unlockIp = null, int? firstAccessExpireInMinutes = null,
+            int? accessExpiresInMinutes = null, string name = null)
+        {
+            if (!TryGetKeeperApplication(applicationId, out var application))
+            {
+                throw new KeeperInvalidParameter("AddSecretManagerClient", "applicationId", applicationId, "Application not found");
+            }
+
+            var clientKey = CryptoUtils.GenerateEncryptionKey();
+            var hash = new HMACSHA512(clientKey);
+            var clientId = hash.ComputeHash(Encoding.UTF8.GetBytes("KEEPER_SECRETS_MANAGER_CLIENT_ID"));
+
+            var encryptedAppKey = CryptoUtils.EncryptAesV2(application.RecordKey, clientKey);
+
+            var rq = new AuthProto.AddAppClientRequest
+            {
+                AppRecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode()),
+                EncryptedAppKey = ByteString.CopyFrom(encryptedAppKey),
+                ClientId = ByteString.CopyFrom(clientId),
+                LockIp = unlockIp != null ? !unlockIp.Value : true,
+                FirstAccessExpireOn = DateTimeOffset.UtcNow.AddMinutes(
+                    firstAccessExpireInMinutes != null ? firstAccessExpireInMinutes.Value : 60).ToUnixTimeMilliseconds(),
+            };
+            if (accessExpiresInMinutes.HasValue)
+            {
+                rq.AccessExpireOn = DateTimeOffset.UtcNow.AddMinutes(accessExpiresInMinutes.Value).ToUnixTimeMilliseconds();
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                rq.Id = name;
+            }
+
+            await Auth.ExecuteAuthRest("vault/app_client_add", rq);
+            var appDetails = await GetSecretManagerApplication(application.Uid, true);
+            var client = clientId.Base64UrlEncode();
+            var device = appDetails.Devices.FirstOrDefault(x => x.DeviceId == client);
+            if (device == null)
+            {
+                throw new Exception($"Client Error");
+            }
+
+            var host = Auth.Endpoint.Server;
+            switch (host)
+            {
+                case "keepersecurity.com":
+                    host = "US";
+                    break;
+                case "keeperseurity.eu":
+                    host = "EU";
+                    break;
+                case "keepersecurity.com.au":
+                    host = "AU";
+                    break;
+                case "govcloud.keepersecurity.us":
+                    host = "GOV";
+                    break;
+            }
+            return Tuple.Create(device, $"{host}:{clientKey.Base64UrlEncode()}");
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteSecretManagerClient(string applicationId, string deviceId)
+        {
+            if (!TryGetKeeperApplication(applicationId, out var application))
+            {
+                throw new KeeperInvalidParameter("RemoveSecretManagerClient", "applicationId", applicationId, "Application not found");
+            }
+
+            var rq = new AuthProto.RemoveAppClientsRequest
+            {
+                AppRecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode()),
+            };
+            var clientBytes = deviceId.Base64UrlDecode();
+            if (clientBytes.Length > 0)
+            {
+                rq.Clients.Add(ByteString.CopyFrom(clientBytes));
+            }
+
+            await Auth.ExecuteAuthRest("vault/app_client_remove", rq);
+            await GetSecretManagerApplication(application.Uid, true);
         }
     }
 }

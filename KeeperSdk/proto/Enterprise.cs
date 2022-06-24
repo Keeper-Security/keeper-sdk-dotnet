@@ -302,40 +302,59 @@ namespace Enterprise {
             "ZFVpZHMYAiADKAwiMgoXR2V0U2hhcmluZ0FkbWluc1JlcXVlc3QSFwoPc2hh",
             "cmVkRm9sZGVyVWlkGAEgASgMIksKGEdldFNoYXJpbmdBZG1pbnNSZXNwb25z",
             "ZRIvCg1zaGFyaW5nQWRtaW5zGAEgAygLMhguRW50ZXJwcmlzZS5TaGFyaW5n",
-            "QWRtaW4iIAoMU2hhcmluZ0FkbWluEhAKCHVzZXJuYW1lGAEgASgJKhsKB0tl",
-            "eVR5cGUSBwoDUlNBEAASBwoDRUNDEAEqPQoORW50ZXJwcmlzZVR5cGUSFwoT",
-            "RU5URVJQUklTRV9TVEFOREFSRBAAEhIKDkVOVEVSUFJJU0VfTVNQEAEq4QMK",
-            "FEVudGVycHJpc2VEYXRhRW50aXR5EgsKB1VOS05PV04QABIJCgVOT0RFUxAB",
-            "EgkKBVJPTEVTEAISCQoFVVNFUlMQAxIJCgVURUFNUxAEEg4KClRFQU1fVVNF",
-            "UlMQBRIOCgpST0xFX1VTRVJTEAYSEwoPUk9MRV9QUklWSUxFR0VTEAcSFQoR",
-            "Uk9MRV9FTkZPUkNFTUVOVFMQCBIOCgpST0xFX1RFQU1TEAkSDAoITElDRU5T",
-            "RVMQChIRCg1NQU5BR0VEX05PREVTEAsSFQoRTUFOQUdFRF9DT01QQU5JRVMQ",
-            "DBILCgdCUklER0VTEA0SCQoFU0NJTVMQDhITCg9FTUFJTF9QUk9WSVNJT04Q",
-            "DxIQCgxRVUVVRURfVEVBTVMQEBIVChFRVUVVRURfVEVBTV9VU0VSUxAREhAK",
-            "DFNTT19TRVJWSUNFUxASEhcKE1JFUE9SVF9GSUxURVJfVVNFUlMQExImCiJE",
-            "RVZJQ0VTX1JFUVVFU1RfRk9SX0FETUlOX0FQUFJPVkFMEBQSEAoMVVNFUl9B",
-            "TElBU0VTEBUSKQolQ09NUExJQU5DRV9SRVBPUlRfQ1JJVEVSSUFfQU5EX0ZJ",
-            "TFRFUhAWEhYKEkNPTVBMSUFOQ0VfUkVQT1JUUxAXKiIKC0NhY2hlU3RhdHVz",
-            "EggKBEtFRVAQABIJCgVDTEVBUhABKpMBCg1CYWNrdXBLZXlUeXBlEgoKBk5P",
-            "X0tFWRAAEhkKFUVOQ1JZUFRFRF9CWV9EQVRBX0tFWRABEhsKF0VOQ1JZUFRF",
-            "RF9CWV9QVUJMSUNfS0VZEAISHQoZRU5DUllQVEVEX0JZX0RBVEFfS0VZX0dD",
-            "TRADEh8KG0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAEKjoKFUJhY2t1",
-            "cFVzZXJEYXRhS2V5VHlwZRIHCgNPV04QABIYChRTSEFSRURfVE9fRU5URVJQ",
-            "UklTRRABKqUBChBFbmNyeXB0ZWRLZXlUeXBlEg0KCUtUX05PX0tFWRAAEhwK",
-            "GEtUX0VOQ1JZUFRFRF9CWV9EQVRBX0tFWRABEh4KGktUX0VOQ1JZUFRFRF9C",
-            "WV9QVUJMSUNfS0VZEAISIAocS1RfRU5DUllQVEVEX0JZX0RBVEFfS0VZX0dD",
-            "TRADEiIKHktUX0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAEKpUBChJF",
-            "bnRlcnByaXNlRmxhZ1R5cGUSCwoHSU5WQUxJRBAAEhoKFkFMTE9XX1BFUlNP",
-            "TkFMX0xJQ0VOU0UQARIYChRTUEVDSUFMX1BST1ZJU0lPTklORxACEhAKDFJF",
-            "Q09SRF9UWVBFUxADEhMKD1NFQ1JFVFNfTUFOQUdFUhAEEhUKEUVOVEVSUFJJ",
-            "U0VfTE9DS0VEEAUqRQoQVXNlclVwZGF0ZVN0YXR1cxISCg5VU0VSX1VQREFU",
-            "RV9PSxAAEh0KGVVTRVJfVVBEQVRFX0FDQ0VTU19ERU5JRUQQASpJCg9BdWRp",
-            "dFVzZXJTdGF0dXMSBgoCT0sQABIRCg1BQ0NFU1NfREVOSUVEEAESGwoXTk9f",
-            "TE9OR0VSX0lOX0VOVEVSUFJJU0UQAkImChhjb20ua2VlcGVyc2VjdXJpdHku",
-            "cHJvdG9CCkVudGVycHJpc2ViBnByb3RvMw=="));
+            "QWRtaW4iIAoMU2hhcmluZ0FkbWluEhAKCHVzZXJuYW1lGAEgASgJIl8KHlRl",
+            "YW1zRW50ZXJwcmlzZVVzZXJzQWRkUmVxdWVzdBI9CgV0ZWFtcxgBIAMoCzIu",
+            "LkVudGVycHJpc2UuVGVhbXNFbnRlcnByaXNlVXNlcnNBZGRUZWFtUmVxdWVz",
+            "dCJ0CiJUZWFtc0VudGVycHJpc2VVc2Vyc0FkZFRlYW1SZXF1ZXN0Eg8KB3Rl",
+            "YW1VaWQYASABKAwSPQoFdXNlcnMYAiADKAsyLi5FbnRlcnByaXNlLlRlYW1z",
+            "RW50ZXJwcmlzZVVzZXJzQWRkVXNlclJlcXVlc3QiewoiVGVhbXNFbnRlcnBy",
+            "aXNlVXNlcnNBZGRVc2VyUmVxdWVzdBIYChBlbnRlcnByaXNlVXNlcklkGAEg",
+            "ASgDEioKCHVzZXJUeXBlGAIgASgOMhguRW50ZXJwcmlzZS5UZWFtVXNlclR5",
+            "cGUSDwoHdGVhbUtleRgDIAEoCSJzCh9UZWFtc0VudGVycHJpc2VVc2Vyc0Fk",
+            "ZFJlc3BvbnNlEj4KBXRlYW1zGAEgAygLMi8uRW50ZXJwcmlzZS5UZWFtc0Vu",
+            "dGVycHJpc2VVc2Vyc0FkZFRlYW1SZXNwb25zZRIQCghyZXZpc2lvbhgCIAEo",
+            "AyLEAQojVGVhbXNFbnRlcnByaXNlVXNlcnNBZGRUZWFtUmVzcG9uc2USDwoH",
+            "dGVhbVVpZBgBIAEoDBI+CgV1c2VycxgCIAMoCzIvLkVudGVycHJpc2UuVGVh",
+            "bXNFbnRlcnByaXNlVXNlcnNBZGRVc2VyUmVzcG9uc2USDwoHc3VjY2VzcxgD",
+            "IAEoCBIPCgdtZXNzYWdlGAQgASgJEhIKCnJlc3VsdENvZGUYBSABKAkSFgoO",
+            "YWRkaXRpb25hbEluZm8YBiABKAkinwEKI1RlYW1zRW50ZXJwcmlzZVVzZXJz",
+            "QWRkVXNlclJlc3BvbnNlEhgKEGVudGVycHJpc2VVc2VySWQYASABKAMSEAoI",
+            "cmV2aXNpb24YAiABKAMSDwoHc3VjY2VzcxgDIAEoCBIPCgdtZXNzYWdlGAQg",
+            "ASgJEhIKCnJlc3VsdENvZGUYBSABKAkSFgoOYWRkaXRpb25hbEluZm8YBiAB",
+            "KAkqGwoHS2V5VHlwZRIHCgNSU0EQABIHCgNFQ0MQASo9Cg5FbnRlcnByaXNl",
+            "VHlwZRIXChNFTlRFUlBSSVNFX1NUQU5EQVJEEAASEgoORU5URVJQUklTRV9N",
+            "U1AQASrhAwoURW50ZXJwcmlzZURhdGFFbnRpdHkSCwoHVU5LTk9XThAAEgkK",
+            "BU5PREVTEAESCQoFUk9MRVMQAhIJCgVVU0VSUxADEgkKBVRFQU1TEAQSDgoK",
+            "VEVBTV9VU0VSUxAFEg4KClJPTEVfVVNFUlMQBhITCg9ST0xFX1BSSVZJTEVH",
+            "RVMQBxIVChFST0xFX0VORk9SQ0VNRU5UUxAIEg4KClJPTEVfVEVBTVMQCRIM",
+            "CghMSUNFTlNFUxAKEhEKDU1BTkFHRURfTk9ERVMQCxIVChFNQU5BR0VEX0NP",
+            "TVBBTklFUxAMEgsKB0JSSURHRVMQDRIJCgVTQ0lNUxAOEhMKD0VNQUlMX1BS",
+            "T1ZJU0lPThAPEhAKDFFVRVVFRF9URUFNUxAQEhUKEVFVRVVFRF9URUFNX1VT",
+            "RVJTEBESEAoMU1NPX1NFUlZJQ0VTEBISFwoTUkVQT1JUX0ZJTFRFUl9VU0VS",
+            "UxATEiYKIkRFVklDRVNfUkVRVUVTVF9GT1JfQURNSU5fQVBQUk9WQUwQFBIQ",
+            "CgxVU0VSX0FMSUFTRVMQFRIpCiVDT01QTElBTkNFX1JFUE9SVF9DUklURVJJ",
+            "QV9BTkRfRklMVEVSEBYSFgoSQ09NUExJQU5DRV9SRVBPUlRTEBcqIgoLQ2Fj",
+            "aGVTdGF0dXMSCAoES0VFUBAAEgkKBUNMRUFSEAEqkwEKDUJhY2t1cEtleVR5",
+            "cGUSCgoGTk9fS0VZEAASGQoVRU5DUllQVEVEX0JZX0RBVEFfS0VZEAESGwoX",
+            "RU5DUllQVEVEX0JZX1BVQkxJQ19LRVkQAhIdChlFTkNSWVBURURfQllfREFU",
+            "QV9LRVlfR0NNEAMSHwobRU5DUllQVEVEX0JZX1BVQkxJQ19LRVlfRUNDEAQq",
+            "OgoVQmFja3VwVXNlckRhdGFLZXlUeXBlEgcKA09XThAAEhgKFFNIQVJFRF9U",
+            "T19FTlRFUlBSSVNFEAEqpQEKEEVuY3J5cHRlZEtleVR5cGUSDQoJS1RfTk9f",
+            "S0VZEAASHAoYS1RfRU5DUllQVEVEX0JZX0RBVEFfS0VZEAESHgoaS1RfRU5D",
+            "UllQVEVEX0JZX1BVQkxJQ19LRVkQAhIgChxLVF9FTkNSWVBURURfQllfREFU",
+            "QV9LRVlfR0NNEAMSIgoeS1RfRU5DUllQVEVEX0JZX1BVQkxJQ19LRVlfRUND",
+            "EAQqlQEKEkVudGVycHJpc2VGbGFnVHlwZRILCgdJTlZBTElEEAASGgoWQUxM",
+            "T1dfUEVSU09OQUxfTElDRU5TRRABEhgKFFNQRUNJQUxfUFJPVklTSU9OSU5H",
+            "EAISEAoMUkVDT1JEX1RZUEVTEAMSEwoPU0VDUkVUU19NQU5BR0VSEAQSFQoR",
+            "RU5URVJQUklTRV9MT0NLRUQQBSpFChBVc2VyVXBkYXRlU3RhdHVzEhIKDlVT",
+            "RVJfVVBEQVRFX09LEAASHQoZVVNFUl9VUERBVEVfQUNDRVNTX0RFTklFRBAB",
+            "KkkKD0F1ZGl0VXNlclN0YXR1cxIGCgJPSxAAEhEKDUFDQ0VTU19ERU5JRUQQ",
+            "ARIbChdOT19MT05HRVJfSU5fRU5URVJQUklTRRACKjMKDFRlYW1Vc2VyVHlw",
+            "ZRIICgRVU0VSEAASCQoFQURNSU4QARIOCgpBRE1JTl9PTkxZEAJCJgoYY29t",
+            "LmtlZXBlcnNlY3VyaXR5LnByb3RvQgpFbnRlcnByaXNlYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Enterprise.KeyType), typeof(global::Enterprise.EnterpriseType), typeof(global::Enterprise.EnterpriseDataEntity), typeof(global::Enterprise.CacheStatus), typeof(global::Enterprise.BackupKeyType), typeof(global::Enterprise.BackupUserDataKeyType), typeof(global::Enterprise.EncryptedKeyType), typeof(global::Enterprise.EnterpriseFlagType), typeof(global::Enterprise.UserUpdateStatus), typeof(global::Enterprise.AuditUserStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Enterprise.KeyType), typeof(global::Enterprise.EnterpriseType), typeof(global::Enterprise.EnterpriseDataEntity), typeof(global::Enterprise.CacheStatus), typeof(global::Enterprise.BackupKeyType), typeof(global::Enterprise.BackupUserDataKeyType), typeof(global::Enterprise.EncryptedKeyType), typeof(global::Enterprise.EnterpriseFlagType), typeof(global::Enterprise.UserUpdateStatus), typeof(global::Enterprise.AuditUserStatus), typeof(global::Enterprise.TeamUserType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseKeyPairRequest), global::Enterprise.EnterpriseKeyPairRequest.Parser, new[]{ "EnterprisePublicKey", "EncryptedEnterprisePrivateKey", "KeyType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.GetTeamMemberRequest), global::Enterprise.GetTeamMemberRequest.Parser, new[]{ "TeamUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.EnterpriseUser), global::Enterprise.EnterpriseUser.Parser, new[]{ "EnterpriseUserId", "Email", "EnterpriseUsername", "IsShareAdmin" }, null, null, null, null),
@@ -439,7 +458,13 @@ namespace Enterprise {
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.LinkedRecord), global::Enterprise.LinkedRecord.Parser, new[]{ "OwnerUid", "RecordUids" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.GetSharingAdminsRequest), global::Enterprise.GetSharingAdminsRequest.Parser, new[]{ "SharedFolderUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.GetSharingAdminsResponse), global::Enterprise.GetSharingAdminsResponse.Parser, new[]{ "SharingAdmins" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.SharingAdmin), global::Enterprise.SharingAdmin.Parser, new[]{ "Username" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.SharingAdmin), global::Enterprise.SharingAdmin.Parser, new[]{ "Username" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.TeamsEnterpriseUsersAddRequest), global::Enterprise.TeamsEnterpriseUsersAddRequest.Parser, new[]{ "Teams" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.TeamsEnterpriseUsersAddTeamRequest), global::Enterprise.TeamsEnterpriseUsersAddTeamRequest.Parser, new[]{ "TeamUid", "Users" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.TeamsEnterpriseUsersAddUserRequest), global::Enterprise.TeamsEnterpriseUsersAddUserRequest.Parser, new[]{ "EnterpriseUserId", "UserType", "TeamKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.TeamsEnterpriseUsersAddResponse), global::Enterprise.TeamsEnterpriseUsersAddResponse.Parser, new[]{ "Teams", "Revision" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.TeamsEnterpriseUsersAddTeamResponse), global::Enterprise.TeamsEnterpriseUsersAddTeamResponse.Parser, new[]{ "TeamUid", "Users", "Success", "Message", "ResultCode", "AdditionalInfo" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Enterprise.TeamsEnterpriseUsersAddUserResponse), global::Enterprise.TeamsEnterpriseUsersAddUserResponse.Parser, new[]{ "EnterpriseUserId", "Revision", "Success", "Message", "ResultCode", "AdditionalInfo" }, null, null, null, null)
           }));
     }
     #endregion
@@ -539,6 +564,12 @@ namespace Enterprise {
     ///because user isn't in enterprise, i.e. deleted
     /// </summary>
     [pbr::OriginalName("NO_LONGER_IN_ENTERPRISE")] NoLongerInEnterprise = 2,
+  }
+
+  public enum TeamUserType {
+    [pbr::OriginalName("USER")] User = 0,
+    [pbr::OriginalName("ADMIN")] Admin = 1,
+    [pbr::OriginalName("ADMIN_ONLY")] AdminOnly = 2,
   }
 
   #endregion
@@ -21917,6 +21948,1143 @@ namespace Enterprise {
             break;
           case 10: {
             Username = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class TeamsEnterpriseUsersAddRequest : pb::IMessage<TeamsEnterpriseUsersAddRequest> {
+    private static readonly pb::MessageParser<TeamsEnterpriseUsersAddRequest> _parser = new pb::MessageParser<TeamsEnterpriseUsersAddRequest>(() => new TeamsEnterpriseUsersAddRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<TeamsEnterpriseUsersAddRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[104]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddRequest(TeamsEnterpriseUsersAddRequest other) : this() {
+      teams_ = other.teams_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddRequest Clone() {
+      return new TeamsEnterpriseUsersAddRequest(this);
+    }
+
+    /// <summary>Field number for the "teams" field.</summary>
+    public const int TeamsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Enterprise.TeamsEnterpriseUsersAddTeamRequest> _repeated_teams_codec
+        = pb::FieldCodec.ForMessage(10, global::Enterprise.TeamsEnterpriseUsersAddTeamRequest.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddTeamRequest> teams_ = new pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddTeamRequest>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddTeamRequest> Teams {
+      get { return teams_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as TeamsEnterpriseUsersAddRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(TeamsEnterpriseUsersAddRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!teams_.Equals(other.teams_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= teams_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      teams_.WriteTo(output, _repeated_teams_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += teams_.CalculateSize(_repeated_teams_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(TeamsEnterpriseUsersAddRequest other) {
+      if (other == null) {
+        return;
+      }
+      teams_.Add(other.teams_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            teams_.AddEntriesFrom(input, _repeated_teams_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class TeamsEnterpriseUsersAddTeamRequest : pb::IMessage<TeamsEnterpriseUsersAddTeamRequest> {
+    private static readonly pb::MessageParser<TeamsEnterpriseUsersAddTeamRequest> _parser = new pb::MessageParser<TeamsEnterpriseUsersAddTeamRequest>(() => new TeamsEnterpriseUsersAddTeamRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<TeamsEnterpriseUsersAddTeamRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[105]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddTeamRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddTeamRequest(TeamsEnterpriseUsersAddTeamRequest other) : this() {
+      teamUid_ = other.teamUid_;
+      users_ = other.users_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddTeamRequest Clone() {
+      return new TeamsEnterpriseUsersAddTeamRequest(this);
+    }
+
+    /// <summary>Field number for the "teamUid" field.</summary>
+    public const int TeamUidFieldNumber = 1;
+    private pb::ByteString teamUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString TeamUid {
+      get { return teamUid_; }
+      set {
+        teamUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "users" field.</summary>
+    public const int UsersFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Enterprise.TeamsEnterpriseUsersAddUserRequest> _repeated_users_codec
+        = pb::FieldCodec.ForMessage(18, global::Enterprise.TeamsEnterpriseUsersAddUserRequest.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddUserRequest> users_ = new pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddUserRequest>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddUserRequest> Users {
+      get { return users_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as TeamsEnterpriseUsersAddTeamRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(TeamsEnterpriseUsersAddTeamRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (TeamUid != other.TeamUid) return false;
+      if(!users_.Equals(other.users_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (TeamUid.Length != 0) hash ^= TeamUid.GetHashCode();
+      hash ^= users_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (TeamUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(TeamUid);
+      }
+      users_.WriteTo(output, _repeated_users_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (TeamUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TeamUid);
+      }
+      size += users_.CalculateSize(_repeated_users_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(TeamsEnterpriseUsersAddTeamRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.TeamUid.Length != 0) {
+        TeamUid = other.TeamUid;
+      }
+      users_.Add(other.users_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            TeamUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            users_.AddEntriesFrom(input, _repeated_users_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class TeamsEnterpriseUsersAddUserRequest : pb::IMessage<TeamsEnterpriseUsersAddUserRequest> {
+    private static readonly pb::MessageParser<TeamsEnterpriseUsersAddUserRequest> _parser = new pb::MessageParser<TeamsEnterpriseUsersAddUserRequest>(() => new TeamsEnterpriseUsersAddUserRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<TeamsEnterpriseUsersAddUserRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[106]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddUserRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddUserRequest(TeamsEnterpriseUsersAddUserRequest other) : this() {
+      enterpriseUserId_ = other.enterpriseUserId_;
+      userType_ = other.userType_;
+      teamKey_ = other.teamKey_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddUserRequest Clone() {
+      return new TeamsEnterpriseUsersAddUserRequest(this);
+    }
+
+    /// <summary>Field number for the "enterpriseUserId" field.</summary>
+    public const int EnterpriseUserIdFieldNumber = 1;
+    private long enterpriseUserId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long EnterpriseUserId {
+      get { return enterpriseUserId_; }
+      set {
+        enterpriseUserId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "userType" field.</summary>
+    public const int UserTypeFieldNumber = 2;
+    private global::Enterprise.TeamUserType userType_ = global::Enterprise.TeamUserType.User;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Enterprise.TeamUserType UserType {
+      get { return userType_; }
+      set {
+        userType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "teamKey" field.</summary>
+    public const int TeamKeyFieldNumber = 3;
+    private string teamKey_ = "";
+    /// <summary>
+    /// encrypted with the user's public key
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string TeamKey {
+      get { return teamKey_; }
+      set {
+        teamKey_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as TeamsEnterpriseUsersAddUserRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(TeamsEnterpriseUsersAddUserRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (EnterpriseUserId != other.EnterpriseUserId) return false;
+      if (UserType != other.UserType) return false;
+      if (TeamKey != other.TeamKey) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
+      if (UserType != global::Enterprise.TeamUserType.User) hash ^= UserType.GetHashCode();
+      if (TeamKey.Length != 0) hash ^= TeamKey.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (UserType != global::Enterprise.TeamUserType.User) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) UserType);
+      }
+      if (TeamKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(TeamKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (EnterpriseUserId != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EnterpriseUserId);
+      }
+      if (UserType != global::Enterprise.TeamUserType.User) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) UserType);
+      }
+      if (TeamKey.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(TeamKey);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(TeamsEnterpriseUsersAddUserRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.EnterpriseUserId != 0L) {
+        EnterpriseUserId = other.EnterpriseUserId;
+      }
+      if (other.UserType != global::Enterprise.TeamUserType.User) {
+        UserType = other.UserType;
+      }
+      if (other.TeamKey.Length != 0) {
+        TeamKey = other.TeamKey;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 16: {
+            UserType = (global::Enterprise.TeamUserType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            TeamKey = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class TeamsEnterpriseUsersAddResponse : pb::IMessage<TeamsEnterpriseUsersAddResponse> {
+    private static readonly pb::MessageParser<TeamsEnterpriseUsersAddResponse> _parser = new pb::MessageParser<TeamsEnterpriseUsersAddResponse>(() => new TeamsEnterpriseUsersAddResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<TeamsEnterpriseUsersAddResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[107]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddResponse(TeamsEnterpriseUsersAddResponse other) : this() {
+      teams_ = other.teams_.Clone();
+      revision_ = other.revision_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddResponse Clone() {
+      return new TeamsEnterpriseUsersAddResponse(this);
+    }
+
+    /// <summary>Field number for the "teams" field.</summary>
+    public const int TeamsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Enterprise.TeamsEnterpriseUsersAddTeamResponse> _repeated_teams_codec
+        = pb::FieldCodec.ForMessage(10, global::Enterprise.TeamsEnterpriseUsersAddTeamResponse.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddTeamResponse> teams_ = new pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddTeamResponse>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddTeamResponse> Teams {
+      get { return teams_; }
+    }
+
+    /// <summary>Field number for the "revision" field.</summary>
+    public const int RevisionFieldNumber = 2;
+    private long revision_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Revision {
+      get { return revision_; }
+      set {
+        revision_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as TeamsEnterpriseUsersAddResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(TeamsEnterpriseUsersAddResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!teams_.Equals(other.teams_)) return false;
+      if (Revision != other.Revision) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= teams_.GetHashCode();
+      if (Revision != 0L) hash ^= Revision.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      teams_.WriteTo(output, _repeated_teams_codec);
+      if (Revision != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(Revision);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += teams_.CalculateSize(_repeated_teams_codec);
+      if (Revision != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Revision);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(TeamsEnterpriseUsersAddResponse other) {
+      if (other == null) {
+        return;
+      }
+      teams_.Add(other.teams_);
+      if (other.Revision != 0L) {
+        Revision = other.Revision;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            teams_.AddEntriesFrom(input, _repeated_teams_codec);
+            break;
+          }
+          case 16: {
+            Revision = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class TeamsEnterpriseUsersAddTeamResponse : pb::IMessage<TeamsEnterpriseUsersAddTeamResponse> {
+    private static readonly pb::MessageParser<TeamsEnterpriseUsersAddTeamResponse> _parser = new pb::MessageParser<TeamsEnterpriseUsersAddTeamResponse>(() => new TeamsEnterpriseUsersAddTeamResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<TeamsEnterpriseUsersAddTeamResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[108]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddTeamResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddTeamResponse(TeamsEnterpriseUsersAddTeamResponse other) : this() {
+      teamUid_ = other.teamUid_;
+      users_ = other.users_.Clone();
+      success_ = other.success_;
+      message_ = other.message_;
+      resultCode_ = other.resultCode_;
+      additionalInfo_ = other.additionalInfo_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddTeamResponse Clone() {
+      return new TeamsEnterpriseUsersAddTeamResponse(this);
+    }
+
+    /// <summary>Field number for the "teamUid" field.</summary>
+    public const int TeamUidFieldNumber = 1;
+    private pb::ByteString teamUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString TeamUid {
+      get { return teamUid_; }
+      set {
+        teamUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "users" field.</summary>
+    public const int UsersFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Enterprise.TeamsEnterpriseUsersAddUserResponse> _repeated_users_codec
+        = pb::FieldCodec.ForMessage(18, global::Enterprise.TeamsEnterpriseUsersAddUserResponse.Parser);
+    private readonly pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddUserResponse> users_ = new pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddUserResponse>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Enterprise.TeamsEnterpriseUsersAddUserResponse> Users {
+      get { return users_; }
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 3;
+    private bool success_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Success {
+      get { return success_; }
+      set {
+        success_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message" field.</summary>
+    public const int MessageFieldNumber = 4;
+    private string message_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "resultCode" field.</summary>
+    public const int ResultCodeFieldNumber = 5;
+    private string resultCode_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ResultCode {
+      get { return resultCode_; }
+      set {
+        resultCode_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "additionalInfo" field.</summary>
+    public const int AdditionalInfoFieldNumber = 6;
+    private string additionalInfo_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string AdditionalInfo {
+      get { return additionalInfo_; }
+      set {
+        additionalInfo_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as TeamsEnterpriseUsersAddTeamResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(TeamsEnterpriseUsersAddTeamResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (TeamUid != other.TeamUid) return false;
+      if(!users_.Equals(other.users_)) return false;
+      if (Success != other.Success) return false;
+      if (Message != other.Message) return false;
+      if (ResultCode != other.ResultCode) return false;
+      if (AdditionalInfo != other.AdditionalInfo) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (TeamUid.Length != 0) hash ^= TeamUid.GetHashCode();
+      hash ^= users_.GetHashCode();
+      if (Success != false) hash ^= Success.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (ResultCode.Length != 0) hash ^= ResultCode.GetHashCode();
+      if (AdditionalInfo.Length != 0) hash ^= AdditionalInfo.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (TeamUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(TeamUid);
+      }
+      users_.WriteTo(output, _repeated_users_codec);
+      if (Success != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Success);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Message);
+      }
+      if (ResultCode.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(ResultCode);
+      }
+      if (AdditionalInfo.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(AdditionalInfo);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (TeamUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TeamUid);
+      }
+      size += users_.CalculateSize(_repeated_users_codec);
+      if (Success != false) {
+        size += 1 + 1;
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      if (ResultCode.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ResultCode);
+      }
+      if (AdditionalInfo.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(AdditionalInfo);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(TeamsEnterpriseUsersAddTeamResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.TeamUid.Length != 0) {
+        TeamUid = other.TeamUid;
+      }
+      users_.Add(other.users_);
+      if (other.Success != false) {
+        Success = other.Success;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
+      }
+      if (other.ResultCode.Length != 0) {
+        ResultCode = other.ResultCode;
+      }
+      if (other.AdditionalInfo.Length != 0) {
+        AdditionalInfo = other.AdditionalInfo;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            TeamUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            users_.AddEntriesFrom(input, _repeated_users_codec);
+            break;
+          }
+          case 24: {
+            Success = input.ReadBool();
+            break;
+          }
+          case 34: {
+            Message = input.ReadString();
+            break;
+          }
+          case 42: {
+            ResultCode = input.ReadString();
+            break;
+          }
+          case 50: {
+            AdditionalInfo = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class TeamsEnterpriseUsersAddUserResponse : pb::IMessage<TeamsEnterpriseUsersAddUserResponse> {
+    private static readonly pb::MessageParser<TeamsEnterpriseUsersAddUserResponse> _parser = new pb::MessageParser<TeamsEnterpriseUsersAddUserResponse>(() => new TeamsEnterpriseUsersAddUserResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<TeamsEnterpriseUsersAddUserResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Enterprise.EnterpriseReflection.Descriptor.MessageTypes[109]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddUserResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddUserResponse(TeamsEnterpriseUsersAddUserResponse other) : this() {
+      enterpriseUserId_ = other.enterpriseUserId_;
+      revision_ = other.revision_;
+      success_ = other.success_;
+      message_ = other.message_;
+      resultCode_ = other.resultCode_;
+      additionalInfo_ = other.additionalInfo_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public TeamsEnterpriseUsersAddUserResponse Clone() {
+      return new TeamsEnterpriseUsersAddUserResponse(this);
+    }
+
+    /// <summary>Field number for the "enterpriseUserId" field.</summary>
+    public const int EnterpriseUserIdFieldNumber = 1;
+    private long enterpriseUserId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long EnterpriseUserId {
+      get { return enterpriseUserId_; }
+      set {
+        enterpriseUserId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "revision" field.</summary>
+    public const int RevisionFieldNumber = 2;
+    private long revision_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Revision {
+      get { return revision_; }
+      set {
+        revision_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 3;
+    private bool success_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Success {
+      get { return success_; }
+      set {
+        success_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message" field.</summary>
+    public const int MessageFieldNumber = 4;
+    private string message_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "resultCode" field.</summary>
+    public const int ResultCodeFieldNumber = 5;
+    private string resultCode_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ResultCode {
+      get { return resultCode_; }
+      set {
+        resultCode_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "additionalInfo" field.</summary>
+    public const int AdditionalInfoFieldNumber = 6;
+    private string additionalInfo_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string AdditionalInfo {
+      get { return additionalInfo_; }
+      set {
+        additionalInfo_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as TeamsEnterpriseUsersAddUserResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(TeamsEnterpriseUsersAddUserResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (EnterpriseUserId != other.EnterpriseUserId) return false;
+      if (Revision != other.Revision) return false;
+      if (Success != other.Success) return false;
+      if (Message != other.Message) return false;
+      if (ResultCode != other.ResultCode) return false;
+      if (AdditionalInfo != other.AdditionalInfo) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
+      if (Revision != 0L) hash ^= Revision.GetHashCode();
+      if (Success != false) hash ^= Success.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (ResultCode.Length != 0) hash ^= ResultCode.GetHashCode();
+      if (AdditionalInfo.Length != 0) hash ^= AdditionalInfo.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (Revision != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(Revision);
+      }
+      if (Success != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Success);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Message);
+      }
+      if (ResultCode.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(ResultCode);
+      }
+      if (AdditionalInfo.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(AdditionalInfo);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (EnterpriseUserId != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(EnterpriseUserId);
+      }
+      if (Revision != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Revision);
+      }
+      if (Success != false) {
+        size += 1 + 1;
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      if (ResultCode.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ResultCode);
+      }
+      if (AdditionalInfo.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(AdditionalInfo);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(TeamsEnterpriseUsersAddUserResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.EnterpriseUserId != 0L) {
+        EnterpriseUserId = other.EnterpriseUserId;
+      }
+      if (other.Revision != 0L) {
+        Revision = other.Revision;
+      }
+      if (other.Success != false) {
+        Success = other.Success;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
+      }
+      if (other.ResultCode.Length != 0) {
+        ResultCode = other.ResultCode;
+      }
+      if (other.AdditionalInfo.Length != 0) {
+        AdditionalInfo = other.AdditionalInfo;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 16: {
+            Revision = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            Success = input.ReadBool();
+            break;
+          }
+          case 34: {
+            Message = input.ReadString();
+            break;
+          }
+          case 42: {
+            ResultCode = input.ReadString();
+            break;
+          }
+          case 50: {
+            AdditionalInfo = input.ReadString();
             break;
           }
         }

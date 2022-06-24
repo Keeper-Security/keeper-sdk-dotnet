@@ -451,6 +451,27 @@ namespace KeeperSecurity.Vault
         /// <returns>Secret Manager Application</returns>
         Task<SecretsManagerApplication> UnshareFromSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid);
 
+        /// <summary>
+        /// Adds a client/device to Secret Manager Application
+        /// </summary>
+        /// <param name="applicationId">Application ID</param>
+        /// <param name="unlockIp">Optional. If false the first call from the client locks IP. If true no IP locking</param>
+        /// <param name="firstAccessExpireInMinutes">Optional. First access duration in minutes. Default: an hour (60). Maximum: a day (1440) </param>
+        /// <param name="AccessExpiresInMinutes">Optional. Access Expiration duration in minutes.</param>
+        /// <param name="name">Optional. Client/Device name</param>
+        /// <returns>Tuple: Client Device, Client Key</returns>
+        Task<Tuple<SecretsManagerDevice, string>> AddSecretManagerClient(
+            string applicationId, bool? unlockIp=null, int? firstAccessExpireInMinutes=null, 
+            int? AccessExpiresInMinutes=null, string name=null);
+
+        /// <summary>
+        /// Deletes a client/device from Secret Manager Application
+        /// </summary>
+        /// <param name="applicationId">Application ID</param>
+        /// <param name="deviceId">Device ID or Name</param>
+        /// <returns>Awaitable Task</returns>
+        Task DeleteSecretManagerClient(string applicationId, string deviceId);
+
     }
 
     /// <summary>
@@ -1183,7 +1204,7 @@ namespace KeeperSecurity.Vault
     public class SecretsManagerDevice
     {
         public string Name { get; internal set; }
-        public string ClientId { get; internal set; }
+        public string DeviceId { get; internal set; }
         public DateTimeOffset CreatedOn { get; internal set; }
         public DateTimeOffset? FirstAccess { get; internal set; }
         public DateTimeOffset? LastAccess { get; internal set; }

@@ -81,110 +81,114 @@ namespace Records {
             "CzIiLlJlY29yZHMuUmVjb3JkRm9sZGVyRm9yQ29udmVyc2lvbiJdChlSZWNv",
             "cmRzQ29udmVydFRvVjNSZXF1ZXN0EisKB3JlY29yZHMYASADKAsyGi5SZWNv",
             "cmRzLlJlY29yZENvbnZlcnRUb1YzEhMKC2NsaWVudF90aW1lGAIgASgDIicK",
-            "FFJlY29yZHNSZW1vdmVSZXF1ZXN0Eg8KB3JlY29yZHMYASADKAwiZgoSUmVj",
-            "b3JkTW9kaWZ5U3RhdHVzEhIKCnJlY29yZF91aWQYASABKAwSKwoGc3RhdHVz",
-            "GAIgASgOMhsuUmVjb3Jkcy5SZWNvcmRNb2RpZnlSZXN1bHQSDwoHbWVzc2Fn",
-            "ZRgDIAEoCSJXChVSZWNvcmRzTW9kaWZ5UmVzcG9uc2USLAoHcmVjb3JkcxgB",
-            "IAMoCzIbLlJlY29yZHMuUmVjb3JkTW9kaWZ5U3RhdHVzEhAKCHJldmlzaW9u",
-            "GAIgASgDIlkKElJlY29yZEFkZEF1ZGl0RGF0YRISCgpyZWNvcmRfdWlkGAEg",
-            "ASgMEhAKCHJldmlzaW9uGAIgASgDEgwKBGRhdGEYAyABKAwSDwoHdmVyc2lv",
-            "bhgEIAEoBSJDChNBZGRBdWRpdERhdGFSZXF1ZXN0EiwKB3JlY29yZHMYASAD",
-            "KAsyGy5SZWNvcmRzLlJlY29yZEFkZEF1ZGl0RGF0YSJhCgRGaWxlEhIKCnJl",
-            "Y29yZF91aWQYASABKAwSEgoKcmVjb3JkX2tleRgCIAEoDBIMCgRkYXRhGAMg",
-            "ASgMEhAKCGZpbGVTaXplGAQgASgDEhEKCXRodW1iU2l6ZRgFIAEoBSJECg9G",
-            "aWxlc0FkZFJlcXVlc3QSHAoFZmlsZXMYASADKAsyDS5SZWNvcmRzLkZpbGUS",
-            "EwoLY2xpZW50X3RpbWUYAiABKAMipwEKDUZpbGVBZGRTdGF0dXMSEgoKcmVj",
-            "b3JkX3VpZBgBIAEoDBImCgZzdGF0dXMYAiABKA4yFi5SZWNvcmRzLkZpbGVB",
-            "ZGRSZXN1bHQSCwoDdXJsGAMgASgJEhIKCnBhcmFtZXRlcnMYBCABKAkSHAoU",
-            "dGh1bWJuYWlsX3BhcmFtZXRlcnMYBSABKAkSGwoTc3VjY2Vzc19zdGF0dXNf",
-            "Y29kZRgGIAEoBSI5ChBGaWxlc0FkZFJlc3BvbnNlEiUKBWZpbGVzGAEgAygL",
-            "MhYuUmVjb3Jkcy5GaWxlQWRkU3RhdHVzImYKD0ZpbGVzR2V0UmVxdWVzdBIT",
-            "CgtyZWNvcmRfdWlkcxgBIAMoDBIWCg5mb3JfdGh1bWJuYWlscxgCIAEoCBIm",
-            "Ch5lbWVyZ2VuY3lfYWNjZXNzX2FjY291bnRfb3duZXIYAyABKAkiogEKDUZp",
-            "bGVHZXRTdGF0dXMSEgoKcmVjb3JkX3VpZBgBIAEoDBImCgZzdGF0dXMYAiAB",
-            "KA4yFi5SZWNvcmRzLkZpbGVHZXRSZXN1bHQSCwoDdXJsGAMgASgJEhsKE3N1",
-            "Y2Nlc3Nfc3RhdHVzX2NvZGUYBCABKAUSKwoLZmlsZUtleVR5cGUYBSABKA4y",
-            "Fi5SZWNvcmRzLlJlY29yZEtleVR5cGUiOQoQRmlsZXNHZXRSZXNwb25zZRIl",
-            "CgVmaWxlcxgBIAMoCzIWLlJlY29yZHMuRmlsZUdldFN0YXR1cyJoChVBcHBs",
-            "aWNhdGlvbkFkZFJlcXVlc3QSDwoHYXBwX3VpZBgBIAEoDBISCgpyZWNvcmRf",
-            "a2V5GAIgASgMEhwKFGNsaWVudF9tb2RpZmllZF90aW1lGAMgASgDEgwKBGRh",
-            "dGEYBCABKAwiiAEKIkdldFJlY29yZERhdGFXaXRoQWNjZXNzSW5mb1JlcXVl",
-            "c3QSEgoKY2xpZW50VGltZRgBIAEoAxIRCglyZWNvcmRVaWQYAiADKAwSOwoU",
-            "cmVjb3JkRGV0YWlsc0luY2x1ZGUYAyABKA4yHS5SZWNvcmRzLlJlY29yZERl",
-            "dGFpbHNJbmNsdWRlIqsBCg5Vc2VyUGVybWlzc2lvbhIQCgh1c2VybmFtZRgB",
-            "IAEoCRINCgVvd25lchgCIAEoCBISCgpzaGFyZUFkbWluGAMgASgIEhAKCHNo",
-            "YXJhYmxlGAQgASgIEhAKCGVkaXRhYmxlGAUgASgIEhgKEGF3YWl0aW5nQXBw",
-            "cm92YWwYBiABKAgSEgoKZXhwaXJhdGlvbhgHIAEoAxISCgphY2NvdW50VWlk",
-            "GAggASgMIn0KFlNoYXJlZEZvbGRlclBlcm1pc3Npb24SFwoPc2hhcmVkRm9s",
-            "ZGVyVWlkGAEgASgMEhIKCnJlc2hhcmFibGUYAiABKAgSEAoIZWRpdGFibGUY",
-            "AyABKAgSEAoIcmV2aXNpb24YBCABKAMSEgoKZXhwaXJhdGlvbhgFIAEoAyKH",
-            "AgoKUmVjb3JkRGF0YRIQCghyZXZpc2lvbhgBIAEoAxIPCgd2ZXJzaW9uGAIg",
-            "ASgFEg4KBnNoYXJlZBgDIAEoCBIbChNlbmNyeXB0ZWRSZWNvcmREYXRhGAQg",
-            "ASgJEhoKEmVuY3J5cHRlZEV4dHJhRGF0YRgFIAEoCRIaChJjbGllbnRNb2Rp",
-            "ZmllZFRpbWUYBiABKAMSFgoOb3duZXJSZWNvcmRVaWQYByABKAwSIAoYZW5j",
-            "cnlwdGVkTGlua2VkUmVjb3JkS2V5GAggASgMEg4KBmZpbGVJZBgJIAMoAxIQ",
-            "CghmaWxlU2l6ZRgKIAEoAxIVCg10aHVtYm5haWxTaXplGAsgASgDIsgBChhS",
-            "ZWNvcmREYXRhV2l0aEFjY2Vzc0luZm8SEQoJcmVjb3JkVWlkGAEgASgMEicK",
-            "CnJlY29yZERhdGEYAiABKAsyEy5SZWNvcmRzLlJlY29yZERhdGESLwoOdXNl",
-            "clBlcm1pc3Npb24YAyADKAsyFy5SZWNvcmRzLlVzZXJQZXJtaXNzaW9uEj8K",
-            "FnNoYXJlZEZvbGRlclBlcm1pc3Npb24YBCADKAsyHy5SZWNvcmRzLlNoYXJl",
-            "ZEZvbGRlclBlcm1pc3Npb24iiQEKI0dldFJlY29yZERhdGFXaXRoQWNjZXNz",
-            "SW5mb1Jlc3BvbnNlEkMKGHJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxgBIAMo",
-            "CzIhLlJlY29yZHMuUmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvEh0KFW5vUGVy",
-            "bWlzc2lvblJlY29yZFVpZBgCIAMoDCK8AQoYUmVjb3JkU2hhcmVVcGRhdGVS",
-            "ZXF1ZXN0Ei4KD2FkZFNoYXJlZFJlY29yZBgBIAMoCzIVLlJlY29yZHMuU2hh",
-            "cmVkUmVjb3JkEjEKEnVwZGF0ZVNoYXJlZFJlY29yZBgCIAMoCzIVLlJlY29y",
-            "ZHMuU2hhcmVkUmVjb3JkEjEKEnJlbW92ZVNoYXJlZFJlY29yZBgDIAMoCzIV",
-            "LlJlY29yZHMuU2hhcmVkUmVjb3JkEgoKAnB0GAQgASgJItUBCgxTaGFyZWRS",
-            "ZWNvcmQSEgoKdG9Vc2VybmFtZRgBIAEoCRIRCglyZWNvcmRVaWQYAiABKAwS",
-            "EQoJcmVjb3JkS2V5GAMgASgMEhcKD3NoYXJlZEZvbGRlclVpZBgEIAEoDBIP",
-            "Cgd0ZWFtVWlkGAUgASgMEhAKCGVkaXRhYmxlGAYgASgIEhEKCXNoYXJlYWJs",
-            "ZRgHIAEoCBIQCgh0cmFuc2ZlchgIIAEoCBIRCgl1c2VFY2NLZXkYCSABKAgS",
-            "FwoPcmVtb3ZlVmF1bHREYXRhGAogASgIItUBChlSZWNvcmRTaGFyZVVwZGF0",
-            "ZVJlc3BvbnNlEjoKFWFkZFNoYXJlZFJlY29yZFN0YXR1cxgBIAMoCzIbLlJl",
-            "Y29yZHMuU2hhcmVkUmVjb3JkU3RhdHVzEj0KGHVwZGF0ZVNoYXJlZFJlY29y",
-            "ZFN0YXR1cxgCIAMoCzIbLlJlY29yZHMuU2hhcmVkUmVjb3JkU3RhdHVzEj0K",
-            "GHJlbW92ZVNoYXJlZFJlY29yZFN0YXR1cxgDIAMoCzIbLlJlY29yZHMuU2hh",
-            "cmVkUmVjb3JkU3RhdHVzIloKElNoYXJlZFJlY29yZFN0YXR1cxIRCglyZWNv",
-            "cmRVaWQYASABKAwSDgoGc3RhdHVzGAIgASgJEg8KB21lc3NhZ2UYAyABKAkS",
-            "EAoIdXNlcm5hbWUYBCABKAkiRwobR2V0UmVjb3JkUGVybWlzc2lvbnNSZXF1",
-            "ZXN0EhIKCnJlY29yZFVpZHMYASADKAwSFAoMaXNTaGFyZUFkbWluGAIgASgI",
-            "IlQKHEdldFJlY29yZFBlcm1pc3Npb25zUmVzcG9uc2USNAoRcmVjb3JkUGVy",
-            "bWlzc2lvbnMYASADKAsyGS5SZWNvcmRzLlJlY29yZFBlcm1pc3Npb24ibAoQ",
-            "UmVjb3JkUGVybWlzc2lvbhIRCglyZWNvcmRVaWQYASABKAwSDQoFb3duZXIY",
-            "AiABKAgSDwoHY2FuRWRpdBgDIAEoCBIQCghjYW5TaGFyZRgEIAEoCBITCgtj",
-            "YW5UcmFuc2ZlchgFIAEoCCI9ChZHZXRTaGFyZU9iamVjdHNSZXF1ZXN0EhEK",
-            "CXN0YXJ0V2l0aBgBIAEoCRIQCghjb250YWlucxgCIAEoCSKOAgoXR2V0U2hh",
-            "cmVPYmplY3RzUmVzcG9uc2USMAoSc2hhcmVSZWxhdGlvbnNoaXBzGAEgAygL",
-            "MhQuUmVjb3Jkcy5TaGFyZU9iamVjdBIuChBzaGFyZUZhbWlseVVzZXJzGAIg",
-            "AygLMhQuUmVjb3Jkcy5TaGFyZU9iamVjdBIyChRzaGFyZUVudGVycHJpc2VV",
-            "c2VycxgDIAMoCzIULlJlY29yZHMuU2hhcmVPYmplY3QSKAoKc2hhcmVUZWFt",
-            "cxgEIAMoCzIULlJlY29yZHMuU2hhcmVPYmplY3QSMwoVc2hhcmVNYW5hZ2Vk",
-            "Q29tcGFuaWVzGAUgAygLMhQuUmVjb3Jkcy5TaGFyZU9iamVjdCKOAQoLU2hh",
-            "cmVPYmplY3QSDAoEbmFtZRgBIAEoCRIgCgR0eXBlGAIgASgOMhIuUmVjb3Jk",
-            "cy5TaGFyZVR5cGUSFAoMaXNTaGFyZUFkbWluGAMgASgIEhMKC2Rpc3BsYXlO",
-            "YW1lGAQgASgJEiQKBnN0YXR1cxgFIAEoDjIULlJlY29yZHMuU2hhcmVTdGF0",
-            "dXMqQgoPUmVjb3JkVHlwZVNjb3BlEg8KC1JUX1NUQU5EQVJEEAASCwoHUlRf",
-            "VVNFUhABEhEKDVJUX0VOVEVSUFJJU0UQAiqTAQoNUmVjb3JkS2V5VHlwZRIK",
-            "CgZOT19LRVkQABIZChVFTkNSWVBURURfQllfREFUQV9LRVkQARIbChdFTkNS",
-            "WVBURURfQllfUFVCTElDX0tFWRACEh0KGUVOQ1JZUFRFRF9CWV9EQVRBX0tF",
-            "WV9HQ00QAxIfChtFTkNSWVBURURfQllfUFVCTElDX0tFWV9FQ0MQBCpQChBS",
-            "ZWNvcmRGb2xkZXJUeXBlEg8KC3VzZXJfZm9sZGVyEAASEQoNc2hhcmVkX2Zv",
-            "bGRlchABEhgKFHNoYXJlZF9mb2xkZXJfZm9sZGVyEAIq7gEKElJlY29yZE1v",
-            "ZGlmeVJlc3VsdBIOCgpSU19TVUNDRVNTEAASEgoOUlNfT1VUX09GX1NZTkMQ",
-            "ARIUChBSU19BQ0NFU1NfREVOSUVEEAISEwoPUlNfU0hBUkVfREVOSUVEEAMS",
-            "FAoQUlNfUkVDT1JEX0VYSVNUUxAEEh4KGlJTX09MRF9SRUNPUkRfVkVSU0lP",
-            "Tl9UWVBFEAUSHgoaUlNfTkVXX1JFQ09SRF9WRVJTSU9OX1RZUEUQBhIWChJS",
-            "U19GSUxFU19OT1RfTUFUQ0gQBxIbChdSU19SRUNPUkRfTk9UX1NIQVJFQUJM",
-            "RRAIKi0KDUZpbGVBZGRSZXN1bHQSDgoKRkFfU1VDQ0VTUxAAEgwKCEZBX0VS",
-            "Uk9SEAEqQwoNRmlsZUdldFJlc3VsdBIOCgpGR19TVUNDRVNTEAASDAoIRkdf",
-            "RVJST1IQARIUChBGR19BQ0NFU1NfREVOSUVEEAIqSgoUUmVjb3JkRGV0YWls",
-            "c0luY2x1ZGUSEwoPREFUQV9QTFVTX1NIQVJFEAASDQoJREFUQV9PTkxZEAES",
-            "DgoKU0hBUkVfT05MWRACKmsKCVNoYXJlVHlwZRIYChRTSEFSSU5HX1JFTEFU",
-            "SU9OU0hJUBAAEhMKD0VOVEVSUFJJU0VfVVNFUhABEhEKDUZBTUlMWV9NRU1C",
-            "RVIQAhIICgRURUFNEAMSEgoOTUFOQUdFX0NPTVBBTlkQBCoxCgtTaGFyZVN0",
-            "YXR1cxIKCgZBQ1RJVkUQABIJCgVCTE9DSxABEgsKB0lOVklURUQQAkIjChhj",
-            "b20ua2VlcGVyc2VjdXJpdHkucHJvdG9CB1JlY29yZHNiBnByb3RvMw=="));
+            "FFJlY29yZHNSZW1vdmVSZXF1ZXN0Eg8KB3JlY29yZHMYASADKAwiYwoPUmVj",
+            "b3JkTGlua0Vycm9yEhIKCnJlY29yZF91aWQYASABKAwSKwoGc3RhdHVzGAIg",
+            "ASgOMhsuUmVjb3Jkcy5SZWNvcmRNb2RpZnlSZXN1bHQSDwoHbWVzc2FnZRgD",
+            "IAEoCSKVAQoSUmVjb3JkTW9kaWZ5U3RhdHVzEhIKCnJlY29yZF91aWQYASAB",
+            "KAwSKwoGc3RhdHVzGAIgASgOMhsuUmVjb3Jkcy5SZWNvcmRNb2RpZnlSZXN1",
+            "bHQSDwoHbWVzc2FnZRgDIAEoCRItCgtsaW5rX2Vycm9ycxgEIAMoCzIYLlJl",
+            "Y29yZHMuUmVjb3JkTGlua0Vycm9yIlcKFVJlY29yZHNNb2RpZnlSZXNwb25z",
+            "ZRIsCgdyZWNvcmRzGAEgAygLMhsuUmVjb3Jkcy5SZWNvcmRNb2RpZnlTdGF0",
+            "dXMSEAoIcmV2aXNpb24YAiABKAMiWQoSUmVjb3JkQWRkQXVkaXREYXRhEhIK",
+            "CnJlY29yZF91aWQYASABKAwSEAoIcmV2aXNpb24YAiABKAMSDAoEZGF0YRgD",
+            "IAEoDBIPCgd2ZXJzaW9uGAQgASgFIkMKE0FkZEF1ZGl0RGF0YVJlcXVlc3QS",
+            "LAoHcmVjb3JkcxgBIAMoCzIbLlJlY29yZHMuUmVjb3JkQWRkQXVkaXREYXRh",
+            "ImEKBEZpbGUSEgoKcmVjb3JkX3VpZBgBIAEoDBISCgpyZWNvcmRfa2V5GAIg",
+            "ASgMEgwKBGRhdGEYAyABKAwSEAoIZmlsZVNpemUYBCABKAMSEQoJdGh1bWJT",
+            "aXplGAUgASgFIkQKD0ZpbGVzQWRkUmVxdWVzdBIcCgVmaWxlcxgBIAMoCzIN",
+            "LlJlY29yZHMuRmlsZRITCgtjbGllbnRfdGltZRgCIAEoAyKnAQoNRmlsZUFk",
+            "ZFN0YXR1cxISCgpyZWNvcmRfdWlkGAEgASgMEiYKBnN0YXR1cxgCIAEoDjIW",
+            "LlJlY29yZHMuRmlsZUFkZFJlc3VsdBILCgN1cmwYAyABKAkSEgoKcGFyYW1l",
+            "dGVycxgEIAEoCRIcChR0aHVtYm5haWxfcGFyYW1ldGVycxgFIAEoCRIbChNz",
+            "dWNjZXNzX3N0YXR1c19jb2RlGAYgASgFIjkKEEZpbGVzQWRkUmVzcG9uc2US",
+            "JQoFZmlsZXMYASADKAsyFi5SZWNvcmRzLkZpbGVBZGRTdGF0dXMiZgoPRmls",
+            "ZXNHZXRSZXF1ZXN0EhMKC3JlY29yZF91aWRzGAEgAygMEhYKDmZvcl90aHVt",
+            "Ym5haWxzGAIgASgIEiYKHmVtZXJnZW5jeV9hY2Nlc3NfYWNjb3VudF9vd25l",
+            "chgDIAEoCSKiAQoNRmlsZUdldFN0YXR1cxISCgpyZWNvcmRfdWlkGAEgASgM",
+            "EiYKBnN0YXR1cxgCIAEoDjIWLlJlY29yZHMuRmlsZUdldFJlc3VsdBILCgN1",
+            "cmwYAyABKAkSGwoTc3VjY2Vzc19zdGF0dXNfY29kZRgEIAEoBRIrCgtmaWxl",
+            "S2V5VHlwZRgFIAEoDjIWLlJlY29yZHMuUmVjb3JkS2V5VHlwZSI5ChBGaWxl",
+            "c0dldFJlc3BvbnNlEiUKBWZpbGVzGAEgAygLMhYuUmVjb3Jkcy5GaWxlR2V0",
+            "U3RhdHVzImgKFUFwcGxpY2F0aW9uQWRkUmVxdWVzdBIPCgdhcHBfdWlkGAEg",
+            "ASgMEhIKCnJlY29yZF9rZXkYAiABKAwSHAoUY2xpZW50X21vZGlmaWVkX3Rp",
+            "bWUYAyABKAMSDAoEZGF0YRgEIAEoDCKIAQoiR2V0UmVjb3JkRGF0YVdpdGhB",
+            "Y2Nlc3NJbmZvUmVxdWVzdBISCgpjbGllbnRUaW1lGAEgASgDEhEKCXJlY29y",
+            "ZFVpZBgCIAMoDBI7ChRyZWNvcmREZXRhaWxzSW5jbHVkZRgDIAEoDjIdLlJl",
+            "Y29yZHMuUmVjb3JkRGV0YWlsc0luY2x1ZGUiqwEKDlVzZXJQZXJtaXNzaW9u",
+            "EhAKCHVzZXJuYW1lGAEgASgJEg0KBW93bmVyGAIgASgIEhIKCnNoYXJlQWRt",
+            "aW4YAyABKAgSEAoIc2hhcmFibGUYBCABKAgSEAoIZWRpdGFibGUYBSABKAgS",
+            "GAoQYXdhaXRpbmdBcHByb3ZhbBgGIAEoCBISCgpleHBpcmF0aW9uGAcgASgD",
+            "EhIKCmFjY291bnRVaWQYCCABKAwifQoWU2hhcmVkRm9sZGVyUGVybWlzc2lv",
+            "bhIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSEgoKcmVzaGFyYWJsZRgCIAEo",
+            "CBIQCghlZGl0YWJsZRgDIAEoCBIQCghyZXZpc2lvbhgEIAEoAxISCgpleHBp",
+            "cmF0aW9uGAUgASgDIocCCgpSZWNvcmREYXRhEhAKCHJldmlzaW9uGAEgASgD",
+            "Eg8KB3ZlcnNpb24YAiABKAUSDgoGc2hhcmVkGAMgASgIEhsKE2VuY3J5cHRl",
+            "ZFJlY29yZERhdGEYBCABKAkSGgoSZW5jcnlwdGVkRXh0cmFEYXRhGAUgASgJ",
+            "EhoKEmNsaWVudE1vZGlmaWVkVGltZRgGIAEoAxIWCg5vd25lclJlY29yZFVp",
+            "ZBgHIAEoDBIgChhlbmNyeXB0ZWRMaW5rZWRSZWNvcmRLZXkYCCABKAwSDgoG",
+            "ZmlsZUlkGAkgAygDEhAKCGZpbGVTaXplGAogASgDEhUKDXRodW1ibmFpbFNp",
+            "emUYCyABKAMiyAEKGFJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxIRCglyZWNv",
+            "cmRVaWQYASABKAwSJwoKcmVjb3JkRGF0YRgCIAEoCzITLlJlY29yZHMuUmVj",
+            "b3JkRGF0YRIvCg51c2VyUGVybWlzc2lvbhgDIAMoCzIXLlJlY29yZHMuVXNl",
+            "clBlcm1pc3Npb24SPwoWc2hhcmVkRm9sZGVyUGVybWlzc2lvbhgEIAMoCzIf",
+            "LlJlY29yZHMuU2hhcmVkRm9sZGVyUGVybWlzc2lvbiKJAQojR2V0UmVjb3Jk",
+            "RGF0YVdpdGhBY2Nlc3NJbmZvUmVzcG9uc2USQwoYcmVjb3JkRGF0YVdpdGhB",
+            "Y2Nlc3NJbmZvGAEgAygLMiEuUmVjb3Jkcy5SZWNvcmREYXRhV2l0aEFjY2Vz",
+            "c0luZm8SHQoVbm9QZXJtaXNzaW9uUmVjb3JkVWlkGAIgAygMIrwBChhSZWNv",
+            "cmRTaGFyZVVwZGF0ZVJlcXVlc3QSLgoPYWRkU2hhcmVkUmVjb3JkGAEgAygL",
+            "MhUuUmVjb3Jkcy5TaGFyZWRSZWNvcmQSMQoSdXBkYXRlU2hhcmVkUmVjb3Jk",
+            "GAIgAygLMhUuUmVjb3Jkcy5TaGFyZWRSZWNvcmQSMQoScmVtb3ZlU2hhcmVk",
+            "UmVjb3JkGAMgAygLMhUuUmVjb3Jkcy5TaGFyZWRSZWNvcmQSCgoCcHQYBCAB",
+            "KAki1QEKDFNoYXJlZFJlY29yZBISCgp0b1VzZXJuYW1lGAEgASgJEhEKCXJl",
+            "Y29yZFVpZBgCIAEoDBIRCglyZWNvcmRLZXkYAyABKAwSFwoPc2hhcmVkRm9s",
+            "ZGVyVWlkGAQgASgMEg8KB3RlYW1VaWQYBSABKAwSEAoIZWRpdGFibGUYBiAB",
+            "KAgSEQoJc2hhcmVhYmxlGAcgASgIEhAKCHRyYW5zZmVyGAggASgIEhEKCXVz",
+            "ZUVjY0tleRgJIAEoCBIXCg9yZW1vdmVWYXVsdERhdGEYCiABKAgi1QEKGVJl",
+            "Y29yZFNoYXJlVXBkYXRlUmVzcG9uc2USOgoVYWRkU2hhcmVkUmVjb3JkU3Rh",
+            "dHVzGAEgAygLMhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMSPQoYdXBk",
+            "YXRlU2hhcmVkUmVjb3JkU3RhdHVzGAIgAygLMhsuUmVjb3Jkcy5TaGFyZWRS",
+            "ZWNvcmRTdGF0dXMSPQoYcmVtb3ZlU2hhcmVkUmVjb3JkU3RhdHVzGAMgAygL",
+            "MhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMiWgoSU2hhcmVkUmVjb3Jk",
+            "U3RhdHVzEhEKCXJlY29yZFVpZBgBIAEoDBIOCgZzdGF0dXMYAiABKAkSDwoH",
+            "bWVzc2FnZRgDIAEoCRIQCgh1c2VybmFtZRgEIAEoCSJHChtHZXRSZWNvcmRQ",
+            "ZXJtaXNzaW9uc1JlcXVlc3QSEgoKcmVjb3JkVWlkcxgBIAMoDBIUCgxpc1No",
+            "YXJlQWRtaW4YAiABKAgiVAocR2V0UmVjb3JkUGVybWlzc2lvbnNSZXNwb25z",
+            "ZRI0ChFyZWNvcmRQZXJtaXNzaW9ucxgBIAMoCzIZLlJlY29yZHMuUmVjb3Jk",
+            "UGVybWlzc2lvbiJsChBSZWNvcmRQZXJtaXNzaW9uEhEKCXJlY29yZFVpZBgB",
+            "IAEoDBINCgVvd25lchgCIAEoCBIPCgdjYW5FZGl0GAMgASgIEhAKCGNhblNo",
+            "YXJlGAQgASgIEhMKC2NhblRyYW5zZmVyGAUgASgIIj0KFkdldFNoYXJlT2Jq",
+            "ZWN0c1JlcXVlc3QSEQoJc3RhcnRXaXRoGAEgASgJEhAKCGNvbnRhaW5zGAIg",
+            "ASgJIo4CChdHZXRTaGFyZU9iamVjdHNSZXNwb25zZRIwChJzaGFyZVJlbGF0",
+            "aW9uc2hpcHMYASADKAsyFC5SZWNvcmRzLlNoYXJlT2JqZWN0Ei4KEHNoYXJl",
+            "RmFtaWx5VXNlcnMYAiADKAsyFC5SZWNvcmRzLlNoYXJlT2JqZWN0EjIKFHNo",
+            "YXJlRW50ZXJwcmlzZVVzZXJzGAMgAygLMhQuUmVjb3Jkcy5TaGFyZU9iamVj",
+            "dBIoCgpzaGFyZVRlYW1zGAQgAygLMhQuUmVjb3Jkcy5TaGFyZU9iamVjdBIz",
+            "ChVzaGFyZU1hbmFnZWRDb21wYW5pZXMYBSADKAsyFC5SZWNvcmRzLlNoYXJl",
+            "T2JqZWN0Ip8BCgtTaGFyZU9iamVjdBIMCgRuYW1lGAEgASgJEiAKBHR5cGUY",
+            "AiABKA4yEi5SZWNvcmRzLlNoYXJlVHlwZRIUCgxpc1NoYXJlQWRtaW4YAyAB",
+            "KAgSEwoLZGlzcGxheU5hbWUYBCABKAkSJAoGc3RhdHVzGAUgASgOMhQuUmVj",
+            "b3Jkcy5TaGFyZVN0YXR1cxIPCgd0ZWFtVWlkGAYgASgMKkIKD1JlY29yZFR5",
+            "cGVTY29wZRIPCgtSVF9TVEFOREFSRBAAEgsKB1JUX1VTRVIQARIRCg1SVF9F",
+            "TlRFUlBSSVNFEAIqkwEKDVJlY29yZEtleVR5cGUSCgoGTk9fS0VZEAASGQoV",
+            "RU5DUllQVEVEX0JZX0RBVEFfS0VZEAESGwoXRU5DUllQVEVEX0JZX1BVQkxJ",
+            "Q19LRVkQAhIdChlFTkNSWVBURURfQllfREFUQV9LRVlfR0NNEAMSHwobRU5D",
+            "UllQVEVEX0JZX1BVQkxJQ19LRVlfRUNDEAQqUAoQUmVjb3JkRm9sZGVyVHlw",
+            "ZRIPCgt1c2VyX2ZvbGRlchAAEhEKDXNoYXJlZF9mb2xkZXIQARIYChRzaGFy",
+            "ZWRfZm9sZGVyX2ZvbGRlchACKu4BChJSZWNvcmRNb2RpZnlSZXN1bHQSDgoK",
+            "UlNfU1VDQ0VTUxAAEhIKDlJTX09VVF9PRl9TWU5DEAESFAoQUlNfQUNDRVNT",
+            "X0RFTklFRBACEhMKD1JTX1NIQVJFX0RFTklFRBADEhQKEFJTX1JFQ09SRF9F",
+            "WElTVFMQBBIeChpSU19PTERfUkVDT1JEX1ZFUlNJT05fVFlQRRAFEh4KGlJT",
+            "X05FV19SRUNPUkRfVkVSU0lPTl9UWVBFEAYSFgoSUlNfRklMRVNfTk9UX01B",
+            "VENIEAcSGwoXUlNfUkVDT1JEX05PVF9TSEFSRUFCTEUQCCotCg1GaWxlQWRk",
+            "UmVzdWx0Eg4KCkZBX1NVQ0NFU1MQABIMCghGQV9FUlJPUhABKkMKDUZpbGVH",
+            "ZXRSZXN1bHQSDgoKRkdfU1VDQ0VTUxAAEgwKCEZHX0VSUk9SEAESFAoQRkdf",
+            "QUNDRVNTX0RFTklFRBACKkoKFFJlY29yZERldGFpbHNJbmNsdWRlEhMKD0RB",
+            "VEFfUExVU19TSEFSRRAAEg0KCURBVEFfT05MWRABEg4KClNIQVJFX09OTFkQ",
+            "AiprCglTaGFyZVR5cGUSGAoUU0hBUklOR19SRUxBVElPTlNISVAQABITCg9F",
+            "TlRFUlBSSVNFX1VTRVIQARIRCg1GQU1JTFlfTUVNQkVSEAISCAoEVEVBTRAD",
+            "EhIKDk1BTkFHRV9DT01QQU5ZEAQqMQoLU2hhcmVTdGF0dXMSCgoGQUNUSVZF",
+            "EAASCQoFQkxPQ0sQARILCgdJTlZJVEVEEAJCIwoYY29tLmtlZXBlcnNlY3Vy",
+            "aXR5LnByb3RvQgdSZWNvcmRzYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.ShareType), typeof(global::Records.ShareStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -209,7 +213,8 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordConvertToV3), global::Records.RecordConvertToV3.Parser, new[]{ "RecordUid", "ClientModifiedTime", "Revision", "Data", "NonSharedData", "Audit", "RecordFile", "FolderKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsConvertToV3Request), global::Records.RecordsConvertToV3Request.Parser, new[]{ "Records", "ClientTime" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsRemoveRequest), global::Records.RecordsRemoveRequest.Parser, new[]{ "Records" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordModifyStatus), global::Records.RecordModifyStatus.Parser, new[]{ "RecordUid", "Status", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordLinkError), global::Records.RecordLinkError.Parser, new[]{ "RecordUid", "Status", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordModifyStatus), global::Records.RecordModifyStatus.Parser, new[]{ "RecordUid", "Status", "Message", "LinkErrors" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsModifyResponse), global::Records.RecordsModifyResponse.Parser, new[]{ "Records", "Revision" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordAddAuditData), global::Records.RecordAddAuditData.Parser, new[]{ "RecordUid", "Revision", "Data", "Version" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.AddAuditDataRequest), global::Records.AddAuditDataRequest.Parser, new[]{ "Records" }, null, null, null, null),
@@ -236,7 +241,7 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordPermission), global::Records.RecordPermission.Parser, new[]{ "RecordUid", "Owner", "CanEdit", "CanShare", "CanTransfer" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetShareObjectsRequest), global::Records.GetShareObjectsRequest.Parser, new[]{ "StartWith", "Contains" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetShareObjectsResponse), global::Records.GetShareObjectsResponse.Parser, new[]{ "ShareRelationships", "ShareFamilyUsers", "ShareEnterpriseUsers", "ShareTeams", "ShareManagedCompanies" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareObject), global::Records.ShareObject.Parser, new[]{ "Name", "Type", "IsShareAdmin", "DisplayName", "Status" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareObject), global::Records.ShareObject.Parser, new[]{ "Name", "Type", "IsShareAdmin", "DisplayName", "Status", "TeamUid" }, null, null, null, null)
           }));
     }
     #endregion
@@ -4654,11 +4659,11 @@ namespace Records {
 
   }
 
-  public sealed partial class RecordModifyStatus : pb::IMessage<RecordModifyStatus> {
-    private static readonly pb::MessageParser<RecordModifyStatus> _parser = new pb::MessageParser<RecordModifyStatus>(() => new RecordModifyStatus());
+  public sealed partial class RecordLinkError : pb::IMessage<RecordLinkError> {
+    private static readonly pb::MessageParser<RecordLinkError> _parser = new pb::MessageParser<RecordLinkError>(() => new RecordLinkError());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<RecordModifyStatus> Parser { get { return _parser; } }
+    public static pb::MessageParser<RecordLinkError> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -4671,14 +4676,14 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RecordModifyStatus() {
+    public RecordLinkError() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RecordModifyStatus(RecordModifyStatus other) : this() {
+    public RecordLinkError(RecordLinkError other) : this() {
       recordUid_ = other.recordUid_;
       status_ = other.status_;
       message_ = other.message_;
@@ -4686,8 +4691,8 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RecordModifyStatus Clone() {
-      return new RecordModifyStatus(this);
+    public RecordLinkError Clone() {
+      return new RecordLinkError(this);
     }
 
     /// <summary>Field number for the "record_uid" field.</summary>
@@ -4725,11 +4730,11 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as RecordModifyStatus);
+      return Equals(other as RecordLinkError);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(RecordModifyStatus other) {
+    public bool Equals(RecordLinkError other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -4797,7 +4802,7 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(RecordModifyStatus other) {
+    public void MergeFrom(RecordLinkError other) {
       if (other == null) {
         return;
       }
@@ -4839,6 +4844,211 @@ namespace Records {
 
   }
 
+  public sealed partial class RecordModifyStatus : pb::IMessage<RecordModifyStatus> {
+    private static readonly pb::MessageParser<RecordModifyStatus> _parser = new pb::MessageParser<RecordModifyStatus>(() => new RecordModifyStatus());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<RecordModifyStatus> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[22]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public RecordModifyStatus() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public RecordModifyStatus(RecordModifyStatus other) : this() {
+      recordUid_ = other.recordUid_;
+      status_ = other.status_;
+      message_ = other.message_;
+      linkErrors_ = other.linkErrors_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public RecordModifyStatus Clone() {
+      return new RecordModifyStatus(this);
+    }
+
+    /// <summary>Field number for the "record_uid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 2;
+    private global::Records.RecordModifyResult status_ = global::Records.RecordModifyResult.RsSuccess;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Records.RecordModifyResult Status {
+      get { return status_; }
+      set {
+        status_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message" field.</summary>
+    public const int MessageFieldNumber = 3;
+    private string message_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "link_errors" field.</summary>
+    public const int LinkErrorsFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Records.RecordLinkError> _repeated_linkErrors_codec
+        = pb::FieldCodec.ForMessage(34, global::Records.RecordLinkError.Parser);
+    private readonly pbc::RepeatedField<global::Records.RecordLinkError> linkErrors_ = new pbc::RepeatedField<global::Records.RecordLinkError>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Records.RecordLinkError> LinkErrors {
+      get { return linkErrors_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as RecordModifyStatus);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(RecordModifyStatus other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (Status != other.Status) return false;
+      if (Message != other.Message) return false;
+      if(!linkErrors_.Equals(other.linkErrors_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (Status != global::Records.RecordModifyResult.RsSuccess) hash ^= Status.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      hash ^= linkErrors_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (Status != global::Records.RecordModifyResult.RsSuccess) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Status);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Message);
+      }
+      linkErrors_.WriteTo(output, _repeated_linkErrors_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (Status != global::Records.RecordModifyResult.RsSuccess) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      size += linkErrors_.CalculateSize(_repeated_linkErrors_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(RecordModifyStatus other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.Status != global::Records.RecordModifyResult.RsSuccess) {
+        Status = other.Status;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
+      }
+      linkErrors_.Add(other.linkErrors_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            Status = (global::Records.RecordModifyResult) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            Message = input.ReadString();
+            break;
+          }
+          case 34: {
+            linkErrors_.AddEntriesFrom(input, _repeated_linkErrors_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
   public sealed partial class RecordsModifyResponse : pb::IMessage<RecordsModifyResponse> {
     private static readonly pb::MessageParser<RecordsModifyResponse> _parser = new pb::MessageParser<RecordsModifyResponse>(() => new RecordsModifyResponse());
     private pb::UnknownFieldSet _unknownFields;
@@ -4847,7 +5057,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[22]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4996,7 +5206,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[23]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5209,7 +5419,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[24]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5330,7 +5540,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[25]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5571,7 +5781,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[26]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5720,7 +5930,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[27]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5989,7 +6199,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[28]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6110,7 +6320,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[29]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[30]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6287,7 +6497,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[30]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[31]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6528,7 +6738,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[31]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[32]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6649,7 +6859,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[32]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[33]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6862,7 +7072,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[33]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[34]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7039,7 +7249,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[34]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[35]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7370,7 +7580,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[35]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[36]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7614,7 +7824,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[36]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[37]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8034,7 +8244,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[37]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[38]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8237,7 +8447,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[38]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[39]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8378,7 +8588,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[39]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[40]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8567,7 +8777,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[40]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[41]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8948,7 +9158,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[41]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[42]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9109,7 +9319,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[42]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[43]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9325,7 +9535,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[43]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[44]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9474,7 +9684,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[44]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[45]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9595,7 +9805,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[45]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[46]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9836,7 +10046,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[46]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[47]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9999,7 +10209,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[47]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[48]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10200,7 +10410,7 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Records.RecordReflection.Descriptor.MessageTypes[48]; }
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[49]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10222,6 +10432,7 @@ namespace Records {
       isShareAdmin_ = other.isShareAdmin_;
       displayName_ = other.displayName_;
       status_ = other.status_;
+      teamUid_ = other.teamUid_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -10300,6 +10511,17 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "teamUid" field.</summary>
+    public const int TeamUidFieldNumber = 6;
+    private pb::ByteString teamUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString TeamUid {
+      get { return teamUid_; }
+      set {
+        teamUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as ShareObject);
@@ -10318,6 +10540,7 @@ namespace Records {
       if (IsShareAdmin != other.IsShareAdmin) return false;
       if (DisplayName != other.DisplayName) return false;
       if (Status != other.Status) return false;
+      if (TeamUid != other.TeamUid) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -10329,6 +10552,7 @@ namespace Records {
       if (IsShareAdmin != false) hash ^= IsShareAdmin.GetHashCode();
       if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       if (Status != global::Records.ShareStatus.Active) hash ^= Status.GetHashCode();
+      if (TeamUid.Length != 0) hash ^= TeamUid.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -10362,6 +10586,10 @@ namespace Records {
         output.WriteRawTag(40);
         output.WriteEnum((int) Status);
       }
+      if (TeamUid.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(TeamUid);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -10384,6 +10612,9 @@ namespace Records {
       }
       if (Status != global::Records.ShareStatus.Active) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      }
+      if (TeamUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TeamUid);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -10410,6 +10641,9 @@ namespace Records {
       }
       if (other.Status != global::Records.ShareStatus.Active) {
         Status = other.Status;
+      }
+      if (other.TeamUid.Length != 0) {
+        TeamUid = other.TeamUid;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -10440,6 +10674,10 @@ namespace Records {
           }
           case 40: {
             Status = (global::Records.ShareStatus) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            TeamUid = input.ReadBytes();
             break;
           }
         }
