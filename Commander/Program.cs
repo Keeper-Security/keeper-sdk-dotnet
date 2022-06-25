@@ -21,6 +21,7 @@ using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Async;
+using System.Runtime.Serialization.Json;
 
 namespace Commander
 {
@@ -403,37 +404,29 @@ namespace Commander
             return base.WaitForHttpProxyCredentials(proxyInfo);
         }
 
-        public async Task<string> AuthenticateRequests(SecurityKeyAuthenticateRequest[] requests)
+        public async Task<string> AuthenticatePublicKeyRequest(PublicKeyCredentialRequestOptions request)
         {
-            if (requests == null || requests.Length == 0) throw new Exception("Security key challenge is empty. Try another 2FA method.");
-            var cancellationSource = new CancellationTokenSource();
-            var clientData = new SecurityKeyClientData
+            if (request == null || string.IsNullOrEmpty(request.challenge))
             {
-                dataType = SecurityKeyClientData.U2F_SIGN,
-                challenge = requests[0].challenge,
-                origin = requests[0].appId,
-            };
-            var keyHandles = new List<byte[]>
-                {
-                    requests[0].keyHandle.Base64UrlDecode()
-                };
-
-            foreach (var rq in requests.Skip(1))
-            {
-                if (rq.challenge == clientData.challenge && rq.appId == clientData.origin)
-                {
-                    keyHandles.Add(rq.keyHandle.Base64UrlDecode());
-                }
+                throw new Exception("Security key challenge is empty. Try another 2FA method.");
             }
+            var cancellationSource = new CancellationTokenSource();
 
-            var u2fSignature = await WinWebAuthn.Authenticate.GetAssertion(WinWebAuthn.Authenticate.GetConsoleWindow(), clientData, keyHandles, cancellationSource.Token);
-            var signature = new SecurityKeySignature
+            var webAuthnSignature = await WinWebAuthn.Authenticate.GetAssertion(WinWebAuthn.Authenticate.GetConsoleWindow(), request, cancellationSource.Token);
+            var signature = new KeeperWebAuthnSignature
             {
-                clientData = u2fSignature.clientData.Base64UrlEncode(),
-                signatureData = u2fSignature.signatureData.Base64UrlEncode(),
-                keyHandle = u2fSignature.keyHandle.Base64UrlEncode()
+                id = webAuthnSignature.credentialId.Base64UrlEncode(),
+                rawId = webAuthnSignature.credentialId.Base64UrlEncode(),
+                response = new SignatureResponse 
+                { 
+                    authenticatorData = webAuthnSignature.authenticatorData.Base64UrlEncode(),
+                    clientDataJSON = webAuthnSignature.clientData.Base64UrlEncode(),
+                    signature = webAuthnSignature.signatureData.Base64UrlEncode(),
+                },
+                type = "public-key",
+                clientExtensionResults = new ClientExtensionResults(),
             };
-            return Encoding.UTF8.GetString(JsonUtils.DumpJson(signature));
+            return Encoding.UTF8.GetString(JsonUtils.DumpJson(signature, false));
         }
     }
 

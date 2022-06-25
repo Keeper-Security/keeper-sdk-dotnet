@@ -39,12 +39,12 @@ namespace KeeperSecurity.Utils
         /// <typeparam name="T">Type of JSON object.</typeparam>
         /// <param name="obj">JSON object.</param>
         /// <returns>JSON data.</returns>
-        public static byte[] DumpJson<T>(T obj)
+        public static byte[] DumpJson<T>(T obj, bool indent = true)
         {
             var serializer = new DataContractJsonSerializer(typeof(T), JsonSettings);
             using (var ms = new MemoryStream())
             {
-                using (var writer = JsonReaderWriterFactory.CreateJsonWriter(ms, Encoding.UTF8, false, true))
+                using (var writer = JsonReaderWriterFactory.CreateJsonWriter(ms, Encoding.UTF8, false, indent))
                 {
                     serializer.WriteObject(writer, obj);
                 }

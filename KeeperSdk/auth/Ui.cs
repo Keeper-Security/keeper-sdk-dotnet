@@ -446,8 +446,8 @@ namespace KeeperSecurity.Authentication
         /// <summary>
         /// U2F key authentications required.
         /// </summary>
-        /// <param name="requests">a list of registered U2F key requests.</param>
-        /// <returns>A task that returns U2F signature.</returns>
-        Task<string> AuthenticateRequests(SecurityKeyAuthenticateRequest[] requests);
+        /// <param name="requests">Public Key Credential request.</param>
+        /// <returns>A task that returns WebAuthn signature.</returns>
+        Task<string> AuthenticatePublicKeyRequest(PublicKeyCredentialRequestOptions request);
     }
 }

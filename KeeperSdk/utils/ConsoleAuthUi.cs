@@ -226,8 +226,14 @@ namespace KeeperSecurity.Authentication.Async
                     {
                         if (pushChannelInfo.ContainsKey(action))
                         {
-
-                            await pushChannelInfo[action].InvokeTwoFactorPushAction(action);
+                            try
+                            {
+                                await pushChannelInfo[action].InvokeTwoFactorPushAction(action);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.Message);
+                            }
                         }
                         else
                         {

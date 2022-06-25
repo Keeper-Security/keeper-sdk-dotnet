@@ -31,7 +31,7 @@ namespace KeeperSecurity.Authentication
 
         internal string V2TwoFactorToken { get; set; }
 
-       public ECPrivateKeyParameters DeviceKey { get; set; }
+        public ECPrivateKeyParameters DeviceKey { get; set; }
 
         public byte[] MessageSessionUid { get; }
         internal Queue<string> PasswordQueue { get; } = new Queue<string>();
@@ -199,7 +199,7 @@ namespace KeeperSecurity.Authentication
 #endif
             try
             {
-                await auth.Endpoint.ExecuteRest("authentication/register_device_in_region", new ApiRequestPayload {Payload = request.ToByteString()});
+                await auth.Endpoint.ExecuteRest("authentication/register_device_in_region", new ApiRequestPayload { Payload = request.ToByteString() });
             }
             catch (KeeperApiException kae)
             {
@@ -234,7 +234,7 @@ namespace KeeperSecurity.Authentication
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"register_device\": {request}");
 #endif
-            var rs = await auth.Endpoint.ExecuteRest("authentication/register_device", new ApiRequestPayload {Payload = request.ToByteString()});
+            var rs = await auth.Endpoint.ExecuteRest("authentication/register_device", new ApiRequestPayload { Payload = request.ToByteString() });
             var response = Device.Parser.ParseFrom(rs);
 #if DEBUG
             Debug.WriteLine($"REST Response: endpoint \"register_device\": {response}");
@@ -264,7 +264,7 @@ namespace KeeperSecurity.Authentication
             Debug.WriteLine($"REST Request: endpoint \"request_device_verification\": {request}");
 #endif
             await auth.Endpoint.ExecuteRest("authentication/request_device_verification",
-                new ApiRequestPayload {Payload = request.ToByteString()});
+                new ApiRequestPayload { Payload = request.ToByteString() });
         }
 
         internal static async Task ValidateDeviceVerificationCode(this IAuth auth, LoginContext v3, string code)
@@ -281,7 +281,7 @@ namespace KeeperSecurity.Authentication
             Debug.WriteLine($"REST Request: endpoint \"validate_device_verification_code\": {request}");
 #endif
             await auth.Endpoint.ExecuteRest("authentication/validate_device_verification_code",
-                new ApiRequestPayload {Payload = request.ToByteString()});
+                new ApiRequestPayload { Payload = request.ToByteString() });
         }
 
         internal static Task<T> ResumeLogin<T>(
@@ -460,8 +460,8 @@ namespace KeeperSecurity.Authentication
         }
 
         private static async Task<AuthContext> ExecuteValidateAuthHash(
-            this IAuth auth, 
-            LoginContext v3, 
+            this IAuth auth,
+            LoginContext v3,
             ValidateAuthHashRequest request,
             Func<EncryptedDataKeyType, byte[], byte[]> dataKeyDecryptor)
         {
@@ -469,7 +469,7 @@ namespace KeeperSecurity.Authentication
             Debug.WriteLine($"REST Request: endpoint \"validate_auth_hash\": {request}");
 #endif
             var rs = await auth.Endpoint.ExecuteRest("authentication/validate_auth_hash",
-                new ApiRequestPayload {Payload = request.ToByteString()});
+                new ApiRequestPayload { Payload = request.ToByteString() });
             var response = LoginResponse.Parser.ParseFrom(rs);
 #if DEBUG
             Debug.WriteLine($"REST response: endpoint \"validate_auth_hash\": {response}");
@@ -519,7 +519,7 @@ namespace KeeperSecurity.Authentication
             if (saltInfo == null)
             {
                 throw new KeeperStartLoginException(
-                    LoginState.RequiresAuthHash, 
+                    LoginState.RequiresAuthHash,
                     "Master Password has not been created.");
             }
 
@@ -653,7 +653,7 @@ namespace KeeperSecurity.Authentication
             auth.PushNotifications?.RegisterCallback(NotificationCallback);
 
             return Tuple.Create<IDeviceApprovalChannelInfo[], Action>(
-                new IDeviceApprovalChannelInfo[] {email, push, otp},
+                new IDeviceApprovalChannelInfo[] { email, push, otp },
                 () => { auth.PushNotifications?.RemoveCallback(NotificationCallback); });
         }
 
@@ -715,7 +715,7 @@ namespace KeeperSecurity.Authentication
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"2fa_send_push\": {request}");
 #endif
-            await auth.Endpoint.ExecuteRest("authentication/2fa_send_push", new ApiRequestPayload {Payload = request.ToByteString()});
+            await auth.Endpoint.ExecuteRest("authentication/2fa_send_push", new ApiRequestPayload { Payload = request.ToByteString() });
         }
 
         private static async Task<TwoFactorValidateResponse> ExecuteTwoFactorValidateCode(this IAuth auth, TwoFactorValidateRequest request)
@@ -792,7 +792,7 @@ namespace KeeperSecurity.Authentication
                         totp.InvokeTwoFactorCodeAction = GetCodeDelegate(totp, ch);
                         availableChannels.Add(totp);
                     }
-                        break;
+                    break;
 
                     case TwoFactorChannelType.TwoFaCtRsa:
                     {
@@ -800,7 +800,7 @@ namespace KeeperSecurity.Authentication
                         rsa.InvokeTwoFactorCodeAction = GetCodeDelegate(rsa, ch);
                         availableChannels.Add(rsa);
                     }
-                        break;
+                    break;
 
                     case TwoFactorChannelType.TwoFaCtSms:
                     {
@@ -812,7 +812,7 @@ namespace KeeperSecurity.Authentication
                         sms.InvokeTwoFactorCodeAction = GetCodeDelegate(sms, ch);
                         availableChannels.Add(sms);
                     }
-                        break;
+                    break;
 
                     case TwoFactorChannelType.TwoFaCtDuo:
                     {
@@ -842,7 +842,7 @@ namespace KeeperSecurity.Authentication
                         duoTfa.InvokeTwoFactorCodeAction = GetCodeDelegate(duoTfa, ch);
                         availableChannels.Add(duoTfa);
                     }
-                        break;
+                    break;
 
                     case TwoFactorChannelType.TwoFaCtDna:
                     {
@@ -854,30 +854,31 @@ namespace KeeperSecurity.Authentication
                         dna2Fa.InvokeTwoFactorCodeAction = GetCodeDelegate(dna2Fa, ch);
                         availableChannels.Add(dna2Fa);
                     }
-                        break;
+                    break;
 
-                    case TwoFactorChannelType.TwoFaCtU2F:
+                    case TwoFactorChannelType.TwoFaCtWebauthn:
                         if (auth.AuthCallback is IAuthSecurityKeyUI keyUi)
                         {
                             try
                             {
-                                var rqs = JsonUtils.ParseJson<SecurityKeyRequest>(Encoding.UTF8.GetBytes(ch.Challenge));
-                                var key2Fa = new TwoFactorSecurityKeyChannel();
-                                key2Fa.InvokeTwoFactorPushAction = (action) =>
+                                var rqs = JsonUtils.ParseJson<KeeperWebAuthnRequest>(Encoding.UTF8.GetBytes(ch.Challenge));
+                                var key2Fa = new TwoFactorSecurityKeyChannel
                                 {
-                                    return Task.Run(async () =>
+                                    InvokeTwoFactorPushAction = async (action) =>
                                     {
-                                        var signature = await keyUi.AuthenticateRequests(rqs.authenticateRequests);
+                                        var signature = keyUi.AuthenticatePublicKeyRequest(rqs.publicKeyCredentialRequestOptions).GetAwaiter().GetResult();
+
                                         var request = new TwoFactorValidateRequest
                                         {
+                                            ChannelUid = ch.ChannelUid,
                                             EncryptedLoginToken = loginToken,
                                             ExpireIn = TwoFactorExpiration.TwoFaExpImmediately,
-                                            ValueType = ch.ChannelType == TwoFactorChannelType.TwoFaCtWebauthn ? TwoFactorValueType.TwoFaRespWebauthn : TwoFactorValueType.TwoFaRespU2F,
+                                            ValueType = TwoFactorValueType.TwoFaRespWebauthn,
                                             Value = signature,
                                         };
                                         var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
                                         onLoginToken(validateRs.EncryptedLoginToken);
-                                    });
+                                    }
                                 };
                                 availableChannels.Add(key2Fa);
                             }
@@ -888,7 +889,8 @@ namespace KeeperSecurity.Authentication
                         }
 
                         break;
-                    case TwoFactorChannelType.TwoFaCtWebauthn:
+
+                    case TwoFactorChannelType.TwoFaCtU2F:
                     case TwoFactorChannelType.TwoFaCtKeeper:
                         break;
                 }
@@ -1109,7 +1111,7 @@ namespace KeeperSecurity.Authentication
             {
                 Payload = request.ToByteString()
             };
-            
+
             Debug.WriteLine($"REST Request: endpoint \"request_create_user\": {request}");
             await auth.Endpoint.ExecuteRest("authentication/request_create_user", apiRequest);
         }
@@ -1156,7 +1158,7 @@ namespace KeeperSecurity.Authentication
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"request_device_admin_approval\": {request}");
 #endif
-            var payload = new ApiRequestPayload {Payload = request.ToByteString()};
+            var payload = new ApiRequestPayload { Payload = request.ToByteString() };
             var rs = await auth.Endpoint.ExecuteRest("authentication/request_device_admin_approval", payload);
             DeviceVerificationResponse response = null;
             if (rs?.Length > 0)
@@ -1218,7 +1220,7 @@ namespace KeeperSecurity.Authentication
             auth.PushNotifications?.RegisterCallback(ProcessDataKeyRequest);
 
             return Tuple.Create<IDataKeyChannelInfo[], Action>(
-                new IDataKeyChannelInfo[] {pushChannel, adminChannel},
+                new IDataKeyChannelInfo[] { pushChannel, adminChannel },
                 () => { auth.PushNotifications?.RemoveCallback(ProcessDataKeyRequest); }
             );
         }
