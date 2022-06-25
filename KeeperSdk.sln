@@ -22,8 +22,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SecurityKey", "SecurityKey\SecurityKey.csproj", "{92DC07FC-F2D1-4325-9556-3C3CD09624F4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample", "Sample\Sample.csproj", "{01037E06-F6F2-4A20-BAFE-3E56D856DEE6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinWebAuthn", "WinWebAuthn\WinWebAuthn.csproj", "{912A6A55-C062-42FF-AAFB-13B56F74B7E5}"
@@ -51,10 +49,6 @@ Global
 		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Release|Any CPU.Build.0 = Release|Any CPU
-		{92DC07FC-F2D1-4325-9556-3C3CD09624F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{92DC07FC-F2D1-4325-9556-3C3CD09624F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{92DC07FC-F2D1-4325-9556-3C3CD09624F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{92DC07FC-F2D1-4325-9556-3C3CD09624F4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{01037E06-F6F2-4A20-BAFE-3E56D856DEE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{01037E06-F6F2-4A20-BAFE-3E56D856DEE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01037E06-F6F2-4A20-BAFE-3E56D856DEE6}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -4,37 +4,66 @@ namespace KeeperSecurity.Authentication
 {
     /// <exclude/>
     [DataContract]
-    public class SecurityKeyAuthenticateRequest
+    public class WebAuthnExtension
     {
-        [DataMember(Name = "version")]
-        public string version;
-
-        [DataMember(Name = "appId")]
-        public string appId;
-
-        [DataMember(Name = "challenge")]
-        public string challenge;
-
-        [DataMember(Name = "keyHandle")]
-        public string keyHandle;
+        [DataMember(Name = "appid")]
+        public string appid;
+        [DataMember(Name = "uvm")]
+        public bool uvm;
+        [DataMember(Name = "loc")]
+        public string loc;
+        [DataMember(Name = "txAuthSimple")]
+        public string txAuthSimple;
     }
 
     /// <exclude/>
     [DataContract]
-    public class SecurityKeyRequest
+    public class AllowCredential
     {
-        [DataMember(Name = "authenticateRequests")]
-        public SecurityKeyAuthenticateRequest[] authenticateRequests;
+        [DataMember(Name = "type")]
+        public string type;
+        [DataMember(Name = "id")]
+        public string id;
+    }
+
+    /// <exclude/>
+    [DataContract]
+    public class PublicKeyCredentialRequestOptions
+    {
+        [DataMember(Name = "challenge")]
+        public string challenge;
+        [DataMember(Name = "rpId")]
+        public string rpId;
+        [DataMember(Name = "allowCredentials")]
+        public AllowCredential[] allowCredentials;
+        [DataMember(Name = "userVerification")]
+        public string userVerification;
+        [DataMember(Name = "extensions")]
+        public WebAuthnExtension extensions;
+    }
+
+
+    /// <exclude/>
+    [DataContract]
+    public class KeeperWebAuthnRequest
+    {
+        [DataMember(Name = "publicKeyCredentialRequestOptions")]
+        public PublicKeyCredentialRequestOptions publicKeyCredentialRequestOptions;
+        [DataMember(Name = "username")]
+        public string username;
     }
 
     /// <exclude/>
     [DataContract]
     public class SecurityKeyClientData
     {
+        public const string MAKE_CREDENTIAL = "webauthn.create";
+        public const string GET_ASSERTION = "webauthn.get";
+
         public const string U2F_REGISTER = "navigator.id.finishEnrollment";
         public const string U2F_SIGN = "navigator.id.getAssertion";
 
-        [DataMember(Name = "typ", Order = 1)]
+        [DataMember(Name = "type", Order = 1)]
         public string dataType;
         [DataMember(Name = "challenge", Order = 2)]
         public string challenge;
@@ -42,22 +71,44 @@ namespace KeeperSecurity.Authentication
         public string origin;
     }
 
-    /// <exclude/>
-    public class SecurityKeySignature
+    [DataContract]
+    public class SignatureResponse
     {
-        [DataMember(Name = "clientData", Order = 1)]
-        public string clientData;
-        [DataMember(Name = "signatureData", Order = 2)]
-        public string signatureData;
-        [DataMember(Name = "keyHandle", Order = 3)]
-        public string keyHandle;
+        [DataMember(Name = "authenticatorData", Order = 1)]
+        public string authenticatorData;
+        [DataMember(Name = "clientDataJSON", Order = 2)]
+        public string clientDataJSON;
+        [DataMember(Name = "signature", Order = 3)]
+        public string signature;
+    }
+
+    [DataContract]
+    public class ClientExtensionResults
+    {
     }
 
     /// <exclude/>
-    public class U2FSignature
+    [DataContract]
+    public class KeeperWebAuthnSignature
+    {
+        [DataMember(Name = "id", Order = 1)]
+        public string id;
+        [DataMember(Name = "rawId", Order = 2)]
+        public string rawId;
+        [DataMember(Name = "response", Order = 3)]
+        public SignatureResponse response;
+        [DataMember(Name = "type", Order = 4)]
+        public string type;
+        [DataMember(Name = "clientExtensionResults", Order = 5)]
+        public ClientExtensionResults clientExtensionResults;
+    }
+
+    /// <exclude/>
+    public class WebAuthnSignature
     {
         public byte[] clientData;
+        public byte[] authenticatorData;
         public byte[] signatureData;
-        public byte[] keyHandle;
+        public byte[] credentialId;
     }
 }
