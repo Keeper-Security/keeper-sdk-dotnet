@@ -238,3 +238,41 @@ function Add-KeeperSecretManagerClient {
 }
 Register-ArgumentCompleter -CommandName Add-KeeperSecretManagerClient -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter
 New-Alias -Name ksm-addclient -Value Add-KeeperSecretManagerClient
+
+function Remove-KeeperSecretManagerClient {
+    <#
+        .Synopsis
+        Removes client/device from KSM Application
+    
+        .Parameter App
+        KSM Application UID or Title
+
+        .Parameter Name
+        Client Id or Device Name
+
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string]$App,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+    
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $apps = Get-KeeperSecretManagerApps -Filter $App -Detail
+    if (-not $apps) {
+        Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
+    }
+    [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
+
+    $device = $application.Devices | Where-Object { $_.Name -ceq $Name -or $_.ShortDeviceId -ceq $Name }
+    if (-not $device) {
+        Write-Error -Message "Cannot find Device: $Name" -ErrorAction Stop
+    }
+
+    $vault.DeleteSecretManagerClient($application.Uid, $device.DeviceId).GetAwaiter().GetResult() | Out-Null
+
+    Write-Information -MessageData "Device $($device.Name) has been deleted from KSM application `"$($application.Title)`"."
+}
+
+Register-ArgumentCompleter -CommandName Remove-KeeperSecretManagerClient -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter
+New-Alias -Name ksm-rmclient -Value Remove-KeeperSecretManagerClient

@@ -57,6 +57,9 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | New-KeeperSecretManagerApp             | ksm-create  | Create Keeper Secret Manager Application
 | Grant-KeeperSecretManagerFolderAccess  | ksm-share   | Add shared folder to KSM Application
 | Revoke-KeeperSecretManagerFolderAccess | ksm-unshare | Remove Shared Folder from KSM Application
+| Add-KeeperSecretManagerClient          |ksm-addclient| Adds client/device to KSM Application
+| Remove-KeeperSecretManagerClient       | ksm-rmclient| Removes client/device from KSM Application
+
 
 #### Examples
 

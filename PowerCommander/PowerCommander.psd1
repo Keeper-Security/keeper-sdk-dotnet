@@ -79,7 +79,7 @@ FunctionsToExport = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get
 # 'Test-Keeper',
 'Show-KeeperRecordShares', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess', 
 'Revoke-KeeperSharedFolderAccess', 'Get-KeeperSecretManagerApps', 'New-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess',
-'Revoke-KeeperSecretManagerFolderAccess', 'Add-KeeperSecretManagerClient'
+'Revoke-KeeperSecretManagerFolderAccess', 'Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient'
 )
 
 # Cmdlets to export from this module
@@ -91,7 +91,7 @@ CmdletsToExport = @( )
 # Aliases to export from this module
 AliasesToExport = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 
 	'ked', 'keu', 'ken', 'ket', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
-	'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient')
+	'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient')
 
 # List of all modules packaged with this module
 # ModuleList = @()

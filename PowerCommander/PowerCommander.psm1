@@ -50,8 +50,8 @@ Export-ModuleMember -Function Show-KeeperRecordShares, Grant-KeeperRecordAccess,
 Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf
 
 Export-ModuleMember -Function Get-KeeperSecretManagerApps, New-KeeperSecretManagerApp, Grant-KeeperSecretManagerFolderAccess,
-                              Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient
-Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare, ksm-addclient
+                              Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-KeeperSecretManagerClient
+Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
 
 
 # function Test-Keeper {
