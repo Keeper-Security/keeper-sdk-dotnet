@@ -32,7 +32,7 @@ namespace KeeperSecurity.Vault
             var command = new SyncDownCommand
             {
                 revision = storage.Revision,
-                include = new[] {"sfheaders", "sfrecords", "sfusers", "teams", "folders", "typed_record", "app_record" },
+                include = new[] { "sfheaders", "sfrecords", "sfusers", "teams", "folders", "typed_record", "app_record" },
                 deviceName = vault.Auth.Endpoint.DeviceName,
                 deviceId = vault.Auth.Endpoint.DeviceName
             };
@@ -366,6 +366,7 @@ namespace KeeperSecurity.Vault
 
                         return null;
                     })
+                    .Where(x => x != null)
                     .ToArray();
 
                 storage.RecordKeys.PutLinks(rmds);
@@ -430,7 +431,7 @@ namespace KeeperSecurity.Vault
                         (team, sharedFolderKey) =>
                         {
                             sharedFolderKey.TeamUid = team.TeamUid;
-                            sharedFolderKey.KeyType = sharedFolderKey.KeyType == 2 ? (int) KeyType.TeamPrivateKey : (int)KeyType.TeamKey;
+                            sharedFolderKey.KeyType = sharedFolderKey.KeyType == 2 ? (int) KeyType.TeamPrivateKey : (int) KeyType.TeamKey;
                             return sharedFolderKey;
                         })
                     .ToArray();
@@ -486,6 +487,7 @@ namespace KeeperSecurity.Vault
                             return null;
                         }
                     })
+                    .Where(x => x != null)
                     .ToArray();
                 if (sharedFolderKeys.Any())
                 {

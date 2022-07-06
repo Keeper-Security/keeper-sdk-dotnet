@@ -558,7 +558,10 @@ namespace KeeperSecurity.Vault
         {
             foreach (var entity in data)
             {
-                _items[entity.Uid] = entity;
+                if (entity != null)
+                {
+                    _items[entity.Uid] = entity;
+                }
             }
         }
     }
@@ -634,6 +637,10 @@ namespace KeeperSecurity.Vault
         {
             foreach (var link in links)
             {
+                if (link == null)
+                {
+                    continue;
+                }
                 if (!_links.TryGetValue(link.SubjectUid, out IDictionary<string, T> dict))
                 {
                     dict = new Dictionary<string, T>();
