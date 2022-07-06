@@ -534,6 +534,21 @@ namespace KeeperSecurity.Vault
             return sharedFolder;
         }
 
+        public static Team Load(this IEnterpriseTeam team, byte[] teamKey)
+        {
+            var pk = team.TeamPrivateKey.Base64UrlDecode();
+            return new Team
+            {
+                TeamUid = team.TeamUid,
+                Name = team.Name,
+                TeamKey = teamKey,
+                TeamPrivateKey = CryptoUtils.LoadPrivateKey(CryptoUtils.DecryptAesV1(pk, teamKey)),
+                RestrictEdit = team.RestrictEdit,
+                RestrictShare = team.RestrictShare,
+                RestrictView = team.RestrictView,
+            };
+        }
+
         /// <summary>
         /// Gets a custom field.
         /// </summary>
