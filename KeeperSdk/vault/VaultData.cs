@@ -378,7 +378,7 @@ namespace KeeperSecurity.Vault
                 {
 
                     var teamKey = CryptoUtils.DecryptAesV1(team.TeamKey.Base64UrlDecode(), ClientKey);
-                    var t = new Team(team, teamKey);
+                    var t = team.Load(teamKey);
                     keeperTeams.TryAdd(t.TeamUid, t);
                 }
                 catch (Exception e)

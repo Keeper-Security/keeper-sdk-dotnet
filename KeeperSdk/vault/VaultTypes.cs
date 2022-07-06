@@ -1441,22 +1441,6 @@ namespace KeeperSecurity.Vault
     /// </summary>
     public class Team: TeamInfo
     {
-        internal Team()
-        {
-        }
-
-        internal Team(IEnterpriseTeam et, byte[] teamKey)
-        {
-            TeamKey = teamKey;
-            var pk = et.TeamPrivateKey.Base64UrlDecode();
-            TeamPrivateKey = CryptoUtils.LoadPrivateKey(CryptoUtils.DecryptAesV1(pk, teamKey));
-            TeamUid = et.TeamUid;
-            Name = et.Name;
-            RestrictEdit = et.RestrictEdit;
-            RestrictShare = et.RestrictShare;
-            RestrictView = et.RestrictView;
-        }
-
         /// <summary>
         /// Team restricts record edit.
         /// </summary>
