@@ -63,56 +63,6 @@ namespace KeeperSecurity.Authentication.Async
             return true;
         }
 
-        private static string DurationToText(TwoFactorDuration duration)
-        {
-            switch (duration)
-            {
-                case TwoFactorDuration.EveryLogin:
-                    return "never";
-                case TwoFactorDuration.Forever:
-                    return "forever";
-                default:
-                    return $"{(int) duration} days";
-            }
-        }
-
-        private static bool TryParseTextToDuration(string text, out TwoFactorDuration duration)
-        {
-            text = text.Trim().ToLowerInvariant();
-            switch (text)
-            {
-                case "never":
-                    duration = TwoFactorDuration.EveryLogin;
-                    return true;
-                case "forever":
-                    duration = TwoFactorDuration.Forever;
-                    return true;
-                default:
-                    var idx = text.IndexOf(' ');
-                    if (idx > 0)
-                    {
-                        text = text.Substring(0, idx);
-                    }
-
-                    if (int.TryParse(text, out var days))
-                    {
-                        foreach (var d in Enum.GetValues(typeof(TwoFactorDuration)).OfType<TwoFactorDuration>())
-                        {
-                            if ((int) d == days)
-                            {
-                                duration = d;
-                                return true;
-                            }
-                        }
-                    }
-
-                    break;
-            }
-
-            duration = TwoFactorDuration.EveryLogin;
-            return false;
-        }
-
         public virtual Task<bool> WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token)
         {
             var twoFactorTask = new TaskCompletionSource<bool>();
@@ -165,7 +115,7 @@ namespace KeeperSecurity.Authentication.Async
                 var dur = Enum
                     .GetValues(typeof(TwoFactorDuration))
                     .OfType<TwoFactorDuration>()
-                    .Select(x => $"\"{DurationToText(x)}\"")
+                    .Select(x => $"\"{AuthUIExtensions.DurationToText(x)}\"")
                     .ToArray();
                 Console.WriteLine("Available durations are: " + string.Join(", ", dur));
 
@@ -177,7 +127,7 @@ namespace KeeperSecurity.Authentication.Async
                 {
                     if (codeChannel != null)
                     {
-                        Console.Write($"[{codeChannel.ChannelName ?? ""}] ({DurationToText(codeChannel.Duration)})");
+                        Console.Write($"[{codeChannel.ChannelName ?? ""}] ({AuthUIExtensions.DurationToText(codeChannel.Duration)})");
                     }
 
                     Console.Write(" > ");
@@ -211,7 +161,7 @@ namespace KeeperSecurity.Authentication.Async
 
                     if (code.StartsWith("2fa="))
                     {
-                        if (TryParseTextToDuration(code.Substring(4), out var duration))
+                        if (AuthUIExtensions.TryParseTextToDuration(code.Substring(4), out var duration))
                         {
                             if (codeChannel != null)
                             {
@@ -314,7 +264,7 @@ namespace KeeperSecurity.Authentication.Async
                 var dur = Enum
                     .GetValues(typeof(TwoFactorDuration))
                     .OfType<TwoFactorDuration>()
-                    .Select(x => $"\"{DurationToText(x)}\"")
+                    .Select(x => $"\"{AuthUIExtensions.DurationToText(x)}\"")
                     .ToArray();
                 Console.WriteLine("Available durations are: " + string.Join(", ", dur));
 
@@ -324,7 +274,7 @@ namespace KeeperSecurity.Authentication.Async
 
                 while (true)
                 {
-                    Console.Write($"({DurationToText(duration)}) > ");
+                    Console.Write($"({AuthUIExtensions.DurationToText(duration)}) > ");
                     var answer = await InputManager.ReadLine();
                     if (string.IsNullOrEmpty(answer))
                     {
@@ -341,7 +291,7 @@ namespace KeeperSecurity.Authentication.Async
                     Task action = null;
                     if (answer.StartsWith($"{twoFactorDurationPrefix}=", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        TryParseTextToDuration(answer.Substring(twoFactorDurationPrefix.Length + 1), out duration);
+                        AuthUIExtensions.TryParseTextToDuration(answer.Substring(twoFactorDurationPrefix.Length + 1), out duration);
                     }
                     else if (answer.StartsWith("email_", StringComparison.InvariantCultureIgnoreCase))
                     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 
 namespace KeeperSecurity.Authentication
@@ -261,19 +262,6 @@ namespace KeeperSecurity.Authentication
             {TwoFactorPushAction.SecurityKey, "key"},
         };
 
-        /// <summary>
-        /// TwoFactorChannel
-        /// </summary>
-        private static readonly IDictionary<TwoFactorChannel, string> TwoFactorChannels =
-            new Dictionary<TwoFactorChannel, string>
-            {
-                {TwoFactorChannel.Authenticator, "two_factor_channel_google"},
-                {TwoFactorChannel.TextMessage, "two_factor_channel_sms"},
-                {TwoFactorChannel.DuoSecurity, "two_factor_channel_duo"},
-                {TwoFactorChannel.RSASecurID, "two_factor_channel_rsa"},
-                {TwoFactorChannel.KeeperDNA, "two_factor_channel_push"},
-            };
-
         public static string GetTwoFactorChannelText(this TwoFactorChannel channel)
         {
             return TwoFactorChannels.TryGetValue(channel, out var text) ? text : channel.ToString();
@@ -297,12 +285,16 @@ namespace KeeperSecurity.Authentication
             return false;
         }
 
-        private static readonly IDictionary<DeviceApprovalChannel, string> DeviceApproveChannels = new Dictionary<DeviceApprovalChannel, string>
-        {
-            {DeviceApprovalChannel.Email, "device_approve_email"},
-            {DeviceApprovalChannel.KeeperPush, "device_approve_push"},
-            {DeviceApprovalChannel.TwoFactorAuth, "device_approve_tfa"},
-        };
+        private static readonly IDictionary<TwoFactorChannel, string> TwoFactorChannels =
+            new Dictionary<TwoFactorChannel, string>
+            {
+                {TwoFactorChannel.Authenticator, "totp"},
+                {TwoFactorChannel.TextMessage, "sms"},
+                {TwoFactorChannel.DuoSecurity, "duo"},
+                {TwoFactorChannel.RSASecurID, "rsa"},
+                {TwoFactorChannel.KeeperDNA, "dna"},
+                {TwoFactorChannel.SecurityKey, "key"},
+            };
 
         public static string DeviceApprovalChannelText(this DeviceApprovalChannel channel)
         {
@@ -324,10 +316,11 @@ namespace KeeperSecurity.Authentication
             return false;
         }
 
-        private static readonly IDictionary<DataKeyShareChannel, string> DataKeyShareChannels = new Dictionary<DataKeyShareChannel, string>
+        private static readonly IDictionary<DeviceApprovalChannel, string> DeviceApproveChannels = new Dictionary<DeviceApprovalChannel, string>
         {
-            {DataKeyShareChannel.KeeperPush, "data_key_share_push"},
-            {DataKeyShareChannel.AdminApproval, "data_key_share_admin"},
+            {DeviceApprovalChannel.Email, "email"},
+            {DeviceApprovalChannel.KeeperPush, "keeper_push"},
+            {DeviceApprovalChannel.TwoFactorAuth, "2fa"},
         };
 
         public static string SsoDataKeyShareChannelText(this DataKeyShareChannel channel)
@@ -352,5 +345,63 @@ namespace KeeperSecurity.Authentication
             channel = DataKeyShareChannel.KeeperPush;
             return false;
         }
+
+        private static readonly IDictionary<DataKeyShareChannel, string> DataKeyShareChannels = new Dictionary<DataKeyShareChannel, string>
+        {
+            {DataKeyShareChannel.KeeperPush, "keeper_push"},
+            {DataKeyShareChannel.AdminApproval, "request_admin"},
+        };
+
+        public static string DurationToText(TwoFactorDuration duration)
+        {
+            switch (duration)
+            {
+                case TwoFactorDuration.EveryLogin:
+                    return "never";
+                case TwoFactorDuration.Forever:
+                    return "forever";
+                default:
+                    return $"{(int) duration} days";
+            }
+        }
+
+        public static bool TryParseTextToDuration(string text, out TwoFactorDuration duration)
+        {
+            text = text.Trim().ToLowerInvariant();
+            switch (text)
+            {
+                case "never":
+                    duration = TwoFactorDuration.EveryLogin;
+                    return true;
+                case "forever":
+                    duration = TwoFactorDuration.Forever;
+                    return true;
+                default:
+                    var idx = text.IndexOf(' ');
+                    if (idx > 0)
+                    {
+                        text = text.Substring(0, idx);
+                    }
+
+                    if (int.TryParse(text, out var days))
+                    {
+                        foreach (var d in Enum.GetValues(typeof(TwoFactorDuration)).OfType<TwoFactorDuration>())
+                        {
+                            if ((int) d == days)
+                            {
+                                duration = d;
+                                return true;
+                            }
+                        }
+                    }
+
+                    break;
+            }
+
+            duration = TwoFactorDuration.EveryLogin;
+            return false;
+        }
+
+
     }
 }

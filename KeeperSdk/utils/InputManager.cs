@@ -443,14 +443,24 @@ namespace KeeperSecurity.Utils
 
         public void InterruptReadTask(Task<string> task)
         {
+            TaskCompletionSource<string> ts;
             lock (this)
             {
                 if (_taskSource == null || task == null) return;
                 if (ReferenceEquals(task, _taskSource.Task))
                 {
-                    _taskSource.TrySetCanceled();
-                    _taskSource = null;
+                    ts = _taskSource;
                 }
+                else
+                {
+                    return;
+                }
+            }
+
+            ts.TrySetCanceled();
+            if (ReferenceEquals(task, _taskSource.Task))
+            {
+                _taskSource = null;
             }
         }
 
