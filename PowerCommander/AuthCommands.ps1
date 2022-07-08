@@ -336,7 +336,7 @@ function Connect-Keeper {
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
         [Parameter(Position = 0)][string] $Username,
-        [Parameter()][string] $Password,
+        [Parameter()] $Password,
         [Parameter()][switch] $NewLogin,
         [Parameter(ParameterSetName='sso_password')][switch] $SsoPassword,
         [Parameter(ParameterSetName='sso_provider')][switch] $SsoProvider,
@@ -387,7 +387,12 @@ function Connect-Keeper {
     } else {
         $passwords = @()
         if ($Password) {
-            $passwords += $Password
+            if ($Password -is [SecureString]) {
+                $passwords += [Net.NetworkCredential]::new('', $Password).Password
+            }
+            elseif ($Password -is [String]) {
+                $passwords += $Password
+            }
         }
         $authFlow.Login($Username, $passwords).GetAwaiter().GetResult() | Out-Null
     }
@@ -403,7 +408,7 @@ function Connect-Keeper {
         if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
             $securedPassword = Read-Host -Prompt $prompt -AsSecureString 
             if ($securedPassword.Length -gt 0) {
-                $action = [Net.NetworkCredential]::new('',$securedPassword).Password
+                $action = [Net.NetworkCredential]::new('', $securedPassword).Password
             } else {
                 $action = ''
             }
@@ -412,7 +417,7 @@ function Connect-Keeper {
             $proxyUser = Read-Host -Prompt 'Proxy username'
             $securedPassword = Read-Host -Prompt 'Proxy password' -AsSecureString 
             if ($securedPassword.Length -gt 0) {
-                $action = [Net.NetworkCredential]::new('',$securedPassword).Password
+                $action = [Net.NetworkCredential]::new('', $securedPassword).Password
             }
             $action = "login `"$proxyUser`" `"$proxyPassword`""
         } else {
