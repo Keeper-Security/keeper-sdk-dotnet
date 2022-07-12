@@ -72,48 +72,48 @@ namespace SsoCloud {
             "ZXJ2aWNlUHJvdmlkZXJJZBgEIAMoBCJuCjBTc29DbG91ZFNlcnZpY2VQcm92",
             "aWRlckNvbmZpZ3VyYXRpb25MaXN0UmVzcG9uc2USOgoRY29uZmlndXJhdGlv",
             "bkl0ZW0YASADKAsyHy5Tc29DbG91ZC5Db25maWd1cmF0aW9uTGlzdEl0ZW0i",
-            "rQEKD1Nzb0Nsb3VkUmVxdWVzdBIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEo",
+            "vwEKD1Nzb0Nsb3VkUmVxdWVzdBIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEo",
             "DBIVCg1jbGllbnRWZXJzaW9uGAIgASgJEhAKCGVtYmVkZGVkGAMgASgIEgwK",
             "BGpzb24YBCABKAgSDAoEZGVzdBgFIAEoCRIUCgxpZHBTZXNzaW9uSWQYBiAB",
-            "KAkSEgoKZm9yY2VMb2dpbhgHIAEoCBIQCgh1c2VybmFtZRgIIAEoCSLJAQoQ",
-            "U3NvQ2xvdWRSZXNwb25zZRIPCgdjb21tYW5kGAEgASgJEhkKEW1lc3NhZ2VT",
-            "ZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMgASgJEhsKE2VuY3J5cHRlZExv",
-            "Z2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJOYW1lGAUgASgJEhQKDGlkcFNl",
-            "c3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRTZXNzaW9uVG9rZW4YByABKAwS",
-            "EgoKZXJyb3JUb2tlbhgIIAEoCSJaChJTc29DbG91ZExvZ1JlcXVlc3QSHAoU",
-            "c3NvU2VydmljZVByb3ZpZGVySWQYASABKAQSEwoLc2VydmljZU5hbWUYAiAB",
-            "KAkSEQoJc2VydmljZUlkGAMgASgNIvYBCg5TYW1sUmVsYXlTdGF0ZRIZChFt",
-            "ZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIQCgh1c2VybmFtZRgCIAEoCRIQCghl",
-            "bWJlZGRlZBgDIAEoCBIMCgRqc29uGAQgASgIEg4KBmRlc3RJZBgFIAEoDRIN",
-            "CgVrZXlJZBgGIAEoBRI8ChFzdXBwb3J0ZWRMYW5ndWFnZRgHIAEoDjIhLkF1",
-            "dGhlbnRpY2F0aW9uLlN1cHBvcnRlZExhbmd1YWdlEhAKCGNoZWNrc3VtGAgg",
-            "ASgEEhYKDmlzR2VuZXJhdGVkVWlkGAkgASgIEhAKCGRldmljZUlkGAogASgD",
-            "InEKHlNzb0Nsb3VkTWlncmF0aW9uU3RhdHVzUmVxdWVzdBIOCgZub2RlSWQY",
-            "ASABKAQSEgoKZnVsbFN0YXR1cxgCIAEoCBIcChRpbmNsdWRlTWlncmF0ZWRV",
-            "c2VycxgDIAEoCBINCgVsaW1pdBgEIAEoBSLoAgofU3NvQ2xvdWRNaWdyYXRp",
-            "b25TdGF0dXNSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEg8KB21lc3NhZ2UY",
-            "AiABKAkSDgoGbm9kZUlkGAMgASgEEhQKDHNzb0Nvbm5lY3RJZBgEIAEoBBIW",
-            "Cg5zc29Db25uZWN0TmFtZRgFIAEoCRIZChFzc29Db25uZWN0Q2xvdWRJZBgG",
-            "IAEoBBIbChNzc29Db25uZWN0Q2xvdWROYW1lGAcgASgJEhcKD3RvdGFsVXNl",
-            "cnNDb3VudBgIIAEoDRIaChJ1c2Vyc01pZ3JhdGVkQ291bnQYCSABKA0SOgoN",
-            "bWlncmF0ZWRVc2VycxgKIAMoCzIjLlNzb0Nsb3VkLlNzb0Nsb3VkTWlncmF0",
-            "aW9uVXNlckluZm8SPAoPdW5taWdyYXRlZFVzZXJzGAsgAygLMiMuU3NvQ2xv",
-            "dWQuU3NvQ2xvdWRNaWdyYXRpb25Vc2VySW5mbyJgChlTc29DbG91ZE1pZ3Jh",
-            "dGlvblVzZXJJbmZvEg4KBnVzZXJJZBgBIAEoDRINCgVlbWFpbBgCIAEoCRIQ",
-            "CghmdWxsTmFtZRgDIAEoCRISCgppc01pZ3JhdGVkGAQgASgIKh0KEEF1dGhQ",
-            "cm90b2NvbFR5cGUSCQoFU0FNTDIQACqAAgoIRGF0YVR5cGUSBwoDQU5ZEAAS",
-            "CwoHQk9PTEVBThABEgsKB0lOVEVHRVIQAhIKCgZTVFJJTkcQAxIJCgVCWVRF",
-            "UxAEEgcKA1VSTBAFEi4KKmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29D",
-            "bG91ZF9EYXRhVHlwZRAGEjYKMmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19T",
-            "c29DbG91ZF9BdXRoUHJvdG9jb2xUeXBlEAcSMAosY29tX2tlZXBlcnNlY3Vy",
-            "aXR5X3Byb3RvX1Nzb0Nsb3VkX1Nzb0lkcFR5cGUQCBIICgRMT05HEAkSDQoJ",
-            "VElNRVNUQU1QEAoqUgocU3NvQ2xvdWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIH",
-            "CgNTRVQQABIHCgNHRVQQARIKCgZERUxFVEUQAhIUChBSRVNFVF9UT19ERUZB",
-            "VUxUEAMqggEKClNzb0lkcFR5cGUSDQoJWFhfVU5VU0VEEAASCwoHR0VORVJJ",
-            "QxABEgYKAkY1EAISCgoGR09PR0xFEAMSCAoET0tUQRAEEggKBEFERlMQBRIJ",
-            "CgVBWlVSRRAGEgwKCE9ORUxPR0lOEAcSCAoEUElORxAIEg0KCUpVTVBDTE9V",
-            "RBAJQiQKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IIU3NvQ2xvdWRiBnBy",
-            "b3RvMw=="));
+            "KAkSEgoKZm9yY2VMb2dpbhgHIAEoCBIQCgh1c2VybmFtZRgIIAEoCRIQCghk",
+            "ZXRhY2hlZBgJIAEoCCLJAQoQU3NvQ2xvdWRSZXNwb25zZRIPCgdjb21tYW5k",
+            "GAEgASgJEhkKEW1lc3NhZ2VTZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMg",
+            "ASgJEhsKE2VuY3J5cHRlZExvZ2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJO",
+            "YW1lGAUgASgJEhQKDGlkcFNlc3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRT",
+            "ZXNzaW9uVG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSJaChJTc29D",
+            "bG91ZExvZ1JlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQS",
+            "EwoLc2VydmljZU5hbWUYAiABKAkSEQoJc2VydmljZUlkGAMgASgNIogCCg5T",
+            "YW1sUmVsYXlTdGF0ZRIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIQCgh1",
+            "c2VybmFtZRgCIAEoCRIQCghlbWJlZGRlZBgDIAEoCBIMCgRqc29uGAQgASgI",
+            "Eg4KBmRlc3RJZBgFIAEoDRINCgVrZXlJZBgGIAEoBRI8ChFzdXBwb3J0ZWRM",
+            "YW5ndWFnZRgHIAEoDjIhLkF1dGhlbnRpY2F0aW9uLlN1cHBvcnRlZExhbmd1",
+            "YWdlEhAKCGNoZWNrc3VtGAggASgEEhYKDmlzR2VuZXJhdGVkVWlkGAkgASgI",
+            "EhAKCGRldmljZUlkGAogASgDEhAKCGRldGFjaGVkGAsgASgIInEKHlNzb0Ns",
+            "b3VkTWlncmF0aW9uU3RhdHVzUmVxdWVzdBIOCgZub2RlSWQYASABKAQSEgoK",
+            "ZnVsbFN0YXR1cxgCIAEoCBIcChRpbmNsdWRlTWlncmF0ZWRVc2VycxgDIAEo",
+            "CBINCgVsaW1pdBgEIAEoBSLoAgofU3NvQ2xvdWRNaWdyYXRpb25TdGF0dXNS",
+            "ZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEg8KB21lc3NhZ2UYAiABKAkSDgoG",
+            "bm9kZUlkGAMgASgEEhQKDHNzb0Nvbm5lY3RJZBgEIAEoBBIWCg5zc29Db25u",
+            "ZWN0TmFtZRgFIAEoCRIZChFzc29Db25uZWN0Q2xvdWRJZBgGIAEoBBIbChNz",
+            "c29Db25uZWN0Q2xvdWROYW1lGAcgASgJEhcKD3RvdGFsVXNlcnNDb3VudBgI",
+            "IAEoDRIaChJ1c2Vyc01pZ3JhdGVkQ291bnQYCSABKA0SOgoNbWlncmF0ZWRV",
+            "c2VycxgKIAMoCzIjLlNzb0Nsb3VkLlNzb0Nsb3VkTWlncmF0aW9uVXNlcklu",
+            "Zm8SPAoPdW5taWdyYXRlZFVzZXJzGAsgAygLMiMuU3NvQ2xvdWQuU3NvQ2xv",
+            "dWRNaWdyYXRpb25Vc2VySW5mbyJgChlTc29DbG91ZE1pZ3JhdGlvblVzZXJJ",
+            "bmZvEg4KBnVzZXJJZBgBIAEoDRINCgVlbWFpbBgCIAEoCRIQCghmdWxsTmFt",
+            "ZRgDIAEoCRISCgppc01pZ3JhdGVkGAQgASgIKh0KEEF1dGhQcm90b2NvbFR5",
+            "cGUSCQoFU0FNTDIQACqAAgoIRGF0YVR5cGUSBwoDQU5ZEAASCwoHQk9PTEVB",
+            "ThABEgsKB0lOVEVHRVIQAhIKCgZTVFJJTkcQAxIJCgVCWVRFUxAEEgcKA1VS",
+            "TBAFEi4KKmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9EYXRh",
+            "VHlwZRAGEjYKMmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9B",
+            "dXRoUHJvdG9jb2xUeXBlEAcSMAosY29tX2tlZXBlcnNlY3VyaXR5X3Byb3Rv",
+            "X1Nzb0Nsb3VkX1Nzb0lkcFR5cGUQCBIICgRMT05HEAkSDQoJVElNRVNUQU1Q",
+            "EAoqUgocU3NvQ2xvdWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIHCgNTRVQQABIH",
+            "CgNHRVQQARIKCgZERUxFVEUQAhIUChBSRVNFVF9UT19ERUZBVUxUEAMqggEK",
+            "ClNzb0lkcFR5cGUSDQoJWFhfVU5VU0VEEAASCwoHR0VORVJJQxABEgYKAkY1",
+            "EAISCgoGR09PR0xFEAMSCAoET0tUQRAEEggKBEFERlMQBRIJCgVBWlVSRRAG",
+            "EgwKCE9ORUxPR0lOEAcSCAoEUElORxAIEg0KCUpVTVBDTE9VRBAJQiQKGGNv",
+            "bS5rZWVwZXJzZWN1cml0eS5wcm90b0IIU3NvQ2xvdWRiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::SsoCloud.AuthProtocolType), typeof(global::SsoCloud.DataType), typeof(global::SsoCloud.SsoCloudSettingOperationType), typeof(global::SsoCloud.SsoIdpType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -134,10 +134,10 @@ namespace SsoCloud {
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudServiceProviderConfigurationListRequest), global::SsoCloud.SsoCloudServiceProviderConfigurationListRequest.Parser, new[]{ "SsoServiceProviderId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.ConfigurationListItem), global::SsoCloud.ConfigurationListItem.Parser, new[]{ "SsoSpConfigurationId", "Name", "IsSelected", "SsoServiceProviderId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudServiceProviderConfigurationListResponse), global::SsoCloud.SsoCloudServiceProviderConfigurationListResponse.Parser, new[]{ "ConfigurationItem" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudRequest), global::SsoCloud.SsoCloudRequest.Parser, new[]{ "MessageSessionUid", "ClientVersion", "Embedded", "Json", "Dest", "IdpSessionId", "ForceLogin", "Username" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudRequest), global::SsoCloud.SsoCloudRequest.Parser, new[]{ "MessageSessionUid", "ClientVersion", "Embedded", "Json", "Dest", "IdpSessionId", "ForceLogin", "Username", "Detached" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudResponse), global::SsoCloud.SsoCloudResponse.Parser, new[]{ "Command", "MessageSessionUid", "Email", "EncryptedLoginToken", "ProviderName", "IdpSessionId", "EncryptedSessionToken", "ErrorToken" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudLogRequest), global::SsoCloud.SsoCloudLogRequest.Parser, new[]{ "SsoServiceProviderId", "ServiceName", "ServiceId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SamlRelayState), global::SsoCloud.SamlRelayState.Parser, new[]{ "MessageSessionUid", "Username", "Embedded", "Json", "DestId", "KeyId", "SupportedLanguage", "Checksum", "IsGeneratedUid", "DeviceId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SamlRelayState), global::SsoCloud.SamlRelayState.Parser, new[]{ "MessageSessionUid", "Username", "Embedded", "Json", "DestId", "KeyId", "SupportedLanguage", "Checksum", "IsGeneratedUid", "DeviceId", "Detached" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudMigrationStatusRequest), global::SsoCloud.SsoCloudMigrationStatusRequest.Parser, new[]{ "NodeId", "FullStatus", "IncludeMigratedUsers", "Limit" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudMigrationStatusResponse), global::SsoCloud.SsoCloudMigrationStatusResponse.Parser, new[]{ "Success", "Message", "NodeId", "SsoConnectId", "SsoConnectName", "SsoConnectCloudId", "SsoConnectCloudName", "TotalUsersCount", "UsersMigratedCount", "MigratedUsers", "UnmigratedUsers" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudMigrationUserInfo), global::SsoCloud.SsoCloudMigrationUserInfo.Parser, new[]{ "UserId", "Email", "FullName", "IsMigrated" }, null, null, null, null)
@@ -3738,6 +3738,7 @@ namespace SsoCloud {
       idpSessionId_ = other.idpSessionId_;
       forceLogin_ = other.forceLogin_;
       username_ = other.username_;
+      detached_ = other.detached_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3858,6 +3859,20 @@ namespace SsoCloud {
       }
     }
 
+    /// <summary>Field number for the "detached" field.</summary>
+    public const int DetachedFieldNumber = 9;
+    private bool detached_;
+    /// <summary>
+    /// If true, the login success HTML page contains a button to copy the login token to the clipboard.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Detached {
+      get { return detached_; }
+      set {
+        detached_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as SsoCloudRequest);
@@ -3879,6 +3894,7 @@ namespace SsoCloud {
       if (IdpSessionId != other.IdpSessionId) return false;
       if (ForceLogin != other.ForceLogin) return false;
       if (Username != other.Username) return false;
+      if (Detached != other.Detached) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3893,6 +3909,7 @@ namespace SsoCloud {
       if (IdpSessionId.Length != 0) hash ^= IdpSessionId.GetHashCode();
       if (ForceLogin != false) hash ^= ForceLogin.GetHashCode();
       if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (Detached != false) hash ^= Detached.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3938,6 +3955,10 @@ namespace SsoCloud {
         output.WriteRawTag(66);
         output.WriteString(Username);
       }
+      if (Detached != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(Detached);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3969,6 +3990,9 @@ namespace SsoCloud {
       }
       if (Username.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      }
+      if (Detached != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -4004,6 +4028,9 @@ namespace SsoCloud {
       }
       if (other.Username.Length != 0) {
         Username = other.Username;
+      }
+      if (other.Detached != false) {
+        Detached = other.Detached;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -4046,6 +4073,10 @@ namespace SsoCloud {
           }
           case 66: {
             Username = input.ReadString();
+            break;
+          }
+          case 72: {
+            Detached = input.ReadBool();
             break;
           }
         }
@@ -4645,6 +4676,7 @@ namespace SsoCloud {
       checksum_ = other.checksum_;
       isGeneratedUid_ = other.isGeneratedUid_;
       deviceId_ = other.deviceId_;
+      detached_ = other.detached_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4793,6 +4825,20 @@ namespace SsoCloud {
       }
     }
 
+    /// <summary>Field number for the "detached" field.</summary>
+    public const int DetachedFieldNumber = 11;
+    private bool detached_;
+    /// <summary>
+    /// Whether the HTML page is "detached" from the login process, as in Commander or other CLI clients
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Detached {
+      get { return detached_; }
+      set {
+        detached_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as SamlRelayState);
@@ -4816,6 +4862,7 @@ namespace SsoCloud {
       if (Checksum != other.Checksum) return false;
       if (IsGeneratedUid != other.IsGeneratedUid) return false;
       if (DeviceId != other.DeviceId) return false;
+      if (Detached != other.Detached) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -4832,6 +4879,7 @@ namespace SsoCloud {
       if (Checksum != 0UL) hash ^= Checksum.GetHashCode();
       if (IsGeneratedUid != false) hash ^= IsGeneratedUid.GetHashCode();
       if (DeviceId != 0L) hash ^= DeviceId.GetHashCode();
+      if (Detached != false) hash ^= Detached.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -4885,6 +4933,10 @@ namespace SsoCloud {
         output.WriteRawTag(80);
         output.WriteInt64(DeviceId);
       }
+      if (Detached != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(Detached);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -4922,6 +4974,9 @@ namespace SsoCloud {
       }
       if (DeviceId != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(DeviceId);
+      }
+      if (Detached != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -4963,6 +5018,9 @@ namespace SsoCloud {
       }
       if (other.DeviceId != 0L) {
         DeviceId = other.DeviceId;
+      }
+      if (other.Detached != false) {
+        Detached = other.Detached;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -5013,6 +5071,10 @@ namespace SsoCloud {
           }
           case 80: {
             DeviceId = input.ReadInt64();
+            break;
+          }
+          case 88: {
+            Detached = input.ReadBool();
             break;
           }
         }

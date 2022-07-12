@@ -280,8 +280,8 @@ namespace KeeperSecurity.Utils
                             {
                                 newBuffer = _history[_history.Count - _positionInHistory];
                             }
-                        }
-                        else
+                        } 
+                        else if (!string.IsNullOrEmpty(_savedBuffer))
                         {
                             newBuffer = _savedBuffer;
                         }

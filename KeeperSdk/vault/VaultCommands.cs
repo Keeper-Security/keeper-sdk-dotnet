@@ -8,6 +8,7 @@ using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Commands
 {
+    /// <exclude/>
     [DataContract]
     public class RecordAccessPath : IRecordAccessPath
     {
@@ -21,8 +22,9 @@ namespace KeeperSecurity.Commands
         public string TeamUid { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class RecordAddCommand : AuthenticatedCommand
+    public class RecordAddCommand : AuthenticatedCommand
     {
         public RecordAddCommand() : base("record_add")
         {
@@ -62,8 +64,9 @@ namespace KeeperSecurity.Commands
         public string[] FileIds;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class RecordUpdateUData : IExtensibleDataObject
+    public class RecordUpdateUData : IExtensibleDataObject
     {
         [DataMember(Name = "file_ids", EmitDefaultValue = false)]
         public string[] FileIds;
@@ -71,6 +74,7 @@ namespace KeeperSecurity.Commands
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
     public class RecordNonSharedData : IExtensibleDataObject
     {
@@ -78,8 +82,9 @@ namespace KeeperSecurity.Commands
     }
 
 
+    /// <exclude/>
     [DataContract]
-    internal class RecordUpdateRecord : IRecordAccessPath
+    public class RecordUpdateRecord : IRecordAccessPath
     {
         [DataMember(Name = "record_uid")]
         public string RecordUid { get; set; }
@@ -115,8 +120,9 @@ namespace KeeperSecurity.Commands
         public string TeamUid { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class RecordUpdateCommand : AuthenticatedCommand
+    public class RecordUpdateCommand : AuthenticatedCommand
     {
         public RecordUpdateCommand() : base("record_update")
         {
@@ -141,8 +147,9 @@ namespace KeeperSecurity.Commands
         public string[] DeleteRecords;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class RecordUpdateStatus
+    public class RecordUpdateStatus
     {
         [DataMember(Name = "record_uid")]
         public string RecordUid;
@@ -151,8 +158,9 @@ namespace KeeperSecurity.Commands
         public string StatusCode;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class RecordUpdateResponse : KeeperApiResponse
+    public class RecordUpdateResponse : KeeperApiResponse
     {
         [DataMember(Name = "add_records")]
         public RecordUpdateStatus[] AddRecords;
@@ -170,6 +178,7 @@ namespace KeeperSecurity.Commands
         public long Revision;
     }
 
+    /// <exclude/>
     [DataContract]
     public class SharedFolderUpdateCommand : AuthenticatedCommand, ISharedFolderAccessPath
     {
@@ -251,6 +260,7 @@ namespace KeeperSecurity.Commands
         }
     }
 
+    /// <exclude/>
     [DataContract]
     public class SharedFolderUpdateUser
     {
@@ -267,6 +277,7 @@ namespace KeeperSecurity.Commands
         public string SharedFolderKey { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
     public class SharedFolderUpdateTeam
     {
@@ -283,6 +294,7 @@ namespace KeeperSecurity.Commands
         public string SharedFolderKey { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
     public class SharedFolderUpdateRecord : IRecordAccessPath
     {
@@ -305,6 +317,7 @@ namespace KeeperSecurity.Commands
         public string RecordKey { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
     public class SharedFolderUpdateResponse : KeeperApiResponse
     {
@@ -336,6 +349,7 @@ namespace KeeperSecurity.Commands
         public SharedFolderUpdateRecordStatus[] removeRecords;
     }
 
+    /// <exclude/>
     [DataContract]
     public class SharedFolderUpdateUserStatus
     {
@@ -346,6 +360,7 @@ namespace KeeperSecurity.Commands
         public string Status { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
     public class SharedFolderUpdateTeamStatus
     {
@@ -356,6 +371,7 @@ namespace KeeperSecurity.Commands
         public string Status { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
     public class SharedFolderUpdateRecordStatus
     {
@@ -366,6 +382,7 @@ namespace KeeperSecurity.Commands
         public string Status { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
     public class MoveObject
     {
@@ -391,6 +408,7 @@ namespace KeeperSecurity.Commands
         public bool cascade { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
     public class TransitionKey
     {
@@ -401,6 +419,7 @@ namespace KeeperSecurity.Commands
         public string key;
     }
 
+    /// <exclude/>
     [DataContract]
     public class MoveCommand : AuthenticatedCommand
     {
@@ -425,6 +444,7 @@ namespace KeeperSecurity.Commands
 
     }
 
+    /// <exclude/>
     [DataContract]
     public class FolderCommand : AuthenticatedCommand
     {
@@ -463,8 +483,9 @@ namespace KeeperSecurity.Commands
         public bool? CanShare { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class FolderAddCommand : FolderCommand
+    public class FolderAddCommand : FolderCommand
     {
         public FolderAddCommand() : base("folder_add")
         {
@@ -474,8 +495,9 @@ namespace KeeperSecurity.Commands
         public string Key { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class FolderUpdateCommand : FolderCommand
+    public class FolderUpdateCommand : FolderCommand
     {
         public FolderUpdateCommand() : base("folder_update")
         {
@@ -485,15 +507,17 @@ namespace KeeperSecurity.Commands
         public string TeamUid { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class AddFolderResponse : KeeperApiResponse
+    public class AddFolderResponse : KeeperApiResponse
     {
         [DataMember(Name = "revision")]
         public long revision;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class PreDeleteObject
+    public class PreDeleteObject
     {
         [DataMember(Name = "object_uid", EmitDefaultValue = false)]
         public string objectUid;
@@ -511,8 +535,9 @@ namespace KeeperSecurity.Commands
         public string deleteResolution;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class PreDeleteCommand : AuthenticatedCommand
+    public class PreDeleteCommand : AuthenticatedCommand
     {
         public PreDeleteCommand() : base("pre_delete")
         {
@@ -522,15 +547,17 @@ namespace KeeperSecurity.Commands
         public PreDeleteObject[] objects;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class WouldDeleteObject
+    public class WouldDeleteObject
     {
         [DataMember(Name = "deletion_summary", EmitDefaultValue = false)]
         public string[] deletionSummary;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class PreDeleteResponseObject
+    public class PreDeleteResponseObject
     {
         [DataMember(Name = "pre_delete_token", EmitDefaultValue = false)]
         public string preDeleteToken;
@@ -539,15 +566,17 @@ namespace KeeperSecurity.Commands
         public WouldDeleteObject wouldDelete;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class PreDeleteResponse : KeeperApiResponse
+    public class PreDeleteResponse : KeeperApiResponse
     {
         [DataMember(Name = "pre_delete_response", EmitDefaultValue = false)]
         public PreDeleteResponseObject preDeleteResponse;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class DeleteCommand : AuthenticatedCommand
+    public class DeleteCommand : AuthenticatedCommand
     {
         public DeleteCommand() : base("delete")
         {
@@ -557,16 +586,18 @@ namespace KeeperSecurity.Commands
         public string preDeleteToken;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class GetAvailableTeamsCommand : AuthenticatedCommand
+    public class GetAvailableTeamsCommand : AuthenticatedCommand
     {
         public GetAvailableTeamsCommand() : base("get_available_teams")
         {
         }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class AvailableTeam
+    public class AvailableTeam
     {
         [DataMember(Name = "team_uid", EmitDefaultValue = false)]
         public string teamUid;
@@ -574,15 +605,17 @@ namespace KeeperSecurity.Commands
         public string teamName;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class GetAvailableTeamsResponse : KeeperApiResponse
+    public class GetAvailableTeamsResponse : KeeperApiResponse
     {
         [DataMember(Name = "teams", EmitDefaultValue = false)]
         public AvailableTeam[] teams;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class GetShareAutoCompleteCommand : AuthenticatedCommand
+    public class GetShareAutoCompleteCommand : AuthenticatedCommand
     {
         public GetShareAutoCompleteCommand() : base("get_share_auto_complete")
         {
@@ -592,15 +625,17 @@ namespace KeeperSecurity.Commands
         public string StartsWith { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class ShareUserInfo
+    public class ShareUserInfo
     {
         [DataMember(Name = "email")]
         public string Email { get; set; }
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class GetShareAutoCompleteResponse : KeeperApiResponse
+    public class GetShareAutoCompleteResponse : KeeperApiResponse
     {
         [DataMember(Name = "shares_from_users")]
         public ShareUserInfo[] SharesFromUsers;
@@ -612,9 +647,9 @@ namespace KeeperSecurity.Commands
         public ShareUserInfo[] GroupUsers;
     }
 
-
+    /// <exclude/>
     [DataContract]
-    internal class PublicKeysCommand : AuthenticatedCommand
+    public class PublicKeysCommand : AuthenticatedCommand
     {
         public PublicKeysCommand() : base("public_keys")
         {
@@ -624,8 +659,9 @@ namespace KeeperSecurity.Commands
         public string[] keyOwners;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class UserPublicKeysObject
+    public class UserPublicKeysObject
     {
         [DataMember(Name = "key_owner", EmitDefaultValue = false)]
         public string keyOwner;
