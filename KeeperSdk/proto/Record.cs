@@ -100,98 +100,101 @@ namespace Records {
             "ZFN0YXR1cxISCgpyZWNvcmRfdWlkGAEgASgMEiYKBnN0YXR1cxgCIAEoDjIW",
             "LlJlY29yZHMuRmlsZUFkZFJlc3VsdBILCgN1cmwYAyABKAkSEgoKcGFyYW1l",
             "dGVycxgEIAEoCRIcChR0aHVtYm5haWxfcGFyYW1ldGVycxgFIAEoCRIbChNz",
-            "dWNjZXNzX3N0YXR1c19jb2RlGAYgASgFIjkKEEZpbGVzQWRkUmVzcG9uc2US",
-            "JQoFZmlsZXMYASADKAsyFi5SZWNvcmRzLkZpbGVBZGRTdGF0dXMiZgoPRmls",
-            "ZXNHZXRSZXF1ZXN0EhMKC3JlY29yZF91aWRzGAEgAygMEhYKDmZvcl90aHVt",
-            "Ym5haWxzGAIgASgIEiYKHmVtZXJnZW5jeV9hY2Nlc3NfYWNjb3VudF9vd25l",
-            "chgDIAEoCSKiAQoNRmlsZUdldFN0YXR1cxISCgpyZWNvcmRfdWlkGAEgASgM",
-            "EiYKBnN0YXR1cxgCIAEoDjIWLlJlY29yZHMuRmlsZUdldFJlc3VsdBILCgN1",
-            "cmwYAyABKAkSGwoTc3VjY2Vzc19zdGF0dXNfY29kZRgEIAEoBRIrCgtmaWxl",
-            "S2V5VHlwZRgFIAEoDjIWLlJlY29yZHMuUmVjb3JkS2V5VHlwZSI5ChBGaWxl",
-            "c0dldFJlc3BvbnNlEiUKBWZpbGVzGAEgAygLMhYuUmVjb3Jkcy5GaWxlR2V0",
-            "U3RhdHVzImgKFUFwcGxpY2F0aW9uQWRkUmVxdWVzdBIPCgdhcHBfdWlkGAEg",
-            "ASgMEhIKCnJlY29yZF9rZXkYAiABKAwSHAoUY2xpZW50X21vZGlmaWVkX3Rp",
-            "bWUYAyABKAMSDAoEZGF0YRgEIAEoDCKIAQoiR2V0UmVjb3JkRGF0YVdpdGhB",
-            "Y2Nlc3NJbmZvUmVxdWVzdBISCgpjbGllbnRUaW1lGAEgASgDEhEKCXJlY29y",
-            "ZFVpZBgCIAMoDBI7ChRyZWNvcmREZXRhaWxzSW5jbHVkZRgDIAEoDjIdLlJl",
-            "Y29yZHMuUmVjb3JkRGV0YWlsc0luY2x1ZGUiqwEKDlVzZXJQZXJtaXNzaW9u",
-            "EhAKCHVzZXJuYW1lGAEgASgJEg0KBW93bmVyGAIgASgIEhIKCnNoYXJlQWRt",
-            "aW4YAyABKAgSEAoIc2hhcmFibGUYBCABKAgSEAoIZWRpdGFibGUYBSABKAgS",
-            "GAoQYXdhaXRpbmdBcHByb3ZhbBgGIAEoCBISCgpleHBpcmF0aW9uGAcgASgD",
-            "EhIKCmFjY291bnRVaWQYCCABKAwifQoWU2hhcmVkRm9sZGVyUGVybWlzc2lv",
-            "bhIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSEgoKcmVzaGFyYWJsZRgCIAEo",
-            "CBIQCghlZGl0YWJsZRgDIAEoCBIQCghyZXZpc2lvbhgEIAEoAxISCgpleHBp",
-            "cmF0aW9uGAUgASgDIocCCgpSZWNvcmREYXRhEhAKCHJldmlzaW9uGAEgASgD",
-            "Eg8KB3ZlcnNpb24YAiABKAUSDgoGc2hhcmVkGAMgASgIEhsKE2VuY3J5cHRl",
-            "ZFJlY29yZERhdGEYBCABKAkSGgoSZW5jcnlwdGVkRXh0cmFEYXRhGAUgASgJ",
-            "EhoKEmNsaWVudE1vZGlmaWVkVGltZRgGIAEoAxIWCg5vd25lclJlY29yZFVp",
-            "ZBgHIAEoDBIgChhlbmNyeXB0ZWRMaW5rZWRSZWNvcmRLZXkYCCABKAwSDgoG",
-            "ZmlsZUlkGAkgAygDEhAKCGZpbGVTaXplGAogASgDEhUKDXRodW1ibmFpbFNp",
-            "emUYCyABKAMiyAEKGFJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxIRCglyZWNv",
-            "cmRVaWQYASABKAwSJwoKcmVjb3JkRGF0YRgCIAEoCzITLlJlY29yZHMuUmVj",
-            "b3JkRGF0YRIvCg51c2VyUGVybWlzc2lvbhgDIAMoCzIXLlJlY29yZHMuVXNl",
-            "clBlcm1pc3Npb24SPwoWc2hhcmVkRm9sZGVyUGVybWlzc2lvbhgEIAMoCzIf",
-            "LlJlY29yZHMuU2hhcmVkRm9sZGVyUGVybWlzc2lvbiKJAQojR2V0UmVjb3Jk",
-            "RGF0YVdpdGhBY2Nlc3NJbmZvUmVzcG9uc2USQwoYcmVjb3JkRGF0YVdpdGhB",
-            "Y2Nlc3NJbmZvGAEgAygLMiEuUmVjb3Jkcy5SZWNvcmREYXRhV2l0aEFjY2Vz",
-            "c0luZm8SHQoVbm9QZXJtaXNzaW9uUmVjb3JkVWlkGAIgAygMIrwBChhSZWNv",
-            "cmRTaGFyZVVwZGF0ZVJlcXVlc3QSLgoPYWRkU2hhcmVkUmVjb3JkGAEgAygL",
-            "MhUuUmVjb3Jkcy5TaGFyZWRSZWNvcmQSMQoSdXBkYXRlU2hhcmVkUmVjb3Jk",
-            "GAIgAygLMhUuUmVjb3Jkcy5TaGFyZWRSZWNvcmQSMQoScmVtb3ZlU2hhcmVk",
-            "UmVjb3JkGAMgAygLMhUuUmVjb3Jkcy5TaGFyZWRSZWNvcmQSCgoCcHQYBCAB",
-            "KAki1QEKDFNoYXJlZFJlY29yZBISCgp0b1VzZXJuYW1lGAEgASgJEhEKCXJl",
-            "Y29yZFVpZBgCIAEoDBIRCglyZWNvcmRLZXkYAyABKAwSFwoPc2hhcmVkRm9s",
-            "ZGVyVWlkGAQgASgMEg8KB3RlYW1VaWQYBSABKAwSEAoIZWRpdGFibGUYBiAB",
-            "KAgSEQoJc2hhcmVhYmxlGAcgASgIEhAKCHRyYW5zZmVyGAggASgIEhEKCXVz",
-            "ZUVjY0tleRgJIAEoCBIXCg9yZW1vdmVWYXVsdERhdGEYCiABKAgi1QEKGVJl",
-            "Y29yZFNoYXJlVXBkYXRlUmVzcG9uc2USOgoVYWRkU2hhcmVkUmVjb3JkU3Rh",
-            "dHVzGAEgAygLMhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMSPQoYdXBk",
-            "YXRlU2hhcmVkUmVjb3JkU3RhdHVzGAIgAygLMhsuUmVjb3Jkcy5TaGFyZWRS",
-            "ZWNvcmRTdGF0dXMSPQoYcmVtb3ZlU2hhcmVkUmVjb3JkU3RhdHVzGAMgAygL",
-            "MhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMiWgoSU2hhcmVkUmVjb3Jk",
-            "U3RhdHVzEhEKCXJlY29yZFVpZBgBIAEoDBIOCgZzdGF0dXMYAiABKAkSDwoH",
-            "bWVzc2FnZRgDIAEoCRIQCgh1c2VybmFtZRgEIAEoCSJHChtHZXRSZWNvcmRQ",
-            "ZXJtaXNzaW9uc1JlcXVlc3QSEgoKcmVjb3JkVWlkcxgBIAMoDBIUCgxpc1No",
-            "YXJlQWRtaW4YAiABKAgiVAocR2V0UmVjb3JkUGVybWlzc2lvbnNSZXNwb25z",
-            "ZRI0ChFyZWNvcmRQZXJtaXNzaW9ucxgBIAMoCzIZLlJlY29yZHMuUmVjb3Jk",
-            "UGVybWlzc2lvbiJsChBSZWNvcmRQZXJtaXNzaW9uEhEKCXJlY29yZFVpZBgB",
-            "IAEoDBINCgVvd25lchgCIAEoCBIPCgdjYW5FZGl0GAMgASgIEhAKCGNhblNo",
-            "YXJlGAQgASgIEhMKC2NhblRyYW5zZmVyGAUgASgIIj0KFkdldFNoYXJlT2Jq",
-            "ZWN0c1JlcXVlc3QSEQoJc3RhcnRXaXRoGAEgASgJEhAKCGNvbnRhaW5zGAIg",
-            "ASgJIo4CChdHZXRTaGFyZU9iamVjdHNSZXNwb25zZRIwChJzaGFyZVJlbGF0",
-            "aW9uc2hpcHMYASADKAsyFC5SZWNvcmRzLlNoYXJlT2JqZWN0Ei4KEHNoYXJl",
-            "RmFtaWx5VXNlcnMYAiADKAsyFC5SZWNvcmRzLlNoYXJlT2JqZWN0EjIKFHNo",
-            "YXJlRW50ZXJwcmlzZVVzZXJzGAMgAygLMhQuUmVjb3Jkcy5TaGFyZU9iamVj",
-            "dBIoCgpzaGFyZVRlYW1zGAQgAygLMhQuUmVjb3Jkcy5TaGFyZU9iamVjdBIz",
-            "ChVzaGFyZU1hbmFnZWRDb21wYW5pZXMYBSADKAsyFC5SZWNvcmRzLlNoYXJl",
-            "T2JqZWN0Ip8BCgtTaGFyZU9iamVjdBIMCgRuYW1lGAEgASgJEiAKBHR5cGUY",
-            "AiABKA4yEi5SZWNvcmRzLlNoYXJlVHlwZRIUCgxpc1NoYXJlQWRtaW4YAyAB",
-            "KAgSEwoLZGlzcGxheU5hbWUYBCABKAkSJAoGc3RhdHVzGAUgASgOMhQuUmVj",
-            "b3Jkcy5TaGFyZVN0YXR1cxIPCgd0ZWFtVWlkGAYgASgMKkIKD1JlY29yZFR5",
-            "cGVTY29wZRIPCgtSVF9TVEFOREFSRBAAEgsKB1JUX1VTRVIQARIRCg1SVF9F",
-            "TlRFUlBSSVNFEAIqkwEKDVJlY29yZEtleVR5cGUSCgoGTk9fS0VZEAASGQoV",
-            "RU5DUllQVEVEX0JZX0RBVEFfS0VZEAESGwoXRU5DUllQVEVEX0JZX1BVQkxJ",
-            "Q19LRVkQAhIdChlFTkNSWVBURURfQllfREFUQV9LRVlfR0NNEAMSHwobRU5D",
-            "UllQVEVEX0JZX1BVQkxJQ19LRVlfRUNDEAQqUAoQUmVjb3JkRm9sZGVyVHlw",
-            "ZRIPCgt1c2VyX2ZvbGRlchAAEhEKDXNoYXJlZF9mb2xkZXIQARIYChRzaGFy",
-            "ZWRfZm9sZGVyX2ZvbGRlchACKu4BChJSZWNvcmRNb2RpZnlSZXN1bHQSDgoK",
-            "UlNfU1VDQ0VTUxAAEhIKDlJTX09VVF9PRl9TWU5DEAESFAoQUlNfQUNDRVNT",
-            "X0RFTklFRBACEhMKD1JTX1NIQVJFX0RFTklFRBADEhQKEFJTX1JFQ09SRF9F",
-            "WElTVFMQBBIeChpSU19PTERfUkVDT1JEX1ZFUlNJT05fVFlQRRAFEh4KGlJT",
-            "X05FV19SRUNPUkRfVkVSU0lPTl9UWVBFEAYSFgoSUlNfRklMRVNfTk9UX01B",
-            "VENIEAcSGwoXUlNfUkVDT1JEX05PVF9TSEFSRUFCTEUQCCotCg1GaWxlQWRk",
-            "UmVzdWx0Eg4KCkZBX1NVQ0NFU1MQABIMCghGQV9FUlJPUhABKkMKDUZpbGVH",
-            "ZXRSZXN1bHQSDgoKRkdfU1VDQ0VTUxAAEgwKCEZHX0VSUk9SEAESFAoQRkdf",
-            "QUNDRVNTX0RFTklFRBACKkoKFFJlY29yZERldGFpbHNJbmNsdWRlEhMKD0RB",
-            "VEFfUExVU19TSEFSRRAAEg0KCURBVEFfT05MWRABEg4KClNIQVJFX09OTFkQ",
-            "AiprCglTaGFyZVR5cGUSGAoUU0hBUklOR19SRUxBVElPTlNISVAQABITCg9F",
-            "TlRFUlBSSVNFX1VTRVIQARIRCg1GQU1JTFlfTUVNQkVSEAISCAoEVEVBTRAD",
-            "EhIKDk1BTkFHRV9DT01QQU5ZEAQqMQoLU2hhcmVTdGF0dXMSCgoGQUNUSVZF",
-            "EAASCQoFQkxPQ0sQARILCgdJTlZJVEVEEAJCIwoYY29tLmtlZXBlcnNlY3Vy",
-            "aXR5LnByb3RvQgdSZWNvcmRzYgZwcm90bzM="));
+            "dWNjZXNzX3N0YXR1c19jb2RlGAYgASgFIksKEEZpbGVzQWRkUmVzcG9uc2US",
+            "JQoFZmlsZXMYASADKAsyFi5SZWNvcmRzLkZpbGVBZGRTdGF0dXMSEAoIcmV2",
+            "aXNpb24YAiABKAMiZgoPRmlsZXNHZXRSZXF1ZXN0EhMKC3JlY29yZF91aWRz",
+            "GAEgAygMEhYKDmZvcl90aHVtYm5haWxzGAIgASgIEiYKHmVtZXJnZW5jeV9h",
+            "Y2Nlc3NfYWNjb3VudF9vd25lchgDIAEoCSKiAQoNRmlsZUdldFN0YXR1cxIS",
+            "CgpyZWNvcmRfdWlkGAEgASgMEiYKBnN0YXR1cxgCIAEoDjIWLlJlY29yZHMu",
+            "RmlsZUdldFJlc3VsdBILCgN1cmwYAyABKAkSGwoTc3VjY2Vzc19zdGF0dXNf",
+            "Y29kZRgEIAEoBRIrCgtmaWxlS2V5VHlwZRgFIAEoDjIWLlJlY29yZHMuUmVj",
+            "b3JkS2V5VHlwZSI5ChBGaWxlc0dldFJlc3BvbnNlEiUKBWZpbGVzGAEgAygL",
+            "MhYuUmVjb3Jkcy5GaWxlR2V0U3RhdHVzImgKFUFwcGxpY2F0aW9uQWRkUmVx",
+            "dWVzdBIPCgdhcHBfdWlkGAEgASgMEhIKCnJlY29yZF9rZXkYAiABKAwSHAoU",
+            "Y2xpZW50X21vZGlmaWVkX3RpbWUYAyABKAMSDAoEZGF0YRgEIAEoDCKIAQoi",
+            "R2V0UmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvUmVxdWVzdBISCgpjbGllbnRU",
+            "aW1lGAEgASgDEhEKCXJlY29yZFVpZBgCIAMoDBI7ChRyZWNvcmREZXRhaWxz",
+            "SW5jbHVkZRgDIAEoDjIdLlJlY29yZHMuUmVjb3JkRGV0YWlsc0luY2x1ZGUi",
+            "qwEKDlVzZXJQZXJtaXNzaW9uEhAKCHVzZXJuYW1lGAEgASgJEg0KBW93bmVy",
+            "GAIgASgIEhIKCnNoYXJlQWRtaW4YAyABKAgSEAoIc2hhcmFibGUYBCABKAgS",
+            "EAoIZWRpdGFibGUYBSABKAgSGAoQYXdhaXRpbmdBcHByb3ZhbBgGIAEoCBIS",
+            "CgpleHBpcmF0aW9uGAcgASgDEhIKCmFjY291bnRVaWQYCCABKAwifQoWU2hh",
+            "cmVkRm9sZGVyUGVybWlzc2lvbhIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwS",
+            "EgoKcmVzaGFyYWJsZRgCIAEoCBIQCghlZGl0YWJsZRgDIAEoCBIQCghyZXZp",
+            "c2lvbhgEIAEoAxISCgpleHBpcmF0aW9uGAUgASgDIocCCgpSZWNvcmREYXRh",
+            "EhAKCHJldmlzaW9uGAEgASgDEg8KB3ZlcnNpb24YAiABKAUSDgoGc2hhcmVk",
+            "GAMgASgIEhsKE2VuY3J5cHRlZFJlY29yZERhdGEYBCABKAkSGgoSZW5jcnlw",
+            "dGVkRXh0cmFEYXRhGAUgASgJEhoKEmNsaWVudE1vZGlmaWVkVGltZRgGIAEo",
+            "AxIWCg5vd25lclJlY29yZFVpZBgHIAEoDBIgChhlbmNyeXB0ZWRMaW5rZWRS",
+            "ZWNvcmRLZXkYCCABKAwSDgoGZmlsZUlkGAkgAygDEhAKCGZpbGVTaXplGAog",
+            "ASgDEhUKDXRodW1ibmFpbFNpemUYCyABKAMiyAEKGFJlY29yZERhdGFXaXRo",
+            "QWNjZXNzSW5mbxIRCglyZWNvcmRVaWQYASABKAwSJwoKcmVjb3JkRGF0YRgC",
+            "IAEoCzITLlJlY29yZHMuUmVjb3JkRGF0YRIvCg51c2VyUGVybWlzc2lvbhgD",
+            "IAMoCzIXLlJlY29yZHMuVXNlclBlcm1pc3Npb24SPwoWc2hhcmVkRm9sZGVy",
+            "UGVybWlzc2lvbhgEIAMoCzIfLlJlY29yZHMuU2hhcmVkRm9sZGVyUGVybWlz",
+            "c2lvbiKJAQojR2V0UmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvUmVzcG9uc2US",
+            "QwoYcmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvGAEgAygLMiEuUmVjb3Jkcy5S",
+            "ZWNvcmREYXRhV2l0aEFjY2Vzc0luZm8SHQoVbm9QZXJtaXNzaW9uUmVjb3Jk",
+            "VWlkGAIgAygMIrwBChhSZWNvcmRTaGFyZVVwZGF0ZVJlcXVlc3QSLgoPYWRk",
+            "U2hhcmVkUmVjb3JkGAEgAygLMhUuUmVjb3Jkcy5TaGFyZWRSZWNvcmQSMQoS",
+            "dXBkYXRlU2hhcmVkUmVjb3JkGAIgAygLMhUuUmVjb3Jkcy5TaGFyZWRSZWNv",
+            "cmQSMQoScmVtb3ZlU2hhcmVkUmVjb3JkGAMgAygLMhUuUmVjb3Jkcy5TaGFy",
+            "ZWRSZWNvcmQSCgoCcHQYBCABKAki1QEKDFNoYXJlZFJlY29yZBISCgp0b1Vz",
+            "ZXJuYW1lGAEgASgJEhEKCXJlY29yZFVpZBgCIAEoDBIRCglyZWNvcmRLZXkY",
+            "AyABKAwSFwoPc2hhcmVkRm9sZGVyVWlkGAQgASgMEg8KB3RlYW1VaWQYBSAB",
+            "KAwSEAoIZWRpdGFibGUYBiABKAgSEQoJc2hhcmVhYmxlGAcgASgIEhAKCHRy",
+            "YW5zZmVyGAggASgIEhEKCXVzZUVjY0tleRgJIAEoCBIXCg9yZW1vdmVWYXVs",
+            "dERhdGEYCiABKAgi1QEKGVJlY29yZFNoYXJlVXBkYXRlUmVzcG9uc2USOgoV",
+            "YWRkU2hhcmVkUmVjb3JkU3RhdHVzGAEgAygLMhsuUmVjb3Jkcy5TaGFyZWRS",
+            "ZWNvcmRTdGF0dXMSPQoYdXBkYXRlU2hhcmVkUmVjb3JkU3RhdHVzGAIgAygL",
+            "MhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMSPQoYcmVtb3ZlU2hhcmVk",
+            "UmVjb3JkU3RhdHVzGAMgAygLMhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0",
+            "dXMiWgoSU2hhcmVkUmVjb3JkU3RhdHVzEhEKCXJlY29yZFVpZBgBIAEoDBIO",
+            "CgZzdGF0dXMYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIQCgh1c2VybmFtZRgE",
+            "IAEoCSJHChtHZXRSZWNvcmRQZXJtaXNzaW9uc1JlcXVlc3QSEgoKcmVjb3Jk",
+            "VWlkcxgBIAMoDBIUCgxpc1NoYXJlQWRtaW4YAiABKAgiVAocR2V0UmVjb3Jk",
+            "UGVybWlzc2lvbnNSZXNwb25zZRI0ChFyZWNvcmRQZXJtaXNzaW9ucxgBIAMo",
+            "CzIZLlJlY29yZHMuUmVjb3JkUGVybWlzc2lvbiJsChBSZWNvcmRQZXJtaXNz",
+            "aW9uEhEKCXJlY29yZFVpZBgBIAEoDBINCgVvd25lchgCIAEoCBIPCgdjYW5F",
+            "ZGl0GAMgASgIEhAKCGNhblNoYXJlGAQgASgIEhMKC2NhblRyYW5zZmVyGAUg",
+            "ASgIIk8KFkdldFNoYXJlT2JqZWN0c1JlcXVlc3QSEQoJc3RhcnRXaXRoGAEg",
+            "ASgJEhAKCGNvbnRhaW5zGAIgASgJEhAKCGZpbHRlcmVkGAMgASgIIucCChdH",
+            "ZXRTaGFyZU9iamVjdHNSZXNwb25zZRIuChJzaGFyZVJlbGF0aW9uc2hpcHMY",
+            "ASADKAsyEi5SZWNvcmRzLlNoYXJlVXNlchIsChBzaGFyZUZhbWlseVVzZXJz",
+            "GAIgAygLMhIuUmVjb3Jkcy5TaGFyZVVzZXISMAoUc2hhcmVFbnRlcnByaXNl",
+            "VXNlcnMYAyADKAsyEi5SZWNvcmRzLlNoYXJlVXNlchImCgpzaGFyZVRlYW1z",
+            "GAQgAygLMhIuUmVjb3Jkcy5TaGFyZVRlYW0SKAoMc2hhcmVNQ1RlYW1zGAUg",
+            "AygLMhIuUmVjb3Jkcy5TaGFyZVRlYW0SMgoWc2hhcmVNQ0VudGVycHJpc2VV",
+            "c2VycxgGIAMoCzISLlJlY29yZHMuU2hhcmVVc2VyEjYKFHNoYXJlRW50ZXJw",
+            "cmlzZU5hbWVzGAcgAygLMhguUmVjb3Jkcy5TaGFyZUVudGVycHJpc2UigQEK",
+            "CVNoYXJlVXNlchIQCgh1c2VybmFtZRgBIAEoCRIQCghmdWxsbmFtZRgCIAEo",
+            "CRIUCgxlbnRlcnByaXNlSWQYAyABKAUSJAoGc3RhdHVzGAQgASgOMhQuUmVj",
+            "b3Jkcy5TaGFyZVN0YXR1cxIUCgxpc1NoYXJlQWRtaW4YBSABKAgiRAoJU2hh",
+            "cmVUZWFtEhAKCHRlYW1uYW1lGAEgASgJEhQKDGVudGVycHJpc2VJZBgCIAEo",
+            "BRIPCgd0ZWFtVWlkGAMgASgMIj8KD1NoYXJlRW50ZXJwcmlzZRIWCg5lbnRl",
+            "cnByaXNlbmFtZRgBIAEoCRIUCgxlbnRlcnByaXNlSWQYAiABKAUqQgoPUmVj",
+            "b3JkVHlwZVNjb3BlEg8KC1JUX1NUQU5EQVJEEAASCwoHUlRfVVNFUhABEhEK",
+            "DVJUX0VOVEVSUFJJU0UQAiqTAQoNUmVjb3JkS2V5VHlwZRIKCgZOT19LRVkQ",
+            "ABIZChVFTkNSWVBURURfQllfREFUQV9LRVkQARIbChdFTkNSWVBURURfQllf",
+            "UFVCTElDX0tFWRACEh0KGUVOQ1JZUFRFRF9CWV9EQVRBX0tFWV9HQ00QAxIf",
+            "ChtFTkNSWVBURURfQllfUFVCTElDX0tFWV9FQ0MQBCpQChBSZWNvcmRGb2xk",
+            "ZXJUeXBlEg8KC3VzZXJfZm9sZGVyEAASEQoNc2hhcmVkX2ZvbGRlchABEhgK",
+            "FHNoYXJlZF9mb2xkZXJfZm9sZGVyEAIqjwIKElJlY29yZE1vZGlmeVJlc3Vs",
+            "dBIOCgpSU19TVUNDRVNTEAASEgoOUlNfT1VUX09GX1NZTkMQARIUChBSU19B",
+            "Q0NFU1NfREVOSUVEEAISEwoPUlNfU0hBUkVfREVOSUVEEAMSFAoQUlNfUkVD",
+            "T1JEX0VYSVNUUxAEEh4KGlJTX09MRF9SRUNPUkRfVkVSU0lPTl9UWVBFEAUS",
+            "HgoaUlNfTkVXX1JFQ09SRF9WRVJTSU9OX1RZUEUQBhIWChJSU19GSUxFU19O",
+            "T1RfTUFUQ0gQBxIbChdSU19SRUNPUkRfTk9UX1NIQVJFQUJMRRAIEh8KG1JT",
+            "X0FUVEFDSE1FTlRfTk9UX1NIQVJFQUJMRRAJKi0KDUZpbGVBZGRSZXN1bHQS",
+            "DgoKRkFfU1VDQ0VTUxAAEgwKCEZBX0VSUk9SEAEqQwoNRmlsZUdldFJlc3Vs",
+            "dBIOCgpGR19TVUNDRVNTEAASDAoIRkdfRVJST1IQARIUChBGR19BQ0NFU1Nf",
+            "REVOSUVEEAIqSgoUUmVjb3JkRGV0YWlsc0luY2x1ZGUSEwoPREFUQV9QTFVT",
+            "X1NIQVJFEAASDQoJREFUQV9PTkxZEAESDgoKU0hBUkVfT05MWRACKjEKC1No",
+            "YXJlU3RhdHVzEgoKBkFDVElWRRAAEgkKBUJMT0NLEAESCwoHSU5WSVRFRBAC",
+            "QiMKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IHUmVjb3Jkc2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.ShareType), typeof(global::Records.ShareStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.ShareStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordType), global::Records.RecordType.Parser, new[]{ "RecordTypeId", "Content", "Scope" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordTypesRequest), global::Records.RecordTypesRequest.Parser, new[]{ "Standard", "User", "Enterprise" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordTypesResponse), global::Records.RecordTypesResponse.Parser, new[]{ "RecordTypes", "StandardCounter", "UserCounter", "EnterpriseCounter" }, null, null, null, null),
@@ -221,7 +224,7 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.File), global::Records.File.Parser, new[]{ "RecordUid", "RecordKey", "Data", "FileSize", "ThumbSize" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesAddRequest), global::Records.FilesAddRequest.Parser, new[]{ "Files", "ClientTime" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FileAddStatus), global::Records.FileAddStatus.Parser, new[]{ "RecordUid", "Status", "Url", "Parameters", "ThumbnailParameters", "SuccessStatusCode" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesAddResponse), global::Records.FilesAddResponse.Parser, new[]{ "Files" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesAddResponse), global::Records.FilesAddResponse.Parser, new[]{ "Files", "Revision" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesGetRequest), global::Records.FilesGetRequest.Parser, new[]{ "RecordUids", "ForThumbnails", "EmergencyAccessAccountOwner" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FileGetStatus), global::Records.FileGetStatus.Parser, new[]{ "RecordUid", "Status", "Url", "SuccessStatusCode", "FileKeyType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesGetResponse), global::Records.FilesGetResponse.Parser, new[]{ "Files" }, null, null, null, null),
@@ -239,9 +242,11 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetRecordPermissionsRequest), global::Records.GetRecordPermissionsRequest.Parser, new[]{ "RecordUids", "IsShareAdmin" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetRecordPermissionsResponse), global::Records.GetRecordPermissionsResponse.Parser, new[]{ "RecordPermissions" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordPermission), global::Records.RecordPermission.Parser, new[]{ "RecordUid", "Owner", "CanEdit", "CanShare", "CanTransfer" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetShareObjectsRequest), global::Records.GetShareObjectsRequest.Parser, new[]{ "StartWith", "Contains" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetShareObjectsResponse), global::Records.GetShareObjectsResponse.Parser, new[]{ "ShareRelationships", "ShareFamilyUsers", "ShareEnterpriseUsers", "ShareTeams", "ShareManagedCompanies" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareObject), global::Records.ShareObject.Parser, new[]{ "Name", "Type", "IsShareAdmin", "DisplayName", "Status", "TeamUid" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetShareObjectsRequest), global::Records.GetShareObjectsRequest.Parser, new[]{ "StartWith", "Contains", "Filtered" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetShareObjectsResponse), global::Records.GetShareObjectsResponse.Parser, new[]{ "ShareRelationships", "ShareFamilyUsers", "ShareEnterpriseUsers", "ShareTeams", "ShareMCTeams", "ShareMCEnterpriseUsers", "ShareEnterpriseNames" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareUser), global::Records.ShareUser.Parser, new[]{ "Username", "Fullname", "EnterpriseId", "Status", "IsShareAdmin" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareTeam), global::Records.ShareTeam.Parser, new[]{ "Teamname", "EnterpriseId", "TeamUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.ShareEnterprise), global::Records.ShareEnterprise.Parser, new[]{ "Enterprisename", "EnterpriseId" }, null, null, null, null)
           }));
     }
     #endregion
@@ -278,6 +283,7 @@ namespace Records {
     [pbr::OriginalName("RS_NEW_RECORD_VERSION_TYPE")] RsNewRecordVersionType = 6,
     [pbr::OriginalName("RS_FILES_NOT_MATCH")] RsFilesNotMatch = 7,
     [pbr::OriginalName("RS_RECORD_NOT_SHAREABLE")] RsRecordNotShareable = 8,
+    [pbr::OriginalName("RS_ATTACHMENT_NOT_SHAREABLE")] RsAttachmentNotShareable = 9,
   }
 
   public enum FileAddResult {
@@ -295,14 +301,6 @@ namespace Records {
     [pbr::OriginalName("DATA_PLUS_SHARE")] DataPlusShare = 0,
     [pbr::OriginalName("DATA_ONLY")] DataOnly = 1,
     [pbr::OriginalName("SHARE_ONLY")] ShareOnly = 2,
-  }
-
-  public enum ShareType {
-    [pbr::OriginalName("SHARING_RELATIONSHIP")] SharingRelationship = 0,
-    [pbr::OriginalName("ENTERPRISE_USER")] EnterpriseUser = 1,
-    [pbr::OriginalName("FAMILY_MEMBER")] FamilyMember = 2,
-    [pbr::OriginalName("TEAM")] Team = 3,
-    [pbr::OriginalName("MANAGE_COMPANY")] ManageCompany = 4,
   }
 
   public enum ShareStatus {
@@ -6217,6 +6215,7 @@ namespace Records {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public FilesAddResponse(FilesAddResponse other) : this() {
       files_ = other.files_.Clone();
+      revision_ = other.revision_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -6235,6 +6234,17 @@ namespace Records {
       get { return files_; }
     }
 
+    /// <summary>Field number for the "revision" field.</summary>
+    public const int RevisionFieldNumber = 2;
+    private long revision_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Revision {
+      get { return revision_; }
+      set {
+        revision_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as FilesAddResponse);
@@ -6249,6 +6259,7 @@ namespace Records {
         return true;
       }
       if(!files_.Equals(other.files_)) return false;
+      if (Revision != other.Revision) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -6256,6 +6267,7 @@ namespace Records {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= files_.GetHashCode();
+      if (Revision != 0L) hash ^= Revision.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -6270,6 +6282,10 @@ namespace Records {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
       files_.WriteTo(output, _repeated_files_codec);
+      if (Revision != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(Revision);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -6279,6 +6295,9 @@ namespace Records {
     public int CalculateSize() {
       int size = 0;
       size += files_.CalculateSize(_repeated_files_codec);
+      if (Revision != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Revision);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -6291,6 +6310,9 @@ namespace Records {
         return;
       }
       files_.Add(other.files_);
+      if (other.Revision != 0L) {
+        Revision = other.Revision;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -6304,6 +6326,10 @@ namespace Records {
             break;
           case 10: {
             files_.AddEntriesFrom(input, _repeated_files_codec);
+            break;
+          }
+          case 16: {
+            Revision = input.ReadInt64();
             break;
           }
         }
@@ -10065,6 +10091,7 @@ namespace Records {
     public GetShareObjectsRequest(GetShareObjectsRequest other) : this() {
       startWith_ = other.startWith_;
       contains_ = other.contains_;
+      filtered_ = other.filtered_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -10101,6 +10128,20 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "filtered" field.</summary>
+    public const int FilteredFieldNumber = 3;
+    private bool filtered_;
+    /// <summary>
+    ///users with status != ACTIVE will not be returned if true - used for autoshare, false - used for manage share relationships
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Filtered {
+      get { return filtered_; }
+      set {
+        filtered_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as GetShareObjectsRequest);
@@ -10116,6 +10157,7 @@ namespace Records {
       }
       if (StartWith != other.StartWith) return false;
       if (Contains != other.Contains) return false;
+      if (Filtered != other.Filtered) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -10124,6 +10166,7 @@ namespace Records {
       int hash = 1;
       if (StartWith.Length != 0) hash ^= StartWith.GetHashCode();
       if (Contains.Length != 0) hash ^= Contains.GetHashCode();
+      if (Filtered != false) hash ^= Filtered.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -10145,6 +10188,10 @@ namespace Records {
         output.WriteRawTag(18);
         output.WriteString(Contains);
       }
+      if (Filtered != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Filtered);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -10158,6 +10205,9 @@ namespace Records {
       }
       if (Contains.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Contains);
+      }
+      if (Filtered != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -10176,6 +10226,9 @@ namespace Records {
       if (other.Contains.Length != 0) {
         Contains = other.Contains;
       }
+      if (other.Filtered != false) {
+        Filtered = other.Filtered;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -10193,6 +10246,10 @@ namespace Records {
           }
           case 18: {
             Contains = input.ReadString();
+            break;
+          }
+          case 24: {
+            Filtered = input.ReadBool();
             break;
           }
         }
@@ -10230,7 +10287,9 @@ namespace Records {
       shareFamilyUsers_ = other.shareFamilyUsers_.Clone();
       shareEnterpriseUsers_ = other.shareEnterpriseUsers_.Clone();
       shareTeams_ = other.shareTeams_.Clone();
-      shareManagedCompanies_ = other.shareManagedCompanies_.Clone();
+      shareMCTeams_ = other.shareMCTeams_.Clone();
+      shareMCEnterpriseUsers_ = other.shareMCEnterpriseUsers_.Clone();
+      shareEnterpriseNames_ = other.shareEnterpriseNames_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -10241,52 +10300,93 @@ namespace Records {
 
     /// <summary>Field number for the "shareRelationships" field.</summary>
     public const int ShareRelationshipsFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::Records.ShareObject> _repeated_shareRelationships_codec
-        = pb::FieldCodec.ForMessage(10, global::Records.ShareObject.Parser);
-    private readonly pbc::RepeatedField<global::Records.ShareObject> shareRelationships_ = new pbc::RepeatedField<global::Records.ShareObject>();
+    private static readonly pb::FieldCodec<global::Records.ShareUser> _repeated_shareRelationships_codec
+        = pb::FieldCodec.ForMessage(10, global::Records.ShareUser.Parser);
+    private readonly pbc::RepeatedField<global::Records.ShareUser> shareRelationships_ = new pbc::RepeatedField<global::Records.ShareUser>();
+    /// <summary>
+    ///for user sharing relationships
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Records.ShareObject> ShareRelationships {
+    public pbc::RepeatedField<global::Records.ShareUser> ShareRelationships {
       get { return shareRelationships_; }
     }
 
     /// <summary>Field number for the "shareFamilyUsers" field.</summary>
     public const int ShareFamilyUsersFieldNumber = 2;
-    private static readonly pb::FieldCodec<global::Records.ShareObject> _repeated_shareFamilyUsers_codec
-        = pb::FieldCodec.ForMessage(18, global::Records.ShareObject.Parser);
-    private readonly pbc::RepeatedField<global::Records.ShareObject> shareFamilyUsers_ = new pbc::RepeatedField<global::Records.ShareObject>();
+    private static readonly pb::FieldCodec<global::Records.ShareUser> _repeated_shareFamilyUsers_codec
+        = pb::FieldCodec.ForMessage(18, global::Records.ShareUser.Parser);
+    private readonly pbc::RepeatedField<global::Records.ShareUser> shareFamilyUsers_ = new pbc::RepeatedField<global::Records.ShareUser>();
+    /// <summary>
+    ///for family
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Records.ShareObject> ShareFamilyUsers {
+    public pbc::RepeatedField<global::Records.ShareUser> ShareFamilyUsers {
       get { return shareFamilyUsers_; }
     }
 
     /// <summary>Field number for the "shareEnterpriseUsers" field.</summary>
     public const int ShareEnterpriseUsersFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::Records.ShareObject> _repeated_shareEnterpriseUsers_codec
-        = pb::FieldCodec.ForMessage(26, global::Records.ShareObject.Parser);
-    private readonly pbc::RepeatedField<global::Records.ShareObject> shareEnterpriseUsers_ = new pbc::RepeatedField<global::Records.ShareObject>();
+    private static readonly pb::FieldCodec<global::Records.ShareUser> _repeated_shareEnterpriseUsers_codec
+        = pb::FieldCodec.ForMessage(26, global::Records.ShareUser.Parser);
+    private readonly pbc::RepeatedField<global::Records.ShareUser> shareEnterpriseUsers_ = new pbc::RepeatedField<global::Records.ShareUser>();
+    /// <summary>
+    ///for visible users of enterprise
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Records.ShareObject> ShareEnterpriseUsers {
+    public pbc::RepeatedField<global::Records.ShareUser> ShareEnterpriseUsers {
       get { return shareEnterpriseUsers_; }
     }
 
     /// <summary>Field number for the "shareTeams" field.</summary>
     public const int ShareTeamsFieldNumber = 4;
-    private static readonly pb::FieldCodec<global::Records.ShareObject> _repeated_shareTeams_codec
-        = pb::FieldCodec.ForMessage(34, global::Records.ShareObject.Parser);
-    private readonly pbc::RepeatedField<global::Records.ShareObject> shareTeams_ = new pbc::RepeatedField<global::Records.ShareObject>();
+    private static readonly pb::FieldCodec<global::Records.ShareTeam> _repeated_shareTeams_codec
+        = pb::FieldCodec.ForMessage(34, global::Records.ShareTeam.Parser);
+    private readonly pbc::RepeatedField<global::Records.ShareTeam> shareTeams_ = new pbc::RepeatedField<global::Records.ShareTeam>();
+    /// <summary>
+    ///for visible teams of enterprise
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Records.ShareObject> ShareTeams {
+    public pbc::RepeatedField<global::Records.ShareTeam> ShareTeams {
       get { return shareTeams_; }
     }
 
-    /// <summary>Field number for the "shareManagedCompanies" field.</summary>
-    public const int ShareManagedCompaniesFieldNumber = 5;
-    private static readonly pb::FieldCodec<global::Records.ShareObject> _repeated_shareManagedCompanies_codec
-        = pb::FieldCodec.ForMessage(42, global::Records.ShareObject.Parser);
-    private readonly pbc::RepeatedField<global::Records.ShareObject> shareManagedCompanies_ = new pbc::RepeatedField<global::Records.ShareObject>();
+    /// <summary>Field number for the "shareMCTeams" field.</summary>
+    public const int ShareMCTeamsFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::Records.ShareTeam> _repeated_shareMCTeams_codec
+        = pb::FieldCodec.ForMessage(42, global::Records.ShareTeam.Parser);
+    private readonly pbc::RepeatedField<global::Records.ShareTeam> shareMCTeams_ = new pbc::RepeatedField<global::Records.ShareTeam>();
+    /// <summary>
+    ///only for mc admins, teams associated with the MC
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Records.ShareObject> ShareManagedCompanies {
-      get { return shareManagedCompanies_; }
+    public pbc::RepeatedField<global::Records.ShareTeam> ShareMCTeams {
+      get { return shareMCTeams_; }
+    }
+
+    /// <summary>Field number for the "shareMCEnterpriseUsers" field.</summary>
+    public const int ShareMCEnterpriseUsersFieldNumber = 6;
+    private static readonly pb::FieldCodec<global::Records.ShareUser> _repeated_shareMCEnterpriseUsers_codec
+        = pb::FieldCodec.ForMessage(50, global::Records.ShareUser.Parser);
+    private readonly pbc::RepeatedField<global::Records.ShareUser> shareMCEnterpriseUsers_ = new pbc::RepeatedField<global::Records.ShareUser>();
+    /// <summary>
+    ///only for mc admins
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Records.ShareUser> ShareMCEnterpriseUsers {
+      get { return shareMCEnterpriseUsers_; }
+    }
+
+    /// <summary>Field number for the "shareEnterpriseNames" field.</summary>
+    public const int ShareEnterpriseNamesFieldNumber = 7;
+    private static readonly pb::FieldCodec<global::Records.ShareEnterprise> _repeated_shareEnterpriseNames_codec
+        = pb::FieldCodec.ForMessage(58, global::Records.ShareEnterprise.Parser);
+    private readonly pbc::RepeatedField<global::Records.ShareEnterprise> shareEnterpriseNames_ = new pbc::RepeatedField<global::Records.ShareEnterprise>();
+    /// <summary>
+    ///to send the names of enterprises in which the users are members of
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::Records.ShareEnterprise> ShareEnterpriseNames {
+      get { return shareEnterpriseNames_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10306,7 +10406,9 @@ namespace Records {
       if(!shareFamilyUsers_.Equals(other.shareFamilyUsers_)) return false;
       if(!shareEnterpriseUsers_.Equals(other.shareEnterpriseUsers_)) return false;
       if(!shareTeams_.Equals(other.shareTeams_)) return false;
-      if(!shareManagedCompanies_.Equals(other.shareManagedCompanies_)) return false;
+      if(!shareMCTeams_.Equals(other.shareMCTeams_)) return false;
+      if(!shareMCEnterpriseUsers_.Equals(other.shareMCEnterpriseUsers_)) return false;
+      if(!shareEnterpriseNames_.Equals(other.shareEnterpriseNames_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -10317,7 +10419,9 @@ namespace Records {
       hash ^= shareFamilyUsers_.GetHashCode();
       hash ^= shareEnterpriseUsers_.GetHashCode();
       hash ^= shareTeams_.GetHashCode();
-      hash ^= shareManagedCompanies_.GetHashCode();
+      hash ^= shareMCTeams_.GetHashCode();
+      hash ^= shareMCEnterpriseUsers_.GetHashCode();
+      hash ^= shareEnterpriseNames_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -10335,7 +10439,9 @@ namespace Records {
       shareFamilyUsers_.WriteTo(output, _repeated_shareFamilyUsers_codec);
       shareEnterpriseUsers_.WriteTo(output, _repeated_shareEnterpriseUsers_codec);
       shareTeams_.WriteTo(output, _repeated_shareTeams_codec);
-      shareManagedCompanies_.WriteTo(output, _repeated_shareManagedCompanies_codec);
+      shareMCTeams_.WriteTo(output, _repeated_shareMCTeams_codec);
+      shareMCEnterpriseUsers_.WriteTo(output, _repeated_shareMCEnterpriseUsers_codec);
+      shareEnterpriseNames_.WriteTo(output, _repeated_shareEnterpriseNames_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -10348,7 +10454,9 @@ namespace Records {
       size += shareFamilyUsers_.CalculateSize(_repeated_shareFamilyUsers_codec);
       size += shareEnterpriseUsers_.CalculateSize(_repeated_shareEnterpriseUsers_codec);
       size += shareTeams_.CalculateSize(_repeated_shareTeams_codec);
-      size += shareManagedCompanies_.CalculateSize(_repeated_shareManagedCompanies_codec);
+      size += shareMCTeams_.CalculateSize(_repeated_shareMCTeams_codec);
+      size += shareMCEnterpriseUsers_.CalculateSize(_repeated_shareMCEnterpriseUsers_codec);
+      size += shareEnterpriseNames_.CalculateSize(_repeated_shareEnterpriseNames_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -10364,7 +10472,9 @@ namespace Records {
       shareFamilyUsers_.Add(other.shareFamilyUsers_);
       shareEnterpriseUsers_.Add(other.shareEnterpriseUsers_);
       shareTeams_.Add(other.shareTeams_);
-      shareManagedCompanies_.Add(other.shareManagedCompanies_);
+      shareMCTeams_.Add(other.shareMCTeams_);
+      shareMCEnterpriseUsers_.Add(other.shareMCEnterpriseUsers_);
+      shareEnterpriseNames_.Add(other.shareEnterpriseNames_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -10393,7 +10503,15 @@ namespace Records {
             break;
           }
           case 42: {
-            shareManagedCompanies_.AddEntriesFrom(input, _repeated_shareManagedCompanies_codec);
+            shareMCTeams_.AddEntriesFrom(input, _repeated_shareMCTeams_codec);
+            break;
+          }
+          case 50: {
+            shareMCEnterpriseUsers_.AddEntriesFrom(input, _repeated_shareMCEnterpriseUsers_codec);
+            break;
+          }
+          case 58: {
+            shareEnterpriseNames_.AddEntriesFrom(input, _repeated_shareEnterpriseNames_codec);
             break;
           }
         }
@@ -10402,11 +10520,11 @@ namespace Records {
 
   }
 
-  public sealed partial class ShareObject : pb::IMessage<ShareObject> {
-    private static readonly pb::MessageParser<ShareObject> _parser = new pb::MessageParser<ShareObject>(() => new ShareObject());
+  public sealed partial class ShareUser : pb::IMessage<ShareUser> {
+    private static readonly pb::MessageParser<ShareUser> _parser = new pb::MessageParser<ShareUser>(() => new ShareUser());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<ShareObject> Parser { get { return _parser; } }
+    public static pb::MessageParser<ShareUser> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -10419,61 +10537,79 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ShareObject() {
+    public ShareUser() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ShareObject(ShareObject other) : this() {
-      name_ = other.name_;
-      type_ = other.type_;
-      isShareAdmin_ = other.isShareAdmin_;
-      displayName_ = other.displayName_;
+    public ShareUser(ShareUser other) : this() {
+      username_ = other.username_;
+      fullname_ = other.fullname_;
+      enterpriseId_ = other.enterpriseId_;
       status_ = other.status_;
-      teamUid_ = other.teamUid_;
+      isShareAdmin_ = other.isShareAdmin_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ShareObject Clone() {
-      return new ShareObject(this);
+    public ShareUser Clone() {
+      return new ShareUser(this);
     }
 
-    /// <summary>Field number for the "name" field.</summary>
-    public const int NameFieldNumber = 1;
-    private string name_ = "";
-    /// <summary>
-    /// username, company name, team name
-    /// </summary>
+    /// <summary>Field number for the "username" field.</summary>
+    public const int UsernameFieldNumber = 1;
+    private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Name {
-      get { return name_; }
+    public string Username {
+      get { return username_; }
       set {
-        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        username_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
-    /// <summary>Field number for the "type" field.</summary>
-    public const int TypeFieldNumber = 2;
-    private global::Records.ShareType type_ = global::Records.ShareType.SharingRelationship;
+    /// <summary>Field number for the "fullname" field.</summary>
+    public const int FullnameFieldNumber = 2;
+    private string fullname_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Fullname {
+      get { return fullname_; }
+      set {
+        fullname_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "enterpriseId" field.</summary>
+    public const int EnterpriseIdFieldNumber = 3;
+    private int enterpriseId_;
     /// <summary>
-    /// share relationship, mc company, team, enterprise, family
+    /// only for enterprise user
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Records.ShareType Type {
-      get { return type_; }
+    public int EnterpriseId {
+      get { return enterpriseId_; }
       set {
-        type_ = value;
+        enterpriseId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 4;
+    private global::Records.ShareStatus status_ = global::Records.ShareStatus.Active;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Records.ShareStatus Status {
+      get { return status_; }
+      set {
+        status_ = value;
       }
     }
 
     /// <summary>Field number for the "isShareAdmin" field.</summary>
-    public const int IsShareAdminFieldNumber = 3;
+    public const int IsShareAdminFieldNumber = 5;
     private bool isShareAdmin_;
     /// <summary>
-    /// only used for enterprise
+    /// only for enterprise user
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public bool IsShareAdmin {
@@ -10483,36 +10619,214 @@ namespace Records {
       }
     }
 
-    /// <summary>Field number for the "displayName" field.</summary>
-    public const int DisplayNameFieldNumber = 4;
-    private string displayName_ = "";
-    /// <summary>
-    /// full name...
-    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string DisplayName {
-      get { return displayName_; }
-      set {
-        displayName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+    public override bool Equals(object other) {
+      return Equals(other as ShareUser);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(ShareUser other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Username != other.Username) return false;
+      if (Fullname != other.Fullname) return false;
+      if (EnterpriseId != other.EnterpriseId) return false;
+      if (Status != other.Status) return false;
+      if (IsShareAdmin != other.IsShareAdmin) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Username.Length != 0) hash ^= Username.GetHashCode();
+      if (Fullname.Length != 0) hash ^= Fullname.GetHashCode();
+      if (EnterpriseId != 0) hash ^= EnterpriseId.GetHashCode();
+      if (Status != global::Records.ShareStatus.Active) hash ^= Status.GetHashCode();
+      if (IsShareAdmin != false) hash ^= IsShareAdmin.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (Fullname.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Fullname);
+      }
+      if (EnterpriseId != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(EnterpriseId);
+      }
+      if (Status != global::Records.ShareStatus.Active) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) Status);
+      }
+      if (IsShareAdmin != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(IsShareAdmin);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
       }
     }
 
-    /// <summary>Field number for the "status" field.</summary>
-    public const int StatusFieldNumber = 5;
-    private global::Records.ShareStatus status_ = global::Records.ShareStatus.Active;
-    /// <summary>
-    /// active, blocked, invited (only apply to shareRelationships)
-    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Records.ShareStatus Status {
-      get { return status_; }
+    public int CalculateSize() {
+      int size = 0;
+      if (Username.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Username);
+      }
+      if (Fullname.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Fullname);
+      }
+      if (EnterpriseId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnterpriseId);
+      }
+      if (Status != global::Records.ShareStatus.Active) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      }
+      if (IsShareAdmin != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(ShareUser other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Username.Length != 0) {
+        Username = other.Username;
+      }
+      if (other.Fullname.Length != 0) {
+        Fullname = other.Fullname;
+      }
+      if (other.EnterpriseId != 0) {
+        EnterpriseId = other.EnterpriseId;
+      }
+      if (other.Status != global::Records.ShareStatus.Active) {
+        Status = other.Status;
+      }
+      if (other.IsShareAdmin != false) {
+        IsShareAdmin = other.IsShareAdmin;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            Fullname = input.ReadString();
+            break;
+          }
+          case 24: {
+            EnterpriseId = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            Status = (global::Records.ShareStatus) input.ReadEnum();
+            break;
+          }
+          case 40: {
+            IsShareAdmin = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class ShareTeam : pb::IMessage<ShareTeam> {
+    private static readonly pb::MessageParser<ShareTeam> _parser = new pb::MessageParser<ShareTeam>(() => new ShareTeam());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<ShareTeam> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[50]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ShareTeam() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ShareTeam(ShareTeam other) : this() {
+      teamname_ = other.teamname_;
+      enterpriseId_ = other.enterpriseId_;
+      teamUid_ = other.teamUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ShareTeam Clone() {
+      return new ShareTeam(this);
+    }
+
+    /// <summary>Field number for the "teamname" field.</summary>
+    public const int TeamnameFieldNumber = 1;
+    private string teamname_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Teamname {
+      get { return teamname_; }
       set {
-        status_ = value;
+        teamname_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "enterpriseId" field.</summary>
+    public const int EnterpriseIdFieldNumber = 2;
+    private int enterpriseId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int EnterpriseId {
+      get { return enterpriseId_; }
+      set {
+        enterpriseId_ = value;
       }
     }
 
     /// <summary>Field number for the "teamUid" field.</summary>
-    public const int TeamUidFieldNumber = 6;
+    public const int TeamUidFieldNumber = 3;
     private pb::ByteString teamUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pb::ByteString TeamUid {
@@ -10524,22 +10838,19 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as ShareObject);
+      return Equals(other as ShareTeam);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(ShareObject other) {
+    public bool Equals(ShareTeam other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Name != other.Name) return false;
-      if (Type != other.Type) return false;
-      if (IsShareAdmin != other.IsShareAdmin) return false;
-      if (DisplayName != other.DisplayName) return false;
-      if (Status != other.Status) return false;
+      if (Teamname != other.Teamname) return false;
+      if (EnterpriseId != other.EnterpriseId) return false;
       if (TeamUid != other.TeamUid) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -10547,11 +10858,8 @@ namespace Records {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (Name.Length != 0) hash ^= Name.GetHashCode();
-      if (Type != global::Records.ShareType.SharingRelationship) hash ^= Type.GetHashCode();
-      if (IsShareAdmin != false) hash ^= IsShareAdmin.GetHashCode();
-      if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
-      if (Status != global::Records.ShareStatus.Active) hash ^= Status.GetHashCode();
+      if (Teamname.Length != 0) hash ^= Teamname.GetHashCode();
+      if (EnterpriseId != 0) hash ^= EnterpriseId.GetHashCode();
       if (TeamUid.Length != 0) hash ^= TeamUid.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -10566,28 +10874,16 @@ namespace Records {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (Name.Length != 0) {
+      if (Teamname.Length != 0) {
         output.WriteRawTag(10);
-        output.WriteString(Name);
+        output.WriteString(Teamname);
       }
-      if (Type != global::Records.ShareType.SharingRelationship) {
+      if (EnterpriseId != 0) {
         output.WriteRawTag(16);
-        output.WriteEnum((int) Type);
-      }
-      if (IsShareAdmin != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(IsShareAdmin);
-      }
-      if (DisplayName.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(DisplayName);
-      }
-      if (Status != global::Records.ShareStatus.Active) {
-        output.WriteRawTag(40);
-        output.WriteEnum((int) Status);
+        output.WriteInt32(EnterpriseId);
       }
       if (TeamUid.Length != 0) {
-        output.WriteRawTag(50);
+        output.WriteRawTag(26);
         output.WriteBytes(TeamUid);
       }
       if (_unknownFields != null) {
@@ -10598,20 +10894,11 @@ namespace Records {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (Name.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      if (Teamname.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Teamname);
       }
-      if (Type != global::Records.ShareType.SharingRelationship) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Type);
-      }
-      if (IsShareAdmin != false) {
-        size += 1 + 1;
-      }
-      if (DisplayName.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(DisplayName);
-      }
-      if (Status != global::Records.ShareStatus.Active) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Status);
+      if (EnterpriseId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnterpriseId);
       }
       if (TeamUid.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(TeamUid);
@@ -10623,24 +10910,15 @@ namespace Records {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(ShareObject other) {
+    public void MergeFrom(ShareTeam other) {
       if (other == null) {
         return;
       }
-      if (other.Name.Length != 0) {
-        Name = other.Name;
+      if (other.Teamname.Length != 0) {
+        Teamname = other.Teamname;
       }
-      if (other.Type != global::Records.ShareType.SharingRelationship) {
-        Type = other.Type;
-      }
-      if (other.IsShareAdmin != false) {
-        IsShareAdmin = other.IsShareAdmin;
-      }
-      if (other.DisplayName.Length != 0) {
-        DisplayName = other.DisplayName;
-      }
-      if (other.Status != global::Records.ShareStatus.Active) {
-        Status = other.Status;
+      if (other.EnterpriseId != 0) {
+        EnterpriseId = other.EnterpriseId;
       }
       if (other.TeamUid.Length != 0) {
         TeamUid = other.TeamUid;
@@ -10657,27 +10935,172 @@ namespace Records {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            Name = input.ReadString();
+            Teamname = input.ReadString();
             break;
           }
           case 16: {
-            Type = (global::Records.ShareType) input.ReadEnum();
+            EnterpriseId = input.ReadInt32();
             break;
           }
-          case 24: {
-            IsShareAdmin = input.ReadBool();
-            break;
-          }
-          case 34: {
-            DisplayName = input.ReadString();
-            break;
-          }
-          case 40: {
-            Status = (global::Records.ShareStatus) input.ReadEnum();
-            break;
-          }
-          case 50: {
+          case 26: {
             TeamUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class ShareEnterprise : pb::IMessage<ShareEnterprise> {
+    private static readonly pb::MessageParser<ShareEnterprise> _parser = new pb::MessageParser<ShareEnterprise>(() => new ShareEnterprise());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<ShareEnterprise> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[51]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ShareEnterprise() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ShareEnterprise(ShareEnterprise other) : this() {
+      enterprisename_ = other.enterprisename_;
+      enterpriseId_ = other.enterpriseId_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ShareEnterprise Clone() {
+      return new ShareEnterprise(this);
+    }
+
+    /// <summary>Field number for the "enterprisename" field.</summary>
+    public const int EnterprisenameFieldNumber = 1;
+    private string enterprisename_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Enterprisename {
+      get { return enterprisename_; }
+      set {
+        enterprisename_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "enterpriseId" field.</summary>
+    public const int EnterpriseIdFieldNumber = 2;
+    private int enterpriseId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int EnterpriseId {
+      get { return enterpriseId_; }
+      set {
+        enterpriseId_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as ShareEnterprise);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(ShareEnterprise other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Enterprisename != other.Enterprisename) return false;
+      if (EnterpriseId != other.EnterpriseId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Enterprisename.Length != 0) hash ^= Enterprisename.GetHashCode();
+      if (EnterpriseId != 0) hash ^= EnterpriseId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Enterprisename.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Enterprisename);
+      }
+      if (EnterpriseId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(EnterpriseId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Enterprisename.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Enterprisename);
+      }
+      if (EnterpriseId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnterpriseId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(ShareEnterprise other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Enterprisename.Length != 0) {
+        Enterprisename = other.Enterprisename;
+      }
+      if (other.EnterpriseId != 0) {
+        EnterpriseId = other.EnterpriseId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Enterprisename = input.ReadString();
+            break;
+          }
+          case 16: {
+            EnterpriseId = input.ReadInt32();
             break;
           }
         }

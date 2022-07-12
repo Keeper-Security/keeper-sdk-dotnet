@@ -180,6 +180,10 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         public bool? ShareDatakeyWithEnterprise { get; internal set; }
         /// <summary>
+        /// If true data key is nor shared with device key
+        /// </summary>
+        public bool? ShareDataKeyWithDevicePublicKey { get; internal set; }
+        /// <summary> 
         /// Persistent login.
         /// </summary>
         public bool PersistentLogin { get; internal set; }
@@ -211,6 +215,7 @@ namespace KeeperSecurity.Authentication
                 Theme = settings.Theme,
                 SsoUser = settings.SsoUser,
                 ShareDatakeyWithEnterprise = settings.ShareDataKeyWithEccPublicKey,
+                ShareDataKeyWithDevicePublicKey = settings.ShareDataKeyWithDevicePublicKey,
                 LogoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : (long?) null,
                 PersistentLogin = settings.PersistentLogin,
                 RecordTypesEnabled = settings.RecordTypesEnabled,

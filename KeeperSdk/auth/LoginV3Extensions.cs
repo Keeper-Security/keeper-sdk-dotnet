@@ -1049,7 +1049,8 @@ namespace KeeperSecurity.Authentication
             {
                 ClientVersion = auth.Endpoint.ClientVersion,
                 Embedded = true,
-                ForceLogin = forceLogin
+                ForceLogin = forceLogin,
+                Detached = true,
             };
             var transmissionKey = CryptoUtils.GenerateEncryptionKey();
             var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);

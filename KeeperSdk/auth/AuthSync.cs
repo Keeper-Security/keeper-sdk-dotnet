@@ -377,7 +377,7 @@ namespace KeeperSecurity.Authentication.Sync
             var onDone = t.Item2;
 
             tfaStep.Channels = channelInfo.Select(x => x.Channel).ToArray();
-            tfaStep.Duration = TwoFactorDuration.Every30Days;
+            tfaStep.Duration = TwoFactorDuration.EveryLogin;
             tfaStep.DefaultChannel = channelInfo[0].Channel;
             tfaStep.OnGetChannelPushActions = (channel) =>
             {
@@ -572,7 +572,7 @@ namespace KeeperSecurity.Authentication.Sync
                     {
                         if (ReferenceEquals(Step, dataKeyStep))
                         {
-                            Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken, LoginMethod.AfterSso);
+                            Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
                         }
                     });
                 },
