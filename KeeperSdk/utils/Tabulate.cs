@@ -10,7 +10,7 @@ namespace KeeperSecurity.Utils
         private readonly int _columns;
         private readonly bool[] _rightAlignColumn;
         private readonly int[] _maxChars;
-        private readonly List<string[]> _data = new List<string[]>();
+        private readonly List<object[]> _data = new List<object[]>();
 
         public Tabulate(int columns)
         {
@@ -48,45 +48,56 @@ namespace KeeperSecurity.Utils
                    || value is decimal;
         }
 
+        private static string ValueToString(object o) 
+        {
+            if (o == null) {
+                return "";
+            }
+            else if (o is bool b)
+            {
+                return b ? "X" : "-";
+            }
+            else if (o is DateTimeOffset dt)
+            {
+                return dt.ToString("g");
+            }
+            else if (IsNumber(o)) {
+                if (IsDecimal(o))
+                {
+                    return $"{o:0.00}";
+                }
+                return o.ToString();
+            }
+            else
+            {
+                return o.ToString();
+            }
+        }
+
         public void AddRow(params object[] fields)
         {
-            var row = Enumerable.Repeat("", _columns).ToArray();
-            var colNo = 0;
-            foreach (var o in fields)
+            var row = fields.Select(x => 
             {
-                var text = "";
-                if (o != null)
+                if (x is Array a)
                 {
-                    if (o is bool b)
-                    {
-                        text = b ? "X" : "-";
+                    if (a.Length == 0) {
+                        return "";
                     }
-                    else if (o is DateTimeOffset dt)
-                    {
-                        text = dt.ToString("g");
+                    if (a.Length == 1) {
+                        return ValueToString(a.GetValue(0));
                     }
-                    else
+                    var arr = new string[a.Length];
+                    for (var i = 0; i < a.Length; i++)
                     {
-                        text = o.ToString();
-                        var isNum = IsNumber(o);
-                        if (isNum)
-                        {
-                            if (IsDecimal(o))
-                            {
-                                text = $"{o:0.00}";
-                            }
-                        }
+                        arr[i] = ValueToString(a.GetValue(i));
                     }
+                    return (object) arr;
                 }
-
-                row[colNo] = text;
-                colNo++;
-                if (colNo >= _columns)
+                else 
                 {
-                    break;
+                    return ValueToString(x);
                 }
-            }
-
+            }).ToArray();
             _data.Add(row);
         }
 
@@ -98,21 +109,40 @@ namespace KeeperSecurity.Utils
             }
         }
 
+        private static string GetColumnValue(object[] row, int colNo)
+        {
+            if (colNo >= 0 && colNo < row.Length)
+            {
+                var v1 = row[colNo];
+                if (v1 is string)
+                {
+                    return (string) v1;
+                }
+                else if (v1 is string[] a)
+                {
+                    if (a.Length > 0)
+                    {
+                        return (a[0] ?? "").ToString();
+                    }
+                }
+            }
+            return "";
+        }
+
         public void Sort(int colNo)
         {
             if (_data.Count <= 1) return;
 
             var isNum = _rightAlignColumn[colNo];
-            if (colNo >= 0 && colNo < _columns)
+            _data.Sort((x, y) =>
             {
-                _data.Sort((x, y) =>
-                {
-                    if (!isNum) return string.Compare(x[colNo], y[colNo], StringComparison.Ordinal);
+                string xs = GetColumnValue(x, colNo);
+                string ys = GetColumnValue(y, colNo); 
 
-                    var res = x[colNo].Length.CompareTo(y[colNo].Length);
-                    return res != 0 ? res : string.Compare(x[colNo], y[colNo], StringComparison.Ordinal);
-                });
-            }
+                if (!isNum) return string.Compare(xs, ys, StringComparison.InvariantCultureIgnoreCase);
+                var res = xs.Length.CompareTo(ys.Length);
+                return res != 0 ? res : string.Compare(xs, ys, StringComparison.Ordinal);
+            });
         }
 
         private const string RowSeparator = "  ";
@@ -135,7 +165,16 @@ namespace KeeperSecurity.Utils
 
                 foreach (var row in _data.Where(row => i < row.Length))
                 {
-                    len = Math.Max(len, row[i].Length);
+                    var colLen = 0;
+                    if (row[i] is string[] ars)
+                    {
+                        colLen = ars.Where(x => !string.IsNullOrEmpty(x)).Aggregate(0, (cur, x) => Math.Max(cur, x.Length));
+                    }
+                    else if (row[i] is string s)
+                    {
+                        colLen = s.Length;
+                    }
+                    len = Math.Max(len, colLen);
                     if (len > MaxColumnWidth)
                     {
                         len = MaxColumnWidth;
@@ -176,24 +215,49 @@ namespace KeeperSecurity.Utils
             var rowNo = 1;
             foreach (var row in _data)
             {
-                var r = (DumpRowNo ? (new[] {rowNo.ToString().PadLeft(rowNoLen)}) : Enumerable.Empty<string>())
-                    .Concat(row.Zip(_maxChars.Zip(_rightAlignColumn, (m, b) => b ? -m : m), (cell, m) =>
-                    {
-                        cell = cell.Replace("\n", " ");
-                        if (cell.Length > MaxColumnWidth)
-                        {
-                            return cell.Substring(0, MaxColumnWidth - 3) + "...";
-                        }
-
-                        return m < 0 ? cell.PadLeft(-m) : cell.PadRight(m);
-                    }));
-
-                if (LeftPadding > 0)
+                var subRows = 1;
+                foreach (var col in row)
                 {
-                    Console.Write("".PadLeft(LeftPadding));
+                    if (col is string[] ars)
+                    {
+                        subRows = Math.Max(subRows, ars.Length);
+                    }
+                }
+                for (var i = 0; i < subRows; i++) 
+                {
+                    var r = ((DumpRowNo) ? (new[] { (i == 0 ? rowNo.ToString() : "").PadLeft(rowNoLen) }) : Enumerable.Empty<string>())
+                        .Concat(row.Zip(_maxChars.Zip(_rightAlignColumn, (m, b) => b ? -m : m), (cell, m) =>
+                        {
+                            string value = "";
+                            if (cell is string s) {
+                                if (i == 0) {
+                                    value = s;
+                                }
+                            }
+                            else if (cell is string[] ars) {
+                                if (i < ars.Length) 
+                                {
+                                    value = ars[i];
+                                }
+                            }
+
+                            value = value.Replace("\n", " ");
+                            if (value.Length > MaxColumnWidth)
+                            {
+                                return value.Substring(0, MaxColumnWidth - 3) + "...";
+                            }
+
+                            return m < 0 ? value.PadLeft(-m) : value.PadRight(m);
+                        }));
+
+                    if (LeftPadding > 0)
+                    {
+                        Console.Write("".PadLeft(LeftPadding));
+                    }
+
+                    Console.WriteLine(string.Join(RowSeparator, r));
                 }
 
-                Console.WriteLine(string.Join(RowSeparator, r));
 
                 rowNo++;
             }
