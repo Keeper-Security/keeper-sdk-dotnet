@@ -673,15 +673,17 @@ namespace KeeperSecurity.Commands
         public string message;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class PublicKeysResponse : KeeperApiResponse
+    public class PublicKeysResponse : KeeperApiResponse
     {
         [DataMember(Name = "public_keys", EmitDefaultValue = false)]
         public UserPublicKeysObject[] publicKeys;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class TeamKeyObject
+    public class TeamKeyObject
     {
         [DataMember(Name = "team_uid")]
         public string teamUid;
@@ -695,8 +697,9 @@ namespace KeeperSecurity.Commands
         public string message;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class TeamGetKeysCommand : AuthenticatedCommand
+    public class TeamGetKeysCommand : AuthenticatedCommand
     {
         public TeamGetKeysCommand() : base("team_get_keys")
         {
@@ -706,8 +709,9 @@ namespace KeeperSecurity.Commands
         public string[] teams;
     }
 
+    /// <exclude/>
     [DataContract]
-    internal class TeamGetKeysResponse : KeeperApiResponse
+    public class TeamGetKeysResponse : KeeperApiResponse
     {
         [DataMember(Name = "keys", EmitDefaultValue = false)]
         public TeamKeyObject[] keys;
