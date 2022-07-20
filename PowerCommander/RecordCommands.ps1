@@ -42,19 +42,23 @@ New-Alias -Name kr -Value Get-KeeperRecords
 function Copy-KeeperToClipboard {
 <#
 	.Synopsis
-	Copy record password to clipboard
+	Copy record password to clipboard or output 
 
 	.Parameter Record
 	Record UID or any object containing property Uid
 
 	.Parameter Field
 	Record field to copy to clipboard. Record password is default.
+
+	.Parameter Output
+	Password output destination. Clipboard is default. Use "Stdout" for scripting
 #>
 
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true, ValueFromPipeline = $true)] $Record,
-		[string] [ValidateSet('Login' ,'Password', 'URL')] $Field = 'Password'
+		[string] [ValidateSet('Login' ,'Password', 'URL')] $Field = 'Password',
+		[string] [ValidateSet('Clipboard' ,'Stdout')] $Output = 'Clipboard'
 	)
 	Process {
 		if ($Record -is [Array]) {
@@ -112,11 +116,15 @@ function Copy-KeeperToClipboard {
 				}
 
 				if ($value) {
-					Set-Clipboard -Value $value
+					if ($Output -eq 'Stdout') {
+						$value
+					} else {
+						Set-Clipboard -Value $value
+						Write-Host "Copied to clipboard: $Field for $($rec.Title)"
+					}
 					if ($Field -eq 'Password') {
 						$vault.AuditLogRecordCopyPassword($rec.Uid)
 					}
-					Write-Host "Copied to clipboard: $Field for $($rec.Title)"
 				} else {
 					Write-Host "Record $($rec.Title) has no $Field"
 				}
