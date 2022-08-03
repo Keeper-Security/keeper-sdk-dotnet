@@ -297,7 +297,7 @@ namespace KeeperSecurity.Utils
             if (BitConverter.IsLittleEndian) Array.Reverse(iterationsBytes);
 
             var key = DeriveKeyV1(password, salt, iterations);
-            return new[] {versionBytes.Take(1), iterationsBytes.Skip(1), salt, key}.SelectMany(x => x).ToArray();
+            return new[] { versionBytes.Take(1), iterationsBytes.Skip(1), salt, key }.SelectMany(x => x).ToArray();
         }
 
         /// <exclude />
@@ -321,7 +321,7 @@ namespace KeeperSecurity.Utils
                 len += cipher.ProcessBlock(dataKey, offset, outBuffer, len);
             }
 
-            return new[] {versionBytes.Take(1), iterationsBytes.Skip(1), salt, iv, outBuffer}.SelectMany(x => x)
+            return new[] { versionBytes.Take(1), iterationsBytes.Skip(1), salt, iv, outBuffer }.SelectMany(x => x)
                 .ToArray();
         }
 
@@ -610,6 +610,206 @@ namespace KeeperSecurity.Utils
 
             return Tuple.Create(codeStr, (int) (tmBase % period), period);
         }
+
+        internal static void Shuffle<T>(T[] array)
+        {
+            if (array?.Length >= 2)
+            {
+                var bigArray = array.Length > byte.MaxValue;
+                var randoms = GetRandomBytes(array.Length * (bigArray ? 4 : 1));
+                for (var i = array.Length - 1; i >= 0; i--)
+                {
+                    var random = bigArray ? (int) (BitConverter.ToUInt32(randoms, i * 4) & 0x7fffffff) : randoms[i];
+                    var j = random % array.Length;
+                    if (i != j)
+                    {
+                        var ch = array[i];
+                        array[i] = array[j];
+                        array[j] = ch;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Special characters for password generator
+        /// </summary>
+        public static readonly string SPECIAL_CHARACTERS = "!@#$%()+;<>=?[]{}^.,";
+
+        /// <summary>
+        /// Generates random password.
+        /// </summary>
+        /// <param name="options">Password generation rules. Optional</param>
+        /// <returns>Generated password</returns>
+        public static string GeneratePassword(PasswordGenerationOptions options = null)
+        {
+            const int LETTER_COUNT = 'z' - 'a' + 1;
+
+            int length = options?.Length ?? 20;
+            int upper = options?.Upper ?? 4;
+            int lower = options?.Lower ?? 4;
+            int digit = options?.Digit ?? 2;
+            int special = options?.Special ?? -1;
+
+            if (length <= 0)
+            {
+                length = 20;
+            }
+            if (upper < 0 && lower < 0 && digit < 0 && special < 0)
+            {
+                lower = length;
+            }
+
+            var required = Math.Max(upper, 0) + Math.Max(lower, 0) + Math.Max(digit, 0) + Math.Max(special, 0);
+            var extra = required - length;
+            if (extra > 0)
+            {
+                var left = extra;
+                if (left > 0 && lower > 0)
+                {
+                    var to_substract = (int) Math.Ceiling((float) lower / required * extra);
+                    if (to_substract > 0)
+                    {
+                        to_substract = Math.Min(left, to_substract);
+                        lower -= to_substract;
+                        left -= to_substract;
+                    }
+                }
+                if (left > 0 && upper > 0)
+                {
+                    var to_substract = (int) Math.Ceiling((float) upper / required * extra);
+                    if (to_substract > 0)
+                    {
+                        to_substract = Math.Min(left, to_substract);
+                        upper -= to_substract;
+                        left -= to_substract;
+                    }
+                }
+                if (left > 0 && digit > 0)
+                {
+                    var to_substract = (int) Math.Ceiling((float) digit / required * extra);
+                    if (to_substract > 0)
+                    {
+                        to_substract = Math.Min(left, to_substract);
+                        digit -= to_substract;
+                        left -= to_substract;
+                    }
+                }
+                if (left > 0 && special > 0)
+                {
+                    var to_substract = (int) Math.Ceiling((float) special / required * extra);
+                    if (to_substract > 0)
+                    {
+                        to_substract = Math.Min(left, to_substract);
+                        special -= to_substract;
+                        left -= to_substract;
+                    }
+                }
+                Debug.Assert(left <= 0);
+            }
+
+            required = Math.Max(upper, 0) + Math.Max(lower, 0) + Math.Max(digit, 0) + Math.Max(special, 0);
+            extra = length - required;
+            while (extra > 0) 
+            {
+                if (extra > 0 && lower >= 0)
+                {
+                    lower++;
+                    extra--;
+                }
+                if (extra > 0 && upper >= 0) 
+                {
+                    upper++;
+                    extra--;
+                }
+                if (extra > 0 && digit >= 0)
+                {
+                    digit++;
+                    extra--;
+                }
+                if (extra > 0 && special >= 0)
+                {
+                    special++;
+                    extra--;
+                }
+            }
+
+
+            var buffer = new char[length];
+            var indexes = new int[length];
+            for (var i = 0; i < indexes.Length; i++) 
+            {
+                indexes[i] = i;
+            }
+            Shuffle(indexes);
+            var randoms = GetRandomBytes(length);
+            var sprecialCharacters = string.IsNullOrEmpty(options?.SpecialCharacters) ? SPECIAL_CHARACTERS : options.SpecialCharacters;
+            foreach (var pos in indexes) {
+                if (upper > 0)
+                {
+                    buffer[pos] = (char) ('A' + (randoms[pos] % LETTER_COUNT));
+                    upper--;
+                }
+                else if (lower > 0)
+                {
+                    buffer[pos] = (char) ('a' + (randoms[pos] % LETTER_COUNT));
+                    lower--;
+                }
+                else if (digit > 0)
+                {
+                    buffer[pos] = (char) ('0' + (randoms[pos] % 10));
+                    digit--;
+                }
+                else if (special > 0)
+                {
+                    buffer[pos] = sprecialCharacters[randoms[pos] % sprecialCharacters.Length];
+                    special--;
+                }
+                else
+                {
+                    buffer[pos] = (char) ('a' + (randoms[pos] % LETTER_COUNT));
+                }
+            }
+
+            Shuffle(buffer);
+            return new string(buffer);
+        }
+    }
+
+    /// <summary>
+    /// Defines password generation rules.
+    /// </summary>
+    public class PasswordGenerationOptions
+    {
+        /// <summary>
+        /// Password Length
+        /// </summary>
+        /// <remarks>Default: 20</remarks>
+        public int Length { get; set; }
+        /// <summary>
+        /// Minimal number of lowercase characters. 
+        /// </summary>
+        /// <remarks>-1 to exclude lowercase characters</remarks>
+        public int Lower { get; set; }
+        /// <summary>
+        /// Minimal number of uppercase characters. 
+        /// </summary>
+        /// <remarks>-1 to exclude uppercase characters</remarks>
+        public int Upper { get; set; }
+        /// <summary>
+        /// Minimal number of digits
+        /// </summary>
+        /// <remarks>-1 to exclude digits</remarks>
+        public int Digit { get; set; }
+        /// <summary>
+        /// Minimal number of special characters
+        /// </summary>
+        /// <remarks>-1 to exclude special characters</remarks>
+        public int Special { get; set; }
+        /// <summary>
+        /// Special character vocabulary. <see cref="CryptoUtils.SPECIAL_CHARACTERS"/>
+        /// </summary>
+        public string SpecialCharacters { get; set; }
     }
 
     /// <exclude />

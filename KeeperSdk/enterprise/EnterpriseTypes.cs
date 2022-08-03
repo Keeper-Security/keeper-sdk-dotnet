@@ -250,16 +250,16 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         public long ParentNodeId { get; internal set; }
 
-        /// <excluded />
+        /// <exclude />
         public int UserId { get; internal set; }
 
-        /// <excluded />
+        /// <exclude />
         public string KeyType { get; internal set; }
 
-        /// <excluded />
+        /// <exclude />
         public string EncryptedData { get; internal set; }
 
-        /// <excluded />
+        /// <exclude />
         public long AccountShareExpiration { get; internal set; }
     }
 
