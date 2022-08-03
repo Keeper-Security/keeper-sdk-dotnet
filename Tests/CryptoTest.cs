@@ -30,6 +30,105 @@ namespace Tests
             Assert.True(m.Success);
         }
 
+        private PasswordGenerationOptions RestoreRules(string password)
+        {
+            var options = new PasswordGenerationOptions();
+            if (!string.IsNullOrEmpty(password))
+            {
+                options.Length = password.Length;
+                foreach (var ch in password)
+                {
+                    if (char.IsDigit(ch))
+                    {
+                        options.Digit += 1;
+                    }
+                    else if (char.IsLetter(ch))
+                    {
+                        if (char.IsLower(ch))
+                        {
+                            options.Lower += 1;
+                        }
+                        else
+                        {
+                            options.Upper += 1;
+                        }
+                    }
+                    else
+                    {
+                        options.Special += 1;
+                    }
+                }
+            }
+            return options;
+        }
+
+        [Fact]
+        public void TestGeneratePassword() 
+        {
+            var password = CryptoUtils.GeneratePassword();
+            var rules = RestoreRules(password);
+            Assert.Equal(20, rules.Length);
+            Assert.True(rules.Upper >= 4);
+            Assert.True(rules.Lower >= 4);
+            Assert.True(rules.Digit >= 2);
+            Assert.True(rules.Special == 0);
+            var options = new PasswordGenerationOptions();
+            options.Length = 32;
+            options.Upper = 10;
+            options.Lower = 10;
+            options.Digit = 10;
+            options.Special = 2;
+            password = CryptoUtils.GeneratePassword(options);
+            rules = RestoreRules(password);
+            Assert.Equal(options.Length, rules.Length);
+            Assert.True(rules.Upper >= options.Upper);
+            Assert.True(rules.Lower >= options.Lower);
+            Assert.True(rules.Digit >= options.Digit);
+            Assert.True(rules.Special >= options.Special);
+
+            options.Length = 120;
+            options.Upper = 99;
+            options.Lower = 99;
+            options.Digit = 99;
+            options.Special = 99;
+            password = CryptoUtils.GeneratePassword(options);
+            rules = RestoreRules(password);
+            Assert.Equal(options.Length, rules.Length);
+            var counts = (new int[] { rules.Lower, rules.Upper, rules.Digit, rules.Special }).OrderBy(x => x).ToArray();
+            Assert.True(counts.Last() - counts.First() < 4);
+
+            options.Length = 1;
+            options.Upper = 0;
+            options.Lower = 99;
+            options.Digit = 99;
+            options.Special = 0;
+            password = CryptoUtils.GeneratePassword(options);
+            rules = RestoreRules(password);
+            Assert.Equal(options.Length, rules.Length);
+            Assert.True(rules.Lower + rules.Digit == 1);
+
+            options.Length = 10;
+            options.Upper = 5;
+            options.Lower = 5;
+            options.Digit = -1;
+            options.Special = -1;
+            password = CryptoUtils.GeneratePassword(options);
+            rules = RestoreRules(password);
+            Assert.Equal(options.Length, rules.Length);
+            Assert.True(rules.Lower == 5);
+            Assert.True(rules.Upper == 5);
+
+            options.Length = 5000;
+            options.Upper = 0;
+            options.Lower = 20;
+            options.Digit = -1;
+            options.Special = -1;
+            password = CryptoUtils.GeneratePassword(options);
+            rules = RestoreRules(password);
+            Assert.Equal(options.Length, rules.Length);
+            Assert.True(rules.Lower >= 20);
+        }
+
         [Fact]
         public async Task TestEncryptTransform()
         {

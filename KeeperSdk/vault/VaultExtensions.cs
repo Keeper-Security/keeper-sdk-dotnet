@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using KeeperSecurity.Commands;
-using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Vault

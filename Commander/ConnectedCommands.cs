@@ -1083,7 +1083,7 @@ namespace Commander
                 {
                     if (string.Equals(field.FieldName, "password", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(field.Value))
                     {
-                        field.Value = CryptoUtils.GenerateUid();
+                        field.Value = CryptoUtils.GeneratePassword();
                     }
                 }
             }
@@ -1144,7 +1144,7 @@ namespace Commander
                 {
                     if (string.Equals(field.FieldName, "password", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(field.Value))
                     {
-                        field.Value = CryptoUtils.GenerateUid();
+                        field.Value = CryptoUtils.GeneratePassword();
                     }
                 }
             }

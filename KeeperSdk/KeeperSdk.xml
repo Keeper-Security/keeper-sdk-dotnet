@@ -1281,19 +1281,25 @@
         <member name="T:KeeperSecurity.Authentication.LoginV3Extensions">
             <exclude />
         </member>
-        <member name="T:KeeperSecurity.Authentication.SecurityKeyAuthenticateRequest">
+        <member name="T:KeeperSecurity.Authentication.WebAuthnExtension">
             <exclude/>
         </member>
-        <member name="T:KeeperSecurity.Authentication.SecurityKeyRequest">
+        <member name="T:KeeperSecurity.Authentication.AllowCredential">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.PublicKeyCredentialRequestOptions">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.KeeperWebAuthnRequest">
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.SecurityKeyClientData">
             <exclude/>
         </member>
-        <member name="T:KeeperSecurity.Authentication.SecurityKeySignature">
+        <member name="T:KeeperSecurity.Authentication.KeeperWebAuthnSignature">
             <exclude/>
         </member>
-        <member name="T:KeeperSecurity.Authentication.U2FSignature">
+        <member name="T:KeeperSecurity.Authentication.WebAuthnSignature">
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.DeviceApprovalChannel">
@@ -1736,12 +1742,12 @@
             </remarks>
             <seealso cref="!:IAuthUI"/>
         </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthSecurityKeyUI.AuthenticateRequests(KeeperSecurity.Authentication.SecurityKeyAuthenticateRequest[])">
+        <member name="M:KeeperSecurity.Authentication.IAuthSecurityKeyUI.AuthenticatePublicKeyRequest(KeeperSecurity.Authentication.PublicKeyCredentialRequestOptions)">
             <summary>
             U2F key authentications required.
             </summary>
-            <param name="requests">a list of registered U2F key requests.</param>
-            <returns>A task that returns U2F signature.</returns>
+            <param name="requests">Public Key Credential request.</param>
+            <returns>A task that returns WebAuthn signature.</returns>
         </member>
         <member name="T:KeeperSecurity.Authentication.AuthUIExtensions">
             <exclude/>
@@ -2621,6 +2627,9 @@
         <member name="P:KeeperSecurity.Enterprise.EnterpriseLoader.EcPrivateKey">
             <exclude/>
         </member>
+        <member name="P:KeeperSecurity.Enterprise.EnterpriseLoader.ContinuationToken">
+            <exclude/>
+        </member>
         <member name="M:KeeperSecurity.Enterprise.EnterpriseLoader.#ctor(KeeperSecurity.Authentication.IAuthentication,System.Collections.Generic.IEnumerable{KeeperSecurity.Enterprise.EnterpriseDataPlugin},System.Byte[])">
             <summary>
             Initialises EnterpriseLoader instance.
@@ -2854,16 +2863,16 @@
             </summary>
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.UserId">
-            <excluded />
+            <exclude />
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.KeyType">
-            <excluded />
+            <exclude />
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.EncryptedData">
-            <excluded />
+            <exclude />
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.AccountShareExpiration">
-            <excluded />
+            <exclude />
         </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseRole">
             <summary>
@@ -3561,6 +3570,58 @@
             </list>
             </returns>
         </member>
+        <member name="F:KeeperSecurity.Utils.CryptoUtils.SPECIAL_CHARACTERS">
+            <summary>
+            Special characters for password generator
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Utils.CryptoUtils.GeneratePassword(KeeperSecurity.Utils.PasswordGenerationOptions)">
+            <summary>
+            Generates random password.
+            </summary>
+            <param name="options">Password generation rules. Optional</param>
+            <returns>Generated password</returns>
+        </member>
+        <member name="T:KeeperSecurity.Utils.PasswordGenerationOptions">
+            <summary>
+            Defines password generation rules.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Utils.PasswordGenerationOptions.Length">
+            <summary>
+            Password Length
+            </summary>
+            <remarks>Default: 20</remarks>
+        </member>
+        <member name="P:KeeperSecurity.Utils.PasswordGenerationOptions.Lower">
+            <summary>
+            Minimal number of lowercase characters. 
+            </summary>
+            <remarks>-1 to exclude lowercase characters</remarks>
+        </member>
+        <member name="P:KeeperSecurity.Utils.PasswordGenerationOptions.Upper">
+            <summary>
+            Minimal number of uppercase characters. 
+            </summary>
+            <remarks>-1 to exclude uppercase characters</remarks>
+        </member>
+        <member name="P:KeeperSecurity.Utils.PasswordGenerationOptions.Digit">
+            <summary>
+            Minimal number of digits
+            </summary>
+            <remarks>-1 to exclude digits</remarks>
+        </member>
+        <member name="P:KeeperSecurity.Utils.PasswordGenerationOptions.Special">
+            <summary>
+            Minimal number of special characters
+            </summary>
+            <remarks>-1 to exclude special characters</remarks>
+        </member>
+        <member name="P:KeeperSecurity.Utils.PasswordGenerationOptions.SpecialCharacters">
+            <summary>
+            Special character vocabulary. <see cref="F:KeeperSecurity.Utils.CryptoUtils.SPECIAL_CHARACTERS"/>
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Utils.EncryptTransform">
             <exclude />
         </member>
@@ -3690,7 +3751,7 @@
             <param name="json">JSON data.</param>
             <returns>Parsed JSON object.</returns>
         </member>
-        <member name="M:KeeperSecurity.Utils.JsonUtils.DumpJson``1(``0)">
+        <member name="M:KeeperSecurity.Utils.JsonUtils.DumpJson``1(``0,System.Boolean)">
             <summary>
                 Serializes object to JSON  format.
             </summary>
@@ -3853,6 +3914,27 @@
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.UploadTypedAttachment(KeeperSecurity.Vault.TypedRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
             <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.GetSecretManagerApplication(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.CreateSecretManagerApplication(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteSecretManagerApplication(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.ShareToSecretManagerApplication(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.UnshareFromSecretManagerApplication(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.AddSecretManagerClient(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Nullable{System.Int32},System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteSecretManagerClient(System.String,System.String)">
+            <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.PutUserToSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType,KeeperSecurity.Vault.ISharedFolderUserOptions)">
             <inheritdoc/>>
@@ -5087,6 +5169,15 @@
         <member name="M:KeeperSecurity.Vault.VaultData.TryGetKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)">
             <inheritdoc/>
         </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.ApplicationCount">
+            <inheritdoc/>
+        </member>
+        <member name="P:KeeperSecurity.Vault.VaultData.KeeperApplications">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultData.TryGetKeeperApplication(System.String,KeeperSecurity.Vault.ApplicationRecord@)">
+            <inheritdoc/>
+        </member>
         <member name="P:KeeperSecurity.Vault.VaultData.SharedFolderCount">
             <inheritdoc/>
         </member>
@@ -5343,7 +5434,7 @@
         </member>
         <member name="P:KeeperSecurity.Vault.IVaultData.SharedFolderCount">
             <summary>
-            Gets the number of all shared folders in the vault.
+            Gets  number of all shared folders in the vault.
             </summary>
         </member>
         <member name="P:KeeperSecurity.Vault.IVaultData.SharedFolders">
@@ -5353,7 +5444,7 @@
         </member>
         <member name="M:KeeperSecurity.Vault.IVaultData.TryGetSharedFolder(System.String,KeeperSecurity.Vault.SharedFolder@)">
             <summary>
-            Gets the shared folder associated with the specified record UID.
+            Gets shared folder associated with a specified record UID.
             </summary>
             <param name="sharedFolderUid">Shared Folder UID</param>
             <param name="sharedFolder">When this method returns <c>true</c>, contains requested shared folder; otherwise <c>null</c>.</param>
@@ -5366,12 +5457,12 @@
         </member>
         <member name="P:KeeperSecurity.Vault.IVaultData.Teams">
             <summary>
-            Get the list of all teams user is member of.
+            Get list of all teams user is member of.
             </summary>
         </member>
         <member name="M:KeeperSecurity.Vault.IVaultData.TryGetTeam(System.String,KeeperSecurity.Vault.Team@)">
             <summary>
-            Gets the team associated with the specified team UID.
+            Gets a team associated with a specified team UID.
             </summary>
             <param name="teamUid">Team UID.</param>
             <param name="team">When this method returns <c>true</c>, contains requested team; otherwise <c>null</c>.</param>
@@ -5387,16 +5478,34 @@
         </member>
         <member name="P:KeeperSecurity.Vault.IVaultData.RecordTypes">
             <summary>
-            Gets the list of all registered record types.
+            Gets list of all registered record types.
             </summary>
         </member>
         <member name="M:KeeperSecurity.Vault.IVaultData.TryGetRecordTypeByName(System.String,KeeperSecurity.Vault.RecordType@)">
             <summary>
-            Gets the revord type meta data associated with the record type name.
+            Gets record type meta data associated with the record type name.
             </summary>
             <param name="name">Record type name.</param>
             <param name="recordType">When this method returns <c>true</c>, contains requested record type; otherwise <c>null</c>.</param>
             <returns><c>true</c> if record type exists; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IVaultData.ApplicationCount">
+            <summary>
+            Gets number of all Keeper Secret Manager Applications.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.IVaultData.KeeperApplications">
+            <summary>
+            Gets list of all Keeper Secret Manager Applications.
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVaultData.TryGetKeeperApplication(System.String,KeeperSecurity.Vault.ApplicationRecord@)">
+            <summary>
+            Gets a KSM application associated with a specified team UID.
+            </summary>
+            <param name="applicationUid">Team UID.</param>
+            <param name="application">When this method returns <c>true</c>, contains requested team; otherwise <c>null</c>.</param>
+            <returns><c>true</c> in the vault contains a application with specified UID; otherwise, <c>false</c>.</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.RecordPath">
             <summary>
@@ -5660,6 +5769,63 @@
             <param name="recordUid">Record UID.</param>
             <param name="username">User account email</param>
             <returns>Awaitable task.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISecretManager.GetSecretManagerApplication(System.String,System.Boolean)">
+            <summary>
+            Gets Keeper Secret Manager Application Details
+            </summary>
+            <param name="applicationUid">Application UID.</param>
+            <returns>Secret Manager Application Info</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISecretManager.CreateSecretManagerApplication(System.String)">
+            <summary>
+            Creates Secret Manager Application
+            </summary>
+            <param name="title">Application Title</param>
+            <returns>Application Record</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISecretManager.DeleteSecretManagerApplication(System.String)">
+            <summary>
+            Deletes Secret Manager Application
+            </summary>
+            <param name="applicationId"></param>
+            <returns>Awaitable Task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISecretManager.ShareToSecretManagerApplication(System.String,System.String,System.Boolean)">
+            <summary>
+            Grants Shared Folder or Record Access to Secret Manager Application
+            </summary>
+            <param name="applicationId">Application ID</param>
+            <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
+            <param name="canEdit">permission to edit</param>
+            <returns>Secret Manager Application</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISecretManager.UnshareFromSecretManagerApplication(System.String,System.String)">
+            <summary>
+            Revokes Shared Folder or Record access from Secret Manager Application
+            </summary>
+            <param name="applicationId">Application ID</param>
+            <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
+            <returns>Secret Manager Application</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISecretManager.AddSecretManagerClient(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Nullable{System.Int32},System.String)">
+            <summary>
+            Adds a client/device to Secret Manager Application
+            </summary>
+            <param name="applicationId">Application ID</param>
+            <param name="unlockIp">Optional. If false the first call from the client locks IP. If true no IP locking</param>
+            <param name="firstAccessExpireInMinutes">Optional. First access duration in minutes. Default: an hour (60). Maximum: a day (1440) </param>
+            <param name="AccessExpiresInMinutes">Optional. Access Expiration duration in minutes.</param>
+            <param name="name">Optional. Client/Device name</param>
+            <returns>Tuple: Client Device, Client Key</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISecretManager.DeleteSecretManagerClient(System.String,System.String)">
+            <summary>
+            Deletes a client/device from Secret Manager Application
+            </summary>
+            <param name="applicationId">Application ID</param>
+            <param name="deviceId">Device ID or Name</param>
+            <returns>Awaitable Task</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.IVaultSharedFolder">
             <summary>
@@ -6226,6 +6392,16 @@
         <member name="P:KeeperSecurity.Vault.FileRecord.StorageThumbnailSize">
             <summary>
             On storage thumbnail size in bytes.
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.ApplicationRecord">
+            <summary>
+            Represents a Keeper Secret Manager Application Record.
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ApplicationRecord.Type">
+            <summary>
+            Application Type.
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.UserRecordPermissions">
@@ -8268,6 +8444,27 @@
         <member name="F:Authentication.ApiRequestByKey.TypeFieldNumber">
             <summary>Field number for the "type" field.</summary>
         </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.SourceRegionNameFieldNumber">
+            <summary>Field number for the "sourceRegionName" field.</summary>
+        </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.DestinationRegionNameFieldNumber">
+            <summary>Field number for the "destinationRegionName" field.</summary>
+        </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.PayloadFieldNumber">
+            <summary>Field number for the "payload" field.</summary>
+        </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.UsernameFieldNumber">
+            <summary>Field number for the "username" field.</summary>
+        </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.LocaleFieldNumber">
+            <summary>Field number for the "locale" field.</summary>
+        </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.SupportedLanguageFieldNumber">
+            <summary>Field number for the "supportedLanguage" field.</summary>
+        </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.TypeFieldNumber">
+            <summary>Field number for the "type" field.</summary>
+        </member>
         <member name="F:Authentication.MemcacheRequest.KeyFieldNumber">
             <summary>Field number for the "key" field.</summary>
         </member>
@@ -8782,6 +8979,26 @@
         <member name="F:Authentication.RemoveAppClientsRequest.ClientsFieldNumber">
             <summary>Field number for the "clients" field.</summary>
         </member>
+        <member name="F:Authentication.AddExternalShareRequest.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Authentication.AddExternalShareRequest.EncryptedRecordKeyFieldNumber">
+            <summary>Field number for the "encryptedRecordKey" field.</summary>
+        </member>
+        <member name="F:Authentication.AddExternalShareRequest.ClientIdFieldNumber">
+            <summary>Field number for the "clientId" field.</summary>
+        </member>
+        <member name="F:Authentication.AddExternalShareRequest.AccessExpireOnFieldNumber">
+            <summary>Field number for the "accessExpireOn" field.</summary>
+        </member>
+        <member name="F:Authentication.AddExternalShareRequest.IdFieldNumber">
+            <summary>Field number for the "id" field.</summary>
+        </member>
+        <member name="P:Authentication.AddExternalShareRequest.Id">
+            <summary>
+            optional, defaults to obfuscated device id
+            </summary>
+        </member>
         <member name="F:Authentication.AppClient.IdFieldNumber">
             <summary>Field number for the "id" field.</summary>
         </member>
@@ -8823,6 +9040,9 @@
         </member>
         <member name="F:Authentication.AppInfo.ClientsFieldNumber">
             <summary>Field number for the "clients" field.</summary>
+        </member>
+        <member name="F:Authentication.AppInfo.IsExternalShareFieldNumber">
+            <summary>Field number for the "isExternalShare" field.</summary>
         </member>
         <member name="F:Authentication.GetAppInfoResponse.AppInfoFieldNumber">
             <summary>Field number for the "appInfo" field.</summary>
@@ -8956,6 +9176,14 @@
         </member>
         <member name="F:Authentication.Download.SuccessStatusCodeFieldNumber">
             <summary>Field number for the "successStatusCode" field.</summary>
+        </member>
+        <member name="F:Authentication.DeleteUserRequest.ReasonFieldNumber">
+            <summary>Field number for the "reason" field.</summary>
+        </member>
+        <member name="P:Authentication.DeleteUserRequest.Reason">
+             <summary>
+            reason to delete
+             </summary>
         </member>
         <member name="T:BreachWatch.BreachwatchReflection">
             <summary>Holder for reflection information generated from breachwatch.proto</summary>
@@ -10763,6 +10991,71 @@
         <member name="F:Enterprise.SharingAdmin.UsernameFieldNumber">
             <summary>Field number for the "username" field.</summary>
         </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddRequest.TeamsFieldNumber">
+            <summary>Field number for the "teams" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddTeamRequest.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddTeamRequest.UsersFieldNumber">
+            <summary>Field number for the "users" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserRequest.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserRequest.UserTypeFieldNumber">
+            <summary>Field number for the "userType" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserRequest.TeamKeyFieldNumber">
+            <summary>Field number for the "teamKey" field.</summary>
+        </member>
+        <member name="P:Enterprise.TeamsEnterpriseUsersAddUserRequest.TeamKey">
+            <summary>
+            encrypted with the user's public key
+            </summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddResponse.TeamsFieldNumber">
+            <summary>Field number for the "teams" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddResponse.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddTeamResponse.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddTeamResponse.UsersFieldNumber">
+            <summary>Field number for the "users" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddTeamResponse.SuccessFieldNumber">
+            <summary>Field number for the "success" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddTeamResponse.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddTeamResponse.ResultCodeFieldNumber">
+            <summary>Field number for the "resultCode" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddTeamResponse.AdditionalInfoFieldNumber">
+            <summary>Field number for the "additionalInfo" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserResponse.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserResponse.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserResponse.SuccessFieldNumber">
+            <summary>Field number for the "success" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserResponse.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserResponse.ResultCodeFieldNumber">
+            <summary>Field number for the "resultCode" field.</summary>
+        </member>
+        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserResponse.AdditionalInfoFieldNumber">
+            <summary>Field number for the "additionalInfo" field.</summary>
+        </member>
         <member name="T:Folder.FolderReflection">
             <summary>Holder for reflection information generated from folder.proto</summary>
         </member>
@@ -10771,7 +11064,7 @@
         </member>
         <member name="T:Folder.SharedFolderUpdateOperation">
              <summary>
-            ADD, UPDATE, REMOVE, DELETE
+            ADD, UPDATE, DELETE
              </summary>
         </member>
         <member name="F:Folder.EncryptedDataKey.EncryptedKeyFieldNumber">
@@ -10950,6 +11243,9 @@
         <member name="F:Folder.SharedFolderUpdateRecord.RevisionFieldNumber">
             <summary>Field number for the "revision" field.</summary>
         </member>
+        <member name="F:Folder.SharedFolderUpdateRecord.ExpirationFieldNumber">
+            <summary>Field number for the "expiration" field.</summary>
+        </member>
         <member name="F:Folder.SharedFolderUpdateUser.UsernameFieldNumber">
             <summary>Field number for the "username" field.</summary>
         </member>
@@ -10967,6 +11263,9 @@
             shared folder AES key encrypted with user's "key" (for the caller, the user's data key, for a different user, the user's public key)
             </summary>
         </member>
+        <member name="F:Folder.SharedFolderUpdateUser.ExpirationFieldNumber">
+            <summary>Field number for the "expiration" field.</summary>
+        </member>
         <member name="F:Folder.SharedFolderUpdateTeam.TeamUidFieldNumber">
             <summary>Field number for the "teamUid" field.</summary>
         </member>
@@ -10983,6 +11282,9 @@
             <summary>
             shared folder AES key encrypted with the team key retrieved from team_get_keys, for team member, which is team key; for a non member, the team's public key
             </summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateTeam.ExpirationFieldNumber">
+            <summary>Field number for the "expiration" field.</summary>
         </member>
         <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderUpdateOperationFieldNumber">
             <summary>Field number for the "sharedFolderUpdateOperation" field.</summary>
@@ -11497,6 +11799,17 @@
             record_link
             </summary>
         </member>
+        <member name="F:Records.RecordFolderForConversion.FolderUidFieldNumber">
+            <summary>Field number for the "folder_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordFolderForConversion.RecordFolderKeyFieldNumber">
+            <summary>Field number for the "record_folder_key" field.</summary>
+        </member>
+        <member name="P:Records.RecordFolderForConversion.RecordFolderKey">
+            <summary>
+            GCM-encrypted shared folder key
+            </summary>
+        </member>
         <member name="F:Records.RecordConvertToV3.RecordUidFieldNumber">
             <summary>Field number for the "record_uid" field.</summary>
         </member>
@@ -11518,21 +11831,8 @@
         <member name="F:Records.RecordConvertToV3.RecordFileFieldNumber">
             <summary>Field number for the "record_file" field.</summary>
         </member>
-        <member name="F:Records.RecordConvertToV3.FolderUidFieldNumber">
-            <summary>Field number for the "folder_uid" field.</summary>
-        </member>
-        <member name="P:Records.RecordConvertToV3.FolderUid">
-            <summary>
-            if a part of shared folder
-            </summary>
-        </member>
-        <member name="F:Records.RecordConvertToV3.RecordFolderKeyFieldNumber">
-            <summary>Field number for the "record_folder_key" field.</summary>
-        </member>
-        <member name="P:Records.RecordConvertToV3.RecordFolderKey">
-            <summary>
-            GCM-encrypted shared folder key
-            </summary>
+        <member name="F:Records.RecordConvertToV3.FolderKeyFieldNumber">
+            <summary>Field number for the "folder_key" field.</summary>
         </member>
         <member name="F:Records.RecordsConvertToV3Request.RecordsFieldNumber">
             <summary>Field number for the "records" field.</summary>
@@ -11548,6 +11848,15 @@
         <member name="F:Records.RecordsRemoveRequest.RecordsFieldNumber">
             <summary>Field number for the "records" field.</summary>
         </member>
+        <member name="F:Records.RecordLinkError.RecordUidFieldNumber">
+            <summary>Field number for the "record_uid" field.</summary>
+        </member>
+        <member name="F:Records.RecordLinkError.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Records.RecordLinkError.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
         <member name="F:Records.RecordModifyStatus.RecordUidFieldNumber">
             <summary>Field number for the "record_uid" field.</summary>
         </member>
@@ -11556,6 +11865,9 @@
         </member>
         <member name="F:Records.RecordModifyStatus.MessageFieldNumber">
             <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="F:Records.RecordModifyStatus.LinkErrorsFieldNumber">
+            <summary>Field number for the "link_errors" field.</summary>
         </member>
         <member name="F:Records.RecordsModifyResponse.RecordsFieldNumber">
             <summary>Field number for the "records" field.</summary>
@@ -11966,6 +12278,9 @@
             active, blocked, invited (only apply to shareRelationships)
             </summary>
         </member>
+        <member name="F:Records.ShareObject.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
         <member name="T:SsoCloud.SsocloudReflection">
             <summary>Holder for reflection information generated from ssocloud.proto</summary>
         </member>
@@ -12375,27 +12690,55 @@
         <member name="T:SsoCloud.SsoCloudServiceProviderConfigurationListRequest">
              <summary>
             *
-             This request is sent to retrieve the list of configurations availble to a service provider.
+             This request is sent to retrieve the list of configurations defined in an enterprise.
              </summary>
         </member>
         <member name="F:SsoCloud.SsoCloudServiceProviderConfigurationListRequest.SsoServiceProviderIdFieldNumber">
             <summary>Field number for the "ssoServiceProviderId" field.</summary>
         </member>
+        <member name="P:SsoCloud.SsoCloudServiceProviderConfigurationListRequest.SsoServiceProviderId">
+            <summary>
+            Not required, may be zero.
+            </summary>
+        </member>
         <member name="T:SsoCloud.ConfigurationListItem">
              <summary>
             *
              This represents one configuration in the list.
-             If isSelected is true this configuration is the one currently being used.
+             If isSelected is true this configuration is currently being used by the sso service provider(s) listed.
              </summary>
         </member>
         <member name="F:SsoCloud.ConfigurationListItem.SsoSpConfigurationIdFieldNumber">
             <summary>Field number for the "ssoSpConfigurationId" field.</summary>
         </member>
+        <member name="P:SsoCloud.ConfigurationListItem.SsoSpConfigurationId">
+            <summary>
+            The ID of the configuration
+            </summary>
+        </member>
         <member name="F:SsoCloud.ConfigurationListItem.NameFieldNumber">
             <summary>Field number for the "name" field.</summary>
         </member>
+        <member name="P:SsoCloud.ConfigurationListItem.Name">
+            <summary>
+            The name of the configuration
+            </summary>
+        </member>
         <member name="F:SsoCloud.ConfigurationListItem.IsSelectedFieldNumber">
             <summary>Field number for the "isSelected" field.</summary>
+        </member>
+        <member name="P:SsoCloud.ConfigurationListItem.IsSelected">
+            <summary>
+            If true, this configuration is in use
+            </summary>
+        </member>
+        <member name="F:SsoCloud.ConfigurationListItem.SsoServiceProviderIdFieldNumber">
+            <summary>Field number for the "ssoServiceProviderId" field.</summary>
+        </member>
+        <member name="P:SsoCloud.ConfigurationListItem.SsoServiceProviderId">
+            <summary>
+            If the configuration is in use, this is a list of service providers that use it.
+            </summary>
         </member>
         <member name="T:SsoCloud.SsoCloudServiceProviderConfigurationListResponse">
              <summary>
@@ -12405,6 +12748,11 @@
         </member>
         <member name="F:SsoCloud.SsoCloudServiceProviderConfigurationListResponse.ConfigurationItemFieldNumber">
             <summary>Field number for the "configurationItem" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudServiceProviderConfigurationListResponse.ConfigurationItem">
+            <summary>
+            A list of all of the SSO Cloud configurations in an enterprise
+            </summary>
         </member>
         <member name="T:SsoCloud.SsoCloudRequest">
              <summary>
@@ -12674,10 +13022,11 @@
             
              Example 1: (nodeId=123, fullStatus=true,  includeMigratedUsers=true,  limit=any).  ALL users, migrated and unmigrated, will be returned.
              Example 2: (nodeId=123, fullStatus=true,  includeMigratedUsers=false, limit=any).  ALL unmigrated users will be returned.
-             Example 3: (nodeId=123, fullStatus=false, includeMigratedUsers=true,  limit=0).    The first 25 users of each type, migrated and unmigrated, will be returned.
-             Example 4: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=0).    The first 25 unmigrated users will be returned.
-             Example 5: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=15).   The first 15 unmigrated users will be returned.
-             Example 6: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=-1).   Just stats will be returned, no users will be returned.
+             Example 3: (nodeId=123, fullStatus=false, includeMigratedUsers=true,  limit=-1).   No users will be returned
+             Example 4: (nodeId=123, fullStatus=false, includeMigratedUsers=true,  limit=0).    The first 25 users of each type, migrated and unmigrated, will be returned.
+             Example 5: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=0).    The first 25 unmigrated users will be returned.
+             Example 6: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=15).   The first 15 unmigrated users will be returned.
+             Example 7: (nodeId=123, fullStatus=false, includeMigratedUsers=false, limit=-1).   Just stats will be returned, no users will be returned.
             
              @see SsoCloudMigrationStatusResponse
              @since MH: 2022-01-11
