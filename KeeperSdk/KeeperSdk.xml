@@ -164,8 +164,13 @@
             Enterprise administrator requested data key sharing.
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Authentication.AccountSettings.PersistentLogin">
+        <member name="P:KeeperSecurity.Authentication.AccountSettings.ShareDataKeyWithDevicePublicKey">
             <summary>
+            If true data key is nor shared with device key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.AccountSettings.PersistentLogin">
+            <summary> 
             Persistent login.
             </summary>
         </member>
@@ -1762,10 +1767,128 @@
             <param name="proxyPassword">Proxy Password</param>
             <returns></returns>
         </member>
-        <member name="F:KeeperSecurity.Authentication.AuthUIExtensions.TwoFactorChannels">
-            <summary>
-            TwoFactorChannel
-            </summary>
+        <member name="T:KeeperSecurity.Commands.RecordAccessPath">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.RecordAddCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.RecordUpdateUData">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.RecordNonSharedData">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.RecordUpdateRecord">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.RecordUpdateCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.RecordUpdateStatus">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.RecordUpdateResponse">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.SharedFolderUpdateCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.SharedFolderUpdateUser">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.SharedFolderUpdateTeam">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.SharedFolderUpdateRecord">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.SharedFolderUpdateResponse">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.SharedFolderUpdateUserStatus">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.SharedFolderUpdateTeamStatus">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.SharedFolderUpdateRecordStatus">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.MoveObject">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.TransitionKey">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.MoveCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.FolderCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.FolderAddCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.FolderUpdateCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.AddFolderResponse">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.PreDeleteObject">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.PreDeleteCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.WouldDeleteObject">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.PreDeleteResponseObject">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.PreDeleteResponse">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.DeleteCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.GetAvailableTeamsCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.AvailableTeam">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.GetAvailableTeamsResponse">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.GetShareAutoCompleteCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.ShareUserInfo">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.GetShareAutoCompleteResponse">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.PublicKeysCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.UserPublicKeysObject">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.PublicKeysResponse">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.TeamKeyObject">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.TeamGetKeysCommand">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Commands.TeamGetKeysResponse">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Configuration.IConfigurationId">
             <summary>
@@ -8444,6 +8567,12 @@
         <member name="F:Authentication.ApiRequestByKey.TypeFieldNumber">
             <summary>Field number for the "type" field.</summary>
         </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.SourceRegionGroupIdFieldNumber">
+            <summary>Field number for the "sourceRegionGroupId" field.</summary>
+        </member>
+        <member name="F:Authentication.ApiRequestByKAtoKAKey.DestinationRegionGroupIdFieldNumber">
+            <summary>Field number for the "destinationRegionGroupId" field.</summary>
+        </member>
         <member name="F:Authentication.ApiRequestByKAtoKAKey.SourceRegionNameFieldNumber">
             <summary>Field number for the "sourceRegionName" field.</summary>
         </member>
@@ -10124,6 +10253,9 @@
         <member name="F:Enterprise.License.NextBillingDateFieldNumber">
             <summary>Field number for the "nextBillingDate" field.</summary>
         </member>
+        <member name="F:Enterprise.License.HasMSPLegacyLogFieldNumber">
+            <summary>Field number for the "hasMSPLegacyLog" field.</summary>
+        </member>
         <member name="F:Enterprise.Bridge.BridgeIdFieldNumber">
             <summary>Field number for the "bridgeId" field.</summary>
         </member>
@@ -10942,6 +11074,15 @@
         <member name="F:Enterprise.SharedFolderRecord.RecordPermissionsFieldNumber">
             <summary>Field number for the "recordPermissions" field.</summary>
         </member>
+        <member name="F:Enterprise.SharedFolderRecord.ShareAdminRecordsFieldNumber">
+            <summary>Field number for the "shareAdminRecords" field.</summary>
+        </member>
+        <member name="F:Enterprise.ShareAdminRecord.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.ShareAdminRecord.RecordPermissionIndexesFieldNumber">
+            <summary>Field number for the "recordPermissionIndexes" field.</summary>
+        </member>
         <member name="F:Enterprise.SharedFolderUser.SharedFolderUidFieldNumber">
             <summary>Field number for the "sharedFolderUid" field.</summary>
         </member>
@@ -11055,6 +11196,53 @@
         </member>
         <member name="F:Enterprise.TeamsEnterpriseUsersAddUserResponse.AdditionalInfoFieldNumber">
             <summary>Field number for the "additionalInfo" field.</summary>
+        </member>
+        <member name="F:Enterprise.DomainAlias.DomainFieldNumber">
+            <summary>Field number for the "domain" field.</summary>
+        </member>
+        <member name="F:Enterprise.DomainAlias.AliasFieldNumber">
+            <summary>Field number for the "alias" field.</summary>
+        </member>
+        <member name="F:Enterprise.DomainAlias.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="P:Enterprise.DomainAlias.Status">
+             <summary>
+            0-Success else Error
+             </summary>
+        </member>
+        <member name="F:Enterprise.DomainAlias.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="F:Enterprise.DomainAliasRequest.DomainAliasFieldNumber">
+            <summary>Field number for the "domainAlias" field.</summary>
+        </member>
+        <member name="F:Enterprise.DomainAliasResponse.DomainAliasFieldNumber">
+            <summary>Field number for the "domainAlias" field.</summary>
+        </member>
+        <member name="F:Enterprise.PAMController.ControllerUidFieldNumber">
+            <summary>Field number for the "controllerUid" field.</summary>
+        </member>
+        <member name="F:Enterprise.PAMController.ControllerNameFieldNumber">
+            <summary>Field number for the "controllerName" field.</summary>
+        </member>
+        <member name="F:Enterprise.PAMController.DeviceTokenFieldNumber">
+            <summary>Field number for the "deviceToken" field.</summary>
+        </member>
+        <member name="F:Enterprise.PAMController.DeviceNameFieldNumber">
+            <summary>Field number for the "deviceName" field.</summary>
+        </member>
+        <member name="F:Enterprise.PAMController.NodeIdFieldNumber">
+            <summary>Field number for the "nodeId" field.</summary>
+        </member>
+        <member name="F:Enterprise.PAMController.CreatedFieldNumber">
+            <summary>Field number for the "created" field.</summary>
+        </member>
+        <member name="F:Enterprise.PAMController.LastModifiedFieldNumber">
+            <summary>Field number for the "lastModified" field.</summary>
+        </member>
+        <member name="F:Enterprise.PAMControllersResponse.ControllersFieldNumber">
+            <summary>Field number for the "controllers" field.</summary>
         </member>
         <member name="T:Folder.FolderReflection">
             <summary>Holder for reflection information generated from folder.proto</summary>
@@ -11932,6 +12120,9 @@
         <member name="F:Records.FilesAddResponse.FilesFieldNumber">
             <summary>Field number for the "files" field.</summary>
         </member>
+        <member name="F:Records.FilesAddResponse.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
         <member name="F:Records.FilesGetRequest.RecordUidsFieldNumber">
             <summary>Field number for the "record_uids" field.</summary>
         </member>
@@ -12223,63 +12414,109 @@
             return share objects that contains this value
              </summary>
         </member>
+        <member name="F:Records.GetShareObjectsRequest.FilteredFieldNumber">
+            <summary>Field number for the "filtered" field.</summary>
+        </member>
+        <member name="P:Records.GetShareObjectsRequest.Filtered">
+             <summary>
+            users with status != ACTIVE will not be returned if true - used for autoshare, false - used for manage share relationships
+             </summary>
+        </member>
         <member name="F:Records.GetShareObjectsResponse.ShareRelationshipsFieldNumber">
             <summary>Field number for the "shareRelationships" field.</summary>
+        </member>
+        <member name="P:Records.GetShareObjectsResponse.ShareRelationships">
+             <summary>
+            for user sharing relationships
+             </summary>
         </member>
         <member name="F:Records.GetShareObjectsResponse.ShareFamilyUsersFieldNumber">
             <summary>Field number for the "shareFamilyUsers" field.</summary>
         </member>
+        <member name="P:Records.GetShareObjectsResponse.ShareFamilyUsers">
+             <summary>
+            for family
+             </summary>
+        </member>
         <member name="F:Records.GetShareObjectsResponse.ShareEnterpriseUsersFieldNumber">
             <summary>Field number for the "shareEnterpriseUsers" field.</summary>
+        </member>
+        <member name="P:Records.GetShareObjectsResponse.ShareEnterpriseUsers">
+             <summary>
+            for visible users of enterprise
+             </summary>
         </member>
         <member name="F:Records.GetShareObjectsResponse.ShareTeamsFieldNumber">
             <summary>Field number for the "shareTeams" field.</summary>
         </member>
-        <member name="F:Records.GetShareObjectsResponse.ShareManagedCompaniesFieldNumber">
-            <summary>Field number for the "shareManagedCompanies" field.</summary>
+        <member name="P:Records.GetShareObjectsResponse.ShareTeams">
+             <summary>
+            for visible teams of enterprise
+             </summary>
         </member>
-        <member name="F:Records.ShareObject.NameFieldNumber">
-            <summary>Field number for the "name" field.</summary>
+        <member name="F:Records.GetShareObjectsResponse.ShareMCTeamsFieldNumber">
+            <summary>Field number for the "shareMCTeams" field.</summary>
         </member>
-        <member name="P:Records.ShareObject.Name">
+        <member name="P:Records.GetShareObjectsResponse.ShareMCTeams">
+             <summary>
+            only for mc admins, teams associated with the MC
+             </summary>
+        </member>
+        <member name="F:Records.GetShareObjectsResponse.ShareMCEnterpriseUsersFieldNumber">
+            <summary>Field number for the "shareMCEnterpriseUsers" field.</summary>
+        </member>
+        <member name="P:Records.GetShareObjectsResponse.ShareMCEnterpriseUsers">
+             <summary>
+            only for mc admins
+             </summary>
+        </member>
+        <member name="F:Records.GetShareObjectsResponse.ShareEnterpriseNamesFieldNumber">
+            <summary>Field number for the "shareEnterpriseNames" field.</summary>
+        </member>
+        <member name="P:Records.GetShareObjectsResponse.ShareEnterpriseNames">
+             <summary>
+            to send the names of enterprises in which the users are members of
+             </summary>
+        </member>
+        <member name="F:Records.ShareUser.UsernameFieldNumber">
+            <summary>Field number for the "username" field.</summary>
+        </member>
+        <member name="F:Records.ShareUser.FullnameFieldNumber">
+            <summary>Field number for the "fullname" field.</summary>
+        </member>
+        <member name="F:Records.ShareUser.EnterpriseIdFieldNumber">
+            <summary>Field number for the "enterpriseId" field.</summary>
+        </member>
+        <member name="P:Records.ShareUser.EnterpriseId">
             <summary>
-            username, company name, team name
+            only for enterprise user
             </summary>
         </member>
-        <member name="F:Records.ShareObject.TypeFieldNumber">
-            <summary>Field number for the "type" field.</summary>
-        </member>
-        <member name="P:Records.ShareObject.Type">
-            <summary>
-            share relationship, mc company, team, enterprise, family
-            </summary>
-        </member>
-        <member name="F:Records.ShareObject.IsShareAdminFieldNumber">
-            <summary>Field number for the "isShareAdmin" field.</summary>
-        </member>
-        <member name="P:Records.ShareObject.IsShareAdmin">
-            <summary>
-            only used for enterprise
-            </summary>
-        </member>
-        <member name="F:Records.ShareObject.DisplayNameFieldNumber">
-            <summary>Field number for the "displayName" field.</summary>
-        </member>
-        <member name="P:Records.ShareObject.DisplayName">
-            <summary>
-            full name...
-            </summary>
-        </member>
-        <member name="F:Records.ShareObject.StatusFieldNumber">
+        <member name="F:Records.ShareUser.StatusFieldNumber">
             <summary>Field number for the "status" field.</summary>
         </member>
-        <member name="P:Records.ShareObject.Status">
+        <member name="F:Records.ShareUser.IsShareAdminFieldNumber">
+            <summary>Field number for the "isShareAdmin" field.</summary>
+        </member>
+        <member name="P:Records.ShareUser.IsShareAdmin">
             <summary>
-            active, blocked, invited (only apply to shareRelationships)
+            only for enterprise user
             </summary>
         </member>
-        <member name="F:Records.ShareObject.TeamUidFieldNumber">
+        <member name="F:Records.ShareTeam.TeamnameFieldNumber">
+            <summary>Field number for the "teamname" field.</summary>
+        </member>
+        <member name="F:Records.ShareTeam.EnterpriseIdFieldNumber">
+            <summary>Field number for the "enterpriseId" field.</summary>
+        </member>
+        <member name="F:Records.ShareTeam.TeamUidFieldNumber">
             <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="F:Records.ShareEnterprise.EnterprisenameFieldNumber">
+            <summary>Field number for the "enterprisename" field.</summary>
+        </member>
+        <member name="F:Records.ShareEnterprise.EnterpriseIdFieldNumber">
+            <summary>Field number for the "enterpriseId" field.</summary>
         </member>
         <member name="T:SsoCloud.SsocloudReflection">
             <summary>Holder for reflection information generated from ssocloud.proto</summary>
@@ -12825,6 +13062,14 @@
             Only used on Logout at this time.
             </summary>
         </member>
+        <member name="F:SsoCloud.SsoCloudRequest.DetachedFieldNumber">
+            <summary>Field number for the "detached" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudRequest.Detached">
+            <summary>
+            If true, the login success HTML page contains a button to copy the login token to the clipboard.
+            </summary>
+        </member>
         <member name="T:SsoCloud.SsoCloudResponse">
              <summary>
             *
@@ -13010,6 +13255,14 @@
         <member name="P:SsoCloud.SamlRelayState.DeviceId">
             <summary>
             Used to differentiate different login attempts by the same user
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SamlRelayState.DetachedFieldNumber">
+            <summary>Field number for the "detached" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SamlRelayState.Detached">
+            <summary>
+            Whether the HTML page is "detached" from the login process, as in Commander or other CLI clients
             </summary>
         </member>
         <member name="T:SsoCloud.SsoCloudMigrationStatusRequest">
