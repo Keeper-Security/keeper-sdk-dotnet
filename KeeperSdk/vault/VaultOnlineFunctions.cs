@@ -157,6 +157,7 @@ namespace KeeperSecurity.Vault
                 vault.AdjustTypedRecord(typed);
                 var recordData = typed.ExtractRecordV3Data();
                 var jsonData = JsonUtils.DumpJson(recordData);
+                jsonData = VaultExtensions.PadRecordData(jsonData);
                 recordAddProto.Data =
                     ByteString.CopyFrom(CryptoUtils.EncryptAesV2(jsonData, record.RecordKey));
                 var refKeys = new Dictionary<string, byte[]>();
@@ -450,6 +451,7 @@ namespace KeeperSecurity.Vault
 
                 var recordData = typed.ExtractRecordV3Data();
                 var jsonData = JsonUtils.DumpJson(recordData);
+                jsonData = VaultExtensions.PadRecordData(jsonData);
                 recordUpdate.Data =
                     ByteString.CopyFrom(CryptoUtils.EncryptAesV2(jsonData, record.RecordKey));
 

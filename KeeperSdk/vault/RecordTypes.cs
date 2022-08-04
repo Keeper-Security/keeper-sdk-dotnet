@@ -148,6 +148,14 @@ namespace KeeperSecurity.Vault
         public string FieldLabel { get; }
     }
 
+    public class RecordTypePasswordField : RecordTypeField
+    {
+        public RecordTypePasswordField(RecordField recordField, string label) : base(recordField, label)
+        {
+        }
+        public PasswordGenerationOptions PasswordOptions { get; set; }
+    }
+
     /// <summary>
     ///  Record Types Schema: Record Type definition.
     /// </summary>
@@ -907,6 +915,21 @@ namespace KeeperSecurity.Vault
     }
 
     [DataContract]
+    internal class PasswordFieldComplexity
+    {
+        [DataMember(Name = "length")]
+        public int Length { get; set; }
+        [DataMember(Name = "caps")]
+        public int Upper { get; set; }
+        [DataMember(Name = "lowercase")]
+        public int Lower { get; set; }
+        [DataMember(Name = "digits")]
+        public int Digit { get; set; }
+        [DataMember(Name = "special")]
+        public int Special { get; set; }
+    }
+
+    [DataContract]
     internal class RecordTypeContentField
     {
         [DataMember(Name = "$ref")]
@@ -914,6 +937,9 @@ namespace KeeperSecurity.Vault
 
         [DataMember(Name = "label")]
         public string Label { get; set; }
+
+        [DataMember(Name = "complexity")]
+        public PasswordFieldComplexity Complexity { get; set; }
     }
 
     [DataContract]

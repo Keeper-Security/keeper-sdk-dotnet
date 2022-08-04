@@ -242,13 +242,30 @@ namespace KeeperSecurity.Vault
                     {
                         if (RecordTypesConstants.TryGetRecordField(x.Ref, out RecordField rf))
                         {
-                            return new RecordTypeField(rf, x.Label);
+                            if (x.Complexity != null)
+                            {
+                                return new RecordTypePasswordField(rf, x.Label)
+                                {
+                                    PasswordOptions = new PasswordGenerationOptions
+                                    {
+                                        Length = x.Complexity.Length,
+                                        Upper = x.Complexity.Upper,
+                                        Lower = x.Complexity.Lower,
+                                        Digit = x.Complexity.Digit,
+                                        Special = x.Complexity.Special,
+                                    }
+                                };
+                            }
+                            else
+                            {
+                                return new RecordTypeField(rf, x.Label);
+                            }
                         }
                         else
                         {
                             Debug.WriteLine($"Load Record Types: Cannot resolve field: {x.Ref}.");
                         }
-                        return (RecordTypeField) null;
+                        return null;
                     })
                     .Where(x => x != null)
                     .ToArray(),

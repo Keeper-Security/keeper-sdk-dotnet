@@ -1109,6 +1109,8 @@ namespace Commander
             await _vault.CreateRecord(record, node.FolderUid);
         }
 
+
+
         private async Task UpdateRecordCommand(UpdateRecordOptions options)
         {
             if (_vault.TryGetKeeperRecord(options.RecordId, out var record))
@@ -1137,18 +1139,12 @@ namespace Commander
                 record.Title = options.Title;
             }
 
-            var fields = ParseRecordFields(options.Fields).ToArray();
             if (options.Generate)
             {
-                foreach (var field in fields)
-                {
-                    if (string.Equals(field.FieldName, "password", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(field.Value))
-                    {
-                        field.Value = CryptoUtils.GeneratePassword();
-                    }
-                }
+                _vault.RotateRecordPassword(record);
             }
 
+            var fields = ParseRecordFields(options.Fields).ToArray();
             AssignRecordFields(record, fields);
             await _vault.UpdateRecord(record);
         }
