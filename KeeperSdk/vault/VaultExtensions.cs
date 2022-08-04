@@ -13,6 +13,33 @@ namespace KeeperSecurity.Vault
     /// <exclude/>
     public static class VaultExtensions
     {
+        public static byte[] PadRecordData(byte[] data)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+
+            var padBytes = 0;
+            if (data.Length < 384)
+            {
+                padBytes = 384 - data.Length;
+            }
+            else
+            {
+                padBytes = data.Length % 16;
+                if (padBytes > 0)
+                {
+                    padBytes = 16 - padBytes;
+                }
+            }
+            if (padBytes > 0)
+            {
+                return data.Concat(Enumerable.Repeat((byte) 0x20, padBytes)).ToArray();
+            }
+            return data;
+        }
+        
         public static IRecordMetadata ResolveRecordAccessPath(this IVault vault, IRecordAccessPath path,
             bool forEdit = false,
             bool forShare = false, bool forView = false)
