@@ -109,7 +109,7 @@ namespace Commander
                         {
                             if (!typed.Fields.FindTypedField(passwordFieldType, out passwordField))
                             {
-                                passwordField = new TypedField<string>(passwordField.FieldName, passwordField.FieldLabel);
+                                passwordField = new TypedField<string>(passwordFieldType.FieldName, passwordFieldType.FieldLabel);
                                 typed.Fields.Add(passwordField);
                             }
                             if (passwordFieldType is RecordTypePasswordField rtpf)

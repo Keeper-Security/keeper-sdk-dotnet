@@ -1077,16 +1077,6 @@ namespace Commander
                 return;
             }
             var fields = ParseRecordFields(options.Fields).ToArray();
-            if (options.Generate)
-            {
-                foreach (var field in fields)
-                {
-                    if (string.Equals(field.FieldName, "password", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(field.Value))
-                    {
-                        field.Value = CryptoUtils.GeneratePassword();
-                    }
-                }
-            }
 
             KeeperRecord record = null;
             if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) ||
@@ -1104,11 +1094,14 @@ namespace Commander
                     Title = options.Title
                 };
             }
+            if (options.Generate)
+            {
+                _vault.RotateRecordPassword(record);
+            }
 
             AssignRecordFields(record, fields);
             await _vault.CreateRecord(record, node.FolderUid);
         }
-
 
 
         private async Task UpdateRecordCommand(UpdateRecordOptions options)
