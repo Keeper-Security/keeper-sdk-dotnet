@@ -142,22 +142,31 @@ namespace KeeperSecurity.Authentication
 
                 if (auth.PushNotifications == null)
                 {
-                    var cancellationTokenSource = new CancellationTokenSource();
-                    try
+                    _ = Task.Run(async () =>
                     {
-                        var connectRequest = new WssConnectionRequest
+                        var cancellationTokenSource = new CancellationTokenSource();
+                        try
                         {
-                            EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
-                            MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
-                            DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                        };
-                        var pushes = await auth.Endpoint.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
-                        auth.SetPushNotifications(pushes);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e.Message);
-                    }
+                            var connectRequest = new WssConnectionRequest
+                            {
+                                EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+                                MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
+                                DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                            };
+                            var delay = Task.Delay(TimeSpan.FromSeconds(5), cancellationTokenSource.Token);
+                            var connect = auth.Endpoint.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
+                            var completed = await Task.WhenAny(connect, delay);
+                            cancellationTokenSource.Cancel();
+                            if (completed.Equals(connect))
+                            {
+                                auth.SetPushNotifications(connect.Result);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e.Message);
+                        }
+                    });
                 }
             }
         }
