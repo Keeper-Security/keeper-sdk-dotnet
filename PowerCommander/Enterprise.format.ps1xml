@@ -235,6 +235,7 @@
           <TableColumnHeader />
           <TableColumnHeader />
           <TableColumnHeader />
+          <TableColumnHeader />
           <TableColumnHeader>
             <Alignment>Right</Alignment>
           </TableColumnHeader>
@@ -257,6 +258,9 @@
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>PlanName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>FilePlanName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Allocated</PropertyName>
@@ -308,78 +312,5 @@
         </ListEntries>
       </ListControl>
     </View>
-
-    <View>
-      <Name>Enterprise.MspPool_TableView</Name>
-      <ViewSelectedBy>
-        <TypeName>Enterprise.MspPool</TypeName>
-      </ViewSelectedBy>
-      <TableControl>
-        <TableHeaders>
-          <TableColumnHeader />
-          <TableColumnHeader>
-            <Alignment>Right</Alignment>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Alignment>Right</Alignment>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Alignment>Right</Alignment>
-          </TableColumnHeader>
-        </TableHeaders>
-        <TableRowEntries>
-          <TableRowEntry>
-            <Wrap/>
-            <TableColumnItems>
-              <TableColumnItem>
-                <PropertyName>PlanId</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>AvailableLicenses</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>TotalLicenses</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>Stash</PropertyName>
-              </TableColumnItem>
-            </TableColumnItems>
-          </TableRowEntry>
-        </TableRowEntries>
-      </TableControl>
-    </View>
-
-    <View>
-      <Name>Enterprise.MspPool_ListView</Name>
-      <ViewSelectedBy>
-        <TypeName>Enterprise.MspPool</TypeName>
-      </ViewSelectedBy>
-      <ListControl>
-        <ListEntries>
-          <ListEntry>
-            <ListItems>
-              <ListItem>
-                <Label>Plan Id</Label>
-                <PropertyName>ProductId</PropertyName>
-              </ListItem>
-              <ListItem>
-                <Label>Available Licenses</Label>
-                <PropertyName>AvailableSeats</PropertyName>
-              </ListItem>
-              <ListItem>
-                <Label>Total Licenses</Label>
-                <PropertyName>Seats</PropertyName>
-              </ListItem>
-              <ListItem>
-                <Label>Stash</Label>
-                <PropertyName>Stash</PropertyName>
-              </ListItem>
-            </ListItems>
-          </ListEntry>
-        </ListEntries>
-      </ListControl>
-    </View>
-
-
   </ViewDefinitions>
 </Configuration>

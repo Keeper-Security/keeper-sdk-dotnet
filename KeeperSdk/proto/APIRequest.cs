@@ -888,23 +888,31 @@ namespace Authentication {
   #endregion
 
   #region Messages
-  public sealed partial class ApiRequest : pb::IMessage<ApiRequest> {
+  public sealed partial class ApiRequest : pb::IMessage<ApiRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ApiRequest> _parser = new pb::MessageParser<ApiRequest>(() => new ApiRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ApiRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequest() {
       OnConstruction();
     }
@@ -912,6 +920,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequest(ApiRequest other) : this() {
       encryptedTransmissionKey_ = other.encryptedTransmissionKey_;
       publicKeyId_ = other.publicKeyId_;
@@ -924,6 +933,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequest Clone() {
       return new ApiRequest(this);
     }
@@ -932,6 +942,7 @@ namespace Authentication {
     public const int EncryptedTransmissionKeyFieldNumber = 1;
     private pb::ByteString encryptedTransmissionKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedTransmissionKey {
       get { return encryptedTransmissionKey_; }
       set {
@@ -943,6 +954,7 @@ namespace Authentication {
     public const int PublicKeyIdFieldNumber = 2;
     private int publicKeyId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int PublicKeyId {
       get { return publicKeyId_; }
       set {
@@ -954,6 +966,7 @@ namespace Authentication {
     public const int LocaleFieldNumber = 3;
     private string locale_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Locale {
       get { return locale_; }
       set {
@@ -965,6 +978,7 @@ namespace Authentication {
     public const int EncryptedPayloadFieldNumber = 4;
     private pb::ByteString encryptedPayload_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedPayload {
       get { return encryptedPayload_; }
       set {
@@ -976,6 +990,7 @@ namespace Authentication {
     public const int EncryptionTypeFieldNumber = 5;
     private int encryptionType_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int EncryptionType {
       get { return encryptionType_; }
       set {
@@ -987,6 +1002,7 @@ namespace Authentication {
     public const int RecaptchaFieldNumber = 6;
     private string recaptcha_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Recaptcha {
       get { return recaptcha_; }
       set {
@@ -1001,6 +1017,7 @@ namespace Authentication {
     ///possible values are 'beta', 'v2', etc.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SubEnvironment {
       get { return subEnvironment_; }
       set {
@@ -1009,11 +1026,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ApiRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ApiRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1032,6 +1051,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedTransmissionKey.Length != 0) hash ^= EncryptedTransmissionKey.GetHashCode();
@@ -1048,12 +1068,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedTransmissionKey.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedTransmissionKey);
@@ -1085,9 +1110,49 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedTransmissionKey.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedTransmissionKey);
+      }
+      if (PublicKeyId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(PublicKeyId);
+      }
+      if (Locale.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Locale);
+      }
+      if (EncryptedPayload.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(EncryptedPayload);
+      }
+      if (EncryptionType != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(EncryptionType);
+      }
+      if (Recaptcha.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Recaptcha);
+      }
+      if (SubEnvironment.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(SubEnvironment);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedTransmissionKey.Length != 0) {
@@ -1118,6 +1183,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ApiRequest other) {
       if (other == null) {
         return;
@@ -1147,7 +1213,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1184,27 +1254,79 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedTransmissionKey = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            PublicKeyId = input.ReadInt32();
+            break;
+          }
+          case 26: {
+            Locale = input.ReadString();
+            break;
+          }
+          case 34: {
+            EncryptedPayload = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            EncryptionType = input.ReadInt32();
+            break;
+          }
+          case 50: {
+            Recaptcha = input.ReadString();
+            break;
+          }
+          case 58: {
+            SubEnvironment = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ApiRequestPayload : pb::IMessage<ApiRequestPayload> {
+  public sealed partial class ApiRequestPayload : pb::IMessage<ApiRequestPayload>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ApiRequestPayload> _parser = new pb::MessageParser<ApiRequestPayload>(() => new ApiRequestPayload());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ApiRequestPayload> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestPayload() {
       OnConstruction();
     }
@@ -1212,6 +1334,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestPayload(ApiRequestPayload other) : this() {
       payload_ = other.payload_;
       encryptedSessionToken_ = other.encryptedSessionToken_;
@@ -1221,6 +1344,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestPayload Clone() {
       return new ApiRequestPayload(this);
     }
@@ -1229,6 +1353,7 @@ namespace Authentication {
     public const int PayloadFieldNumber = 1;
     private pb::ByteString payload_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Payload {
       get { return payload_; }
       set {
@@ -1240,6 +1365,7 @@ namespace Authentication {
     public const int EncryptedSessionTokenFieldNumber = 2;
     private pb::ByteString encryptedSessionToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedSessionToken {
       get { return encryptedSessionToken_; }
       set {
@@ -1251,6 +1377,7 @@ namespace Authentication {
     public const int TimeTokenFieldNumber = 3;
     private pb::ByteString timeToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString TimeToken {
       get { return timeToken_; }
       set {
@@ -1262,6 +1389,7 @@ namespace Authentication {
     public const int ApiVersionFieldNumber = 4;
     private int apiVersion_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int ApiVersion {
       get { return apiVersion_; }
       set {
@@ -1270,11 +1398,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ApiRequestPayload);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ApiRequestPayload other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1290,6 +1420,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Payload.Length != 0) hash ^= Payload.GetHashCode();
@@ -1303,12 +1434,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Payload.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(Payload);
@@ -1328,9 +1464,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Payload.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Payload);
+      }
+      if (EncryptedSessionToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedSessionToken);
+      }
+      if (TimeToken.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(TimeToken);
+      }
+      if (ApiVersion != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(ApiVersion);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Payload.Length != 0) {
@@ -1352,6 +1516,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ApiRequestPayload other) {
       if (other == null) {
         return;
@@ -1372,7 +1537,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1397,27 +1566,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Payload = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedSessionToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            TimeToken = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            ApiVersion = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class Transform : pb::IMessage<Transform> {
+  public sealed partial class Transform : pb::IMessage<Transform>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Transform> _parser = new pb::MessageParser<Transform>(() => new Transform());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<Transform> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Transform() {
       OnConstruction();
     }
@@ -1425,6 +1634,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Transform(Transform other) : this() {
       key_ = other.key_;
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
@@ -1432,6 +1642,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Transform Clone() {
       return new Transform(this);
     }
@@ -1440,6 +1651,7 @@ namespace Authentication {
     public const int KeyFieldNumber = 1;
     private pb::ByteString key_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Key {
       get { return key_; }
       set {
@@ -1451,6 +1663,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 2;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -1459,11 +1672,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as Transform);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(Transform other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1477,6 +1692,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Key.Length != 0) hash ^= Key.GetHashCode();
@@ -1488,12 +1704,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Key.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(Key);
@@ -1505,9 +1726,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Key.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Key);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Key.Length != 0) {
@@ -1523,6 +1764,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(Transform other) {
       if (other == null) {
         return;
@@ -1537,7 +1779,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1554,27 +1800,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Key = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceRequest : pb::IMessage<DeviceRequest> {
+  public sealed partial class DeviceRequest : pb::IMessage<DeviceRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceRequest> _parser = new pb::MessageParser<DeviceRequest>(() => new DeviceRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceRequest() {
       OnConstruction();
     }
@@ -1582,6 +1860,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceRequest(DeviceRequest other) : this() {
       clientVersion_ = other.clientVersion_;
       deviceName_ = other.deviceName_;
@@ -1589,6 +1868,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceRequest Clone() {
       return new DeviceRequest(this);
     }
@@ -1597,6 +1877,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 1;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -1608,6 +1889,7 @@ namespace Authentication {
     public const int DeviceNameFieldNumber = 2;
     private string deviceName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DeviceName {
       get { return deviceName_; }
       set {
@@ -1616,11 +1898,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1634,6 +1918,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ClientVersion.Length != 0) hash ^= ClientVersion.GetHashCode();
@@ -1645,12 +1930,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ClientVersion.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(ClientVersion);
@@ -1662,9 +1952,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(ClientVersion);
+      }
+      if (DeviceName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(DeviceName);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ClientVersion.Length != 0) {
@@ -1680,6 +1990,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceRequest other) {
       if (other == null) {
         return;
@@ -1694,7 +2005,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1711,27 +2026,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 18: {
+            DeviceName = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AuthRequest : pb::IMessage<AuthRequest> {
+  public sealed partial class AuthRequest : pb::IMessage<AuthRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AuthRequest> _parser = new pb::MessageParser<AuthRequest>(() => new AuthRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AuthRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AuthRequest() {
       OnConstruction();
     }
@@ -1739,6 +2086,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AuthRequest(AuthRequest other) : this() {
       clientVersion_ = other.clientVersion_;
       username_ = other.username_;
@@ -1747,6 +2095,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AuthRequest Clone() {
       return new AuthRequest(this);
     }
@@ -1755,6 +2104,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 1;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -1766,6 +2116,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 2;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -1777,6 +2128,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 3;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -1785,11 +2137,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AuthRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AuthRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1804,6 +2158,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ClientVersion.Length != 0) hash ^= ClientVersion.GetHashCode();
@@ -1816,12 +2171,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ClientVersion.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(ClientVersion);
@@ -1837,9 +2197,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(ClientVersion);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Username);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ClientVersion.Length != 0) {
@@ -1858,6 +2242,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AuthRequest other) {
       if (other == null) {
         return;
@@ -1875,7 +2260,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1896,27 +2285,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 18: {
+            Username = input.ReadString();
+            break;
+          }
+          case 26: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class NewUserMinimumParams : pb::IMessage<NewUserMinimumParams> {
+  public sealed partial class NewUserMinimumParams : pb::IMessage<NewUserMinimumParams>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<NewUserMinimumParams> _parser = new pb::MessageParser<NewUserMinimumParams>(() => new NewUserMinimumParams());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<NewUserMinimumParams> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NewUserMinimumParams() {
       OnConstruction();
     }
@@ -1924,6 +2349,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NewUserMinimumParams(NewUserMinimumParams other) : this() {
       minimumIterations_ = other.minimumIterations_;
       passwordMatchRegex_ = other.passwordMatchRegex_.Clone();
@@ -1933,6 +2359,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NewUserMinimumParams Clone() {
       return new NewUserMinimumParams(this);
     }
@@ -1941,6 +2368,7 @@ namespace Authentication {
     public const int MinimumIterationsFieldNumber = 1;
     private int minimumIterations_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int MinimumIterations {
       get { return minimumIterations_; }
       set {
@@ -1954,6 +2382,7 @@ namespace Authentication {
         = pb::FieldCodec.ForString(18);
     private readonly pbc::RepeatedField<string> passwordMatchRegex_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> PasswordMatchRegex {
       get { return passwordMatchRegex_; }
     }
@@ -1964,6 +2393,7 @@ namespace Authentication {
         = pb::FieldCodec.ForString(26);
     private readonly pbc::RepeatedField<string> passwordMatchDescription_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> PasswordMatchDescription {
       get { return passwordMatchDescription_; }
     }
@@ -1972,6 +2402,7 @@ namespace Authentication {
     public const int IsEnterpriseDomainFieldNumber = 4;
     private bool isEnterpriseDomain_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsEnterpriseDomain {
       get { return isEnterpriseDomain_; }
       set {
@@ -1980,11 +2411,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as NewUserMinimumParams);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(NewUserMinimumParams other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2000,6 +2433,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MinimumIterations != 0) hash ^= MinimumIterations.GetHashCode();
@@ -2013,12 +2447,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MinimumIterations != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(MinimumIterations);
@@ -2032,9 +2471,31 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MinimumIterations != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(MinimumIterations);
+      }
+      passwordMatchRegex_.WriteTo(ref output, _repeated_passwordMatchRegex_codec);
+      passwordMatchDescription_.WriteTo(ref output, _repeated_passwordMatchDescription_codec);
+      if (IsEnterpriseDomain != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(IsEnterpriseDomain);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MinimumIterations != 0) {
@@ -2052,6 +2513,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(NewUserMinimumParams other) {
       if (other == null) {
         return;
@@ -2068,7 +2530,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2093,27 +2559,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            MinimumIterations = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            passwordMatchRegex_.AddEntriesFrom(ref input, _repeated_passwordMatchRegex_codec);
+            break;
+          }
+          case 26: {
+            passwordMatchDescription_.AddEntriesFrom(ref input, _repeated_passwordMatchDescription_codec);
+            break;
+          }
+          case 32: {
+            IsEnterpriseDomain = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class PreLoginRequest : pb::IMessage<PreLoginRequest> {
+  public sealed partial class PreLoginRequest : pb::IMessage<PreLoginRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<PreLoginRequest> _parser = new pb::MessageParser<PreLoginRequest>(() => new PreLoginRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<PreLoginRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PreLoginRequest() {
       OnConstruction();
     }
@@ -2121,6 +2627,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PreLoginRequest(PreLoginRequest other) : this() {
       authRequest_ = other.authRequest_ != null ? other.authRequest_.Clone() : null;
       loginType_ = other.loginType_;
@@ -2129,6 +2636,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PreLoginRequest Clone() {
       return new PreLoginRequest(this);
     }
@@ -2137,6 +2645,7 @@ namespace Authentication {
     public const int AuthRequestFieldNumber = 1;
     private global::Authentication.AuthRequest authRequest_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.AuthRequest AuthRequest {
       get { return authRequest_; }
       set {
@@ -2148,6 +2657,7 @@ namespace Authentication {
     public const int LoginTypeFieldNumber = 2;
     private global::Authentication.LoginType loginType_ = global::Authentication.LoginType.Normal;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.LoginType LoginType {
       get { return loginType_; }
       set {
@@ -2162,6 +2672,7 @@ namespace Authentication {
     /// optional - if supplied, it will be validated if it needs refreshing
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString TwoFactorToken {
       get { return twoFactorToken_; }
       set {
@@ -2170,11 +2681,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as PreLoginRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(PreLoginRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2189,6 +2702,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (authRequest_ != null) hash ^= AuthRequest.GetHashCode();
@@ -2201,12 +2715,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (authRequest_ != null) {
         output.WriteRawTag(10);
         output.WriteMessage(AuthRequest);
@@ -2222,9 +2741,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (authRequest_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(AuthRequest);
+      }
+      if (LoginType != global::Authentication.LoginType.Normal) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) LoginType);
+      }
+      if (TwoFactorToken.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(TwoFactorToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (authRequest_ != null) {
@@ -2243,6 +2786,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(PreLoginRequest other) {
       if (other == null) {
         return;
@@ -2263,7 +2807,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2287,27 +2835,66 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (authRequest_ == null) {
+              AuthRequest = new global::Authentication.AuthRequest();
+            }
+            input.ReadMessage(AuthRequest);
+            break;
+          }
+          case 16: {
+            LoginType = (global::Authentication.LoginType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            TwoFactorToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class LoginRequest : pb::IMessage<LoginRequest> {
+  public sealed partial class LoginRequest : pb::IMessage<LoginRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<LoginRequest> _parser = new pb::MessageParser<LoginRequest>(() => new LoginRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<LoginRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginRequest() {
       OnConstruction();
     }
@@ -2315,6 +2902,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginRequest(LoginRequest other) : this() {
       authRequest_ = other.authRequest_ != null ? other.authRequest_.Clone() : null;
       loginType_ = other.loginType_;
@@ -2328,6 +2916,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginRequest Clone() {
       return new LoginRequest(this);
     }
@@ -2336,6 +2925,7 @@ namespace Authentication {
     public const int AuthRequestFieldNumber = 1;
     private global::Authentication.AuthRequest authRequest_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.AuthRequest AuthRequest {
       get { return authRequest_; }
       set {
@@ -2347,6 +2937,7 @@ namespace Authentication {
     public const int LoginTypeFieldNumber = 2;
     private global::Authentication.LoginType loginType_ = global::Authentication.LoginType.Normal;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.LoginType LoginType {
       get { return loginType_; }
       set {
@@ -2358,6 +2949,7 @@ namespace Authentication {
     public const int AuthenticationHashPrimeFieldNumber = 3;
     private pb::ByteString authenticationHashPrime_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AuthenticationHashPrime {
       get { return authenticationHashPrime_; }
       set {
@@ -2369,6 +2961,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 4;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -2380,6 +2973,7 @@ namespace Authentication {
     public const int AuthResponseFieldNumber = 5;
     private pb::ByteString authResponse_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AuthResponse {
       get { return authResponse_; }
       set {
@@ -2394,6 +2988,7 @@ namespace Authentication {
     ///input.getInt("enterprise_id")
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int McEnterpriseId {
       get { return mcEnterpriseId_; }
       set {
@@ -2408,6 +3003,7 @@ namespace Authentication {
     ///needed to receive DNA notifications per login Command wiki page
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string PushToken {
       get { return pushToken_; }
       set {
@@ -2422,6 +3018,7 @@ namespace Authentication {
     ///needed to receive DNA notifications per login Command wiki page
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Platform {
       get { return platform_; }
       set {
@@ -2430,11 +3027,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as LoginRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(LoginRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2454,6 +3053,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (authRequest_ != null) hash ^= AuthRequest.GetHashCode();
@@ -2471,12 +3071,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (authRequest_ != null) {
         output.WriteRawTag(10);
         output.WriteMessage(AuthRequest);
@@ -2512,9 +3117,53 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (authRequest_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(AuthRequest);
+      }
+      if (LoginType != global::Authentication.LoginType.Normal) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) LoginType);
+      }
+      if (AuthenticationHashPrime.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(AuthenticationHashPrime);
+      }
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (AuthResponse.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(AuthResponse);
+      }
+      if (McEnterpriseId != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(McEnterpriseId);
+      }
+      if (PushToken.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(PushToken);
+      }
+      if (Platform.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(Platform);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (authRequest_ != null) {
@@ -2548,6 +3197,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(LoginRequest other) {
       if (other == null) {
         return;
@@ -2583,7 +3233,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2627,27 +3281,86 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (authRequest_ == null) {
+              AuthRequest = new global::Authentication.AuthRequest();
+            }
+            input.ReadMessage(AuthRequest);
+            break;
+          }
+          case 16: {
+            LoginType = (global::Authentication.LoginType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            AuthenticationHashPrime = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            AuthResponse = input.ReadBytes();
+            break;
+          }
+          case 48: {
+            McEnterpriseId = input.ReadInt32();
+            break;
+          }
+          case 58: {
+            PushToken = input.ReadString();
+            break;
+          }
+          case 66: {
+            Platform = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceResponse : pb::IMessage<DeviceResponse> {
+  public sealed partial class DeviceResponse : pb::IMessage<DeviceResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceResponse> _parser = new pb::MessageParser<DeviceResponse>(() => new DeviceResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceResponse() {
       OnConstruction();
     }
@@ -2655,6 +3368,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceResponse(DeviceResponse other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       status_ = other.status_;
@@ -2662,6 +3376,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceResponse Clone() {
       return new DeviceResponse(this);
     }
@@ -2670,6 +3385,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -2681,6 +3397,7 @@ namespace Authentication {
     public const int StatusFieldNumber = 2;
     private global::Authentication.DeviceStatus status_ = global::Authentication.DeviceStatus.DeviceNeedsApproval;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.DeviceStatus Status {
       get { return status_; }
       set {
@@ -2689,11 +3406,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2707,6 +3426,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -2718,12 +3438,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -2735,9 +3460,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (Status != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Status);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -2753,6 +3498,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceResponse other) {
       if (other == null) {
         return;
@@ -2767,7 +3513,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2784,27 +3534,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            Status = (global::Authentication.DeviceStatus) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class Salt : pb::IMessage<Salt> {
+  public sealed partial class Salt : pb::IMessage<Salt>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Salt> _parser = new pb::MessageParser<Salt>(() => new Salt());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<Salt> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Salt() {
       OnConstruction();
     }
@@ -2812,6 +3594,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Salt(Salt other) : this() {
       iterations_ = other.iterations_;
       salt_ = other.salt_;
@@ -2822,6 +3605,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Salt Clone() {
       return new Salt(this);
     }
@@ -2830,6 +3614,7 @@ namespace Authentication {
     public const int IterationsFieldNumber = 1;
     private int iterations_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Iterations {
       get { return iterations_; }
       set {
@@ -2841,6 +3626,7 @@ namespace Authentication {
     public const int Salt_FieldNumber = 2;
     private pb::ByteString salt_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Salt_ {
       get { return salt_; }
       set {
@@ -2852,6 +3638,7 @@ namespace Authentication {
     public const int AlgorithmFieldNumber = 3;
     private int algorithm_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Algorithm {
       get { return algorithm_; }
       set {
@@ -2863,6 +3650,7 @@ namespace Authentication {
     public const int UidFieldNumber = 4;
     private pb::ByteString uid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Uid {
       get { return uid_; }
       set {
@@ -2874,6 +3662,7 @@ namespace Authentication {
     public const int NameFieldNumber = 5;
     private string name_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -2882,11 +3671,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as Salt);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(Salt other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -2903,6 +3694,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Iterations != 0) hash ^= Iterations.GetHashCode();
@@ -2917,12 +3709,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Iterations != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(Iterations);
@@ -2946,9 +3743,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Iterations != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Iterations);
+      }
+      if (Salt_.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Salt_);
+      }
+      if (Algorithm != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Algorithm);
+      }
+      if (Uid.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(Uid);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Name);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Iterations != 0) {
@@ -2973,6 +3802,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(Salt other) {
       if (other == null) {
         return;
@@ -2996,7 +3826,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3025,27 +3859,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Iterations = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            Salt_ = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            Algorithm = input.ReadInt32();
+            break;
+          }
+          case 34: {
+            Uid = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            Name = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorChannel : pb::IMessage<TwoFactorChannel> {
+  public sealed partial class TwoFactorChannel : pb::IMessage<TwoFactorChannel>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorChannel> _parser = new pb::MessageParser<TwoFactorChannel>(() => new TwoFactorChannel());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorChannel> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorChannel() {
       OnConstruction();
     }
@@ -3053,12 +3931,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorChannel(TwoFactorChannel other) : this() {
       type_ = other.type_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorChannel Clone() {
       return new TwoFactorChannel(this);
     }
@@ -3067,6 +3947,7 @@ namespace Authentication {
     public const int TypeFieldNumber = 1;
     private int type_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Type {
       get { return type_; }
       set {
@@ -3075,11 +3956,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorChannel);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorChannel other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3092,6 +3975,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Type != 0) hash ^= Type.GetHashCode();
@@ -3102,12 +3986,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Type != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(Type);
@@ -3115,9 +4004,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Type != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Type);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Type != 0) {
@@ -3130,6 +4035,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorChannel other) {
       if (other == null) {
         return;
@@ -3141,7 +4047,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3154,27 +4064,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Type = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class StartLoginRequest : pb::IMessage<StartLoginRequest> {
+  public sealed partial class StartLoginRequest : pb::IMessage<StartLoginRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<StartLoginRequest> _parser = new pb::MessageParser<StartLoginRequest>(() => new StartLoginRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<StartLoginRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public StartLoginRequest() {
       OnConstruction();
     }
@@ -3182,6 +4120,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public StartLoginRequest(StartLoginRequest other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       username_ = other.username_;
@@ -3199,6 +4138,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public StartLoginRequest Clone() {
       return new StartLoginRequest(this);
     }
@@ -3207,6 +4147,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -3218,6 +4159,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 2;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -3229,6 +4171,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 3;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -3240,6 +4183,7 @@ namespace Authentication {
     public const int MessageSessionUidFieldNumber = 4;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -3251,6 +4195,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 5;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -3262,6 +4207,7 @@ namespace Authentication {
     public const int LoginTypeFieldNumber = 6;
     private global::Authentication.LoginType loginType_ = global::Authentication.LoginType.Normal;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.LoginType LoginType {
       get { return loginType_; }
       set {
@@ -3273,6 +4219,7 @@ namespace Authentication {
     public const int McEnterpriseIdFieldNumber = 7;
     private int mcEnterpriseId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int McEnterpriseId {
       get { return mcEnterpriseId_; }
       set {
@@ -3284,6 +4231,7 @@ namespace Authentication {
     public const int LoginMethodFieldNumber = 8;
     private global::Authentication.LoginMethod loginMethod_ = global::Authentication.LoginMethod.InvalidLoginmethod;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.LoginMethod LoginMethod {
       get { return loginMethod_; }
       set {
@@ -3295,6 +4243,7 @@ namespace Authentication {
     public const int ForceNewLoginFieldNumber = 9;
     private bool forceNewLogin_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool ForceNewLogin {
       get { return forceNewLogin_; }
       set {
@@ -3306,6 +4255,7 @@ namespace Authentication {
     public const int CloneCodeFieldNumber = 10;
     private pb::ByteString cloneCode_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString CloneCode {
       get { return cloneCode_; }
       set {
@@ -3317,6 +4267,7 @@ namespace Authentication {
     public const int V2TwoFactorTokenFieldNumber = 11;
     private string v2TwoFactorToken_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string V2TwoFactorToken {
       get { return v2TwoFactorToken_; }
       set {
@@ -3331,6 +4282,7 @@ namespace Authentication {
     ///for think clients, if supplied and accountUid != user's accountUid return error reset_cache_invalid_account_uid
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AccountUid {
       get { return accountUid_; }
       set {
@@ -3339,11 +4291,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as StartLoginRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(StartLoginRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3367,6 +4321,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -3388,12 +4343,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -3445,9 +4405,69 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Username);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ClientVersion);
+      }
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (LoginType != global::Authentication.LoginType.Normal) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) LoginType);
+      }
+      if (McEnterpriseId != 0) {
+        output.WriteRawTag(56);
+        output.WriteInt32(McEnterpriseId);
+      }
+      if (LoginMethod != global::Authentication.LoginMethod.InvalidLoginmethod) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) LoginMethod);
+      }
+      if (ForceNewLogin != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(ForceNewLogin);
+      }
+      if (CloneCode.Length != 0) {
+        output.WriteRawTag(82);
+        output.WriteBytes(CloneCode);
+      }
+      if (V2TwoFactorToken.Length != 0) {
+        output.WriteRawTag(90);
+        output.WriteString(V2TwoFactorToken);
+      }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(98);
+        output.WriteBytes(AccountUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -3493,6 +4513,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(StartLoginRequest other) {
       if (other == null) {
         return;
@@ -3537,7 +4558,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3594,27 +4619,99 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Username = input.ReadString();
+            break;
+          }
+          case 26: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 34: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+          case 48: {
+            LoginType = (global::Authentication.LoginType) input.ReadEnum();
+            break;
+          }
+          case 56: {
+            McEnterpriseId = input.ReadInt32();
+            break;
+          }
+          case 64: {
+            LoginMethod = (global::Authentication.LoginMethod) input.ReadEnum();
+            break;
+          }
+          case 72: {
+            ForceNewLogin = input.ReadBool();
+            break;
+          }
+          case 82: {
+            CloneCode = input.ReadBytes();
+            break;
+          }
+          case 90: {
+            V2TwoFactorToken = input.ReadString();
+            break;
+          }
+          case 98: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class LoginResponse : pb::IMessage<LoginResponse> {
+  public sealed partial class LoginResponse : pb::IMessage<LoginResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<LoginResponse> _parser = new pb::MessageParser<LoginResponse>(() => new LoginResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<LoginResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginResponse() {
       OnConstruction();
     }
@@ -3622,6 +4719,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginResponse(LoginResponse other) : this() {
       loginState_ = other.loginState_;
       accountUid_ = other.accountUid_;
@@ -3642,6 +4740,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginResponse Clone() {
       return new LoginResponse(this);
     }
@@ -3650,6 +4749,7 @@ namespace Authentication {
     public const int LoginStateFieldNumber = 1;
     private global::Authentication.LoginState loginState_ = global::Authentication.LoginState.InvalidLoginstate;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.LoginState LoginState {
       get { return loginState_; }
       set {
@@ -3661,6 +4761,7 @@ namespace Authentication {
     public const int AccountUidFieldNumber = 2;
     private pb::ByteString accountUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AccountUid {
       get { return accountUid_; }
       set {
@@ -3672,6 +4773,7 @@ namespace Authentication {
     public const int PrimaryUsernameFieldNumber = 3;
     private string primaryUsername_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string PrimaryUsername {
       get { return primaryUsername_; }
       set {
@@ -3683,6 +4785,7 @@ namespace Authentication {
     public const int EncryptedDataKeyFieldNumber = 4;
     private pb::ByteString encryptedDataKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDataKey {
       get { return encryptedDataKey_; }
       set {
@@ -3694,6 +4797,7 @@ namespace Authentication {
     public const int EncryptedDataKeyTypeFieldNumber = 5;
     private global::Authentication.EncryptedDataKeyType encryptedDataKeyType_ = global::Authentication.EncryptedDataKeyType.NoKey;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.EncryptedDataKeyType EncryptedDataKeyType {
       get { return encryptedDataKeyType_; }
       set {
@@ -3705,6 +4809,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 6;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -3716,6 +4821,7 @@ namespace Authentication {
     public const int EncryptedSessionTokenFieldNumber = 7;
     private pb::ByteString encryptedSessionToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedSessionToken {
       get { return encryptedSessionToken_; }
       set {
@@ -3727,6 +4833,7 @@ namespace Authentication {
     public const int SessionTokenTypeFieldNumber = 8;
     private global::Authentication.SessionTokenType sessionTokenType_ = global::Authentication.SessionTokenType.NoRestriction;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.SessionTokenType SessionTokenType {
       get { return sessionTokenType_; }
       set {
@@ -3738,6 +4845,7 @@ namespace Authentication {
     public const int MessageFieldNumber = 9;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -3749,6 +4857,7 @@ namespace Authentication {
     public const int UrlFieldNumber = 10;
     private string url_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Url {
       get { return url_; }
       set {
@@ -3762,6 +4871,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(90, global::Authentication.TwoFactorChannelInfo.Parser);
     private readonly pbc::RepeatedField<global::Authentication.TwoFactorChannelInfo> channels_ = new pbc::RepeatedField<global::Authentication.TwoFactorChannelInfo>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.TwoFactorChannelInfo> Channels {
       get { return channels_; }
     }
@@ -3772,6 +4882,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(98, global::Authentication.Salt.Parser);
     private readonly pbc::RepeatedField<global::Authentication.Salt> salt_ = new pbc::RepeatedField<global::Authentication.Salt>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.Salt> Salt {
       get { return salt_; }
     }
@@ -3780,6 +4891,7 @@ namespace Authentication {
     public const int CloneCodeFieldNumber = 13;
     private pb::ByteString cloneCode_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString CloneCode {
       get { return cloneCode_; }
       set {
@@ -3791,6 +4903,7 @@ namespace Authentication {
     public const int StateSpecificValueFieldNumber = 14;
     private string stateSpecificValue_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string StateSpecificValue {
       get { return stateSpecificValue_; }
       set {
@@ -3802,6 +4915,7 @@ namespace Authentication {
     public const int SsoClientVersionFieldNumber = 15;
     private string ssoClientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SsoClientVersion {
       get { return ssoClientVersion_; }
       set {
@@ -3810,11 +4924,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as LoginResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(LoginResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -3841,6 +4957,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (LoginState != global::Authentication.LoginState.InvalidLoginstate) hash ^= LoginState.GetHashCode();
@@ -3865,12 +4982,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (LoginState != global::Authentication.LoginState.InvalidLoginstate) {
         output.WriteRawTag(8);
         output.WriteEnum((int) LoginState);
@@ -3928,9 +5050,75 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (LoginState != global::Authentication.LoginState.InvalidLoginstate) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) LoginState);
+      }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccountUid);
+      }
+      if (PrimaryUsername.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(PrimaryUsername);
+      }
+      if (EncryptedDataKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(EncryptedDataKey);
+      }
+      if (EncryptedDataKeyType != global::Authentication.EncryptedDataKeyType.NoKey) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) EncryptedDataKeyType);
+      }
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (EncryptedSessionToken.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteBytes(EncryptedSessionToken);
+      }
+      if (SessionTokenType != global::Authentication.SessionTokenType.NoRestriction) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) SessionTokenType);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteString(Message);
+      }
+      if (Url.Length != 0) {
+        output.WriteRawTag(82);
+        output.WriteString(Url);
+      }
+      channels_.WriteTo(ref output, _repeated_channels_codec);
+      salt_.WriteTo(ref output, _repeated_salt_codec);
+      if (CloneCode.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteBytes(CloneCode);
+      }
+      if (StateSpecificValue.Length != 0) {
+        output.WriteRawTag(114);
+        output.WriteString(StateSpecificValue);
+      }
+      if (SsoClientVersion.Length != 0) {
+        output.WriteRawTag(122);
+        output.WriteString(SsoClientVersion);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (LoginState != global::Authentication.LoginState.InvalidLoginstate) {
@@ -3981,6 +5169,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(LoginResponse other) {
       if (other == null) {
         return;
@@ -4030,7 +5219,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4099,27 +5292,111 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            LoginState = (global::Authentication.LoginState) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            PrimaryUsername = input.ReadString();
+            break;
+          }
+          case 34: {
+            EncryptedDataKey = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            EncryptedDataKeyType = (global::Authentication.EncryptedDataKeyType) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            EncryptedSessionToken = input.ReadBytes();
+            break;
+          }
+          case 64: {
+            SessionTokenType = (global::Authentication.SessionTokenType) input.ReadEnum();
+            break;
+          }
+          case 74: {
+            Message = input.ReadString();
+            break;
+          }
+          case 82: {
+            Url = input.ReadString();
+            break;
+          }
+          case 90: {
+            channels_.AddEntriesFrom(ref input, _repeated_channels_codec);
+            break;
+          }
+          case 98: {
+            salt_.AddEntriesFrom(ref input, _repeated_salt_codec);
+            break;
+          }
+          case 106: {
+            CloneCode = input.ReadBytes();
+            break;
+          }
+          case 114: {
+            StateSpecificValue = input.ReadString();
+            break;
+          }
+          case 122: {
+            SsoClientVersion = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SsoUserInfo : pb::IMessage<SsoUserInfo> {
+  public sealed partial class SsoUserInfo : pb::IMessage<SsoUserInfo>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SsoUserInfo> _parser = new pb::MessageParser<SsoUserInfo>(() => new SsoUserInfo());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoUserInfo> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoUserInfo() {
       OnConstruction();
     }
@@ -4127,6 +5404,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoUserInfo(SsoUserInfo other) : this() {
       companyName_ = other.companyName_;
       samlRequest_ = other.samlRequest_;
@@ -4138,6 +5416,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoUserInfo Clone() {
       return new SsoUserInfo(this);
     }
@@ -4146,6 +5425,7 @@ namespace Authentication {
     public const int CompanyNameFieldNumber = 1;
     private string companyName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string CompanyName {
       get { return companyName_; }
       set {
@@ -4157,6 +5437,7 @@ namespace Authentication {
     public const int SamlRequestFieldNumber = 2;
     private string samlRequest_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SamlRequest {
       get { return samlRequest_; }
       set {
@@ -4168,6 +5449,7 @@ namespace Authentication {
     public const int SamlRequestTypeFieldNumber = 3;
     private string samlRequestType_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SamlRequestType {
       get { return samlRequestType_; }
       set {
@@ -4179,6 +5461,7 @@ namespace Authentication {
     public const int SsoDomainNameFieldNumber = 4;
     private string ssoDomainName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SsoDomainName {
       get { return ssoDomainName_; }
       set {
@@ -4190,6 +5473,7 @@ namespace Authentication {
     public const int LoginUrlFieldNumber = 5;
     private string loginUrl_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string LoginUrl {
       get { return loginUrl_; }
       set {
@@ -4201,6 +5485,7 @@ namespace Authentication {
     public const int LogoutUrlFieldNumber = 6;
     private string logoutUrl_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string LogoutUrl {
       get { return logoutUrl_; }
       set {
@@ -4209,11 +5494,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoUserInfo);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoUserInfo other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4231,6 +5518,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (CompanyName.Length != 0) hash ^= CompanyName.GetHashCode();
@@ -4246,12 +5534,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (CompanyName.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(CompanyName);
@@ -4279,9 +5572,45 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (CompanyName.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(CompanyName);
+      }
+      if (SamlRequest.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(SamlRequest);
+      }
+      if (SamlRequestType.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(SamlRequestType);
+      }
+      if (SsoDomainName.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(SsoDomainName);
+      }
+      if (LoginUrl.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(LoginUrl);
+      }
+      if (LogoutUrl.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(LogoutUrl);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (CompanyName.Length != 0) {
@@ -4309,6 +5638,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoUserInfo other) {
       if (other == null) {
         return;
@@ -4335,7 +5665,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4368,27 +5702,75 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            CompanyName = input.ReadString();
+            break;
+          }
+          case 18: {
+            SamlRequest = input.ReadString();
+            break;
+          }
+          case 26: {
+            SamlRequestType = input.ReadString();
+            break;
+          }
+          case 34: {
+            SsoDomainName = input.ReadString();
+            break;
+          }
+          case 42: {
+            LoginUrl = input.ReadString();
+            break;
+          }
+          case 50: {
+            LogoutUrl = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class PreLoginResponse : pb::IMessage<PreLoginResponse> {
+  public sealed partial class PreLoginResponse : pb::IMessage<PreLoginResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<PreLoginResponse> _parser = new pb::MessageParser<PreLoginResponse>(() => new PreLoginResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<PreLoginResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PreLoginResponse() {
       OnConstruction();
     }
@@ -4396,6 +5778,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PreLoginResponse(PreLoginResponse other) : this() {
       deviceStatus_ = other.deviceStatus_;
       salt_ = other.salt_.Clone();
@@ -4405,6 +5788,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PreLoginResponse Clone() {
       return new PreLoginResponse(this);
     }
@@ -4413,6 +5797,7 @@ namespace Authentication {
     public const int DeviceStatusFieldNumber = 1;
     private global::Authentication.DeviceStatus deviceStatus_ = global::Authentication.DeviceStatus.DeviceNeedsApproval;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.DeviceStatus DeviceStatus {
       get { return deviceStatus_; }
       set {
@@ -4426,6 +5811,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(18, global::Authentication.Salt.Parser);
     private readonly pbc::RepeatedField<global::Authentication.Salt> salt_ = new pbc::RepeatedField<global::Authentication.Salt>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.Salt> Salt {
       get { return salt_; }
     }
@@ -4439,6 +5825,7 @@ namespace Authentication {
     ///DO NOT RE-USE. placeholder for backwards compatability
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.TwoFactorChannel> OBSOLETEFIELD {
       get { return oBSOLETEFIELD_; }
     }
@@ -4447,6 +5834,7 @@ namespace Authentication {
     public const int SsoUserInfoFieldNumber = 4;
     private global::Authentication.SsoUserInfo ssoUserInfo_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.SsoUserInfo SsoUserInfo {
       get { return ssoUserInfo_; }
       set {
@@ -4455,11 +5843,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as PreLoginResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(PreLoginResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4475,6 +5865,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) hash ^= DeviceStatus.GetHashCode();
@@ -4488,12 +5879,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
         output.WriteRawTag(8);
         output.WriteEnum((int) DeviceStatus);
@@ -4507,9 +5903,31 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) DeviceStatus);
+      }
+      salt_.WriteTo(ref output, _repeated_salt_codec);
+      oBSOLETEFIELD_.WriteTo(ref output, _repeated_oBSOLETEFIELD_codec);
+      if (ssoUserInfo_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(SsoUserInfo);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
@@ -4527,6 +5945,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(PreLoginResponse other) {
       if (other == null) {
         return;
@@ -4546,7 +5965,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4574,27 +5997,70 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            DeviceStatus = (global::Authentication.DeviceStatus) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            salt_.AddEntriesFrom(ref input, _repeated_salt_codec);
+            break;
+          }
+          case 26: {
+            oBSOLETEFIELD_.AddEntriesFrom(ref input, _repeated_oBSOLETEFIELD_codec);
+            break;
+          }
+          case 34: {
+            if (ssoUserInfo_ == null) {
+              SsoUserInfo = new global::Authentication.SsoUserInfo();
+            }
+            input.ReadMessage(SsoUserInfo);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class LoginAsUserRequest : pb::IMessage<LoginAsUserRequest> {
+  public sealed partial class LoginAsUserRequest : pb::IMessage<LoginAsUserRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<LoginAsUserRequest> _parser = new pb::MessageParser<LoginAsUserRequest>(() => new LoginAsUserRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<LoginAsUserRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginAsUserRequest() {
       OnConstruction();
     }
@@ -4602,12 +6068,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginAsUserRequest(LoginAsUserRequest other) : this() {
       username_ = other.username_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginAsUserRequest Clone() {
       return new LoginAsUserRequest(this);
     }
@@ -4616,6 +6084,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 1;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -4624,11 +6093,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as LoginAsUserRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(LoginAsUserRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4641,6 +6112,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -4651,12 +6123,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -4664,9 +6141,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -4679,6 +6172,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(LoginAsUserRequest other) {
       if (other == null) {
         return;
@@ -4690,7 +6184,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4703,27 +6201,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class LoginAsUserResponse : pb::IMessage<LoginAsUserResponse> {
+  public sealed partial class LoginAsUserResponse : pb::IMessage<LoginAsUserResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<LoginAsUserResponse> _parser = new pb::MessageParser<LoginAsUserResponse>(() => new LoginAsUserResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<LoginAsUserResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginAsUserResponse() {
       OnConstruction();
     }
@@ -4731,6 +6257,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginAsUserResponse(LoginAsUserResponse other) : this() {
       encryptedSessionToken_ = other.encryptedSessionToken_;
       encryptedSharedAccountKey_ = other.encryptedSharedAccountKey_;
@@ -4738,6 +6265,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public LoginAsUserResponse Clone() {
       return new LoginAsUserResponse(this);
     }
@@ -4746,6 +6274,7 @@ namespace Authentication {
     public const int EncryptedSessionTokenFieldNumber = 1;
     private pb::ByteString encryptedSessionToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedSessionToken {
       get { return encryptedSessionToken_; }
       set {
@@ -4757,6 +6286,7 @@ namespace Authentication {
     public const int EncryptedSharedAccountKeyFieldNumber = 2;
     private pb::ByteString encryptedSharedAccountKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedSharedAccountKey {
       get { return encryptedSharedAccountKey_; }
       set {
@@ -4765,11 +6295,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as LoginAsUserResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(LoginAsUserResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4783,6 +6315,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedSessionToken.Length != 0) hash ^= EncryptedSessionToken.GetHashCode();
@@ -4794,12 +6327,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedSessionToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedSessionToken);
@@ -4811,9 +6349,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedSessionToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedSessionToken);
+      }
+      if (EncryptedSharedAccountKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedSharedAccountKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedSessionToken.Length != 0) {
@@ -4829,6 +6387,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(LoginAsUserResponse other) {
       if (other == null) {
         return;
@@ -4843,7 +6402,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4860,27 +6423,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedSessionToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedSharedAccountKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ValidateAuthHashRequest : pb::IMessage<ValidateAuthHashRequest> {
+  public sealed partial class ValidateAuthHashRequest : pb::IMessage<ValidateAuthHashRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ValidateAuthHashRequest> _parser = new pb::MessageParser<ValidateAuthHashRequest>(() => new ValidateAuthHashRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ValidateAuthHashRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateAuthHashRequest() {
       OnConstruction();
     }
@@ -4888,6 +6483,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateAuthHashRequest(ValidateAuthHashRequest other) : this() {
       passwordMethod_ = other.passwordMethod_;
       authResponse_ = other.authResponse_;
@@ -4896,6 +6492,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateAuthHashRequest Clone() {
       return new ValidateAuthHashRequest(this);
     }
@@ -4904,6 +6501,7 @@ namespace Authentication {
     public const int PasswordMethodFieldNumber = 1;
     private global::Authentication.PasswordMethod passwordMethod_ = global::Authentication.PasswordMethod.Entered;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.PasswordMethod PasswordMethod {
       get { return passwordMethod_; }
       set {
@@ -4915,6 +6513,7 @@ namespace Authentication {
     public const int AuthResponseFieldNumber = 2;
     private pb::ByteString authResponse_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AuthResponse {
       get { return authResponse_; }
       set {
@@ -4926,6 +6525,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 3;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -4934,11 +6534,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ValidateAuthHashRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ValidateAuthHashRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -4953,6 +6555,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (PasswordMethod != global::Authentication.PasswordMethod.Entered) hash ^= PasswordMethod.GetHashCode();
@@ -4965,12 +6568,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (PasswordMethod != global::Authentication.PasswordMethod.Entered) {
         output.WriteRawTag(8);
         output.WriteEnum((int) PasswordMethod);
@@ -4986,9 +6594,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (PasswordMethod != global::Authentication.PasswordMethod.Entered) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) PasswordMethod);
+      }
+      if (AuthResponse.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AuthResponse);
+      }
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (PasswordMethod != global::Authentication.PasswordMethod.Entered) {
@@ -5007,6 +6639,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ValidateAuthHashRequest other) {
       if (other == null) {
         return;
@@ -5024,7 +6657,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5045,27 +6682,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            PasswordMethod = (global::Authentication.PasswordMethod) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            AuthResponse = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorChannelInfo : pb::IMessage<TwoFactorChannelInfo> {
+  public sealed partial class TwoFactorChannelInfo : pb::IMessage<TwoFactorChannelInfo>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorChannelInfo> _parser = new pb::MessageParser<TwoFactorChannelInfo>(() => new TwoFactorChannelInfo());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorChannelInfo> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorChannelInfo() {
       OnConstruction();
     }
@@ -5073,6 +6746,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorChannelInfo(TwoFactorChannelInfo other) : this() {
       channelType_ = other.channelType_;
       channelUid_ = other.channelUid_;
@@ -5086,6 +6760,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorChannelInfo Clone() {
       return new TwoFactorChannelInfo(this);
     }
@@ -5094,6 +6769,7 @@ namespace Authentication {
     public const int ChannelTypeFieldNumber = 1;
     private global::Authentication.TwoFactorChannelType channelType_ = global::Authentication.TwoFactorChannelType.TwoFaCtNone;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorChannelType ChannelType {
       get { return channelType_; }
       set {
@@ -5105,6 +6781,7 @@ namespace Authentication {
     public const int ChannelUidFieldNumber = 2;
     private pb::ByteString channelUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ChannelUid {
       get { return channelUid_; }
       set {
@@ -5116,6 +6793,7 @@ namespace Authentication {
     public const int ChannelNameFieldNumber = 3;
     private string channelName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ChannelName {
       get { return channelName_; }
       set {
@@ -5130,6 +6808,7 @@ namespace Authentication {
     /// for security keys
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Challenge {
       get { return challenge_; }
       set {
@@ -5146,6 +6825,7 @@ namespace Authentication {
     /// for DUO
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> Capabilities {
       get { return capabilities_; }
     }
@@ -5157,6 +6837,7 @@ namespace Authentication {
     /// for SMS and DUO
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string PhoneNumber {
       get { return phoneNumber_; }
       set {
@@ -5171,6 +6852,7 @@ namespace Authentication {
     /// maximum allowed expiration
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorExpiration MaxExpiration {
       get { return maxExpiration_; }
       set {
@@ -5182,6 +6864,7 @@ namespace Authentication {
     public const int CreatedOnFieldNumber = 8;
     private long createdOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long CreatedOn {
       get { return createdOn_; }
       set {
@@ -5190,11 +6873,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorChannelInfo);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorChannelInfo other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5214,6 +6899,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ChannelType != global::Authentication.TwoFactorChannelType.TwoFaCtNone) hash ^= ChannelType.GetHashCode();
@@ -5231,12 +6917,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ChannelType != global::Authentication.TwoFactorChannelType.TwoFaCtNone) {
         output.WriteRawTag(8);
         output.WriteEnum((int) ChannelType);
@@ -5269,9 +6960,50 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ChannelType != global::Authentication.TwoFactorChannelType.TwoFaCtNone) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) ChannelType);
+      }
+      if (ChannelUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ChannelUid);
+      }
+      if (ChannelName.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ChannelName);
+      }
+      if (Challenge.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Challenge);
+      }
+      capabilities_.WriteTo(ref output, _repeated_capabilities_codec);
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(PhoneNumber);
+      }
+      if (MaxExpiration != global::Authentication.TwoFactorExpiration.TwoFaExpImmediately) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) MaxExpiration);
+      }
+      if (CreatedOn != 0L) {
+        output.WriteRawTag(64);
+        output.WriteInt64(CreatedOn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ChannelType != global::Authentication.TwoFactorChannelType.TwoFaCtNone) {
@@ -5303,6 +7035,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorChannelInfo other) {
       if (other == null) {
         return;
@@ -5333,7 +7066,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5374,27 +7111,83 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ChannelType = (global::Authentication.TwoFactorChannelType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            ChannelUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            ChannelName = input.ReadString();
+            break;
+          }
+          case 34: {
+            Challenge = input.ReadString();
+            break;
+          }
+          case 42: {
+            capabilities_.AddEntriesFrom(ref input, _repeated_capabilities_codec);
+            break;
+          }
+          case 50: {
+            PhoneNumber = input.ReadString();
+            break;
+          }
+          case 56: {
+            MaxExpiration = (global::Authentication.TwoFactorExpiration) input.ReadEnum();
+            break;
+          }
+          case 64: {
+            CreatedOn = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorDuoStatus : pb::IMessage<TwoFactorDuoStatus> {
+  public sealed partial class TwoFactorDuoStatus : pb::IMessage<TwoFactorDuoStatus>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorDuoStatus> _parser = new pb::MessageParser<TwoFactorDuoStatus>(() => new TwoFactorDuoStatus());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorDuoStatus> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorDuoStatus() {
       OnConstruction();
     }
@@ -5402,6 +7195,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorDuoStatus(TwoFactorDuoStatus other) : this() {
       capabilities_ = other.capabilities_.Clone();
       phoneNumber_ = other.phoneNumber_;
@@ -5411,6 +7205,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorDuoStatus Clone() {
       return new TwoFactorDuoStatus(this);
     }
@@ -5421,6 +7216,7 @@ namespace Authentication {
         = pb::FieldCodec.ForString(10);
     private readonly pbc::RepeatedField<string> capabilities_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> Capabilities {
       get { return capabilities_; }
     }
@@ -5429,6 +7225,7 @@ namespace Authentication {
     public const int PhoneNumberFieldNumber = 2;
     private string phoneNumber_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string PhoneNumber {
       get { return phoneNumber_; }
       set {
@@ -5440,6 +7237,7 @@ namespace Authentication {
     public const int EnrollUrlFieldNumber = 3;
     private string enrollUrl_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string EnrollUrl {
       get { return enrollUrl_; }
       set {
@@ -5451,6 +7249,7 @@ namespace Authentication {
     public const int MessageFieldNumber = 4;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -5459,11 +7258,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorDuoStatus);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorDuoStatus other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5479,6 +7280,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= capabilities_.GetHashCode();
@@ -5492,12 +7294,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       capabilities_.WriteTo(output, _repeated_capabilities_codec);
       if (PhoneNumber.Length != 0) {
         output.WriteRawTag(18);
@@ -5514,9 +7321,34 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      capabilities_.WriteTo(ref output, _repeated_capabilities_codec);
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(PhoneNumber);
+      }
+      if (EnrollUrl.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(EnrollUrl);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += capabilities_.CalculateSize(_repeated_capabilities_codec);
@@ -5536,6 +7368,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorDuoStatus other) {
       if (other == null) {
         return;
@@ -5554,7 +7387,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5579,27 +7416,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            capabilities_.AddEntriesFrom(ref input, _repeated_capabilities_codec);
+            break;
+          }
+          case 18: {
+            PhoneNumber = input.ReadString();
+            break;
+          }
+          case 26: {
+            EnrollUrl = input.ReadString();
+            break;
+          }
+          case 34: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorAddRequest : pb::IMessage<TwoFactorAddRequest> {
+  public sealed partial class TwoFactorAddRequest : pb::IMessage<TwoFactorAddRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorAddRequest> _parser = new pb::MessageParser<TwoFactorAddRequest>(() => new TwoFactorAddRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorAddRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorAddRequest() {
       OnConstruction();
     }
@@ -5607,6 +7484,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorAddRequest(TwoFactorAddRequest other) : this() {
       channelType_ = other.channelType_;
       channelUid_ = other.channelUid_;
@@ -5617,6 +7495,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorAddRequest Clone() {
       return new TwoFactorAddRequest(this);
     }
@@ -5625,6 +7504,7 @@ namespace Authentication {
     public const int ChannelTypeFieldNumber = 1;
     private global::Authentication.TwoFactorChannelType channelType_ = global::Authentication.TwoFactorChannelType.TwoFaCtNone;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorChannelType ChannelType {
       get { return channelType_; }
       set {
@@ -5636,6 +7516,7 @@ namespace Authentication {
     public const int ChannelUidFieldNumber = 2;
     private pb::ByteString channelUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ChannelUid {
       get { return channelUid_; }
       set {
@@ -5647,6 +7528,7 @@ namespace Authentication {
     public const int ChannelNameFieldNumber = 3;
     private string channelName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ChannelName {
       get { return channelName_; }
       set {
@@ -5658,6 +7540,7 @@ namespace Authentication {
     public const int PhoneNumberFieldNumber = 4;
     private string phoneNumber_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string PhoneNumber {
       get { return phoneNumber_; }
       set {
@@ -5669,6 +7552,7 @@ namespace Authentication {
     public const int DuoPushTypeFieldNumber = 5;
     private global::Authentication.TwoFactorPushType duoPushType_ = global::Authentication.TwoFactorPushType.TwoFaPushNone;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorPushType DuoPushType {
       get { return duoPushType_; }
       set {
@@ -5677,11 +7561,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorAddRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorAddRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5698,6 +7584,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ChannelType != global::Authentication.TwoFactorChannelType.TwoFaCtNone) hash ^= ChannelType.GetHashCode();
@@ -5712,12 +7599,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ChannelType != global::Authentication.TwoFactorChannelType.TwoFaCtNone) {
         output.WriteRawTag(8);
         output.WriteEnum((int) ChannelType);
@@ -5741,9 +7633,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ChannelType != global::Authentication.TwoFactorChannelType.TwoFaCtNone) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) ChannelType);
+      }
+      if (ChannelUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ChannelUid);
+      }
+      if (ChannelName.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ChannelName);
+      }
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(PhoneNumber);
+      }
+      if (DuoPushType != global::Authentication.TwoFactorPushType.TwoFaPushNone) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DuoPushType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ChannelType != global::Authentication.TwoFactorChannelType.TwoFaCtNone) {
@@ -5768,6 +7692,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorAddRequest other) {
       if (other == null) {
         return;
@@ -5791,7 +7716,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5820,27 +7749,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ChannelType = (global::Authentication.TwoFactorChannelType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            ChannelUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            ChannelName = input.ReadString();
+            break;
+          }
+          case 34: {
+            PhoneNumber = input.ReadString();
+            break;
+          }
+          case 40: {
+            DuoPushType = (global::Authentication.TwoFactorPushType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorRenameRequest : pb::IMessage<TwoFactorRenameRequest> {
+  public sealed partial class TwoFactorRenameRequest : pb::IMessage<TwoFactorRenameRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorRenameRequest> _parser = new pb::MessageParser<TwoFactorRenameRequest>(() => new TwoFactorRenameRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorRenameRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorRenameRequest() {
       OnConstruction();
     }
@@ -5848,6 +7821,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorRenameRequest(TwoFactorRenameRequest other) : this() {
       channelUid_ = other.channelUid_;
       channelName_ = other.channelName_;
@@ -5855,6 +7829,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorRenameRequest Clone() {
       return new TwoFactorRenameRequest(this);
     }
@@ -5863,6 +7838,7 @@ namespace Authentication {
     public const int ChannelUidFieldNumber = 1;
     private pb::ByteString channelUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ChannelUid {
       get { return channelUid_; }
       set {
@@ -5874,6 +7850,7 @@ namespace Authentication {
     public const int ChannelNameFieldNumber = 2;
     private string channelName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ChannelName {
       get { return channelName_; }
       set {
@@ -5882,11 +7859,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorRenameRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorRenameRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -5900,6 +7879,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ChannelUid.Length != 0) hash ^= ChannelUid.GetHashCode();
@@ -5911,12 +7891,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ChannelUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(ChannelUid);
@@ -5928,9 +7913,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ChannelUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(ChannelUid);
+      }
+      if (ChannelName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ChannelName);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ChannelUid.Length != 0) {
@@ -5946,6 +7951,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorRenameRequest other) {
       if (other == null) {
         return;
@@ -5960,7 +7966,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5977,27 +7987,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ChannelUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ChannelName = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorAddResponse : pb::IMessage<TwoFactorAddResponse> {
+  public sealed partial class TwoFactorAddResponse : pb::IMessage<TwoFactorAddResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorAddResponse> _parser = new pb::MessageParser<TwoFactorAddResponse>(() => new TwoFactorAddResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorAddResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorAddResponse() {
       OnConstruction();
     }
@@ -6005,6 +8047,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorAddResponse(TwoFactorAddResponse other) : this() {
       challenge_ = other.challenge_;
       backupKeys_ = other.backupKeys_.Clone();
@@ -6012,6 +8055,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorAddResponse Clone() {
       return new TwoFactorAddResponse(this);
     }
@@ -6023,6 +8067,7 @@ namespace Authentication {
     /// for totp and security keys
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Challenge {
       get { return challenge_; }
       set {
@@ -6039,16 +8084,19 @@ namespace Authentication {
     /// for backup keys
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> BackupKeys {
       get { return backupKeys_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorAddResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorAddResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6062,6 +8110,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Challenge.Length != 0) hash ^= Challenge.GetHashCode();
@@ -6073,12 +8122,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Challenge.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Challenge);
@@ -6087,9 +8141,26 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Challenge.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Challenge);
+      }
+      backupKeys_.WriteTo(ref output, _repeated_backupKeys_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Challenge.Length != 0) {
@@ -6103,6 +8174,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorAddResponse other) {
       if (other == null) {
         return;
@@ -6115,7 +8187,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6132,27 +8208,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Challenge = input.ReadString();
+            break;
+          }
+          case 18: {
+            backupKeys_.AddEntriesFrom(ref input, _repeated_backupKeys_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorDeleteRequest : pb::IMessage<TwoFactorDeleteRequest> {
+  public sealed partial class TwoFactorDeleteRequest : pb::IMessage<TwoFactorDeleteRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorDeleteRequest> _parser = new pb::MessageParser<TwoFactorDeleteRequest>(() => new TwoFactorDeleteRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorDeleteRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorDeleteRequest() {
       OnConstruction();
     }
@@ -6160,12 +8268,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorDeleteRequest(TwoFactorDeleteRequest other) : this() {
       channelUid_ = other.channelUid_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorDeleteRequest Clone() {
       return new TwoFactorDeleteRequest(this);
     }
@@ -6174,6 +8284,7 @@ namespace Authentication {
     public const int ChannelUidFieldNumber = 1;
     private pb::ByteString channelUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ChannelUid {
       get { return channelUid_; }
       set {
@@ -6182,11 +8293,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorDeleteRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorDeleteRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6199,6 +8312,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ChannelUid.Length != 0) hash ^= ChannelUid.GetHashCode();
@@ -6209,12 +8323,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ChannelUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(ChannelUid);
@@ -6222,9 +8341,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ChannelUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(ChannelUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ChannelUid.Length != 0) {
@@ -6237,6 +8372,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorDeleteRequest other) {
       if (other == null) {
         return;
@@ -6248,7 +8384,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6261,27 +8401,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ChannelUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorListResponse : pb::IMessage<TwoFactorListResponse> {
+  public sealed partial class TwoFactorListResponse : pb::IMessage<TwoFactorListResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorListResponse> _parser = new pb::MessageParser<TwoFactorListResponse>(() => new TwoFactorListResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorListResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorListResponse() {
       OnConstruction();
     }
@@ -6289,6 +8457,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorListResponse(TwoFactorListResponse other) : this() {
       channels_ = other.channels_.Clone();
       expireOn_ = other.expireOn_;
@@ -6296,6 +8465,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorListResponse Clone() {
       return new TwoFactorListResponse(this);
     }
@@ -6306,6 +8476,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.TwoFactorChannelInfo.Parser);
     private readonly pbc::RepeatedField<global::Authentication.TwoFactorChannelInfo> channels_ = new pbc::RepeatedField<global::Authentication.TwoFactorChannelInfo>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.TwoFactorChannelInfo> Channels {
       get { return channels_; }
     }
@@ -6314,6 +8485,7 @@ namespace Authentication {
     public const int ExpireOnFieldNumber = 2;
     private long expireOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ExpireOn {
       get { return expireOn_; }
       set {
@@ -6322,11 +8494,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorListResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorListResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6340,6 +8514,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= channels_.GetHashCode();
@@ -6351,12 +8526,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       channels_.WriteTo(output, _repeated_channels_codec);
       if (ExpireOn != 0L) {
         output.WriteRawTag(16);
@@ -6365,9 +8545,26 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      channels_.WriteTo(ref output, _repeated_channels_codec);
+      if (ExpireOn != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ExpireOn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += channels_.CalculateSize(_repeated_channels_codec);
@@ -6381,6 +8578,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorListResponse other) {
       if (other == null) {
         return;
@@ -6393,7 +8591,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6410,27 +8612,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            channels_.AddEntriesFrom(ref input, _repeated_channels_codec);
+            break;
+          }
+          case 16: {
+            ExpireOn = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorUpdateExpirationRequest : pb::IMessage<TwoFactorUpdateExpirationRequest> {
+  public sealed partial class TwoFactorUpdateExpirationRequest : pb::IMessage<TwoFactorUpdateExpirationRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorUpdateExpirationRequest> _parser = new pb::MessageParser<TwoFactorUpdateExpirationRequest>(() => new TwoFactorUpdateExpirationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorUpdateExpirationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorUpdateExpirationRequest() {
       OnConstruction();
     }
@@ -6438,12 +8672,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorUpdateExpirationRequest(TwoFactorUpdateExpirationRequest other) : this() {
       expireIn_ = other.expireIn_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorUpdateExpirationRequest Clone() {
       return new TwoFactorUpdateExpirationRequest(this);
     }
@@ -6452,6 +8688,7 @@ namespace Authentication {
     public const int ExpireInFieldNumber = 1;
     private global::Authentication.TwoFactorExpiration expireIn_ = global::Authentication.TwoFactorExpiration.TwoFaExpImmediately;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorExpiration ExpireIn {
       get { return expireIn_; }
       set {
@@ -6460,11 +8697,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorUpdateExpirationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorUpdateExpirationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6477,6 +8716,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ExpireIn != global::Authentication.TwoFactorExpiration.TwoFaExpImmediately) hash ^= ExpireIn.GetHashCode();
@@ -6487,12 +8727,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ExpireIn != global::Authentication.TwoFactorExpiration.TwoFaExpImmediately) {
         output.WriteRawTag(8);
         output.WriteEnum((int) ExpireIn);
@@ -6500,9 +8745,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ExpireIn != global::Authentication.TwoFactorExpiration.TwoFaExpImmediately) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) ExpireIn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ExpireIn != global::Authentication.TwoFactorExpiration.TwoFaExpImmediately) {
@@ -6515,6 +8776,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorUpdateExpirationRequest other) {
       if (other == null) {
         return;
@@ -6526,7 +8788,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6539,27 +8805,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ExpireIn = (global::Authentication.TwoFactorExpiration) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorValidateRequest : pb::IMessage<TwoFactorValidateRequest> {
+  public sealed partial class TwoFactorValidateRequest : pb::IMessage<TwoFactorValidateRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorValidateRequest> _parser = new pb::MessageParser<TwoFactorValidateRequest>(() => new TwoFactorValidateRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorValidateRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorValidateRequest() {
       OnConstruction();
     }
@@ -6567,6 +8861,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorValidateRequest(TwoFactorValidateRequest other) : this() {
       encryptedLoginToken_ = other.encryptedLoginToken_;
       valueType_ = other.valueType_;
@@ -6577,6 +8872,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorValidateRequest Clone() {
       return new TwoFactorValidateRequest(this);
     }
@@ -6585,6 +8881,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 1;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -6596,6 +8893,7 @@ namespace Authentication {
     public const int ValueTypeFieldNumber = 2;
     private global::Authentication.TwoFactorValueType valueType_ = global::Authentication.TwoFactorValueType.TwoFaCodeNone;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorValueType ValueType {
       get { return valueType_; }
       set {
@@ -6607,6 +8905,7 @@ namespace Authentication {
     public const int ValueFieldNumber = 3;
     private string value_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -6618,6 +8917,7 @@ namespace Authentication {
     public const int ChannelUidFieldNumber = 4;
     private pb::ByteString channelUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ChannelUid {
       get { return channelUid_; }
       set {
@@ -6629,6 +8929,7 @@ namespace Authentication {
     public const int ExpireInFieldNumber = 5;
     private global::Authentication.TwoFactorExpiration expireIn_ = global::Authentication.TwoFactorExpiration.TwoFaExpImmediately;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorExpiration ExpireIn {
       get { return expireIn_; }
       set {
@@ -6637,11 +8938,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorValidateRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorValidateRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6658,6 +8961,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedLoginToken.Length != 0) hash ^= EncryptedLoginToken.GetHashCode();
@@ -6672,12 +8976,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedLoginToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedLoginToken);
@@ -6701,9 +9010,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (ValueType != global::Authentication.TwoFactorValueType.TwoFaCodeNone) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) ValueType);
+      }
+      if (Value.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Value);
+      }
+      if (ChannelUid.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(ChannelUid);
+      }
+      if (ExpireIn != global::Authentication.TwoFactorExpiration.TwoFaExpImmediately) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) ExpireIn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedLoginToken.Length != 0) {
@@ -6728,6 +9069,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorValidateRequest other) {
       if (other == null) {
         return;
@@ -6751,7 +9093,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6780,27 +9126,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            ValueType = (global::Authentication.TwoFactorValueType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            Value = input.ReadString();
+            break;
+          }
+          case 34: {
+            ChannelUid = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            ExpireIn = (global::Authentication.TwoFactorExpiration) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorValidateResponse : pb::IMessage<TwoFactorValidateResponse> {
+  public sealed partial class TwoFactorValidateResponse : pb::IMessage<TwoFactorValidateResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorValidateResponse> _parser = new pb::MessageParser<TwoFactorValidateResponse>(() => new TwoFactorValidateResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorValidateResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorValidateResponse() {
       OnConstruction();
     }
@@ -6808,12 +9198,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorValidateResponse(TwoFactorValidateResponse other) : this() {
       encryptedLoginToken_ = other.encryptedLoginToken_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorValidateResponse Clone() {
       return new TwoFactorValidateResponse(this);
     }
@@ -6822,6 +9214,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 1;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -6830,11 +9223,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorValidateResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorValidateResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -6847,6 +9242,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedLoginToken.Length != 0) hash ^= EncryptedLoginToken.GetHashCode();
@@ -6857,12 +9253,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedLoginToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedLoginToken);
@@ -6870,9 +9271,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedLoginToken.Length != 0) {
@@ -6885,6 +9302,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorValidateResponse other) {
       if (other == null) {
         return;
@@ -6896,7 +9314,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -6909,27 +9331,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TwoFactorSendPushRequest : pb::IMessage<TwoFactorSendPushRequest> {
+  public sealed partial class TwoFactorSendPushRequest : pb::IMessage<TwoFactorSendPushRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TwoFactorSendPushRequest> _parser = new pb::MessageParser<TwoFactorSendPushRequest>(() => new TwoFactorSendPushRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TwoFactorSendPushRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorSendPushRequest() {
       OnConstruction();
     }
@@ -6937,6 +9387,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorSendPushRequest(TwoFactorSendPushRequest other) : this() {
       encryptedLoginToken_ = other.encryptedLoginToken_;
       pushType_ = other.pushType_;
@@ -6946,6 +9397,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TwoFactorSendPushRequest Clone() {
       return new TwoFactorSendPushRequest(this);
     }
@@ -6954,6 +9406,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 1;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -6965,6 +9418,7 @@ namespace Authentication {
     public const int PushTypeFieldNumber = 2;
     private global::Authentication.TwoFactorPushType pushType_ = global::Authentication.TwoFactorPushType.TwoFaPushNone;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorPushType PushType {
       get { return pushType_; }
       set {
@@ -6976,6 +9430,7 @@ namespace Authentication {
     public const int ChannelUidFieldNumber = 3;
     private pb::ByteString channelUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ChannelUid {
       get { return channelUid_; }
       set {
@@ -6990,6 +9445,7 @@ namespace Authentication {
     /// for TWO_FA_PUSH_KEEPER and TWO_FA_PUSH_DUO_PUSH
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TwoFactorExpiration ExpireIn {
       get { return expireIn_; }
       set {
@@ -6998,11 +9454,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TwoFactorSendPushRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TwoFactorSendPushRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7018,6 +9476,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedLoginToken.Length != 0) hash ^= EncryptedLoginToken.GetHashCode();
@@ -7031,12 +9490,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedLoginToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedLoginToken);
@@ -7056,9 +9520,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (PushType != global::Authentication.TwoFactorPushType.TwoFaPushNone) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) PushType);
+      }
+      if (ChannelUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(ChannelUid);
+      }
+      if (ExpireIn != global::Authentication.TwoFactorExpiration.TwoFaExpImmediately) {
+        output.WriteRawTag(32);
+        output.WriteEnum((int) ExpireIn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedLoginToken.Length != 0) {
@@ -7080,6 +9572,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TwoFactorSendPushRequest other) {
       if (other == null) {
         return;
@@ -7100,7 +9593,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7125,27 +9622,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            PushType = (global::Authentication.TwoFactorPushType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            ChannelUid = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            ExpireIn = (global::Authentication.TwoFactorExpiration) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class License : pb::IMessage<License> {
+  public sealed partial class License : pb::IMessage<License>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<License> _parser = new pb::MessageParser<License>(() => new License());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<License> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public License() {
       OnConstruction();
     }
@@ -7153,6 +9690,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public License(License other) : this() {
       created_ = other.created_;
       expiration_ = other.expiration_;
@@ -7163,6 +9701,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public License Clone() {
       return new License(this);
     }
@@ -7171,6 +9710,7 @@ namespace Authentication {
     public const int CreatedFieldNumber = 1;
     private long created_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Created {
       get { return created_; }
       set {
@@ -7182,6 +9722,7 @@ namespace Authentication {
     public const int ExpirationFieldNumber = 2;
     private long expiration_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Expiration {
       get { return expiration_; }
       set {
@@ -7193,6 +9734,7 @@ namespace Authentication {
     public const int LicenseStatusFieldNumber = 3;
     private global::Authentication.LicenseStatus licenseStatus_ = global::Authentication.LicenseStatus.Other;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.LicenseStatus LicenseStatus {
       get { return licenseStatus_; }
       set {
@@ -7204,6 +9746,7 @@ namespace Authentication {
     public const int PaidFieldNumber = 4;
     private bool paid_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Paid {
       get { return paid_; }
       set {
@@ -7215,6 +9758,7 @@ namespace Authentication {
     public const int MessageFieldNumber = 5;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -7223,11 +9767,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as License);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(License other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7244,6 +9790,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Created != 0L) hash ^= Created.GetHashCode();
@@ -7258,12 +9805,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Created != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(Created);
@@ -7287,9 +9839,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Created != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Created);
+      }
+      if (Expiration != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(Expiration);
+      }
+      if (LicenseStatus != global::Authentication.LicenseStatus.Other) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) LicenseStatus);
+      }
+      if (Paid != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(Paid);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Created != 0L) {
@@ -7314,6 +9898,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(License other) {
       if (other == null) {
         return;
@@ -7337,7 +9922,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7366,27 +9955,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Created = input.ReadInt64();
+            break;
+          }
+          case 16: {
+            Expiration = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            LicenseStatus = (global::Authentication.LicenseStatus) input.ReadEnum();
+            break;
+          }
+          case 32: {
+            Paid = input.ReadBool();
+            break;
+          }
+          case 42: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class OwnerlessRecord : pb::IMessage<OwnerlessRecord> {
+  public sealed partial class OwnerlessRecord : pb::IMessage<OwnerlessRecord>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<OwnerlessRecord> _parser = new pb::MessageParser<OwnerlessRecord>(() => new OwnerlessRecord());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<OwnerlessRecord> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[30]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public OwnerlessRecord() {
       OnConstruction();
     }
@@ -7394,6 +10027,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public OwnerlessRecord(OwnerlessRecord other) : this() {
       recordUid_ = other.recordUid_;
       recordKey_ = other.recordKey_;
@@ -7402,6 +10036,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public OwnerlessRecord Clone() {
       return new OwnerlessRecord(this);
     }
@@ -7413,6 +10048,7 @@ namespace Authentication {
     /// used in get request, set request, set response
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -7427,6 +10063,7 @@ namespace Authentication {
     /// used in set request
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordKey {
       get { return recordKey_; }
       set {
@@ -7441,6 +10078,7 @@ namespace Authentication {
     /// used in set response
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Status {
       get { return status_; }
       set {
@@ -7449,11 +10087,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as OwnerlessRecord);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(OwnerlessRecord other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7468,6 +10108,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -7480,12 +10121,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -7501,9 +10147,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (RecordKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(RecordKey);
+      }
+      if (Status != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Status);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -7522,6 +10192,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(OwnerlessRecord other) {
       if (other == null) {
         return;
@@ -7539,7 +10210,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7560,27 +10235,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            RecordKey = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            Status = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class OwnerlessRecords : pb::IMessage<OwnerlessRecords> {
+  public sealed partial class OwnerlessRecords : pb::IMessage<OwnerlessRecords>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<OwnerlessRecords> _parser = new pb::MessageParser<OwnerlessRecords>(() => new OwnerlessRecords());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<OwnerlessRecords> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[31]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public OwnerlessRecords() {
       OnConstruction();
     }
@@ -7588,12 +10299,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public OwnerlessRecords(OwnerlessRecords other) : this() {
       ownerlessRecord_ = other.ownerlessRecord_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public OwnerlessRecords Clone() {
       return new OwnerlessRecords(this);
     }
@@ -7604,16 +10317,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.OwnerlessRecord.Parser);
     private readonly pbc::RepeatedField<global::Authentication.OwnerlessRecord> ownerlessRecord_ = new pbc::RepeatedField<global::Authentication.OwnerlessRecord>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.OwnerlessRecord> OwnerlessRecord {
       get { return ownerlessRecord_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as OwnerlessRecords);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(OwnerlessRecords other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7626,6 +10342,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= ownerlessRecord_.GetHashCode();
@@ -7636,19 +10353,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       ownerlessRecord_.WriteTo(output, _repeated_ownerlessRecord_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      ownerlessRecord_.WriteTo(ref output, _repeated_ownerlessRecord_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += ownerlessRecord_.CalculateSize(_repeated_ownerlessRecord_codec);
@@ -7659,6 +10394,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(OwnerlessRecords other) {
       if (other == null) {
         return;
@@ -7668,7 +10404,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -7681,27 +10421,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ownerlessRecord_.AddEntriesFrom(ref input, _repeated_ownerlessRecord_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class UserAuthRequest : pb::IMessage<UserAuthRequest> {
+  public sealed partial class UserAuthRequest : pb::IMessage<UserAuthRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<UserAuthRequest> _parser = new pb::MessageParser<UserAuthRequest>(() => new UserAuthRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UserAuthRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[32]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserAuthRequest() {
       OnConstruction();
     }
@@ -7709,6 +10477,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserAuthRequest(UserAuthRequest other) : this() {
       uid_ = other.uid_;
       salt_ = other.salt_;
@@ -7723,6 +10492,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserAuthRequest Clone() {
       return new UserAuthRequest(this);
     }
@@ -7731,6 +10501,7 @@ namespace Authentication {
     public const int UidFieldNumber = 1;
     private pb::ByteString uid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Uid {
       get { return uid_; }
       set {
@@ -7742,6 +10513,7 @@ namespace Authentication {
     public const int SaltFieldNumber = 2;
     private pb::ByteString salt_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Salt {
       get { return salt_; }
       set {
@@ -7753,6 +10525,7 @@ namespace Authentication {
     public const int IterationsFieldNumber = 3;
     private int iterations_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Iterations {
       get { return iterations_; }
       set {
@@ -7764,6 +10537,7 @@ namespace Authentication {
     public const int EncryptedClientKeyFieldNumber = 4;
     private pb::ByteString encryptedClientKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedClientKey {
       get { return encryptedClientKey_; }
       set {
@@ -7775,6 +10549,7 @@ namespace Authentication {
     public const int AuthHashFieldNumber = 5;
     private pb::ByteString authHash_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AuthHash {
       get { return authHash_; }
       set {
@@ -7786,6 +10561,7 @@ namespace Authentication {
     public const int EncryptedDataKeyFieldNumber = 6;
     private pb::ByteString encryptedDataKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDataKey {
       get { return encryptedDataKey_; }
       set {
@@ -7797,6 +10573,7 @@ namespace Authentication {
     public const int LoginTypeFieldNumber = 7;
     private global::Authentication.LoginType loginType_ = global::Authentication.LoginType.Normal;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.LoginType LoginType {
       get { return loginType_; }
       set {
@@ -7808,6 +10585,7 @@ namespace Authentication {
     public const int NameFieldNumber = 8;
     private string name_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -7819,6 +10597,7 @@ namespace Authentication {
     public const int AlgorithmFieldNumber = 9;
     private int algorithm_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Algorithm {
       get { return algorithm_; }
       set {
@@ -7827,11 +10606,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UserAuthRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UserAuthRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -7852,6 +10633,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Uid.Length != 0) hash ^= Uid.GetHashCode();
@@ -7870,12 +10652,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Uid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(Uid);
@@ -7915,9 +10702,57 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Uid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Uid);
+      }
+      if (Salt.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Salt);
+      }
+      if (Iterations != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Iterations);
+      }
+      if (EncryptedClientKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(EncryptedClientKey);
+      }
+      if (AuthHash.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(AuthHash);
+      }
+      if (EncryptedDataKey.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(EncryptedDataKey);
+      }
+      if (LoginType != global::Authentication.LoginType.Normal) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) LoginType);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(Name);
+      }
+      if (Algorithm != 0) {
+        output.WriteRawTag(72);
+        output.WriteInt32(Algorithm);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Uid.Length != 0) {
@@ -7954,6 +10789,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UserAuthRequest other) {
       if (other == null) {
         return;
@@ -7989,7 +10825,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8034,27 +10874,87 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Uid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Salt = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            Iterations = input.ReadInt32();
+            break;
+          }
+          case 34: {
+            EncryptedClientKey = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            AuthHash = input.ReadBytes();
+            break;
+          }
+          case 50: {
+            EncryptedDataKey = input.ReadBytes();
+            break;
+          }
+          case 56: {
+            LoginType = (global::Authentication.LoginType) input.ReadEnum();
+            break;
+          }
+          case 66: {
+            Name = input.ReadString();
+            break;
+          }
+          case 72: {
+            Algorithm = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class UidRequest : pb::IMessage<UidRequest> {
+  public sealed partial class UidRequest : pb::IMessage<UidRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<UidRequest> _parser = new pb::MessageParser<UidRequest>(() => new UidRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UidRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[33]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UidRequest() {
       OnConstruction();
     }
@@ -8062,12 +10962,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UidRequest(UidRequest other) : this() {
       uid_ = other.uid_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UidRequest Clone() {
       return new UidRequest(this);
     }
@@ -8078,16 +10980,19 @@ namespace Authentication {
         = pb::FieldCodec.ForBytes(10);
     private readonly pbc::RepeatedField<pb::ByteString> uid_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> Uid {
       get { return uid_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UidRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UidRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -8100,6 +11005,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= uid_.GetHashCode();
@@ -8110,19 +11016,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       uid_.WriteTo(output, _repeated_uid_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      uid_.WriteTo(ref output, _repeated_uid_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += uid_.CalculateSize(_repeated_uid_codec);
@@ -8133,6 +11057,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UidRequest other) {
       if (other == null) {
         return;
@@ -8142,7 +11067,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8155,27 +11084,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            uid_.AddEntriesFrom(ref input, _repeated_uid_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceUpdateRequest : pb::IMessage<DeviceUpdateRequest> {
+  public sealed partial class DeviceUpdateRequest : pb::IMessage<DeviceUpdateRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceUpdateRequest> _parser = new pb::MessageParser<DeviceUpdateRequest>(() => new DeviceUpdateRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceUpdateRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[34]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceUpdateRequest() {
       OnConstruction();
     }
@@ -8183,6 +11140,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceUpdateRequest(DeviceUpdateRequest other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       clientVersion_ = other.clientVersion_;
@@ -8193,6 +11151,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceUpdateRequest Clone() {
       return new DeviceUpdateRequest(this);
     }
@@ -8201,6 +11160,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -8212,6 +11172,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 2;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -8223,6 +11184,7 @@ namespace Authentication {
     public const int DeviceNameFieldNumber = 3;
     private string deviceName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DeviceName {
       get { return deviceName_; }
       set {
@@ -8234,6 +11196,7 @@ namespace Authentication {
     public const int DevicePublicKeyFieldNumber = 4;
     private pb::ByteString devicePublicKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString DevicePublicKey {
       get { return devicePublicKey_; }
       set {
@@ -8245,6 +11208,7 @@ namespace Authentication {
     public const int DeviceStatusFieldNumber = 5;
     private global::Authentication.DeviceStatus deviceStatus_ = global::Authentication.DeviceStatus.DeviceNeedsApproval;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.DeviceStatus DeviceStatus {
       get { return deviceStatus_; }
       set {
@@ -8253,11 +11217,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceUpdateRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceUpdateRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -8274,6 +11240,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -8288,12 +11255,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -8317,9 +11289,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientVersion);
+      }
+      if (DeviceName.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(DeviceName);
+      }
+      if (DevicePublicKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(DevicePublicKey);
+      }
+      if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DeviceStatus);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -8344,6 +11348,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceUpdateRequest other) {
       if (other == null) {
         return;
@@ -8367,7 +11372,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8396,27 +11405,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 26: {
+            DeviceName = input.ReadString();
+            break;
+          }
+          case 34: {
+            DevicePublicKey = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            DeviceStatus = (global::Authentication.DeviceStatus) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class RegisterDeviceInRegionRequest : pb::IMessage<RegisterDeviceInRegionRequest> {
+  public sealed partial class RegisterDeviceInRegionRequest : pb::IMessage<RegisterDeviceInRegionRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<RegisterDeviceInRegionRequest> _parser = new pb::MessageParser<RegisterDeviceInRegionRequest>(() => new RegisterDeviceInRegionRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RegisterDeviceInRegionRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[35]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegisterDeviceInRegionRequest() {
       OnConstruction();
     }
@@ -8424,6 +11477,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegisterDeviceInRegionRequest(RegisterDeviceInRegionRequest other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       clientVersion_ = other.clientVersion_;
@@ -8433,6 +11487,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegisterDeviceInRegionRequest Clone() {
       return new RegisterDeviceInRegionRequest(this);
     }
@@ -8441,6 +11496,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -8452,6 +11508,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 2;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -8463,6 +11520,7 @@ namespace Authentication {
     public const int DeviceNameFieldNumber = 3;
     private string deviceName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DeviceName {
       get { return deviceName_; }
       set {
@@ -8474,6 +11532,7 @@ namespace Authentication {
     public const int DevicePublicKeyFieldNumber = 4;
     private pb::ByteString devicePublicKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString DevicePublicKey {
       get { return devicePublicKey_; }
       set {
@@ -8482,11 +11541,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RegisterDeviceInRegionRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RegisterDeviceInRegionRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -8502,6 +11563,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -8515,12 +11577,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -8540,9 +11607,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientVersion);
+      }
+      if (DeviceName.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(DeviceName);
+      }
+      if (DevicePublicKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(DevicePublicKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -8564,6 +11659,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RegisterDeviceInRegionRequest other) {
       if (other == null) {
         return;
@@ -8584,7 +11680,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -8609,27 +11709,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 26: {
+            DeviceName = input.ReadString();
+            break;
+          }
+          case 34: {
+            DevicePublicKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class RegistrationRequest : pb::IMessage<RegistrationRequest> {
+  public sealed partial class RegistrationRequest : pb::IMessage<RegistrationRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<RegistrationRequest> _parser = new pb::MessageParser<RegistrationRequest>(() => new RegistrationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RegistrationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[36]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegistrationRequest() {
       OnConstruction();
     }
@@ -8637,6 +11777,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegistrationRequest(RegistrationRequest other) : this() {
       authRequest_ = other.authRequest_ != null ? other.authRequest_.Clone() : null;
       userAuthRequest_ = other.userAuthRequest_ != null ? other.userAuthRequest_.Clone() : null;
@@ -8652,6 +11793,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegistrationRequest Clone() {
       return new RegistrationRequest(this);
     }
@@ -8660,6 +11802,7 @@ namespace Authentication {
     public const int AuthRequestFieldNumber = 1;
     private global::Authentication.AuthRequest authRequest_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.AuthRequest AuthRequest {
       get { return authRequest_; }
       set {
@@ -8671,6 +11814,7 @@ namespace Authentication {
     public const int UserAuthRequestFieldNumber = 2;
     private global::Authentication.UserAuthRequest userAuthRequest_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.UserAuthRequest UserAuthRequest {
       get { return userAuthRequest_; }
       set {
@@ -8685,6 +11829,7 @@ namespace Authentication {
     /// encrypted with the data key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedClientKey {
       get { return encryptedClientKey_; }
       set {
@@ -8699,6 +11844,7 @@ namespace Authentication {
     /// encrypted with the data key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedPrivateKey {
       get { return encryptedPrivateKey_; }
       set {
@@ -8710,6 +11856,7 @@ namespace Authentication {
     public const int PublicKeyFieldNumber = 5;
     private pb::ByteString publicKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString PublicKey {
       get { return publicKey_; }
       set {
@@ -8721,6 +11868,7 @@ namespace Authentication {
     public const int VerificationCodeFieldNumber = 6;
     private string verificationCode_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string VerificationCode {
       get { return verificationCode_; }
       set {
@@ -8735,6 +11883,7 @@ namespace Authentication {
     /// these will be ignored once the v2 clients are obsolete
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString DeprecatedAuthHashHash {
       get { return deprecatedAuthHashHash_; }
       set {
@@ -8746,6 +11895,7 @@ namespace Authentication {
     public const int DeprecatedEncryptedClientKeyFieldNumber = 8;
     private pb::ByteString deprecatedEncryptedClientKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString DeprecatedEncryptedClientKey {
       get { return deprecatedEncryptedClientKey_; }
       set {
@@ -8757,6 +11907,7 @@ namespace Authentication {
     public const int DeprecatedEncryptedPrivateKeyFieldNumber = 9;
     private pb::ByteString deprecatedEncryptedPrivateKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString DeprecatedEncryptedPrivateKey {
       get { return deprecatedEncryptedPrivateKey_; }
       set {
@@ -8768,6 +11919,7 @@ namespace Authentication {
     public const int DeprecatedEncryptionParamsFieldNumber = 10;
     private pb::ByteString deprecatedEncryptionParams_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString DeprecatedEncryptionParams {
       get { return deprecatedEncryptionParams_; }
       set {
@@ -8776,11 +11928,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RegistrationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RegistrationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -8802,6 +11956,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (authRequest_ != null) hash ^= AuthRequest.GetHashCode();
@@ -8821,12 +11976,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (authRequest_ != null) {
         output.WriteRawTag(10);
         output.WriteMessage(AuthRequest);
@@ -8870,9 +12030,61 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (authRequest_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(AuthRequest);
+      }
+      if (userAuthRequest_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(UserAuthRequest);
+      }
+      if (EncryptedClientKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(EncryptedClientKey);
+      }
+      if (EncryptedPrivateKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(EncryptedPrivateKey);
+      }
+      if (PublicKey.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(PublicKey);
+      }
+      if (VerificationCode.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(VerificationCode);
+      }
+      if (DeprecatedAuthHashHash.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteBytes(DeprecatedAuthHashHash);
+      }
+      if (DeprecatedEncryptedClientKey.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteBytes(DeprecatedEncryptedClientKey);
+      }
+      if (DeprecatedEncryptedPrivateKey.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteBytes(DeprecatedEncryptedPrivateKey);
+      }
+      if (DeprecatedEncryptionParams.Length != 0) {
+        output.WriteRawTag(82);
+        output.WriteBytes(DeprecatedEncryptionParams);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (authRequest_ != null) {
@@ -8912,6 +12124,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RegistrationRequest other) {
       if (other == null) {
         return;
@@ -8956,7 +12169,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9011,27 +12228,97 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (authRequest_ == null) {
+              AuthRequest = new global::Authentication.AuthRequest();
+            }
+            input.ReadMessage(AuthRequest);
+            break;
+          }
+          case 18: {
+            if (userAuthRequest_ == null) {
+              UserAuthRequest = new global::Authentication.UserAuthRequest();
+            }
+            input.ReadMessage(UserAuthRequest);
+            break;
+          }
+          case 26: {
+            EncryptedClientKey = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            EncryptedPrivateKey = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            PublicKey = input.ReadBytes();
+            break;
+          }
+          case 50: {
+            VerificationCode = input.ReadString();
+            break;
+          }
+          case 58: {
+            DeprecatedAuthHashHash = input.ReadBytes();
+            break;
+          }
+          case 66: {
+            DeprecatedEncryptedClientKey = input.ReadBytes();
+            break;
+          }
+          case 74: {
+            DeprecatedEncryptedPrivateKey = input.ReadBytes();
+            break;
+          }
+          case 82: {
+            DeprecatedEncryptionParams = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ConvertUserToV3Request : pb::IMessage<ConvertUserToV3Request> {
+  public sealed partial class ConvertUserToV3Request : pb::IMessage<ConvertUserToV3Request>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ConvertUserToV3Request> _parser = new pb::MessageParser<ConvertUserToV3Request>(() => new ConvertUserToV3Request());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ConvertUserToV3Request> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[37]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ConvertUserToV3Request() {
       OnConstruction();
     }
@@ -9039,6 +12326,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ConvertUserToV3Request(ConvertUserToV3Request other) : this() {
       authRequest_ = other.authRequest_ != null ? other.authRequest_.Clone() : null;
       userAuthRequest_ = other.userAuthRequest_ != null ? other.userAuthRequest_.Clone() : null;
@@ -9049,6 +12337,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ConvertUserToV3Request Clone() {
       return new ConvertUserToV3Request(this);
     }
@@ -9057,6 +12346,7 @@ namespace Authentication {
     public const int AuthRequestFieldNumber = 1;
     private global::Authentication.AuthRequest authRequest_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.AuthRequest AuthRequest {
       get { return authRequest_; }
       set {
@@ -9068,6 +12358,7 @@ namespace Authentication {
     public const int UserAuthRequestFieldNumber = 2;
     private global::Authentication.UserAuthRequest userAuthRequest_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.UserAuthRequest UserAuthRequest {
       get { return userAuthRequest_; }
       set {
@@ -9082,6 +12373,7 @@ namespace Authentication {
     /// gcm encrypted with the data key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedClientKey {
       get { return encryptedClientKey_; }
       set {
@@ -9096,6 +12388,7 @@ namespace Authentication {
     /// gcm encrypted with the data key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedPrivateKey {
       get { return encryptedPrivateKey_; }
       set {
@@ -9110,6 +12403,7 @@ namespace Authentication {
     /// TODO add alternate passwords
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString PublicKey {
       get { return publicKey_; }
       set {
@@ -9118,11 +12412,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ConvertUserToV3Request);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ConvertUserToV3Request other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9139,6 +12435,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (authRequest_ != null) hash ^= AuthRequest.GetHashCode();
@@ -9153,12 +12450,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (authRequest_ != null) {
         output.WriteRawTag(10);
         output.WriteMessage(AuthRequest);
@@ -9182,9 +12484,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (authRequest_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(AuthRequest);
+      }
+      if (userAuthRequest_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(UserAuthRequest);
+      }
+      if (EncryptedClientKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(EncryptedClientKey);
+      }
+      if (EncryptedPrivateKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(EncryptedPrivateKey);
+      }
+      if (PublicKey.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(PublicKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (authRequest_ != null) {
@@ -9209,6 +12543,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ConvertUserToV3Request other) {
       if (other == null) {
         return;
@@ -9238,7 +12573,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9273,27 +12612,77 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (authRequest_ == null) {
+              AuthRequest = new global::Authentication.AuthRequest();
+            }
+            input.ReadMessage(AuthRequest);
+            break;
+          }
+          case 18: {
+            if (userAuthRequest_ == null) {
+              UserAuthRequest = new global::Authentication.UserAuthRequest();
+            }
+            input.ReadMessage(UserAuthRequest);
+            break;
+          }
+          case 26: {
+            EncryptedClientKey = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            EncryptedPrivateKey = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            PublicKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class RevisionResponse : pb::IMessage<RevisionResponse> {
+  public sealed partial class RevisionResponse : pb::IMessage<RevisionResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<RevisionResponse> _parser = new pb::MessageParser<RevisionResponse>(() => new RevisionResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RevisionResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[38]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RevisionResponse() {
       OnConstruction();
     }
@@ -9301,12 +12690,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RevisionResponse(RevisionResponse other) : this() {
       revision_ = other.revision_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RevisionResponse Clone() {
       return new RevisionResponse(this);
     }
@@ -9315,6 +12706,7 @@ namespace Authentication {
     public const int RevisionFieldNumber = 1;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -9323,11 +12715,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RevisionResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RevisionResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9340,6 +12734,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Revision != 0L) hash ^= Revision.GetHashCode();
@@ -9350,12 +12745,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Revision != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(Revision);
@@ -9363,9 +12763,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Revision != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Revision);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Revision != 0L) {
@@ -9378,6 +12794,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RevisionResponse other) {
       if (other == null) {
         return;
@@ -9389,7 +12806,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9402,27 +12823,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Revision = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ChangeEmailRequest : pb::IMessage<ChangeEmailRequest> {
+  public sealed partial class ChangeEmailRequest : pb::IMessage<ChangeEmailRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ChangeEmailRequest> _parser = new pb::MessageParser<ChangeEmailRequest>(() => new ChangeEmailRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ChangeEmailRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[39]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeEmailRequest() {
       OnConstruction();
     }
@@ -9430,12 +12879,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeEmailRequest(ChangeEmailRequest other) : this() {
       newEmail_ = other.newEmail_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeEmailRequest Clone() {
       return new ChangeEmailRequest(this);
     }
@@ -9444,6 +12895,7 @@ namespace Authentication {
     public const int NewEmailFieldNumber = 1;
     private string newEmail_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string NewEmail {
       get { return newEmail_; }
       set {
@@ -9452,11 +12904,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ChangeEmailRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ChangeEmailRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9469,6 +12923,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (NewEmail.Length != 0) hash ^= NewEmail.GetHashCode();
@@ -9479,12 +12934,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (NewEmail.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(NewEmail);
@@ -9492,9 +12952,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (NewEmail.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(NewEmail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (NewEmail.Length != 0) {
@@ -9507,6 +12983,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ChangeEmailRequest other) {
       if (other == null) {
         return;
@@ -9518,7 +12995,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9531,27 +13012,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            NewEmail = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ChangeEmailResponse : pb::IMessage<ChangeEmailResponse> {
+  public sealed partial class ChangeEmailResponse : pb::IMessage<ChangeEmailResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ChangeEmailResponse> _parser = new pb::MessageParser<ChangeEmailResponse>(() => new ChangeEmailResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ChangeEmailResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[40]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeEmailResponse() {
       OnConstruction();
     }
@@ -9559,12 +13068,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeEmailResponse(ChangeEmailResponse other) : this() {
       encryptedChangeEmailToken_ = other.encryptedChangeEmailToken_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeEmailResponse Clone() {
       return new ChangeEmailResponse(this);
     }
@@ -9573,6 +13084,7 @@ namespace Authentication {
     public const int EncryptedChangeEmailTokenFieldNumber = 1;
     private pb::ByteString encryptedChangeEmailToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedChangeEmailToken {
       get { return encryptedChangeEmailToken_; }
       set {
@@ -9581,11 +13093,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ChangeEmailResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ChangeEmailResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9598,6 +13112,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedChangeEmailToken.Length != 0) hash ^= EncryptedChangeEmailToken.GetHashCode();
@@ -9608,12 +13123,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedChangeEmailToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedChangeEmailToken);
@@ -9621,9 +13141,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedChangeEmailToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedChangeEmailToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedChangeEmailToken.Length != 0) {
@@ -9636,6 +13172,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ChangeEmailResponse other) {
       if (other == null) {
         return;
@@ -9647,7 +13184,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9660,27 +13201,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedChangeEmailToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class EmailVerificationLinkResponse : pb::IMessage<EmailVerificationLinkResponse> {
+  public sealed partial class EmailVerificationLinkResponse : pb::IMessage<EmailVerificationLinkResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<EmailVerificationLinkResponse> _parser = new pb::MessageParser<EmailVerificationLinkResponse>(() => new EmailVerificationLinkResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<EmailVerificationLinkResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[41]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EmailVerificationLinkResponse() {
       OnConstruction();
     }
@@ -9688,12 +13257,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EmailVerificationLinkResponse(EmailVerificationLinkResponse other) : this() {
       emailVerified_ = other.emailVerified_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EmailVerificationLinkResponse Clone() {
       return new EmailVerificationLinkResponse(this);
     }
@@ -9702,6 +13273,7 @@ namespace Authentication {
     public const int EmailVerifiedFieldNumber = 1;
     private bool emailVerified_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool EmailVerified {
       get { return emailVerified_; }
       set {
@@ -9710,11 +13282,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as EmailVerificationLinkResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(EmailVerificationLinkResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9727,6 +13301,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EmailVerified != false) hash ^= EmailVerified.GetHashCode();
@@ -9737,12 +13312,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EmailVerified != false) {
         output.WriteRawTag(8);
         output.WriteBool(EmailVerified);
@@ -9750,9 +13330,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EmailVerified != false) {
+        output.WriteRawTag(8);
+        output.WriteBool(EmailVerified);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EmailVerified != false) {
@@ -9765,6 +13361,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(EmailVerificationLinkResponse other) {
       if (other == null) {
         return;
@@ -9776,7 +13373,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9789,30 +13390,58 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            EmailVerified = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   /// used in SecurityDataReqeust
   /// </summary>
-  public sealed partial class SecurityData : pb::IMessage<SecurityData> {
+  public sealed partial class SecurityData : pb::IMessage<SecurityData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SecurityData> _parser = new pb::MessageParser<SecurityData>(() => new SecurityData());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SecurityData> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[42]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityData() {
       OnConstruction();
     }
@@ -9820,6 +13449,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityData(SecurityData other) : this() {
       uid_ = other.uid_;
       data_ = other.data_;
@@ -9827,6 +13457,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityData Clone() {
       return new SecurityData(this);
     }
@@ -9835,6 +13466,7 @@ namespace Authentication {
     public const int UidFieldNumber = 1;
     private pb::ByteString uid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Uid {
       get { return uid_; }
       set {
@@ -9846,6 +13478,7 @@ namespace Authentication {
     public const int DataFieldNumber = 2;
     private pb::ByteString data_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Data {
       get { return data_; }
       set {
@@ -9854,11 +13487,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SecurityData);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SecurityData other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -9872,6 +13507,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Uid.Length != 0) hash ^= Uid.GetHashCode();
@@ -9883,12 +13519,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Uid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(Uid);
@@ -9900,9 +13541,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Uid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Uid);
+      }
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Uid.Length != 0) {
@@ -9918,6 +13579,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SecurityData other) {
       if (other == null) {
         return;
@@ -9932,7 +13594,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -9949,30 +13615,62 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Uid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Data = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   /// to update a records security data
   /// </summary>
-  public sealed partial class SecurityDataRequest : pb::IMessage<SecurityDataRequest> {
+  public sealed partial class SecurityDataRequest : pb::IMessage<SecurityDataRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SecurityDataRequest> _parser = new pb::MessageParser<SecurityDataRequest>(() => new SecurityDataRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SecurityDataRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[43]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityDataRequest() {
       OnConstruction();
     }
@@ -9980,6 +13678,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityDataRequest(SecurityDataRequest other) : this() {
       recordSecurityData_ = other.recordSecurityData_.Clone();
       masterPasswordSecurityData_ = other.masterPasswordSecurityData_.Clone();
@@ -9987,6 +13686,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityDataRequest Clone() {
       return new SecurityDataRequest(this);
     }
@@ -9997,6 +13697,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.SecurityData.Parser);
     private readonly pbc::RepeatedField<global::Authentication.SecurityData> recordSecurityData_ = new pbc::RepeatedField<global::Authentication.SecurityData>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.SecurityData> RecordSecurityData {
       get { return recordSecurityData_; }
     }
@@ -10007,16 +13708,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(18, global::Authentication.SecurityData.Parser);
     private readonly pbc::RepeatedField<global::Authentication.SecurityData> masterPasswordSecurityData_ = new pbc::RepeatedField<global::Authentication.SecurityData>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.SecurityData> MasterPasswordSecurityData {
       get { return masterPasswordSecurityData_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SecurityDataRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SecurityDataRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -10030,6 +13734,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= recordSecurityData_.GetHashCode();
@@ -10041,20 +13746,39 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       recordSecurityData_.WriteTo(output, _repeated_recordSecurityData_codec);
       masterPasswordSecurityData_.WriteTo(output, _repeated_masterPasswordSecurityData_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      recordSecurityData_.WriteTo(ref output, _repeated_recordSecurityData_codec);
+      masterPasswordSecurityData_.WriteTo(ref output, _repeated_masterPasswordSecurityData_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += recordSecurityData_.CalculateSize(_repeated_recordSecurityData_codec);
@@ -10066,6 +13790,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SecurityDataRequest other) {
       if (other == null) {
         return;
@@ -10076,7 +13801,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -10093,30 +13822,62 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            recordSecurityData_.AddEntriesFrom(ref input, _repeated_recordSecurityData_codec);
+            break;
+          }
+          case 18: {
+            masterPasswordSecurityData_.AddEntriesFrom(ref input, _repeated_masterPasswordSecurityData_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   /// if mp or not, by user, include reused passwords
   /// </summary>
-  public sealed partial class SecurityReportIncrementalData : pb::IMessage<SecurityReportIncrementalData> {
+  public sealed partial class SecurityReportIncrementalData : pb::IMessage<SecurityReportIncrementalData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SecurityReportIncrementalData> _parser = new pb::MessageParser<SecurityReportIncrementalData>(() => new SecurityReportIncrementalData());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SecurityReportIncrementalData> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[44]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportIncrementalData() {
       OnConstruction();
     }
@@ -10124,6 +13885,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportIncrementalData(SecurityReportIncrementalData other) : this() {
       enterpriseUserId_ = other.enterpriseUserId_;
       currentSecurityData_ = other.currentSecurityData_;
@@ -10134,6 +13896,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportIncrementalData Clone() {
       return new SecurityReportIncrementalData(this);
     }
@@ -10142,6 +13905,7 @@ namespace Authentication {
     public const int EnterpriseUserIdFieldNumber = 1;
     private long enterpriseUserId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long EnterpriseUserId {
       get { return enterpriseUserId_; }
       set {
@@ -10153,6 +13917,7 @@ namespace Authentication {
     public const int CurrentSecurityDataFieldNumber = 2;
     private pb::ByteString currentSecurityData_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString CurrentSecurityData {
       get { return currentSecurityData_; }
       set {
@@ -10164,6 +13929,7 @@ namespace Authentication {
     public const int CurrentSecurityDataRevisionFieldNumber = 3;
     private long currentSecurityDataRevision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long CurrentSecurityDataRevision {
       get { return currentSecurityDataRevision_; }
       set {
@@ -10175,6 +13941,7 @@ namespace Authentication {
     public const int OldSecurityDataFieldNumber = 4;
     private pb::ByteString oldSecurityData_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString OldSecurityData {
       get { return oldSecurityData_; }
       set {
@@ -10186,6 +13953,7 @@ namespace Authentication {
     public const int OldSecurityDataRevisionFieldNumber = 5;
     private long oldSecurityDataRevision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long OldSecurityDataRevision {
       get { return oldSecurityDataRevision_; }
       set {
@@ -10194,11 +13962,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SecurityReportIncrementalData);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SecurityReportIncrementalData other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -10215,6 +13985,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
@@ -10229,12 +14000,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EnterpriseUserId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(EnterpriseUserId);
@@ -10258,9 +14034,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (CurrentSecurityData.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(CurrentSecurityData);
+      }
+      if (CurrentSecurityDataRevision != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(CurrentSecurityDataRevision);
+      }
+      if (OldSecurityData.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(OldSecurityData);
+      }
+      if (OldSecurityDataRevision != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(OldSecurityDataRevision);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EnterpriseUserId != 0L) {
@@ -10285,6 +14093,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SecurityReportIncrementalData other) {
       if (other == null) {
         return;
@@ -10308,7 +14117,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -10337,30 +14150,74 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            CurrentSecurityData = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            CurrentSecurityDataRevision = input.ReadInt64();
+            break;
+          }
+          case 34: {
+            OldSecurityData = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            OldSecurityDataRevision = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   /// used for both get and save
   /// </summary>
-  public sealed partial class SecurityReport : pb::IMessage<SecurityReport> {
+  public sealed partial class SecurityReport : pb::IMessage<SecurityReport>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SecurityReport> _parser = new pb::MessageParser<SecurityReport>(() => new SecurityReport());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SecurityReport> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[45]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReport() {
       OnConstruction();
     }
@@ -10368,6 +14225,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReport(SecurityReport other) : this() {
       enterpriseUserId_ = other.enterpriseUserId_;
       encryptedReportData_ = other.encryptedReportData_;
@@ -10380,6 +14238,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReport Clone() {
       return new SecurityReport(this);
     }
@@ -10388,6 +14247,7 @@ namespace Authentication {
     public const int EnterpriseUserIdFieldNumber = 1;
     private long enterpriseUserId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long EnterpriseUserId {
       get { return enterpriseUserId_; }
       set {
@@ -10399,6 +14259,7 @@ namespace Authentication {
     public const int EncryptedReportDataFieldNumber = 2;
     private pb::ByteString encryptedReportData_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedReportData {
       get { return encryptedReportData_; }
       set {
@@ -10413,6 +14274,7 @@ namespace Authentication {
     /// for save this was returned in get, for get this is the saved revision
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -10427,6 +14289,7 @@ namespace Authentication {
     /// for get not save
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string TwoFactor {
       get { return twoFactor_; }
       set {
@@ -10441,6 +14304,7 @@ namespace Authentication {
     /// for get not save
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long LastLogin {
       get { return lastLogin_; }
       set {
@@ -10452,6 +14316,7 @@ namespace Authentication {
     public const int NumberOfReusedPasswordFieldNumber = 6;
     private int numberOfReusedPassword_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int NumberOfReusedPassword {
       get { return numberOfReusedPassword_; }
       set {
@@ -10465,16 +14330,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(58, global::Authentication.SecurityReportIncrementalData.Parser);
     private readonly pbc::RepeatedField<global::Authentication.SecurityReportIncrementalData> securityReportIncrementalData_ = new pbc::RepeatedField<global::Authentication.SecurityReportIncrementalData>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.SecurityReportIncrementalData> SecurityReportIncrementalData {
       get { return securityReportIncrementalData_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SecurityReport);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SecurityReport other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -10493,6 +14361,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
@@ -10509,12 +14378,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EnterpriseUserId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(EnterpriseUserId);
@@ -10543,9 +14417,46 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (EncryptedReportData.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedReportData);
+      }
+      if (Revision != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(Revision);
+      }
+      if (TwoFactor.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(TwoFactor);
+      }
+      if (LastLogin != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(LastLogin);
+      }
+      if (NumberOfReusedPassword != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(NumberOfReusedPassword);
+      }
+      securityReportIncrementalData_.WriteTo(ref output, _repeated_securityReportIncrementalData_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EnterpriseUserId != 0L) {
@@ -10574,6 +14485,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SecurityReport other) {
       if (other == null) {
         return;
@@ -10601,7 +14513,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -10638,27 +14554,79 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            EncryptedReportData = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            Revision = input.ReadInt64();
+            break;
+          }
+          case 34: {
+            TwoFactor = input.ReadString();
+            break;
+          }
+          case 40: {
+            LastLogin = input.ReadInt64();
+            break;
+          }
+          case 48: {
+            NumberOfReusedPassword = input.ReadInt32();
+            break;
+          }
+          case 58: {
+            securityReportIncrementalData_.AddEntriesFrom(ref input, _repeated_securityReportIncrementalData_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SecurityReportSaveRequest : pb::IMessage<SecurityReportSaveRequest> {
+  public sealed partial class SecurityReportSaveRequest : pb::IMessage<SecurityReportSaveRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SecurityReportSaveRequest> _parser = new pb::MessageParser<SecurityReportSaveRequest>(() => new SecurityReportSaveRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SecurityReportSaveRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[46]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportSaveRequest() {
       OnConstruction();
     }
@@ -10666,12 +14634,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportSaveRequest(SecurityReportSaveRequest other) : this() {
       securityReport_ = other.securityReport_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportSaveRequest Clone() {
       return new SecurityReportSaveRequest(this);
     }
@@ -10682,16 +14652,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.SecurityReport.Parser);
     private readonly pbc::RepeatedField<global::Authentication.SecurityReport> securityReport_ = new pbc::RepeatedField<global::Authentication.SecurityReport>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.SecurityReport> SecurityReport {
       get { return securityReport_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SecurityReportSaveRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SecurityReportSaveRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -10704,6 +14677,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= securityReport_.GetHashCode();
@@ -10714,19 +14688,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       securityReport_.WriteTo(output, _repeated_securityReport_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      securityReport_.WriteTo(ref output, _repeated_securityReport_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += securityReport_.CalculateSize(_repeated_securityReport_codec);
@@ -10737,6 +14729,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SecurityReportSaveRequest other) {
       if (other == null) {
         return;
@@ -10746,7 +14739,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -10759,27 +14756,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            securityReport_.AddEntriesFrom(ref input, _repeated_securityReport_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SecurityReportRequest : pb::IMessage<SecurityReportRequest> {
+  public sealed partial class SecurityReportRequest : pb::IMessage<SecurityReportRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SecurityReportRequest> _parser = new pb::MessageParser<SecurityReportRequest>(() => new SecurityReportRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SecurityReportRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[47]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportRequest() {
       OnConstruction();
     }
@@ -10787,12 +14812,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportRequest(SecurityReportRequest other) : this() {
       fromPage_ = other.fromPage_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportRequest Clone() {
       return new SecurityReportRequest(this);
     }
@@ -10801,6 +14828,7 @@ namespace Authentication {
     public const int FromPageFieldNumber = 1;
     private long fromPage_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long FromPage {
       get { return fromPage_; }
       set {
@@ -10809,11 +14837,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SecurityReportRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SecurityReportRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -10826,6 +14856,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (FromPage != 0L) hash ^= FromPage.GetHashCode();
@@ -10836,12 +14867,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (FromPage != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(FromPage);
@@ -10849,9 +14885,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FromPage != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(FromPage);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (FromPage != 0L) {
@@ -10864,6 +14916,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SecurityReportRequest other) {
       if (other == null) {
         return;
@@ -10875,7 +14928,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -10888,27 +14945,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            FromPage = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SecurityReportResponse : pb::IMessage<SecurityReportResponse> {
+  public sealed partial class SecurityReportResponse : pb::IMessage<SecurityReportResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SecurityReportResponse> _parser = new pb::MessageParser<SecurityReportResponse>(() => new SecurityReportResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SecurityReportResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[48]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportResponse() {
       OnConstruction();
     }
@@ -10916,6 +15001,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportResponse(SecurityReportResponse other) : this() {
       enterprisePrivateKey_ = other.enterprisePrivateKey_;
       securityReport_ = other.securityReport_.Clone();
@@ -10927,6 +15013,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SecurityReportResponse Clone() {
       return new SecurityReportResponse(this);
     }
@@ -10935,6 +15022,7 @@ namespace Authentication {
     public const int EnterprisePrivateKeyFieldNumber = 1;
     private pb::ByteString enterprisePrivateKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EnterprisePrivateKey {
       get { return enterprisePrivateKey_; }
       set {
@@ -10948,6 +15036,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(18, global::Authentication.SecurityReport.Parser);
     private readonly pbc::RepeatedField<global::Authentication.SecurityReport> securityReport_ = new pbc::RepeatedField<global::Authentication.SecurityReport>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.SecurityReport> SecurityReport {
       get { return securityReport_; }
     }
@@ -10959,6 +15048,7 @@ namespace Authentication {
     /// the revision the data was retrieved for
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long AsOfRevision {
       get { return asOfRevision_; }
       set {
@@ -10970,6 +15060,7 @@ namespace Authentication {
     public const int FromPageFieldNumber = 4;
     private long fromPage_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long FromPage {
       get { return fromPage_; }
       set {
@@ -10981,6 +15072,7 @@ namespace Authentication {
     public const int ToPageFieldNumber = 5;
     private long toPage_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long ToPage {
       get { return toPage_; }
       set {
@@ -10992,6 +15084,7 @@ namespace Authentication {
     public const int CompleteFieldNumber = 6;
     private bool complete_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Complete {
       get { return complete_; }
       set {
@@ -11000,11 +15093,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SecurityReportResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SecurityReportResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11022,6 +15117,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EnterprisePrivateKey.Length != 0) hash ^= EnterprisePrivateKey.GetHashCode();
@@ -11037,12 +15133,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EnterprisePrivateKey.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EnterprisePrivateKey);
@@ -11067,9 +15168,42 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EnterprisePrivateKey.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EnterprisePrivateKey);
+      }
+      securityReport_.WriteTo(ref output, _repeated_securityReport_codec);
+      if (AsOfRevision != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(AsOfRevision);
+      }
+      if (FromPage != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(FromPage);
+      }
+      if (ToPage != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(ToPage);
+      }
+      if (Complete != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(Complete);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EnterprisePrivateKey.Length != 0) {
@@ -11095,6 +15229,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SecurityReportResponse other) {
       if (other == null) {
         return;
@@ -11119,7 +15254,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11152,27 +15291,75 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EnterprisePrivateKey = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            securityReport_.AddEntriesFrom(ref input, _repeated_securityReport_codec);
+            break;
+          }
+          case 24: {
+            AsOfRevision = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            FromPage = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            ToPage = input.ReadInt64();
+            break;
+          }
+          case 48: {
+            Complete = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ReusedPasswordsRequest : pb::IMessage<ReusedPasswordsRequest> {
+  public sealed partial class ReusedPasswordsRequest : pb::IMessage<ReusedPasswordsRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ReusedPasswordsRequest> _parser = new pb::MessageParser<ReusedPasswordsRequest>(() => new ReusedPasswordsRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ReusedPasswordsRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[49]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ReusedPasswordsRequest() {
       OnConstruction();
     }
@@ -11180,12 +15367,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ReusedPasswordsRequest(ReusedPasswordsRequest other) : this() {
       count_ = other.count_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ReusedPasswordsRequest Clone() {
       return new ReusedPasswordsRequest(this);
     }
@@ -11194,6 +15383,7 @@ namespace Authentication {
     public const int CountFieldNumber = 1;
     private int count_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Count {
       get { return count_; }
       set {
@@ -11202,11 +15392,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ReusedPasswordsRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ReusedPasswordsRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11219,6 +15411,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Count != 0) hash ^= Count.GetHashCode();
@@ -11229,12 +15422,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Count != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(Count);
@@ -11242,9 +15440,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Count != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Count);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Count != 0) {
@@ -11257,6 +15471,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ReusedPasswordsRequest other) {
       if (other == null) {
         return;
@@ -11268,7 +15483,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11281,27 +15500,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Count = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SummaryConsoleReport : pb::IMessage<SummaryConsoleReport> {
+  public sealed partial class SummaryConsoleReport : pb::IMessage<SummaryConsoleReport>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SummaryConsoleReport> _parser = new pb::MessageParser<SummaryConsoleReport>(() => new SummaryConsoleReport());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SummaryConsoleReport> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[50]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SummaryConsoleReport() {
       OnConstruction();
     }
@@ -11309,6 +15556,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SummaryConsoleReport(SummaryConsoleReport other) : this() {
       reportType_ = other.reportType_;
       reportData_ = other.reportData_;
@@ -11316,6 +15564,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SummaryConsoleReport Clone() {
       return new SummaryConsoleReport(this);
     }
@@ -11324,6 +15573,7 @@ namespace Authentication {
     public const int ReportTypeFieldNumber = 1;
     private int reportType_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int ReportType {
       get { return reportType_; }
       set {
@@ -11335,6 +15585,7 @@ namespace Authentication {
     public const int ReportDataFieldNumber = 2;
     private pb::ByteString reportData_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ReportData {
       get { return reportData_; }
       set {
@@ -11343,11 +15594,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SummaryConsoleReport);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SummaryConsoleReport other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11361,6 +15614,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ReportType != 0) hash ^= ReportType.GetHashCode();
@@ -11372,12 +15626,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ReportType != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(ReportType);
@@ -11389,9 +15648,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ReportType != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(ReportType);
+      }
+      if (ReportData.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ReportData);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ReportType != 0) {
@@ -11407,6 +15686,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SummaryConsoleReport other) {
       if (other == null) {
         return;
@@ -11421,7 +15701,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11438,27 +15722,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ReportType = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            ReportData = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ChangeToKeyTypeOne : pb::IMessage<ChangeToKeyTypeOne> {
+  public sealed partial class ChangeToKeyTypeOne : pb::IMessage<ChangeToKeyTypeOne>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ChangeToKeyTypeOne> _parser = new pb::MessageParser<ChangeToKeyTypeOne>(() => new ChangeToKeyTypeOne());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ChangeToKeyTypeOne> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[51]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOne() {
       OnConstruction();
     }
@@ -11466,6 +15782,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOne(ChangeToKeyTypeOne other) : this() {
       objectType_ = other.objectType_;
       primaryUid_ = other.primaryUid_;
@@ -11475,6 +15792,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOne Clone() {
       return new ChangeToKeyTypeOne(this);
     }
@@ -11483,6 +15801,7 @@ namespace Authentication {
     public const int ObjectTypeFieldNumber = 1;
     private global::Authentication.ObjectTypes objectType_ = global::Authentication.ObjectTypes.Record;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.ObjectTypes ObjectType {
       get { return objectType_; }
       set {
@@ -11494,6 +15813,7 @@ namespace Authentication {
     public const int PrimaryUidFieldNumber = 2;
     private pb::ByteString primaryUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString PrimaryUid {
       get { return primaryUid_; }
       set {
@@ -11505,6 +15825,7 @@ namespace Authentication {
     public const int SecondaryUidFieldNumber = 3;
     private pb::ByteString secondaryUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString SecondaryUid {
       get { return secondaryUid_; }
       set {
@@ -11516,6 +15837,7 @@ namespace Authentication {
     public const int KeyFieldNumber = 4;
     private pb::ByteString key_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Key {
       get { return key_; }
       set {
@@ -11524,11 +15846,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ChangeToKeyTypeOne);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ChangeToKeyTypeOne other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11544,6 +15868,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ObjectType != global::Authentication.ObjectTypes.Record) hash ^= ObjectType.GetHashCode();
@@ -11557,12 +15882,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ObjectType != global::Authentication.ObjectTypes.Record) {
         output.WriteRawTag(8);
         output.WriteEnum((int) ObjectType);
@@ -11582,9 +15912,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ObjectType != global::Authentication.ObjectTypes.Record) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) ObjectType);
+      }
+      if (PrimaryUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(PrimaryUid);
+      }
+      if (SecondaryUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(SecondaryUid);
+      }
+      if (Key.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(Key);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ObjectType != global::Authentication.ObjectTypes.Record) {
@@ -11606,6 +15964,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ChangeToKeyTypeOne other) {
       if (other == null) {
         return;
@@ -11626,7 +15985,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11651,27 +16014,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ObjectType = (global::Authentication.ObjectTypes) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            PrimaryUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            SecondaryUid = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            Key = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ChangeToKeyTypeOneRequest : pb::IMessage<ChangeToKeyTypeOneRequest> {
+  public sealed partial class ChangeToKeyTypeOneRequest : pb::IMessage<ChangeToKeyTypeOneRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ChangeToKeyTypeOneRequest> _parser = new pb::MessageParser<ChangeToKeyTypeOneRequest>(() => new ChangeToKeyTypeOneRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ChangeToKeyTypeOneRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[52]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneRequest() {
       OnConstruction();
     }
@@ -11679,12 +16082,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneRequest(ChangeToKeyTypeOneRequest other) : this() {
       changeToKeyTypeOne_ = other.changeToKeyTypeOne_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneRequest Clone() {
       return new ChangeToKeyTypeOneRequest(this);
     }
@@ -11695,16 +16100,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.ChangeToKeyTypeOne.Parser);
     private readonly pbc::RepeatedField<global::Authentication.ChangeToKeyTypeOne> changeToKeyTypeOne_ = new pbc::RepeatedField<global::Authentication.ChangeToKeyTypeOne>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.ChangeToKeyTypeOne> ChangeToKeyTypeOne {
       get { return changeToKeyTypeOne_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ChangeToKeyTypeOneRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ChangeToKeyTypeOneRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11717,6 +16125,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= changeToKeyTypeOne_.GetHashCode();
@@ -11727,19 +16136,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       changeToKeyTypeOne_.WriteTo(output, _repeated_changeToKeyTypeOne_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      changeToKeyTypeOne_.WriteTo(ref output, _repeated_changeToKeyTypeOne_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += changeToKeyTypeOne_.CalculateSize(_repeated_changeToKeyTypeOne_codec);
@@ -11750,6 +16177,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ChangeToKeyTypeOneRequest other) {
       if (other == null) {
         return;
@@ -11759,7 +16187,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11772,27 +16204,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            changeToKeyTypeOne_.AddEntriesFrom(ref input, _repeated_changeToKeyTypeOne_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ChangeToKeyTypeOneStatus : pb::IMessage<ChangeToKeyTypeOneStatus> {
+  public sealed partial class ChangeToKeyTypeOneStatus : pb::IMessage<ChangeToKeyTypeOneStatus>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ChangeToKeyTypeOneStatus> _parser = new pb::MessageParser<ChangeToKeyTypeOneStatus>(() => new ChangeToKeyTypeOneStatus());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ChangeToKeyTypeOneStatus> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[53]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneStatus() {
       OnConstruction();
     }
@@ -11800,6 +16260,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneStatus(ChangeToKeyTypeOneStatus other) : this() {
       uid_ = other.uid_;
       type_ = other.type_;
@@ -11809,6 +16270,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneStatus Clone() {
       return new ChangeToKeyTypeOneStatus(this);
     }
@@ -11817,6 +16279,7 @@ namespace Authentication {
     public const int UidFieldNumber = 1;
     private pb::ByteString uid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Uid {
       get { return uid_; }
       set {
@@ -11828,6 +16291,7 @@ namespace Authentication {
     public const int TypeFieldNumber = 2;
     private string type_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Type {
       get { return type_; }
       set {
@@ -11839,6 +16303,7 @@ namespace Authentication {
     public const int StatusFieldNumber = 3;
     private string status_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Status {
       get { return status_; }
       set {
@@ -11850,6 +16315,7 @@ namespace Authentication {
     public const int ReasonFieldNumber = 4;
     private string reason_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Reason {
       get { return reason_; }
       set {
@@ -11858,11 +16324,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ChangeToKeyTypeOneStatus);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ChangeToKeyTypeOneStatus other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -11878,6 +16346,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Uid.Length != 0) hash ^= Uid.GetHashCode();
@@ -11891,12 +16360,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Uid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(Uid);
@@ -11916,9 +16390,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Uid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Uid);
+      }
+      if (Type.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Type);
+      }
+      if (Status.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Status);
+      }
+      if (Reason.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Reason);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Uid.Length != 0) {
@@ -11940,6 +16442,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ChangeToKeyTypeOneStatus other) {
       if (other == null) {
         return;
@@ -11960,7 +16463,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -11985,27 +16492,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Uid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Type = input.ReadString();
+            break;
+          }
+          case 26: {
+            Status = input.ReadString();
+            break;
+          }
+          case 34: {
+            Reason = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ChangeToKeyTypeOneResponse : pb::IMessage<ChangeToKeyTypeOneResponse> {
+  public sealed partial class ChangeToKeyTypeOneResponse : pb::IMessage<ChangeToKeyTypeOneResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ChangeToKeyTypeOneResponse> _parser = new pb::MessageParser<ChangeToKeyTypeOneResponse>(() => new ChangeToKeyTypeOneResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ChangeToKeyTypeOneResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[54]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneResponse() {
       OnConstruction();
     }
@@ -12013,12 +16560,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneResponse(ChangeToKeyTypeOneResponse other) : this() {
       changeToKeyTypeOneStatus_ = other.changeToKeyTypeOneStatus_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ChangeToKeyTypeOneResponse Clone() {
       return new ChangeToKeyTypeOneResponse(this);
     }
@@ -12029,16 +16578,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.ChangeToKeyTypeOneStatus.Parser);
     private readonly pbc::RepeatedField<global::Authentication.ChangeToKeyTypeOneStatus> changeToKeyTypeOneStatus_ = new pbc::RepeatedField<global::Authentication.ChangeToKeyTypeOneStatus>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.ChangeToKeyTypeOneStatus> ChangeToKeyTypeOneStatus {
       get { return changeToKeyTypeOneStatus_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ChangeToKeyTypeOneResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ChangeToKeyTypeOneResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -12051,6 +16603,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= changeToKeyTypeOneStatus_.GetHashCode();
@@ -12061,19 +16614,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       changeToKeyTypeOneStatus_.WriteTo(output, _repeated_changeToKeyTypeOneStatus_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      changeToKeyTypeOneStatus_.WriteTo(ref output, _repeated_changeToKeyTypeOneStatus_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += changeToKeyTypeOneStatus_.CalculateSize(_repeated_changeToKeyTypeOneStatus_codec);
@@ -12084,6 +16655,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ChangeToKeyTypeOneResponse other) {
       if (other == null) {
         return;
@@ -12093,7 +16665,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -12106,30 +16682,58 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            changeToKeyTypeOneStatus_.AddEntriesFrom(ref input, _repeated_changeToKeyTypeOneStatus_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   /// for setting keys where the id is a long value
   /// </summary>
-  public sealed partial class SetKey : pb::IMessage<SetKey> {
+  public sealed partial class SetKey : pb::IMessage<SetKey>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SetKey> _parser = new pb::MessageParser<SetKey>(() => new SetKey());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SetKey> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[55]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetKey() {
       OnConstruction();
     }
@@ -12137,6 +16741,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetKey(SetKey other) : this() {
       id_ = other.id_;
       key_ = other.key_;
@@ -12144,6 +16749,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetKey Clone() {
       return new SetKey(this);
     }
@@ -12155,6 +16761,7 @@ namespace Authentication {
     /// role_id
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Id {
       get { return id_; }
       set {
@@ -12169,6 +16776,7 @@ namespace Authentication {
     /// role key GCM encrypted with the tree key
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Key {
       get { return key_; }
       set {
@@ -12177,11 +16785,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SetKey);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SetKey other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -12195,6 +16805,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Id != 0L) hash ^= Id.GetHashCode();
@@ -12206,12 +16817,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Id != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(Id);
@@ -12223,9 +16839,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Id);
+      }
+      if (Key.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Key);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Id != 0L) {
@@ -12241,6 +16877,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SetKey other) {
       if (other == null) {
         return;
@@ -12255,7 +16892,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -12272,27 +16913,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Id = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            Key = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SetKeyRequest : pb::IMessage<SetKeyRequest> {
+  public sealed partial class SetKeyRequest : pb::IMessage<SetKeyRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SetKeyRequest> _parser = new pb::MessageParser<SetKeyRequest>(() => new SetKeyRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SetKeyRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[56]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetKeyRequest() {
       OnConstruction();
     }
@@ -12300,12 +16973,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetKeyRequest(SetKeyRequest other) : this() {
       keys_ = other.keys_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetKeyRequest Clone() {
       return new SetKeyRequest(this);
     }
@@ -12316,16 +16991,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.SetKey.Parser);
     private readonly pbc::RepeatedField<global::Authentication.SetKey> keys_ = new pbc::RepeatedField<global::Authentication.SetKey>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.SetKey> Keys {
       get { return keys_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SetKeyRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SetKeyRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -12338,6 +17016,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= keys_.GetHashCode();
@@ -12348,19 +17027,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       keys_.WriteTo(output, _repeated_keys_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      keys_.WriteTo(ref output, _repeated_keys_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += keys_.CalculateSize(_repeated_keys_codec);
@@ -12371,6 +17068,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SetKeyRequest other) {
       if (other == null) {
         return;
@@ -12380,7 +17078,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -12393,30 +17095,58 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            keys_.AddEntriesFrom(ref input, _repeated_keys_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   ///same input as the register command
   /// </summary>
-  public sealed partial class CreateUserRequest : pb::IMessage<CreateUserRequest> {
+  public sealed partial class CreateUserRequest : pb::IMessage<CreateUserRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<CreateUserRequest> _parser = new pb::MessageParser<CreateUserRequest>(() => new CreateUserRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<CreateUserRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[57]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public CreateUserRequest() {
       OnConstruction();
     }
@@ -12424,6 +17154,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public CreateUserRequest(CreateUserRequest other) : this() {
       username_ = other.username_;
       authVerifier_ = other.authVerifier_;
@@ -12453,6 +17184,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public CreateUserRequest Clone() {
       return new CreateUserRequest(this);
     }
@@ -12464,6 +17196,7 @@ namespace Authentication {
     /// must be valid email
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -12478,6 +17211,7 @@ namespace Authentication {
     ///new Field("auth_verifier", new AuthVerifierFieldValidator(), true); size=(70, 70)?
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AuthVerifier {
       get { return authVerifier_; }
       set {
@@ -12492,6 +17226,7 @@ namespace Authentication {
     ///new Field("encryption_params", new EncryptionParamsFieldValidator(), true); size=(134, 134)?
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptionParams {
       get { return encryptionParams_; }
       set {
@@ -12506,6 +17241,7 @@ namespace Authentication {
     ///new Field("public_key", new PublicKeyFieldValidator(), true); size=(10, 2000)?
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RsaPublicKey {
       get { return rsaPublicKey_; }
       set {
@@ -12520,6 +17256,7 @@ namespace Authentication {
     ///new Field("encrypted_private_key", new DataKeyEncPrivateKeyFieldValidator(), true); size=(10, 2000)?
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RsaEncryptedPrivateKey {
       get { return rsaEncryptedPrivateKey_; }
       set {
@@ -12534,6 +17271,7 @@ namespace Authentication {
     /// 65 bytes, on curve
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EccPublicKey {
       get { return eccPublicKey_; }
       set {
@@ -12548,6 +17286,7 @@ namespace Authentication {
     /// 60 bytes
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EccEncryptedPrivateKey {
       get { return eccEncryptedPrivateKey_; }
       set {
@@ -12562,6 +17301,7 @@ namespace Authentication {
     /// 65 bytes
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -12576,6 +17316,7 @@ namespace Authentication {
     /// switch to gcm? old clients can't be used 60 bytes, otherwise 64 bytes; new Field("client_key", new DataKeyEncDataKeyFieldValidator(), false);
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedClientKey {
       get { return encryptedClientKey_; }
       set {
@@ -12587,6 +17328,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 10;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -12601,6 +17343,7 @@ namespace Authentication {
     /// have to check
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceDataKey {
       get { return encryptedDeviceDataKey_; }
       set {
@@ -12615,6 +17358,7 @@ namespace Authentication {
     /// this is from cloud sso
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -12626,6 +17370,7 @@ namespace Authentication {
     public const int MessageSessionUidFieldNumber = 13;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -12640,6 +17385,7 @@ namespace Authentication {
     ///new Field("install_referrer", new StringFieldValidator(0, 1024), false); size=(0, 1024)?
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string InstallReferrer {
       get { return installReferrer_; }
       set {
@@ -12654,6 +17400,7 @@ namespace Authentication {
     ///input.optString("mcc_mnc") in verifyDevice(); carrier_sim_codes.mcc_mnc int(6)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int MccMNC {
       get { return mccMNC_; }
       set {
@@ -12668,6 +17415,7 @@ namespace Authentication {
     ///input.optString("mfg") in verifyDevice(); appstore_device_history.mfg char(64)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Mfg {
       get { return mfg_; }
       set {
@@ -12682,6 +17430,7 @@ namespace Authentication {
     ///input.optString("model") in verifyDevice(); appstore_device_history.model char(64)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Model {
       get { return model_; }
       set {
@@ -12696,6 +17445,7 @@ namespace Authentication {
     ///input.optString("brand") in verifyDevice(); appstore_device_history.brand char(64)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Brand {
       get { return brand_; }
       set {
@@ -12710,6 +17460,7 @@ namespace Authentication {
     ///input.optString("product") in verifyDevice(); appstore_device_history.product char(64)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Product {
       get { return product_; }
       set {
@@ -12724,6 +17475,7 @@ namespace Authentication {
     ///input.optString("device"); used in PromotionMatcher; appstore_device_history.device char(64)?
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Device {
       get { return device_; }
       set {
@@ -12738,6 +17490,7 @@ namespace Authentication {
     ///input.optString("carrier"); used in PromotionMatcher; appstore_device_history.carrier char(64)?
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Carrier {
       get { return carrier_; }
       set {
@@ -12749,6 +17502,7 @@ namespace Authentication {
     public const int VerificationCodeFieldNumber = 22;
     private string verificationCode_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string VerificationCode {
       get { return verificationCode_; }
       set {
@@ -12763,6 +17517,7 @@ namespace Authentication {
     /// optinal for creating an account when creating an enterprise
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Enterprise.EnterpriseRegistration EnterpriseRegistration {
       get { return enterpriseRegistration_; }
       set {
@@ -12774,6 +17529,7 @@ namespace Authentication {
     public const int EncryptedVerificationTokenFieldNumber = 24;
     private pb::ByteString encryptedVerificationToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedVerificationToken {
       get { return encryptedVerificationToken_; }
       set {
@@ -12782,11 +17538,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as CreateUserRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(CreateUserRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -12822,6 +17580,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -12855,12 +17614,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -12960,9 +17724,117 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (AuthVerifier.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AuthVerifier);
+      }
+      if (EncryptionParams.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(EncryptionParams);
+      }
+      if (RsaPublicKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(RsaPublicKey);
+      }
+      if (RsaEncryptedPrivateKey.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(RsaEncryptedPrivateKey);
+      }
+      if (EccPublicKey.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(EccPublicKey);
+      }
+      if (EccEncryptedPrivateKey.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteBytes(EccEncryptedPrivateKey);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (EncryptedClientKey.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteBytes(EncryptedClientKey);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(82);
+        output.WriteString(ClientVersion);
+      }
+      if (EncryptedDeviceDataKey.Length != 0) {
+        output.WriteRawTag(90);
+        output.WriteBytes(EncryptedDeviceDataKey);
+      }
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(98);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (InstallReferrer.Length != 0) {
+        output.WriteRawTag(114);
+        output.WriteString(InstallReferrer);
+      }
+      if (MccMNC != 0) {
+        output.WriteRawTag(120);
+        output.WriteInt32(MccMNC);
+      }
+      if (Mfg.Length != 0) {
+        output.WriteRawTag(130, 1);
+        output.WriteString(Mfg);
+      }
+      if (Model.Length != 0) {
+        output.WriteRawTag(138, 1);
+        output.WriteString(Model);
+      }
+      if (Brand.Length != 0) {
+        output.WriteRawTag(146, 1);
+        output.WriteString(Brand);
+      }
+      if (Product.Length != 0) {
+        output.WriteRawTag(154, 1);
+        output.WriteString(Product);
+      }
+      if (Device.Length != 0) {
+        output.WriteRawTag(162, 1);
+        output.WriteString(Device);
+      }
+      if (Carrier.Length != 0) {
+        output.WriteRawTag(170, 1);
+        output.WriteString(Carrier);
+      }
+      if (VerificationCode.Length != 0) {
+        output.WriteRawTag(178, 1);
+        output.WriteString(VerificationCode);
+      }
+      if (enterpriseRegistration_ != null) {
+        output.WriteRawTag(186, 1);
+        output.WriteMessage(EnterpriseRegistration);
+      }
+      if (EncryptedVerificationToken.Length != 0) {
+        output.WriteRawTag(194, 1);
+        output.WriteBytes(EncryptedVerificationToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -13044,6 +17916,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(CreateUserRequest other) {
       if (other == null) {
         return;
@@ -13127,7 +18000,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -13235,27 +18112,150 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            AuthVerifier = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            EncryptionParams = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            RsaPublicKey = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            RsaEncryptedPrivateKey = input.ReadBytes();
+            break;
+          }
+          case 50: {
+            EccPublicKey = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            EccEncryptedPrivateKey = input.ReadBytes();
+            break;
+          }
+          case 66: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 74: {
+            EncryptedClientKey = input.ReadBytes();
+            break;
+          }
+          case 82: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 90: {
+            EncryptedDeviceDataKey = input.ReadBytes();
+            break;
+          }
+          case 98: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+          case 106: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 114: {
+            InstallReferrer = input.ReadString();
+            break;
+          }
+          case 120: {
+            MccMNC = input.ReadInt32();
+            break;
+          }
+          case 130: {
+            Mfg = input.ReadString();
+            break;
+          }
+          case 138: {
+            Model = input.ReadString();
+            break;
+          }
+          case 146: {
+            Brand = input.ReadString();
+            break;
+          }
+          case 154: {
+            Product = input.ReadString();
+            break;
+          }
+          case 162: {
+            Device = input.ReadString();
+            break;
+          }
+          case 170: {
+            Carrier = input.ReadString();
+            break;
+          }
+          case 178: {
+            VerificationCode = input.ReadString();
+            break;
+          }
+          case 186: {
+            if (enterpriseRegistration_ == null) {
+              EnterpriseRegistration = new global::Enterprise.EnterpriseRegistration();
+            }
+            input.ReadMessage(EnterpriseRegistration);
+            break;
+          }
+          case 194: {
+            EncryptedVerificationToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class NodeEnforcementAddOrUpdateRequest : pb::IMessage<NodeEnforcementAddOrUpdateRequest> {
+  public sealed partial class NodeEnforcementAddOrUpdateRequest : pb::IMessage<NodeEnforcementAddOrUpdateRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<NodeEnforcementAddOrUpdateRequest> _parser = new pb::MessageParser<NodeEnforcementAddOrUpdateRequest>(() => new NodeEnforcementAddOrUpdateRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<NodeEnforcementAddOrUpdateRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[58]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NodeEnforcementAddOrUpdateRequest() {
       OnConstruction();
     }
@@ -13263,6 +18263,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NodeEnforcementAddOrUpdateRequest(NodeEnforcementAddOrUpdateRequest other) : this() {
       nodeId_ = other.nodeId_;
       enforcement_ = other.enforcement_;
@@ -13271,6 +18272,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NodeEnforcementAddOrUpdateRequest Clone() {
       return new NodeEnforcementAddOrUpdateRequest(this);
     }
@@ -13279,6 +18281,7 @@ namespace Authentication {
     public const int NodeIdFieldNumber = 1;
     private long nodeId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long NodeId {
       get { return nodeId_; }
       set {
@@ -13290,6 +18293,7 @@ namespace Authentication {
     public const int EnforcementFieldNumber = 2;
     private string enforcement_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Enforcement {
       get { return enforcement_; }
       set {
@@ -13301,6 +18305,7 @@ namespace Authentication {
     public const int ValueFieldNumber = 3;
     private string value_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -13309,11 +18314,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as NodeEnforcementAddOrUpdateRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(NodeEnforcementAddOrUpdateRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -13328,6 +18335,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (NodeId != 0L) hash ^= NodeId.GetHashCode();
@@ -13340,12 +18348,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (NodeId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(NodeId);
@@ -13361,9 +18374,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (NodeId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(NodeId);
+      }
+      if (Enforcement.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Enforcement);
+      }
+      if (Value.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Value);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (NodeId != 0L) {
@@ -13382,6 +18419,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(NodeEnforcementAddOrUpdateRequest other) {
       if (other == null) {
         return;
@@ -13399,7 +18437,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -13420,27 +18462,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            NodeId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            Enforcement = input.ReadString();
+            break;
+          }
+          case 26: {
+            Value = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class NodeEnforcementRemoveRequest : pb::IMessage<NodeEnforcementRemoveRequest> {
+  public sealed partial class NodeEnforcementRemoveRequest : pb::IMessage<NodeEnforcementRemoveRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<NodeEnforcementRemoveRequest> _parser = new pb::MessageParser<NodeEnforcementRemoveRequest>(() => new NodeEnforcementRemoveRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<NodeEnforcementRemoveRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[59]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NodeEnforcementRemoveRequest() {
       OnConstruction();
     }
@@ -13448,6 +18526,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NodeEnforcementRemoveRequest(NodeEnforcementRemoveRequest other) : this() {
       nodeId_ = other.nodeId_;
       enforcement_ = other.enforcement_;
@@ -13455,6 +18534,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NodeEnforcementRemoveRequest Clone() {
       return new NodeEnforcementRemoveRequest(this);
     }
@@ -13463,6 +18543,7 @@ namespace Authentication {
     public const int NodeIdFieldNumber = 1;
     private long nodeId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long NodeId {
       get { return nodeId_; }
       set {
@@ -13474,6 +18555,7 @@ namespace Authentication {
     public const int EnforcementFieldNumber = 2;
     private string enforcement_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Enforcement {
       get { return enforcement_; }
       set {
@@ -13482,11 +18564,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as NodeEnforcementRemoveRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(NodeEnforcementRemoveRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -13500,6 +18584,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (NodeId != 0L) hash ^= NodeId.GetHashCode();
@@ -13511,12 +18596,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (NodeId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(NodeId);
@@ -13528,9 +18618,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (NodeId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(NodeId);
+      }
+      if (Enforcement.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Enforcement);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (NodeId != 0L) {
@@ -13546,6 +18656,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(NodeEnforcementRemoveRequest other) {
       if (other == null) {
         return;
@@ -13560,7 +18671,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -13577,27 +18692,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            NodeId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            Enforcement = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ApiRequestByKey : pb::IMessage<ApiRequestByKey> {
+  public sealed partial class ApiRequestByKey : pb::IMessage<ApiRequestByKey>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ApiRequestByKey> _parser = new pb::MessageParser<ApiRequestByKey>(() => new ApiRequestByKey());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ApiRequestByKey> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[60]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestByKey() {
       OnConstruction();
     }
@@ -13605,6 +18752,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestByKey(ApiRequestByKey other) : this() {
       keyId_ = other.keyId_;
       payload_ = other.payload_;
@@ -13616,6 +18764,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestByKey Clone() {
       return new ApiRequestByKey(this);
     }
@@ -13624,6 +18773,7 @@ namespace Authentication {
     public const int KeyIdFieldNumber = 1;
     private int keyId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int KeyId {
       get { return keyId_; }
       set {
@@ -13635,6 +18785,7 @@ namespace Authentication {
     public const int PayloadFieldNumber = 2;
     private pb::ByteString payload_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Payload {
       get { return payload_; }
       set {
@@ -13646,6 +18797,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 3;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -13657,6 +18809,7 @@ namespace Authentication {
     public const int LocaleFieldNumber = 4;
     private string locale_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Locale {
       get { return locale_; }
       set {
@@ -13668,6 +18821,7 @@ namespace Authentication {
     public const int SupportedLanguageFieldNumber = 5;
     private global::Authentication.SupportedLanguage supportedLanguage_ = global::Authentication.SupportedLanguage.English;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.SupportedLanguage SupportedLanguage {
       get { return supportedLanguage_; }
       set {
@@ -13679,6 +18833,7 @@ namespace Authentication {
     public const int TypeFieldNumber = 6;
     private int type_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Type {
       get { return type_; }
       set {
@@ -13687,11 +18842,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ApiRequestByKey);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ApiRequestByKey other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -13709,6 +18866,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (KeyId != 0) hash ^= KeyId.GetHashCode();
@@ -13724,12 +18882,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (KeyId != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(KeyId);
@@ -13757,9 +18920,45 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (KeyId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(KeyId);
+      }
+      if (Payload.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Payload);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Username);
+      }
+      if (Locale.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Locale);
+      }
+      if (SupportedLanguage != global::Authentication.SupportedLanguage.English) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) SupportedLanguage);
+      }
+      if (Type != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(Type);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (KeyId != 0) {
@@ -13787,6 +18986,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ApiRequestByKey other) {
       if (other == null) {
         return;
@@ -13813,7 +19013,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -13846,27 +19050,75 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            KeyId = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            Payload = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Username = input.ReadString();
+            break;
+          }
+          case 34: {
+            Locale = input.ReadString();
+            break;
+          }
+          case 40: {
+            SupportedLanguage = (global::Authentication.SupportedLanguage) input.ReadEnum();
+            break;
+          }
+          case 48: {
+            Type = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ApiRequestByKAtoKAKey : pb::IMessage<ApiRequestByKAtoKAKey> {
+  public sealed partial class ApiRequestByKAtoKAKey : pb::IMessage<ApiRequestByKAtoKAKey>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ApiRequestByKAtoKAKey> _parser = new pb::MessageParser<ApiRequestByKAtoKAKey>(() => new ApiRequestByKAtoKAKey());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ApiRequestByKAtoKAKey> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[61]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestByKAtoKAKey() {
       OnConstruction();
     }
@@ -13874,6 +19126,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestByKAtoKAKey(ApiRequestByKAtoKAKey other) : this() {
       sourceRegionGroupId_ = other.sourceRegionGroupId_;
       destinationRegionGroupId_ = other.destinationRegionGroupId_;
@@ -13888,6 +19141,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApiRequestByKAtoKAKey Clone() {
       return new ApiRequestByKAtoKAKey(this);
     }
@@ -13896,6 +19150,7 @@ namespace Authentication {
     public const int SourceRegionGroupIdFieldNumber = 1;
     private int sourceRegionGroupId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int SourceRegionGroupId {
       get { return sourceRegionGroupId_; }
       set {
@@ -13907,6 +19162,7 @@ namespace Authentication {
     public const int DestinationRegionGroupIdFieldNumber = 2;
     private int destinationRegionGroupId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int DestinationRegionGroupId {
       get { return destinationRegionGroupId_; }
       set {
@@ -13918,6 +19174,7 @@ namespace Authentication {
     public const int SourceRegionNameFieldNumber = 3;
     private string sourceRegionName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SourceRegionName {
       get { return sourceRegionName_; }
       set {
@@ -13929,6 +19186,7 @@ namespace Authentication {
     public const int DestinationRegionNameFieldNumber = 4;
     private string destinationRegionName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DestinationRegionName {
       get { return destinationRegionName_; }
       set {
@@ -13940,6 +19198,7 @@ namespace Authentication {
     public const int PayloadFieldNumber = 5;
     private pb::ByteString payload_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Payload {
       get { return payload_; }
       set {
@@ -13951,6 +19210,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 6;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -13962,6 +19222,7 @@ namespace Authentication {
     public const int LocaleFieldNumber = 7;
     private string locale_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Locale {
       get { return locale_; }
       set {
@@ -13973,6 +19234,7 @@ namespace Authentication {
     public const int SupportedLanguageFieldNumber = 8;
     private global::Authentication.SupportedLanguage supportedLanguage_ = global::Authentication.SupportedLanguage.English;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.SupportedLanguage SupportedLanguage {
       get { return supportedLanguage_; }
       set {
@@ -13984,6 +19246,7 @@ namespace Authentication {
     public const int TypeFieldNumber = 9;
     private int type_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Type {
       get { return type_; }
       set {
@@ -13992,11 +19255,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ApiRequestByKAtoKAKey);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ApiRequestByKAtoKAKey other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -14017,6 +19282,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SourceRegionGroupId != 0) hash ^= SourceRegionGroupId.GetHashCode();
@@ -14035,12 +19301,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (SourceRegionGroupId != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(SourceRegionGroupId);
@@ -14080,9 +19351,57 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SourceRegionGroupId != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(SourceRegionGroupId);
+      }
+      if (DestinationRegionGroupId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(DestinationRegionGroupId);
+      }
+      if (SourceRegionName.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(SourceRegionName);
+      }
+      if (DestinationRegionName.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(DestinationRegionName);
+      }
+      if (Payload.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(Payload);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Username);
+      }
+      if (Locale.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(Locale);
+      }
+      if (SupportedLanguage != global::Authentication.SupportedLanguage.English) {
+        output.WriteRawTag(64);
+        output.WriteEnum((int) SupportedLanguage);
+      }
+      if (Type != 0) {
+        output.WriteRawTag(72);
+        output.WriteInt32(Type);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SourceRegionGroupId != 0) {
@@ -14119,6 +19438,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ApiRequestByKAtoKAKey other) {
       if (other == null) {
         return;
@@ -14154,7 +19474,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -14199,27 +19523,87 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            SourceRegionGroupId = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            DestinationRegionGroupId = input.ReadInt32();
+            break;
+          }
+          case 26: {
+            SourceRegionName = input.ReadString();
+            break;
+          }
+          case 34: {
+            DestinationRegionName = input.ReadString();
+            break;
+          }
+          case 42: {
+            Payload = input.ReadBytes();
+            break;
+          }
+          case 50: {
+            Username = input.ReadString();
+            break;
+          }
+          case 58: {
+            Locale = input.ReadString();
+            break;
+          }
+          case 64: {
+            SupportedLanguage = (global::Authentication.SupportedLanguage) input.ReadEnum();
+            break;
+          }
+          case 72: {
+            Type = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class MemcacheRequest : pb::IMessage<MemcacheRequest> {
+  public sealed partial class MemcacheRequest : pb::IMessage<MemcacheRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<MemcacheRequest> _parser = new pb::MessageParser<MemcacheRequest>(() => new MemcacheRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<MemcacheRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[62]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MemcacheRequest() {
       OnConstruction();
     }
@@ -14227,6 +19611,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MemcacheRequest(MemcacheRequest other) : this() {
       key_ = other.key_;
       userId_ = other.userId_;
@@ -14234,6 +19619,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MemcacheRequest Clone() {
       return new MemcacheRequest(this);
     }
@@ -14242,6 +19628,7 @@ namespace Authentication {
     public const int KeyFieldNumber = 1;
     private string key_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Key {
       get { return key_; }
       set {
@@ -14253,6 +19640,7 @@ namespace Authentication {
     public const int UserIdFieldNumber = 2;
     private int userId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int UserId {
       get { return userId_; }
       set {
@@ -14261,11 +19649,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as MemcacheRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(MemcacheRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -14279,6 +19669,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Key.Length != 0) hash ^= Key.GetHashCode();
@@ -14290,12 +19681,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Key.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Key);
@@ -14307,9 +19703,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Key.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Key);
+      }
+      if (UserId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(UserId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Key.Length != 0) {
@@ -14325,6 +19741,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(MemcacheRequest other) {
       if (other == null) {
         return;
@@ -14339,7 +19756,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -14356,27 +19777,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Key = input.ReadString();
+            break;
+          }
+          case 16: {
+            UserId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class MemcacheResponse : pb::IMessage<MemcacheResponse> {
+  public sealed partial class MemcacheResponse : pb::IMessage<MemcacheResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<MemcacheResponse> _parser = new pb::MessageParser<MemcacheResponse>(() => new MemcacheResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<MemcacheResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[63]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MemcacheResponse() {
       OnConstruction();
     }
@@ -14384,6 +19837,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MemcacheResponse(MemcacheResponse other) : this() {
       key_ = other.key_;
       value_ = other.value_;
@@ -14391,6 +19845,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MemcacheResponse Clone() {
       return new MemcacheResponse(this);
     }
@@ -14399,6 +19854,7 @@ namespace Authentication {
     public const int KeyFieldNumber = 1;
     private string key_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Key {
       get { return key_; }
       set {
@@ -14410,6 +19866,7 @@ namespace Authentication {
     public const int ValueFieldNumber = 2;
     private string value_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -14418,11 +19875,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as MemcacheResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(MemcacheResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -14436,6 +19895,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Key.Length != 0) hash ^= Key.GetHashCode();
@@ -14447,12 +19907,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Key.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Key);
@@ -14464,9 +19929,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Key.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Key);
+      }
+      if (Value.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Value);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Key.Length != 0) {
@@ -14482,6 +19967,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(MemcacheResponse other) {
       if (other == null) {
         return;
@@ -14496,7 +19982,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -14513,27 +20003,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Key = input.ReadString();
+            break;
+          }
+          case 18: {
+            Value = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class MasterPasswordReentryRequest : pb::IMessage<MasterPasswordReentryRequest> {
+  public sealed partial class MasterPasswordReentryRequest : pb::IMessage<MasterPasswordReentryRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<MasterPasswordReentryRequest> _parser = new pb::MessageParser<MasterPasswordReentryRequest>(() => new MasterPasswordReentryRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<MasterPasswordReentryRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[64]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MasterPasswordReentryRequest() {
       OnConstruction();
     }
@@ -14541,6 +20063,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MasterPasswordReentryRequest(MasterPasswordReentryRequest other) : this() {
       pbkdf2Password_ = other.pbkdf2Password_;
       action_ = other.action_;
@@ -14548,6 +20071,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MasterPasswordReentryRequest Clone() {
       return new MasterPasswordReentryRequest(this);
     }
@@ -14556,6 +20080,7 @@ namespace Authentication {
     public const int Pbkdf2PasswordFieldNumber = 1;
     private string pbkdf2Password_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Pbkdf2Password {
       get { return pbkdf2Password_; }
       set {
@@ -14567,6 +20092,7 @@ namespace Authentication {
     public const int ActionFieldNumber = 2;
     private global::Authentication.MasterPasswordReentryActionType action_ = global::Authentication.MasterPasswordReentryActionType.Unmask;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.MasterPasswordReentryActionType Action {
       get { return action_; }
       set {
@@ -14575,11 +20101,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as MasterPasswordReentryRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(MasterPasswordReentryRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -14593,6 +20121,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Pbkdf2Password.Length != 0) hash ^= Pbkdf2Password.GetHashCode();
@@ -14604,12 +20133,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Pbkdf2Password.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Pbkdf2Password);
@@ -14621,9 +20155,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Pbkdf2Password.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Pbkdf2Password);
+      }
+      if (Action != global::Authentication.MasterPasswordReentryActionType.Unmask) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Action);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Pbkdf2Password.Length != 0) {
@@ -14639,6 +20193,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(MasterPasswordReentryRequest other) {
       if (other == null) {
         return;
@@ -14653,7 +20208,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -14670,27 +20229,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Pbkdf2Password = input.ReadString();
+            break;
+          }
+          case 16: {
+            Action = (global::Authentication.MasterPasswordReentryActionType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceRegistrationRequest : pb::IMessage<DeviceRegistrationRequest> {
+  public sealed partial class DeviceRegistrationRequest : pb::IMessage<DeviceRegistrationRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceRegistrationRequest> _parser = new pb::MessageParser<DeviceRegistrationRequest>(() => new DeviceRegistrationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceRegistrationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[65]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceRegistrationRequest() {
       OnConstruction();
     }
@@ -14698,6 +20289,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceRegistrationRequest(DeviceRegistrationRequest other) : this() {
       clientVersion_ = other.clientVersion_;
       deviceName_ = other.deviceName_;
@@ -14706,6 +20298,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceRegistrationRequest Clone() {
       return new DeviceRegistrationRequest(this);
     }
@@ -14714,6 +20307,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 1;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -14725,6 +20319,7 @@ namespace Authentication {
     public const int DeviceNameFieldNumber = 2;
     private string deviceName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DeviceName {
       get { return deviceName_; }
       set {
@@ -14736,6 +20331,7 @@ namespace Authentication {
     public const int DevicePublicKeyFieldNumber = 3;
     private pb::ByteString devicePublicKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString DevicePublicKey {
       get { return devicePublicKey_; }
       set {
@@ -14744,11 +20340,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceRegistrationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceRegistrationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -14763,6 +20361,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (ClientVersion.Length != 0) hash ^= ClientVersion.GetHashCode();
@@ -14775,12 +20374,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ClientVersion.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(ClientVersion);
@@ -14796,9 +20400,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(ClientVersion);
+      }
+      if (DeviceName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(DeviceName);
+      }
+      if (DevicePublicKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(DevicePublicKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (ClientVersion.Length != 0) {
@@ -14817,6 +20445,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceRegistrationRequest other) {
       if (other == null) {
         return;
@@ -14834,7 +20463,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -14855,27 +20488,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 18: {
+            DeviceName = input.ReadString();
+            break;
+          }
+          case 26: {
+            DevicePublicKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceVerificationRequest : pb::IMessage<DeviceVerificationRequest> {
+  public sealed partial class DeviceVerificationRequest : pb::IMessage<DeviceVerificationRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceVerificationRequest> _parser = new pb::MessageParser<DeviceVerificationRequest>(() => new DeviceVerificationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceVerificationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[66]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceVerificationRequest() {
       OnConstruction();
     }
@@ -14883,6 +20552,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceVerificationRequest(DeviceVerificationRequest other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       username_ = other.username_;
@@ -14893,6 +20563,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceVerificationRequest Clone() {
       return new DeviceVerificationRequest(this);
     }
@@ -14901,6 +20572,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -14912,6 +20584,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 2;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -14926,6 +20599,7 @@ namespace Authentication {
     /// email for now, could be "sms" if we allow username as cell number in the future.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string VerificationChannel {
       get { return verificationChannel_; }
       set {
@@ -14937,6 +20611,7 @@ namespace Authentication {
     public const int MessageSessionUidFieldNumber = 4;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -14948,6 +20623,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 5;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -14956,11 +20632,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceVerificationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceVerificationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -14977,6 +20655,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -14991,12 +20670,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -15020,9 +20704,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Username);
+      }
+      if (VerificationChannel.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(VerificationChannel);
+      }
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(ClientVersion);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -15047,6 +20763,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceVerificationRequest other) {
       if (other == null) {
         return;
@@ -15070,7 +20787,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -15099,27 +20820,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Username = input.ReadString();
+            break;
+          }
+          case 26: {
+            VerificationChannel = input.ReadString();
+            break;
+          }
+          case 34: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceVerificationResponse : pb::IMessage<DeviceVerificationResponse> {
+  public sealed partial class DeviceVerificationResponse : pb::IMessage<DeviceVerificationResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceVerificationResponse> _parser = new pb::MessageParser<DeviceVerificationResponse>(() => new DeviceVerificationResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceVerificationResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[67]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceVerificationResponse() {
       OnConstruction();
     }
@@ -15127,6 +20892,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceVerificationResponse(DeviceVerificationResponse other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       username_ = other.username_;
@@ -15137,6 +20903,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceVerificationResponse Clone() {
       return new DeviceVerificationResponse(this);
     }
@@ -15145,6 +20912,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -15156,6 +20924,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 2;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -15167,6 +20936,7 @@ namespace Authentication {
     public const int MessageSessionUidFieldNumber = 3;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -15178,6 +20948,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 4;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -15189,6 +20960,7 @@ namespace Authentication {
     public const int DeviceStatusFieldNumber = 5;
     private global::Authentication.DeviceStatus deviceStatus_ = global::Authentication.DeviceStatus.DeviceNeedsApproval;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.DeviceStatus DeviceStatus {
       get { return deviceStatus_; }
       set {
@@ -15197,11 +20969,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceVerificationResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceVerificationResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -15218,6 +20992,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -15232,12 +21007,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -15261,9 +21041,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Username);
+      }
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(ClientVersion);
+      }
+      if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DeviceStatus);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -15288,6 +21100,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceVerificationResponse other) {
       if (other == null) {
         return;
@@ -15311,7 +21124,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -15340,27 +21157,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Username = input.ReadString();
+            break;
+          }
+          case 26: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 40: {
+            DeviceStatus = (global::Authentication.DeviceStatus) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceApprovalRequest : pb::IMessage<DeviceApprovalRequest> {
+  public sealed partial class DeviceApprovalRequest : pb::IMessage<DeviceApprovalRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceApprovalRequest> _parser = new pb::MessageParser<DeviceApprovalRequest>(() => new DeviceApprovalRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceApprovalRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[68]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceApprovalRequest() {
       OnConstruction();
     }
@@ -15368,6 +21229,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceApprovalRequest(DeviceApprovalRequest other) : this() {
       email_ = other.email_;
       twoFactorChannel_ = other.twoFactorChannel_;
@@ -15381,6 +21243,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceApprovalRequest Clone() {
       return new DeviceApprovalRequest(this);
     }
@@ -15389,6 +21252,7 @@ namespace Authentication {
     public const int EmailFieldNumber = 1;
     private string email_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Email {
       get { return email_; }
       set {
@@ -15403,6 +21267,7 @@ namespace Authentication {
     /// TwoFactorChannel, only "sms", "duo", "on_device" or "on_approved_device"; default to email verification
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string TwoFactorChannel {
       get { return twoFactorChannel_; }
       set {
@@ -15414,6 +21279,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 3;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -15425,6 +21291,7 @@ namespace Authentication {
     public const int LocaleFieldNumber = 4;
     private string locale_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Locale {
       get { return locale_; }
       set {
@@ -15436,6 +21303,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 5;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -15447,6 +21315,7 @@ namespace Authentication {
     public const int TotpCodeFieldNumber = 6;
     private string totpCode_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string TotpCode {
       get { return totpCode_; }
       set {
@@ -15461,6 +21330,7 @@ namespace Authentication {
     ///This is the ip address of the original device that needs to be approved, which will be included in the TwoFactorToken.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DeviceIp {
       get { return deviceIp_; }
       set {
@@ -15475,6 +21345,7 @@ namespace Authentication {
     ///equivalent to the device_token_expire_days that is used in the Login command
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DeviceTokenExpireDays {
       get { return deviceTokenExpireDays_; }
       set {
@@ -15483,11 +21354,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceApprovalRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceApprovalRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -15507,6 +21380,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Email.Length != 0) hash ^= Email.GetHashCode();
@@ -15524,12 +21398,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Email.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Email);
@@ -15565,9 +21444,53 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Email.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Email);
+      }
+      if (TwoFactorChannel.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(TwoFactorChannel);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ClientVersion);
+      }
+      if (Locale.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Locale);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (TotpCode.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(TotpCode);
+      }
+      if (DeviceIp.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(DeviceIp);
+      }
+      if (DeviceTokenExpireDays.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(DeviceTokenExpireDays);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Email.Length != 0) {
@@ -15601,6 +21524,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceApprovalRequest other) {
       if (other == null) {
         return;
@@ -15633,7 +21557,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -15674,27 +21602,83 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Email = input.ReadString();
+            break;
+          }
+          case 18: {
+            TwoFactorChannel = input.ReadString();
+            break;
+          }
+          case 26: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 34: {
+            Locale = input.ReadString();
+            break;
+          }
+          case 42: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 50: {
+            TotpCode = input.ReadString();
+            break;
+          }
+          case 58: {
+            DeviceIp = input.ReadString();
+            break;
+          }
+          case 66: {
+            DeviceTokenExpireDays = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceApprovalResponse : pb::IMessage<DeviceApprovalResponse> {
+  public sealed partial class DeviceApprovalResponse : pb::IMessage<DeviceApprovalResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceApprovalResponse> _parser = new pb::MessageParser<DeviceApprovalResponse>(() => new DeviceApprovalResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceApprovalResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[69]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceApprovalResponse() {
       OnConstruction();
     }
@@ -15702,12 +21686,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceApprovalResponse(DeviceApprovalResponse other) : this() {
       encryptedTwoFactorToken_ = other.encryptedTwoFactorToken_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceApprovalResponse Clone() {
       return new DeviceApprovalResponse(this);
     }
@@ -15716,6 +21702,7 @@ namespace Authentication {
     public const int EncryptedTwoFactorTokenFieldNumber = 1;
     private pb::ByteString encryptedTwoFactorToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedTwoFactorToken {
       get { return encryptedTwoFactorToken_; }
       set {
@@ -15724,11 +21711,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceApprovalResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceApprovalResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -15741,6 +21730,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedTwoFactorToken.Length != 0) hash ^= EncryptedTwoFactorToken.GetHashCode();
@@ -15751,12 +21741,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedTwoFactorToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedTwoFactorToken);
@@ -15764,9 +21759,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedTwoFactorToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedTwoFactorToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedTwoFactorToken.Length != 0) {
@@ -15779,6 +21790,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceApprovalResponse other) {
       if (other == null) {
         return;
@@ -15790,7 +21802,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -15803,27 +21819,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedTwoFactorToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ApproveDeviceRequest : pb::IMessage<ApproveDeviceRequest> {
+  public sealed partial class ApproveDeviceRequest : pb::IMessage<ApproveDeviceRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ApproveDeviceRequest> _parser = new pb::MessageParser<ApproveDeviceRequest>(() => new ApproveDeviceRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ApproveDeviceRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[70]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApproveDeviceRequest() {
       OnConstruction();
     }
@@ -15831,6 +21875,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApproveDeviceRequest(ApproveDeviceRequest other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       encryptedDeviceDataKey_ = other.encryptedDeviceDataKey_;
@@ -15840,6 +21885,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApproveDeviceRequest Clone() {
       return new ApproveDeviceRequest(this);
     }
@@ -15848,6 +21894,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -15862,6 +21909,7 @@ namespace Authentication {
     /// required for cloud sso and link
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceDataKey {
       get { return encryptedDeviceDataKey_; }
       set {
@@ -15873,6 +21921,7 @@ namespace Authentication {
     public const int DenyApprovalFieldNumber = 3;
     private bool denyApproval_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool DenyApproval {
       get { return denyApproval_; }
       set {
@@ -15884,6 +21933,7 @@ namespace Authentication {
     public const int LinkDeviceFieldNumber = 4;
     private bool linkDevice_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool LinkDevice {
       get { return linkDevice_; }
       set {
@@ -15892,11 +21942,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ApproveDeviceRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ApproveDeviceRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -15912,6 +21964,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -15925,12 +21978,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -15950,9 +22008,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (EncryptedDeviceDataKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedDeviceDataKey);
+      }
+      if (DenyApproval != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(DenyApproval);
+      }
+      if (LinkDevice != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(LinkDevice);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -15974,6 +22060,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ApproveDeviceRequest other) {
       if (other == null) {
         return;
@@ -15994,7 +22081,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -16019,27 +22110,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedDeviceDataKey = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            DenyApproval = input.ReadBool();
+            break;
+          }
+          case 32: {
+            LinkDevice = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class EnterpriseUserAliasRequest : pb::IMessage<EnterpriseUserAliasRequest> {
+  public sealed partial class EnterpriseUserAliasRequest : pb::IMessage<EnterpriseUserAliasRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<EnterpriseUserAliasRequest> _parser = new pb::MessageParser<EnterpriseUserAliasRequest>(() => new EnterpriseUserAliasRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<EnterpriseUserAliasRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[71]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserAliasRequest() {
       OnConstruction();
     }
@@ -16047,6 +22178,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserAliasRequest(EnterpriseUserAliasRequest other) : this() {
       enterpriseUserId_ = other.enterpriseUserId_;
       alias_ = other.alias_;
@@ -16054,6 +22186,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserAliasRequest Clone() {
       return new EnterpriseUserAliasRequest(this);
     }
@@ -16062,6 +22195,7 @@ namespace Authentication {
     public const int EnterpriseUserIdFieldNumber = 1;
     private long enterpriseUserId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long EnterpriseUserId {
       get { return enterpriseUserId_; }
       set {
@@ -16073,6 +22207,7 @@ namespace Authentication {
     public const int AliasFieldNumber = 2;
     private string alias_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Alias {
       get { return alias_; }
       set {
@@ -16081,11 +22216,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as EnterpriseUserAliasRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(EnterpriseUserAliasRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -16099,6 +22236,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
@@ -16110,12 +22248,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EnterpriseUserId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(EnterpriseUserId);
@@ -16127,9 +22270,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (Alias.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Alias);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EnterpriseUserId != 0L) {
@@ -16145,6 +22308,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(EnterpriseUserAliasRequest other) {
       if (other == null) {
         return;
@@ -16159,7 +22323,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -16176,27 +22344,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            Alias = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class EnterpriseUserAddAliasRequest : pb::IMessage<EnterpriseUserAddAliasRequest> {
+  public sealed partial class EnterpriseUserAddAliasRequest : pb::IMessage<EnterpriseUserAddAliasRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<EnterpriseUserAddAliasRequest> _parser = new pb::MessageParser<EnterpriseUserAddAliasRequest>(() => new EnterpriseUserAddAliasRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<EnterpriseUserAddAliasRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[72]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserAddAliasRequest() {
       OnConstruction();
     }
@@ -16204,6 +22404,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserAddAliasRequest(EnterpriseUserAddAliasRequest other) : this() {
       enterpriseUserId_ = other.enterpriseUserId_;
       alias_ = other.alias_;
@@ -16212,6 +22413,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserAddAliasRequest Clone() {
       return new EnterpriseUserAddAliasRequest(this);
     }
@@ -16220,6 +22422,7 @@ namespace Authentication {
     public const int EnterpriseUserIdFieldNumber = 1;
     private long enterpriseUserId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long EnterpriseUserId {
       get { return enterpriseUserId_; }
       set {
@@ -16231,6 +22434,7 @@ namespace Authentication {
     public const int AliasFieldNumber = 2;
     private string alias_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Alias {
       get { return alias_; }
       set {
@@ -16242,6 +22446,7 @@ namespace Authentication {
     public const int PrimaryFieldNumber = 3;
     private bool primary_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Primary {
       get { return primary_; }
       set {
@@ -16250,11 +22455,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as EnterpriseUserAddAliasRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(EnterpriseUserAddAliasRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -16269,6 +22476,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
@@ -16281,12 +22489,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EnterpriseUserId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(EnterpriseUserId);
@@ -16302,9 +22515,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (Alias.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Alias);
+      }
+      if (Primary != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Primary);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EnterpriseUserId != 0L) {
@@ -16323,6 +22560,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(EnterpriseUserAddAliasRequest other) {
       if (other == null) {
         return;
@@ -16340,7 +22578,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -16361,27 +22603,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            Alias = input.ReadString();
+            break;
+          }
+          case 24: {
+            Primary = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class Device : pb::IMessage<Device> {
+  public sealed partial class Device : pb::IMessage<Device>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Device> _parser = new pb::MessageParser<Device>(() => new Device());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<Device> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[73]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Device() {
       OnConstruction();
     }
@@ -16389,12 +22667,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Device(Device other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Device Clone() {
       return new Device(this);
     }
@@ -16403,6 +22683,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -16411,11 +22692,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as Device);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(Device other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -16428,6 +22711,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -16438,12 +22722,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -16451,9 +22740,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -16466,6 +22771,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(Device other) {
       if (other == null) {
         return;
@@ -16477,7 +22783,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -16490,27 +22800,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class RegisterDeviceDataKeyRequest : pb::IMessage<RegisterDeviceDataKeyRequest> {
+  public sealed partial class RegisterDeviceDataKeyRequest : pb::IMessage<RegisterDeviceDataKeyRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<RegisterDeviceDataKeyRequest> _parser = new pb::MessageParser<RegisterDeviceDataKeyRequest>(() => new RegisterDeviceDataKeyRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RegisterDeviceDataKeyRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[74]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegisterDeviceDataKeyRequest() {
       OnConstruction();
     }
@@ -16518,6 +22856,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegisterDeviceDataKeyRequest(RegisterDeviceDataKeyRequest other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       encryptedDeviceDataKey_ = other.encryptedDeviceDataKey_;
@@ -16525,6 +22864,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RegisterDeviceDataKeyRequest Clone() {
       return new RegisterDeviceDataKeyRequest(this);
     }
@@ -16533,6 +22873,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -16544,6 +22885,7 @@ namespace Authentication {
     public const int EncryptedDeviceDataKeyFieldNumber = 2;
     private pb::ByteString encryptedDeviceDataKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceDataKey {
       get { return encryptedDeviceDataKey_; }
       set {
@@ -16552,11 +22894,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RegisterDeviceDataKeyRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RegisterDeviceDataKeyRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -16570,6 +22914,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -16581,12 +22926,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -16598,9 +22948,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (EncryptedDeviceDataKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedDeviceDataKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -16616,6 +22986,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RegisterDeviceDataKeyRequest other) {
       if (other == null) {
         return;
@@ -16630,7 +23001,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -16647,27 +23022,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedDeviceDataKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ValidateCreateUserVerificationCodeRequest : pb::IMessage<ValidateCreateUserVerificationCodeRequest> {
+  public sealed partial class ValidateCreateUserVerificationCodeRequest : pb::IMessage<ValidateCreateUserVerificationCodeRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ValidateCreateUserVerificationCodeRequest> _parser = new pb::MessageParser<ValidateCreateUserVerificationCodeRequest>(() => new ValidateCreateUserVerificationCodeRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ValidateCreateUserVerificationCodeRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[75]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateCreateUserVerificationCodeRequest() {
       OnConstruction();
     }
@@ -16675,6 +23082,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateCreateUserVerificationCodeRequest(ValidateCreateUserVerificationCodeRequest other) : this() {
       username_ = other.username_;
       clientVersion_ = other.clientVersion_;
@@ -16683,6 +23091,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateCreateUserVerificationCodeRequest Clone() {
       return new ValidateCreateUserVerificationCodeRequest(this);
     }
@@ -16691,6 +23100,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 1;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -16702,6 +23112,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 2;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -16713,6 +23124,7 @@ namespace Authentication {
     public const int VerificationCodeFieldNumber = 3;
     private string verificationCode_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string VerificationCode {
       get { return verificationCode_; }
       set {
@@ -16721,11 +23133,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ValidateCreateUserVerificationCodeRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ValidateCreateUserVerificationCodeRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -16740,6 +23154,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -16752,12 +23167,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -16773,9 +23193,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientVersion);
+      }
+      if (VerificationCode.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(VerificationCode);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -16794,6 +23238,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ValidateCreateUserVerificationCodeRequest other) {
       if (other == null) {
         return;
@@ -16811,7 +23256,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -16832,27 +23281,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 26: {
+            VerificationCode = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ValidateDeviceVerificationCodeRequest : pb::IMessage<ValidateDeviceVerificationCodeRequest> {
+  public sealed partial class ValidateDeviceVerificationCodeRequest : pb::IMessage<ValidateDeviceVerificationCodeRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ValidateDeviceVerificationCodeRequest> _parser = new pb::MessageParser<ValidateDeviceVerificationCodeRequest>(() => new ValidateDeviceVerificationCodeRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ValidateDeviceVerificationCodeRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[76]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateDeviceVerificationCodeRequest() {
       OnConstruction();
     }
@@ -16860,6 +23345,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateDeviceVerificationCodeRequest(ValidateDeviceVerificationCodeRequest other) : this() {
       username_ = other.username_;
       clientVersion_ = other.clientVersion_;
@@ -16870,6 +23356,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ValidateDeviceVerificationCodeRequest Clone() {
       return new ValidateDeviceVerificationCodeRequest(this);
     }
@@ -16878,6 +23365,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 1;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -16889,6 +23377,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 2;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -16900,6 +23389,7 @@ namespace Authentication {
     public const int VerificationCodeFieldNumber = 3;
     private string verificationCode_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string VerificationCode {
       get { return verificationCode_; }
       set {
@@ -16911,6 +23401,7 @@ namespace Authentication {
     public const int MessageSessionUidFieldNumber = 4;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -16922,6 +23413,7 @@ namespace Authentication {
     public const int EncryptedDeviceTokenFieldNumber = 5;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -16930,11 +23422,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ValidateDeviceVerificationCodeRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ValidateDeviceVerificationCodeRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -16951,6 +23445,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -16965,12 +23460,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -16994,9 +23494,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientVersion);
+      }
+      if (VerificationCode.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(VerificationCode);
+      }
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -17021,6 +23553,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ValidateDeviceVerificationCodeRequest other) {
       if (other == null) {
         return;
@@ -17044,7 +23577,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -17073,27 +23610,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 26: {
+            VerificationCode = input.ReadString();
+            break;
+          }
+          case 34: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SendSessionMessageRequest : pb::IMessage<SendSessionMessageRequest> {
+  public sealed partial class SendSessionMessageRequest : pb::IMessage<SendSessionMessageRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SendSessionMessageRequest> _parser = new pb::MessageParser<SendSessionMessageRequest>(() => new SendSessionMessageRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SendSessionMessageRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[77]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SendSessionMessageRequest() {
       OnConstruction();
     }
@@ -17101,6 +23682,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SendSessionMessageRequest(SendSessionMessageRequest other) : this() {
       messageSessionUid_ = other.messageSessionUid_;
       command_ = other.command_;
@@ -17109,6 +23691,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SendSessionMessageRequest Clone() {
       return new SendSessionMessageRequest(this);
     }
@@ -17117,6 +23700,7 @@ namespace Authentication {
     public const int MessageSessionUidFieldNumber = 1;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -17128,6 +23712,7 @@ namespace Authentication {
     public const int CommandFieldNumber = 2;
     private string command_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Command {
       get { return command_; }
       set {
@@ -17139,6 +23724,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 3;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -17147,11 +23733,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SendSessionMessageRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SendSessionMessageRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -17166,6 +23754,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MessageSessionUid.Length != 0) hash ^= MessageSessionUid.GetHashCode();
@@ -17178,12 +23767,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MessageSessionUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(MessageSessionUid);
@@ -17199,9 +23793,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (Command.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Command);
+      }
+      if (Username.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Username);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MessageSessionUid.Length != 0) {
@@ -17220,6 +23838,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SendSessionMessageRequest other) {
       if (other == null) {
         return;
@@ -17237,7 +23856,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -17258,27 +23881,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Command = input.ReadString();
+            break;
+          }
+          case 26: {
+            Username = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GlobalUserAccount : pb::IMessage<GlobalUserAccount> {
+  public sealed partial class GlobalUserAccount : pb::IMessage<GlobalUserAccount>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GlobalUserAccount> _parser = new pb::MessageParser<GlobalUserAccount>(() => new GlobalUserAccount());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GlobalUserAccount> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[78]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GlobalUserAccount() {
       OnConstruction();
     }
@@ -17286,6 +23945,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GlobalUserAccount(GlobalUserAccount other) : this() {
       username_ = other.username_;
       accountUid_ = other.accountUid_;
@@ -17294,6 +23954,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GlobalUserAccount Clone() {
       return new GlobalUserAccount(this);
     }
@@ -17302,6 +23963,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 1;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -17313,6 +23975,7 @@ namespace Authentication {
     public const int AccountUidFieldNumber = 2;
     private pb::ByteString accountUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AccountUid {
       get { return accountUid_; }
       set {
@@ -17324,6 +23987,7 @@ namespace Authentication {
     public const int RegionNameFieldNumber = 3;
     private string regionName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string RegionName {
       get { return regionName_; }
       set {
@@ -17332,11 +23996,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GlobalUserAccount);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GlobalUserAccount other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -17351,6 +24017,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -17363,12 +24030,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -17384,9 +24056,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccountUid);
+      }
+      if (RegionName.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(RegionName);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -17405,6 +24101,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GlobalUserAccount other) {
       if (other == null) {
         return;
@@ -17422,7 +24119,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -17443,27 +24144,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            RegionName = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AccountUsername : pb::IMessage<AccountUsername> {
+  public sealed partial class AccountUsername : pb::IMessage<AccountUsername>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AccountUsername> _parser = new pb::MessageParser<AccountUsername>(() => new AccountUsername());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AccountUsername> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[79]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AccountUsername() {
       OnConstruction();
     }
@@ -17471,6 +24208,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AccountUsername(AccountUsername other) : this() {
       username_ = other.username_;
       dateActive_ = other.dateActive_;
@@ -17478,6 +24216,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AccountUsername Clone() {
       return new AccountUsername(this);
     }
@@ -17486,6 +24225,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 1;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -17497,6 +24237,7 @@ namespace Authentication {
     public const int DateActiveFieldNumber = 2;
     private string dateActive_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DateActive {
       get { return dateActive_; }
       set {
@@ -17505,11 +24246,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AccountUsername);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AccountUsername other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -17523,6 +24266,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -17534,12 +24278,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -17551,9 +24300,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (DateActive.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(DateActive);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -17569,6 +24338,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AccountUsername other) {
       if (other == null) {
         return;
@@ -17583,7 +24353,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -17600,7 +24374,31 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            DateActive = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
@@ -17608,23 +24406,31 @@ namespace Authentication {
   ///*
   /// This is the input to the get_sso_service_provider command.
   /// </summary>
-  public sealed partial class SsoServiceProviderRequest : pb::IMessage<SsoServiceProviderRequest> {
+  public sealed partial class SsoServiceProviderRequest : pb::IMessage<SsoServiceProviderRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SsoServiceProviderRequest> _parser = new pb::MessageParser<SsoServiceProviderRequest>(() => new SsoServiceProviderRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoServiceProviderRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[80]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoServiceProviderRequest() {
       OnConstruction();
     }
@@ -17632,6 +24438,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoServiceProviderRequest(SsoServiceProviderRequest other) : this() {
       name_ = other.name_;
       clientVersion_ = other.clientVersion_;
@@ -17640,6 +24447,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoServiceProviderRequest Clone() {
       return new SsoServiceProviderRequest(this);
     }
@@ -17651,6 +24459,7 @@ namespace Authentication {
     /// the name entered by the user
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -17662,6 +24471,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 2;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -17676,6 +24486,7 @@ namespace Authentication {
     /// such as "en_US"
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Locale {
       get { return locale_; }
       set {
@@ -17684,11 +24495,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoServiceProviderRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoServiceProviderRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -17703,6 +24516,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Name.Length != 0) hash ^= Name.GetHashCode();
@@ -17715,12 +24529,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Name.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Name);
@@ -17736,9 +24555,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientVersion);
+      }
+      if (Locale.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Locale);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Name.Length != 0) {
@@ -17757,6 +24600,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoServiceProviderRequest other) {
       if (other == null) {
         return;
@@ -17774,7 +24618,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -17795,7 +24643,35 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 26: {
+            Locale = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
@@ -17803,23 +24679,31 @@ namespace Authentication {
   ///*
   /// This is the response from the get_sso_service_provider command.
   /// </summary>
-  public sealed partial class SsoServiceProviderResponse : pb::IMessage<SsoServiceProviderResponse> {
+  public sealed partial class SsoServiceProviderResponse : pb::IMessage<SsoServiceProviderResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SsoServiceProviderResponse> _parser = new pb::MessageParser<SsoServiceProviderResponse>(() => new SsoServiceProviderResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SsoServiceProviderResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[81]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoServiceProviderResponse() {
       OnConstruction();
     }
@@ -17827,6 +24711,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoServiceProviderResponse(SsoServiceProviderResponse other) : this() {
       name_ = other.name_;
       spUrl_ = other.spUrl_;
@@ -17836,6 +24721,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SsoServiceProviderResponse Clone() {
       return new SsoServiceProviderResponse(this);
     }
@@ -17847,6 +24733,7 @@ namespace Authentication {
     /// the official name
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -17858,6 +24745,7 @@ namespace Authentication {
     public const int SpUrlFieldNumber = 2;
     private string spUrl_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SpUrl {
       get { return spUrl_; }
       set {
@@ -17869,6 +24757,7 @@ namespace Authentication {
     public const int IsCloudFieldNumber = 3;
     private bool isCloud_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsCloud {
       get { return isCloud_; }
       set {
@@ -17880,6 +24769,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 4;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -17888,11 +24778,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SsoServiceProviderResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SsoServiceProviderResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -17908,6 +24800,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Name.Length != 0) hash ^= Name.GetHashCode();
@@ -17921,12 +24814,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Name.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Name);
@@ -17946,9 +24844,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (SpUrl.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(SpUrl);
+      }
+      if (IsCloud != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(IsCloud);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(ClientVersion);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Name.Length != 0) {
@@ -17970,6 +24896,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SsoServiceProviderResponse other) {
       if (other == null) {
         return;
@@ -17990,7 +24917,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -18015,27 +24946,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            SpUrl = input.ReadString();
+            break;
+          }
+          case 24: {
+            IsCloud = input.ReadBool();
+            break;
+          }
+          case 34: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class UserSettingRequest : pb::IMessage<UserSettingRequest> {
+  public sealed partial class UserSettingRequest : pb::IMessage<UserSettingRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<UserSettingRequest> _parser = new pb::MessageParser<UserSettingRequest>(() => new UserSettingRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UserSettingRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[82]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserSettingRequest() {
       OnConstruction();
     }
@@ -18043,6 +25014,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserSettingRequest(UserSettingRequest other) : this() {
       setting_ = other.setting_;
       value_ = other.value_;
@@ -18050,6 +25022,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserSettingRequest Clone() {
       return new UserSettingRequest(this);
     }
@@ -18058,6 +25031,7 @@ namespace Authentication {
     public const int SettingFieldNumber = 1;
     private string setting_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Setting {
       get { return setting_; }
       set {
@@ -18069,6 +25043,7 @@ namespace Authentication {
     public const int ValueFieldNumber = 2;
     private string value_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -18077,11 +25052,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UserSettingRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UserSettingRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -18095,6 +25072,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Setting.Length != 0) hash ^= Setting.GetHashCode();
@@ -18106,12 +25084,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Setting.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Setting);
@@ -18123,9 +25106,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Setting.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Setting);
+      }
+      if (Value.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Value);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Setting.Length != 0) {
@@ -18141,6 +25144,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UserSettingRequest other) {
       if (other == null) {
         return;
@@ -18155,7 +25159,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -18172,27 +25180,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Setting = input.ReadString();
+            break;
+          }
+          case 18: {
+            Value = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ThrottleState : pb::IMessage<ThrottleState> {
+  public sealed partial class ThrottleState : pb::IMessage<ThrottleState>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ThrottleState> _parser = new pb::MessageParser<ThrottleState>(() => new ThrottleState());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ThrottleState> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[83]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ThrottleState() {
       OnConstruction();
     }
@@ -18200,6 +25240,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ThrottleState(ThrottleState other) : this() {
       type_ = other.type_;
       key_ = other.key_;
@@ -18209,6 +25250,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ThrottleState Clone() {
       return new ThrottleState(this);
     }
@@ -18217,6 +25259,7 @@ namespace Authentication {
     public const int TypeFieldNumber = 1;
     private global::Authentication.ThrottleType type_ = global::Authentication.ThrottleType.PasswordRetryThrottle;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.ThrottleType Type {
       get { return type_; }
       set {
@@ -18228,6 +25271,7 @@ namespace Authentication {
     public const int KeyFieldNumber = 2;
     private string key_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Key {
       get { return key_; }
       set {
@@ -18239,6 +25283,7 @@ namespace Authentication {
     public const int ValueFieldNumber = 3;
     private string value_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -18250,6 +25295,7 @@ namespace Authentication {
     public const int StateFieldNumber = 4;
     private bool state_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool State {
       get { return state_; }
       set {
@@ -18258,11 +25304,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ThrottleState);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ThrottleState other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -18278,6 +25326,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Type != global::Authentication.ThrottleType.PasswordRetryThrottle) hash ^= Type.GetHashCode();
@@ -18291,12 +25340,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Type != global::Authentication.ThrottleType.PasswordRetryThrottle) {
         output.WriteRawTag(8);
         output.WriteEnum((int) Type);
@@ -18316,9 +25370,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Type != global::Authentication.ThrottleType.PasswordRetryThrottle) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) Type);
+      }
+      if (Key.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Key);
+      }
+      if (Value.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Value);
+      }
+      if (State != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(State);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Type != global::Authentication.ThrottleType.PasswordRetryThrottle) {
@@ -18340,6 +25422,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ThrottleState other) {
       if (other == null) {
         return;
@@ -18360,7 +25443,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -18385,27 +25472,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Type = (global::Authentication.ThrottleType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            Key = input.ReadString();
+            break;
+          }
+          case 26: {
+            Value = input.ReadString();
+            break;
+          }
+          case 32: {
+            State = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ThrottleState2 : pb::IMessage<ThrottleState2> {
+  public sealed partial class ThrottleState2 : pb::IMessage<ThrottleState2>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ThrottleState2> _parser = new pb::MessageParser<ThrottleState2>(() => new ThrottleState2());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ThrottleState2> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[84]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ThrottleState2() {
       OnConstruction();
     }
@@ -18413,6 +25540,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ThrottleState2(ThrottleState2 other) : this() {
       key_ = other.key_;
       keyDescription_ = other.keyDescription_;
@@ -18426,6 +25554,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ThrottleState2 Clone() {
       return new ThrottleState2(this);
     }
@@ -18434,6 +25563,7 @@ namespace Authentication {
     public const int KeyFieldNumber = 1;
     private string key_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Key {
       get { return key_; }
       set {
@@ -18445,6 +25575,7 @@ namespace Authentication {
     public const int KeyDescriptionFieldNumber = 2;
     private string keyDescription_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string KeyDescription {
       get { return keyDescription_; }
       set {
@@ -18456,6 +25587,7 @@ namespace Authentication {
     public const int ValueFieldNumber = 3;
     private string value_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -18467,6 +25599,7 @@ namespace Authentication {
     public const int ValueDescriptionFieldNumber = 4;
     private string valueDescription_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ValueDescription {
       get { return valueDescription_; }
       set {
@@ -18478,6 +25611,7 @@ namespace Authentication {
     public const int IdentifierFieldNumber = 5;
     private string identifier_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Identifier {
       get { return identifier_; }
       set {
@@ -18489,6 +25623,7 @@ namespace Authentication {
     public const int LockedFieldNumber = 6;
     private bool locked_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Locked {
       get { return locked_; }
       set {
@@ -18500,6 +25635,7 @@ namespace Authentication {
     public const int IncludedInAllClearFieldNumber = 7;
     private bool includedInAllClear_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IncludedInAllClear {
       get { return includedInAllClear_; }
       set {
@@ -18511,6 +25647,7 @@ namespace Authentication {
     public const int ExpireSecondsFieldNumber = 8;
     private int expireSeconds_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int ExpireSeconds {
       get { return expireSeconds_; }
       set {
@@ -18519,11 +25656,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ThrottleState2);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ThrottleState2 other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -18543,6 +25682,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Key.Length != 0) hash ^= Key.GetHashCode();
@@ -18560,12 +25700,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Key.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Key);
@@ -18601,9 +25746,53 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Key.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Key);
+      }
+      if (KeyDescription.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(KeyDescription);
+      }
+      if (Value.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Value);
+      }
+      if (ValueDescription.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(ValueDescription);
+      }
+      if (Identifier.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Identifier);
+      }
+      if (Locked != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(Locked);
+      }
+      if (IncludedInAllClear != false) {
+        output.WriteRawTag(56);
+        output.WriteBool(IncludedInAllClear);
+      }
+      if (ExpireSeconds != 0) {
+        output.WriteRawTag(64);
+        output.WriteInt32(ExpireSeconds);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Key.Length != 0) {
@@ -18637,6 +25826,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ThrottleState2 other) {
       if (other == null) {
         return;
@@ -18669,7 +25859,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -18710,27 +25904,83 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Key = input.ReadString();
+            break;
+          }
+          case 18: {
+            KeyDescription = input.ReadString();
+            break;
+          }
+          case 26: {
+            Value = input.ReadString();
+            break;
+          }
+          case 34: {
+            ValueDescription = input.ReadString();
+            break;
+          }
+          case 42: {
+            Identifier = input.ReadString();
+            break;
+          }
+          case 48: {
+            Locked = input.ReadBool();
+            break;
+          }
+          case 56: {
+            IncludedInAllClear = input.ReadBool();
+            break;
+          }
+          case 64: {
+            ExpireSeconds = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeviceInformation : pb::IMessage<DeviceInformation> {
+  public sealed partial class DeviceInformation : pb::IMessage<DeviceInformation>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeviceInformation> _parser = new pb::MessageParser<DeviceInformation>(() => new DeviceInformation());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeviceInformation> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[85]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceInformation() {
       OnConstruction();
     }
@@ -18738,6 +25988,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceInformation(DeviceInformation other) : this() {
       deviceId_ = other.deviceId_;
       deviceName_ = other.deviceName_;
@@ -18748,6 +25999,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeviceInformation Clone() {
       return new DeviceInformation(this);
     }
@@ -18756,6 +26008,7 @@ namespace Authentication {
     public const int DeviceIdFieldNumber = 1;
     private long deviceId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long DeviceId {
       get { return deviceId_; }
       set {
@@ -18767,6 +26020,7 @@ namespace Authentication {
     public const int DeviceNameFieldNumber = 2;
     private string deviceName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string DeviceName {
       get { return deviceName_; }
       set {
@@ -18778,6 +26032,7 @@ namespace Authentication {
     public const int ClientVersionFieldNumber = 3;
     private string clientVersion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ClientVersion {
       get { return clientVersion_; }
       set {
@@ -18792,6 +26047,7 @@ namespace Authentication {
     /// for get not save
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long LastLogin {
       get { return lastLogin_; }
       set {
@@ -18803,6 +26059,7 @@ namespace Authentication {
     public const int DeviceStatusFieldNumber = 5;
     private global::Authentication.DeviceStatus deviceStatus_ = global::Authentication.DeviceStatus.DeviceNeedsApproval;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.DeviceStatus DeviceStatus {
       get { return deviceStatus_; }
       set {
@@ -18811,11 +26068,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeviceInformation);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeviceInformation other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -18832,6 +26091,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (DeviceId != 0L) hash ^= DeviceId.GetHashCode();
@@ -18846,12 +26106,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (DeviceId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(DeviceId);
@@ -18875,9 +26140,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (DeviceId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(DeviceId);
+      }
+      if (DeviceName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(DeviceName);
+      }
+      if (ClientVersion.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ClientVersion);
+      }
+      if (LastLogin != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(LastLogin);
+      }
+      if (DeviceStatus != global::Authentication.DeviceStatus.DeviceNeedsApproval) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) DeviceStatus);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (DeviceId != 0L) {
@@ -18902,6 +26199,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeviceInformation other) {
       if (other == null) {
         return;
@@ -18925,7 +26223,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -18954,27 +26256,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            DeviceId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            DeviceName = input.ReadString();
+            break;
+          }
+          case 26: {
+            ClientVersion = input.ReadString();
+            break;
+          }
+          case 32: {
+            LastLogin = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            DeviceStatus = (global::Authentication.DeviceStatus) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class UserSetting : pb::IMessage<UserSetting> {
+  public sealed partial class UserSetting : pb::IMessage<UserSetting>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<UserSetting> _parser = new pb::MessageParser<UserSetting>(() => new UserSetting());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UserSetting> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[86]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserSetting() {
       OnConstruction();
     }
@@ -18982,6 +26328,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserSetting(UserSetting other) : this() {
       name_ = other.name_;
       value_ = other.value_;
@@ -18989,6 +26336,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserSetting Clone() {
       return new UserSetting(this);
     }
@@ -18997,6 +26345,7 @@ namespace Authentication {
     public const int NameFieldNumber = 1;
     private string name_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Name {
       get { return name_; }
       set {
@@ -19008,6 +26357,7 @@ namespace Authentication {
     public const int ValueFieldNumber = 2;
     private bool value_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Value {
       get { return value_; }
       set {
@@ -19016,11 +26366,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UserSetting);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UserSetting other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -19034,6 +26386,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Name.Length != 0) hash ^= Name.GetHashCode();
@@ -19045,12 +26398,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Name.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Name);
@@ -19062,9 +26420,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (Value != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(Value);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Name.Length != 0) {
@@ -19080,6 +26458,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UserSetting other) {
       if (other == null) {
         return;
@@ -19094,7 +26473,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -19111,27 +26494,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 16: {
+            Value = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class UserDataKeyRequest : pb::IMessage<UserDataKeyRequest> {
+  public sealed partial class UserDataKeyRequest : pb::IMessage<UserDataKeyRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<UserDataKeyRequest> _parser = new pb::MessageParser<UserDataKeyRequest>(() => new UserDataKeyRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UserDataKeyRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[87]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKeyRequest() {
       OnConstruction();
     }
@@ -19139,12 +26554,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKeyRequest(UserDataKeyRequest other) : this() {
       enterpriseUserId_ = other.enterpriseUserId_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKeyRequest Clone() {
       return new UserDataKeyRequest(this);
     }
@@ -19155,16 +26572,19 @@ namespace Authentication {
         = pb::FieldCodec.ForInt64(10);
     private readonly pbc::RepeatedField<long> enterpriseUserId_ = new pbc::RepeatedField<long>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<long> EnterpriseUserId {
       get { return enterpriseUserId_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UserDataKeyRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UserDataKeyRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -19177,6 +26597,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= enterpriseUserId_.GetHashCode();
@@ -19187,19 +26608,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       enterpriseUserId_.WriteTo(output, _repeated_enterpriseUserId_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      enterpriseUserId_.WriteTo(ref output, _repeated_enterpriseUserId_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += enterpriseUserId_.CalculateSize(_repeated_enterpriseUserId_codec);
@@ -19210,6 +26649,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UserDataKeyRequest other) {
       if (other == null) {
         return;
@@ -19219,7 +26659,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -19233,27 +26677,56 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10:
+          case 8: {
+            enterpriseUserId_.AddEntriesFrom(ref input, _repeated_enterpriseUserId_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class EnterpriseUserIdDataKeyPair : pb::IMessage<EnterpriseUserIdDataKeyPair> {
+  public sealed partial class EnterpriseUserIdDataKeyPair : pb::IMessage<EnterpriseUserIdDataKeyPair>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<EnterpriseUserIdDataKeyPair> _parser = new pb::MessageParser<EnterpriseUserIdDataKeyPair>(() => new EnterpriseUserIdDataKeyPair());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<EnterpriseUserIdDataKeyPair> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[88]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserIdDataKeyPair() {
       OnConstruction();
     }
@@ -19261,6 +26734,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserIdDataKeyPair(EnterpriseUserIdDataKeyPair other) : this() {
       enterpriseUserId_ = other.enterpriseUserId_;
       encryptedDataKey_ = other.encryptedDataKey_;
@@ -19268,6 +26742,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EnterpriseUserIdDataKeyPair Clone() {
       return new EnterpriseUserIdDataKeyPair(this);
     }
@@ -19276,6 +26751,7 @@ namespace Authentication {
     public const int EnterpriseUserIdFieldNumber = 1;
     private long enterpriseUserId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long EnterpriseUserId {
       get { return enterpriseUserId_; }
       set {
@@ -19287,6 +26763,7 @@ namespace Authentication {
     public const int EncryptedDataKeyFieldNumber = 2;
     private pb::ByteString encryptedDataKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDataKey {
       get { return encryptedDataKey_; }
       set {
@@ -19295,11 +26772,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as EnterpriseUserIdDataKeyPair);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(EnterpriseUserIdDataKeyPair other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -19313,6 +26792,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EnterpriseUserId != 0L) hash ^= EnterpriseUserId.GetHashCode();
@@ -19324,12 +26804,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EnterpriseUserId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(EnterpriseUserId);
@@ -19341,9 +26826,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EnterpriseUserId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(EnterpriseUserId);
+      }
+      if (EncryptedDataKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedDataKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EnterpriseUserId != 0L) {
@@ -19359,6 +26864,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(EnterpriseUserIdDataKeyPair other) {
       if (other == null) {
         return;
@@ -19373,7 +26879,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -19390,27 +26900,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            EnterpriseUserId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            EncryptedDataKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class UserDataKey : pb::IMessage<UserDataKey> {
+  public sealed partial class UserDataKey : pb::IMessage<UserDataKey>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<UserDataKey> _parser = new pb::MessageParser<UserDataKey>(() => new UserDataKey());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UserDataKey> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[89]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKey() {
       OnConstruction();
     }
@@ -19418,6 +26960,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKey(UserDataKey other) : this() {
       roleId_ = other.roleId_;
       roleKey_ = other.roleKey_;
@@ -19427,6 +26970,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKey Clone() {
       return new UserDataKey(this);
     }
@@ -19435,6 +26979,7 @@ namespace Authentication {
     public const int RoleIdFieldNumber = 1;
     private long roleId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long RoleId {
       get { return roleId_; }
       set {
@@ -19446,6 +26991,7 @@ namespace Authentication {
     public const int RoleKeyFieldNumber = 2;
     private pb::ByteString roleKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RoleKey {
       get { return roleKey_; }
       set {
@@ -19457,6 +27003,7 @@ namespace Authentication {
     public const int PrivateKeyFieldNumber = 3;
     private string privateKey_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string PrivateKey {
       get { return privateKey_; }
       set {
@@ -19470,16 +27017,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(34, global::Authentication.EnterpriseUserIdDataKeyPair.Parser);
     private readonly pbc::RepeatedField<global::Authentication.EnterpriseUserIdDataKeyPair> enterpriseUserIdDataKeyPairs_ = new pbc::RepeatedField<global::Authentication.EnterpriseUserIdDataKeyPair>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.EnterpriseUserIdDataKeyPair> EnterpriseUserIdDataKeyPairs {
       get { return enterpriseUserIdDataKeyPairs_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UserDataKey);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UserDataKey other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -19495,6 +27045,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RoleId != 0L) hash ^= RoleId.GetHashCode();
@@ -19508,12 +27059,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RoleId != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(RoleId);
@@ -19530,9 +27086,34 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RoleId != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(RoleId);
+      }
+      if (RoleKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(RoleKey);
+      }
+      if (PrivateKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(PrivateKey);
+      }
+      enterpriseUserIdDataKeyPairs_.WriteTo(ref output, _repeated_enterpriseUserIdDataKeyPairs_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RoleId != 0L) {
@@ -19552,6 +27133,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UserDataKey other) {
       if (other == null) {
         return;
@@ -19570,7 +27152,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -19595,27 +27181,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            RoleId = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            RoleKey = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            PrivateKey = input.ReadString();
+            break;
+          }
+          case 34: {
+            enterpriseUserIdDataKeyPairs_.AddEntriesFrom(ref input, _repeated_enterpriseUserIdDataKeyPairs_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class UserDataKeyResponse : pb::IMessage<UserDataKeyResponse> {
+  public sealed partial class UserDataKeyResponse : pb::IMessage<UserDataKeyResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<UserDataKeyResponse> _parser = new pb::MessageParser<UserDataKeyResponse>(() => new UserDataKeyResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UserDataKeyResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[90]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKeyResponse() {
       OnConstruction();
     }
@@ -19623,6 +27249,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKeyResponse(UserDataKeyResponse other) : this() {
       userDataKeys_ = other.userDataKeys_.Clone();
       accessDenied_ = other.accessDenied_.Clone();
@@ -19631,6 +27258,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserDataKeyResponse Clone() {
       return new UserDataKeyResponse(this);
     }
@@ -19641,6 +27269,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.UserDataKey.Parser);
     private readonly pbc::RepeatedField<global::Authentication.UserDataKey> userDataKeys_ = new pbc::RepeatedField<global::Authentication.UserDataKey>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.UserDataKey> UserDataKeys {
       get { return userDataKeys_; }
     }
@@ -19651,6 +27280,7 @@ namespace Authentication {
         = pb::FieldCodec.ForInt64(18);
     private readonly pbc::RepeatedField<long> accessDenied_ = new pbc::RepeatedField<long>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<long> AccessDenied {
       get { return accessDenied_; }
     }
@@ -19661,16 +27291,19 @@ namespace Authentication {
         = pb::FieldCodec.ForInt64(26);
     private readonly pbc::RepeatedField<long> noEncryptedDataKey_ = new pbc::RepeatedField<long>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<long> NoEncryptedDataKey {
       get { return noEncryptedDataKey_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UserDataKeyResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UserDataKeyResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -19685,6 +27318,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= userDataKeys_.GetHashCode();
@@ -19697,21 +27331,41 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       userDataKeys_.WriteTo(output, _repeated_userDataKeys_codec);
       accessDenied_.WriteTo(output, _repeated_accessDenied_codec);
       noEncryptedDataKey_.WriteTo(output, _repeated_noEncryptedDataKey_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      userDataKeys_.WriteTo(ref output, _repeated_userDataKeys_codec);
+      accessDenied_.WriteTo(ref output, _repeated_accessDenied_codec);
+      noEncryptedDataKey_.WriteTo(ref output, _repeated_noEncryptedDataKey_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += userDataKeys_.CalculateSize(_repeated_userDataKeys_codec);
@@ -19724,6 +27378,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UserDataKeyResponse other) {
       if (other == null) {
         return;
@@ -19735,7 +27390,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -19758,27 +27417,65 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            userDataKeys_.AddEntriesFrom(ref input, _repeated_userDataKeys_codec);
+            break;
+          }
+          case 18:
+          case 16: {
+            accessDenied_.AddEntriesFrom(ref input, _repeated_accessDenied_codec);
+            break;
+          }
+          case 26:
+          case 24: {
+            noEncryptedDataKey_.AddEntriesFrom(ref input, _repeated_noEncryptedDataKey_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class MasterPasswordRecoveryVerificationRequest : pb::IMessage<MasterPasswordRecoveryVerificationRequest> {
+  public sealed partial class MasterPasswordRecoveryVerificationRequest : pb::IMessage<MasterPasswordRecoveryVerificationRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<MasterPasswordRecoveryVerificationRequest> _parser = new pb::MessageParser<MasterPasswordRecoveryVerificationRequest>(() => new MasterPasswordRecoveryVerificationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<MasterPasswordRecoveryVerificationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[91]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MasterPasswordRecoveryVerificationRequest() {
       OnConstruction();
     }
@@ -19786,12 +27483,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MasterPasswordRecoveryVerificationRequest(MasterPasswordRecoveryVerificationRequest other) : this() {
       encryptedLoginToken_ = other.encryptedLoginToken_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MasterPasswordRecoveryVerificationRequest Clone() {
       return new MasterPasswordRecoveryVerificationRequest(this);
     }
@@ -19800,6 +27499,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 1;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -19808,11 +27508,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as MasterPasswordRecoveryVerificationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(MasterPasswordRecoveryVerificationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -19825,6 +27527,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedLoginToken.Length != 0) hash ^= EncryptedLoginToken.GetHashCode();
@@ -19835,12 +27538,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedLoginToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedLoginToken);
@@ -19848,9 +27556,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedLoginToken.Length != 0) {
@@ -19863,6 +27587,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(MasterPasswordRecoveryVerificationRequest other) {
       if (other == null) {
         return;
@@ -19874,7 +27599,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -19887,27 +27616,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetSecurityQuestionV3Request : pb::IMessage<GetSecurityQuestionV3Request> {
+  public sealed partial class GetSecurityQuestionV3Request : pb::IMessage<GetSecurityQuestionV3Request>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetSecurityQuestionV3Request> _parser = new pb::MessageParser<GetSecurityQuestionV3Request>(() => new GetSecurityQuestionV3Request());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetSecurityQuestionV3Request> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[92]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetSecurityQuestionV3Request() {
       OnConstruction();
     }
@@ -19915,6 +27672,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetSecurityQuestionV3Request(GetSecurityQuestionV3Request other) : this() {
       encryptedLoginToken_ = other.encryptedLoginToken_;
       verificationCode_ = other.verificationCode_;
@@ -19922,6 +27680,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetSecurityQuestionV3Request Clone() {
       return new GetSecurityQuestionV3Request(this);
     }
@@ -19930,6 +27689,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 1;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -19941,6 +27701,7 @@ namespace Authentication {
     public const int VerificationCodeFieldNumber = 2;
     private string verificationCode_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string VerificationCode {
       get { return verificationCode_; }
       set {
@@ -19949,11 +27710,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetSecurityQuestionV3Request);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetSecurityQuestionV3Request other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -19967,6 +27730,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedLoginToken.Length != 0) hash ^= EncryptedLoginToken.GetHashCode();
@@ -19978,12 +27742,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedLoginToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedLoginToken);
@@ -19995,9 +27764,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (VerificationCode.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(VerificationCode);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedLoginToken.Length != 0) {
@@ -20013,6 +27802,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetSecurityQuestionV3Request other) {
       if (other == null) {
         return;
@@ -20027,7 +27817,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -20044,27 +27838,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            VerificationCode = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetSecurityQuestionV3Response : pb::IMessage<GetSecurityQuestionV3Response> {
+  public sealed partial class GetSecurityQuestionV3Response : pb::IMessage<GetSecurityQuestionV3Response>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetSecurityQuestionV3Response> _parser = new pb::MessageParser<GetSecurityQuestionV3Response>(() => new GetSecurityQuestionV3Response());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetSecurityQuestionV3Response> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[93]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetSecurityQuestionV3Response() {
       OnConstruction();
     }
@@ -20072,6 +27898,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetSecurityQuestionV3Response(GetSecurityQuestionV3Response other) : this() {
       securityQuestion_ = other.securityQuestion_;
       backupKeyDate_ = other.backupKeyDate_;
@@ -20081,6 +27908,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetSecurityQuestionV3Response Clone() {
       return new GetSecurityQuestionV3Response(this);
     }
@@ -20089,6 +27917,7 @@ namespace Authentication {
     public const int SecurityQuestionFieldNumber = 1;
     private string securityQuestion_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string SecurityQuestion {
       get { return securityQuestion_; }
       set {
@@ -20100,6 +27929,7 @@ namespace Authentication {
     public const int BackupKeyDateFieldNumber = 2;
     private long backupKeyDate_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long BackupKeyDate {
       get { return backupKeyDate_; }
       set {
@@ -20111,6 +27941,7 @@ namespace Authentication {
     public const int SaltFieldNumber = 3;
     private pb::ByteString salt_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Salt {
       get { return salt_; }
       set {
@@ -20122,6 +27953,7 @@ namespace Authentication {
     public const int IterationsFieldNumber = 4;
     private int iterations_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Iterations {
       get { return iterations_; }
       set {
@@ -20130,11 +27962,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetSecurityQuestionV3Response);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetSecurityQuestionV3Response other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -20150,6 +27984,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SecurityQuestion.Length != 0) hash ^= SecurityQuestion.GetHashCode();
@@ -20163,12 +27998,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (SecurityQuestion.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(SecurityQuestion);
@@ -20188,9 +28028,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SecurityQuestion.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SecurityQuestion);
+      }
+      if (BackupKeyDate != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(BackupKeyDate);
+      }
+      if (Salt.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(Salt);
+      }
+      if (Iterations != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(Iterations);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SecurityQuestion.Length != 0) {
@@ -20212,6 +28080,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetSecurityQuestionV3Response other) {
       if (other == null) {
         return;
@@ -20232,7 +28101,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -20257,27 +28130,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            SecurityQuestion = input.ReadString();
+            break;
+          }
+          case 16: {
+            BackupKeyDate = input.ReadInt64();
+            break;
+          }
+          case 26: {
+            Salt = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            Iterations = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetDataKeyBackupV3Request : pb::IMessage<GetDataKeyBackupV3Request> {
+  public sealed partial class GetDataKeyBackupV3Request : pb::IMessage<GetDataKeyBackupV3Request>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetDataKeyBackupV3Request> _parser = new pb::MessageParser<GetDataKeyBackupV3Request>(() => new GetDataKeyBackupV3Request());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetDataKeyBackupV3Request> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[94]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetDataKeyBackupV3Request() {
       OnConstruction();
     }
@@ -20285,6 +28198,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetDataKeyBackupV3Request(GetDataKeyBackupV3Request other) : this() {
       encryptedLoginToken_ = other.encryptedLoginToken_;
       verificationCode_ = other.verificationCode_;
@@ -20293,6 +28207,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetDataKeyBackupV3Request Clone() {
       return new GetDataKeyBackupV3Request(this);
     }
@@ -20301,6 +28216,7 @@ namespace Authentication {
     public const int EncryptedLoginTokenFieldNumber = 1;
     private pb::ByteString encryptedLoginToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedLoginToken {
       get { return encryptedLoginToken_; }
       set {
@@ -20312,6 +28228,7 @@ namespace Authentication {
     public const int VerificationCodeFieldNumber = 2;
     private string verificationCode_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string VerificationCode {
       get { return verificationCode_; }
       set {
@@ -20323,6 +28240,7 @@ namespace Authentication {
     public const int SecurityAnswerHashFieldNumber = 3;
     private pb::ByteString securityAnswerHash_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString SecurityAnswerHash {
       get { return securityAnswerHash_; }
       set {
@@ -20331,11 +28249,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetDataKeyBackupV3Request);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetDataKeyBackupV3Request other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -20350,6 +28270,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedLoginToken.Length != 0) hash ^= EncryptedLoginToken.GetHashCode();
@@ -20362,12 +28283,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedLoginToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedLoginToken);
@@ -20383,9 +28309,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedLoginToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedLoginToken);
+      }
+      if (VerificationCode.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(VerificationCode);
+      }
+      if (SecurityAnswerHash.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(SecurityAnswerHash);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedLoginToken.Length != 0) {
@@ -20404,6 +28354,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetDataKeyBackupV3Request other) {
       if (other == null) {
         return;
@@ -20421,7 +28372,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -20442,27 +28397,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedLoginToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            VerificationCode = input.ReadString();
+            break;
+          }
+          case 26: {
+            SecurityAnswerHash = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class PasswordRules : pb::IMessage<PasswordRules> {
+  public sealed partial class PasswordRules : pb::IMessage<PasswordRules>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<PasswordRules> _parser = new pb::MessageParser<PasswordRules>(() => new PasswordRules());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<PasswordRules> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[95]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PasswordRules() {
       OnConstruction();
     }
@@ -20470,6 +28461,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PasswordRules(PasswordRules other) : this() {
       ruleType_ = other.ruleType_;
       match_ = other.match_;
@@ -20481,6 +28473,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PasswordRules Clone() {
       return new PasswordRules(this);
     }
@@ -20489,6 +28482,7 @@ namespace Authentication {
     public const int RuleTypeFieldNumber = 1;
     private string ruleType_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string RuleType {
       get { return ruleType_; }
       set {
@@ -20500,6 +28494,7 @@ namespace Authentication {
     public const int MatchFieldNumber = 2;
     private bool match_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Match {
       get { return match_; }
       set {
@@ -20511,6 +28506,7 @@ namespace Authentication {
     public const int PatternFieldNumber = 3;
     private string pattern_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Pattern {
       get { return pattern_; }
       set {
@@ -20522,6 +28518,7 @@ namespace Authentication {
     public const int DescriptionFieldNumber = 4;
     private string description_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Description {
       get { return description_; }
       set {
@@ -20533,6 +28530,7 @@ namespace Authentication {
     public const int MinimumFieldNumber = 5;
     private int minimum_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int Minimum {
       get { return minimum_; }
       set {
@@ -20544,6 +28542,7 @@ namespace Authentication {
     public const int ValueFieldNumber = 6;
     private string value_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Value {
       get { return value_; }
       set {
@@ -20552,11 +28551,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as PasswordRules);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(PasswordRules other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -20574,6 +28575,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RuleType.Length != 0) hash ^= RuleType.GetHashCode();
@@ -20589,12 +28591,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RuleType.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(RuleType);
@@ -20622,9 +28629,45 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RuleType.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RuleType);
+      }
+      if (Match != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(Match);
+      }
+      if (Pattern.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Pattern);
+      }
+      if (Description.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Description);
+      }
+      if (Minimum != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(Minimum);
+      }
+      if (Value.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Value);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RuleType.Length != 0) {
@@ -20652,6 +28695,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(PasswordRules other) {
       if (other == null) {
         return;
@@ -20678,7 +28722,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -20711,27 +28759,75 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RuleType = input.ReadString();
+            break;
+          }
+          case 16: {
+            Match = input.ReadBool();
+            break;
+          }
+          case 26: {
+            Pattern = input.ReadString();
+            break;
+          }
+          case 34: {
+            Description = input.ReadString();
+            break;
+          }
+          case 40: {
+            Minimum = input.ReadInt32();
+            break;
+          }
+          case 50: {
+            Value = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetDataKeyBackupV3Response : pb::IMessage<GetDataKeyBackupV3Response> {
+  public sealed partial class GetDataKeyBackupV3Response : pb::IMessage<GetDataKeyBackupV3Response>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetDataKeyBackupV3Response> _parser = new pb::MessageParser<GetDataKeyBackupV3Response>(() => new GetDataKeyBackupV3Response());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetDataKeyBackupV3Response> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[96]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetDataKeyBackupV3Response() {
       OnConstruction();
     }
@@ -20739,6 +28835,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetDataKeyBackupV3Response(GetDataKeyBackupV3Response other) : this() {
       dataKeyBackup_ = other.dataKeyBackup_;
       dataKeyBackupDate_ = other.dataKeyBackupDate_;
@@ -20753,6 +28850,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetDataKeyBackupV3Response Clone() {
       return new GetDataKeyBackupV3Response(this);
     }
@@ -20761,6 +28859,7 @@ namespace Authentication {
     public const int DataKeyBackupFieldNumber = 1;
     private pb::ByteString dataKeyBackup_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString DataKeyBackup {
       get { return dataKeyBackup_; }
       set {
@@ -20772,6 +28871,7 @@ namespace Authentication {
     public const int DataKeyBackupDateFieldNumber = 2;
     private long dataKeyBackupDate_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long DataKeyBackupDate {
       get { return dataKeyBackupDate_; }
       set {
@@ -20783,6 +28883,7 @@ namespace Authentication {
     public const int PublicKeyFieldNumber = 3;
     private pb::ByteString publicKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString PublicKey {
       get { return publicKey_; }
       set {
@@ -20794,6 +28895,7 @@ namespace Authentication {
     public const int EncryptedPrivateKeyFieldNumber = 4;
     private pb::ByteString encryptedPrivateKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedPrivateKey {
       get { return encryptedPrivateKey_; }
       set {
@@ -20805,6 +28907,7 @@ namespace Authentication {
     public const int ClientKeyFieldNumber = 5;
     private pb::ByteString clientKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ClientKey {
       get { return clientKey_; }
       set {
@@ -20816,6 +28919,7 @@ namespace Authentication {
     public const int EncryptedSessionTokenFieldNumber = 6;
     private pb::ByteString encryptedSessionToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedSessionToken {
       get { return encryptedSessionToken_; }
       set {
@@ -20829,6 +28933,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(58, global::Authentication.PasswordRules.Parser);
     private readonly pbc::RepeatedField<global::Authentication.PasswordRules> passwordRules_ = new pbc::RepeatedField<global::Authentication.PasswordRules>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.PasswordRules> PasswordRules {
       get { return passwordRules_; }
     }
@@ -20837,6 +28942,7 @@ namespace Authentication {
     public const int PasswordRulesIntroFieldNumber = 8;
     private string passwordRulesIntro_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string PasswordRulesIntro {
       get { return passwordRulesIntro_; }
       set {
@@ -20851,6 +28957,7 @@ namespace Authentication {
     ///when EnforcementType.MINIMUM_PBKDF2_ITERATIONS exists
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int MinimumPbkdf2Iterations {
       get { return minimumPbkdf2Iterations_; }
       set {
@@ -20859,11 +28966,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetDataKeyBackupV3Response);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetDataKeyBackupV3Response other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -20884,6 +28993,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (DataKeyBackup.Length != 0) hash ^= DataKeyBackup.GetHashCode();
@@ -20902,12 +29012,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (DataKeyBackup.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(DataKeyBackup);
@@ -20944,9 +29059,54 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (DataKeyBackup.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(DataKeyBackup);
+      }
+      if (DataKeyBackupDate != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(DataKeyBackupDate);
+      }
+      if (PublicKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(PublicKey);
+      }
+      if (EncryptedPrivateKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(EncryptedPrivateKey);
+      }
+      if (ClientKey.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(ClientKey);
+      }
+      if (EncryptedSessionToken.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(EncryptedSessionToken);
+      }
+      passwordRules_.WriteTo(ref output, _repeated_passwordRules_codec);
+      if (PasswordRulesIntro.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(PasswordRulesIntro);
+      }
+      if (MinimumPbkdf2Iterations != 0) {
+        output.WriteRawTag(72);
+        output.WriteInt32(MinimumPbkdf2Iterations);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (DataKeyBackup.Length != 0) {
@@ -20981,6 +29141,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetDataKeyBackupV3Response other) {
       if (other == null) {
         return;
@@ -21014,7 +29175,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -21059,27 +29224,87 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            DataKeyBackup = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            DataKeyBackupDate = input.ReadInt64();
+            break;
+          }
+          case 26: {
+            PublicKey = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            EncryptedPrivateKey = input.ReadBytes();
+            break;
+          }
+          case 42: {
+            ClientKey = input.ReadBytes();
+            break;
+          }
+          case 50: {
+            EncryptedSessionToken = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            passwordRules_.AddEntriesFrom(ref input, _repeated_passwordRules_codec);
+            break;
+          }
+          case 66: {
+            PasswordRulesIntro = input.ReadString();
+            break;
+          }
+          case 72: {
+            MinimumPbkdf2Iterations = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetPublicKeysRequest : pb::IMessage<GetPublicKeysRequest> {
+  public sealed partial class GetPublicKeysRequest : pb::IMessage<GetPublicKeysRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetPublicKeysRequest> _parser = new pb::MessageParser<GetPublicKeysRequest>(() => new GetPublicKeysRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetPublicKeysRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[97]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetPublicKeysRequest() {
       OnConstruction();
     }
@@ -21087,12 +29312,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetPublicKeysRequest(GetPublicKeysRequest other) : this() {
       usernames_ = other.usernames_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetPublicKeysRequest Clone() {
       return new GetPublicKeysRequest(this);
     }
@@ -21103,16 +29330,19 @@ namespace Authentication {
         = pb::FieldCodec.ForString(10);
     private readonly pbc::RepeatedField<string> usernames_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> Usernames {
       get { return usernames_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetPublicKeysRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetPublicKeysRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -21125,6 +29355,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= usernames_.GetHashCode();
@@ -21135,19 +29366,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       usernames_.WriteTo(output, _repeated_usernames_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      usernames_.WriteTo(ref output, _repeated_usernames_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += usernames_.CalculateSize(_repeated_usernames_codec);
@@ -21158,6 +29407,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetPublicKeysRequest other) {
       if (other == null) {
         return;
@@ -21167,7 +29417,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -21180,27 +29434,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            usernames_.AddEntriesFrom(ref input, _repeated_usernames_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class PublicKeyResponse : pb::IMessage<PublicKeyResponse> {
+  public sealed partial class PublicKeyResponse : pb::IMessage<PublicKeyResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<PublicKeyResponse> _parser = new pb::MessageParser<PublicKeyResponse>(() => new PublicKeyResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<PublicKeyResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[98]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PublicKeyResponse() {
       OnConstruction();
     }
@@ -21208,6 +29490,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PublicKeyResponse(PublicKeyResponse other) : this() {
       username_ = other.username_;
       publicKey_ = other.publicKey_;
@@ -21218,6 +29501,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PublicKeyResponse Clone() {
       return new PublicKeyResponse(this);
     }
@@ -21226,6 +29510,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 1;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -21237,6 +29522,7 @@ namespace Authentication {
     public const int PublicKeyFieldNumber = 2;
     private pb::ByteString publicKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString PublicKey {
       get { return publicKey_; }
       set {
@@ -21248,6 +29534,7 @@ namespace Authentication {
     public const int PublicEccKeyFieldNumber = 3;
     private pb::ByteString publicEccKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString PublicEccKey {
       get { return publicEccKey_; }
       set {
@@ -21259,6 +29546,7 @@ namespace Authentication {
     public const int MessageFieldNumber = 4;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -21270,6 +29558,7 @@ namespace Authentication {
     public const int ErrorCodeFieldNumber = 5;
     private string errorCode_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ErrorCode {
       get { return errorCode_; }
       set {
@@ -21278,11 +29567,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as PublicKeyResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(PublicKeyResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -21299,6 +29590,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -21313,12 +29605,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -21342,9 +29639,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (PublicKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(PublicKey);
+      }
+      if (PublicEccKey.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(PublicEccKey);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Message);
+      }
+      if (ErrorCode.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(ErrorCode);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -21369,6 +29698,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(PublicKeyResponse other) {
       if (other == null) {
         return;
@@ -21392,7 +29722,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -21421,27 +29755,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+          case 18: {
+            PublicKey = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            PublicEccKey = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            Message = input.ReadString();
+            break;
+          }
+          case 42: {
+            ErrorCode = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetPublicKeysResponse : pb::IMessage<GetPublicKeysResponse> {
+  public sealed partial class GetPublicKeysResponse : pb::IMessage<GetPublicKeysResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetPublicKeysResponse> _parser = new pb::MessageParser<GetPublicKeysResponse>(() => new GetPublicKeysResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetPublicKeysResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[99]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetPublicKeysResponse() {
       OnConstruction();
     }
@@ -21449,12 +29827,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetPublicKeysResponse(GetPublicKeysResponse other) : this() {
       keyResponses_ = other.keyResponses_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetPublicKeysResponse Clone() {
       return new GetPublicKeysResponse(this);
     }
@@ -21465,16 +29845,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.PublicKeyResponse.Parser);
     private readonly pbc::RepeatedField<global::Authentication.PublicKeyResponse> keyResponses_ = new pbc::RepeatedField<global::Authentication.PublicKeyResponse>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.PublicKeyResponse> KeyResponses {
       get { return keyResponses_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetPublicKeysResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetPublicKeysResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -21487,6 +29870,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= keyResponses_.GetHashCode();
@@ -21497,19 +29881,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       keyResponses_.WriteTo(output, _repeated_keyResponses_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      keyResponses_.WriteTo(ref output, _repeated_keyResponses_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += keyResponses_.CalculateSize(_repeated_keyResponses_codec);
@@ -21520,6 +29922,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetPublicKeysResponse other) {
       if (other == null) {
         return;
@@ -21529,7 +29932,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -21542,27 +29949,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            keyResponses_.AddEntriesFrom(ref input, _repeated_keyResponses_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SetEccKeyPairRequest : pb::IMessage<SetEccKeyPairRequest> {
+  public sealed partial class SetEccKeyPairRequest : pb::IMessage<SetEccKeyPairRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SetEccKeyPairRequest> _parser = new pb::MessageParser<SetEccKeyPairRequest>(() => new SetEccKeyPairRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SetEccKeyPairRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[100]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetEccKeyPairRequest() {
       OnConstruction();
     }
@@ -21570,6 +30005,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetEccKeyPairRequest(SetEccKeyPairRequest other) : this() {
       publicKey_ = other.publicKey_;
       encryptedPrivateKey_ = other.encryptedPrivateKey_;
@@ -21577,6 +30013,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SetEccKeyPairRequest Clone() {
       return new SetEccKeyPairRequest(this);
     }
@@ -21585,6 +30022,7 @@ namespace Authentication {
     public const int PublicKeyFieldNumber = 1;
     private pb::ByteString publicKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString PublicKey {
       get { return publicKey_; }
       set {
@@ -21596,6 +30034,7 @@ namespace Authentication {
     public const int EncryptedPrivateKeyFieldNumber = 2;
     private pb::ByteString encryptedPrivateKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedPrivateKey {
       get { return encryptedPrivateKey_; }
       set {
@@ -21604,11 +30043,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SetEccKeyPairRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SetEccKeyPairRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -21622,6 +30063,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (PublicKey.Length != 0) hash ^= PublicKey.GetHashCode();
@@ -21633,12 +30075,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (PublicKey.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(PublicKey);
@@ -21650,9 +30097,29 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (PublicKey.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(PublicKey);
+      }
+      if (EncryptedPrivateKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedPrivateKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (PublicKey.Length != 0) {
@@ -21668,6 +30135,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SetEccKeyPairRequest other) {
       if (other == null) {
         return;
@@ -21682,7 +30150,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -21699,27 +30171,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            PublicKey = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedPrivateKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AddAppSharesRequest : pb::IMessage<AddAppSharesRequest> {
+  public sealed partial class AddAppSharesRequest : pb::IMessage<AddAppSharesRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AddAppSharesRequest> _parser = new pb::MessageParser<AddAppSharesRequest>(() => new AddAppSharesRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AddAppSharesRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[101]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAppSharesRequest() {
       OnConstruction();
     }
@@ -21727,6 +30231,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAppSharesRequest(AddAppSharesRequest other) : this() {
       appRecordUid_ = other.appRecordUid_;
       shares_ = other.shares_.Clone();
@@ -21734,6 +30239,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAppSharesRequest Clone() {
       return new AddAppSharesRequest(this);
     }
@@ -21742,6 +30248,7 @@ namespace Authentication {
     public const int AppRecordUidFieldNumber = 1;
     private pb::ByteString appRecordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AppRecordUid {
       get { return appRecordUid_; }
       set {
@@ -21755,16 +30262,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(18, global::Authentication.AppShareAdd.Parser);
     private readonly pbc::RepeatedField<global::Authentication.AppShareAdd> shares_ = new pbc::RepeatedField<global::Authentication.AppShareAdd>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.AppShareAdd> Shares {
       get { return shares_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AddAppSharesRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AddAppSharesRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -21778,6 +30288,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (AppRecordUid.Length != 0) hash ^= AppRecordUid.GetHashCode();
@@ -21789,12 +30300,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (AppRecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(AppRecordUid);
@@ -21803,9 +30319,26 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AppRecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AppRecordUid);
+      }
+      shares_.WriteTo(ref output, _repeated_shares_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (AppRecordUid.Length != 0) {
@@ -21819,6 +30352,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AddAppSharesRequest other) {
       if (other == null) {
         return;
@@ -21831,7 +30365,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -21848,27 +30386,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AppRecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            shares_.AddEntriesFrom(ref input, _repeated_shares_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class RemoveAppSharesRequest : pb::IMessage<RemoveAppSharesRequest> {
+  public sealed partial class RemoveAppSharesRequest : pb::IMessage<RemoveAppSharesRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<RemoveAppSharesRequest> _parser = new pb::MessageParser<RemoveAppSharesRequest>(() => new RemoveAppSharesRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RemoveAppSharesRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[102]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RemoveAppSharesRequest() {
       OnConstruction();
     }
@@ -21876,6 +30446,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RemoveAppSharesRequest(RemoveAppSharesRequest other) : this() {
       appRecordUid_ = other.appRecordUid_;
       shares_ = other.shares_.Clone();
@@ -21883,6 +30454,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RemoveAppSharesRequest Clone() {
       return new RemoveAppSharesRequest(this);
     }
@@ -21891,6 +30463,7 @@ namespace Authentication {
     public const int AppRecordUidFieldNumber = 1;
     private pb::ByteString appRecordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AppRecordUid {
       get { return appRecordUid_; }
       set {
@@ -21904,16 +30477,19 @@ namespace Authentication {
         = pb::FieldCodec.ForBytes(18);
     private readonly pbc::RepeatedField<pb::ByteString> shares_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> Shares {
       get { return shares_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RemoveAppSharesRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RemoveAppSharesRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -21927,6 +30503,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (AppRecordUid.Length != 0) hash ^= AppRecordUid.GetHashCode();
@@ -21938,12 +30515,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (AppRecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(AppRecordUid);
@@ -21952,9 +30534,26 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AppRecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AppRecordUid);
+      }
+      shares_.WriteTo(ref output, _repeated_shares_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (AppRecordUid.Length != 0) {
@@ -21968,6 +30567,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RemoveAppSharesRequest other) {
       if (other == null) {
         return;
@@ -21980,7 +30580,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -21997,27 +30601,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AppRecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            shares_.AddEntriesFrom(ref input, _repeated_shares_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AppShareAdd : pb::IMessage<AppShareAdd> {
+  public sealed partial class AppShareAdd : pb::IMessage<AppShareAdd>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AppShareAdd> _parser = new pb::MessageParser<AppShareAdd>(() => new AppShareAdd());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AppShareAdd> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[103]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppShareAdd() {
       OnConstruction();
     }
@@ -22025,6 +30661,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppShareAdd(AppShareAdd other) : this() {
       secretUid_ = other.secretUid_;
       shareType_ = other.shareType_;
@@ -22034,6 +30671,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppShareAdd Clone() {
       return new AppShareAdd(this);
     }
@@ -22042,6 +30680,7 @@ namespace Authentication {
     public const int SecretUidFieldNumber = 2;
     private pb::ByteString secretUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString SecretUid {
       get { return secretUid_; }
       set {
@@ -22053,6 +30692,7 @@ namespace Authentication {
     public const int ShareTypeFieldNumber = 3;
     private global::Authentication.ApplicationShareType shareType_ = global::Authentication.ApplicationShareType.ShareTypeRecord;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.ApplicationShareType ShareType {
       get { return shareType_; }
       set {
@@ -22064,6 +30704,7 @@ namespace Authentication {
     public const int EncryptedSecretKeyFieldNumber = 4;
     private pb::ByteString encryptedSecretKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedSecretKey {
       get { return encryptedSecretKey_; }
       set {
@@ -22075,6 +30716,7 @@ namespace Authentication {
     public const int EditableFieldNumber = 5;
     private bool editable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Editable {
       get { return editable_; }
       set {
@@ -22083,11 +30725,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AppShareAdd);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AppShareAdd other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -22103,6 +30747,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SecretUid.Length != 0) hash ^= SecretUid.GetHashCode();
@@ -22116,12 +30761,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (SecretUid.Length != 0) {
         output.WriteRawTag(18);
         output.WriteBytes(SecretUid);
@@ -22141,9 +30791,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SecretUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SecretUid);
+      }
+      if (ShareType != global::Authentication.ApplicationShareType.ShareTypeRecord) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) ShareType);
+      }
+      if (EncryptedSecretKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(EncryptedSecretKey);
+      }
+      if (Editable != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(Editable);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SecretUid.Length != 0) {
@@ -22165,6 +30843,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AppShareAdd other) {
       if (other == null) {
         return;
@@ -22185,7 +30864,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -22210,27 +30893,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 18: {
+            SecretUid = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            ShareType = (global::Authentication.ApplicationShareType) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            EncryptedSecretKey = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            Editable = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AppShare : pb::IMessage<AppShare> {
+  public sealed partial class AppShare : pb::IMessage<AppShare>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AppShare> _parser = new pb::MessageParser<AppShare>(() => new AppShare());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AppShare> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[104]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppShare() {
       OnConstruction();
     }
@@ -22238,6 +30961,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppShare(AppShare other) : this() {
       secretUid_ = other.secretUid_;
       shareType_ = other.shareType_;
@@ -22247,6 +30971,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppShare Clone() {
       return new AppShare(this);
     }
@@ -22255,6 +30980,7 @@ namespace Authentication {
     public const int SecretUidFieldNumber = 1;
     private pb::ByteString secretUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString SecretUid {
       get { return secretUid_; }
       set {
@@ -22266,6 +30992,7 @@ namespace Authentication {
     public const int ShareTypeFieldNumber = 2;
     private global::Authentication.ApplicationShareType shareType_ = global::Authentication.ApplicationShareType.ShareTypeRecord;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.ApplicationShareType ShareType {
       get { return shareType_; }
       set {
@@ -22277,6 +31004,7 @@ namespace Authentication {
     public const int EditableFieldNumber = 3;
     private bool editable_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Editable {
       get { return editable_; }
       set {
@@ -22288,6 +31016,7 @@ namespace Authentication {
     public const int CreatedOnFieldNumber = 4;
     private long createdOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long CreatedOn {
       get { return createdOn_; }
       set {
@@ -22296,11 +31025,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AppShare);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AppShare other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -22316,6 +31047,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (SecretUid.Length != 0) hash ^= SecretUid.GetHashCode();
@@ -22329,12 +31061,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (SecretUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(SecretUid);
@@ -22354,9 +31091,37 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SecretUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(SecretUid);
+      }
+      if (ShareType != global::Authentication.ApplicationShareType.ShareTypeRecord) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) ShareType);
+      }
+      if (Editable != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Editable);
+      }
+      if (CreatedOn != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(CreatedOn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (SecretUid.Length != 0) {
@@ -22378,6 +31143,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AppShare other) {
       if (other == null) {
         return;
@@ -22398,7 +31164,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -22423,27 +31193,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            SecretUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            ShareType = (global::Authentication.ApplicationShareType) input.ReadEnum();
+            break;
+          }
+          case 24: {
+            Editable = input.ReadBool();
+            break;
+          }
+          case 32: {
+            CreatedOn = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AddAppClientRequest : pb::IMessage<AddAppClientRequest> {
+  public sealed partial class AddAppClientRequest : pb::IMessage<AddAppClientRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AddAppClientRequest> _parser = new pb::MessageParser<AddAppClientRequest>(() => new AddAppClientRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AddAppClientRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[105]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAppClientRequest() {
       OnConstruction();
     }
@@ -22451,6 +31261,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAppClientRequest(AddAppClientRequest other) : this() {
       appRecordUid_ = other.appRecordUid_;
       encryptedAppKey_ = other.encryptedAppKey_;
@@ -22463,6 +31274,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddAppClientRequest Clone() {
       return new AddAppClientRequest(this);
     }
@@ -22471,6 +31283,7 @@ namespace Authentication {
     public const int AppRecordUidFieldNumber = 1;
     private pb::ByteString appRecordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AppRecordUid {
       get { return appRecordUid_; }
       set {
@@ -22482,6 +31295,7 @@ namespace Authentication {
     public const int EncryptedAppKeyFieldNumber = 2;
     private pb::ByteString encryptedAppKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedAppKey {
       get { return encryptedAppKey_; }
       set {
@@ -22493,6 +31307,7 @@ namespace Authentication {
     public const int ClientIdFieldNumber = 3;
     private pb::ByteString clientId_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ClientId {
       get { return clientId_; }
       set {
@@ -22504,6 +31319,7 @@ namespace Authentication {
     public const int LockIpFieldNumber = 4;
     private bool lockIp_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool LockIp {
       get { return lockIp_; }
       set {
@@ -22515,6 +31331,7 @@ namespace Authentication {
     public const int FirstAccessExpireOnFieldNumber = 5;
     private long firstAccessExpireOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long FirstAccessExpireOn {
       get { return firstAccessExpireOn_; }
       set {
@@ -22526,6 +31343,7 @@ namespace Authentication {
     public const int AccessExpireOnFieldNumber = 6;
     private long accessExpireOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long AccessExpireOn {
       get { return accessExpireOn_; }
       set {
@@ -22540,6 +31358,7 @@ namespace Authentication {
     /// optional, defaults to obfuscated device id
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Id {
       get { return id_; }
       set {
@@ -22548,11 +31367,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AddAppClientRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AddAppClientRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -22571,6 +31392,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (AppRecordUid.Length != 0) hash ^= AppRecordUid.GetHashCode();
@@ -22587,12 +31409,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (AppRecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(AppRecordUid);
@@ -22624,9 +31451,49 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AppRecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AppRecordUid);
+      }
+      if (EncryptedAppKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedAppKey);
+      }
+      if (ClientId.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(ClientId);
+      }
+      if (LockIp != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(LockIp);
+      }
+      if (FirstAccessExpireOn != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(FirstAccessExpireOn);
+      }
+      if (AccessExpireOn != 0L) {
+        output.WriteRawTag(48);
+        output.WriteInt64(AccessExpireOn);
+      }
+      if (Id.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(Id);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (AppRecordUid.Length != 0) {
@@ -22657,6 +31524,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AddAppClientRequest other) {
       if (other == null) {
         return;
@@ -22686,7 +31554,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -22723,27 +31595,79 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AppRecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedAppKey = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            ClientId = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            LockIp = input.ReadBool();
+            break;
+          }
+          case 40: {
+            FirstAccessExpireOn = input.ReadInt64();
+            break;
+          }
+          case 48: {
+            AccessExpireOn = input.ReadInt64();
+            break;
+          }
+          case 58: {
+            Id = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class RemoveAppClientsRequest : pb::IMessage<RemoveAppClientsRequest> {
+  public sealed partial class RemoveAppClientsRequest : pb::IMessage<RemoveAppClientsRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<RemoveAppClientsRequest> _parser = new pb::MessageParser<RemoveAppClientsRequest>(() => new RemoveAppClientsRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RemoveAppClientsRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[106]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RemoveAppClientsRequest() {
       OnConstruction();
     }
@@ -22751,6 +31675,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RemoveAppClientsRequest(RemoveAppClientsRequest other) : this() {
       appRecordUid_ = other.appRecordUid_;
       clients_ = other.clients_.Clone();
@@ -22758,6 +31683,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RemoveAppClientsRequest Clone() {
       return new RemoveAppClientsRequest(this);
     }
@@ -22766,6 +31692,7 @@ namespace Authentication {
     public const int AppRecordUidFieldNumber = 1;
     private pb::ByteString appRecordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AppRecordUid {
       get { return appRecordUid_; }
       set {
@@ -22779,16 +31706,19 @@ namespace Authentication {
         = pb::FieldCodec.ForBytes(18);
     private readonly pbc::RepeatedField<pb::ByteString> clients_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> Clients {
       get { return clients_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RemoveAppClientsRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RemoveAppClientsRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -22802,6 +31732,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (AppRecordUid.Length != 0) hash ^= AppRecordUid.GetHashCode();
@@ -22813,12 +31744,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (AppRecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(AppRecordUid);
@@ -22827,9 +31763,26 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AppRecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AppRecordUid);
+      }
+      clients_.WriteTo(ref output, _repeated_clients_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (AppRecordUid.Length != 0) {
@@ -22843,6 +31796,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RemoveAppClientsRequest other) {
       if (other == null) {
         return;
@@ -22855,7 +31809,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -22872,27 +31830,59 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AppRecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            clients_.AddEntriesFrom(ref input, _repeated_clients_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AddExternalShareRequest : pb::IMessage<AddExternalShareRequest> {
+  public sealed partial class AddExternalShareRequest : pb::IMessage<AddExternalShareRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AddExternalShareRequest> _parser = new pb::MessageParser<AddExternalShareRequest>(() => new AddExternalShareRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AddExternalShareRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[107]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddExternalShareRequest() {
       OnConstruction();
     }
@@ -22900,6 +31890,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddExternalShareRequest(AddExternalShareRequest other) : this() {
       recordUid_ = other.recordUid_;
       encryptedRecordKey_ = other.encryptedRecordKey_;
@@ -22910,6 +31901,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AddExternalShareRequest Clone() {
       return new AddExternalShareRequest(this);
     }
@@ -22918,6 +31910,7 @@ namespace Authentication {
     public const int RecordUidFieldNumber = 1;
     private pb::ByteString recordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString RecordUid {
       get { return recordUid_; }
       set {
@@ -22929,6 +31922,7 @@ namespace Authentication {
     public const int EncryptedRecordKeyFieldNumber = 2;
     private pb::ByteString encryptedRecordKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedRecordKey {
       get { return encryptedRecordKey_; }
       set {
@@ -22940,6 +31934,7 @@ namespace Authentication {
     public const int ClientIdFieldNumber = 3;
     private pb::ByteString clientId_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ClientId {
       get { return clientId_; }
       set {
@@ -22951,6 +31946,7 @@ namespace Authentication {
     public const int AccessExpireOnFieldNumber = 4;
     private long accessExpireOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long AccessExpireOn {
       get { return accessExpireOn_; }
       set {
@@ -22965,6 +31961,7 @@ namespace Authentication {
     /// optional, defaults to obfuscated device id
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Id {
       get { return id_; }
       set {
@@ -22973,11 +31970,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AddExternalShareRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AddExternalShareRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -22994,6 +31993,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
@@ -23008,12 +32008,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(RecordUid);
@@ -23037,9 +32042,41 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (EncryptedRecordKey.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedRecordKey);
+      }
+      if (ClientId.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(ClientId);
+      }
+      if (AccessExpireOn != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(AccessExpireOn);
+      }
+      if (Id.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Id);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (RecordUid.Length != 0) {
@@ -23064,6 +32101,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AddExternalShareRequest other) {
       if (other == null) {
         return;
@@ -23087,7 +32125,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -23116,27 +32158,71 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedRecordKey = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            ClientId = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            AccessExpireOn = input.ReadInt64();
+            break;
+          }
+          case 42: {
+            Id = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AppClient : pb::IMessage<AppClient> {
+  public sealed partial class AppClient : pb::IMessage<AppClient>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AppClient> _parser = new pb::MessageParser<AppClient>(() => new AppClient());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AppClient> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[108]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppClient() {
       OnConstruction();
     }
@@ -23144,6 +32230,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppClient(AppClient other) : this() {
       id_ = other.id_;
       clientId_ = other.clientId_;
@@ -23159,6 +32246,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppClient Clone() {
       return new AppClient(this);
     }
@@ -23167,6 +32255,7 @@ namespace Authentication {
     public const int IdFieldNumber = 1;
     private string id_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Id {
       get { return id_; }
       set {
@@ -23178,6 +32267,7 @@ namespace Authentication {
     public const int ClientIdFieldNumber = 2;
     private pb::ByteString clientId_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString ClientId {
       get { return clientId_; }
       set {
@@ -23189,6 +32279,7 @@ namespace Authentication {
     public const int CreatedOnFieldNumber = 3;
     private long createdOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long CreatedOn {
       get { return createdOn_; }
       set {
@@ -23200,6 +32291,7 @@ namespace Authentication {
     public const int FirstAccessFieldNumber = 4;
     private long firstAccess_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long FirstAccess {
       get { return firstAccess_; }
       set {
@@ -23211,6 +32303,7 @@ namespace Authentication {
     public const int LastAccessFieldNumber = 5;
     private long lastAccess_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long LastAccess {
       get { return lastAccess_; }
       set {
@@ -23222,6 +32315,7 @@ namespace Authentication {
     public const int PublicKeyFieldNumber = 6;
     private pb::ByteString publicKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString PublicKey {
       get { return publicKey_; }
       set {
@@ -23233,6 +32327,7 @@ namespace Authentication {
     public const int LockIpFieldNumber = 7;
     private bool lockIp_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool LockIp {
       get { return lockIp_; }
       set {
@@ -23244,6 +32339,7 @@ namespace Authentication {
     public const int IpAddressFieldNumber = 8;
     private string ipAddress_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string IpAddress {
       get { return ipAddress_; }
       set {
@@ -23255,6 +32351,7 @@ namespace Authentication {
     public const int FirstAccessExpireOnFieldNumber = 9;
     private long firstAccessExpireOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long FirstAccessExpireOn {
       get { return firstAccessExpireOn_; }
       set {
@@ -23266,6 +32363,7 @@ namespace Authentication {
     public const int AccessExpireOnFieldNumber = 10;
     private long accessExpireOn_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long AccessExpireOn {
       get { return accessExpireOn_; }
       set {
@@ -23274,11 +32372,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AppClient);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AppClient other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -23300,6 +32400,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Id.Length != 0) hash ^= Id.GetHashCode();
@@ -23319,12 +32420,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Id.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Id);
@@ -23368,9 +32474,61 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (ClientId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ClientId);
+      }
+      if (CreatedOn != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(CreatedOn);
+      }
+      if (FirstAccess != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(FirstAccess);
+      }
+      if (LastAccess != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(LastAccess);
+      }
+      if (PublicKey.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(PublicKey);
+      }
+      if (LockIp != false) {
+        output.WriteRawTag(56);
+        output.WriteBool(LockIp);
+      }
+      if (IpAddress.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(IpAddress);
+      }
+      if (FirstAccessExpireOn != 0L) {
+        output.WriteRawTag(72);
+        output.WriteInt64(FirstAccessExpireOn);
+      }
+      if (AccessExpireOn != 0L) {
+        output.WriteRawTag(80);
+        output.WriteInt64(AccessExpireOn);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Id.Length != 0) {
@@ -23410,6 +32568,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AppClient other) {
       if (other == null) {
         return;
@@ -23448,7 +32607,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -23497,27 +32660,91 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientId = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            CreatedOn = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            FirstAccess = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            LastAccess = input.ReadInt64();
+            break;
+          }
+          case 50: {
+            PublicKey = input.ReadBytes();
+            break;
+          }
+          case 56: {
+            LockIp = input.ReadBool();
+            break;
+          }
+          case 66: {
+            IpAddress = input.ReadString();
+            break;
+          }
+          case 72: {
+            FirstAccessExpireOn = input.ReadInt64();
+            break;
+          }
+          case 80: {
+            AccessExpireOn = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetAppInfoRequest : pb::IMessage<GetAppInfoRequest> {
+  public sealed partial class GetAppInfoRequest : pb::IMessage<GetAppInfoRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetAppInfoRequest> _parser = new pb::MessageParser<GetAppInfoRequest>(() => new GetAppInfoRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetAppInfoRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[109]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetAppInfoRequest() {
       OnConstruction();
     }
@@ -23525,12 +32752,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetAppInfoRequest(GetAppInfoRequest other) : this() {
       appRecordUid_ = other.appRecordUid_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetAppInfoRequest Clone() {
       return new GetAppInfoRequest(this);
     }
@@ -23541,16 +32770,19 @@ namespace Authentication {
         = pb::FieldCodec.ForBytes(10);
     private readonly pbc::RepeatedField<pb::ByteString> appRecordUid_ = new pbc::RepeatedField<pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> AppRecordUid {
       get { return appRecordUid_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetAppInfoRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetAppInfoRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -23563,6 +32795,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= appRecordUid_.GetHashCode();
@@ -23573,19 +32806,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       appRecordUid_.WriteTo(output, _repeated_appRecordUid_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      appRecordUid_.WriteTo(ref output, _repeated_appRecordUid_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += appRecordUid_.CalculateSize(_repeated_appRecordUid_codec);
@@ -23596,6 +32847,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetAppInfoRequest other) {
       if (other == null) {
         return;
@@ -23605,7 +32857,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -23618,27 +32874,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            appRecordUid_.AddEntriesFrom(ref input, _repeated_appRecordUid_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AppInfo : pb::IMessage<AppInfo> {
+  public sealed partial class AppInfo : pb::IMessage<AppInfo>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AppInfo> _parser = new pb::MessageParser<AppInfo>(() => new AppInfo());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<AppInfo> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[110]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppInfo() {
       OnConstruction();
     }
@@ -23646,6 +32930,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppInfo(AppInfo other) : this() {
       appRecordUid_ = other.appRecordUid_;
       shares_ = other.shares_.Clone();
@@ -23655,6 +32940,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public AppInfo Clone() {
       return new AppInfo(this);
     }
@@ -23663,6 +32949,7 @@ namespace Authentication {
     public const int AppRecordUidFieldNumber = 1;
     private pb::ByteString appRecordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AppRecordUid {
       get { return appRecordUid_; }
       set {
@@ -23676,6 +32963,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(18, global::Authentication.AppShare.Parser);
     private readonly pbc::RepeatedField<global::Authentication.AppShare> shares_ = new pbc::RepeatedField<global::Authentication.AppShare>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.AppShare> Shares {
       get { return shares_; }
     }
@@ -23686,6 +32974,7 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(26, global::Authentication.AppClient.Parser);
     private readonly pbc::RepeatedField<global::Authentication.AppClient> clients_ = new pbc::RepeatedField<global::Authentication.AppClient>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.AppClient> Clients {
       get { return clients_; }
     }
@@ -23694,6 +32983,7 @@ namespace Authentication {
     public const int IsExternalShareFieldNumber = 4;
     private bool isExternalShare_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool IsExternalShare {
       get { return isExternalShare_; }
       set {
@@ -23702,11 +32992,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as AppInfo);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(AppInfo other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -23722,6 +33014,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (AppRecordUid.Length != 0) hash ^= AppRecordUid.GetHashCode();
@@ -23735,12 +33028,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (AppRecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(AppRecordUid);
@@ -23754,9 +33052,31 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AppRecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AppRecordUid);
+      }
+      shares_.WriteTo(ref output, _repeated_shares_codec);
+      clients_.WriteTo(ref output, _repeated_clients_codec);
+      if (IsExternalShare != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(IsExternalShare);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (AppRecordUid.Length != 0) {
@@ -23774,6 +33094,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(AppInfo other) {
       if (other == null) {
         return;
@@ -23790,7 +33111,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -23815,27 +33140,67 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AppRecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            shares_.AddEntriesFrom(ref input, _repeated_shares_codec);
+            break;
+          }
+          case 26: {
+            clients_.AddEntriesFrom(ref input, _repeated_clients_codec);
+            break;
+          }
+          case 32: {
+            IsExternalShare = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetAppInfoResponse : pb::IMessage<GetAppInfoResponse> {
+  public sealed partial class GetAppInfoResponse : pb::IMessage<GetAppInfoResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetAppInfoResponse> _parser = new pb::MessageParser<GetAppInfoResponse>(() => new GetAppInfoResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetAppInfoResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[111]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetAppInfoResponse() {
       OnConstruction();
     }
@@ -23843,12 +33208,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetAppInfoResponse(GetAppInfoResponse other) : this() {
       appInfo_ = other.appInfo_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetAppInfoResponse Clone() {
       return new GetAppInfoResponse(this);
     }
@@ -23859,16 +33226,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.AppInfo.Parser);
     private readonly pbc::RepeatedField<global::Authentication.AppInfo> appInfo_ = new pbc::RepeatedField<global::Authentication.AppInfo>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.AppInfo> AppInfo {
       get { return appInfo_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetAppInfoResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetAppInfoResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -23881,6 +33251,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= appInfo_.GetHashCode();
@@ -23891,19 +33262,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       appInfo_.WriteTo(output, _repeated_appInfo_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      appInfo_.WriteTo(ref output, _repeated_appInfo_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += appInfo_.CalculateSize(_repeated_appInfo_codec);
@@ -23914,6 +33303,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetAppInfoResponse other) {
       if (other == null) {
         return;
@@ -23923,7 +33313,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -23936,27 +33330,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            appInfo_.AddEntriesFrom(ref input, _repeated_appInfo_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ApplicationSummary : pb::IMessage<ApplicationSummary> {
+  public sealed partial class ApplicationSummary : pb::IMessage<ApplicationSummary>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ApplicationSummary> _parser = new pb::MessageParser<ApplicationSummary>(() => new ApplicationSummary());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<ApplicationSummary> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[112]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApplicationSummary() {
       OnConstruction();
     }
@@ -23964,6 +33386,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApplicationSummary(ApplicationSummary other) : this() {
       appRecordUid_ = other.appRecordUid_;
       lastAccess_ = other.lastAccess_;
@@ -23976,6 +33399,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ApplicationSummary Clone() {
       return new ApplicationSummary(this);
     }
@@ -23984,6 +33408,7 @@ namespace Authentication {
     public const int AppRecordUidFieldNumber = 1;
     private pb::ByteString appRecordUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString AppRecordUid {
       get { return appRecordUid_; }
       set {
@@ -23998,6 +33423,7 @@ namespace Authentication {
     /// last access time across all clients
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long LastAccess {
       get { return lastAccess_; }
       set {
@@ -24012,6 +33438,7 @@ namespace Authentication {
     /// number of records shared to the application
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int RecordShares {
       get { return recordShares_; }
       set {
@@ -24026,6 +33453,7 @@ namespace Authentication {
     /// number of folders shared to the application
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int FolderShares {
       get { return folderShares_; }
       set {
@@ -24040,6 +33468,7 @@ namespace Authentication {
     /// number of records in the folders shared to the application
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int FolderRecords {
       get { return folderRecords_; }
       set {
@@ -24054,6 +33483,7 @@ namespace Authentication {
     /// total number of clients
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int ClientCount {
       get { return clientCount_; }
       set {
@@ -24068,6 +33498,7 @@ namespace Authentication {
     /// number of clients that no longert can have access
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int ExpiredClientCount {
       get { return expiredClientCount_; }
       set {
@@ -24076,11 +33507,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as ApplicationSummary);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(ApplicationSummary other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -24099,6 +33532,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (AppRecordUid.Length != 0) hash ^= AppRecordUid.GetHashCode();
@@ -24115,12 +33549,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (AppRecordUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(AppRecordUid);
@@ -24152,9 +33591,49 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AppRecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AppRecordUid);
+      }
+      if (LastAccess != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(LastAccess);
+      }
+      if (RecordShares != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(RecordShares);
+      }
+      if (FolderShares != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(FolderShares);
+      }
+      if (FolderRecords != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(FolderRecords);
+      }
+      if (ClientCount != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(ClientCount);
+      }
+      if (ExpiredClientCount != 0) {
+        output.WriteRawTag(56);
+        output.WriteInt32(ExpiredClientCount);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (AppRecordUid.Length != 0) {
@@ -24185,6 +33664,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(ApplicationSummary other) {
       if (other == null) {
         return;
@@ -24214,7 +33694,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -24251,27 +33735,79 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AppRecordUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            LastAccess = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            RecordShares = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            FolderShares = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            FolderRecords = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            ClientCount = input.ReadInt32();
+            break;
+          }
+          case 56: {
+            ExpiredClientCount = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetApplicationsSummaryResponse : pb::IMessage<GetApplicationsSummaryResponse> {
+  public sealed partial class GetApplicationsSummaryResponse : pb::IMessage<GetApplicationsSummaryResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetApplicationsSummaryResponse> _parser = new pb::MessageParser<GetApplicationsSummaryResponse>(() => new GetApplicationsSummaryResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetApplicationsSummaryResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[113]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetApplicationsSummaryResponse() {
       OnConstruction();
     }
@@ -24279,12 +33815,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetApplicationsSummaryResponse(GetApplicationsSummaryResponse other) : this() {
       applicationSummary_ = other.applicationSummary_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetApplicationsSummaryResponse Clone() {
       return new GetApplicationsSummaryResponse(this);
     }
@@ -24295,16 +33833,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(10, global::Authentication.ApplicationSummary.Parser);
     private readonly pbc::RepeatedField<global::Authentication.ApplicationSummary> applicationSummary_ = new pbc::RepeatedField<global::Authentication.ApplicationSummary>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.ApplicationSummary> ApplicationSummary {
       get { return applicationSummary_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetApplicationsSummaryResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetApplicationsSummaryResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -24317,6 +33858,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= applicationSummary_.GetHashCode();
@@ -24327,19 +33869,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       applicationSummary_.WriteTo(output, _repeated_applicationSummary_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      applicationSummary_.WriteTo(ref output, _repeated_applicationSummary_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += applicationSummary_.CalculateSize(_repeated_applicationSummary_codec);
@@ -24350,6 +33910,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetApplicationsSummaryResponse other) {
       if (other == null) {
         return;
@@ -24359,7 +33920,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -24372,27 +33937,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            applicationSummary_.AddEntriesFrom(ref input, _repeated_applicationSummary_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetVerificationTokenRequest : pb::IMessage<GetVerificationTokenRequest> {
+  public sealed partial class GetVerificationTokenRequest : pb::IMessage<GetVerificationTokenRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetVerificationTokenRequest> _parser = new pb::MessageParser<GetVerificationTokenRequest>(() => new GetVerificationTokenRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetVerificationTokenRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[114]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetVerificationTokenRequest() {
       OnConstruction();
     }
@@ -24400,12 +33993,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetVerificationTokenRequest(GetVerificationTokenRequest other) : this() {
       username_ = other.username_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetVerificationTokenRequest Clone() {
       return new GetVerificationTokenRequest(this);
     }
@@ -24414,6 +34009,7 @@ namespace Authentication {
     public const int UsernameFieldNumber = 1;
     private string username_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Username {
       get { return username_; }
       set {
@@ -24422,11 +34018,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetVerificationTokenRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetVerificationTokenRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -24439,6 +34037,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Username.Length != 0) hash ^= Username.GetHashCode();
@@ -24449,12 +34048,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Username.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Username);
@@ -24462,9 +34066,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Username.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Username);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Username.Length != 0) {
@@ -24477,6 +34097,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetVerificationTokenRequest other) {
       if (other == null) {
         return;
@@ -24488,7 +34109,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -24501,27 +34126,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Username = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class GetVerificationTokenResponse : pb::IMessage<GetVerificationTokenResponse> {
+  public sealed partial class GetVerificationTokenResponse : pb::IMessage<GetVerificationTokenResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetVerificationTokenResponse> _parser = new pb::MessageParser<GetVerificationTokenResponse>(() => new GetVerificationTokenResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<GetVerificationTokenResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[115]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetVerificationTokenResponse() {
       OnConstruction();
     }
@@ -24529,12 +34182,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetVerificationTokenResponse(GetVerificationTokenResponse other) : this() {
       encryptedVerificationToken_ = other.encryptedVerificationToken_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GetVerificationTokenResponse Clone() {
       return new GetVerificationTokenResponse(this);
     }
@@ -24543,6 +34198,7 @@ namespace Authentication {
     public const int EncryptedVerificationTokenFieldNumber = 1;
     private pb::ByteString encryptedVerificationToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedVerificationToken {
       get { return encryptedVerificationToken_; }
       set {
@@ -24551,11 +34207,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as GetVerificationTokenResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(GetVerificationTokenResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -24568,6 +34226,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedVerificationToken.Length != 0) hash ^= EncryptedVerificationToken.GetHashCode();
@@ -24578,12 +34237,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedVerificationToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedVerificationToken);
@@ -24591,9 +34255,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedVerificationToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedVerificationToken);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedVerificationToken.Length != 0) {
@@ -24606,6 +34286,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(GetVerificationTokenResponse other) {
       if (other == null) {
         return;
@@ -24617,7 +34298,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -24630,27 +34315,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedVerificationToken = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SendShareInviteRequest : pb::IMessage<SendShareInviteRequest> {
+  public sealed partial class SendShareInviteRequest : pb::IMessage<SendShareInviteRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SendShareInviteRequest> _parser = new pb::MessageParser<SendShareInviteRequest>(() => new SendShareInviteRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SendShareInviteRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[116]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SendShareInviteRequest() {
       OnConstruction();
     }
@@ -24658,12 +34371,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SendShareInviteRequest(SendShareInviteRequest other) : this() {
       email_ = other.email_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SendShareInviteRequest Clone() {
       return new SendShareInviteRequest(this);
     }
@@ -24672,6 +34387,7 @@ namespace Authentication {
     public const int EmailFieldNumber = 1;
     private string email_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Email {
       get { return email_; }
       set {
@@ -24680,11 +34396,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SendShareInviteRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SendShareInviteRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -24697,6 +34415,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Email.Length != 0) hash ^= Email.GetHashCode();
@@ -24707,12 +34426,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Email.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Email);
@@ -24720,9 +34444,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Email.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Email);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Email.Length != 0) {
@@ -24735,6 +34475,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SendShareInviteRequest other) {
       if (other == null) {
         return;
@@ -24746,7 +34487,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -24759,27 +34504,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Email = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TimeLimitedAccessRequest : pb::IMessage<TimeLimitedAccessRequest> {
+  public sealed partial class TimeLimitedAccessRequest : pb::IMessage<TimeLimitedAccessRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TimeLimitedAccessRequest> _parser = new pb::MessageParser<TimeLimitedAccessRequest>(() => new TimeLimitedAccessRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TimeLimitedAccessRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[117]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TimeLimitedAccessRequest() {
       OnConstruction();
     }
@@ -24787,6 +34560,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TimeLimitedAccessRequest(TimeLimitedAccessRequest other) : this() {
       accountUid_ = other.accountUid_.Clone();
       teamUid_ = other.teamUid_.Clone();
@@ -24798,6 +34572,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TimeLimitedAccessRequest Clone() {
       return new TimeLimitedAccessRequest(this);
     }
@@ -24811,6 +34586,7 @@ namespace Authentication {
     ///list of users that have access to a record or shared folder
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> AccountUid {
       get { return accountUid_; }
     }
@@ -24824,6 +34600,7 @@ namespace Authentication {
     ///list of teams that have access to a shared folder
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> TeamUid {
       get { return teamUid_; }
     }
@@ -24837,6 +34614,7 @@ namespace Authentication {
     ///list of records that have access to a shared folder (aka that are shared via a shared folder)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> RecordUid {
       get { return recordUid_; }
     }
@@ -24848,6 +34626,7 @@ namespace Authentication {
     ///recordUid or sharedFolderUid of which the timer will be set or deleted
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString SharedObjectUid {
       get { return sharedObjectUid_; }
       set {
@@ -24859,6 +34638,7 @@ namespace Authentication {
     public const int TimeLimitedAccessTypeFieldNumber = 5;
     private global::Authentication.TimeLimitedAccessType timeLimitedAccessType_ = global::Authentication.TimeLimitedAccessType.InvalidTimeLimitedAccessType;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Authentication.TimeLimitedAccessType TimeLimitedAccessType {
       get { return timeLimitedAccessType_; }
       set {
@@ -24873,6 +34653,7 @@ namespace Authentication {
     ///delete timer when expiration==0
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Expiration {
       get { return expiration_; }
       set {
@@ -24881,11 +34662,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TimeLimitedAccessRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TimeLimitedAccessRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -24903,6 +34686,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= accountUid_.GetHashCode();
@@ -24918,12 +34702,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       accountUid_.WriteTo(output, _repeated_accountUid_codec);
       teamUid_.WriteTo(output, _repeated_teamUid_codec);
       recordUid_.WriteTo(output, _repeated_recordUid_codec);
@@ -24942,9 +34731,36 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      accountUid_.WriteTo(ref output, _repeated_accountUid_codec);
+      teamUid_.WriteTo(ref output, _repeated_teamUid_codec);
+      recordUid_.WriteTo(ref output, _repeated_recordUid_codec);
+      if (SharedObjectUid.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(SharedObjectUid);
+      }
+      if (TimeLimitedAccessType != global::Authentication.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) TimeLimitedAccessType);
+      }
+      if (Expiration != 0L) {
+        output.WriteRawTag(48);
+        output.WriteInt64(Expiration);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += accountUid_.CalculateSize(_repeated_accountUid_codec);
@@ -24966,6 +34782,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TimeLimitedAccessRequest other) {
       if (other == null) {
         return;
@@ -24986,7 +34803,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -25019,27 +34840,75 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            accountUid_.AddEntriesFrom(ref input, _repeated_accountUid_codec);
+            break;
+          }
+          case 18: {
+            teamUid_.AddEntriesFrom(ref input, _repeated_teamUid_codec);
+            break;
+          }
+          case 26: {
+            recordUid_.AddEntriesFrom(ref input, _repeated_recordUid_codec);
+            break;
+          }
+          case 34: {
+            SharedObjectUid = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            TimeLimitedAccessType = (global::Authentication.TimeLimitedAccessType) input.ReadEnum();
+            break;
+          }
+          case 48: {
+            Expiration = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class TimeLimitedAccessResponse : pb::IMessage<TimeLimitedAccessResponse> {
+  public sealed partial class TimeLimitedAccessResponse : pb::IMessage<TimeLimitedAccessResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<TimeLimitedAccessResponse> _parser = new pb::MessageParser<TimeLimitedAccessResponse>(() => new TimeLimitedAccessResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<TimeLimitedAccessResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[118]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TimeLimitedAccessResponse() {
       OnConstruction();
     }
@@ -25047,12 +34916,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TimeLimitedAccessResponse(TimeLimitedAccessResponse other) : this() {
       revision_ = other.revision_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TimeLimitedAccessResponse Clone() {
       return new TimeLimitedAccessResponse(this);
     }
@@ -25061,6 +34932,7 @@ namespace Authentication {
     public const int RevisionFieldNumber = 1;
     private long revision_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long Revision {
       get { return revision_; }
       set {
@@ -25069,11 +34941,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as TimeLimitedAccessResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(TimeLimitedAccessResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -25086,6 +34960,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Revision != 0L) hash ^= Revision.GetHashCode();
@@ -25096,12 +34971,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Revision != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(Revision);
@@ -25109,9 +34989,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Revision != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Revision);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Revision != 0L) {
@@ -25124,6 +35020,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(TimeLimitedAccessResponse other) {
       if (other == null) {
         return;
@@ -25135,7 +35032,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -25148,27 +35049,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Revision = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class RequestDownloadRequest : pb::IMessage<RequestDownloadRequest> {
+  public sealed partial class RequestDownloadRequest : pb::IMessage<RequestDownloadRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<RequestDownloadRequest> _parser = new pb::MessageParser<RequestDownloadRequest>(() => new RequestDownloadRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RequestDownloadRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[119]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RequestDownloadRequest() {
       OnConstruction();
     }
@@ -25176,12 +35105,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RequestDownloadRequest(RequestDownloadRequest other) : this() {
       fileNames_ = other.fileNames_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RequestDownloadRequest Clone() {
       return new RequestDownloadRequest(this);
     }
@@ -25192,16 +35123,19 @@ namespace Authentication {
         = pb::FieldCodec.ForString(10);
     private readonly pbc::RepeatedField<string> fileNames_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> FileNames {
       get { return fileNames_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RequestDownloadRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RequestDownloadRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -25214,6 +35148,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       hash ^= fileNames_.GetHashCode();
@@ -25224,19 +35159,37 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       fileNames_.WriteTo(output, _repeated_fileNames_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      fileNames_.WriteTo(ref output, _repeated_fileNames_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       size += fileNames_.CalculateSize(_repeated_fileNames_codec);
@@ -25247,6 +35200,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RequestDownloadRequest other) {
       if (other == null) {
         return;
@@ -25256,7 +35210,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -25269,27 +35227,55 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            fileNames_.AddEntriesFrom(ref input, _repeated_fileNames_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class RequestDownloadResponse : pb::IMessage<RequestDownloadResponse> {
+  public sealed partial class RequestDownloadResponse : pb::IMessage<RequestDownloadResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<RequestDownloadResponse> _parser = new pb::MessageParser<RequestDownloadResponse>(() => new RequestDownloadResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RequestDownloadResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[120]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RequestDownloadResponse() {
       OnConstruction();
     }
@@ -25297,6 +35283,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RequestDownloadResponse(RequestDownloadResponse other) : this() {
       result_ = other.result_;
       message_ = other.message_;
@@ -25305,6 +35292,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RequestDownloadResponse Clone() {
       return new RequestDownloadResponse(this);
     }
@@ -25313,6 +35301,7 @@ namespace Authentication {
     public const int ResultFieldNumber = 1;
     private string result_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Result {
       get { return result_; }
       set {
@@ -25324,6 +35313,7 @@ namespace Authentication {
     public const int MessageFieldNumber = 2;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -25337,16 +35327,19 @@ namespace Authentication {
         = pb::FieldCodec.ForMessage(26, global::Authentication.Download.Parser);
     private readonly pbc::RepeatedField<global::Authentication.Download> downloads_ = new pbc::RepeatedField<global::Authentication.Download>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Authentication.Download> Downloads {
       get { return downloads_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as RequestDownloadResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(RequestDownloadResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -25361,6 +35354,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Result.Length != 0) hash ^= Result.GetHashCode();
@@ -25373,12 +35367,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Result.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Result);
@@ -25391,9 +35390,30 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Result.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Result);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Message);
+      }
+      downloads_.WriteTo(ref output, _repeated_downloads_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Result.Length != 0) {
@@ -25410,6 +35430,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(RequestDownloadResponse other) {
       if (other == null) {
         return;
@@ -25425,7 +35446,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -25446,27 +35471,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Result = input.ReadString();
+            break;
+          }
+          case 18: {
+            Message = input.ReadString();
+            break;
+          }
+          case 26: {
+            downloads_.AddEntriesFrom(ref input, _repeated_downloads_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class Download : pb::IMessage<Download> {
+  public sealed partial class Download : pb::IMessage<Download>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Download> _parser = new pb::MessageParser<Download>(() => new Download());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<Download> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[121]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Download() {
       OnConstruction();
     }
@@ -25474,6 +35535,7 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Download(Download other) : this() {
       fileName_ = other.fileName_;
       url_ = other.url_;
@@ -25482,6 +35544,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Download Clone() {
       return new Download(this);
     }
@@ -25490,6 +35553,7 @@ namespace Authentication {
     public const int FileNameFieldNumber = 1;
     private string fileName_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string FileName {
       get { return fileName_; }
       set {
@@ -25501,6 +35565,7 @@ namespace Authentication {
     public const int UrlFieldNumber = 2;
     private string url_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Url {
       get { return url_; }
       set {
@@ -25512,6 +35577,7 @@ namespace Authentication {
     public const int SuccessStatusCodeFieldNumber = 3;
     private int successStatusCode_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int SuccessStatusCode {
       get { return successStatusCode_; }
       set {
@@ -25520,11 +35586,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as Download);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(Download other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -25539,6 +35607,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (FileName.Length != 0) hash ^= FileName.GetHashCode();
@@ -25551,12 +35620,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (FileName.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(FileName);
@@ -25572,9 +35646,33 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FileName.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(FileName);
+      }
+      if (Url.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Url);
+      }
+      if (SuccessStatusCode != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(SuccessStatusCode);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (FileName.Length != 0) {
@@ -25593,6 +35691,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(Download other) {
       if (other == null) {
         return;
@@ -25610,7 +35709,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -25631,27 +35734,63 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            FileName = input.ReadString();
+            break;
+          }
+          case 18: {
+            Url = input.ReadString();
+            break;
+          }
+          case 24: {
+            SuccessStatusCode = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class DeleteUserRequest : pb::IMessage<DeleteUserRequest> {
+  public sealed partial class DeleteUserRequest : pb::IMessage<DeleteUserRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<DeleteUserRequest> _parser = new pb::MessageParser<DeleteUserRequest>(() => new DeleteUserRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeleteUserRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Authentication.APIRequestReflection.Descriptor.MessageTypes[122]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeleteUserRequest() {
       OnConstruction();
     }
@@ -25659,12 +35798,14 @@ namespace Authentication {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeleteUserRequest(DeleteUserRequest other) : this() {
       reason_ = other.reason_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeleteUserRequest Clone() {
       return new DeleteUserRequest(this);
     }
@@ -25676,6 +35817,7 @@ namespace Authentication {
     ///reason to delete
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Reason {
       get { return reason_; }
       set {
@@ -25684,11 +35826,13 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as DeleteUserRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(DeleteUserRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -25701,6 +35845,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (Reason.Length != 0) hash ^= Reason.GetHashCode();
@@ -25711,12 +35856,17 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Reason.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Reason);
@@ -25724,9 +35874,25 @@ namespace Authentication {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Reason.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Reason);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (Reason.Length != 0) {
@@ -25739,6 +35905,7 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(DeleteUserRequest other) {
       if (other == null) {
         return;
@@ -25750,7 +35917,11 @@ namespace Authentication {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -25763,7 +35934,27 @@ namespace Authentication {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Reason = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 

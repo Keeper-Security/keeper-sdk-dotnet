@@ -764,6 +764,8 @@ namespace KeeperSecurity.Vault
                 new FieldType("date", typeof(long), "calendar date with validation, stored as unix milliseconds"),
                 new FieldType("bankAccount", typeof(FieldTypeBankAccount), "bank account information"),
                 new FieldType("privateKey", typeof(FieldTypeKeyPair), "private and/or public keys in ASN.1 format"),
+                new FieldType("checkbox", typeof(bool), "on/off checkbox"),
+                new FieldType("dropdown", typeof(string), "list of text choices"),
             };
 
             foreach (var t in types)
@@ -799,6 +801,8 @@ namespace KeeperSecurity.Vault
                 new RecordField("oneTimeCode", _fieldTypes["otp"]),
                 new RecordField("keyPair", _fieldTypes["privateKey"]),
                 new RecordField("licenseNumber", _fieldTypes["multiline"]),
+                new RecordField("isSSIDHidden", _fieldTypes["checkbox"]),
+                new RecordField("wifiEncryption", _fieldTypes["dropdown"]),
             };
             foreach (var rf in fields)
             {
