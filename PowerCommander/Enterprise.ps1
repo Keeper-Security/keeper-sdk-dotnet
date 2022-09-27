@@ -319,17 +319,6 @@ function Get-KeeperEnterpriseNodes {
 }
 New-Alias -Name ken -Value Get-KeeperEnterpriseNodes
 
-function Get-KeeperMspLicenses {
-    <#
-        .Synopsis
-    	Get the list of MSP licenses
-    #>
-    [CmdletBinding()]
-    [Enterprise]$enterprise = getMspEnterprise
-    $enterprise.enterpriseData.EnterpriseLicense.MspPool
-}
-New-Alias -Name msp-license -Value Get-KeeperMspLicenses
-
 function Get-KeeperManagedCompanies {
     <#
         .Synopsis
@@ -351,6 +340,25 @@ function Get-KeeperManagedCompanies {
 }
 New-Alias -Name kmc -Value Get-KeeperManagedCompanies
 
+$Keeper_MspAddonName = {
+	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+	$result = @()
+    $msp_addons = @('enterprise_breach_watch', 'compliance_report', 'enterprise_audit_and_reporting', 'msp_service_and_support', 'secrets_manager', 'connection_manager', 'chat')
+
+    $toComplete = $wordToComplete += '*'
+    foreach($addon in $msp_addons) {
+        if ($addon -like $toComplete) {
+            $result += $addon
+        }
+    }
+	if ($result.Count -gt 0) {
+		return $result
+	} else {
+		return $null
+	}
+}
+
 function New-KeeperManagedCompany {
     <#
         .Synopsis
@@ -359,14 +367,22 @@ function New-KeeperManagedCompany {
 	    Managed Company Name
     	.Parameter PlanId
 	    Managed Company Plan
-    	.Parameter Allocated
-	    Number of Seats Allocated
+    	.Parameter MaximumSeats
+	    Maximum Number of Seats
+        .Parameter Storage
+        Storage Plan
+        .Parameter Addons
+        Addons
+        .Parameter Node
+        Node Name or ID
     #>
     [CmdletBinding()]
 	Param (
-		[Parameter(Mandatory=$true)][string] $Name,
+		[Parameter(Mandatory=$true, Position=0)][string] $Name,
 		[Parameter(Mandatory=$true)][ValidateSet('business', 'businessPlus', 'enterprise', 'enterprisePlus')][string] $PlanId,
-		[Parameter(Mandatory=$true)][int] $Allocated,
+		[Parameter(Mandatory=$true)][int] $MaximumSeats,
+		[Parameter(Mandatory=$false)][ValidateSet('100GB', '1TB', '10TB')][string] $Storage,
+		[Parameter(Mandatory=$false)][string[]] $Addons,
 		[Parameter(Mandatory=$false)][string] $Node
 	)
 
@@ -375,7 +391,7 @@ function New-KeeperManagedCompany {
     $options = New-Object KeeperSecurity.Enterprise.ManagedCompanyOptions
     $options.Name = $Name
     $options.ProductId = $PlanId
-    $options.NumberOfSeats = $Allocated
+    $options.NumberOfSeats = $MaximumSeats
     if ($Node) {
         $n = findEnterpriseNode $Node
         if ($n) {
@@ -386,10 +402,29 @@ function New-KeeperManagedCompany {
     } else {
         $options.NodeId = $enterprise.enterpriseData.RootNode.Id
     }
+    switch ($Storage) {
+        '100GB' { $options.FilePlanType = [KeeperSecurity.Enterprise.ManagedCompanyConstants]::StoragePlan100GB }
+        '1TB' { $options.FilePlanType = [KeeperSecurity.Enterprise.ManagedCompanyConstants]::StoragePlan1TB }
+        '10TB' { $options.FilePlanType = [KeeperSecurity.Enterprise.ManagedCompanyConstants]::StoragePlan10TB }
+    }
+    if ($Addons) {
+        $aons = @()
+        foreach ($addon in $Addons) {
+            $parts = $addon -split ':'
+            $addonOption = New-Object KeeperSecurity.Enterprise.ManagedCompanyAddonOptions
+            $addonOption.Addon = $parts[0]
+            if ($parts.Length -gt 1) {
+                $addonOption.NumberOfSeats = $parts[1] -as [int]
+            }
+            $aons += $addonOption
+        }
+        $options.Addons = $aons
+    }
 
     return $enterprise.mspData.CreateManagedCompany($options).GetAwaiter().GetResult()
 }
 New-Alias -Name kamc -Value New-KeeperManagedCompany
+Register-ArgumentCompleter -CommandName New-KeeperManagedCompany -ParameterName Addons -ScriptBlock $Keeper_MspAddonName
 
 function Remove-KeeperManagedCompany {
     <#
@@ -422,17 +457,24 @@ function Edit-KeeperManagedCompany {
 	    Managed Company New Name
     	.Parameter PlanId
 	    Managed Company Plan
-    	.Parameter Allocated
-	    Number of Seats Allocated
+    	.Parameter MaximumSeats
+	    Maximum Number of Seats
+        .Parameter Storage
+        Storage Plan
+        .Parameter Addons
+        Addons
+        .Parameter Node
+        Node Name or ID
     	.Parameter Id
 	    Managed Company Name or Id
-
     #>
     [CmdletBinding()]
 	Param (
 		[Parameter(Mandatory=$false)][string] $Name,
 		[Parameter(Mandatory=$false)][ValidateSet('business', 'businessPlus', 'enterprise', 'enterprisePlus')][string] $PlanId,
-		[Parameter(Mandatory=$false)][int] $Allocated,
+		[Parameter(Mandatory=$false)][int] $MaximumSeats,
+		[Parameter(Mandatory=$false)][ValidateSet('100GB', '1TB', '10TB')][string] $Storage,
+		[Parameter(Mandatory=$false)][string[]] $Addons,
 		[Parameter(Mandatory=$false)][string] $Node,
 		[Parameter(Position = 0, Mandatory=$true)][string] $Id
 	)
@@ -450,8 +492,26 @@ function Edit-KeeperManagedCompany {
     if ($PlanId) {
         $options.ProductId = $PlanId
     }
-    if ($Allocated) {
-        $options.NumberOfSeats = $Allocated
+    if ($MaximumSeats) {
+        $options.NumberOfSeats = $MaximumSeats
+    }
+    switch ($Storage) {
+        '100GB' { $options.FilePlanType = [KeeperSecurity.Enterprise.ManagedCompanyConstants]::StoragePlan100GB }
+        '1TB' { $options.FilePlanType = [KeeperSecurity.Enterprise.ManagedCompanyConstants]::StoragePlan1TB }
+        '10TB' { $options.FilePlanType = [KeeperSecurity.Enterprise.ManagedCompanyConstants]::StoragePlan10TB }
+    }
+    if ($Addons) {
+        $aons = @()
+        foreach ($addon in $Addons) {
+            $parts = $addon -split ':'
+            $addonOption = New-Object KeeperSecurity.Enterprise.ManagedCompanyAddonOptions
+            $addonOption.Addon = $parts[0]
+            if ($parts.Length -gt 1) {
+                $addonOption.NumberOfSeats = $parts[1] -as [int]
+            }
+            $aons += $addonOption
+        }
+        $options.Addons = $aons
     }
     if ($Node) {
         $n = findEnterpriseNode $Node
@@ -466,6 +526,7 @@ function Edit-KeeperManagedCompany {
     $enterprise.mspData.UpdateManagedCompany($mc.EnterpriseId, $options).GetAwaiter().GetResult()
 }
 New-Alias -Name kemc -Value Edit-KeeperManagedCompany
+Register-ArgumentCompleter -CommandName Edit-KeeperManagedCompany -ParameterName Addons -ScriptBlock $Keeper_MspAddonName
 
 function Script:Get-KeeperNodeName {
 	Param (

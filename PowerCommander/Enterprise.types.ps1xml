@@ -67,6 +67,19 @@
           }
         </GetScriptBlock>
       </ScriptProperty>
+
+      <ScriptProperty>
+        <Name>FilePlanName</Name>
+        <GetScriptBlock>
+          Switch ($this.FilePlanType) {
+            "STORAGE_100GB" {"100GB"}
+            "STORAGE_1000GB" {"1TB"}
+            "STORAGE_10000GB" {"10TB"}
+            Default {$this.FilePlanType}
+          }
+        </GetScriptBlock>
+      </ScriptProperty>
+
       <ScriptProperty>
         <Name>ParentNodeName</Name>
         <GetScriptBlock>
@@ -95,23 +108,4 @@
       </AliasProperty>    
     </Members>
   </Type>
-
-  <Type>
-    <Name>Enterprise.MspPool</Name>
-    <Members>
-      <AliasProperty>
-        <Name>PlanId</Name>
-        <ReferencedMemberName>ProductId</ReferencedMemberName>
-      </AliasProperty>    
-      <AliasProperty>
-        <Name>AvailableLicenses</Name>
-        <ReferencedMemberName>AvailableSeats</ReferencedMemberName>
-      </AliasProperty>    
-      <AliasProperty>
-        <Name>TotalLicenses</Name>
-        <ReferencedMemberName>Seats</ReferencedMemberName>
-      </AliasProperty>    
-    </Members>
-  </Type>
-
 </Types>

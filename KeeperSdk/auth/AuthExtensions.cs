@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
 using Google.Protobuf;
@@ -133,6 +134,18 @@ namespace KeeperSecurity.Authentication
                 SummaryVersion = 1
             };
             return await auth.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
+        }
+
+        /// <exclude/>
+        public static string GetBiUrl(this IAuthentication auth, string endpoint)
+        {
+            var builder = new UriBuilder(auth.Endpoint.Server)
+            {
+                Path = "/bi_api/v2/enterprise_console/",
+                Scheme = "https",
+                Port = 443
+            };
+            return new Uri(builder.Uri, endpoint).AbsoluteUri;
         }
     }
 }

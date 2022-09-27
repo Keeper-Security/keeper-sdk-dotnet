@@ -105,23 +105,31 @@ namespace Push {
   /// <summary>
   /// KA registers login/logout
   /// </summary>
-  public sealed partial class UserRegistrationRequest : pb::IMessage<UserRegistrationRequest> {
+  public sealed partial class UserRegistrationRequest : pb::IMessage<UserRegistrationRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<UserRegistrationRequest> _parser = new pb::MessageParser<UserRegistrationRequest>(() => new UserRegistrationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<UserRegistrationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Push.PushReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserRegistrationRequest() {
       OnConstruction();
     }
@@ -129,6 +137,7 @@ namespace Push {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserRegistrationRequest(UserRegistrationRequest other) : this() {
       messageSessionUid_ = other.messageSessionUid_;
       userId_ = other.userId_;
@@ -137,6 +146,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public UserRegistrationRequest Clone() {
       return new UserRegistrationRequest(this);
     }
@@ -145,6 +155,7 @@ namespace Push {
     public const int MessageSessionUidFieldNumber = 1;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -156,6 +167,7 @@ namespace Push {
     public const int UserIdFieldNumber = 2;
     private int userId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int UserId {
       get { return userId_; }
       set {
@@ -167,6 +179,7 @@ namespace Push {
     public const int EnterpriseIdFieldNumber = 3;
     private int enterpriseId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int EnterpriseId {
       get { return enterpriseId_; }
       set {
@@ -175,11 +188,13 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as UserRegistrationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(UserRegistrationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -194,6 +209,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MessageSessionUid.Length != 0) hash ^= MessageSessionUid.GetHashCode();
@@ -206,12 +222,17 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MessageSessionUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(MessageSessionUid);
@@ -227,9 +248,33 @@ namespace Push {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (UserId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(UserId);
+      }
+      if (EnterpriseId != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(EnterpriseId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MessageSessionUid.Length != 0) {
@@ -248,6 +293,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(UserRegistrationRequest other) {
       if (other == null) {
         return;
@@ -265,7 +311,11 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -286,30 +336,66 @@ namespace Push {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 16: {
+            UserId = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            EnterpriseId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   /// KA sends ws message
   /// </summary>
-  public sealed partial class KAToPushServerRequest : pb::IMessage<KAToPushServerRequest> {
+  public sealed partial class KAToPushServerRequest : pb::IMessage<KAToPushServerRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<KAToPushServerRequest> _parser = new pb::MessageParser<KAToPushServerRequest>(() => new KAToPushServerRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<KAToPushServerRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Push.PushReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public KAToPushServerRequest() {
       OnConstruction();
     }
@@ -317,6 +403,7 @@ namespace Push {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public KAToPushServerRequest(KAToPushServerRequest other) : this() {
       messageType_ = other.messageType_;
       message_ = other.message_;
@@ -328,6 +415,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public KAToPushServerRequest Clone() {
       return new KAToPushServerRequest(this);
     }
@@ -336,6 +424,7 @@ namespace Push {
     public const int MessageTypeFieldNumber = 1;
     private global::Push.MessageType messageType_ = global::Push.MessageType.Unknown;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Push.MessageType MessageType {
       get { return messageType_; }
       set {
@@ -347,6 +436,7 @@ namespace Push {
     public const int MessageFieldNumber = 2;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -358,6 +448,7 @@ namespace Push {
     public const int MessageSessionUidFieldNumber = 3;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -374,6 +465,7 @@ namespace Push {
     /// aka platformDeviceToken
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<pb::ByteString> EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
     }
@@ -384,6 +476,7 @@ namespace Push {
         = pb::FieldCodec.ForInt32(42);
     private readonly pbc::RepeatedField<int> userId_ = new pbc::RepeatedField<int>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<int> UserId {
       get { return userId_; }
     }
@@ -394,16 +487,19 @@ namespace Push {
         = pb::FieldCodec.ForInt32(50);
     private readonly pbc::RepeatedField<int> enterpriseId_ = new pbc::RepeatedField<int>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<int> EnterpriseId {
       get { return enterpriseId_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as KAToPushServerRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(KAToPushServerRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -421,6 +517,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MessageType != global::Push.MessageType.Unknown) hash ^= MessageType.GetHashCode();
@@ -436,12 +533,17 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MessageType != global::Push.MessageType.Unknown) {
         output.WriteRawTag(8);
         output.WriteEnum((int) MessageType);
@@ -460,9 +562,36 @@ namespace Push {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MessageType != global::Push.MessageType.Unknown) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) MessageType);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Message);
+      }
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(MessageSessionUid);
+      }
+      encryptedDeviceToken_.WriteTo(ref output, _repeated_encryptedDeviceToken_codec);
+      userId_.WriteTo(ref output, _repeated_userId_codec);
+      enterpriseId_.WriteTo(ref output, _repeated_enterpriseId_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MessageType != global::Push.MessageType.Unknown) {
@@ -484,6 +613,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(KAToPushServerRequest other) {
       if (other == null) {
         return;
@@ -504,7 +634,11 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -539,30 +673,80 @@ namespace Push {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            MessageType = (global::Push.MessageType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            Message = input.ReadString();
+            break;
+          }
+          case 26: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 34: {
+            encryptedDeviceToken_.AddEntriesFrom(ref input, _repeated_encryptedDeviceToken_codec);
+            break;
+          }
+          case 42:
+          case 40: {
+            userId_.AddEntriesFrom(ref input, _repeated_userId_codec);
+            break;
+          }
+          case 50:
+          case 48: {
+            enterpriseId_.AddEntriesFrom(ref input, _repeated_enterpriseId_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   ///Client sends to push
   /// </summary>
-  public sealed partial class WssConnectionRequest : pb::IMessage<WssConnectionRequest> {
+  public sealed partial class WssConnectionRequest : pb::IMessage<WssConnectionRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<WssConnectionRequest> _parser = new pb::MessageParser<WssConnectionRequest>(() => new WssConnectionRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<WssConnectionRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Push.PushReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public WssConnectionRequest() {
       OnConstruction();
     }
@@ -570,6 +754,7 @@ namespace Push {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public WssConnectionRequest(WssConnectionRequest other) : this() {
       messageSessionUid_ = other.messageSessionUid_;
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
@@ -578,6 +763,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public WssConnectionRequest Clone() {
       return new WssConnectionRequest(this);
     }
@@ -586,6 +772,7 @@ namespace Push {
     public const int MessageSessionUidFieldNumber = 1;
     private pb::ByteString messageSessionUid_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString MessageSessionUid {
       get { return messageSessionUid_; }
       set {
@@ -600,6 +787,7 @@ namespace Push {
     /// aka platformDeviceToken
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -611,6 +799,7 @@ namespace Push {
     public const int DeviceTimeStampFieldNumber = 3;
     private long deviceTimeStamp_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long DeviceTimeStamp {
       get { return deviceTimeStamp_; }
       set {
@@ -619,11 +808,13 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as WssConnectionRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(WssConnectionRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -638,6 +829,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MessageSessionUid.Length != 0) hash ^= MessageSessionUid.GetHashCode();
@@ -650,12 +842,17 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MessageSessionUid.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(MessageSessionUid);
@@ -671,9 +868,33 @@ namespace Push {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MessageSessionUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(MessageSessionUid);
+      }
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (DeviceTimeStamp != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(DeviceTimeStamp);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MessageSessionUid.Length != 0) {
@@ -692,6 +913,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(WssConnectionRequest other) {
       if (other == null) {
         return;
@@ -709,7 +931,11 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -730,30 +956,66 @@ namespace Push {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            MessageSessionUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            DeviceTimeStamp = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   ///PS sends to clients
   /// </summary>
-  public sealed partial class WssClientResponse : pb::IMessage<WssClientResponse> {
+  public sealed partial class WssClientResponse : pb::IMessage<WssClientResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<WssClientResponse> _parser = new pb::MessageParser<WssClientResponse>(() => new WssClientResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<WssClientResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Push.PushReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public WssClientResponse() {
       OnConstruction();
     }
@@ -761,6 +1023,7 @@ namespace Push {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public WssClientResponse(WssClientResponse other) : this() {
       messageType_ = other.messageType_;
       message_ = other.message_;
@@ -768,6 +1031,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public WssClientResponse Clone() {
       return new WssClientResponse(this);
     }
@@ -776,6 +1040,7 @@ namespace Push {
     public const int MessageTypeFieldNumber = 1;
     private global::Push.MessageType messageType_ = global::Push.MessageType.Unknown;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Push.MessageType MessageType {
       get { return messageType_; }
       set {
@@ -787,6 +1052,7 @@ namespace Push {
     public const int MessageFieldNumber = 2;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Message {
       get { return message_; }
       set {
@@ -795,11 +1061,13 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as WssClientResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(WssClientResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -813,6 +1081,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MessageType != global::Push.MessageType.Unknown) hash ^= MessageType.GetHashCode();
@@ -824,12 +1093,17 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MessageType != global::Push.MessageType.Unknown) {
         output.WriteRawTag(8);
         output.WriteEnum((int) MessageType);
@@ -841,9 +1115,29 @@ namespace Push {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MessageType != global::Push.MessageType.Unknown) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) MessageType);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MessageType != global::Push.MessageType.Unknown) {
@@ -859,6 +1153,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(WssClientResponse other) {
       if (other == null) {
         return;
@@ -873,7 +1168,11 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -890,27 +1189,59 @@ namespace Push {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            MessageType = (global::Push.MessageType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class PushServerDeviceRegistrationRequest : pb::IMessage<PushServerDeviceRegistrationRequest> {
+  public sealed partial class PushServerDeviceRegistrationRequest : pb::IMessage<PushServerDeviceRegistrationRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<PushServerDeviceRegistrationRequest> _parser = new pb::MessageParser<PushServerDeviceRegistrationRequest>(() => new PushServerDeviceRegistrationRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<PushServerDeviceRegistrationRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Push.PushReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PushServerDeviceRegistrationRequest() {
       OnConstruction();
     }
@@ -918,6 +1249,7 @@ namespace Push {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PushServerDeviceRegistrationRequest(PushServerDeviceRegistrationRequest other) : this() {
       encryptedDeviceToken_ = other.encryptedDeviceToken_;
       pushToken_ = other.pushToken_;
@@ -927,6 +1259,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PushServerDeviceRegistrationRequest Clone() {
       return new PushServerDeviceRegistrationRequest(this);
     }
@@ -935,6 +1268,7 @@ namespace Push {
     public const int EncryptedDeviceTokenFieldNumber = 1;
     private pb::ByteString encryptedDeviceToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString EncryptedDeviceToken {
       get { return encryptedDeviceToken_; }
       set {
@@ -946,6 +1280,7 @@ namespace Push {
     public const int PushTokenFieldNumber = 2;
     private string pushToken_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string PushToken {
       get { return pushToken_; }
       set {
@@ -957,6 +1292,7 @@ namespace Push {
     public const int MobilePushPlatformFieldNumber = 3;
     private string mobilePushPlatform_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string MobilePushPlatform {
       get { return mobilePushPlatform_; }
       set {
@@ -968,6 +1304,7 @@ namespace Push {
     public const int TransmissionKeyFieldNumber = 4;
     private pb::ByteString transmissionKey_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString TransmissionKey {
       get { return transmissionKey_; }
       set {
@@ -976,11 +1313,13 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as PushServerDeviceRegistrationRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(PushServerDeviceRegistrationRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -996,6 +1335,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (EncryptedDeviceToken.Length != 0) hash ^= EncryptedDeviceToken.GetHashCode();
@@ -1009,12 +1349,17 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EncryptedDeviceToken.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(EncryptedDeviceToken);
@@ -1034,9 +1379,37 @@ namespace Push {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EncryptedDeviceToken.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(EncryptedDeviceToken);
+      }
+      if (PushToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(PushToken);
+      }
+      if (MobilePushPlatform.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(MobilePushPlatform);
+      }
+      if (TransmissionKey.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(TransmissionKey);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (EncryptedDeviceToken.Length != 0) {
@@ -1058,6 +1431,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(PushServerDeviceRegistrationRequest other) {
       if (other == null) {
         return;
@@ -1078,7 +1452,11 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1103,27 +1481,67 @@ namespace Push {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EncryptedDeviceToken = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            PushToken = input.ReadString();
+            break;
+          }
+          case 26: {
+            MobilePushPlatform = input.ReadString();
+            break;
+          }
+          case 34: {
+            TransmissionKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SnsMessage : pb::IMessage<SnsMessage> {
+  public sealed partial class SnsMessage : pb::IMessage<SnsMessage>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SnsMessage> _parser = new pb::MessageParser<SnsMessage>(() => new SnsMessage());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<SnsMessage> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Push.PushReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     pbr::MessageDescriptor pb::IMessage.Descriptor {
       get { return Descriptor; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SnsMessage() {
       OnConstruction();
     }
@@ -1131,6 +1549,7 @@ namespace Push {
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SnsMessage(SnsMessage other) : this() {
       messageType_ = other.messageType_;
       message_ = other.message_;
@@ -1138,6 +1557,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SnsMessage Clone() {
       return new SnsMessage(this);
     }
@@ -1146,6 +1566,7 @@ namespace Push {
     public const int MessageTypeFieldNumber = 1;
     private global::Push.MessageType messageType_ = global::Push.MessageType.Unknown;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Push.MessageType MessageType {
       get { return messageType_; }
       set {
@@ -1157,6 +1578,7 @@ namespace Push {
     public const int MessageFieldNumber = 2;
     private pb::ByteString message_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString Message {
       get { return message_; }
       set {
@@ -1165,11 +1587,13 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
       return Equals(other as SnsMessage);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool Equals(SnsMessage other) {
       if (ReferenceEquals(other, null)) {
         return false;
@@ -1183,6 +1607,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
       if (MessageType != global::Push.MessageType.Unknown) hash ^= MessageType.GetHashCode();
@@ -1194,12 +1619,17 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override string ToString() {
       return pb::JsonFormatter.ToDiagnosticString(this);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MessageType != global::Push.MessageType.Unknown) {
         output.WriteRawTag(8);
         output.WriteEnum((int) MessageType);
@@ -1211,9 +1641,29 @@ namespace Push {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
 
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MessageType != global::Push.MessageType.Unknown) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) MessageType);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
       if (MessageType != global::Push.MessageType.Unknown) {
@@ -1229,6 +1679,7 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(SnsMessage other) {
       if (other == null) {
         return;
@@ -1243,7 +1694,11 @@ namespace Push {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1260,7 +1715,31 @@ namespace Push {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            MessageType = (global::Push.MessageType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            Message = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 

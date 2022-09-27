@@ -1698,13 +1698,6 @@ namespace Commander
 
                         if (!string.IsNullOrEmpty(EnterpriseData.EnterpriseLicense?.LicenseStatus) && EnterpriseData.EnterpriseLicense.LicenseStatus.StartsWith("msp"))
                         {
-                            Commands.Add("msp-license",
-                                new SimpleCommand
-                                {
-                                    Order = 70,
-                                    Description = "Display MSP licenses.",
-                                    Action = ListMspLicenses,
-                                });
                             Commands.Add("mc-list",
                                 new SimpleCommand
                                 {
@@ -1784,78 +1777,144 @@ namespace Commander
             NextState = new McEnterpriseContext(mcAuth);
         }
 
-        private Task ListMspLicenses(string _)
-        {
-            var tab = new Tabulate(4);
-            tab.AddHeader("Plan Id", "Available Licenses", "Total Licenses", "Stash");
-            foreach (var plan in EnterpriseData.EnterpriseLicense.MspPool)
-            {
-                tab.AddRow(plan.ProductId, plan.AvailableSeats, plan.Seats, plan.Stash);
-            }
-            tab.Sort(0);
-            tab.DumpRowNo = true;
-            tab.SetColumnRightAlign(1, true);
-            tab.SetColumnRightAlign(2, true);
-            tab.SetColumnRightAlign(3, true);
-            Console.WriteLine();
-            tab.Dump();
-            return Task.CompletedTask;
-        }
-
         private Task ListManagedCompanies(string _)
         {
-            var tab = new Tabulate(6);
-            tab.AddHeader("Company Name", "Company ID", "License", "# Seats", "# Users", "Paused");
+            var tab = new Tabulate(9);
+            tab.AddHeader("Company Name", "Company ID", "Node", "Plan", "Storage", "Addons", "Seats Allowed", "Seats Used", "Paused");
             foreach (var mc in _managedCompanies.ManagedCompanies)
             {
-                tab.AddRow(mc.EnterpriseName, mc.EnterpriseId, mc.ProductId,
-                    mc.NumberOfSeats, mc.NumberOfUsers, mc.IsExpired ? "Yes" : "");
+                string nodeName = "";
+                if (EnterpriseData.TryGetNode(mc.ParentNodeId, out var node))
+                {
+                    if (node.ParentNodeId > 0)
+                    {
+                        nodeName = node.DisplayName;
+                    }
+                    else
+                    {
+                        nodeName = EnterpriseData.Enterprise.EnterpriseName;
+                    }
+                }
+                var plan = ManagedCompanyConstants.MspProducts.FirstOrDefault(x => x.ProductCode == mc.ProductId);
+                var filePlan = ManagedCompanyConstants.MspFilePlans.FirstOrDefault(x => x.FilePlanCode == mc.FilePlanType);
+                var addons = mc.AddOns.Select(x =>
+                {
+                    var addon = ManagedCompanyConstants.MspAddons.FirstOrDefault(y => x.Name == y.AddonCode);
+                    return addon?.AddonName ?? x.Name;
+                }).ToArray();
+                tab.AddRow(mc.EnterpriseName, mc.EnterpriseId, nodeName, plan?.ProductName ?? mc.ProductId, filePlan?.FilePlanName ?? mc.FilePlanType,
+                    addons, mc.NumberOfSeats < 2000000 ? mc.NumberOfSeats : (object)"Unlimited", mc.NumberOfUsers, mc.IsExpired ? "Yes" : "");
             }
             tab.Sort(0);
             tab.DumpRowNo = true;
-            tab.SetColumnRightAlign(3, true);
-            tab.SetColumnRightAlign(4, true);
+            tab.SetColumnRightAlign(6, true);
+            tab.SetColumnRightAlign(7, true);
             tab.Dump();
             return Task.CompletedTask;
         }
 
-        private async Task CreateManagedCompany(ManagedCompanyCreateOptions options)
+
+        private void PopulateMspCommonOptions(ManagedCompanyCommonOptions arguments, ManagedCompanyOptions options)
         {
-            var nodeId = this.EnterpriseData.RootNode.Id;
-            if (!string.IsNullOrEmpty(options.Node))
+            if (!string.IsNullOrEmpty(arguments.Node))
             {
-                var n = EnterpriseData.ResolveNodeName(options.Node);
-                nodeId = n.Id;
-            }
-            switch (options.Plan)
-            {
-                case ManagedCompanyData.BusinessLicense:
-                case ManagedCompanyData.BusinessPlusLicense:
-                case ManagedCompanyData.EnterpriseLicense:
-                case ManagedCompanyData.EnterprisePlusLicense:
-                    break;
-                default:
-                    Console.WriteLine($"Invalid license plan: {options.Plan}. Supported plans are business, businessPlus, enterprise, enterprisePlus");
-                    return;
-
+                var n = EnterpriseData.ResolveNodeName(arguments.Node);
+                options.NodeId = n.Id;
             }
 
-            var mcOptions = new ManagedCompanyOptions 
-            { 
-                NodeId = nodeId,
-                ProductId = options.Plan,
-                NumberOfSeats = options.Seats,
-                Name = options.Name,
+            if (!string.IsNullOrEmpty(arguments.Product))
+            {
+                var plan = ManagedCompanyConstants.MspProducts.FirstOrDefault(x => string.Equals(arguments.Product, x.ProductCode, StringComparison.InvariantCultureIgnoreCase));
+                if (plan == null)
+                {
+                    throw new Exception($"Invalid license plan: {arguments.Product}. Supported plans are {string.Join(", ", ManagedCompanyConstants.MspProducts.Select(x => x.ProductCode))}");
+                }
+                options.ProductId = plan.ProductCode;
+            }
+
+            if (arguments.Seats != null)
+            {
+                options.NumberOfSeats = arguments.Seats.Value >= 0 ? arguments.Seats.Value : 2147483647;
+            }
+
+            if (!string.IsNullOrEmpty(arguments.Storage))
+            {
+                var filePlan = ManagedCompanyConstants.MspFilePlans.FirstOrDefault(x =>
+                string.Equals(arguments.Storage, x.FilePlanName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(arguments.Storage, x.FilePlanCode, StringComparison.InvariantCultureIgnoreCase));
+
+                if (filePlan == null)
+                {
+                    throw new Exception($"Invalid storage plan: {arguments.Storage}. Supported plans are {string.Join(", ", ManagedCompanyConstants.MspProducts.Select(x => x.ProductName))}");
+                }
+                options.FilePlanType = filePlan.FilePlanCode;
+            }
+
+            if (!string.IsNullOrEmpty(arguments.Addons))
+            {
+                var addonList = new List<ManagedCompanyAddonOptions>();
+                foreach (var aon in arguments.Addons.Split(','))
+                {
+                    string addonName = aon.Trim();
+                    if (string.IsNullOrEmpty(addonName))
+                    {
+                        continue;
+                    }
+                    int addonSeats = 0;
+                    var pos = addonName.IndexOf(':');
+                    if (pos > 0)
+                    {
+                        var seats = addonName.Substring(pos + 1);
+                        addonName = addonName.Substring(0, pos);
+                        if (!int.TryParse(seats, out addonSeats))
+                        {
+                            throw new Exception($"Invalid number of seats \"{seats}\" for addon \"{addonName}\"");
+                        }
+                    }
+                    var addon = ManagedCompanyConstants.MspAddons.FirstOrDefault(x => string.Equals(x.AddonCode, addonName, StringComparison.InvariantCultureIgnoreCase));
+                    if (addon == null)
+                    {
+                        throw new Exception($"Invalid addon {addonName}. Supported addons are {string.Join(", ", ManagedCompanyConstants.MspAddons.Select(x => x.AddonCode))}");
+                    }
+                    addonList.Add(new ManagedCompanyAddonOptions
+                    {
+                        Addon = addon.AddonCode,
+                        NumberOfSeats = addonSeats > 0 ? addonSeats : (int?) null
+                    });
+                }
+                options.Addons = addonList.ToArray();
+            }
+        }
+
+        private async Task CreateManagedCompany(ManagedCompanyCreateOptions arguments)
+        {
+            var mcOptions = new ManagedCompanyOptions
+            {
+                NodeId = EnterpriseData.RootNode.Id,
+                Name = arguments.Name,
             };
-            var mc = await _managedCompanies.CreateManagedCompany( mcOptions);
+
+            PopulateMspCommonOptions(arguments, mcOptions);
+
+            if (string.IsNullOrEmpty(mcOptions.ProductId)) 
+            {
+                throw new Exception($"License plan is required.");
+            }
+
+            if (mcOptions.NumberOfSeats == null)
+            {
+                mcOptions.NumberOfSeats = 0;
+            }
+
+            var mc = await _managedCompanies.CreateManagedCompany(mcOptions);
             Console.WriteLine($"Managed Company \"{mc.EnterpriseName}\", ID:{mc.EnterpriseId} has been created.");
         }
 
 
-        private async Task UpdateManagedCompany(ManagedCompanyUpdateOptions options)
+        private async Task UpdateManagedCompany(ManagedCompanyUpdateOptions arguments)
         {
             int companyId = -1;
-            int.TryParse(options.Company, out companyId);
+            int.TryParse(arguments.Company, out companyId);
 
             var mc = _managedCompanies.ManagedCompanies.FirstOrDefault(x =>
             {
@@ -1867,69 +1926,28 @@ namespace Commander
                     }
                 }
 
-                return string.Equals(x.EnterpriseName, options.Company, StringComparison.InvariantCultureIgnoreCase);
+                return string.Equals(x.EnterpriseName, arguments.Company, StringComparison.InvariantCultureIgnoreCase);
             });
 
             if (mc == null)
             {
-                Console.WriteLine($"Managed company {options.Company} not found.");
+                Console.WriteLine($"Managed company {arguments.Company} not found.");
             }
-            var mcOptions = new ManagedCompanyOptions();
 
-            if (!string.IsNullOrEmpty(options.Node))
+            var mcOptions = new ManagedCompanyOptions 
+            { 
+                ProductId = mc.ProductId,
+                NumberOfSeats = mc.NumberOfSeats
+            };
+            PopulateMspCommonOptions(arguments, mcOptions);
+
+            if (!string.IsNullOrEmpty(arguments.Name))
             {
-                var n = EnterpriseData.ResolveNodeName(options.Node);
-                mcOptions.NodeId = n.Id;
+                mcOptions.Name = arguments.Name;
             }
-            if (!string.IsNullOrEmpty(options.Plan))
-            {
-                switch (options.Plan)
-                {
-                    case ManagedCompanyData.BusinessLicense:
-                    case ManagedCompanyData.BusinessPlusLicense:
-                    case ManagedCompanyData.EnterpriseLicense:
-                    case ManagedCompanyData.EnterprisePlusLicense:
-                        break;
-                    default:
-                        Console.WriteLine($"Invalid license plan: {options.Plan}. Supported plans are business, businessPlus, enterprise, enterprisePlus");
-                        return;
-                }
-                mcOptions.ProductId = options.Plan;
-            }
-            if (!string.IsNullOrEmpty(options.Name))
-            {
-                mcOptions.Name = options.Name;
-            }
-            if (!string.IsNullOrEmpty(options.Seats))
-            {
-                char action = '=';
-                var seatAction = options.Seats;
-                if (seatAction[0] == '+' || seatAction[0] == '-')
-                {
-                    action = seatAction[0];
-                    seatAction = seatAction.Remove(0, 1);
-                }
-                if (!int.TryParse(seatAction, out var seats))
-                {
-                    Console.WriteLine($"Invalid number of seats: {options.Seats}.");
-                    return;
-                }
-                switch (action)
-                {
-                    case '+':
-                        seats += mc.NumberOfSeats;
-                        break;
-                    case '-':
-                        seats = mc.NumberOfSeats - seats;
-                        if (seats < 0)
-                        {
-                            seats = 0;
-                        }
-                        break;
-                }
-                mcOptions.NumberOfSeats = seats;
-            }
+
             var mc1 = await _managedCompanies.UpdateManagedCompany(mc.EnterpriseId, mcOptions);
+
             Console.WriteLine($"Managed Company \"{mc1.EnterpriseName}\", ID:{mc1.EnterpriseId} has been updated.");
         }
 
@@ -2114,32 +2132,33 @@ namespace Commander
         public string Company { get; set; }
     }
 
-    class ManagedCompanyCreateOptions : EnterpriseGenericOptions
+    class ManagedCompanyCommonOptions : EnterpriseGenericOptions
     {
+        [Option("product", Required = false, HelpText = "Product Plan: business, businessPlus, enterprise, enterprisePlus")]
+        public string Product { get; set; }
+
+        [Option("seats", Required = false, HelpText = "Maximum number of seats. -1 unlimited.")]
+        public int? Seats { get; set; }
+
         [Option("node", Required = false, HelpText = "Node Name or ID.")]
         public string Node { get; set; }
 
-        [Option("seats", Required = true, HelpText = "Number of seats.")]
-        public int Seats { get; set; }
+        [Option("storage", Required = false, HelpText = "Storage Plan: 100GB, 1TB, 10TB")]
+        public string Storage { get; set; }
 
-        [Option("plan", Required = true, HelpText = "License Plan: business, businessPlus, enterprise, enterprisePlus")]
-        public string Plan { get; set; }
+        [Option("addons", Required = false, HelpText = "Comma-separated list of addons: \nenterprise_breach_watch, compliance_report, enterprise_audit_and_reporting, \nmsp_service_and_support, secrets_manager, connection_manager:N, chat")]
+        public string Addons { get; set; }
+    }
+
+    class ManagedCompanyCreateOptions : ManagedCompanyCommonOptions
+    {
 
         [Value(0, Required = true, HelpText = "Managed Company Name")]
         public string Name { get; set; }
     }
 
-    class ManagedCompanyUpdateOptions : EnterpriseGenericOptions
+    class ManagedCompanyUpdateOptions : ManagedCompanyCommonOptions
     {
-        [Option("node", Required = false, HelpText = "Node Name or ID.")]
-        public string Node { get; set; }
-
-        [Option("seats", Required = false, HelpText = "Number of seats.")]
-        public string Seats { get; set; }
-
-        [Option("plan", Required = false, HelpText = "Change License Plan: business, businessPlus, enterprise, enterprisePlus")]
-        public string Plan { get; set; }
-
         [Option("name", Required = false, HelpText = "New Managed Company Name.")]
         public string Name { get; set; }
 

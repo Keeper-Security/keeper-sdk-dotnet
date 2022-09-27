@@ -41,9 +41,9 @@ Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUsers, 
                               Unlock-KeeperEnterpriseUser, Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser
 Export-ModuleMember -Alias ked, keu, ket, ken, lock-user, unlock-user, transfer-user, delete-user
 
-Export-ModuleMember -Function Get-KeeperMspLicenses, Get-KeeperManagedCompanies, New-KeeperManagedCompany, 
+Export-ModuleMember -Function Get-KeeperManagedCompanies, New-KeeperManagedCompany, 
                               Remove-KeeperManagedCompany, Edit-KeeperManagedCompany
-Export-ModuleMember -Alias msp-license, kmc, kamc, krmc, kemc
+Export-ModuleMember -Alias kmc, kamc, krmc, kemc
 
 Export-ModuleMember -Function Show-KeeperRecordShares, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, 
                               Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess

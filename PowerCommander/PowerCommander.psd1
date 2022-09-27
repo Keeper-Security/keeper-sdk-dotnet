@@ -75,7 +75,7 @@ FunctionsToExport = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get
 'Get-KeeperSharedFolders', 'Add-KeeperFolder', 'Remove-KeeperFolder', 
 'Get-KeeperEnterpriseUsers', 'Get-KeeperEnterpriseTeams', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNodes', 'Get-KeeperNodeName',
 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 'Remove-KeeperEnterpriseUser',
-'Get-KeeperManagedCompanies', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany','Edit-KeeperManagedCompany', 'Get-KeeperMspLicenses', 
+'Get-KeeperManagedCompanies', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany','Edit-KeeperManagedCompany', 
 # 'Test-Keeper',
 'Show-KeeperRecordShares', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess', 
 'Revoke-KeeperSharedFolderAccess', 'Get-KeeperSecretManagerApps', 'New-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess',

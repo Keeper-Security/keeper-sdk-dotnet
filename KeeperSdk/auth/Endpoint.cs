@@ -309,13 +309,22 @@ namespace KeeperSecurity.Authentication
 
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
         {
-            var builder = new UriBuilder(Server)
+            Uri uri = null;
+
+            if (endpoint.StartsWith("https://"))
             {
-                Path = "/api/rest/",
-                Scheme = "https",
-                Port = 443
-            };
-            var uri = new Uri(builder.Uri, endpoint);
+                uri = new Uri(endpoint);
+            }
+            else
+            {
+                var builder = new UriBuilder(Server)
+                {
+                    Path = "/api/rest/",
+                    Scheme = "https",
+                    Port = 443
+                };
+                uri = new Uri(builder.Uri, endpoint);
+            }
 
             var keyId = ServerKeyId;
 

@@ -6,6 +6,13 @@ using System.Linq;
 
 namespace KeeperSecurity.Enterprise
 {
+    /// <exclude />
+    public class ManagedCompanyAddonOptions 
+    {
+        public string Addon { get; set; }
+        public int? NumberOfSeats { get; set; }
+    }
+
     /// <summary>
     /// Represends Managed Companies create/update options
     /// </summary>
@@ -27,7 +34,7 @@ namespace KeeperSecurity.Enterprise
         public string ProductId { get; set; }
 
         /// <summary>
-        ///     Number of Seats
+        ///     Maximum Number of Seats. -1 unlimited
         /// </summary>
         public int? NumberOfSeats { get; set; }
 
@@ -35,6 +42,11 @@ namespace KeeperSecurity.Enterprise
         ///     File/Storage Plan
         /// </summary>
         public string FilePlanType { get; set; }
+
+        /// <summary>
+        ///     Addons
+        /// </summary>
+        public ManagedCompanyAddonOptions[] Addons { get; set; }
     }
 
     /// <summary>
@@ -91,11 +103,20 @@ namespace KeeperSecurity.Enterprise
                 NodeId = options.NodeId,
                 Seats = options.NumberOfSeats ?? 0,
                 ProductId = options.ProductId,
+                FilePlanType = options.FilePlanType,
                 EnterpriseName = options.Name,
                 EncryptedTreeKey = encryptedTreeKey.Base64UrlEncode(),
                 RoleData = encryptedRoleData.Base64UrlEncode(),
                 RootNode = encryptedNodeData.Base64UrlEncode(),
             };
+            if (options.Addons != null)
+            {
+                rq.AddOns = options.Addons.Select(x => new Commands.MspAddon
+                {
+                    AddOn = x.Addon,
+                    Seats = x.NumberOfSeats
+                }).ToArray();
+            }
 
             var rs = await Enterprise.Auth.ExecuteAuthCommand<EnterpriseRegistrationByMspCommand, EnterpriseManagedCompanyByMspResponse>(rq);
             await Enterprise.Load();
@@ -115,10 +136,19 @@ namespace KeeperSecurity.Enterprise
             {
                 EnterpriseId = companyId,
                 NodeId = options.NodeId,
+                FilePlanType = options.FilePlanType,
                 EnterpriseName = options.Name ?? mc.EnterpriseName,
                 Seats = options.NumberOfSeats ?? mc.NumberOfSeats,
                 ProductId = options.ProductId ?? mc.ProductId,
             };
+            if (options.Addons != null)
+            {
+                rq.AddOns = options.Addons.Select(x => new Commands.MspAddon
+                {
+                    AddOn = x.Addon,
+                    Seats = x.NumberOfSeats
+                }).ToArray();
+            }
 
             var rs = await Enterprise.Auth.ExecuteAuthCommand<EnterpriseUpdateByMspCommand, EnterpriseManagedCompanyByMspResponse>(rq);
             await Enterprise.Load();
