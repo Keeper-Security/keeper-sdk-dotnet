@@ -46,8 +46,8 @@ Export-ModuleMember -Function Get-KeeperManagedCompanies, New-KeeperManagedCompa
 Export-ModuleMember -Alias kmc, kamc, krmc, kemc
 
 Export-ModuleMember -Function Show-KeeperRecordShares, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, 
-                              Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess
-Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf
+                              Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeams
+Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf, kat
 
 Export-ModuleMember -Function Get-KeeperSecretManagerApps, New-KeeperSecretManagerApp, Grant-KeeperSecretManagerFolderAccess,
                               Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-KeeperSecretManagerClient

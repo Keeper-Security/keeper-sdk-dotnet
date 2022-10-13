@@ -32,6 +32,7 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Revoke-KeeperRecordAccess              | kushr       | Remove record share from user
 | Grant-KeeperSharedFolderAccess         | kshf        | Add a user or team to a shared foler
 | Revoke-KeeperSharedFolderAccess        | kushf       | Remove a user or team from a shared foler
+| Get-KeeperAvailableTeams               | kat         | Get available teams
 
 ### Enterprise Cmdlets
 | Cmdlet name                            | Alias       | Description

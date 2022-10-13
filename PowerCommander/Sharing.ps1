@@ -202,7 +202,7 @@ function Grant-KeeperSharedFolderAccess {
     
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true)]$SharedFolder,
+        [Parameter(Mandatory = $true, Position = 0)]$SharedFolder,
         [Parameter(Mandatory = $true, ParameterSetName='user')]$User,
         [Parameter(Mandatory = $true, ParameterSetName='team')]$Team,
         [Parameter()][switch]$ManageRecords,
@@ -310,7 +310,7 @@ function Revoke-KeeperSharedFolderAccess {
     
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true)]$SharedFolder,
+        [Parameter(Mandatory = $true, Position = 0)]$SharedFolder,
         [Parameter(Mandatory = $true, ParameterSetName='user')]$User,
         [Parameter(Mandatory = $true, ParameterSetName='team')]$Team
     )
@@ -496,3 +496,40 @@ Register-ArgumentCompleter -CommandName Revoke-KeeperSharedFolderAccess -Paramet
 Register-ArgumentCompleter -CommandName Revoke-KeeperSharedFolderAccess -ParameterName SharedFolder -ScriptBlock $Keeper_SharedFolderCompleter
 
 New-Alias -Name kushf -Value Revoke-KeeperSharedFolderAccess
+
+function Get-KeeperAvailableTeams {
+	<#
+		.Synopsis
+		Get Keeper Available Teams
+	
+		.Parameter Uid
+		Team UID
+	
+		.Parameter Filter
+		Return matching teams only
+	#>
+		[CmdletBinding()]
+		[OutputType([KeeperSecurity.Vault.TeamInfo[]])] 
+		Param (
+			[string] $Uid,
+			[string] $Filter
+		)
+	
+        ensureAvalableLoaded
+        $teams = $Script:Context.AvailableTeams 
+		if ($Uid) {
+            $teams | Where-Object { $_.TeamUid -ceq $Uid } | Select-Object -First 1
+		} else {
+			foreach ($team in $teams) {
+				if ($Filter) {
+					$match = $($team.Uid, $team.Name) | Select-String $Filter | Select-Object -First 1
+					if (-not $match) {
+						continue
+					}
+				}
+				$team
+			}
+		}
+	}
+	New-Alias -Name kat -Value Get-KeeperAvailableTeams
+	
