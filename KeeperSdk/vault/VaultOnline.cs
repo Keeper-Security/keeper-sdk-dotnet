@@ -9,9 +9,6 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using Records;
 using AuthProto = Authentication;
-#if NET45
-using KeeperSecurity.Utils;
-#endif
 
 namespace KeeperSecurity.Vault
 {

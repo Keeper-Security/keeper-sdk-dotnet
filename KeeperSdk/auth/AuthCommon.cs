@@ -434,7 +434,7 @@ namespace KeeperSecurity.Authentication
         {
             if (_storeProxyReturned) return null;
             _storeProxyReturned = true;
-#if NET45
+#if NET452_OR_GREATER
             if (CredentialManager.GetCredentials(proxyUri.DnsSafeHost, out var username, out var password))
             {
                 return AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyAuth, username, password);

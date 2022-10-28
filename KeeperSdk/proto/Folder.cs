@@ -73,62 +73,59 @@ namespace Folder {
             "GAQgASgMEhIKCmV4cGlyYXRpb24YBSABKBIiggEKFlNoYXJlZEZvbGRlclVw",
             "ZGF0ZVRlYW0SDwoHdGVhbVVpZBgBIAEoDBITCgttYW5hZ2VVc2VycxgCIAEo",
             "CBIVCg1tYW5hZ2VSZWNvcmRzGAMgASgIEhcKD3NoYXJlZEZvbGRlcktleRgE",
-            "IAEoDBISCgpleHBpcmF0aW9uGAUgASgSIo8HChtTaGFyZWRGb2xkZXJVcGRh",
-            "dGVWM1JlcXVlc3QSSAobc2hhcmVkRm9sZGVyVXBkYXRlT3BlcmF0aW9uGAEg",
-            "ASgOMiMuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZU9wZXJhdGlvbhIXCg9z",
-            "aGFyZWRGb2xkZXJVaWQYAiABKAwSIQoZZW5jcnlwdGVkU2hhcmVkRm9sZGVy",
-            "TmFtZRgDIAEoDBIQCghyZXZpc2lvbhgEIAEoAxITCgtmb3JjZVVwZGF0ZRgF",
-            "IAEoCBITCgtmcm9tVGVhbVVpZBgGIAEoDBIzChJkZWZhdWx0TWFuYWdlVXNl",
-            "cnMYByABKA4yFy5Gb2xkZXIuU2V0Qm9vbGVhblZhbHVlEjUKFGRlZmF1bHRN",
-            "YW5hZ2VSZWNvcmRzGAggASgOMhcuRm9sZGVyLlNldEJvb2xlYW5WYWx1ZRIv",
-            "Cg5kZWZhdWx0Q2FuRWRpdBgJIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFs",
-            "dWUSMAoPZGVmYXVsdENhblNoYXJlGAogASgOMhcuRm9sZGVyLlNldEJvb2xl",
-            "YW5WYWx1ZRI/ChVzaGFyZWRGb2xkZXJBZGRSZWNvcmQYCyADKAsyIC5Gb2xk",
-            "ZXIuU2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkEjsKE3NoYXJlZEZvbGRlckFk",
-            "ZFVzZXIYDCADKAsyHi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlchI7",
-            "ChNzaGFyZWRGb2xkZXJBZGRUZWFtGA0gAygLMh4uRm9sZGVyLlNoYXJlZEZv",
-            "bGRlclVwZGF0ZVRlYW0SQgoYc2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkGA4g",
-            "AygLMiAuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVJlY29yZBI+ChZzaGFy",
-            "ZWRGb2xkZXJVcGRhdGVVc2VyGA8gAygLMh4uRm9sZGVyLlNoYXJlZEZvbGRl",
-            "clVwZGF0ZVVzZXISPgoWc2hhcmVkRm9sZGVyVXBkYXRlVGVhbRgQIAMoCzIe",
-            "LkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtEiAKGHNoYXJlZEZvbGRl",
-            "clJlbW92ZVJlY29yZBgRIAMoDBIeChZzaGFyZWRGb2xkZXJSZW1vdmVVc2Vy",
-            "GBIgAygJEh4KFnNoYXJlZEZvbGRlclJlbW92ZVRlYW0YEyADKAwiQwoeU2hh",
-            "cmVkRm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzEhEKCXJlY29yZFVpZBgBIAEo",
-            "DBIOCgZzdGF0dXMYAiABKAkiQAocU2hhcmVkRm9sZGVyVXBkYXRlVXNlclN0",
-            "YXR1cxIQCgh1c2VybmFtZRgBIAEoCRIOCgZzdGF0dXMYAiABKAkiPwocU2hh",
-            "cmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxIPCgd0ZWFtVWlkGAEgASgMEg4K",
-            "BnN0YXR1cxgCIAEoCSLfBQocU2hhcmVkRm9sZGVyVXBkYXRlVjNSZXNwb25z",
-            "ZRIQCghyZXZpc2lvbhgBIAEoAxJLChtzaGFyZWRGb2xkZXJBZGRSZWNvcmRT",
-            "dGF0dXMYAiADKAsyJi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlUmVjb3Jk",
-            "U3RhdHVzEkcKGXNoYXJlZEZvbGRlckFkZFVzZXJTdGF0dXMYAyADKAsyJC5G",
-            "b2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlclN0YXR1cxJHChlzaGFyZWRG",
-            "b2xkZXJBZGRUZWFtU3RhdHVzGAQgAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRl",
-            "clVwZGF0ZVRlYW1TdGF0dXMSTgoec2hhcmVkRm9sZGVyVXBkYXRlUmVjb3Jk",
-            "U3RhdHVzGAUgAygLMiYuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVJlY29y",
-            "ZFN0YXR1cxJKChxzaGFyZWRGb2xkZXJVcGRhdGVVc2VyU3RhdHVzGAYgAygL",
-            "MiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVVzZXJTdGF0dXMSSgocc2hh",
-            "cmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxgHIAMoCzIkLkZvbGRlci5TaGFy",
-            "ZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzEk4KHnNoYXJlZEZvbGRlclJlbW92",
-            "ZVJlY29yZFN0YXR1cxgIIAMoCzImLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRh",
-            "dGVSZWNvcmRTdGF0dXMSSgocc2hhcmVkRm9sZGVyUmVtb3ZlVXNlclN0YXR1",
-            "cxgJIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVVc2VyU3RhdHVz",
-            "EkoKHHNoYXJlZEZvbGRlclJlbW92ZVRlYW1TdGF0dXMYCiADKAsyJC5Gb2xk",
-            "ZXIuU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cyoaCgpSZWNvcmRUeXBl",
-            "EgwKCHBhc3N3b3JkEAAqXgoKRm9sZGVyVHlwZRISCg5kZWZhdWx0X2ZvbGRl",
-            "chAAEg8KC3VzZXJfZm9sZGVyEAESEQoNc2hhcmVkX2ZvbGRlchACEhgKFHNo",
-            "YXJlZF9mb2xkZXJfZm9sZGVyEAMqVgoQRW5jcnlwdGVkS2V5VHlwZRIKCgZu",
-            "b19rZXkQABIZChVlbmNyeXB0ZWRfYnlfZGF0YV9rZXkQARIbChdlbmNyeXB0",
-            "ZWRfYnlfcHVibGljX2tleRACKqkBChtTaGFyZWRGb2xkZXJVcGRhdGVPcGVy",
-            "YXRpb24SKgomSU5WQUxJRF9TSEFSRURfRk9MREVSX1VQREFURV9PUEVSQVRJ",
-            "T04QABIVChFTSEFSRURfRk9MREVSX0FERBABEhgKFFNIQVJFRF9GT0xERVJf",
-            "VVBEQVRFEAISEwoPRE9OVF9VU0VfUkVNT1ZFEAMSGAoUU0hBUkVEX0ZPTERF",
-            "Ul9ERUxFVEUQBCpNCg9TZXRCb29sZWFuVmFsdWUSFQoRQk9PTEVBTl9OT19D",
-            "SEFOR0UQABIQCgxCT09MRUFOX1RSVUUQARIRCg1CT09MRUFOX0ZBTFNFEAJC",
-            "IgoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQgZGb2xkZXJiBnByb3RvMw=="));
+            "IAEoDBISCgpleHBpcmF0aW9uGAUgASgSIo4HChtTaGFyZWRGb2xkZXJVcGRh",
+            "dGVWM1JlcXVlc3QSLAokc2hhcmVkRm9sZGVyVXBkYXRlT3BlcmF0aW9uX2Rv",
+            "bnRfdXNlGAEgASgFEhcKD3NoYXJlZEZvbGRlclVpZBgCIAEoDBIhChllbmNy",
+            "eXB0ZWRTaGFyZWRGb2xkZXJOYW1lGAMgASgMEhAKCHJldmlzaW9uGAQgASgD",
+            "EhMKC2ZvcmNlVXBkYXRlGAUgASgIEhMKC2Zyb21UZWFtVWlkGAYgASgMEjMK",
+            "EmRlZmF1bHRNYW5hZ2VVc2VycxgHIAEoDjIXLkZvbGRlci5TZXRCb29sZWFu",
+            "VmFsdWUSNQoUZGVmYXVsdE1hbmFnZVJlY29yZHMYCCABKA4yFy5Gb2xkZXIu",
+            "U2V0Qm9vbGVhblZhbHVlEi8KDmRlZmF1bHRDYW5FZGl0GAkgASgOMhcuRm9s",
+            "ZGVyLlNldEJvb2xlYW5WYWx1ZRIwCg9kZWZhdWx0Q2FuU2hhcmUYCiABKA4y",
+            "Fy5Gb2xkZXIuU2V0Qm9vbGVhblZhbHVlEj8KFXNoYXJlZEZvbGRlckFkZFJl",
+            "Y29yZBgLIAMoCzIgLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmQS",
+            "OwoTc2hhcmVkRm9sZGVyQWRkVXNlchgMIAMoCzIeLkZvbGRlci5TaGFyZWRG",
+            "b2xkZXJVcGRhdGVVc2VyEjsKE3NoYXJlZEZvbGRlckFkZFRlYW0YDSADKAsy",
+            "Hi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVGVhbRJCChhzaGFyZWRGb2xk",
+            "ZXJVcGRhdGVSZWNvcmQYDiADKAsyIC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBk",
+            "YXRlUmVjb3JkEj4KFnNoYXJlZEZvbGRlclVwZGF0ZVVzZXIYDyADKAsyHi5G",
+            "b2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlchI+ChZzaGFyZWRGb2xkZXJV",
+            "cGRhdGVUZWFtGBAgAygLMh4uRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVRl",
+            "YW0SIAoYc2hhcmVkRm9sZGVyUmVtb3ZlUmVjb3JkGBEgAygMEh4KFnNoYXJl",
+            "ZEZvbGRlclJlbW92ZVVzZXIYEiADKAkSHgoWc2hhcmVkRm9sZGVyUmVtb3Zl",
+            "VGVhbRgTIAMoDBIZChFzaGFyZWRGb2xkZXJPd25lchgUIAEoCSJDCh5TaGFy",
+            "ZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0dXMSEQoJcmVjb3JkVWlkGAEgASgM",
+            "Eg4KBnN0YXR1cxgCIAEoCSJAChxTaGFyZWRGb2xkZXJVcGRhdGVVc2VyU3Rh",
+            "dHVzEhAKCHVzZXJuYW1lGAEgASgJEg4KBnN0YXR1cxgCIAEoCSI/ChxTaGFy",
+            "ZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzEg8KB3RlYW1VaWQYASABKAwSDgoG",
+            "c3RhdHVzGAIgASgJIt8FChxTaGFyZWRGb2xkZXJVcGRhdGVWM1Jlc3BvbnNl",
+            "EhAKCHJldmlzaW9uGAEgASgDEksKG3NoYXJlZEZvbGRlckFkZFJlY29yZFN0",
+            "YXR1cxgCIAMoCzImLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRT",
+            "dGF0dXMSRwoZc2hhcmVkRm9sZGVyQWRkVXNlclN0YXR1cxgDIAMoCzIkLkZv",
+            "bGRlci5TaGFyZWRGb2xkZXJVcGRhdGVVc2VyU3RhdHVzEkcKGXNoYXJlZEZv",
+            "bGRlckFkZFRlYW1TdGF0dXMYBCADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVy",
+            "VXBkYXRlVGVhbVN0YXR1cxJOCh5zaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRT",
+            "dGF0dXMYBSADKAsyJi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlUmVjb3Jk",
+            "U3RhdHVzEkoKHHNoYXJlZEZvbGRlclVwZGF0ZVVzZXJTdGF0dXMYBiADKAsy",
+            "JC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlclN0YXR1cxJKChxzaGFy",
+            "ZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzGAcgAygLMiQuRm9sZGVyLlNoYXJl",
+            "ZEZvbGRlclVwZGF0ZVRlYW1TdGF0dXMSTgoec2hhcmVkRm9sZGVyUmVtb3Zl",
+            "UmVjb3JkU3RhdHVzGAggAygLMiYuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0",
+            "ZVJlY29yZFN0YXR1cxJKChxzaGFyZWRGb2xkZXJSZW1vdmVVc2VyU3RhdHVz",
+            "GAkgAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVVzZXJTdGF0dXMS",
+            "Sgocc2hhcmVkRm9sZGVyUmVtb3ZlVGVhbVN0YXR1cxgKIAMoCzIkLkZvbGRl",
+            "ci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzKhoKClJlY29yZFR5cGUS",
+            "DAoIcGFzc3dvcmQQACpeCgpGb2xkZXJUeXBlEhIKDmRlZmF1bHRfZm9sZGVy",
+            "EAASDwoLdXNlcl9mb2xkZXIQARIRCg1zaGFyZWRfZm9sZGVyEAISGAoUc2hh",
+            "cmVkX2ZvbGRlcl9mb2xkZXIQAypWChBFbmNyeXB0ZWRLZXlUeXBlEgoKBm5v",
+            "X2tleRAAEhkKFWVuY3J5cHRlZF9ieV9kYXRhX2tleRABEhsKF2VuY3J5cHRl",
+            "ZF9ieV9wdWJsaWNfa2V5EAIqTQoPU2V0Qm9vbGVhblZhbHVlEhUKEUJPT0xF",
+            "QU5fTk9fQ0hBTkdFEAASEAoMQk9PTEVBTl9UUlVFEAESEQoNQk9PTEVBTl9G",
+            "QUxTRRACQiIKGGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IGRm9sZGVyYgZw",
+            "cm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), typeof(global::Folder.SharedFolderUpdateOperation), typeof(global::Folder.SetBooleanValue), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), typeof(global::Folder.SetBooleanValue), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.EncryptedDataKey), global::Folder.EncryptedDataKey.Parser, new[]{ "EncryptedKey", "EncryptedKeyType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderRecordData), global::Folder.SharedFolderRecordData.Parser, new[]{ "FolderUid", "RecordUid", "UserId", "EncryptedDataKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderRecordDataList), global::Folder.SharedFolderRecordDataList.Parser, new[]{ "SharedFolderRecordData" }, null, null, null, null),
@@ -145,7 +142,7 @@ namespace Folder {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateRecord), global::Folder.SharedFolderUpdateRecord.Parser, new[]{ "RecordUid", "SharedFolderUid", "TeamUid", "CanEdit", "CanShare", "EncryptedRecordKey", "Revision", "Expiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateUser), global::Folder.SharedFolderUpdateUser.Parser, new[]{ "Username", "ManageUsers", "ManageRecords", "SharedFolderKey", "Expiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateTeam), global::Folder.SharedFolderUpdateTeam.Parser, new[]{ "TeamUid", "ManageUsers", "ManageRecords", "SharedFolderKey", "Expiration" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3Request), global::Folder.SharedFolderUpdateV3Request.Parser, new[]{ "SharedFolderUpdateOperation", "SharedFolderUid", "EncryptedSharedFolderName", "Revision", "ForceUpdate", "FromTeamUid", "DefaultManageUsers", "DefaultManageRecords", "DefaultCanEdit", "DefaultCanShare", "SharedFolderAddRecord", "SharedFolderAddUser", "SharedFolderAddTeam", "SharedFolderUpdateRecord", "SharedFolderUpdateUser", "SharedFolderUpdateTeam", "SharedFolderRemoveRecord", "SharedFolderRemoveUser", "SharedFolderRemoveTeam" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3Request), global::Folder.SharedFolderUpdateV3Request.Parser, new[]{ "SharedFolderUpdateOperationDontUse", "SharedFolderUid", "EncryptedSharedFolderName", "Revision", "ForceUpdate", "FromTeamUid", "DefaultManageUsers", "DefaultManageRecords", "DefaultCanEdit", "DefaultCanShare", "SharedFolderAddRecord", "SharedFolderAddUser", "SharedFolderAddTeam", "SharedFolderUpdateRecord", "SharedFolderUpdateUser", "SharedFolderUpdateTeam", "SharedFolderRemoveRecord", "SharedFolderRemoveUser", "SharedFolderRemoveTeam", "SharedFolderOwner" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateRecordStatus), global::Folder.SharedFolderUpdateRecordStatus.Parser, new[]{ "RecordUid", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateUserStatus), global::Folder.SharedFolderUpdateUserStatus.Parser, new[]{ "Username", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateTeamStatus), global::Folder.SharedFolderUpdateTeamStatus.Parser, new[]{ "TeamUid", "Status" }, null, null, null, null),
@@ -171,17 +168,6 @@ namespace Folder {
     [pbr::OriginalName("no_key")] NoKey = 0,
     [pbr::OriginalName("encrypted_by_data_key")] EncryptedByDataKey = 1,
     [pbr::OriginalName("encrypted_by_public_key")] EncryptedByPublicKey = 2,
-  }
-
-  /// <summary>
-  ///ADD, UPDATE, DELETE
-  /// </summary>
-  public enum SharedFolderUpdateOperation {
-    [pbr::OriginalName("INVALID_SHARED_FOLDER_UPDATE_OPERATION")] InvalidSharedFolderUpdateOperation = 0,
-    [pbr::OriginalName("SHARED_FOLDER_ADD")] SharedFolderAdd = 1,
-    [pbr::OriginalName("SHARED_FOLDER_UPDATE")] SharedFolderUpdate = 2,
-    [pbr::OriginalName("DONT_USE_REMOVE")] DontUseRemove = 3,
-    [pbr::OriginalName("SHARED_FOLDER_DELETE")] SharedFolderDelete = 4,
   }
 
   public enum SetBooleanValue {
@@ -4940,7 +4926,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SharedFolderUpdateV3Request(SharedFolderUpdateV3Request other) : this() {
-      sharedFolderUpdateOperation_ = other.sharedFolderUpdateOperation_;
+      sharedFolderUpdateOperationDontUse_ = other.sharedFolderUpdateOperationDontUse_;
       sharedFolderUid_ = other.sharedFolderUid_;
       encryptedSharedFolderName_ = other.encryptedSharedFolderName_;
       revision_ = other.revision_;
@@ -4959,6 +4945,7 @@ namespace Folder {
       sharedFolderRemoveRecord_ = other.sharedFolderRemoveRecord_.Clone();
       sharedFolderRemoveUser_ = other.sharedFolderRemoveUser_.Clone();
       sharedFolderRemoveTeam_ = other.sharedFolderRemoveTeam_.Clone();
+      sharedFolderOwner_ = other.sharedFolderOwner_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4968,15 +4955,18 @@ namespace Folder {
       return new SharedFolderUpdateV3Request(this);
     }
 
-    /// <summary>Field number for the "sharedFolderUpdateOperation" field.</summary>
-    public const int SharedFolderUpdateOperationFieldNumber = 1;
-    private global::Folder.SharedFolderUpdateOperation sharedFolderUpdateOperation_ = global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation;
+    /// <summary>Field number for the "sharedFolderUpdateOperation_dont_use" field.</summary>
+    public const int SharedFolderUpdateOperationDontUseFieldNumber = 1;
+    private int sharedFolderUpdateOperationDontUse_;
+    /// <summary>
+    /// obsolete field. we only use this request for shared folder update now.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public global::Folder.SharedFolderUpdateOperation SharedFolderUpdateOperation {
-      get { return sharedFolderUpdateOperation_; }
+    public int SharedFolderUpdateOperationDontUse {
+      get { return sharedFolderUpdateOperationDontUse_; }
       set {
-        sharedFolderUpdateOperation_ = value;
+        sharedFolderUpdateOperationDontUse_ = value;
       }
     }
 
@@ -5202,6 +5192,21 @@ namespace Folder {
       get { return sharedFolderRemoveTeam_; }
     }
 
+    /// <summary>Field number for the "sharedFolderOwner" field.</summary>
+    public const int SharedFolderOwnerFieldNumber = 20;
+    private string sharedFolderOwner_ = "";
+    /// <summary>
+    /// should have a sharing relationship w/ the calling user; ""=No Change(default); "delete"=unset
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SharedFolderOwner {
+      get { return sharedFolderOwner_; }
+      set {
+        sharedFolderOwner_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -5217,7 +5222,7 @@ namespace Folder {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (SharedFolderUpdateOperation != other.SharedFolderUpdateOperation) return false;
+      if (SharedFolderUpdateOperationDontUse != other.SharedFolderUpdateOperationDontUse) return false;
       if (SharedFolderUid != other.SharedFolderUid) return false;
       if (EncryptedSharedFolderName != other.EncryptedSharedFolderName) return false;
       if (Revision != other.Revision) return false;
@@ -5236,6 +5241,7 @@ namespace Folder {
       if(!sharedFolderRemoveRecord_.Equals(other.sharedFolderRemoveRecord_)) return false;
       if(!sharedFolderRemoveUser_.Equals(other.sharedFolderRemoveUser_)) return false;
       if(!sharedFolderRemoveTeam_.Equals(other.sharedFolderRemoveTeam_)) return false;
+      if (SharedFolderOwner != other.SharedFolderOwner) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -5243,7 +5249,7 @@ namespace Folder {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) hash ^= SharedFolderUpdateOperation.GetHashCode();
+      if (SharedFolderUpdateOperationDontUse != 0) hash ^= SharedFolderUpdateOperationDontUse.GetHashCode();
       if (SharedFolderUid.Length != 0) hash ^= SharedFolderUid.GetHashCode();
       if (EncryptedSharedFolderName.Length != 0) hash ^= EncryptedSharedFolderName.GetHashCode();
       if (Revision != 0L) hash ^= Revision.GetHashCode();
@@ -5262,6 +5268,7 @@ namespace Folder {
       hash ^= sharedFolderRemoveRecord_.GetHashCode();
       hash ^= sharedFolderRemoveUser_.GetHashCode();
       hash ^= sharedFolderRemoveTeam_.GetHashCode();
+      if (SharedFolderOwner.Length != 0) hash ^= SharedFolderOwner.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5280,9 +5287,9 @@ namespace Folder {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) {
+      if (SharedFolderUpdateOperationDontUse != 0) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) SharedFolderUpdateOperation);
+        output.WriteInt32(SharedFolderUpdateOperationDontUse);
       }
       if (SharedFolderUid.Length != 0) {
         output.WriteRawTag(18);
@@ -5329,6 +5336,10 @@ namespace Folder {
       sharedFolderRemoveRecord_.WriteTo(output, _repeated_sharedFolderRemoveRecord_codec);
       sharedFolderRemoveUser_.WriteTo(output, _repeated_sharedFolderRemoveUser_codec);
       sharedFolderRemoveTeam_.WriteTo(output, _repeated_sharedFolderRemoveTeam_codec);
+      if (SharedFolderOwner.Length != 0) {
+        output.WriteRawTag(162, 1);
+        output.WriteString(SharedFolderOwner);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -5339,9 +5350,9 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) {
+      if (SharedFolderUpdateOperationDontUse != 0) {
         output.WriteRawTag(8);
-        output.WriteEnum((int) SharedFolderUpdateOperation);
+        output.WriteInt32(SharedFolderUpdateOperationDontUse);
       }
       if (SharedFolderUid.Length != 0) {
         output.WriteRawTag(18);
@@ -5388,6 +5399,10 @@ namespace Folder {
       sharedFolderRemoveRecord_.WriteTo(ref output, _repeated_sharedFolderRemoveRecord_codec);
       sharedFolderRemoveUser_.WriteTo(ref output, _repeated_sharedFolderRemoveUser_codec);
       sharedFolderRemoveTeam_.WriteTo(ref output, _repeated_sharedFolderRemoveTeam_codec);
+      if (SharedFolderOwner.Length != 0) {
+        output.WriteRawTag(162, 1);
+        output.WriteString(SharedFolderOwner);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -5398,8 +5413,8 @@ namespace Folder {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) SharedFolderUpdateOperation);
+      if (SharedFolderUpdateOperationDontUse != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(SharedFolderUpdateOperationDontUse);
       }
       if (SharedFolderUid.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedFolderUid);
@@ -5437,6 +5452,9 @@ namespace Folder {
       size += sharedFolderRemoveRecord_.CalculateSize(_repeated_sharedFolderRemoveRecord_codec);
       size += sharedFolderRemoveUser_.CalculateSize(_repeated_sharedFolderRemoveUser_codec);
       size += sharedFolderRemoveTeam_.CalculateSize(_repeated_sharedFolderRemoveTeam_codec);
+      if (SharedFolderOwner.Length != 0) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(SharedFolderOwner);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -5449,8 +5467,8 @@ namespace Folder {
       if (other == null) {
         return;
       }
-      if (other.SharedFolderUpdateOperation != global::Folder.SharedFolderUpdateOperation.InvalidSharedFolderUpdateOperation) {
-        SharedFolderUpdateOperation = other.SharedFolderUpdateOperation;
+      if (other.SharedFolderUpdateOperationDontUse != 0) {
+        SharedFolderUpdateOperationDontUse = other.SharedFolderUpdateOperationDontUse;
       }
       if (other.SharedFolderUid.Length != 0) {
         SharedFolderUid = other.SharedFolderUid;
@@ -5488,6 +5506,9 @@ namespace Folder {
       sharedFolderRemoveRecord_.Add(other.sharedFolderRemoveRecord_);
       sharedFolderRemoveUser_.Add(other.sharedFolderRemoveUser_);
       sharedFolderRemoveTeam_.Add(other.sharedFolderRemoveTeam_);
+      if (other.SharedFolderOwner.Length != 0) {
+        SharedFolderOwner = other.SharedFolderOwner;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -5504,7 +5525,7 @@ namespace Folder {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            SharedFolderUpdateOperation = (global::Folder.SharedFolderUpdateOperation) input.ReadEnum();
+            SharedFolderUpdateOperationDontUse = input.ReadInt32();
             break;
           }
           case 18: {
@@ -5579,6 +5600,10 @@ namespace Folder {
             sharedFolderRemoveTeam_.AddEntriesFrom(input, _repeated_sharedFolderRemoveTeam_codec);
             break;
           }
+          case 162: {
+            SharedFolderOwner = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -5595,7 +5620,7 @@ namespace Folder {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 8: {
-            SharedFolderUpdateOperation = (global::Folder.SharedFolderUpdateOperation) input.ReadEnum();
+            SharedFolderUpdateOperationDontUse = input.ReadInt32();
             break;
           }
           case 18: {
@@ -5668,6 +5693,10 @@ namespace Folder {
           }
           case 154: {
             sharedFolderRemoveTeam_.AddEntriesFrom(ref input, _repeated_sharedFolderRemoveTeam_codec);
+            break;
+          }
+          case 162: {
+            SharedFolderOwner = input.ReadString();
             break;
           }
         }

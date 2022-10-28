@@ -121,34 +121,6 @@ namespace KeeperSecurity.Authentication.Sync
 
         private LoginContext _loginContext;
 
-        private async Task DetectProxySync(Func<Task> resumeWhenDone)
-        {
-            var keeperUri = new Uri($"https://{Endpoint.Server}/api/rest/ping");
-            var proxyStep = await DetectProxy(keeperUri,
-                (proxyUri, proxyAuth) =>
-                {
-                    return new HttpProxyStep
-                    {
-                        ProxyUri = proxyUri,
-                        OnSetProxyCredentials = async (proxyUsername, proxyPassword) =>
-                        {
-                            var proxy = AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyAuth, proxyUsername, proxyPassword);
-                            await PingKeeperServer(keeperUri, proxy);
-                            Endpoint.WebProxy = proxy;
-                            await resumeWhenDone.Invoke();
-                        },
-                    };
-                });
-            if (proxyStep != null)
-            {
-                Step = proxyStep;
-            }
-            else
-            {
-                await resumeWhenDone.Invoke();
-            }
-        }
-
         private async Task DoLogin(string username)
         {
             Username = username.ToLowerInvariant();
@@ -176,27 +148,20 @@ namespace KeeperSecurity.Authentication.Sync
         /// <inheritdoc/>>
         public async Task Login(string username, params string[] passwords)
         {
-            await DetectProxySync(async () =>
+            Cancel();
+            if (string.IsNullOrEmpty(username))
             {
-                if (Step.State != AuthState.NotConnected)
-                {
-                    Cancel();
-                }
+                throw new KeeperStartLoginException(LoginState.RequiresUsername, "Username is required.");
+            }
 
-                if (string.IsNullOrEmpty(username))
-                {
-                    throw new KeeperStartLoginException(LoginState.RequiresUsername, "Username is required.");
-                }
+            _loginContext = new LoginContext();
+            foreach (var password in passwords)
+            {
+                if (string.IsNullOrEmpty(password)) continue;
+                _loginContext.PasswordQueue.Enqueue(password);
+            }
 
-                _loginContext = new LoginContext();
-                foreach (var password in passwords)
-                {
-                    if (string.IsNullOrEmpty(password)) continue;
-                    _loginContext.PasswordQueue.Enqueue(password);
-                }
-
-                await DoLogin(username);
-            });
+            await DoLogin(username);
         }
 
         private async Task DoLoginSso(string providerName, bool forceLogin)
@@ -211,12 +176,9 @@ namespace KeeperSecurity.Authentication.Sync
         /// <inheritdoc/>>
         public async Task LoginSso(string providerName, bool forceLogin = false)
         {
-            await DetectProxySync(async () =>
-            {
-                Cancel();
-                _loginContext = new LoginContext();
-                await DoLoginSso(providerName, forceLogin);
-            });
+            Cancel();
+            _loginContext = new LoginContext();
+            await DoLoginSso(providerName, forceLogin);
         }
 
         /// <inheritdoc/>>
@@ -438,6 +400,10 @@ namespace KeeperSecurity.Authentication.Sync
                     await otp.InvokeTwoFactorCodeAction.Invoke(code);
                 }
             };
+            tfaStep.OnResume = async () =>
+            {
+                await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
+            };
             return tfaStep;
         }
 
@@ -523,6 +489,10 @@ namespace KeeperSecurity.Authentication.Sync
                     await otp.InvokeDeviceApprovalOtpAction.Invoke(code);
                 }
             };
+            deviceApprovalStep.OnResume = async () => 
+            {
+                await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
+            };
             deviceApprovalStep.onDispose = onDone;
             return deviceApprovalStep;
         }
@@ -590,6 +560,10 @@ namespace KeeperSecurity.Authentication.Sync
                 {
                     await info.InvokeGetDataKeyAction();
                 }
+            };
+            dataKeyStep.onResume = async () =>
+            {
+                await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
             };
             return dataKeyStep;
         }

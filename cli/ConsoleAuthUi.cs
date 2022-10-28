@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using KeeperSecurity.Authentication;
+using KeeperSecurity.Authentication.Async;
 using KeeperSecurity.Utils;
 
-namespace KeeperSecurity.Authentication.Async
+#if NET472_OR_GREATER
+using System.Windows;
+using System.Text;
+#endif
+
+namespace Cli.Async
 {
     /// <exclude/>
-    public class ConsoleAuthUi : IAuthUI, IAuthInfoUI, IHttpProxyCredentialUi
+    public class ConsoleAuthUi : IAuthUI, IAuthInfoUI, IAuthSsoUI
     {
         protected InputManager InputManager { get; }
 
@@ -380,28 +387,124 @@ namespace KeeperSecurity.Authentication.Async
             return deviceApprovalTask.Task;
         }
 
-
-        public virtual Task<bool> WaitForHttpProxyCredentials(IHttpProxyInfo proxyInfo)
+        public Task<bool> WaitForSsoToken(ISsoTokenActionInfo actionInfo, CancellationToken token)
         {
-            var proxyTask = new TaskCompletionSource<bool>();
-            Task.Run(async () =>
+            Console.WriteLine($"Complete {(actionInfo.IsCloudSso ? "Cloud" : "OnSite")} SSO login");
+            Console.WriteLine($"\nLogin Url:\n\n{actionInfo.SsoLoginUrl}\n");
+            var ts = new TaskCompletionSource<bool>();
+            _ = Task.Run(async () =>
             {
-                Console.WriteLine("\nProxy Authentication\n");
-                Console.Write("Proxy Username: ");
-                var username = await InputManager.ReadLine();
-                if (string.IsNullOrEmpty(username)) proxyTask.TrySetResult(false);
-
-                Console.Write("Proxy Password: ");
-                var password = await InputManager.ReadLine(new ReadLineParameters
+                Task<string> readTask = null;
+                var registration = token.Register(() =>
                 {
-                    IsSecured = true
+                    ts.SetCanceled();
+                    InputManager.InterruptReadTask(readTask);
                 });
-                if (string.IsNullOrEmpty(username)) proxyTask.TrySetResult(false);
-                await proxyInfo.InvokeHttpProxyCredentialsDelegate.Invoke(username, password);
-                return proxyTask.TrySetResult(true);
+                try
+                {
+                    while (!ts.Task.IsCompleted)
+                    {
+#if NET472_OR_GREATER
+                        Console.WriteLine("Type \"clipboard\" to get token from the clipboard or \"cancel\"");
+#else
+                        Console.WriteLine("Paste SSO token or \"cancel\"");
+#endif
+                        Console.Write("> ");
+                        readTask = InputManager.ReadLine();
+                        var answer = await readTask;
+                        switch (answer.ToLowerInvariant())
+                        {
+#if NET472_OR_GREATER
+                            case "clipboard":
+                                var ssoToken = "";
+                                var thread = new Thread(() => { ssoToken = Clipboard.GetText(); });
+                                thread.SetApartmentState(ApartmentState.STA);
+                                thread.Start();
+                                thread.Join();
+                                if (string.IsNullOrEmpty(ssoToken))
+                                {
+                                    Console.WriteLine("Clipboard is empty");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Token:\n{ssoToken}\n\nType \"yes\" to accept this token <Enter> to discard");
+                                    Console.Write("> ");
+                                    answer = await InputManager.ReadLine();
+                                    if (answer == "yes")
+                                    {
+                                        await actionInfo.InvokeSsoTokenAction(ssoToken);
+                                    }
+                                }
+                                break;
+#endif
+                            case "cancel":
+                                ts.TrySetResult(false);
+                                break;
+                        }
+                    }
+                }
+                finally
+                {
+                    registration.Dispose();
+                }
+            });
+            return ts.Task;
+        }
+
+        public void SsoLogoutUrl(string url)
+        {
+            Console.WriteLine($"\nSSO Logout Url:\n\n{url}\n");
+        }
+
+        public Task<bool> WaitForDataKey(IDataKeyChannelInfo[] channels, CancellationToken token)
+        {
+            var taskSource = new TaskCompletionSource<bool>();
+
+            _ = Task.Run(async () =>
+            {
+                var actions = channels
+                    .Select(x => x.Channel.SsoDataKeyShareChannelText())
+                    .Where(x => !string.IsNullOrEmpty(x))
+                    .ToArray();
+
+                Console.WriteLine("\nRequest Data Key\n");
+                Console.WriteLine($"{string.Join("\n", actions.Select(x => $"\"{x}\""))}");
+                Console.WriteLine("\"cancel\" to stop waiting.");
+                while (true)
+                {
+                    Console.Write("> ");
+                    var answer = await InputManager.ReadLine();
+                    if (token.IsCancellationRequested) break;
+                    if (string.IsNullOrEmpty(answer))
+                    {
+                        continue;
+                    }
+
+                    if (string.Compare("cancel", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+                    {
+                        taskSource.TrySetResult(false);
+                        break;
+                    }
+
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    var action = channels
+                        .FirstOrDefault(x => x.Channel.SsoDataKeyShareChannelText() == answer);
+                    if (action != null)
+                    {
+                        await action.InvokeGetDataKeyAction.Invoke();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Unsupported command {answer}");
+                    }
+                }
             });
 
-            return proxyTask.Task;
+            return taskSource.Task;
         }
 
         public void RegionChanged(string newRegion)
@@ -411,4 +514,40 @@ namespace KeeperSecurity.Authentication.Async
             Console.WriteLine();
         }
     }
+
+#if NET472_OR_GREATER
+    class WinAuthUi : ConsoleAuthUi, IAuthSecurityKeyUI
+    {
+        public WinAuthUi(InputManager inputManager) : base(inputManager)
+        {
+        }
+
+        public async Task<string> AuthenticatePublicKeyRequest(PublicKeyCredentialRequestOptions request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.challenge))
+            {
+                throw new Exception("Security key challenge is empty. Try another 2FA method.");
+            }
+            var cancellationSource = new CancellationTokenSource();
+
+
+            var webAuthnSignature = await WinWebAuthn.Authenticate.GetAssertion(WinWebAuthn.Authenticate.GetConsoleWindow(), request, cancellationSource.Token);
+            var signature = new KeeperWebAuthnSignature
+            {
+                id = webAuthnSignature.credentialId.Base64UrlEncode(),
+                rawId = webAuthnSignature.credentialId.Base64UrlEncode(),
+                response = new SignatureResponse
+                {
+                    authenticatorData = webAuthnSignature.authenticatorData.Base64UrlEncode(),
+                    clientDataJSON = webAuthnSignature.clientData.Base64UrlEncode(),
+                    signature = webAuthnSignature.signatureData.Base64UrlEncode(),
+                },
+                type = "public-key",
+                clientExtensionResults = new ClientExtensionResults(),
+            };
+            return Encoding.UTF8.GetString(JsonUtils.DumpJson(signature, false));
+        }
+    }
+#endif
+
 }

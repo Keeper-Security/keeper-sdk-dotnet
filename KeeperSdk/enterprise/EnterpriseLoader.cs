@@ -36,7 +36,6 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         public byte[] TreeKey { get; private set; }
 
-
         /// <exclude/>
         public byte[] RsaPrivateKey { get; set; }
 
@@ -56,10 +55,9 @@ namespace KeeperSecurity.Enterprise
         /// <seealso cref="RoleData"/>
         /// <seealso cref="DeviceApprovalData"/>
         /// <seealso cref="ManagedCompanyData"/>
-        public EnterpriseLoader(IAuthentication auth, IEnumerable<EnterpriseDataPlugin> plugins, byte[] treeKey = null)
+        public EnterpriseLoader(IAuthentication auth, IEnumerable<EnterpriseDataPlugin> plugins)
         {
             Auth = auth;
-            TreeKey = treeKey;
             ContinuationToken = new byte[0];
 
             foreach (var plugin in plugins)
@@ -68,6 +66,43 @@ namespace KeeperSecurity.Enterprise
                 foreach (var entity in plugin.Entities)
                 {
                     RegisterEnterpriseEntity(entity);
+                }
+            }
+        }
+
+        public async Task LoadKeys(byte[] treeKey = null) 
+        {
+            TreeKey = treeKey;
+            var krq = new GetEnterpriseDataKeysRequest();
+            var krs = await Auth.ExecuteAuthRest<GetEnterpriseDataKeysRequest, GetEnterpriseDataKeysResponse>("enterprise/get_enterprise_data_keys", krq);
+            if (TreeKey == null)
+            {
+                var encTreeKey = krs.TreeKey.TreeKey_.Base64UrlDecode();
+                switch (krs.TreeKey.KeyTypeId)
+                {
+                    case BackupKeyType.EncryptedByDataKey:
+                        TreeKey = CryptoUtils.DecryptAesV1(encTreeKey, Auth.AuthContext.DataKey);
+                        break;
+                    case BackupKeyType.EncryptedByPublicKey:
+                        if (encTreeKey.Length > 60)
+                        {
+                            TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateRsaKey);
+                        }
+                        break;
+                    default:
+                        throw new Exception("cannot decrypt tree key");
+                }
+            }
+
+            if (krs.EnterpriseKeys != null)
+            {
+                if (!krs.EnterpriseKeys.RsaEncryptedPrivateKey.IsEmpty)
+                {
+                    RsaPrivateKey = CryptoUtils.DecryptAesV2(krs.EnterpriseKeys.RsaEncryptedPrivateKey.ToByteArray(), TreeKey);
+                }
+                if (!krs.EnterpriseKeys.EccEncryptedPrivateKey.IsEmpty)
+                {
+                    EcPrivateKey = CryptoUtils.DecryptAesV2(krs.EnterpriseKeys.EccEncryptedPrivateKey.ToByteArray(), TreeKey);
                 }
             }
         }
@@ -104,35 +139,7 @@ namespace KeeperSecurity.Enterprise
         {
             if (TreeKey == null)
             {
-                var krq = new GetEnterpriseDataKeysRequest();
-                var krs = await Auth.ExecuteAuthRest<GetEnterpriseDataKeysRequest, GetEnterpriseDataKeysResponse>("enterprise/get_enterprise_data_keys", krq);
-                var encTreeKey = krs.TreeKey.TreeKey_.Base64UrlDecode();
-                switch (krs.TreeKey.KeyTypeId)
-                {
-                    case BackupKeyType.EncryptedByDataKey:
-                        TreeKey = CryptoUtils.DecryptAesV1(encTreeKey, Auth.AuthContext.DataKey);
-                        break;
-                    case BackupKeyType.EncryptedByPublicKey:
-                        if (encTreeKey.Length > 60)
-                        {
-                            TreeKey = CryptoUtils.DecryptRsa(encTreeKey, Auth.AuthContext.PrivateRsaKey);
-                        }
-                        break;
-                    default:
-                        throw new Exception("cannot decrypt tree key");
-                }
-
-                if (krs.EnterpriseKeys != null)
-                {
-                    if (!krs.EnterpriseKeys.RsaEncryptedPrivateKey.IsEmpty)
-                    {
-                        RsaPrivateKey = CryptoUtils.DecryptAesV2(krs.EnterpriseKeys.RsaEncryptedPrivateKey.ToByteArray(), TreeKey);
-                    }
-                    if (!krs.EnterpriseKeys.EccEncryptedPrivateKey.IsEmpty)
-                    {
-                        EcPrivateKey = CryptoUtils.DecryptAesV2(krs.EnterpriseKeys.EccEncryptedPrivateKey.ToByteArray(), TreeKey);
-                    }
-                }
+                await LoadKeys();
             }
 
             var done = false;

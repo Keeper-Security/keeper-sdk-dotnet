@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30225.117
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeeperSdk", "KeeperSdk\KeeperSdk.csproj", "{29B50177-F7B4-46F6-B3DA-B9FEF269EEF2}"
 EndProject
@@ -24,9 +24,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample", "Sample\Sample.csproj", "{01037E06-F6F2-4A20-BAFE-3E56D856DEE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinWebAuthn", "WinWebAuthn\WinWebAuthn.csproj", "{912A6A55-C062-42FF-AAFB-13B56F74B7E5}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OfflineStorageSqlite", "OfflineStorageSqlite\OfflineStorageSqlite.csproj", "{D306EE2A-1B22-404D-A85E-8F3AD439E769}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cli", "Cli\Cli.csproj", "{413E9A7A-BBCB-415D-932A-7E628BB0D7C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,14 +53,14 @@ Global
 		{01037E06-F6F2-4A20-BAFE-3E56D856DEE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01037E06-F6F2-4A20-BAFE-3E56D856DEE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01037E06-F6F2-4A20-BAFE-3E56D856DEE6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{912A6A55-C062-42FF-AAFB-13B56F74B7E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{912A6A55-C062-42FF-AAFB-13B56F74B7E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{912A6A55-C062-42FF-AAFB-13B56F74B7E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{912A6A55-C062-42FF-AAFB-13B56F74B7E5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D306EE2A-1B22-404D-A85E-8F3AD439E769}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D306EE2A-1B22-404D-A85E-8F3AD439E769}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D306EE2A-1B22-404D-A85E-8F3AD439E769}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D306EE2A-1B22-404D-A85E-8F3AD439E769}.Release|Any CPU.Build.0 = Release|Any CPU
+		{413E9A7A-BBCB-415D-932A-7E628BB0D7C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{413E9A7A-BBCB-415D-932A-7E628BB0D7C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{413E9A7A-BBCB-415D-932A-7E628BB0D7C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{413E9A7A-BBCB-415D-932A-7E628BB0D7C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

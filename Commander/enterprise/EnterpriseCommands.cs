@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Authentication;
+using Cli;
 using Commander.Enterprise;
 using CommandLine;
 using Enterprise;
@@ -40,10 +41,10 @@ namespace Commander
 
     internal static class EnterpriseExtensions
     {
-        internal static void AppendEnterpriseCommands(this IEnterpriseContext context, CliCommands cli)
+        internal static void AppendEnterpriseCommands(this IEnterpriseContext context, Cli.CliCommands cli)
         {
             cli.Commands.Add("enterprise-get-data",
-                new SimpleCommand
+                new Cli.SimpleCommand
                 {
                     Order = 60,
                     Description = "Retrieve enterprise data",
@@ -51,7 +52,7 @@ namespace Commander
                 });
 
             cli.Commands.Add("enterprise-node",
-                new ParsableCommand<EnterpriseNodeOptions>
+                new ParseableCommand<EnterpriseNodeOptions>
                 {
                     Order = 61,
                     Description = "Manage Enterprise Nodes",
@@ -59,7 +60,7 @@ namespace Commander
                 });
 
             cli.Commands.Add("enterprise-user",
-                new ParsableCommand<EnterpriseUserOptions>
+                new ParseableCommand<EnterpriseUserOptions>
                 {
                     Order = 62,
                     Description = "Manage Enterprise Users",
@@ -67,7 +68,7 @@ namespace Commander
                 });
 
             cli.Commands.Add("enterprise-team",
-                new ParsableCommand<EnterpriseTeamOptions>
+                new ParseableCommand<EnterpriseTeamOptions>
                 {
                     Order = 63,
                     Description = "Manage Enterprise Teams",
@@ -75,7 +76,7 @@ namespace Commander
                 });
 
             cli.Commands.Add("enterprise-role",
-                new ParsableCommand<EnterpriseRoleOptions>
+                new ParseableCommand<EnterpriseRoleOptions>
                 {
                     Order = 64,
                     Description = "Manage Enterprise Roles",
@@ -83,14 +84,14 @@ namespace Commander
                 });
 
             cli.Commands.Add("enterprise-device",
-                new ParsableCommand<EnterpriseDeviceOptions>
+                new ParseableCommand<EnterpriseDeviceOptions>
                 {
                     Order = 65,
                     Description = "Manage User Devices",
                     Action = async options => { await context.EnterpriseDeviceCommand(options); },
                 });
             cli.Commands.Add("transfer-user",
-                new ParsableCommand<EnterpriseTransferUserOptions>
+                new ParseableCommand<EnterpriseTransferUserOptions>
                 {
                     Order = 66,
                     Description = "Transfer User Account",
@@ -98,7 +99,7 @@ namespace Commander
                 });
 
             cli.Commands.Add("audit-report",
-                new ParsableCommand<AuditReportOptions>
+                new ParseableCommand<AuditReportOptions>
                 {
                     Order = 70,
                     Description = "Run an audit trail report.",
@@ -113,10 +114,11 @@ namespace Commander
             cli.CommandAliases["er"] = "enterprise-role";
             cli.CommandAliases["ed"] = "enterprise-device";
 
+            
             if (context.Enterprise.EcPrivateKey == null)
             {
                 cli.Commands.Add("enterprise-add-key",
-                    new SimpleCommand
+                    new Cli.SimpleCommand
                     {
                         Order = 63,
                         Description = "Register ECC key pair",
@@ -1400,7 +1402,7 @@ namespace Commander
             }
         }
 
-        internal static async Task EnterpriseRegisterEcKey(this IEnterpriseContext context, CliCommands cli)
+        internal static async Task EnterpriseRegisterEcKey(this IEnterpriseContext context, Cli.CliCommands cli)
         {
             if (context.Enterprise.TreeKey == null)
             {
@@ -1610,7 +1612,7 @@ namespace Commander
         }
     }
 
-    internal class McEnterpriseContext : BackStateContext, IEnterpriseContext
+    internal class McEnterpriseContext : StateCommands, IEnterpriseContext
     {
         public EnterpriseLoader Enterprise { get; }
         public EnterpriseData EnterpriseData { get; }
@@ -1629,11 +1631,12 @@ namespace Commander
                 QueuedTeamManagement = new QueuedTeamDataManagement();
                 UserAliasData = new UserAliasData();
 
-                Enterprise = new EnterpriseLoader(auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, QueuedTeamManagement, UserAliasData }, auth.TreeKey);
+                Enterprise = new EnterpriseLoader(auth, new EnterpriseDataPlugin[] { EnterpriseData, RoleManagement, DeviceApproval, QueuedTeamManagement, UserAliasData });
                 Task.Run(async () =>
                 {
                     try
                     {
+                        await Enterprise.LoadKeys(auth.TreeKey);
                         await Enterprise.Load();
                         this.AppendEnterpriseCommands(this);
                     }
@@ -1699,35 +1702,35 @@ namespace Commander
                         if (!string.IsNullOrEmpty(EnterpriseData.EnterpriseLicense?.LicenseStatus) && EnterpriseData.EnterpriseLicense.LicenseStatus.StartsWith("msp"))
                         {
                             Commands.Add("mc-list",
-                                new SimpleCommand
+                                new Cli.SimpleCommand
                                 {
                                     Order = 72,
                                     Description = "List managed companies",
                                     Action = ListManagedCompanies,
                                 });
                             Commands.Add("mc-create",
-                                new ParsableCommand<ManagedCompanyCreateOptions>
+                                new ParseableCommand<ManagedCompanyCreateOptions>
                                 {
                                     Order = 73,
                                     Description = "Create managed company",
                                     Action = CreateManagedCompany,
                                 });
                             Commands.Add("mc-update",
-                                new ParsableCommand<ManagedCompanyUpdateOptions>
+                                new ParseableCommand<ManagedCompanyUpdateOptions>
                                 {
                                     Order = 74,
                                     Description = "Updates managed company",
                                     Action = UpdateManagedCompany,
                                 });
                             Commands.Add("mc-delete",
-                                new ParsableCommand<ManagedCompanyRemoveOptions>
+                                new ParseableCommand<ManagedCompanyRemoveOptions>
                                 {
                                     Order = 75,
                                     Description = "Removes managed company",
                                     Action = RemoveManagedCompany,
                                 });
                             Commands.Add("mc-login",
-                                new ParsableCommand<ManagedCompanyLoginOptions>
+                                new ParseableCommand<ManagedCompanyLoginOptions>
                                 {
                                     Order = 79,
                                     Description = "Login to managed company",
@@ -1774,7 +1777,7 @@ namespace Commander
         {
             var mcAuth = new ManagedCompanyAuth();
             await mcAuth.LoginToManagedCompany(Enterprise, options.CompanyId);
-            NextState = new McEnterpriseContext(mcAuth);
+            NextStateCommands = new McEnterpriseContext(mcAuth);
         }
 
         private Task ListManagedCompanies(string _)
@@ -1896,7 +1899,7 @@ namespace Commander
 
             PopulateMspCommonOptions(arguments, mcOptions);
 
-            if (string.IsNullOrEmpty(mcOptions.ProductId)) 
+            if (string.IsNullOrEmpty(mcOptions.ProductId))
             {
                 throw new Exception($"License plan is required.");
             }
@@ -1934,8 +1937,8 @@ namespace Commander
                 Console.WriteLine($"Managed company {arguments.Company} not found.");
             }
 
-            var mcOptions = new ManagedCompanyOptions 
-            { 
+            var mcOptions = new ManagedCompanyOptions
+            {
                 ProductId = mc.ProductId,
                 NumberOfSeats = mc.NumberOfSeats
             };
