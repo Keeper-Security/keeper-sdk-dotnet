@@ -10,7 +10,12 @@ on:
         description: Build SQLite Vault storage
         type: boolean
         required: false
-        default: 'false'
+        default: false
+      cli:
+        description: Build CLI package
+        type: boolean
+        required: false
+        default: false
   
 jobs:
   build:
@@ -65,6 +70,18 @@ jobs:
           dotnet pack --no-build --no-restore --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
+      - name: Build CLI library
+        working-directory: ./Cli
+        run: |
+          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
+          dotnet restore
+          dotnet clean --configuration=Release
+          dotnet build --configuration=Release
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net472\Cli.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\Cli.dll"
+          dotnet pack --no-build --no-restore --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
+        shell: powershell
+
       - name: Build .Net Commander
         working-directory: ./Commander
         run: |
@@ -73,15 +90,6 @@ jobs:
           msbuild /T:Build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
         shell: powershell      
-
-      - name: Build Security Key library for Windows
-        working-directory: ./WinWebAuthn
-        run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          msbuild /T:Restore,Clean /P:Configuration=Release
-          msbuild /T:Build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\WinWebAuthn.dll"
-        shell: powershell
 
       - name: Build Keeper SDK Nuget package
         working-directory: ./KeeperSdk
@@ -98,7 +106,7 @@ jobs:
       - name: Zip Commander
         run: |
           $params = @{
-            Path = "Commander/bin/Release/Commander.*", "Commander/bin/Release/CommandLine.dll", "WinWebAuthn/bin/Release/WinWebAuthn.dll", "KeeperSdk/bin/Release/net452/*.dll"
+            Path = "Commander/bin/Release/Commander.*", "Commander/bin/Release/CommandLine.dll", "Cli/bin/Release/net472/Cli.dll", "KeeperSdk/bin/Release/net452/*.dll"
             CompressionLevel = "Fastest"
             DestinationPath = "Commander-${Env:PACKAGE_VERSION}.zip"
           }
@@ -129,4 +137,14 @@ jobs:
           path: |
             OfflineStorageSqlite/bin/Release/Keeper.Storage.Sqlite.*.nupkg
             OfflineStorageSqlite/bin/Release/Keeper.Storage.Sqlite.*.snupkg
+          retention-days: 1
+
+      - name: Store artifacts
+        if: ${{ github.event.inputs.cli == 'true' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Cli
+          path: |
+            Cli/bin/Release/Keeper.Cli.*.nupkg
+            Cli/bin/Release/Keeper.Cli.*.snupkg
           retention-days: 1

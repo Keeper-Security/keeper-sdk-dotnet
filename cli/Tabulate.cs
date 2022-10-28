@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace KeeperSecurity.Utils
+namespace Cli
 {
     /// <exclude/>
     public class Tabulate

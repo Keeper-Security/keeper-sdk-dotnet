@@ -237,7 +237,7 @@ namespace KeeperSecurity.Authentication
     {
         private const string DefaultDeviceName = ".NET Keeper API";
         public static string DefaultKeeperServer = "keepersecurity.com";
-        private const string DefaultClientVersion = "c16.5.0";
+        private const string DefaultClientVersion = "c16.8.0";
 
         static KeeperEndpoint()
         {

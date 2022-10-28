@@ -9,26 +9,26 @@ using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
 using BreachWatch;
+using Cli;
 using CommandLine;
 using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
-using KeeperSecurity.Authentication.Async;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
 namespace Commander
 {
-    public partial class ConnectedContext : StateContext
+    public partial class ConnectedContext : StateCommands
     {
         private readonly VaultOnline _vault;
-        private readonly Auth _auth;
+        private readonly AuthCommon _auth;
 
         private TeamInfo[] _teamCache;
 
         private AccountSummaryElements _accountSummary;
 
-        public ConnectedContext(Auth auth)
+        public ConnectedContext(AuthCommon auth)
         {
             _auth = auth;
             var storage = Program.CommanderStorage.GetKeeperStorage(auth.Username);
@@ -42,7 +42,7 @@ namespace Commander
             lock (Commands)
             {
                 Commands.Add("search",
-                    new ParsableCommand<SearchCommandOptions>
+                    new ParseableCommand<SearchCommandOptions>
                     {
                         Order = 10,
                         Description = "Search the vault. Can use a regular expression",
@@ -50,7 +50,7 @@ namespace Commander
                     });
 
                 Commands.Add("list",
-                    new ParsableCommand<ListCommandOptions>
+                    new ParseableCommand<ListCommandOptions>
                     {
                         Order = 11,
                         Description = "List folder content",
@@ -66,7 +66,7 @@ namespace Commander
                     });
 
                 Commands.Add("tree",
-                    new ParsableCommand<TreeCommandOptions>
+                    new ParseableCommand<TreeCommandOptions>
                     {
                         Order = 13,
                         Description = "Display folder structure",
@@ -84,7 +84,7 @@ namespace Commander
                 if (auth.AuthContext.Settings.RecordTypesEnabled)
                 {
                     Commands.Add("record-type-info",
-                        new ParsableCommand<RecordTypeInfoOptions>
+                        new ParseableCommand<RecordTypeInfoOptions>
                         {
                             Order = 20,
                             Description = "Get record type info",
@@ -96,7 +96,7 @@ namespace Commander
                 }
 
                 Commands.Add("add-record",
-                    new ParsableCommand<AddRecordOptions>
+                    new ParseableCommand<AddRecordOptions>
                     {
                         Order = 21,
                         Description = "Add record",
@@ -104,7 +104,7 @@ namespace Commander
                     });
 
                 Commands.Add("update-record",
-                    new ParsableCommand<UpdateRecordOptions>
+                    new ParseableCommand<UpdateRecordOptions>
                     {
                         Order = 22,
                         Description = "Update record",
@@ -112,7 +112,7 @@ namespace Commander
                     });
 
                 Commands.Add("mkdir",
-                    new ParsableCommand<MakeFolderOptions>
+                    new ParseableCommand<MakeFolderOptions>
                     {
                         Order = 23,
                         Description = "Make folder",
@@ -120,7 +120,7 @@ namespace Commander
                     });
 
                 Commands.Add("rmdir",
-                    new ParsableCommand<FolderOptions>
+                    new ParseableCommand<FolderOptions>
                     {
                         Order = 24,
                         Description = "Remove folder",
@@ -128,7 +128,7 @@ namespace Commander
                     });
 
                 Commands.Add("update-dir",
-                    new ParsableCommand<UpdateFolderOptions>
+                    new ParseableCommand<UpdateFolderOptions>
                     {
                         Order = 25,
                         Description = "Update folder",
@@ -136,7 +136,7 @@ namespace Commander
                     });
 
                 Commands.Add("mv",
-                    new ParsableCommand<MoveOptions>
+                    new ParseableCommand<MoveOptions>
                     {
                         Order = 26,
                         Description = "Move record or folder",
@@ -144,7 +144,7 @@ namespace Commander
                     });
 
                 Commands.Add("rm",
-                    new ParsableCommand<RemoveRecordOptions>
+                    new ParseableCommand<RemoveRecordOptions>
                     {
                         Order = 27,
                         Description = "Remove record(s)",
@@ -152,7 +152,7 @@ namespace Commander
                     });
 
                 Commands.Add("download-attachment",
-                    new ParsableCommand<DownloadAttachmentOptions>
+                    new ParseableCommand<DownloadAttachmentOptions>
                     {
                         Order = 28,
                         Description = "Download Attachment(s)",
@@ -160,7 +160,7 @@ namespace Commander
                     });
 
                 Commands.Add("upload-attachment",
-                    new ParsableCommand<UploadAttachmentOptions>
+                    new ParseableCommand<UploadAttachmentOptions>
                     {
                         Order = 29,
                         Description = "Upload file attachment",
@@ -176,7 +176,7 @@ namespace Commander
                     });
 
                 Commands.Add("sf-user",
-                    new ParsableCommand<ShareFolderUserPermissionOptions>
+                    new ParseableCommand<ShareFolderUserPermissionOptions>
                     {
                         Order = 31,
                         Description = "Change shared folder user permissions",
@@ -184,7 +184,7 @@ namespace Commander
                     });
 
                 Commands.Add("sf-record",
-                    new ParsableCommand<ShareFolderRecordPermissionOptions>
+                    new ParseableCommand<ShareFolderRecordPermissionOptions>
                     {
                         Order = 32,
                         Description = "Change shared folder record permissions",
@@ -192,7 +192,7 @@ namespace Commander
                     });
 
                 Commands.Add("share-record",
-                    new ParsableCommand<ShareRecordOptions>
+                    new ParseableCommand<ShareRecordOptions>
                     {
                         Order = 32,
                         Description = "Change the sharing permissions of an individual record",
@@ -204,7 +204,7 @@ namespace Commander
                     if (value is bool b && b)
                     {
                         Commands.Add("ksm",
-                            new ParsableCommand<SecretManagerOptions>
+                            new ParseableCommand<SecretManagerOptions>
                             {
                                 Order = 40,
                                 Description = "Keeper Secret Manager commands",
@@ -214,7 +214,7 @@ namespace Commander
                 }
 
                 Commands.Add("devices",
-                    new ParsableCommand<OtherDevicesOptions>
+                    new ParseableCommand<OtherDevicesOptions>
                     {
                         Order = 50,
                         Description = "Devices (other than current) commands",
@@ -222,7 +222,7 @@ namespace Commander
                     });
 
                 Commands.Add("this-device",
-                    new ParsableCommand<ThisDeviceOptions>
+                    new ParseableCommand<ThisDeviceOptions>
                     {
                         Order = 51,
                         Description = "Current device command",
@@ -241,7 +241,7 @@ namespace Commander
                 }
 
                 Commands.Add("sync-down",
-                    new ParsableCommand<SyncDownOptions>
+                    new ParseableCommand<SyncDownOptions>
                     {
                         Order = 100,
                         Description = "Download & decrypt data",
@@ -268,7 +268,7 @@ namespace Commander
                     });
 
                 Commands.Add("logout",
-                    new ParsableCommand<LogoutOptions>
+                    new ParseableCommand<LogoutOptions>
                     {
                         Order = 200,
                         Description = "Logout",
@@ -281,7 +281,7 @@ namespace Commander
                 CommandAliases.Add("edit", "update-record");
             }
 
-            Program.EnqueueCommand("sync-down");
+            Program.GetMainLoop().CommandQueue.Enqueue("sync-down");
         }
 
         private string _currentFolder;
@@ -328,7 +328,7 @@ namespace Commander
                 await _auth.Logout();
             }
 
-            NextState = new NotConnectedCliContext(false);
+            NextStateCommands = new NotConnectedCliContext(false);
         }
 
         private Task SearchCommand(SearchCommandOptions options)

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KeeperSecurity.Utils
+namespace Cli
 {
     /// <exclude/>
     public class ReadLineParameters
@@ -13,6 +13,9 @@ namespace KeeperSecurity.Utils
         public bool IsSecured { get; set; }
         public bool IsHistory { get; set; }
     }
+
+    public class KeyboardInterrupt : Exception
+    { }
 
     /// <exclude/>
     public class InputManager
@@ -71,7 +74,7 @@ namespace KeeperSecurity.Utils
                         }
 
                         Console.WriteLine();
-                        Task.Run(() => { ts.TrySetResult(""); });
+                        Task.Run(() => { ts.TrySetException(new KeyboardInterrupt()); });
                     }
                     else
                     {

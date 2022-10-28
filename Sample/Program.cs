@@ -156,10 +156,6 @@ namespace Sample
                     commands.Add($"\"{channel.SsoDataKeyShareChannelText()}\"");
                 }
             }
-            else if (step is HttpProxyStep)
-            {
-                Console.WriteLine("Http Proxy login is not supported yet.");
-            }
 
             Console.WriteLine();
             if (commands.Count > 0)

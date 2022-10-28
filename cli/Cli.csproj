@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <RootNamespace>Cli</RootNamespace>
+    <Version>1.0.1</Version>
+    <PackageId>Keeper.Cli</PackageId>
+    <AssemblyVersion>1.0.1.2</AssemblyVersion>
+    <FileVersion>1.0.1.2</FileVersion>
+    <RepositoryUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet/Cli</PackageProjectUrl>
+    <Authors>Keeper Security Inc.</Authors>
+    <Product>Cli for .NET Keeper Sdk</Product>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>Github</RepositoryType>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KeeperSdk\KeeperSdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" Condition="'$(TargetFramework)' == 'net472'" />
+  </ItemGroup>
+</Project>

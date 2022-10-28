@@ -798,6 +798,7 @@ namespace KeeperSecurity.Vault
                 new RecordField("host", _fieldTypes["host"], RecordFieldMultiple.Optional),
                 new RecordField("securityQuestion", _fieldTypes["securityQuestion"], RecordFieldMultiple.Default),
                 new RecordField("pinCode", _fieldTypes["secret"]),
+                new RecordField("secret", _fieldTypes["secret"]),
                 new RecordField("oneTimeCode", _fieldTypes["otp"]),
                 new RecordField("keyPair", _fieldTypes["privateKey"]),
                 new RecordField("licenseNumber", _fieldTypes["multiline"]),

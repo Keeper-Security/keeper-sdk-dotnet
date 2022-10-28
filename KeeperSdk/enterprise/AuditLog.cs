@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
-#if NET452
+#if NET452_OR_GREATER
 using KeeperSecurity.Utils;
 #endif
 

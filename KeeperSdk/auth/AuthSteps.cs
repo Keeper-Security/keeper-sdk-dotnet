@@ -13,10 +13,6 @@ namespace KeeperSecurity.Authentication.Sync
         /// </summary>
         NotConnected,
         /// <summary>
-        /// HTTP Proxy Authentication
-        /// </summary>
-        ProxyAuth,
-        /// <summary>
         /// Device Approval
         /// </summary>
         DeviceApproval,
@@ -139,6 +135,18 @@ namespace KeeperSecurity.Authentication.Sync
             return OnSendCode?.Invoke(channel, code);
         }
 
+        internal Func<Task> OnResume;
+
+        /// <summary>
+        /// Resumes login flow
+        /// </summary>
+        /// <returns>Awaitable task</returns>
+        public Task Resume()
+        {
+            return OnResume?.Invoke();
+        }
+
+
         internal Action onDispose;
 
         protected override void Dispose(bool disposing)
@@ -233,6 +241,19 @@ namespace KeeperSecurity.Authentication.Sync
             return OnSendCode?.Invoke(channel, code);
         }
 
+        internal Func<Task> OnResume;
+
+        /// <summary>
+        /// Sends verification code
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="code"></param>
+        /// <returns>Awaitable task</returns>
+        public Task Resume()
+        {
+            return OnResume?.Invoke();
+        }
+
         internal Action OnDispose;
 
         protected override void Dispose(bool disposing)
@@ -272,34 +293,6 @@ namespace KeeperSecurity.Authentication.Sync
         public Task VerifyBiometricKey(byte[] biometricKey)
         {
             return onBiometricKey?.Invoke(biometricKey);
-        }
-    }
-
-    /// <summary>
-    /// Represents HTTP Proxy Authentication step
-    /// </summary>
-    public class HttpProxyStep : AuthStep
-    {
-        internal HttpProxyStep() : base(AuthState.ProxyAuth)
-        {
-        }
-
-        /// <summary>
-        /// Gets HTTP Proxy URI
-        /// </summary>
-        public Uri ProxyUri { get; internal set; }
-
-        internal Func<string, string, Task> OnSetProxyCredentials;
-
-        /// <summary>
-        /// Sets HTTP Proxy credentials
-        /// </summary>
-        /// <param name="username">Proxy username</param>
-        /// <param name="password">Proxy password</param>
-        /// <returns>Awaitable task</returns>
-        public Task SetProxyCredentials(string username, string password)
-        {
-            return OnSetProxyCredentials?.Invoke(username, password);
         }
     }
 
@@ -374,10 +367,18 @@ namespace KeeperSecurity.Authentication.Sync
         /// Requests SSO Approval
         /// </summary>
         /// <param name="channel">SSO approval channel</param>
-        /// <returns></returns>
         public Task RequestDataKey(DataKeyShareChannel channel)
         {
             return OnRequestDataKey?.Invoke(channel);
+        }
+
+        internal Func<Task> onResume;
+        /// <summary>
+        /// Resumes login flow
+        /// </summary>
+        public Task Resume()
+        {
+            return onResume?.Invoke();
         }
     }
 
