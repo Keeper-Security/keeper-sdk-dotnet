@@ -1,14 +1,17 @@
 ﻿using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
-using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
+
+#if NET472_OR_GREATER
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using KeeperSecurity.Utils;
+#endif
 
 namespace Cli
 {
@@ -21,7 +24,7 @@ namespace Cli
             try
             {
                 var ver = FileVersionInfo.GetVersionInfo(Process.GetCurrentProcess().MainModule.FileName);
-                if (ver != null)
+                if (ver != null && ver.ProductMajorPart > 0)
                 {
                     version = $"{ver.ProductMajorPart}.{ver.ProductMinorPart}.{ver.ProductBuildPart}";
                     product = ver.ProductName;
@@ -32,11 +35,7 @@ namespace Cli
             if (string.IsNullOrEmpty(version)) {
                 try
                 {
-                    var ver = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
-                    if (ver != null)
-                    {
-                        version = $"{ver.ProductMajorPart}.{ver.ProductMinorPart}.{ver.ProductBuildPart}";
-                    }
+                    version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                     product = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyProductAttribute>()?.Product;
                 }
                 catch { }
