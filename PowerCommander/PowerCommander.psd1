@@ -76,6 +76,7 @@ FunctionsToExport = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get
 'Get-KeeperEnterpriseUsers', 'Get-KeeperEnterpriseTeams', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNodes', 'Get-KeeperNodeName',
 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 'Remove-KeeperEnterpriseUser',
 'Get-KeeperManagedCompanies', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany','Edit-KeeperManagedCompany', 
+'Get-KeeperEnterpriseTeamUsers',
 # 'Test-Keeper',
 'Show-KeeperRecordShares', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess', 
 'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeams', 'Get-KeeperSecretManagerApps', 'New-KeeperSecretManagerApp', 
@@ -91,8 +92,9 @@ CmdletsToExport = @( )
 
 # Aliases to export from this module
 AliasesToExport = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 
-	'ked', 'keu', 'ken', 'ket', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
-	'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient')
+	'ked', 'keu', 'ken', 'ket', 'ketu', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'lock-user', 'unlock-user', 'transfer-user', 
+	'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 
+	'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient')
 
 # List of all modules packaged with this module
 # ModuleList = @()

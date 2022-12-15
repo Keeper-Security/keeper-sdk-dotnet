@@ -1,4 +1,4 @@
-<img src="https://github.com/Keeper-Security/Commander/blob/master/keepercommander/images/commander-black.png" alt="Keeper Commander" height="167"/>
+<img src="https://github.com/Keeper-Security/Commander/blob/master/images/commander-black.png" alt="Keeper Commander" height="167"/>
 
 ### .Net and PowerShell SDK for Keeper Password Manager
 

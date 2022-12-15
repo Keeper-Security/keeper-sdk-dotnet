@@ -63,6 +63,51 @@ function Get-KeeperEnterpriseTeams {
 }
 New-Alias -Name ket -Value Get-KeeperEnterpriseTeams
 
+function Get-KeeperEnterpriseTeamUsers {
+    <#
+        .Synopsis
+    	Get the list of enterprise users for team
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Team
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $enterpriseData = $enterprise.enterpriseData
+    $uid = $null
+
+    if ($Team -is [String]) {
+        $uids = Get-KeeperEnterpriseTeams | Where-Object {$_.Uid -ceq $Team -or $_.Name -ieq $Team} | Select-Object -Property Uid
+        if ($uids.Length -gt 1) {
+            Write-Error -Message "Team name `"$Team`" is not unique. Use Team UID" -ErrorAction Stop
+        }
+        
+        if ($null -ne $uids.Uid) {
+            $uid = $uids.Uid
+        }
+    } 
+    elseif ($null -ne $Team.Uid) {
+        $uid = $Team.Uid
+    }
+    if ($uid) {
+        $team = $null
+        if ($enterpriseData.TryGetTeam($uid, [ref]$team)) {
+            foreach ($userId in $enterpriseData.GetUsersForTeam($uid)) {
+                $user = $null
+                foreach ($userId in $enterpriseData.TryGetUserById($userId, [ref]$user)) {
+                    $user
+                }
+            }
+        } else {
+            Write-Error -Message "Team `"$uid`" not found" -ErrorAction Stop
+        }
+    } else {
+        Write-Error -Message "Team `"$Team`" not found" -ErrorAction Stop
+    }
+}
+New-Alias -Name ketu -Value Get-KeeperEnterpriseTeamUsers
+
 $Keeper_ActiveUserCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
