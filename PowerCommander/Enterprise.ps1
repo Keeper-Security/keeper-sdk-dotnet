@@ -42,7 +42,7 @@ New-Alias -Name ked -Value Sync-KeeperEnterprise
 function Get-KeeperEnterpriseUsers {
     <#
         .Synopsis
-    	Get the list of enterprise users
+    	Get a list of enterprise users
     #>
     [CmdletBinding()]
 
@@ -54,7 +54,7 @@ New-Alias -Name keu -Value Get-KeeperEnterpriseUsers
 function Get-KeeperEnterpriseTeams {
     <#
         .Synopsis
-    	Get the list of enterprise teams
+    	Get a list of enterprise teams
     #>
     [CmdletBinding()]
 
@@ -63,10 +63,41 @@ function Get-KeeperEnterpriseTeams {
 }
 New-Alias -Name ket -Value Get-KeeperEnterpriseTeams
 
+$Keeper_TeamNameCompleter = {
+	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+	$result = @()
+    [Enterprise]$enterprise = $Script:Context.Enterprise
+    if (-not $enterprise) {
+        return $null
+    }
+    if ($wordToComplete) {
+        $to_complete = $wordToComplete + '*'
+    } else {
+        $to_complete = '*'
+    }
+    foreach($team in $enterprise.enterpriseData.Teams) {
+        if ($team.Name -like $to_complete) {
+            $teamName = $team.Name
+            if ($teamName -match '[\s'']') {
+                $teamName = $teamName -replace '''', ''''''
+                $teamName = "'${teamName}'"
+            }
+
+            $result += $teamName
+        }
+    }
+	if ($result.Count -gt 0) {
+		return $result
+	} else {
+		return $null
+	}
+}
+
 function Get-KeeperEnterpriseTeamUsers {
     <#
         .Synopsis
-    	Get the list of enterprise users for team
+    	Get a list of enterprise users for team
     #>
     [CmdletBinding()]
     Param (
@@ -107,6 +138,7 @@ function Get-KeeperEnterpriseTeamUsers {
     }
 }
 New-Alias -Name ketu -Value Get-KeeperEnterpriseTeamUsers
+Register-ArgumentCompleter -CommandName Get-KeeperEnterpriseTeamUsers -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
 
 $Keeper_ActiveUserCompleter = {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
@@ -355,7 +387,7 @@ function resolveUser {
 function Get-KeeperEnterpriseNodes {
     <#
         .Synopsis
-    	Get the list of enterprise nodes
+    	Get a list of enterprise nodes
     #>
     [CmdletBinding()]
 
@@ -367,7 +399,7 @@ New-Alias -Name ken -Value Get-KeeperEnterpriseNodes
 function Get-KeeperManagedCompanies {
     <#
         .Synopsis
-    	Get the list of managed companies
+    	Get a list of managed companies
     	.Parameter Filter
 	    Managed Company ID or Name
     #>
