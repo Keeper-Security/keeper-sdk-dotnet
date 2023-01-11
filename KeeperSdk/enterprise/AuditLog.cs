@@ -36,7 +36,7 @@ namespace KeeperSecurity
             public string[] EventTypes { get; set; }
 
             [DataMember(Name = "username", EmitDefaultValue = false)]
-            public string Username { get; set; }
+            public string[] Username { get; set; }
 
             [DataMember(Name = "to_username", EmitDefaultValue = false)]
             public string ToUsername { get; set; }
@@ -178,7 +178,7 @@ namespace KeeperSecurity
                 {
                     Filter = new ReportFilter
                     {
-                        Username = forUser,
+                        Username = new[] { forUser },
                         Created = new CreatedFilter
                         {
                             Max = recentUnixTime == 0 ? (long?) null : recentUnixTime,

@@ -1546,7 +1546,7 @@ namespace Commander
 
             if (!string.IsNullOrEmpty(options.Username))
             {
-                filter.Username = options.Username;
+                filter.Username = new[] { options.Username };
             }
 
             if (!string.IsNullOrEmpty(options.RecordUid))
