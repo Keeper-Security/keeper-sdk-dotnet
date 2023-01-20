@@ -51,8 +51,6 @@ namespace Tests
                 .Returns(Task.FromResult<IFanOut<NotificationEvent>>(webSocket));
 
             var mFlow = new Mock<AuthSync>(storage, mEndpoint.Object) {CallBase = true};
-            mFlow.Setup(m => m.PingKeeperServer(It.IsAny<Uri>(), It.IsAny<IWebProxy>()))
-                .Returns(Task.FromResult(true));
             var flow = mFlow.Object;
 
             mEndpoint.Setup(e => e.ExecuteRest(
@@ -88,7 +86,7 @@ namespace Tests
             var auth = GetAuthSync();
             auth.Endpoint.Server = "region.keepersecurity.com";
             await auth.Login(DataVault.UserName);
-            Assert.Equal(auth.Endpoint.Server, DataVault.DefaultEnvironment);
+            Assert.Equal(DataVault.DefaultEnvironment, auth.Endpoint.Server);
             Assert.True(auth.IsAuthenticated());
         }
 

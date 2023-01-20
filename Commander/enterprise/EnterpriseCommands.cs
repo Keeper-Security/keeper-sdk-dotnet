@@ -1544,19 +1544,24 @@ namespace Commander
                 filter.EventTypes = options.EventType.ToArray();
             }
 
-            if (!string.IsNullOrEmpty(options.Username))
+            if (options.Username != null && options.Username.Any())
             {
-                filter.Username = options.Username;
+                filter.Username = options.Username.ToArray();
             }
 
-            if (!string.IsNullOrEmpty(options.RecordUid))
+            if (!string.IsNullOrEmpty(options.ToUsername))
             {
-                filter.RecordUid = options.RecordUid;
+                filter.ToUsername = new[] { options.ToUsername };
             }
 
-            if (!string.IsNullOrEmpty(options.SharedFolderUid))
+            if (options.RecordUid != null && options.RecordUid.Any())
             {
-                filter.SharedFolderUid = options.SharedFolderUid;
+                filter.RecordUid = options.RecordUid.ToArray();
+            }
+
+            if (options.SharedFolderUid != null && options.SharedFolderUid.Any())
+            {
+                filter.SharedFolderUid = options.SharedFolderUid.ToArray();
             }
 
             var rq = new GetAuditEventReportsCommand
@@ -2111,16 +2116,16 @@ namespace Commander
         public IEnumerable<string> EventType { get; set; }
 
         [Option("username", Required = false, Default = null, HelpText = "username of event originator")]
-        public string Username { get; set; }
+        public IEnumerable<string> Username { get; set; }
 
-        [Option("to_username", Required = false, Default = null, HelpText = "username of event target")]
+        [Option("to-username", Required = false, Default = null, HelpText = "username of event target")]
         public string ToUsername { get; set; }
 
-        [Option("record_uid", Required = false, Default = null, HelpText = "record UID")]
-        public string RecordUid { get; set; }
+        [Option("record-uid", Required = false, Default = null, HelpText = "record UID")]
+        public IEnumerable<string> RecordUid { get; set; }
 
         [Option("shared-folder-uid", Required = false, Default = null, HelpText = "shared folder UID")]
-        public string SharedFolderUid { get; set; }
+        public IEnumerable<string> SharedFolderUid { get; set; }
     }
 
     class ManagedCompanyLoginOptions : EnterpriseGenericOptions

@@ -7,6 +7,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{5B4AC1F3-3FEF-4701-9DF1-D20AFEF588AA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commander", "Commander\Commander.csproj", "{8CB5CA92-64AD-47E7-AE6A-AE71249755EF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D306EE2A-1B22-404D-A85E-8F3AD439E769} = {D306EE2A-1B22-404D-A85E-8F3AD439E769}
+	EndProjectSection
 EndProject
 Project("{F5034706-568F-408A-B7B3-4D38C6DB8A32}") = "PowerCommander", "PowerCommander\PowerCommander.pssproj", "{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}"
 	ProjectSection(ProjectDependencies) = postProject

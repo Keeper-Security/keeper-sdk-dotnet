@@ -2245,7 +2245,7 @@ namespace Commander
                             $"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder \'{sf.Name}\'");
                     }
                 }
-                else if (options.ManageUsers.HasValue || options.ManageRecords.HasValue)
+                else
                 {
                     try
                     {
@@ -2270,24 +2270,6 @@ namespace Commander
                             await _vault.SendShareInvitationRequest(e.Username);
                             Console.WriteLine($"Invitation has been sent to {e.Username}\nPlease repeat this command when your invitation is accepted.");
                         }
-                    }
-                }
-                else
-                {
-                    if (userPermission != null)
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine("{0, 20}: {1}", "User Type", userPermission.UserType.ToString());
-                        Console.WriteLine("{0, 20}: {1}", "User ID", userPermission.UserId);
-                        Console.WriteLine("{0, 20}: {1}", "Manage Records",
-                            userPermission.ManageRecords ? "Yes" : "No");
-                        Console.WriteLine("{0, 20}: {1}", "Manage Users", userPermission.ManageUsers ? "Yes" : "No");
-                        Console.WriteLine();
-                    }
-                    else
-                    {
-                        Console.WriteLine(
-                            $"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder {sf.Name}");
                     }
                 }
             }

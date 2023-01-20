@@ -139,7 +139,14 @@ namespace KeeperSecurity.Enterprise
         {
             if (TreeKey == null)
             {
-                await LoadKeys();
+                if (Auth is ManagedCompanyAuth mca)
+                {
+                    await LoadKeys(mca.TreeKey);
+                }
+                else
+                {
+                    await LoadKeys();
+                }
             }
 
             var done = false;

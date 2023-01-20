@@ -194,13 +194,6 @@ namespace KeeperSecurity.Authentication
         public BiometricsActionDelegate InvokeBiometricsActionDelegate { get; internal set; }
     }
 
-    internal class HttpProxyInfo : IHttpProxyInfo
-    {
-        public Uri ProxyUri { get; internal set; }
-        public string[] ProxyAuthenticationMethods { get; internal set; }
-        public HttpProxyCredentialsDelegate InvokeHttpProxyCredentialsDelegate { get; internal set; }
-    }
-
     /// <exclude/>
     public static class AuthUIExtensions
     {

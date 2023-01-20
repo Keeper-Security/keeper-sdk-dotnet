@@ -29,24 +29,48 @@ namespace KeeperSecurity
             public bool ExcludeMin { get; set; }
         }
 
+        /// <summary>
+        /// Represents Audit Report Filter
+        /// </summary>
         [DataContract]
         public class ReportFilter
         {
+            /// <summary>
+            /// Event Types
+            /// </summary>
+            /// <seealso cref="Enterprise.AuditLogExtensions.GetAvailableEvents"/>
             [DataMember(Name = "audit_event_type", EmitDefaultValue = false)]
             public string[] EventTypes { get; set; }
 
+            /// <summary>
+            /// Users
+            /// </summary>
             [DataMember(Name = "username", EmitDefaultValue = false)]
-            public string Username { get; set; }
+            public string[] Username { get; set; }
 
+            /// <summary>
+            /// Target Users
+            /// </summary>
             [DataMember(Name = "to_username", EmitDefaultValue = false)]
-            public string ToUsername { get; set; }
+            public string[] ToUsername { get; set; }
 
+            /// <summary>
+            /// Record UIDs
+            /// </summary>
             [DataMember(Name = "record_uid", EmitDefaultValue = false)]
-            public string RecordUid { get; set; }
+            public string[] RecordUid { get; set; }
 
+            /// <summary>
+            /// Shared Folder UIDs
+            /// </summary>
             [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
-            public string SharedFolderUid { get; set; }
+            public string[] SharedFolderUid { get; set; }
 
+            /// <summary>
+            /// Event Time
+            /// </summary>
+            /// <seealso cref="CreatedFilter"/>
+            /// <remarks>Predefined Filters: today, yesterday, last_30_days, last_7_days, month_to_date, last_month, year_to_date, last_year</remarks>
             [DataMember(Name = "created", EmitDefaultValue = false)]
             public object Created { get; set; }
 
@@ -157,14 +181,18 @@ namespace KeeperSecurity
             /// Gets audit events in descending order.
             /// </summary>
             /// <param name="auth">Keeper Connection</param>
-            /// <param name="forUser">User email</param>
+            /// <param name="filter">Audit report filetr</param>
             /// <param name="recentUnixTime">Recent event epoch time in seconds</param>
             /// <param name="latestUnixTime">Latest event epoch time in seconds</param>
             /// <returns>Awaitable task returning a tuple. Item1 contains the audit event list. Item2 the epoch time in seconds to resume</returns>
-            /// <remarks>This method returns first 1000 events. To get the next chunk of audit events pass the second parameter of result into <c>recentUnixTime</c> parameter.</remarks>
-            public static async Task<Tuple<GetAuditEventReportsResponse, long>> GetUserEvents(this IAuthentication auth, string forUser, long recentUnixTime, long latestUnixTime = 0)
+            /// <seealso cref="ReportFilter"/>
+            /// <remarks>
+            ///     This method returns first 1000 events. To get the next chunk of audit events pass the second parameter of result into <c>recentUnixTime</c> parameter.
+            ///     Created property of <paramref name="filter"/> is ignored.
+            /// </remarks>
+            public static async Task<Tuple<GetAuditEventReportsResponse, long>> GetEvents(this IAuthentication auth, ReportFilter filter, long recentUnixTime, long latestUnixTime = 0)
             {
-                if (recentUnixTime < 0 || latestUnixTime < 0 || string.IsNullOrEmpty(forUser))
+                if (recentUnixTime < 0 || latestUnixTime < 0 || filter == null)
                 {
                     return null;
                 }
@@ -174,17 +202,15 @@ namespace KeeperSecurity
                     recentUnixTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000;
                 }
 
+                filter.Created = new CreatedFilter
+                {
+                    Max = recentUnixTime == 0 ? (long?) null : recentUnixTime,
+                    Min = latestUnixTime == 0 ? (long?) null : latestUnixTime
+                };
+
                 var rq = new GetAuditEventReportsCommand
                 {
-                    Filter = new ReportFilter
-                    {
-                        Username = forUser,
-                        Created = new CreatedFilter
-                        {
-                            Max = recentUnixTime == 0 ? (long?) null : recentUnixTime,
-                            Min = latestUnixTime == 0 ? (long?) null : latestUnixTime
-                        }
-                    },
+                    Filter = filter,
                     Limit = 1000,
                     ReportType = "raw",
                     Order = "descending"
@@ -218,6 +244,26 @@ namespace KeeperSecurity
 
                 rs.Events.RemoveRange(pos + 1, rs.Events.Count - pos - 1);
                 return Tuple.Create(rs, conv.ToInt64(CultureInfo.InvariantCulture) + 1);
+            }
+
+
+
+            /// <summary>
+            /// Gets audit events for a user in descending order.
+            /// </summary>
+            /// <param name="auth">Keeper Connection</param>
+            /// <param name="forUser">User email</param>
+            /// <param name="recentUnixTime">Recent event epoch time in seconds</param>
+            /// <param name="latestUnixTime">Latest event epoch time in seconds</param>
+            /// <returns>Awaitable task returning a tuple. Item1 contains the audit event list. Item2 the epoch time in seconds to resume</returns>
+            /// <remarks>This method returns first 1000 events. To get the next chunk of audit events pass the second parameter of result into <c>recentUnixTime</c> parameter.</remarks>
+            public static Task<Tuple<GetAuditEventReportsResponse, long>> GetUserEvents(this IAuthentication auth, string forUser, long recentUnixTime, long latestUnixTime = 0)
+            {
+                var filter = new ReportFilter
+                {
+                    Username = new[] { forUser },
+                };
+                return auth.GetEvents(filter, recentUnixTime, latestUnixTime);
             }
         }
     }

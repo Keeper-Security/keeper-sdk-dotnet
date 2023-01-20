@@ -192,31 +192,6 @@ namespace KeeperSecurity.Authentication
     }
 
     /// <summary>
-    /// Http Proxy credentials action
-    /// </summary>
-    /// <returns></returns>
-    public delegate Task HttpProxyCredentialsDelegate(string username, string password);
-
-    /// <summary>
-    /// Defines methods and properties for http proxy authentication.
-    /// </summary>
-    public interface IHttpProxyInfo
-    {
-        /// <summary>
-        /// Gets HTTP proxy URI
-        /// </summary>
-        Uri ProxyUri { get; }
-        /// <summary>
-        /// Gets Proxy-Authentication header
-        /// </summary>
-        string[] ProxyAuthenticationMethods { get; }
-        /// <summary>
-        /// Accepts HTTP proxy credentials
-        /// </summary>
-        HttpProxyCredentialsDelegate InvokeHttpProxyCredentialsDelegate { get; }
-    }
-
-    /// <summary>
     /// Base 2FA channel interface 
     /// </summary>
     public interface ITwoFactorChannelInfo
