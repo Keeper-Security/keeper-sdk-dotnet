@@ -742,7 +742,6 @@ namespace KeeperSecurity.Vault
 
         public static async Task DeleteVaultObjects(this VaultOnline vault, IEnumerable<RecordPath> objectsToDelete, bool forceDelete = false)
         {
-            var sharedFoldersToDelete = new Dictionary<string, Tuple<SharedFolder, string>>();
             var preDeleteObjects = new Dictionary<string, PreDeleteObject>();
 
             foreach (var toDelete in objectsToDelete)
@@ -791,64 +790,20 @@ namespace KeeperSecurity.Vault
                         throw new VaultException("Cannot delete root folder.");
                     }
 
-                    if (folder.FolderType == FolderType.SharedFolder)
+                    var parent = vault.GetFolder(folder.ParentUid);
+                    preDeleteObjects[folder.FolderUid] = new PreDeleteObject
                     {
-                        sharedFoldersToDelete[folder.FolderUid] = Tuple.Create(vault.GetSharedFolder(folder.FolderUid), teamUid);
-                    }
-                    else
-                    {
-                        var parent = vault.GetFolder(folder.ParentUid);
-                        preDeleteObjects[folder.FolderUid] = new PreDeleteObject
-                        {
-                            fromUid = string.IsNullOrEmpty(parent.FolderUid) ? null : parent.FolderUid,
-                            fromType = parent.FolderType == FolderType.UserFolder
-                                ? FolderType.UserFolder.GetFolderTypeText()
-                                : FolderType.SharedFolderFolder.GetFolderTypeText(),
-                            objectUid = folder.FolderUid,
-                            objectType = folder.FolderType.GetFolderTypeText(),
-                            deleteResolution = "unlink",
-                        };
-                    }
+                        fromUid = string.IsNullOrEmpty(parent.FolderUid) ? null : parent.FolderUid,
+                        fromType = parent.FolderType == FolderType.UserFolder
+                            ? FolderType.UserFolder.GetFolderTypeText()
+                            : FolderType.SharedFolderFolder.GetFolderTypeText(),
+                        objectUid = folder.FolderUid,
+                        objectType = folder.FolderType.GetFolderTypeText(),
+                        deleteResolution = "unlink",
+                    };
                 }
             }
 
-            if (sharedFoldersToDelete.Count > 0)
-            {
-                var requests = new List<SharedFolderUpdateCommand>();
-                var recordCount = 0;
-                foreach (var tuple in sharedFoldersToDelete.Values)
-                {
-                    var sharedFolder = tuple.Item1;
-                    var teamUid = tuple.Item2;
-                    recordCount += sharedFolder.RecordPermissions?.Count ?? 0;
-                    requests.Add(new SharedFolderUpdateCommand
-                    {
-                        pt = vault.Auth.AuthContext.SessionToken.Base64UrlEncode(),
-                        operation = "delete",
-                        shared_folder_uid = tuple.Item1.Uid,
-                        from_team_uid = tuple.Item2,
-                    });
-                }
-
-                var ok = forceDelete || vault.VaultUi == null;
-                if (!ok)
-                {
-                    var confirmation = $"Your request will result in the deletion of:\n{sharedFoldersToDelete.Count} Shared Folder(s)";
-                    if (recordCount > 0)
-                    {
-                        confirmation += $"{recordCount} Record(s)";
-                    }
-
-                    ok = await vault.VaultUi.Confirmation(confirmation);
-                }
-                if (ok)
-                {
-                    foreach (var rq in requests)
-                    {
-                        _ = vault.Auth.ExecuteAuthCommand<SharedFolderUpdateCommand, SharedFolderUpdateResponse>(rq);
-                    }
-                }
-            }
             if (preDeleteObjects.Count > 0)
             {
                 var preRequest = new PreDeleteCommand

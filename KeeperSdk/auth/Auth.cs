@@ -10,7 +10,6 @@ using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 
 [assembly: InternalsVisibleTo("Tests")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace KeeperSecurity.Authentication.Async
 {
@@ -117,25 +116,6 @@ namespace KeeperSecurity.Authentication.Async
     }
 
     /// <summary>
-    /// Defines a method that returns HTTP Web proxy credentials. Optional.
-    /// </summary>
-    /// <remarks>
-    /// Keeper SDK calls this interface if it detects that access to the Internet is protected with HTTP Proxy.
-    /// Clients requests HTTP proxy credentials from the user and return them to the library.
-    /// </remarks>
-    /// <seealso cref="IAuthUI"/>
-    public interface IHttpProxyCredentialUi
-    {
-        /// <summary>
-        /// Requests HTTP Proxy credentials.
-        /// </summary>
-        /// <param name="proxyInfo">HTTP Proxy information</param>
-        /// <returns>Awaitable boolean result. <c>True</c>True resume login, <c>False</c> cancel.</returns>
-        Task<bool> WaitForHttpProxyCredentials(IHttpProxyInfo proxyInfo);
-    }
-
-
-    /// <summary>
     /// Represents Keeper authentication. (async)
     /// </summary>
     /// <seealso cref="AuthSync"/>
@@ -197,6 +177,7 @@ namespace KeeperSecurity.Authentication.Async
             set => base.DeviceToken = value;
         }
 
+        /*
         private async Task DetectProxyAsync(Func<Task> resumeWhenDone)
         {
             var keeperUri = new Uri($"https://{Endpoint.Server}/api/rest/ping");
@@ -238,6 +219,7 @@ namespace KeeperSecurity.Authentication.Async
                 await resumeWhenDone.Invoke();
             }
         }
+        */
 
         /// <inheritdoc/>
         public async Task LoginSso(string providerName, bool forceLogin = false)
@@ -272,34 +254,31 @@ namespace KeeperSecurity.Authentication.Async
         /// <inheritdoc/>
         public async Task Login(string username, params string[] passwords)
         {
-            await DetectProxyAsync(async () =>
+            if (string.IsNullOrEmpty(username))
             {
-                if (string.IsNullOrEmpty(username))
-                {
-                    throw new KeeperStartLoginException(LoginState.RequiresUsername, "Username is required.");
-                }
+                throw new KeeperStartLoginException(LoginState.RequiresUsername, "Username is required.");
+            }
 
-                Username = username.ToLowerInvariant();
-                var v3 = new LoginContext();
-                foreach (var p in passwords)
-                {
-                    if (string.IsNullOrEmpty(p)) continue;
-                    v3.PasswordQueue.Enqueue(p);
-                }
+            Username = username.ToLowerInvariant();
+            var v3 = new LoginContext();
+            foreach (var p in passwords)
+            {
+                if (string.IsNullOrEmpty(p)) continue;
+                v3.PasswordQueue.Enqueue(p);
+            }
 
-                try
-                {
-                    authContext = await LoginV3(v3);
-                }
-                catch (KeeperRegionRedirect krr)
-                {
-                    await this.RedirectToRegionV3(krr.RegionHost);
-                    authContext = await LoginV3(v3);
-                }
+            try
+            {
+                authContext = await LoginV3(v3);
+            }
+            catch (KeeperRegionRedirect krr)
+            {
+                await this.RedirectToRegionV3(krr.RegionHost);
+                authContext = await LoginV3(v3);
+            }
 
-                this.StoreConfigurationIfChangedV3(v3);
-                await PostLogin();
-            });
+            this.StoreConfigurationIfChangedV3(v3);
+            await PostLogin();
         }
 
         private async Task<AuthContext> LoginSsoV3(LoginContext v3, string providerName, bool forceLogin)

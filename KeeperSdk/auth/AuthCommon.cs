@@ -429,11 +429,8 @@ namespace KeeperSecurity.Authentication
             return response;
         }
 
-        private bool _storeProxyReturned;
         protected virtual IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
         {
-            if (_storeProxyReturned) return null;
-            _storeProxyReturned = true;
 #if NET452_OR_GREATER
             if (CredentialManager.GetCredentials(proxyUri.DnsSafeHost, out var username, out var password))
             {
@@ -443,53 +440,51 @@ namespace KeeperSecurity.Authentication
             return null;
         }
 
-        protected async Task<T> DetectProxy<T>(Uri uri, Func<Uri, string[], T> onProxyDetected)
-            where T : class
+        public async Task<bool> DetectProxy(Action<Uri, string[]> onProxyDetected)
         {
-            IWebProxy proxy = Endpoint.WebProxy;
-            do
+            var keeperUri = new Uri($"https://{Endpoint.Server}/api/rest/ping");
+            string authHeader = "";
+            try
+            {
+                await PingKeeperServer(keeperUri, Endpoint.WebProxy);
+                return true;
+            }
+            catch (WebException e)
+            {
+                var response = (HttpWebResponse) e.Response;
+                if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) throw e;
+
+                authHeader = response.Headers.AllKeys
+                    .Where(x => string.Compare(x, "Proxy-Authenticate", StringComparison.OrdinalIgnoreCase) == 0)
+                    .Select(x => response.Headers[x])
+                    .FirstOrDefault();
+            }
+            var systemProxy = WebRequest.GetSystemWebProxy();
+            var directUri = systemProxy.GetProxy(keeperUri);
+            var proxyAuthenticate = KeeperSettings.ParseProxyAuthentication(authHeader).ToArray();
+
+            var proxy = GetStoredProxy(directUri, proxyAuthenticate);
+            if (proxy != null && !ReferenceEquals(proxy, Endpoint.WebProxy))
             {
                 try
                 {
-                    await PingKeeperServer(uri, proxy);
-                    if (proxy != null)
-                    {
-                        Endpoint.WebProxy = proxy;
-                    }
-
-                    return null;
+                    await PingKeeperServer(keeperUri, proxy);
+                    Endpoint.WebProxy = proxy;
+                    return true;
                 }
                 catch (WebException e)
                 {
                     var response = (HttpWebResponse) e.Response;
-                    if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) return null;
-
-                    var authHeader = response.Headers.AllKeys
-                        .FirstOrDefault(x =>
-                            string.Compare(x, "Proxy-Authenticate", StringComparison.OrdinalIgnoreCase) ==
-                            0);
-                    var systemProxy = WebRequest.GetSystemWebProxy();
-                    var directUri = systemProxy.GetProxy(uri);
-                    var proxyAuthenticate = KeeperSettings.ParseProxyAuthentication(authHeader).ToArray();
-
-
-                    var storedProxy = GetStoredProxy(directUri, proxyAuthenticate);
-                    if (storedProxy != null && ReferenceEquals(proxy, storedProxy))
-                    {
-                        storedProxy = null;
-                    }
-
-                    proxy = storedProxy;
-                    if (proxy != null) continue;
-
-                    return onProxyDetected?.Invoke(directUri, proxyAuthenticate);
+                    if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) throw e;
                 }
-            } while (true);
+            }
+            onProxyDetected?.Invoke(directUri, proxyAuthenticate);
+            return false;
         }
 
-        internal virtual async Task<bool> PingKeeperServer(Uri serverUri, IWebProxy proxy)
+        internal virtual async Task<bool> PingKeeperServer(Uri keeperUri, IWebProxy proxy)
         {
-            var request = (HttpWebRequest) WebRequest.Create(serverUri);
+            var request = (HttpWebRequest) WebRequest.Create(keeperUri);
             if (proxy != null)
             {
                 request.Proxy = proxy;

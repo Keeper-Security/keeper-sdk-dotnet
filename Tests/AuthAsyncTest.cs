@@ -34,7 +34,7 @@ namespace Tests
             var auth = GetAuthAsync();
             auth.Endpoint.Server = "region.keepersecurity.com";
             await auth.Login(DataVault.UserName);
-            Assert.Equal(auth.Endpoint.Server, DataVault.DefaultEnvironment);
+            Assert.Equal(DataVault.DefaultEnvironment, auth.Endpoint.Server);
             Assert.True(auth.IsAuthenticated());
         }
 
@@ -254,9 +254,6 @@ namespace Tests
             var mUi = new Mock<IAuthUI>();
 
             var mAuth = new Mock<Auth>(mUi.Object, storage, mEndpoint.Object) {CallBase = true};
-            mAuth.Setup(m => m.PingKeeperServer(It.IsAny<Uri>(), It.IsAny<IWebProxy>()))
-                .Returns(Task.FromResult(true));
-
             var auth = mAuth.Object;
 
             mEndpoint.Setup(e => e.ExecuteRest(

@@ -7,6 +7,7 @@ using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
+using Org.BouncyCastle.Crypto.Parameters;
 using Records;
 using AuthProto = Authentication;
 
@@ -413,7 +414,7 @@ namespace KeeperSecurity.Vault
             }
             if (!string.IsNullOrEmpty(pkRs.ErrorCode))
             {
-                if (string.Equals(pkRs.ErrorCode, "no_active_share_exist"))
+                if (pkRs.ErrorCode == "no_active_share_exist")
                 {
                     throw new NoActiveShareWithUserException(username, pkRs.ErrorCode, pkRs.Message);
                 }
@@ -449,13 +450,26 @@ namespace KeeperSecurity.Vault
             var targetPermission = recordShares?.UserPermissions
                 .FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
 
-            var rsuRq = new RecordShareUpdateCommand();
-            var ro = new RecordShareObject
-            {
-                ToUsername = username,
+            var accessPath = new RecordAccessPath 
+            { 
                 RecordUid = recordUid,
             };
-            this.ResolveRecordAccessPath(ro, forShare: true);
+            this.ResolveRecordAccessPath(accessPath, forShare: true);
+
+            var request = new RecordShareUpdateRequest();
+            var ro = new SharedRecord
+            {
+                ToUsername = username,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+            };
+            if (!string.IsNullOrEmpty(accessPath.SharedFolderUid))
+            {
+                ro.SharedFolderUid = ByteString.CopyFrom(accessPath.SharedFolderUid.Base64UrlDecode());
+            }
+            if (!string.IsNullOrEmpty(accessPath.TeamUid))
+            {
+                ro.TeamUid = ByteString.CopyFrom(accessPath.TeamUid.Base64UrlDecode());
+            }
 
             if (targetPermission == null)
             {
@@ -466,36 +480,33 @@ namespace KeeperSecurity.Vault
                 if (useEcKey)
                 {
                     var pk = CryptoUtils.LoadPublicEcKey(ecKey);
-                    ro.RecordKey = CryptoUtils.EncryptEc(record.RecordKey, pk).Base64UrlEncode();
-                    ro.useEccKey = true;
+                    ro.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(record.RecordKey, pk));
+                    ro.UseEccKey = true;
                 }
                 else
                 {
                     var pk = CryptoUtils.LoadPublicKey(rsaKey);
-                    ro.RecordKey = CryptoUtils.EncryptRsa(record.RecordKey, pk).Base64UrlEncode();
+                    ro.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(record.RecordKey, pk));
                 }
                 ro.Shareable = canReshare ?? false;
                 ro.Editable = canEdit ?? false;
 
-                rsuRq.AddShares = new[] { ro };
+                request.AddSharedRecord.Add(ro);
             }
             else
             {
                 ro.Shareable = canReshare ?? targetPermission.CanShare;
                 ro.Editable = canEdit ?? targetPermission.CanEdit;
 
-                rsuRq.UpdateShares = new[] { ro };
+                request.UpdateSharedRecord.Add(ro);
             }
 
-            var rsuRs = await Auth.ExecuteAuthCommand<RecordShareUpdateCommand, Commands.RecordShareUpdateResponse>(rsuRq);
-            var statuses = targetPermission == null ? rsuRs.AddStatuses : rsuRs.UpdateStatuses;
-            if (statuses != null)
+            var rsuRs = await Auth.ExecuteAuthRest<RecordShareUpdateRequest, RecordShareUpdateResponse>("vault/records_share_update", request);
+            var statuses = targetPermission == null ? rsuRs.AddSharedRecordStatus : rsuRs.UpdateSharedRecordStatus;
+            var status = statuses.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            if (status != null && status.Status != "success")
             {
-                var status = statuses.FirstOrDefault(x => string.Equals(x.RecordUid, recordUid) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
-                if (status != null && !string.Equals(status.Status, "success", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    throw new KeeperApiException(status.Status, status.Message);
-                }
+                throw new KeeperApiException(status.Status, status.Message);
             }
         }
 
@@ -503,54 +514,49 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task TransferRecordToUser(string recordUid, string username)
         {
-            if (!TryGetKeeperRecord(recordUid, out var record))
-            {
-                throw new KeeperApiException("not_found", "Record not found");
-            }
-            if (!record.Owner)
-            {
-                throw new KeeperApiException("not_owner", "Only record owner can transfer ownership");
-            }
-
-            var rq = new RecordShareUpdateCommand();
-            var ro = new RecordShareObject
-            {
-                ToUsername = username,
-                RecordUid = recordUid,
-                Transfer = true,
-            };
-
             var pkRq = new AuthProto.GetPublicKeysRequest();
             pkRq.Usernames.Add(username);
 
             var pkRss = await Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>("vault/get_public_keys", pkRq);
             var pkRs = pkRss.KeyResponses[0];
-            if (pkRs.PublicKey.IsEmpty && pkRs.PublicEccKey.IsEmpty)
-            {
-                throw new KeeperApiException("public_key_error", pkRs.Message);
+            ECPublicKeyParameters ecPk = null;
+            RsaKeyParameters rsaPk = null;
+            if (!pkRs.PublicEccKey.IsEmpty) {
+                ecPk = CryptoUtils.LoadPublicEcKey(pkRs.PublicEccKey.ToByteArray());
             }
-            var useEcKey = !pkRs.PublicEccKey.IsEmpty && record?.Version != 2;
-            if (useEcKey)
-            {
-                var pk = CryptoUtils.LoadPublicEcKey(pkRs.PublicEccKey.ToByteArray());
-                ro.RecordKey = CryptoUtils.EncryptEc(record.RecordKey, pk).Base64UrlEncode();
-                ro.useEccKey = true;
+            else if (!pkRs.PublicKey.IsEmpty) {
+                rsaPk = CryptoUtils.LoadPublicKey(pkRs.PublicKey.ToByteArray());
             }
             else
             {
-                var pk = CryptoUtils.LoadPublicKey(pkRs.PublicKey.ToByteArray());
-                ro.RecordKey = CryptoUtils.EncryptRsa(record.RecordKey, pk).Base64UrlEncode();
+                throw new KeeperApiException("public_key_error", pkRs.Message);
             }
 
-            rq.AddShares = new[] { ro };
-            var rs = await Auth.ExecuteAuthCommand<RecordShareUpdateCommand, Commands.RecordShareUpdateResponse>(rq);
-            if (rs.AddStatuses != null)
+            if (!TryGetKeeperRecord(recordUid, out var record))
             {
-                var status = rs.AddStatuses.FirstOrDefault(x => string.Equals(x.RecordUid, recordUid) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
-                if (status != null && !string.Equals(status.Status, "success", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    throw new KeeperApiException(status.Status, status.Message);
-                }
+                throw new KeeperApiException("not_found", "Record not found");
+            }
+            var tr = new TransferRecord
+            {
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                Username = username,
+            };
+            if (ecPk != null)
+            {
+                tr.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(record.RecordKey, ecPk));
+                tr.UseEccKey = true;
+            }
+            else {
+                tr.RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(record.RecordKey, rsaPk));
+            }
+            var request = new RecordsOnwershipTransferRequest();
+            request.TransferRecords.Add(tr);
+
+            var response = await Auth.ExecuteAuthRest<RecordsOnwershipTransferRequest, RecordsOnwershipTransferResponse>("vault/records_ownership_transfer", request);
+            var status = response.TransferRecordStatus.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            if (status != null && status.Status != "transfer_record_success")
+            {
+                throw new KeeperApiException(status.Status, status.Message);
             }
         }
 
@@ -561,21 +567,34 @@ namespace KeeperSecurity.Vault
             {
                 throw new KeeperApiException("not_found", "Record not found");
             }
-            var rq = new RecordShareUpdateCommand();
-            var ro = new RecordShareObject
+            var accessPath = new RecordAccessPath
             {
-                ToUsername = username,
                 RecordUid = recordUid,
             };
-            rq.RemoveShares = new[] { ro };
-            var rs = await Auth.ExecuteAuthCommand<RecordShareUpdateCommand, Commands.RecordShareUpdateResponse>(rq);
-            if (rs.RemoveStatuses != null)
+            this.ResolveRecordAccessPath(accessPath, forShare: true);
+
+            var sr = new SharedRecord
             {
-                var status = rs.RemoveStatuses.FirstOrDefault(x => string.Equals(x.RecordUid, recordUid) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
-                if (status != null && !string.Equals(status.Status, "success", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    throw new KeeperApiException(status.Status, status.Message);
-                }
+                ToUsername = username,
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+            };
+            if (!string.IsNullOrEmpty(accessPath.SharedFolderUid))
+            {
+                sr.SharedFolderUid = ByteString.CopyFrom(accessPath.SharedFolderUid.Base64UrlDecode());
+            }
+            if (!string.IsNullOrEmpty(accessPath.TeamUid))
+            {
+                sr.TeamUid = ByteString.CopyFrom(accessPath.TeamUid.Base64UrlDecode());
+            }
+
+            var request = new RecordShareUpdateRequest();
+            request.RemoveSharedRecord.Add(sr);
+
+            var response = await Auth.ExecuteAuthRest<RecordShareUpdateRequest, Records.RecordShareUpdateResponse>("vault/records_share_update", request);
+            var status = response.RemoveSharedRecordStatus.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            if (status != null && status.Status != "success")
+            {
+                throw new KeeperApiException(status.Status, status.Message);
             }
         }
 
