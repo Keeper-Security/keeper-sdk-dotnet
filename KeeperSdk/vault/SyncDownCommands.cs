@@ -117,7 +117,18 @@ namespace KeeperSecurity.Commands
         public bool Shared { get; set; }
 
         [DataMember(Name = "client_modified_time")]
-        public long ClientModifiedTime { get; set; }
+        internal double _client_modified_time;
+        public long ClientModifiedTime
+        {
+            get
+            {
+                return (long) _client_modified_time;
+            }
+            set
+            {
+                _client_modified_time = value;
+            }
+        }
 
         [DataMember(Name = "data")]
         public string Data { get; set; }

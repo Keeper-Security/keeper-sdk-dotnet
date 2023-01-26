@@ -402,7 +402,7 @@ namespace KeeperSecurity.Authentication.Sync
             };
             tfaStep.OnResume = async () =>
             {
-                await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
+                Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
             };
             return tfaStep;
         }
@@ -491,7 +491,7 @@ namespace KeeperSecurity.Authentication.Sync
             };
             deviceApprovalStep.OnResume = async () => 
             {
-                await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
+                Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
             };
             deviceApprovalStep.onDispose = onDone;
             return deviceApprovalStep;
@@ -563,7 +563,7 @@ namespace KeeperSecurity.Authentication.Sync
             };
             dataKeyStep.onResume = async () =>
             {
-                await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
+                Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
             };
             return dataKeyStep;
         }

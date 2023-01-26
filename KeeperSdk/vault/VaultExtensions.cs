@@ -483,7 +483,7 @@ namespace KeeperSecurity.Vault
                 FileSize = rfd.Size ?? 0,
                 MimeType = rfd.Type,
                 LastModified = rfd.LastModified != null
-                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(rfd.LastModified.Value)
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds((long)rfd.LastModified.Value)
                     : DateTimeOffset.Now
             };
             if (!string.IsNullOrEmpty(r.Udata))

@@ -42,6 +42,21 @@ namespace KeeperSecurity.Authentication
     /// <exclude />
     public static class LoginV3Extensions
     {
+        public static void EnsurePushNotification(this IAuth auth, LoginContext v3)
+        {
+            if (auth.PushNotifications == null)
+            {
+                var connectRequest = new WssConnectionRequest
+                {
+                    EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
+                    MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
+                    DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                };
+                var ws = new WebSocketChannel();
+                _ = ws.ConnectToPushServer(auth.Endpoint, connectRequest);
+                auth.SetPushNotifications(ws);
+            }
+        }
         public static async Task EnsureDeviceTokenIsRegistered(this IAuth auth, LoginContext v3, string username)
         {
             if (string.Compare(auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
@@ -131,7 +146,6 @@ namespace KeeperSecurity.Authentication
                 {
                     try
                     {
-                        auth.PushNotifications.Dispose();
                         auth.SetPushNotifications(null);
                     }
                     catch (Exception e)
@@ -140,39 +154,13 @@ namespace KeeperSecurity.Authentication
                     }
                 }
 
-                if (auth.PushNotifications == null)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        var cancellationTokenSource = new CancellationTokenSource();
-                        try
-                        {
-                            var connectRequest = new WssConnectionRequest
-                            {
-                                EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
-                                MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
-                                DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                            };
-                            var delay = Task.Delay(TimeSpan.FromSeconds(5), cancellationTokenSource.Token);
-                            var connect = auth.Endpoint.ConnectToPushServer(connectRequest, cancellationTokenSource.Token);
-                            var completed = await Task.WhenAny(connect, delay);
-                            cancellationTokenSource.Cancel();
-                            if (completed.Equals(connect))
-                            {
-                                auth.SetPushNotifications(connect.Result);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine(e.Message);
-                        }
-                    });
-                }
+                auth.EnsurePushNotification(v3);
             }
         }
 
         internal static async Task RedirectToRegionV3(this IAuth auth, string newRegion)
         {
+            auth.SetPushNotifications(null);
             auth.Endpoint.Server = newRegion;
             if (auth.AuthCallback is IAuthInfoUI infoUi)
             {

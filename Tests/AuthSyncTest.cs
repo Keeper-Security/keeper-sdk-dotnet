@@ -46,10 +46,6 @@ namespace Tests
             mEndpoint.SetupProperty(e => e.Server);
             mEndpoint.Object.Server = DataVault.DefaultEnvironment;
 
-            var webSocket = new TestWebSocket();
-            mEndpoint.Setup(x => x.ConnectToPushServer(It.IsAny<WssConnectionRequest>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IFanOut<NotificationEvent>>(webSocket));
-
             var mFlow = new Mock<AuthSync>(storage, mEndpoint.Object) {CallBase = true};
             var flow = mFlow.Object;
 
