@@ -17,7 +17,6 @@ namespace KeeperSecurity.Authentication.Async
     /// Defines the user interface methods required for authentication with Keeper.
     /// </summary>
     /// <seealso cref="IAuthSsoUI"/>
-    /// <seealso cref="IHttpProxyCredentialUi"/>
     /// <seealso cref="IAuthSecurityKeyUI"/>
     /// <seealso cref="IPostLoginTaskUI"/>
     public interface IAuthUI : IAuthCallback
@@ -118,7 +117,7 @@ namespace KeeperSecurity.Authentication.Async
     /// <summary>
     /// Represents Keeper authentication. (async)
     /// </summary>
-    /// <seealso cref="AuthSync"/>
+    /// <seealso cref="Sync.AuthSync"/>
     /// <seealso cref="IAuth"/>
     /// <seealso cref="IAuthentication"/>
     public class Auth : AuthCommon, IAuth
@@ -676,6 +675,7 @@ namespace KeeperSecurity.Authentication.Async
             return await ResumeLogin(v3, loginToken);
         }
 
+        /// <exclude />
         public override void Dispose()
         {
             Ui = null;

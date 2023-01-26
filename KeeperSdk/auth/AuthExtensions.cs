@@ -29,7 +29,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="auth">The authenticated connection.</param>
         /// <param name="command">JSON authenticated command.</param>
         /// <returns>A Task returning basic JSON response.</returns>
-        /// <seealso cref="IKeeperEndpoint.ExecuteV2Command"/>
+        /// <seealso cref="KeeperEndpointExtensions.ExecuteV2Command"/>
         public static async Task<KeeperApiResponse> ExecuteAuthCommand(this IAuthentication auth, AuthenticatedCommand command)
         {
             return await auth.ExecuteAuthCommand(command, typeof(KeeperApiResponse), true);
@@ -45,7 +45,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="throwOnError">if <c>True</c> throw exception on Keeper error.</param>
         /// <returns>A Task returning JSON response.</returns>
         /// <exception cref="KeeperApiException">Keeper API Exception.</exception>
-        /// <seealso cref="IKeeperEndpoint.ExecuteV2Command"/>
+        /// <seealso cref="KeeperEndpointExtensions.ExecuteV2Command"/>
         public static async Task<TR> ExecuteAuthCommand<TC, TR>(this IAuthentication auth, TC command, bool throwOnError = true)
             where TC : AuthenticatedCommand
             where TR : KeeperApiResponse
@@ -61,7 +61,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="command">SON authenticated command.</param>
         /// <returns>Awaitable task.</returns>
         /// <exception cref="KeeperApiException">Keeper API Exception.</exception>
-        /// <seealso cref="IKeeperEndpoint.ExecuteV2Command"/>
+        /// <seealso cref="KeeperEndpointExtensions.ExecuteV2Command"/>
         public static Task ExecuteAuthCommand<TC>(this IAuthentication auth, TC command)
             where TC : AuthenticatedCommand
         {

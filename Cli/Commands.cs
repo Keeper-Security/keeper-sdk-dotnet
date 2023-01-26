@@ -307,10 +307,17 @@ namespace Cli
                 else
                 {
                     Console.Write(StateContext.GetPrompt() + "> ");
-                    command = await inputManager.ReadLine(new ReadLineParameters
+                    try
                     {
-                        IsHistory = true
-                    });
+                        command = await inputManager.ReadLine(new ReadLineParameters
+                        {
+                            IsHistory = true
+                        });
+                    }
+                    catch (KeyboardInterrupt) 
+                    {
+                        command = "";
+                    }
                 }
 
                 if (string.IsNullOrEmpty(command)) continue;

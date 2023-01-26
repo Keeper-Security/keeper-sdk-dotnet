@@ -15,8 +15,10 @@ using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Enterprise;
+using KeeperSecurity.Enterprise.AuditLogCommands;
 using KeeperSecurity.Utils;
 using Org.BouncyCastle.Crypto.Parameters;
+using static KeeperSecurity.Enterprise.AuditLogExtensions;
 using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
 
 namespace Commander
@@ -114,7 +116,7 @@ namespace Commander
             cli.CommandAliases["er"] = "enterprise-role";
             cli.CommandAliases["ed"] = "enterprise-device";
 
-            
+
             if (context.Enterprise.EcPrivateKey == null)
             {
                 cli.Commands.Add("enterprise-add-key",
@@ -250,29 +252,29 @@ namespace Commander
                     }
 
                     case "update":
-                    if (!string.IsNullOrEmpty(arguments.Name))
-                    {
-                        node.DisplayName = arguments.Name;
-                    }
-                    await enterpriseData.UpdateNode(node, parentNode);
-                    Console.WriteLine($"Node \"{node.DisplayName}\" updated.");
-                    if (arguments.RestrictVisibility)
-                    {
-                        await enterpriseData.SetRestrictVisibility(node.Id);
-                        await enterpriseData.Enterprise.Load();
-                        Console.WriteLine($"Node Isolation: {(node.RestrictVisibility ? "ON" : "OFF")}");
-                    }
+                        if (!string.IsNullOrEmpty(arguments.Name))
+                        {
+                            node.DisplayName = arguments.Name;
+                        }
+                        await enterpriseData.UpdateNode(node, parentNode);
+                        Console.WriteLine($"Node \"{node.DisplayName}\" updated.");
+                        if (arguments.RestrictVisibility)
+                        {
+                            await enterpriseData.SetRestrictVisibility(node.Id);
+                            await enterpriseData.Enterprise.Load();
+                            Console.WriteLine($"Node Isolation: {(node.RestrictVisibility ? "ON" : "OFF")}");
+                        }
 
-                    break;
+                        break;
 
                     case "delete":
-                    await enterpriseData.DeleteNode(node.Id);
-                    Console.WriteLine($"Node \"{node.DisplayName}\" deleted.");
-                    break;
+                        await enterpriseData.DeleteNode(node.Id);
+                        Console.WriteLine($"Node \"{node.DisplayName}\" deleted.");
+                        break;
 
                     default:
-                    Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"tree\", \"add\", \"update\", \"delete\"");
-                    break;
+                        Console.WriteLine($"Unsupported command \"{arguments.Command}\": available commands \"tree\", \"add\", \"update\", \"delete\"");
+                        break;
                 }
             }
             await enterpriseData.Enterprise.Load();
@@ -331,7 +333,7 @@ namespace Commander
                 return;
             }
 
-            if (string.IsNullOrEmpty(arguments.User)) 
+            if (string.IsNullOrEmpty(arguments.User))
             {
                 Console.WriteLine("User parameter cannot be empty");
                 return;
@@ -850,7 +852,7 @@ namespace Commander
                 return;
             }
 
-            if (string.CompareOrdinal(arguments.Command, "delete") == 0) 
+            if (string.CompareOrdinal(arguments.Command, "delete") == 0)
             {
                 await roleData.DeleteRole(role.Id);
                 return;
@@ -858,7 +860,7 @@ namespace Commander
 
             var cmds = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
             cmds.UnionWith(new[] { "add-members", "remove-members" });
-            if (cmds.Contains(arguments.Command)) 
+            if (cmds.Contains(arguments.Command))
             {
                 var users = new Dictionary<long, KeeperSecurity.Enterprise.EnterpriseUser>();
                 var teams = new Dictionary<string, EnterpriseTeam>();
@@ -891,7 +893,7 @@ namespace Commander
                         continue;
                     }
                     var ts = enterpriseData.Teams.Where(x => string.Equals(x.Name, member, StringComparison.CurrentCultureIgnoreCase)).ToArray();
-                    if (ts.Length == 1) 
+                    if (ts.Length == 1)
                     {
                         t = ts[0];
                         teams[t.Uid] = t;
@@ -914,13 +916,13 @@ namespace Commander
                         {
                             await roleData.AddUserToRole(role.Id, user.Id);
                         }
-                        else 
+                        else
                         {
                             await roleData.RemoveUserFromRole(role.Id, user.Id);
                         }
                         Console.WriteLine("Success");
                     }
-                    catch (Exception e) 
+                    catch (Exception e)
                     {
                         Console.WriteLine($"Error: {e.Message}");
                     }
@@ -1000,9 +1002,9 @@ namespace Commander
                         false, queuedUserCount.ToString());
                 }
 
-                if (arguments.Queued) 
+                if (arguments.Queued)
                 {
-                    foreach (var qteam in context.QueuedTeamManagement.QueuedTeams) 
+                    foreach (var qteam in context.QueuedTeamManagement.QueuedTeams)
                     {
                         EnterpriseNode node = null;
                         if (qteam.ParentNodeId > 0)
@@ -1018,7 +1020,7 @@ namespace Commander
                         tab.AddRow(qteam.Name,
                             qteam.Uid,
                             node != null ? node.DisplayName : "",
-                            "","","","",
+                            "", "", "", "",
                             true, queuedUserCount.ToString());
                     }
                 }
@@ -1073,14 +1075,14 @@ namespace Commander
                         tab.AddRow(" Restrict Share:", team.RestrictSharing ? "Yes" : "No");
                         tab.AddRow(" Restrict View:", team.RestrictView ? "Yes" : "No");
                     }
-                    else if (queuedTeam != null) 
+                    else if (queuedTeam != null)
                     {
                         tab.AddRow(" Queued Team Name:", queuedTeam.Name);
                         tab.AddRow(" Queued Team UID:", queuedTeam.Uid);
                     }
 
                     var teamUid = team != null ? team.Uid : queuedTeam.Uid;
-                    if (team != null) 
+                    if (team != null)
                     {
                         var users = context.EnterpriseData.GetUsersForTeam(teamUid) ?? Enumerable.Empty<long>(); ;
                         var userEmails = users
@@ -1492,6 +1494,7 @@ namespace Commander
                         filter.Max = dt;
                         filter.ExcludeMax = !hasEqual;
                     }
+                    return filter;
                 }
             }
             else
@@ -1570,48 +1573,91 @@ namespace Commander
                 Limit = options.Limit,
             };
 
+            if (!string.IsNullOrEmpty(options.ReportType))
+            {
+                rq.ReportType = options.ReportType;
+            }
+            if (options.Aggregate != null && options.Aggregate.Any())
+            {
+                rq.Aggregate = options.Aggregate.ToArray();
+            }
+            if (options.Columns != null && options.Columns.Any())
+            {
+                rq.Columns = options.Columns.ToArray();
+            }
+
             var rs = await context.Enterprise.Auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(rq);
 
-            var tab = new Tabulate(4) {DumpRowNo = true};
-            tab.AddHeader("Created", "Username", "Event", "Message");
-            tab.MaxColumnWidth = 100;
-            foreach (var evt in rs.Events)
+            Tabulate tab;
+
+            if (rq.ReportType == "raw")
             {
-                if (!evt.TryGetValue("audit_event_type", out var v)) continue;
-                var eventName = v.ToString();
-                if (!context.AuditEvents.TryGetValue(eventName, out var eventType)) continue;
+                tab = new Tabulate(4) { DumpRowNo = true };
+                tab.AddHeader("Created", "Username", "Event", "Message");
+                tab.MaxColumnWidth = 100;
+                foreach (var evt in rs.Events)
+                {
+                    if (!evt.TryGetValue("audit_event_type", out var v)) continue;
+                    var eventName = v.ToString();
+                    if (!context.AuditEvents.TryGetValue(eventName, out var eventType)) continue;
 
-                var message = eventType.SyslogMessage;
-                do
-                {
-                    var match = Regex.Match(message, ParameterPattern);
-                    if (!match.Success) break;
-                    if (match.Groups.Count != 2) break;
-                    var parameter = match.Groups[1].Value;
-                    var value = "";
-                    if (evt.TryGetValue(parameter, out v))
+                    var message = eventType.SyslogMessage;
+                    do
                     {
-                        value = v.ToString();
-                    }
+                        var match = Regex.Match(message, ParameterPattern);
+                        if (!match.Success) break;
+                        if (match.Groups.Count != 2) break;
+                        var parameter = match.Groups[1].Value;
+                        var value = "";
+                        if (evt.TryGetValue(parameter, out v))
+                        {
+                            value = v.ToString();
+                        }
 
-                    message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
-                    message = message.Insert(match.Groups[0].Index, value);
-                } while (true);
-                var created = "";
-                if (evt.TryGetValue("created", out v))
-                {
-                    created = v.ToString();
-                    if (long.TryParse(created, out var epoch))
+                        message = message.Remove(match.Groups[0].Index, match.Groups[0].Length);
+                        message = message.Insert(match.Groups[0].Index, value);
+                    } while (true);
+                    var created = "";
+                    if (evt.TryGetValue("created", out v))
                     {
-                        created = DateTimeOffset.FromUnixTimeSeconds(epoch).ToString("G");
+                        created = v.ToString();
+                        if (long.TryParse(created, out var epoch))
+                        {
+                            created = DateTimeOffset.FromUnixTimeSeconds(epoch).ToString("G");
+                        }
                     }
+                    var username = "";
+                    if (evt.TryGetValue("username", out v))
+                    {
+                        username = v.ToString();
+                    }
+                    tab.AddRow(created, username, eventName, message);
                 }
-                var username = "";
-                if (evt.TryGetValue("username", out v))
+            }
+            else
+            {
+                var columns = options.Aggregate.Concat(options.Columns).ToArray();
+                tab = new Tabulate(columns.Length) { DumpRowNo = true };
+                tab.AddHeader(columns);
+                tab.MaxColumnWidth = 100;
+                foreach (var evt in rs.Events)
                 {
-                    username = v.ToString();
+                    var values = columns.Select(x => {
+                        object value = null;
+                        evt.TryGetValue(x, out value);
+                        if (value != null && (x == "last_created" || x == "first_created")) 
+                        {
+                            if (value is IConvertible c) 
+                            {
+                                var ts = c.ToInt64(CultureInfo.InvariantCulture);
+                                var dt = DateTimeOffset.FromUnixTimeSeconds(ts);
+                                value = dt.ToString("g");
+                            }
+                        }
+                        return value;
+                    }).ToArray();
+                    tab.AddRow(values);
                 }
-                tab.AddRow(created, username, eventName, message);
             }
             tab.Dump();
         }
@@ -2126,6 +2172,15 @@ namespace Commander
 
         [Option("shared-folder-uid", Required = false, Default = null, HelpText = "shared folder UID")]
         public IEnumerable<string> SharedFolderUid { get; set; }
+
+        [Option("report-type", Required = false, Default = "raw", HelpText = "report type")]
+        public string ReportType { get; set; }
+
+        [Option("aggregate", Required = false, HelpText = "aggregate columns")]
+        public IEnumerable<string> Aggregate { get; set; }
+
+        [Option("columns", Required = false, HelpText = "report columns")]
+        public IEnumerable<string> Columns { get; set; }
     }
 
     class ManagedCompanyLoginOptions : EnterpriseGenericOptions

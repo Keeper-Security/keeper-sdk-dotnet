@@ -153,7 +153,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="responseType">Type of response.</param>
         /// <param name="throwOnError">throws exception on error.</param>
         /// <returns>Task returning JSON response.</returns>
-        /// <seealso cref="Auth.ExecuteAuthCommand(AuthenticatedCommand,System.Type)"/>
+        /// <seealso cref="AuthExtensions.ExecuteAuthCommand"/>
         Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType, bool throwOnError);
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="request">Protobuf request.</param>
         /// <param name="responseType">Expected response type</param>
         /// <returns>Task returning Protobuf response.</returns>
-        /// <seealso cref="Auth.ExecuteAuthRest"/>
+        /// <seealso cref="AuthExtensions.ExecuteAuthRest"/>
         Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null);
 
         /// <summary>
@@ -310,8 +310,8 @@ namespace KeeperSecurity.Authentication
     /// <summary>
     /// Represents base authentication class
     /// </summary>
-    /// <seealso cref="Auth"/>
-    /// <seealso cref="AuthSync"/>
+    /// <seealso cref="Async.Auth"/>
+    /// <seealso cref="Sync.AuthSync"/>
     public abstract class AuthCommon : IAuthentication, IDisposable
     {
         /// <inheritdoc/>
@@ -440,6 +440,7 @@ namespace KeeperSecurity.Authentication
             return null;
         }
 
+        /// <exclude />
         public async Task<bool> DetectProxy(Action<Uri, string[]> onProxyDetected)
         {
             var keeperUri = new Uri($"https://{Endpoint.Server}/api/rest/ping");

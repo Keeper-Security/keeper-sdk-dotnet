@@ -67,3 +67,13 @@ namespace KeeperSecurity.Enterprise
     {
     }
 }
+namespace KeeperSecurity.Enterprise.AuditLogCommands
+{
+    /// <summary>
+    /// Provides Audit Report Commands
+    /// </summary>
+    [CompilerGenerated]
+    internal class NamespaceDoc
+    {
+    }
+}
