@@ -25,6 +25,7 @@ using KeeperSecurity.Vault;
 
 namespace Sample
 {
+
     public class AuthSyncCallback : IAuthSyncCallback
     {
         private readonly Action _onNextStep;

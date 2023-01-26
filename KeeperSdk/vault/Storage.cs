@@ -373,7 +373,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Delete all links for object entity UID
         /// </summary>
-        /// <param name="objectUid">List of Object UIDs to delete.</param>
+        /// <param name="objectUids">List of Object UIDs to delete.</param>
         void DeleteLinksForObjects(IEnumerable<string> objectUids);
         /// <summary>
         /// Gets all entity links for subject entity UID.

@@ -208,6 +208,7 @@ namespace KeeperSecurity.Vault
     /// </summary>
     public class NoActiveShareWithUserException : Authentication.KeeperApiException
     {
+        /// <exclude />
         public NoActiveShareWithUserException(string username, string code, string message) : base(code, message)
         {
             Username = username;
@@ -300,7 +301,7 @@ namespace KeeperSecurity.Vault
         /// <param name="parentFolderUid">Parent Folder UID.</param>
         /// <param name="sharedFolderOptions">Shared Folder creation options. Optional.</param>
         /// <returns>A task returning created folder.</returns>
-        /// <remarks>Pass <see cref="sharedFolderOptions"/> parameter to create a Shared Folder.</remarks>
+        /// <remarks>Pass sharedFolderOptions parameter to create a Shared Folder.</remarks>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <seealso cref="SharedFolderOptions"/>
         Task<FolderNode> CreateFolder(string name, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null);
@@ -410,12 +411,16 @@ namespace KeeperSecurity.Vault
         Task RevokeShareFromUser(string recordUid, string username);
     }
 
+    /// <summary>
+    /// Define methods for Keeper Secret Maneger (KSM)
+    /// </summary>
     public interface ISecretManager 
     {
         /// <summary>
         /// Gets Keeper Secret Manager Application Details
         /// </summary>
         /// <param name="applicationUid">Application UID.</param>
+        /// <param name="force">Force reloading</param>
         /// <returns>Secret Manager Application Info</returns>
         Task<SecretsManagerApplication> GetSecretManagerApplication(string applicationUid, bool force = true);
 
@@ -485,7 +490,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="sharedFolderUid">Shared Folder UID.</param>
         /// <param name="userId">User email or Team UID.</param>
-        /// <param name="userType">Type of <see cref="userId"/> parameter.</param>
+        /// <param name="userType">Type of userId parameter.</param>
         /// <param name="options">Shared Folder User Permissions.</param>
         /// <returns>Awaitable task.</returns>
         /// <remarks>
@@ -500,7 +505,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="sharedFolderUid">Shared Folder UID.</param>
         /// <param name="userId">User email or Team UID.</param>
-        /// <param name="userType">Type of <see cref="userId"/> parameter.</param>
+        /// <param name="userType">Type of userId parameter.</param>
         /// <returns>Awaitable task.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task RemoveUserFromSharedFolder(string sharedFolderUid, string userId, UserType userType);

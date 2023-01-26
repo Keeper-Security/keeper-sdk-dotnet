@@ -16,7 +16,7 @@ namespace KeeperSecurity.Enterprise
         /// Invites user to enterprise
         /// </summary>
         /// <param name="email">Email Address</param>
-        /// <param name="fullName">Full Name</param>
+        /// <param name="options">Optional</param>
         /// <returns>Invited User</returns>
         public async Task<EnterpriseUser> InviteUser(string email, InviteUserOptions options = null)
         {

@@ -38,6 +38,7 @@ namespace KeeperSecurity.Utils
         /// </summary>
         /// <typeparam name="T">Type of JSON object.</typeparam>
         /// <param name="obj">JSON object.</param>
+        /// <param name="indent">Pretty print</param>
         /// <returns>JSON data.</returns>
         public static byte[] DumpJson<T>(T obj, bool indent = true)
         {

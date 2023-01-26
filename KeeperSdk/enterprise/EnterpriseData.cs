@@ -19,8 +19,6 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Instantiates <see cref="EnterpriseData"/> instance.
         /// </summary>
-        /// <param name="auth">Keeper authentication.</param>
-        /// <param name="treeKey">Enterprise tree key. Optional.</param>
         public EnterpriseData()
         {
             _nodes = new NodeDictionary();

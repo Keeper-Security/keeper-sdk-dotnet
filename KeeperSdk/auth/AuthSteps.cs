@@ -49,8 +49,7 @@ namespace KeeperSecurity.Authentication.Sync
     /// <summary>
     /// Represents base Keeper authentication step
     /// </summary>
-    /// <seealso cref="LoginStep"/>
-    /// <seealso cref="HttpProxyStep"/>
+    /// <seealso cref="ReadyToLoginStep"/>
     /// <seealso cref="DeviceApprovalStep"/>
     /// <seealso cref="TwoFactorStep"/>
     /// <seealso cref="PasswordStep"/>
@@ -222,7 +221,6 @@ namespace KeeperSecurity.Authentication.Sync
         /// Sends push action to the channel
         /// </summary>
         /// <param name="action">Push action</param>
-        /// <returns>Awaitable task</returns>
         public Task SendPush(TwoFactorPushAction action)
         {
             return OnSendPush?.Invoke(action);
@@ -235,7 +233,6 @@ namespace KeeperSecurity.Authentication.Sync
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="code"></param>
-        /// <returns>Awaitable task</returns>
         public Task SendCode(TwoFactorChannel channel, string code)
         {
             return OnSendCode?.Invoke(channel, code);
@@ -244,11 +241,8 @@ namespace KeeperSecurity.Authentication.Sync
         internal Func<Task> OnResume;
 
         /// <summary>
-        /// Sends verification code
+        /// Resumes login
         /// </summary>
-        /// <param name="channel"></param>
-        /// <param name="code"></param>
-        /// <returns>Awaitable task</returns>
         public Task Resume()
         {
             return OnResume?.Invoke();

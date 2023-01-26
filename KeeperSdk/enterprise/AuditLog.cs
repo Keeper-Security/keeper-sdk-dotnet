@@ -5,108 +5,15 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
+using KeeperSecurity.Enterprise.AuditLogCommands;
 #if NET452_OR_GREATER
 using KeeperSecurity.Utils;
 #endif
 
 namespace KeeperSecurity
 {
-    namespace Commands
+    namespace Commands 
     {
-        [DataContract]
-        public class CreatedFilter
-        {
-            [DataMember(Name = "max", EmitDefaultValue = false)]
-            public long? Max { get; set; }
-
-            [DataMember(Name = "min", EmitDefaultValue = false)]
-            public long? Min { get; set; }
-
-            [DataMember(Name = "exclude_max")]
-            public bool ExcludeMax { get; set; } = true;
-
-            [DataMember(Name = "exclude_min")]
-            public bool ExcludeMin { get; set; }
-        }
-
-        /// <summary>
-        /// Represents Audit Report Filter
-        /// </summary>
-        [DataContract]
-        public class ReportFilter
-        {
-            /// <summary>
-            /// Event Types
-            /// </summary>
-            /// <seealso cref="Enterprise.AuditLogExtensions.GetAvailableEvents"/>
-            [DataMember(Name = "audit_event_type", EmitDefaultValue = false)]
-            public string[] EventTypes { get; set; }
-
-            /// <summary>
-            /// Users
-            /// </summary>
-            [DataMember(Name = "username", EmitDefaultValue = false)]
-            public string[] Username { get; set; }
-
-            /// <summary>
-            /// Target Users
-            /// </summary>
-            [DataMember(Name = "to_username", EmitDefaultValue = false)]
-            public string[] ToUsername { get; set; }
-
-            /// <summary>
-            /// Record UIDs
-            /// </summary>
-            [DataMember(Name = "record_uid", EmitDefaultValue = false)]
-            public string[] RecordUid { get; set; }
-
-            /// <summary>
-            /// Shared Folder UIDs
-            /// </summary>
-            [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
-            public string[] SharedFolderUid { get; set; }
-
-            /// <summary>
-            /// Event Time
-            /// </summary>
-            /// <seealso cref="CreatedFilter"/>
-            /// <remarks>Predefined Filters: today, yesterday, last_30_days, last_7_days, month_to_date, last_month, year_to_date, last_year</remarks>
-            [DataMember(Name = "created", EmitDefaultValue = false)]
-            public object Created { get; set; }
-
-        }
-
-        [DataContract]
-        public class GetAuditEventReportsCommand : AuthenticatedCommand
-        {
-            public GetAuditEventReportsCommand() : base("get_audit_event_reports")
-            {
-            }
-
-            [DataMember(Name = "report_type")]
-            public string ReportType { get; set; } = "raw";
-
-            [DataMember(Name = "scope")]
-            public string Scope { get; internal set; } = "enterprise";
-
-            [DataMember(Name = "order")]
-            public string Order { get; set; } = "descending";
-
-            [DataMember(Name = "limit")]
-            public int Limit { get; set; } = 1000;
-
-            [DataMember(Name = "filter", EmitDefaultValue = false)]
-            public ReportFilter Filter { get; set; }
-        }
-
-        [DataContract]
-        public class GetAuditEventReportsResponse : KeeperApiResponse
-        {
-
-            [DataMember(Name = "audit_event_overview_report_rows")]
-            public List<Dictionary<string, object>> Events { get; private set; }
-        }
-
         [DataContract]
         public class GetAuditEventDimensionsCommand : AuthenticatedCommand
         {
@@ -160,11 +67,204 @@ namespace KeeperSecurity
 
     namespace Enterprise
     {
+        
+        namespace AuditLogCommands
+        {
+            /// <summary>
+            /// Represents Event Period Filter
+            /// </summary>
+            [DataContract]
+            public class CreatedFilter
+            {
+                /// <summary>
+                /// Maximum value.
+                /// </summary>
+                /// <remarks>UNIX epoch time in seconds</remarks>
+                [DataMember(Name = "max", EmitDefaultValue = false)]
+                public long? Max { get; set; }
+
+                /// <summary>
+                /// Mimimum value.
+                /// </summary>
+                /// <remarks>UNIX epoch time in seconds</remarks>
+                [DataMember(Name = "min", EmitDefaultValue = false)]
+                public long? Min { get; set; }
+
+                /// <summary>
+                /// Exclude Maximum value.
+                /// </summary>
+                /// <remarks>Less than Maxinum value if true</remarks>
+                [DataMember(Name = "exclude_max")]
+                public bool ExcludeMax { get; set; } = true;
+
+                /// <summary>
+                /// Exclude Minimum value.
+                /// </summary>
+                /// <remarks>Greater than Mininum value if true</remarks>
+                [DataMember(Name = "exclude_min")]
+                public bool ExcludeMin { get; set; }
+            }
+
+            /// <summary>
+            /// Represents Audit Report Filter
+            /// </summary>
+            [DataContract]
+            public class ReportFilter
+            {
+                /// <summary>
+                /// Event Types
+                /// </summary>
+                /// <seealso cref="Enterprise.AuditLogExtensions.GetAvailableEvents"/>
+                [DataMember(Name = "audit_event_type", EmitDefaultValue = false)]
+                public string[] EventTypes { get; set; }
+
+                /// <summary>
+                /// Users
+                /// </summary>
+                [DataMember(Name = "username", EmitDefaultValue = false)]
+                public string[] Username { get; set; }
+
+                /// <summary>
+                /// Target Users
+                /// </summary>
+                [DataMember(Name = "to_username", EmitDefaultValue = false)]
+                public string[] ToUsername { get; set; }
+
+                /// <summary>
+                /// Record UIDs
+                /// </summary>
+                [DataMember(Name = "record_uid", EmitDefaultValue = false)]
+                public string[] RecordUid { get; set; }
+
+                /// <summary>
+                /// Shared Folder UIDs
+                /// </summary>
+                [DataMember(Name = "shared_folder_uid", EmitDefaultValue = false)]
+                public string[] SharedFolderUid { get; set; }
+
+                /// <summary>
+                /// Event Time
+                /// </summary>
+                /// <seealso cref="CreatedFilter"/>
+                /// <remarks>Predefined Filters: today, yesterday, last_30_days, last_7_days, month_to_date, last_month, year_to_date, last_year</remarks>
+                [DataMember(Name = "created", EmitDefaultValue = false)]
+                public object Created { get; set; }
+            }
+
+            /// <summary>
+            /// Represents Audit Report Command
+            /// </summary>
+            [DataContract]
+            public class GetAuditEventReportsCommand : AuthenticatedCommand
+            {
+                /// <exclude />
+                public GetAuditEventReportsCommand() : base("get_audit_event_reports")
+                {
+                }
+
+                /// <summary>
+                /// Report Type
+                /// <list type="table">
+                /// <listheader><term>Report Type</term><description>Description</description></listheader>
+                /// <item><term>raw</term><description>Plain audit events. Default.</description></item>
+                /// <item><term>span</term><description>Events consolidated by <see cref="GetAuditEventReportsCommand.Columns"/>. Creation time is dropped.</description></item>
+                /// <item><term>month</term><description>Events consolidated by event month and <see cref="GetAuditEventReportsCommand.Columns"/>.</description></item>
+                /// <item><term>week</term><description>consolidated by event week ...</description></item>
+                /// <item><term>day</term><description>consolidated by event day ...</description></item>
+                /// <item><term>hour</term><description>consolidated by event hour ...</description></item>
+                /// </list>
+                /// </summary>
+                [DataMember(Name = "report_type")]
+                public string ReportType { get; set; } = "raw";
+
+                /// <summary>
+                /// Report Scope
+                /// <list type="table">
+                /// <listheader><term>Scope</term><description>Description</description></listheader>
+                /// <item><term>enterprise</term><description>Enterprise</description></item>
+                /// <item><term>user</term><description>Logged in user</description></item>
+                /// </list>
+                /// </summary>
+                [DataMember(Name = "scope")]
+                public string Scope { get; internal set; } = "enterprise";
+
+                /// <summary>
+                /// Sort Order
+                /// <list type="table">
+                /// <listheader><term>Sort Order</term><description>Description</description></listheader>
+                /// <item><term>descending</term><description>Default</description></item>
+                /// <item><term>ascending</term><description></description></item>
+                /// </list>
+                /// </summary>
+                [DataMember(Name = "order")]
+                public string Order { get; set; } = "descending";
+
+                /// <summary>
+                /// Number of rows to return
+                /// </summary>
+                /// <remarks>Maximum: 1000 - raw reports, 2000 - consolidated reports</remarks>
+                [DataMember(Name = "limit")]
+                public int Limit { get; set; } = 1000;
+
+                /// <summary>
+                /// Repord Filder
+                /// </summary>
+                /// <seealso cref="ReportFilter"/>
+                [DataMember(Name = "filter", EmitDefaultValue = false)]
+                public ReportFilter Filter { get; set; }
+
+                /// <summary>
+                /// Aggregate columns
+                /// <list type="table">
+                /// <listheader><term>Column</term><description>Description</description></listheader>
+                /// <item><term>occurrences</term><description>Event count</description></item>
+                /// <item><term>first_created</term><description>First event time. MIN(Created)</description></item>
+                /// <item><term>last_created</term><description>Last event time. MAX(Created)</description></item>
+                /// </list>
+                /// </summary>
+                /// <remarks>Consolidated reports only.</remarks>
+                [DataMember(Name = "aggregate", EmitDefaultValue = false)]
+                public string[] Aggregate { get; set; }
+
+                /// <summary>
+                /// Group by columns
+                /// <list type="table">
+                /// <listheader><term>Column</term><description>Description</description></listheader>
+                /// <item><term>audit_event_type</term><description>Event Type</description></item>
+                /// <item><term>username</term><description>Username</description></item>
+                /// <item><term>ip_address</term><description>IP Address</description></item>
+                /// <item><term>keeper_version</term><description>Keeper Client Version</description></item>
+                /// <item><term>to_username</term><description>Target Username</description></item>
+                /// <item><term>record_uid</term><description>Record UID</description></item>
+                /// <item><term>shared_folder_uid</term><description>Shared Folder UID</description></item>
+                /// <item><term>team_uid</term><description>Team UID</description></item>
+                /// </list>
+                /// </summary>
+                [DataMember(Name = "columns", EmitDefaultValue = false)]
+                public string[] Columns { get; set; }
+            }
+
+            /// <summary>
+            /// Represents Audit Report Response
+            /// </summary>
+            [DataContract]
+            public class GetAuditEventReportsResponse : KeeperApiResponse
+            {
+                /// <summary>
+                /// Events
+                /// </summary>
+                [DataMember(Name = "audit_event_overview_report_rows")]
+                public List<Dictionary<string, object>> Events { get; private set; }
+            }
+
+        }
+
         /// <summary>
         /// Enterprise Audit Log access methods.
         /// </summary>
         public static class AuditLogExtensions
         {
+
             /// <summary>
             /// Gets the list of all available audit events
             /// </summary>

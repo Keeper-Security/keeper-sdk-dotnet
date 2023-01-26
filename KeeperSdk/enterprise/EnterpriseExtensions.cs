@@ -13,7 +13,7 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Toggles "Node Isolation" flag for enterprise node.
         /// </summary>
-        /// <param name="enterprise">Enterprise Data.</param>
+        /// <param name="enterpriseData">Enterprise Data.</param>
         /// <param name="nodeId">Node ID</param>
         /// <returns>Awaitable Task</returns>
         public static async Task SetRestrictVisibility(this EnterpriseData enterpriseData, long nodeId)
@@ -34,7 +34,7 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Creates Enterprise Node
         /// </summary>
-        /// <param name="enterprise">Enterprise Data</param>
+        /// <param name="enterpriseData">Enterprise Data</param>
         /// <param name="nodeName">Node Name</param>
         /// <param name="parentNode">Parent Node</param>
         /// <returns>Awaitable task returning created node</returns>
@@ -72,7 +72,7 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Updates existing node
         /// </summary>
-        /// <param name="enterprise">Enterprise Data</param>
+        /// <param name="enterpriseData">Enterprise Data</param>
         /// <param name="node">Enterprise node</param>
         /// <param name="newParentNode">New Parent Node</param>
         /// <returns>Awaitable task</returns>
@@ -96,7 +96,7 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Deletes existing node
         /// </summary>
-        /// <param name="enterprise">Enterprise Data</param>
+        /// <param name="enterpriseData">Enterprise Data</param>
         /// <param name="nodeId">Node ID to be deleted</param>
         /// <returns>Awaitable task</returns>
         public static async Task DeleteNode(this EnterpriseData enterpriseData, long nodeId)

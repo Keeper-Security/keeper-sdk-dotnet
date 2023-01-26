@@ -50,7 +50,6 @@ namespace KeeperSecurity.Enterprise
         /// </summary>
         /// <param name="auth">Keeper Authentication</param>
         /// <param name="plugins">Enterprise data plugins</param>
-        /// <param name="treeKey">Enterprise tree key. Optional.</param>
         /// <seealso cref="EnterpriseData"/>
         /// <seealso cref="RoleData"/>
         /// <seealso cref="DeviceApprovalData"/>

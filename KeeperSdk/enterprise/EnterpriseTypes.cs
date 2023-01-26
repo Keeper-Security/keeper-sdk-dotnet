@@ -64,7 +64,6 @@ namespace KeeperSecurity.Enterprise
     /// <summary>
     /// Defines methods for modifying enterprise users and teams. 
     /// </summary>
-    /// <seealso cref="VaultOnline"/>
     public interface IEnterpriseDataManagement
     {
         /// <summary>
@@ -111,13 +110,15 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         ///     Deletes Enterprise Team.
         /// </summary>
-        /// <param name="team">Enterprise Team</param>
+        /// <param name="teamUid">Team UID</param>
         /// <returns>Task</returns>
         Task DeleteTeam(string teamUid);
         /// <summary>
         ///     Adds Users to Team.
         /// </summary>
+        /// <param name="emails">Emails</param>
         /// <param name="teamUid">Team Uid</param>
+        /// <param name="warnings">(Optional)</param>
         /// <returns>Task</returns>
         Task AddUsersToTeams(string[] emails, string[] teamUids, Action<string> warnings = null);
         /// <summary>
