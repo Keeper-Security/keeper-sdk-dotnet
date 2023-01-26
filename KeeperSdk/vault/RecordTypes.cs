@@ -809,6 +809,13 @@ namespace KeeperSecurity.Vault
             {
                 _recordFields.Add(rf.Name, rf);
             }
+            foreach (var ft in _fieldTypes.Values)
+            {
+                if (!_recordFields.ContainsKey(ft.Name))
+                {
+                    _recordFields.Add(ft.Name, new RecordField(ft.Name, ft));
+                }
+            }
         }
 
         /// <summary>
@@ -1036,7 +1043,7 @@ namespace KeeperSecurity.Vault
         public string Title { get; set; }
 
         [DataMember(Name = "lastModified", EmitDefaultValue = false)]
-        public long? LastModified { get; set; }
+        public double? LastModified { get; set; }
     }
 
     [DataContract]

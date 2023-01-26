@@ -283,6 +283,7 @@ namespace KeeperSecurity.Authentication.Async
 
         private async Task<AuthContext> LoginSsoV3(LoginContext v3, string providerName, bool forceLogin)
         {
+            SetPushNotifications(null);
             if (Ui != null && Ui is IAuthSsoUI)
             {
                 var rs = await this.GetSsoServiceProvider(v3, providerName);
@@ -296,6 +297,7 @@ namespace KeeperSecurity.Authentication.Async
 
         private async Task<AuthContext> LoginV3(LoginContext v3)
         {
+            SetPushNotifications(null);
             try
             {
                 var loginMethod = v3.AccountAuthType == AccountAuthType.Regular || v3.PasswordQueue.Count == 0
