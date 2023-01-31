@@ -180,6 +180,13 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
+        public Task<IList<RecordUpdateStatus>> UpdateRecords(IEnumerable<KeeperRecord> records)
+        {
+            return this.UpdateRecordBatch(records);
+        }
+
+
+        /// <inheritdoc/>
         public Task StoreNonSharedData<T>(string recordUid, T nonSharedData) where T : RecordNonSharedData, new()
         {
             return this.PutNonSharedData(recordUid, nonSharedData);

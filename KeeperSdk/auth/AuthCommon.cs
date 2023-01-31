@@ -174,6 +174,10 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude/>
         Task AuditEventLogging(string eventType, AuditEventInput input = null);
+        /// <exclude/>
+        void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null);
+        /// <exclude/>
+        Task FlushAuditEvents();
     }
 
     /// <summary>
@@ -702,22 +706,53 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        private readonly List<AuditEventItem> _auditEventQueue = new List<AuditEventItem>();
+
+        /// <exclude/>
+        public void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null)
+        {
+            if (AuthContext.EnterprisePublicEcKey != null)
+            {
+                _auditEventQueue.Add(new AuditEventItem
+                {
+                    AuditEventType = eventType,
+                    Inputs = input
+                });
+            }
+        }
+
+        /// <exclude/>
+        public async Task FlushAuditEvents()
+        {
+            if (AuthContext.EnterprisePublicEcKey != null)
+            {
+                List<AuditEventItem> events = null;
+                lock (_auditEventQueue)
+                {
+                    events = new List<AuditEventItem>(_auditEventQueue);
+                    _auditEventQueue.Clear();
+                }
+                while (events.Count > 0)
+                {
+                    var chunk = events.Take(99).ToArray();
+                    events.RemoveRange(0, chunk.Length);
+
+                    var rq = new AuditEventLoggingCommand
+                    {
+                        ItemLogs = chunk
+                    };
+                    _ = await AuthExtensions.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(this, rq);
+                }
+            }
+        }
+
         /// <exclude/>
         public async Task AuditEventLogging(string eventType, AuditEventInput input = null)
         {
             if (AuthContext.EnterprisePublicEcKey != null)
             {
-                var rq = new AuditEventLoggingCommand
-                {
-                    ItemLogs = new[] {
-                        new AuditEventItem
-                        {
-                            AuditEventType = eventType,
-                            Inputs = input
-                        }
-                    }
-                };
-                _ = await AuthExtensions.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(this, rq);
+                ScheduleAuditEventLogging(eventType, input);
+                await FlushAuditEvents();
             }
         }
 

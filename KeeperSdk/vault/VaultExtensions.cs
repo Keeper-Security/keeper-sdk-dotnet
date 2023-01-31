@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using Google.Protobuf;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 
@@ -104,6 +105,118 @@ namespace KeeperSecurity.Vault
             return permissions.FirstOrDefault(x => x.UserType == UserType.User) ?? permissions[0];
         }
 
+        internal static Records.RecordUpdate ExtractTypedRecordForUpdate(this VaultOnline vault, TypedRecord typed, IStorageRecord existingRecord) {
+            vault.AdjustTypedRecord(typed);
+            var recordUpdate = new Records.RecordUpdate
+            {
+                RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
+                ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Revision = typed.Revision,
+            };
+
+            var recordData = typed.ExtractRecordV3Data();
+            var jsonData = JsonUtils.DumpJson(recordData);
+            jsonData = PadRecordData(jsonData);
+            recordUpdate.Data =
+                ByteString.CopyFrom(CryptoUtils.EncryptAesV2(jsonData, typed.RecordKey));
+
+            jsonData = CryptoUtils.DecryptAesV2(existingRecord.Data.Base64UrlDecode(), typed.RecordKey);
+            recordData = JsonUtils.ParseJson<RecordTypeData>(jsonData);
+
+            var existingRefs = new HashSet<string>();
+            existingRefs.UnionWith((recordData.Fields ?? Enumerable.Empty<RecordTypeDataFieldBase>()
+                    .Concat(recordData.Custom ?? Enumerable.Empty<RecordTypeDataFieldBase>()))
+                .Where(x => !string.IsNullOrEmpty(x.Type))
+                .Where(x => x.Type.EndsWith("Ref"))
+                .Select(VaultExtensions.ConvertToTypedField)
+                .OfType<TypedField<string>>()
+                .SelectMany(x => x.Values, (field, s) => s));
+
+            var currentRefs = new HashSet<string>(typed.Fields.Concat(typed.Custom)
+                .Where(x => x.FieldName.EndsWith("Ref"))
+                .OfType<TypedField<string>>()
+                .SelectMany(x => x.Values, (field, s) => s));
+
+            recordUpdate.RecordLinksAdd.AddRange(currentRefs.Except(existingRefs)
+                .Select(x => vault.TryGetKeeperRecord(x, out var xr) ? xr : null)
+                .Where(x => x != null)
+                .Select(x => new Records.RecordLink
+                {
+                    RecordUid = ByteString.CopyFrom(x.Uid.Base64UrlDecode()),
+                    RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(x.RecordKey, typed.RecordKey))
+                }));
+
+            recordUpdate.RecordLinksRemove.AddRange(existingRefs.Except(currentRefs)
+                .Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+            if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
+            {
+                var rad = typed.ExtractRecordAuditData();
+                recordUpdate.Audit = new Records.RecordAudit
+                {
+                    Version = 0,
+                    Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(JsonUtils.DumpJson(rad),
+                        vault.Auth.AuthContext.EnterprisePublicEcKey))
+                };
+            }
+
+            return recordUpdate;
+        }
+
+        internal static RecordUpdateRecord ExtractPasswordRecordForUpdate(this IVault vault, PasswordRecord password, IStorageRecord existingRecord)
+        {
+            var pru = new RecordUpdateRecord
+            {
+                RecordUid = password.Uid,
+                Revision = password.Revision,
+            };
+            vault.ResolveRecordAccessPath(pru, forEdit: true);
+            var data = password.ExtractRecordData();
+            var unencryptedData = JsonUtils.DumpJson(data);
+            pru.Data = CryptoUtils.EncryptAesV1(unencryptedData, password.RecordKey).Base64UrlEncode();
+
+            RecordExtra existingExtra = null;
+            if (!string.IsNullOrEmpty(existingRecord.Extra))
+            {
+                try
+                {
+                    var unencryptedExtra =
+                        CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), password.RecordKey);
+                    existingExtra = JsonUtils.ParseJson<RecordExtra>(unencryptedExtra);
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"",
+                        existingRecord.RecordUid,
+                        e.GetType().Name,
+                        e.Message);
+                }
+            }
+            var extra = password.ExtractRecordExtra(existingExtra);
+            var extraBytes = JsonUtils.DumpJson(extra);
+            pru.Extra = CryptoUtils.EncryptAesV1(extraBytes, password.RecordKey).Base64UrlEncode();
+
+            var udata = new RecordUpdateUData();
+            var ids = new HashSet<string>();
+            if (password.Attachments != null)
+            {
+                foreach (var atta in password.Attachments)
+                {
+                    ids.Add(atta.Id);
+                    if (atta.Thumbnails != null)
+                    {
+                        foreach (var thumb in atta.Thumbnails)
+                        {
+                            ids.Add(thumb.Id);
+                        }
+                    }
+                }
+            }
+
+            udata.FileIds = ids.ToArray();
+            pru.Udata = udata;
+
+            return pru;
+        }
 
         internal static RecordData ExtractRecordData(this PasswordRecord record)
         {
