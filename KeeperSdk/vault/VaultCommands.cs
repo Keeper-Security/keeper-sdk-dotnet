@@ -154,8 +154,11 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "record_uid")]
         public string RecordUid;
 
-        [DataMember(Name = "status_code")]
-        public string StatusCode;
+        [DataMember(Name = "status")]
+        public string Status;
+
+        [DataMember(Name = "message")]
+        public string Message;
     }
 
     /// <exclude/>
@@ -166,7 +169,7 @@ namespace KeeperSecurity.Commands
         public RecordUpdateStatus[] AddRecords;
 
         [DataMember(Name = "update_records")]
-        public RecordUpdateRecord[] UpdateRecords;
+        public RecordUpdateStatus[] UpdateRecords;
 
         [DataMember(Name = "remove_records")]
         public RecordUpdateStatus[] RemoveRecords;

@@ -262,9 +262,17 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="record">Keeper Record.</param>
         /// <param name="skipExtra">Do not update file attachment information on the record.</param>
-        /// <returns>A task returning created password record.</returns>
+        /// <returns>A task returning updated password record.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task<KeeperRecord> UpdateRecord(KeeperRecord record, bool skipExtra = true);
+
+        /// <summary>
+        /// Modifies multiple password records.
+        /// </summary>
+        /// <param name="records">Keeper Records.</param>
+        /// <returns>A task returning record update statuses.</returns>
+        /// <exception cref="Authentication.KeeperApiException"></exception>
+        Task<IList<RecordUpdateStatus>> UpdateRecords(IEnumerable<KeeperRecord> records);
 
         /// <summary>
         /// Deletes password records.

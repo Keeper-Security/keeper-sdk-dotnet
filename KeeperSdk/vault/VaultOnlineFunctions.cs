@@ -10,6 +10,7 @@ using Google.Protobuf;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+using Records;
 
 namespace KeeperSecurity.Vault
 {
@@ -112,7 +113,7 @@ namespace KeeperSecurity.Vault
                     }
                 }
 
-                var dataSerializer = new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
+                var dataSerializer = new DataContractJsonSerializer(typeof(Commands.RecordData), JsonUtils.JsonSettings);
                 var data = pr.ExtractRecordData();
                 using (var ms = new MemoryStream())
                 {
@@ -352,6 +353,154 @@ namespace KeeperSecurity.Vault
             await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
         }
 
+        public static async Task<IList<RecordUpdateStatus>> UpdateRecordBatch(this VaultOnline vault, IEnumerable<KeeperRecord> records)
+        {
+            var v2Records = new List<RecordUpdateRecord>();
+            var v3Records = new List<RecordUpdate>();
+            var results = new List<RecordUpdateStatus>();
+            var passwordChanged = new HashSet<string>();
+            var isEnterpriseAccount = vault.Auth.AuthContext.EnterprisePublicEcKey != null;
+            foreach (var record in records)
+            {
+                var existingRecord = vault.Storage.Records.GetEntity(record.Uid);
+                if (existingRecord == null)
+                {
+                    results.Add(new RecordUpdateStatus
+                    {
+                        RecordUid = record.Uid,
+                        Status = "not_found",
+                        Message = $"Record \"{record.Uid}\" not found.",
+                    });
+                }
+
+                if (record is PasswordRecord password)
+                {
+                    v2Records.Add(vault.ExtractPasswordRecordForUpdate(password, existingRecord));
+                    if (isEnterpriseAccount)
+                    {
+                        var er = existingRecord.LoadV2(record.RecordKey);
+                        if ((er.Password ?? "") != (password.Password ?? ""))
+                        {
+                            passwordChanged.Add(record.Uid);
+                        }
+                    }
+                }
+                else if (record is TypedRecord typed)
+                {
+                    v3Records.Add(vault.ExtractTypedRecordForUpdate(typed, existingRecord));
+                    if (isEnterpriseAccount)
+                    {
+                        var er = existingRecord.LoadV3(record.RecordKey);
+                        if (typed.FindTypedField(new RecordTypeField("password"), out var f1) &&
+                            er.FindTypedField(new RecordTypeField("password"), out var f2))
+                        {
+                            var password1 = (f1.Value ?? "").ToString();
+                            var password2 = (f2.Value ?? "").ToString();
+
+                            if (password1 != password2)
+                            {
+                                passwordChanged.Add(record.Uid);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    results.Add(new RecordUpdateStatus
+                    {
+                        RecordUid = record.Uid,
+                        Status = "not_supported",
+                        Message = $"Record \"{record.Uid}\" update is not supported.",
+                    });
+                }
+            }
+            while (v2Records.Count > 0)
+            {
+                var chunk = v2Records.Take(99).ToArray();
+                v2Records.RemoveRange(0, chunk.Length);
+                var command = new RecordUpdateCommand
+                {
+                    deviceId = vault.Auth.Endpoint.DeviceName,
+                    UpdateRecords = chunk,
+                };
+
+                var rs = await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
+                results.AddRange(rs.UpdateRecords);
+
+                foreach (var status in rs.UpdateRecords)
+                {
+                    if (status.Status == "success")
+                    {
+                        vault.ScheduleForAudit(status.RecordUid);
+                    }
+                }
+                if (v2Records.Count > 50)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                }
+            }
+            while (v3Records.Count > 0)
+            {
+                var rq = new RecordsUpdateRequest
+                {
+                    ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                };
+                var chunk = v3Records.Take(900).ToArray();
+                v3Records.RemoveRange(0, chunk.Length);
+                rq.Records.AddRange(chunk);
+
+                var rs = await vault.Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>("vault/records_update", rq);
+                results.AddRange(rs.Records.Select(x =>
+                {
+                    var recordUid = x.RecordUid.ToByteArray().Base64UrlEncode();
+                    if (x.Status == RecordModifyResult.RsSuccess)
+                    {
+                        return new RecordUpdateStatus
+                        {
+                            RecordUid = recordUid,
+                            Status = "success",
+                        };
+                    }
+                    else 
+                    {
+                        var status = Enum.GetName(typeof(RecordModifyResult), x.Status);
+                        if (status.StartsWith("Rs"))
+                        {
+                            status = status.Substring(2);
+                        }
+                        return new RecordUpdateStatus
+                        {
+                            RecordUid = recordUid,
+                            Status = status.ToSnakeCase(),
+                            Message = x.Message,
+                        };
+                    }
+                }));
+                if (v2Records.Count > 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                }
+            }
+
+            if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
+            {
+                if (passwordChanged.Count > 0) {
+                    foreach (var status in results)
+                    {
+                        if (passwordChanged.Contains(status.RecordUid) && status.Status == "success")
+                        {
+                            vault.Auth.ScheduleAuditEventLogging("record_password_change", new AuditEventInput { RecordUid = status.RecordUid });
+                        }
+                    }
+                    await vault.Auth.FlushAuditEvents();
+                }
+            }
+
+            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+
+            return results;
+        }
+
         public static async Task<KeeperRecord> PutRecord(this VaultOnline vault, KeeperRecord record, bool skipExtra = true)
         {
             IStorageRecord existingRecord = null;
@@ -365,202 +514,15 @@ namespace KeeperSecurity.Vault
                 return await vault.AddRecordToFolder(record);
             }
 
-            if (record is PasswordRecord passwordRecord)
+            var statuses = await vault.UpdateRecords(new[] { record });
+            if (statuses?.Count > 0)
             {
-                var updateRecord = new RecordUpdateRecord
+                var status = statuses[0];
+                if (status.Status != "success")
                 {
-                    RecordUid = existingRecord.RecordUid,
-                    Revision = existingRecord.Revision
-                };
-
-                var rmd = vault.ResolveRecordAccessPath(updateRecord, true);
-                if (rmd != null)
-                {
-                    if (rmd.RecordKeyType == (int) KeyType.NoKey || rmd.RecordKeyType == (int) KeyType.PrivateKey)
-                    {
-                        updateRecord.RecordKey = CryptoUtils
-                            .EncryptAesV1(record.RecordKey, vault.Auth.AuthContext.DataKey)
-                            .Base64UrlEncode();
-                    }
-                }
-
-                var data = passwordRecord.ExtractRecordData();
-                var unencryptedData = JsonUtils.DumpJson(data);
-                updateRecord.Data = CryptoUtils.EncryptAesV1(unencryptedData, record.RecordKey).Base64UrlEncode();
-
-                if (!skipExtra)
-                {
-                    RecordExtra existingExtra = null;
-                    try
-                    {
-                        var unencryptedExtra =
-                            CryptoUtils.DecryptAesV1(existingRecord.Extra.Base64UrlDecode(), record.RecordKey);
-                        existingExtra = JsonUtils.ParseJson<RecordExtra>(unencryptedExtra);
-                    }
-                    catch (Exception e)
-                    {
-                        Trace.TraceError("Decrypt Record: UID: {0}, {1}: \"{2}\"",
-                            existingRecord.RecordUid,
-                            e.GetType().Name,
-                            e.Message);
-                    }
-
-                    var extra = passwordRecord.ExtractRecordExtra(existingExtra);
-                    var extraBytes = JsonUtils.DumpJson(extra);
-                    updateRecord.Extra = CryptoUtils.EncryptAesV1(extraBytes, record.RecordKey).Base64UrlEncode();
-
-                    var udata = new RecordUpdateUData();
-                    var ids = new HashSet<string>();
-                    if (passwordRecord.Attachments != null)
-                    {
-                        foreach (var atta in passwordRecord.Attachments)
-                        {
-                            ids.Add(atta.Id);
-                            if (atta.Thumbnails != null)
-                            {
-                                foreach (var thumb in atta.Thumbnails)
-                                {
-                                    ids.Add(thumb.Id);
-                                }
-                            }
-                        }
-                    }
-
-                    udata.FileIds = ids.ToArray();
-                    updateRecord.Udata = udata;
-                }
-
-                var command = new RecordUpdateCommand
-                {
-                    deviceId = vault.Auth.Endpoint.DeviceName,
-                    UpdateRecords = new[] { updateRecord }
-                };
-
-                await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
-                vault.ScheduleForAudit(record.Uid);
-            }
-            else if (record is TypedRecord typed)
-            {
-                vault.AdjustTypedRecord(typed);
-                var recordUpdate = new Records.RecordUpdate
-                {
-                    RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
-                    ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    Revision = record.Revision,
-                };
-
-                var recordData = typed.ExtractRecordV3Data();
-                var jsonData = JsonUtils.DumpJson(recordData);
-                jsonData = VaultExtensions.PadRecordData(jsonData);
-                recordUpdate.Data =
-                    ByteString.CopyFrom(CryptoUtils.EncryptAesV2(jsonData, record.RecordKey));
-
-                jsonData = CryptoUtils.DecryptAesV2(existingRecord.Data.Base64UrlDecode(), typed.RecordKey);
-                recordData = JsonUtils.ParseJson<RecordTypeData>(jsonData);
-
-                var existingRefs = new HashSet<string>();
-                existingRefs.UnionWith((recordData.Fields ?? Enumerable.Empty<RecordTypeDataFieldBase>()
-                        .Concat(recordData.Custom ?? Enumerable.Empty<RecordTypeDataFieldBase>()))
-                    .Where(x => !string.IsNullOrEmpty(x.Type))
-                    .Where(x => x.Type.EndsWith("Ref"))
-                    .Select(VaultExtensions.ConvertToTypedField)
-                    .OfType<TypedField<string>>()
-                    .SelectMany(x => x.Values, (field, s) => s));
-
-                var currentRefs = new HashSet<string>(typed.Fields.Concat(typed.Custom)
-                    .Where(x => x.FieldName.EndsWith("Ref"))
-                    .OfType<TypedField<string>>()
-                    .SelectMany(x => x.Values, (field, s) => s));
-
-                recordUpdate.RecordLinksAdd.AddRange(currentRefs.Except(existingRefs)
-                    .Select(x => vault.TryGetKeeperRecord(x, out var xr) ? xr : null)
-                    .Where(x => x != null)
-                    .Select(x => new Records.RecordLink
-                    {
-                        RecordUid = ByteString.CopyFrom(x.Uid.Base64UrlDecode()),
-                        RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(x.RecordKey, typed.RecordKey))
-                    }));
-
-                recordUpdate.RecordLinksRemove.AddRange(existingRefs.Except(currentRefs)
-                    .Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
-                if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
-                {
-                    var rad = typed.ExtractRecordAuditData();
-                    recordUpdate.Audit = new Records.RecordAudit
-                    {
-                        Version = 0,
-                        Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(JsonUtils.DumpJson(rad),
-                            vault.Auth.AuthContext.EnterprisePublicEcKey))
-                    };
-                }
-
-                var rq = new Records.RecordsUpdateRequest
-                {
-                    ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                };
-                rq.Records.Add(recordUpdate);
-
-                var rs = await vault.Auth.ExecuteAuthRest<Records.RecordsUpdateRequest, Records.RecordsModifyResponse>(
-                    "vault/records_update", rq);
-                var updateResult = rs.Records[0];
-                if (updateResult.Status != Records.RecordModifyResult.RsSuccess)
-                {
-                    var status = updateResult.Status.ToString().ToSnakeCase();
-                    if (status.StartsWith("rs_"))
-                    {
-                        status = status.Substring(3);
-                    }
-
-                    throw new KeeperApiException(status, updateResult.Message);
+                    throw new KeeperApiException(status.Status, status.Message);
                 }
             }
-            else
-            {
-                throw new Exception($"Unsupported record type: {record.GetType().Name}");
-            }
-
-            if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
-            {
-                _ = Task.Run(async () =>
-                {
-                    bool logPasswordChanged = false;
-                    switch (existingRecord.Version)
-                    {
-                        case 2:
-                        {
-                            if (record is PasswordRecord pr)
-                            {
-                                var er = existingRecord.LoadV2(record.RecordKey);
-                                logPasswordChanged = (er.Password ?? "") != (pr.Password ?? "");
-                            }
-                        }
-                        break;
-                        case 3:
-                        {
-                            if (record is TypedRecord tr)
-                            {
-                                var er = existingRecord.LoadV3(record.RecordKey);
-                                if (tr.FindTypedField(new RecordTypeField("password"), out var f1) &&
-                                    er.FindTypedField(new RecordTypeField("password"), out var f2))
-                                {
-                                    var password1 = (f1.Value ?? "").ToString();
-                                    var password2 = (f2.Value ?? "").ToString();
-
-                                    logPasswordChanged = password1 != password2;
-                                }
-                            }
-                        }
-                        break;
-                    }
-                    if (logPasswordChanged)
-                    {
-                        await vault.Auth.AuditEventLogging("record_password_change", new AuditEventInput { RecordUid = record.Uid });
-                    }
-                });
-            }
-
-            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
-
             return vault.TryGetKeeperRecord(record.Uid, out var r) ? r : record;
         }
 
