@@ -552,6 +552,12 @@
         <member name="M:KeeperSecurity.Authentication.IAuthentication.AuditEventLogging(System.String,KeeperSecurity.Commands.AuditEventInput)">
             <exclude/>
         </member>
+        <member name="M:KeeperSecurity.Authentication.IAuthentication.ScheduleAuditEventLogging(System.String,KeeperSecurity.Commands.AuditEventInput)">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IAuthentication.FlushAuditEvents">
+            <exclude/>
+        </member>
         <member name="T:KeeperSecurity.Authentication.IAuthContext">
             <summary>
             Defines properties of connected user.
@@ -673,6 +679,12 @@
             <exclude />
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.SupportRestrictedSession">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.ScheduleAuditEventLogging(System.String,KeeperSecurity.Commands.AuditEventInput)">
+            <exclude/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.FlushAuditEvents">
             <exclude/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthCommon.AuditEventLogging(System.String,KeeperSecurity.Commands.AuditEventInput)">
@@ -4223,6 +4235,9 @@
         <member name="M:KeeperSecurity.Vault.VaultOnline.UpdateRecord(KeeperSecurity.Vault.KeeperRecord,System.Boolean)">
             <inheritdoc/>
         </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.UpdateRecords(System.Collections.Generic.IEnumerable{KeeperSecurity.Vault.KeeperRecord})">
+            <inheritdoc/>
+        </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.StoreNonSharedData``1(System.String,``0)">
             <inheritdoc/>
         </member>
@@ -5849,7 +5864,15 @@
             </summary>
             <param name="record">Keeper Record.</param>
             <param name="skipExtra">Do not update file attachment information on the record.</param>
-            <returns>A task returning created password record.</returns>
+            <returns>A task returning updated password record.</returns>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVault.UpdateRecords(System.Collections.Generic.IEnumerable{KeeperSecurity.Vault.KeeperRecord})">
+            <summary>
+            Modifies multiple password records.
+            </summary>
+            <param name="records">Keeper Records.</param>
+            <returns>A task returning record update statuses.</returns>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
         </member>
         <member name="M:KeeperSecurity.Vault.IVault.DeleteRecords(KeeperSecurity.Vault.RecordPath[])">
