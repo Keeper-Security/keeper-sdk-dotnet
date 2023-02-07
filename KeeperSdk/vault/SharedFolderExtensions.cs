@@ -77,10 +77,10 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    string encryptedSharedFolderKey;
+                    byte[] encryptedSharedFolderKey;
                     if (TryGetTeam(userId, out var team))
                     {
-                        encryptedSharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, team.TeamKey).Base64UrlEncode();
+                        encryptedSharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, team.TeamKey);
                     }
                     else
                     {
@@ -101,7 +101,7 @@ namespace KeeperSecurity.Vault
                         }
 
                         var tpk = CryptoUtils.LoadPublicKey(tk.key.Base64UrlDecode());
-                        encryptedSharedFolderKey = CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, tpk).Base64UrlEncode();
+                        encryptedSharedFolderKey = CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, tpk);
                     }
 
                     request.SharedFolderAddTeam.Add(new Folder.SharedFolderUpdateTeam
@@ -109,6 +109,7 @@ namespace KeeperSecurity.Vault
                         TeamUid = ByteString.CopyFrom(userId.Base64UrlDecode()),
                         ManageUsers = options.ManageUsers == null ? sharedFolder.DefaultManageUsers : options.ManageUsers.Value,
                         ManageRecords = options.ManageRecords == null ? sharedFolder.DefaultManageRecords : options.ManageRecords.Value,
+                        SharedFolderKey = ByteString.CopyFrom(encryptedSharedFolderKey),
                     });
                 }
             }
