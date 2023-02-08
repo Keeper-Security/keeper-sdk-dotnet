@@ -42,7 +42,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Single Value only
         /// </summary>
-        None,
+        Never,
         /// <summary>
         /// Maybe multi-valued
         /// </summary>
@@ -50,7 +50,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Multi-Value field
         /// </summary>
-        Default,
+        Always,
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ namespace KeeperSecurity.Vault
     public class RecordField
     {
         /// <exclude />
-        public RecordField(string name, FieldType fieldType, RecordFieldMultiple multiple = RecordFieldMultiple.None)
+        public RecordField(string name, FieldType fieldType, RecordFieldMultiple multiple = RecordFieldMultiple.Optional)
         {
             Name = name;
             Type = fieldType;
@@ -114,6 +114,10 @@ namespace KeeperSecurity.Vault
         /// <param name="label">Field Label</param>
         public RecordTypeField(string fieldName, string label)
         {
+            if (string.IsNullOrEmpty(fieldName)) 
+            {
+                fieldName = "text";
+            }
             if (RecordTypesConstants.TryGetRecordField(fieldName, out var rf))
             {
                 RecordField = rf;
@@ -196,6 +200,7 @@ namespace KeeperSecurity.Vault
         public RecordTypeField[] Fields { get; internal set; }
     }
 
+    
     /// <summary>
     /// Defines access methods for compound record types
     /// </summary>
@@ -216,6 +221,17 @@ namespace KeeperSecurity.Vault
         /// <param name="value">Property value</param>
         /// <returns>true is the property was set</returns>
         bool SetElementValue(string element, string value);
+
+        /// <summary>
+        /// Sets field value from human friendly text
+        /// </summary>
+        /// <param name="value">String representation</param>
+        void SetValueAsString(string value);
+        /// <summary>
+        /// Gets human friendly text
+        /// </summary>
+        /// <returns></returns>
+        string GetValueAsString();
     }
 
     /// <summary>
@@ -241,30 +257,69 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "port", EmitDefaultValue = true)]
         public string Port { get; set; }
 
-        /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { HostName, Port };
 
         private static readonly string[] HostElements = new[] { "hostName", "port" };
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.Elements => HostElements;
-
+        public IEnumerable<string> Elements => HostElements;
         /// <exclude />
-        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        /// <exclude />
+        public IEnumerable<string> ElementValues
         {
-            if (element == "hostName")
+            get
             {
-                HostName = value;
+                yield return HostName;
+                yield return Port;
             }
-            else if (element == "port")
+        }
+        //=> new[] {  };
+
+        public bool SetElementValue(string element, string value)
+        {
+            switch (element)
             {
-                Port = value;
+                case "hostName": HostName = value; return true;
+                case "port": Port = value; return true;
+                default: return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void SetValueAsString(string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                var idx = value.LastIndexOf(':');
+                if (idx >= 0)
+                {
+                    HostName = value.Substring(0, idx).Trim();
+                    Port = value.Substring(idx + 1).Trim();
+                }
+                else
+                {
+                    HostName = value;
+                    Port = "";
+                }
             }
             else
             {
-                return false;
+                HostName = "";
+                Port = "";
             }
+        }
 
-            return true;
+        /// <inheritdoc/>
+        public string GetValueAsString()
+        {
+            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            {
+                return "";
+            }
+            var result = !string.IsNullOrEmpty(HostName) ? HostName : "";
+            if (!string.IsNullOrEmpty(Port))
+            {
+                result += $":{Port}";
+            }
+            return result;
         }
     }
 
@@ -304,38 +359,89 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "type", EmitDefaultValue = true)]
         public string Type { get; set; }
 
+
         private static readonly string[] PhoneElements = new[] { "region", "number", "ext", "type" };
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.Elements => PhoneElements;
+        public IEnumerable<string> Elements => PhoneElements;
 
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { Region, Number, Ext, Type };
+        public IEnumerable<string> ElementValues 
+        { 
+            get 
+            {
+                yield return Region;
+                yield return Number;
+                yield return Ext;
+                yield return Type;
+            }
+        }
 
         /// <exclude />
-        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        public bool SetElementValue(string element, string value)
         {
-            if (element == "region")
+            switch (element) 
             {
-                Region = value;
+                case "region": Region = value; return true;
+                case "number": Number = value; return true;
+                case "ext": Ext = value; return true;
+                case "type": Type = value; return true;
+                default: return true;
             }
-            else if (element == "number")
+        }
+        /// <inheritdoc/>
+        public void SetValueAsString(string value)
+        {
+            Type = "";
+            Region = "";
+            Number = "";
+            Ext = "";
+            if (string.IsNullOrEmpty(value))
             {
-                Number = value;
-            }
-            else if (element == "ext")
-            {
-                Ext = value;
-            }
-            else if (element == "type")
-            {
-                Type = value;
-            }
-            else
-            {
-                return false;
+                return;
             }
 
-            return true;
+            var idx = value.LastIndexOf(':');
+            if (idx >= 0)
+            {
+                Type = value.Substring(0, idx).Trim();
+                value = value.Substring(idx + 1).Trim();
+            }
+            var comps = value.Split(' ').Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+            if (comps.Length == 0)
+            {
+                return;
+            }
+            if (comps.Length == 1)
+            {
+                Number = comps[0];
+                return;
+            }
+
+            if (comps[0].StartsWith("+") || comps[0].Length == 2) 
+            { 
+                Region = comps[0];
+                comps[0] = null;
+                comps = comps.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+            }
+            if (comps.Length == 1)
+            {
+                Number = comps[0];
+                return;
+            }
+            Ext = comps[comps.Length - 1];
+            Number = string.Join(" ", comps.Take(comps.Length - 1));
+        }
+
+        /// <inheritdoc/>
+        public string GetValueAsString()
+        {
+            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            {
+                return "";
+            }
+            var result = !string.IsNullOrEmpty(Type) ? $"{Type}: " : "";
+            result += string.Join(" ", (new string[] { Region, Number, Ext }).Where(x => !string.IsNullOrEmpty(x)));
+            return result;
         }
     }
 
@@ -373,32 +479,79 @@ namespace KeeperSecurity.Vault
 
         private static readonly string[] NameElements = new string[] { "first", "middle", "last" };
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.Elements => NameElements;
+        public IEnumerable<string> Elements => NameElements;
 
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { First, Middle, Last };
-
-        /// <exclude />
-        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        public IEnumerable<string> ElementValues
         {
-            if (element == "first")
+            get
             {
-                First = value;
+                yield return First;
+                yield return Middle;
+                yield return Last;
             }
-            else if (element == "last")
+        }
+
+        /// <exclude />
+        public bool SetElementValue(string element, string value)
+        {
+            switch (element) 
             {
-                Last = value;
+                case "first": First = value; return true;
+                case "last": Last = value; return true;
+                case "middle": Middle = value; return true;
+                default: return false;
             }
-            else if (element == "middle")
+        }
+
+        /// <inheritdoc/>
+        public void SetValueAsString(string value)
+        {
+            First = "";
+            Last = "";
+            Middle = "";
+            if (string.IsNullOrEmpty(value))
             {
-                Middle = value;
+                return;
+            }
+
+            var idx = value.LastIndexOf(',');
+            if (idx >= 0)
+            {
+                Last = value.Substring(0, idx).Trim();
+                value = value.Substring(idx + 1).Trim();
             }
             else
             {
-                return false;
+                idx = value.LastIndexOf(' ');
+                if (idx >= 0)
+                {
+                    Last = value.Substring(idx + 1).Trim();
+                    value = value.Substring(0, idx).Trim();
+                }
             }
+            idx = value.LastIndexOf(' ');
+            if (idx >= 0)
+            {
+                First = value.Substring(0, idx).Trim();
+                Middle = value.Substring(idx + 1).Trim();
+            }
+            else
+            {
+                First = value;
+            }
+        }
 
-            return true;
+        /// <inheritdoc/>
+        public string GetValueAsString()
+        {
+            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            {
+                return "";
+            }
+            var result = string.IsNullOrEmpty(Last) ? "" : $"{Last}, ";
+            result += string.Join(" ", (new string[] { First, Middle }).Where(x => !string.IsNullOrEmpty(x)));
+            return result.Trim();
         }
     }
 
@@ -457,46 +610,116 @@ namespace KeeperSecurity.Vault
 
         private static readonly string[] AddressElements = new string[] { "street1", "street2", "city", "state", "zip", "country" };
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.Elements => AddressElements;
+        public IEnumerable<string> Elements => AddressElements;
 
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { Street1, Street2, City, State, Zip, Country };
-
-        /// <exclude />
-        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        public IEnumerable<string> ElementValues
         {
-            if (element == "street1")
-            {
-                Street1 = value;
+            get {
+                yield return Street1;
+                yield return Street2;
+                yield return City;
+                yield return State;
+                yield return Zip;
+                yield return Country;
             }
-            else if (element == "street2")
-            {
-                Street2 = value;
-            }
-            else if (element == "city")
-            {
-                City = value;
-            }
-            else if (element == "state")
-            {
-                State = value;
-            }
-            else if (element == "zip")
-            {
-                Zip = value;
-            }
-            else if (element == "country")
-            {
-                Country = value;
-            }
-            else
-            {
-                return false;
-            }
-
-            return true;
         }
 
+        /// <exclude />
+        public bool SetElementValue(string element, string value)
+        {
+            switch (element)
+            {
+                case "street1": Street1 = value; return true;
+                case "street2": Street2 = value; return true;
+                case "city": City = value; return true;
+                case "state": State = value; return true;
+                case "zip": Zip = value; return true;
+                case "country": Country = value; return true;
+                default: return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void SetValueAsString(string value)
+        {
+            Street1 = "";
+            Street2 = "";
+            City = "";
+            State = "";
+            Zip = "";
+            Country = "";
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+            var comps = value.Split(',').Select(x => x.Trim()).ToArray();
+            if (comps.Length == 0) {
+                return;
+            }
+            if (comps.Length >= 4) {
+                Country = comps[comps.Length - 1];
+                comps = comps.Take(comps.Length - 1).ToArray();
+            }
+            if (comps.Length >= 3)
+            {
+                var zip = comps[comps.Length - 1];
+                var pos = zip.LastIndexOf(' ');
+                if (pos > 0)
+                {
+                    State = zip.Substring(0, pos).Trim();
+                    Zip = zip.Substring(pos + 1).Trim();
+                }
+                else
+                {
+                    if (zip.Any(x => Char.IsNumber(x)))
+                    {
+                        Zip = zip;
+                    }
+                    else
+                    {
+                        State = zip;
+                    }
+                }
+                comps = comps.Take(comps.Length - 1).ToArray();
+            }
+            if (comps.Length >= 2)
+            {
+                City = comps[comps.Length - 1];
+                comps = comps.Take(comps.Length - 1).ToArray();
+            }
+
+            if (comps.Length >= 2)
+            {
+                Street2 = comps[comps.Length - 1];
+                Street1 = string.Join(" ", comps.Take(comps.Length - 1));
+            }
+            else if (comps.Length >= 1)
+            {
+                Street1 = string.Join(" ", comps);
+            }
+        }
+
+        /// <inheritdoc/>
+        public string GetValueAsString()
+        {
+            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            {
+                return "";
+            }
+
+            var result = Street1 ?? "";
+            if (!string.IsNullOrEmpty(Street2))
+            {
+                result += $" {Street2}";
+            }
+            result += $", {City ?? ""}, {State} {Zip}";
+            if (!string.IsNullOrEmpty(Country))
+            {
+                result += $", {Country}";
+            }
+            return result;
+        }
     }
 
     /// <summary>
@@ -525,30 +748,65 @@ namespace KeeperSecurity.Vault
 
         private static readonly string[] QAElements = new[] { "question", "answer" };
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.Elements => QAElements;
+        public IEnumerable<string> Elements => QAElements;
 
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { Question, Answer };
-
-
-        /// <exclude />
-        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        public IEnumerable<string> ElementValues
         {
-            if (element == "question")
+            get
             {
-                Question = value;
+                yield return Question;
+                yield return Answer;
             }
-            else if (element == "answer")
+        }
+
+        /// <exclude />
+        public bool SetElementValue(string element, string value)
+        {
+            switch (element)
             {
-                Answer = value;
+                case "question": Question = value; return true;
+                case "answer": Answer = value; return true;
+                default: return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void SetValueAsString(string value)
+        {
+            Question = "";
+            Answer = "";
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+            var pos = value.IndexOf('?');
+            if (pos >= 0)
+            {
+                Question = value.Substring(0, pos).Trim();
+                Answer = value.Substring(pos + 1).Trim();
             }
             else
             {
-                return false;
+                Question = value;
             }
-            return true;
         }
 
+        /// <inheritdoc/>
+        public string GetValueAsString()
+        {
+            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            {
+                return "";
+            }
+
+            var result = (Question ?? "").Replace("?", "") + "?";
+            if (!string.IsNullOrEmpty(Answer))
+            {
+                result += $" {Answer}";
+            }
+            return result;
+        }
     }
 
 
@@ -586,31 +844,72 @@ namespace KeeperSecurity.Vault
 
         private static readonly string[] AccountElements = new[] { "accountType", "routingNumber", "accountNumber" };
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.Elements => AccountElements;
+        public IEnumerable<string> Elements => AccountElements;
 
         /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { AccountType, RoutingNumber, AccountNumber };
+        public IEnumerable<string> ElementValues
+        {
+            get
+            {
+                yield return AccountType;
+                yield return RoutingNumber;
+                yield return AccountNumber;
+            }
+        }
 
         /// <exclude />
         bool IFieldTypeSerialize.SetElementValue(string element, string value)
         {
-            if (element == "accountType")
+            switch (element)
             {
-                AccountType = value;
+                case "accountType": AccountType = value; return true;
+                case "routingNumber": RoutingNumber = value; return true;
+                case "accountNumber": AccountNumber = value; return true;
+                default: return false;
             }
-            else if (element == "routingNumber")
+        }
+
+        /// <inheritdoc/>
+        public void SetValueAsString(string value)
+        {
+            AccountType = "";
+            RoutingNumber = "";
+            AccountNumber = "";
+
+            if (string.IsNullOrEmpty(value))
             {
-                RoutingNumber = value;
+                return;
             }
-            else if (element == "accountNumber")
+
+            var pos = value.IndexOf(':');
+            if (pos >= 0)
             {
-                AccountNumber = value;
+                AccountType = value.Substring(0, pos).Trim();
+                value = value.Substring(pos + 1).Trim();
+            }
+            pos = value.IndexOf(' ');
+            if (pos >= 0)
+            {
+                RoutingNumber = value.Substring(0, pos).Trim();
+                AccountNumber = value.Substring(pos + 1).Trim();
             }
             else
             {
-                return false;
+                RoutingNumber = value;
             }
-            return true;
+        }
+
+        /// <inheritdoc/>
+        public string GetValueAsString()
+        {
+            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            {
+                return "";
+            }
+
+            var result = string.IsNullOrEmpty(AccountType) ? "" : $"{AccountType}: ";
+            result += string.Join(" ", (new string[] { RoutingNumber, AccountNumber }).Where(x => !string.IsNullOrEmpty(x)));
+            return result;
         }
     }
 
@@ -647,32 +946,71 @@ namespace KeeperSecurity.Vault
         public string CardSecurityCode { get; set; }
 
         private static string[] CardElements = new[] { "cardNumber", "cardExpirationDate", "cardSecurityCode" };
-        /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.Elements => CardElements;
 
-        /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { CardNumber, CardExpirationDate, CardSecurityCode };
+        /// <inheritdoc />
+        public IEnumerable<string> Elements => CardElements;
 
-        /// <exclude />
-        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        /// <inheritdoc />
+        public IEnumerable<string> ElementValues
         {
-            if (element == "cardNumber")
+            get
             {
-                CardNumber = value;
+                yield return CardNumber;
+                yield return CardExpirationDate;
+                yield return CardSecurityCode;
             }
-            else if (element == "cardExpirationDate")
+        }
+
+        /// <inheritdoc />
+        public bool SetElementValue(string element, string value)
+        {
+            switch (element)
             {
-                CardExpirationDate = value;
+                case "cardNumber": CardNumber = value; return true;
+                case "cardExpirationDate": CardExpirationDate = value; return true;
+                case "cardSecurityCode": CardSecurityCode = value; return true;
+                default: return false;
             }
-            else if (element == "cardSecurityCode")
+        }
+
+        /// <inheritdoc/>
+        public void SetValueAsString(string value)
+        {
+            CardNumber = "";
+            CardExpirationDate = "";
+            CardSecurityCode = "";
+
+            if (string.IsNullOrEmpty(value))
             {
-                CardSecurityCode = value;
+                return;
             }
-            else
+
+            foreach (var comp in value.Split(' ').Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)))
             {
-                return false;
+                if (comp.Length > 10)
+                {
+                    CardNumber = comp;
+                }
+                else if (comp.IndexOf('/') >= 0)
+                {
+                    CardExpirationDate = comp;
+                }
+                else if (comp.Length < 6)
+                {
+                    CardSecurityCode = comp;
+                }
             }
-            return true;
+        }
+
+        /// <inheritdoc/>
+        public string GetValueAsString()
+        {
+            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            {
+                return "";
+            }
+
+            return string.Join(" ", (new string[] { CardNumber, CardExpirationDate, CardSecurityCode }).Where(x => !string.IsNullOrEmpty(x)));
         }
     }
 
@@ -700,28 +1038,65 @@ namespace KeeperSecurity.Vault
         public string PrivateKey { get; set; }
 
         private static string[] KeyPairElements = new[] { "publicKey", "privateKey" };
-        /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.Elements => KeyPairElements;
 
-        /// <exclude />
-        IEnumerable<string> IFieldTypeSerialize.ElementValues => new[] { PublicKey, PrivateKey };
+        /// <inheritdoc />
+        public IEnumerable<string> Elements => KeyPairElements;
 
-        /// <exclude />
-        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        /// <inheritdoc />
+        public IEnumerable<string> ElementValues
         {
-            if (element == "publicKey")
+            get
             {
-                PublicKey = value;
+                yield return PublicKey;
+                yield return PrivateKey;
             }
-            else if (element == "privateKey")
+        }
+
+        /// <inheritdoc />
+        public bool SetElementValue(string element, string value)
+        {
+            switch (element)
             {
-                PrivateKey = value;
+                case "publicKey": PublicKey = value; return true;
+                case "privateKey": PrivateKey = value; return true;
+                default: return false;
+            }
+        }
+
+        private const string PUBLIC_KEY = "Public Key:";
+        /// <inheritdoc/>
+        public void SetValueAsString(string value)
+        {
+            PrivateKey = "";
+            PublicKey = "";
+
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+            if (value.StartsWith(PUBLIC_KEY))
+            {
+                PublicKey = value.Substring(PUBLIC_KEY.Length).Trim();
             }
             else
             {
-                return false;
+                PrivateKey = value;
             }
-            return true;
+        }
+
+        /// <inheritdoc/>
+        public string GetValueAsString()
+        {
+            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            {
+                return "";
+            }
+            if (string.IsNullOrEmpty(PrivateKey))
+            {
+                return PrivateKey;
+            }
+
+            return $"{PUBLIC_KEY} {PublicKey}";
         }
     }
 
@@ -775,35 +1150,32 @@ namespace KeeperSecurity.Vault
 
             var fields = new[]
             {
+                new RecordField("login", _fieldTypes["login"], RecordFieldMultiple.Never),
+                new RecordField("password", _fieldTypes["password"], RecordFieldMultiple.Never),
+                new RecordField("company", _fieldTypes["text"], RecordFieldMultiple.Never),
+                new RecordField("licenseNumber", _fieldTypes["multiline"], RecordFieldMultiple.Never),
+                new RecordField("accountNumber", _fieldTypes["text"], RecordFieldMultiple.Never),
+                new RecordField("bankAccount", _fieldTypes["bankAccount"], RecordFieldMultiple.Never),
+                new RecordField("note", _fieldTypes["multiline"], RecordFieldMultiple.Never),
+                new RecordField("oneTimeCode", _fieldTypes["otp"], RecordFieldMultiple.Never),
+                new RecordField("keyPair", _fieldTypes["privateKey"], RecordFieldMultiple.Never),
+                new RecordField("pinCode", _fieldTypes["secret"], RecordFieldMultiple.Never),
+                new RecordField("expirationDate", _fieldTypes["date"], RecordFieldMultiple.Never),
+                new RecordField("birthDate", _fieldTypes["date"], RecordFieldMultiple.Never),
                 new RecordField("text", _fieldTypes["text"]),
-                new RecordField("title", _fieldTypes["text"]),
-                new RecordField("login", _fieldTypes["login"]),
-                new RecordField("password", _fieldTypes["password"]),
                 new RecordField("name", _fieldTypes["name"]),
-                new RecordField("company", _fieldTypes["text"]),
-                new RecordField("phone", _fieldTypes["phone"], RecordFieldMultiple.Optional),
-                new RecordField("email", _fieldTypes["email"], RecordFieldMultiple.Optional),
+                new RecordField("phone", _fieldTypes["phone"]),
+                new RecordField("email", _fieldTypes["email"]),
                 new RecordField("address", _fieldTypes["address"]),
                 new RecordField("addressRef", _fieldTypes["addressRef"]),
                 new RecordField("date", _fieldTypes["date"]),
-                new RecordField("expirationDate", _fieldTypes["date"]),
-                new RecordField("birthDate", _fieldTypes["date"]),
                 new RecordField("paymentCard", _fieldTypes["paymentCard"]),
-                new RecordField("accountNumber", _fieldTypes["text"]),
-                new RecordField("bankAccount", _fieldTypes["bankAccount"]),
-                new RecordField("cardRef", _fieldTypes["cardRef"], RecordFieldMultiple.Default),
-                new RecordField("note", _fieldTypes["multiline"]),
-                new RecordField("url", _fieldTypes["url"], RecordFieldMultiple.Optional),
-                new RecordField("fileRef", _fieldTypes["fileRef"], RecordFieldMultiple.Default),
-                new RecordField("host", _fieldTypes["host"], RecordFieldMultiple.Optional),
-                new RecordField("securityQuestion", _fieldTypes["securityQuestion"], RecordFieldMultiple.Default),
-                new RecordField("pinCode", _fieldTypes["secret"]),
+                new RecordField("cardRef", _fieldTypes["cardRef"]),
+                new RecordField("url", _fieldTypes["url"]),
+                new RecordField("host", _fieldTypes["host"]),
                 new RecordField("secret", _fieldTypes["secret"]),
-                new RecordField("oneTimeCode", _fieldTypes["otp"]),
-                new RecordField("keyPair", _fieldTypes["privateKey"]),
-                new RecordField("licenseNumber", _fieldTypes["multiline"]),
-                new RecordField("isSSIDHidden", _fieldTypes["checkbox"]),
-                new RecordField("wifiEncryption", _fieldTypes["dropdown"]),
+                new RecordField("securityQuestion", _fieldTypes["securityQuestion"], RecordFieldMultiple.Always),
+                new RecordField("fileRef", _fieldTypes["fileRef"], RecordFieldMultiple.Always),
             };
             foreach (var rf in fields)
             {
@@ -949,6 +1321,9 @@ namespace KeeperSecurity.Vault
 
         [DataMember(Name = "label")]
         public string Label { get; set; }
+
+        [DataMember(Name = "required")]
+        public bool? Required { get; set; }
 
         [DataMember(Name = "complexity")]
         public PasswordFieldComplexity Complexity { get; set; }

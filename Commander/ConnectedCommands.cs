@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -197,6 +200,13 @@ namespace Commander
                         Order = 32,
                         Description = "Change the sharing permissions of an individual record",
                         Action = ShareRecordCommand
+                    });
+                Commands.Add("import",
+                    new ParseableCommand<ImportCommandOptions>
+                    {
+                        Order = 33,
+                        Description = "Imports records from JSON file",
+                        Action = ImportCommand
                     });
 
                 if (auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
@@ -995,16 +1005,7 @@ namespace Commander
                             {
                                 if (typedField.GetValueAt(idx) is IFieldTypeSerialize typedValue)
                                 {
-                                    foreach (var pair in field.Value.Split(','))
-                                    {
-                                        var pos = pair.IndexOf('=');
-                                        var element = pos > 0 ? pair.Substring(0, pos) : pair;
-                                        var value = pos > 0 ? pair.Substring(pos + 1) : "";
-                                        if (!typedValue.SetElementValue(element, value))
-                                        {
-                                            throw new Exception($"Field type {field.FieldName}: Invalid element name: {element}.");
-                                        }
-                                    }
+                                    typedValue.SetValueAsString(field.Value);
                                 }
                                 else
                                 {
@@ -1037,7 +1038,7 @@ namespace Commander
                     {
                         field.FieldLabel = rtf.FieldLabel;
                         field.IsRecordField = true;
-                        if (rtf.RecordField.Multiple == RecordFieldMultiple.Default)
+                        if (rtf.RecordField.Multiple == RecordFieldMultiple.Always)
                         {
                             recordFields.Remove(field.FieldName);
                         }
@@ -1057,7 +1058,7 @@ namespace Commander
 
                 if (string.IsNullOrEmpty(field.FieldIndex)) continue;
 
-                if (recordField.Multiple != RecordFieldMultiple.Default)
+                if (recordField.Multiple != RecordFieldMultiple.Always)
                 {
                     throw new Exception($"Record field \"{field.FieldName}\" does not support multiple values");
                 }
@@ -1956,7 +1957,7 @@ namespace Commander
                 var clientKey = t.Item2;
 
                 Console.WriteLine("Successfully generated Client Device\n");
-                Console.WriteLine($"One-Time Access Token: { clientKey}");
+                Console.WriteLine($"One-Time Access Token: {clientKey}");
                 var ipLock = device.LockIp ? "Enabled" : "Disabled";
                 Console.WriteLine($"IP Lock: {ipLock}");
                 var firstAccessOn = device.FirstAccessExpireOn.HasValue ? device.FirstAccessExpireOn.Value.ToString("G") : "Taken";
@@ -1966,7 +1967,7 @@ namespace Commander
             }
             else if (action == "delete-client")
             {
-                if (string.IsNullOrEmpty(arguments.ClientName)) 
+                if (string.IsNullOrEmpty(arguments.ClientName))
                 {
                     Console.Write("\"client-name\" parameter is required");
                     return;
@@ -2461,6 +2462,53 @@ namespace Commander
             }
         }
 
+        private async Task ImportCommand(ImportCommandOptions options) 
+        { 
+            void Logger(Severity severity, string message) 
+            {
+                if (severity == Severity.Warning || severity == Severity.Error) 
+                { 
+                    Console.WriteLine(message);
+                }
+                Debug.WriteLine(message);
+            }
+
+            if (!File.Exists(options.FileName)) 
+            {
+                throw new Exception($"File \"{options.FileName}\" does not exist");
+            }
+            var json = File.ReadAllText(options.FileName);
+            var j_options = new ZeroDep.JsonOptions {
+                DateTimeStyles = DateTimeStyles.None,
+            };
+            j_options.SerializationOptions &= ~ZeroDep.JsonSerializationOptions.AutoParseDateTime;
+            var j = ZeroDep.Json.Deserialize<Dictionary<string, object>>(json, j_options);
+            var import = KeeperImport.LoadJsonDictionary(j);
+            var result = await _vault.ImportJson(import, Logger);
+            var table = new Tabulate(2)
+            {
+                LeftPadding = 4
+            };
+            table.SetColumnRightAlign(0, true);
+            if (result.SharedFolderCount > 0)
+            {
+                table.AddRow("Shared Folders:", result.SharedFolderCount);
+            }
+            if (result.FolderCount > 0)
+            {
+                table.AddRow("Folders:", result.FolderCount);
+            }
+            if (result.TypedRecordCount > 0)
+            {
+                table.AddRow("Records:", result.TypedRecordCount);
+            }
+            if (result.LegacyRecordCount > 0)
+            {
+                table.AddRow("Legacy Records:", result.LegacyRecordCount);
+            }
+            table.Dump();
+        }
+
         private Task RecordTypeInfoCommand(RecordTypeInfoOptions options)
         {
             Tabulate table = null;
@@ -2475,7 +2523,7 @@ namespace Commander
                         table.AddRow(f.Name, f.Type?.Name,
                             f.Multiple == RecordFieldMultiple.Optional
                                 ? "optional"
-                                : (f.Multiple == RecordFieldMultiple.Default ? "default" : ""),
+                                : (f.Multiple == RecordFieldMultiple.Always ? "default" : ""),
                             f.Type?.Description ?? "");
                     }
                 }
@@ -2534,8 +2582,18 @@ namespace Commander
                     {
                         if (typeof(IFieldTypeSerialize).IsAssignableFrom(fieldInfo.Type.Type))
                         {
-                            IFieldTypeSerialize fts = (IFieldTypeSerialize) Activator.CreateInstance(fieldInfo.Type.Type);
-                            table.AddRow("Value Elements:", string.Join(", ", fts.Elements.Select(x => $"\"{x}\"")));
+                            var elements = new List<string>();
+                            var properties = fieldInfo.Type.Type.GetProperties();
+                            foreach (var prop in properties) 
+                            {
+                                var attribute = prop.GetCustomAttribute<DataMemberAttribute>(true);
+                                if (attribute != null) 
+                                { 
+                                    elements.Add(attribute.Name);
+                                }
+                            }
+                            
+                            table.AddRow("Value Elements:", string.Join(", ", elements.Select(x => $"\"{x}\"")));
                         }
                     }
                 }
@@ -2899,6 +2957,12 @@ namespace Commander
 
         [Option("can-edit", Required = false, Default = null, HelpText = "default can edit")]
         public bool? CanEdit { get; set; }
+    }
+
+    class ImportCommandOptions 
+    {
+        [Value(0, Required = true, HelpText = "JSON import filename")]
+        public string FileName { get; set; }
     }
 
     class SecretManagerOptions

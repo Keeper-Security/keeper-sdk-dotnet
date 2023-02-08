@@ -394,8 +394,8 @@ namespace KeeperSecurity.Vault
                         if (typed.FindTypedField(new RecordTypeField("password"), out var f1) &&
                             er.FindTypedField(new RecordTypeField("password"), out var f2))
                         {
-                            var password1 = (f1.Value ?? "").ToString();
-                            var password2 = (f2.Value ?? "").ToString();
+                            var password1 = (f1.ObjectValue ?? "").ToString();
+                            var password2 = (f2.ObjectValue ?? "").ToString();
 
                             if (password1 != password2)
                             {

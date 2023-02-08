@@ -685,7 +685,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Defines properties for typed record field
     /// </summary>
-    public interface ITypedField : IRecordTypeField, ICustomField
+    public interface ITypedField : IRecordTypeField
     {
         /// <summary>
         /// Gets or sets the first field value
@@ -697,6 +697,12 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <returns></returns>
         object AppendValue();
+
+        /// <summary>
+        /// Deletes value at index.
+        /// </summary>
+        /// <param name="index">Index</param>
+        void DeleteValueAt(int index);
 
         /// <summary>
         /// Gets value at index
@@ -713,15 +719,11 @@ namespace KeeperSecurity.Vault
         void SetValueAt(int index, object value);
 
         /// <summary>
-        /// Deletes value at index.
-        /// </summary>
-        /// <param name="index">Index</param>
-        void DeleteValueAt(int index);
-
-        /// <summary>
         /// Gets the number of values
         /// </summary>
         int Count { get; }
+
+
     }
 
     /// <summary>
@@ -800,21 +802,32 @@ namespace KeeperSecurity.Vault
 
         string IRecordTypeField.FieldName => _dataField.Type;
         string IRecordTypeField.FieldLabel => _dataField.Label;
-
-        string ICustomField.Type => _dataField.Type;
-        string ICustomField.Name => _dataField.Label;
-        string ICustomField.Value 
-        {
-            get => null;
-            set { } 
-        }
     }
+
+    /// <summary>
+    /// Defines methods for typed field serialization
+    /// </summary>
+    public interface ISerializeTypedField
+    {
+        /// <summary>
+        /// Imports the content of typed field from text
+        /// </summary>
+        /// <param name="text">external field representation</param>
+        void ImportTypedField(string text);
+        /// <summary>
+        /// Exports typed field to text
+        /// </summary>
+        /// <returns>external field representation</returns>
+        string ExportTypedField();
+    }
+
+
 
     /// <summary>
     /// Represents a typed field.
     /// </summary>
     /// <typeparam name="T">Field Data Type</typeparam>
-    public class TypedField<T> : ITypedField, IToRecordTypeDataField
+    public class TypedField<T> : ITypedField, IToRecordTypeDataField, ISerializeTypedField
     {
         internal TypedField(RecordTypeDataField<T> dataField)
         {
@@ -862,6 +875,9 @@ namespace KeeperSecurity.Vault
                     break;
                 case List<long> ll:
                     ll.Add(0);
+                    break;
+                case List<bool> lf:
+                    lf.Add(false);
                     break;
                 default:
                     Values.Add((T) Activator.CreateInstance(typeof(T)));
@@ -961,20 +977,106 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Appends a value.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Default value</returns>
         object ITypedField.AppendValue()
         {
             return AppendTypedValue();
         }
 
-        string ICustomField.Name => FieldLabel;
-        string ICustomField.Value
+        void ISerializeTypedField.ImportTypedField(string text)
         {
-            get => (TypedValue is string s) ? s : null;
-            set => TypedValue = value is T t ? t : default;
+            Values.Clear();
+            if (string.IsNullOrEmpty(text)) 
+            {
+                return;
+            }
+
+            switch (Values)
+            {
+                case List<string> ls:
+                    ls.AddRange(text.Split('\n').Select(x => x.Replace("\\n", "\n").Trim()));
+                    break;
+                case List<long> ll:
+                {
+                    ll.AddRange(text.Split('\n').Select(x => x.Trim()).Select(x => 
+                    {
+                        if (x.All(y => char.IsDigit(y)))
+                        {
+                            return long.Parse(x);
+                        }
+                        else if (FieldName == "date")
+                        {
+                            var dt = DateTimeOffset.Parse(x);
+                            return dt.ToUnixTimeMilliseconds();
+                        }
+                        return 0;
+                    }).Where(x => x > 0));
+                }
+                break;
+                case List<bool> lb:
+                    lb.AddRange(text.Split('\n').Select(x => 
+                    {
+                        return (new string[] { "1", "on", "true"}).Any(y => string.Equals(y, "on", StringComparison.InvariantCultureIgnoreCase));
+                    }));
+                    break;
+
+                default:
+                    if (typeof(IFieldTypeSerialize).IsAssignableFrom(typeof(T)))
+                    {
+                        Values.AddRange(text.Split('\n').Select(x => 
+                        {
+                            var v = Activator.CreateInstance<T>();
+                            ((IFieldTypeSerialize)v).SetValueAsString(x);
+                            return v;
+                        }));
+                    }
+                    else
+                    {
+                        throw new Exception($"Field type {typeof(T).Name} does not support serialization.");
+                    }
+                    break;
+            }
         }
-           
-        string ICustomField.Type => FieldName;
+        string ISerializeTypedField.ExportTypedField()
+        {
+            if (Values.Count == 0)
+            {
+                return "";
+            }
+            switch (Values)
+            {
+                case List<string> ls:
+                    return string.Join("\n", ls.Where(x => !string.IsNullOrEmpty(x)).Select(x => x.Replace("\n", "\\n")));
+
+                case List<long> ll:
+                {
+                    return string.Join("\n", ll.Where(x => x > 0).Select(x =>
+                    {
+                        if (FieldName == "date")
+                        {
+                            var dt = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(x).Date;
+                            return dt.ToString("yyyy-MM-dd");
+                        }
+                        else
+                        {
+                            return x.ToString();
+                        }
+                    }));
+                }
+                case List<bool> lb:
+                    return string.Join("\n", lb.Select(x => x ? "1" : "0"));
+
+                default:
+                    if (typeof(IFieldTypeSerialize).IsAssignableFrom(typeof(T)))
+                    {
+                        return string.Join("\n", Values.OfType<IFieldTypeSerialize>().Select(x => x.GetValueAsString()).Where(x => !string.IsNullOrEmpty(x)));
+                    }
+                    else
+                    {
+                        throw new Exception($"Field type {typeof(T).Name} does not support serialization.");
+                    }
+            }
+        }
     }
 
     /// <summary>
@@ -1016,6 +1118,59 @@ namespace KeeperSecurity.Vault
         /// A list of Attachments.
         /// </summary>
         public IList<AttachmentFile> Attachments { get; } = new List<AttachmentFile>();
+
+        /// <summary>
+        /// Gets a custom field.
+        /// </summary>
+        /// <param name="record">KeeperRecord</param>
+        /// <param name="name">Custom field Name.</param>
+        /// <returns>Returns custom field or <c>null</c> is it was not found.</returns>
+        public ICustomField GetCustomField(string name)
+        {
+            return Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        /// <summary>
+        /// Deletes a custom field.
+        /// </summary>
+        /// <param name="record">KeeperRecord</param>
+        /// <param name="name">Custom field Name.</param>
+        /// <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
+        public ICustomField DeleteCustomField(string name)
+        {
+            var cf = Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
+            if (cf != null)
+            {
+                if (Custom.Remove(cf))
+                {
+                    return cf;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Adds or Changes custom field.
+        /// </summary>
+        /// <param name="record">KeeperRecord</param>
+        /// <param name="name">Name.</param>
+        /// <param name="value">Value.</param>
+        /// <returns>Added or modified custom field.</returns>
+        public ICustomField SetCustomField(string name, string value)
+        {
+            var cf = Custom.FirstOrDefault(x => string.Equals(name, x.Name, StringComparison.CurrentCultureIgnoreCase));
+            if (cf == null)
+            {
+                cf = new CustomField
+                {
+                    Name = name
+                };
+                Custom.Add(cf);
+            }
+
+            cf.Value = value ?? "";
+            return cf;
+        }
     }
 
     /// <summary>
