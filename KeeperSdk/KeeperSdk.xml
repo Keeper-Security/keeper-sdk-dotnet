@@ -4086,6 +4086,133 @@
             <seealso cref="T:KeeperSecurity.Utils.CryptoUtils"/>
             <seealso cref="T:KeeperSecurity.Utils.JsonUtils"/>
         </member>
+        <member name="T:KeeperSecurity.Vault.Severity">
+            <summary>
+            Specifies log message severity
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.Severity.Error">
+            <summary>
+            Fatal error
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.Severity.Warning">
+            <summary>
+            Skippable error
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.Severity.Information">
+            <summary>
+            Infomation
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.BatchResult">
+            <summary>
+            Represents Batch Vault Updater Summary
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchResult.SharedFolderCount">
+            <summary>
+            Gets number of added shared folders
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchResult.FolderCount">
+            <summary>
+            Gets number of added folders
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchResult.LegacyRecordCount">
+            <summary>
+            Gets number of added legacy records
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchResult.TypedRecordCount">
+            <summary>
+            Get number of added typed records
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.BatchVaultOperations">
+            <summary>
+            Represents Batch Vault Updater
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.#ctor(KeeperSecurity.Vault.VaultOnline)">
+            <summary>
+            Instantiate <see cref="T:KeeperSecurity.Vault.BatchVaultOperations"/>.
+            </summary>
+            <param name="vault">Vault instance</param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.Reset">
+            <summary>
+            Resets all pending tasks
+            </summary>
+        </member>
+        <member name="F:KeeperSecurity.Vault.BatchVaultOperations.PathDelimiter">
+            <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.GetFolderByPath(System.String)">
+            <summary>
+            Finds folder node by folder path
+            </summary>
+            <param name="folderPath">Folder Path</param>
+            <seealso cref="T:KeeperSecurity.Vault.FolderNode"/>
+            <returns>folder node</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.CreateFolderPath(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Composes folder path
+            </summary>
+            <param name="folderNames">folder name list</param>
+            <returns>folder path</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.ParseFolderPath(System.String)">
+            <summary>
+            Parses folder path to names
+            </summary>
+            <param name="folderPath">folder path</param>
+            <returns>folder name list</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.AddFolder(KeeperSecurity.Vault.FolderNode,KeeperSecurity.Vault.SharedFolderOptions)">
+            <summary>
+            Appends folder to folder structure
+            </summary>
+            <param name="folder">folder node</param>
+            <param name="sharedFolderOptions">shared folder options</param>
+            <returns>folder node</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.AddRecord(KeeperSecurity.Vault.KeeperRecord,KeeperSecurity.Vault.FolderNode)">
+            <summary>
+            Appends record
+            </summary>
+            <param name="record">record</param>
+            <param name="folder">folder</param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.ApplyChanges">
+            <summary>
+            Applies pending changes
+            </summary>
+            <returns>Summary of changes</returns>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchVaultOperations.BatchLogger">
+            <summary>
+            Gets or sets logger
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchVaultOperations.FoldersToAdd">
+            <summary>
+            Gets number of folders to be added
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchVaultOperations.LegacyRecordsToAdd">
+            <summary>
+            Gets number of legacy records to be added
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchVaultOperations.TypedRecordsToAdd">
+            <summary>
+            Gets number of typed records to be added
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Vault.AttachmentUploadTask">
             <summary>
             Creates an attachment upload task.
@@ -4289,6 +4416,27 @@
         <member name="M:KeeperSecurity.Vault.VaultOnline.RevokeShareFromUser(System.String,System.String)">
             <inheritdoc/>
         </member>
+        <member name="T:KeeperSecurity.Vault.KeeperImport">
+            <summary>
+            Keeper Import methods
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.KeeperImport.LoadJsonDictionary(System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Parses JSON object to import type
+            </summary>
+            <param name="importFile">parsed JSON import file</param>
+            <returns>parsed import object</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.KeeperImport.ImportJson(KeeperSecurity.Vault.VaultOnline,KeeperSecurity.Commands.ImportFile,System.Action{KeeperSecurity.Vault.Severity,System.String})">
+            <summary>
+            Import Keeper JSON file
+            </summary>
+            <param name="vault">Vault instance</param>
+            <param name="import">Import object</param>
+            <param name="logger">Logger</param>
+            <returns></returns>
+        </member>
         <member name="T:KeeperSecurity.Vault.FieldType">
             <summary>
             Record Types Schema: Field Type definition.
@@ -4317,7 +4465,7 @@
             Specifies if Record Field allows multiple values.
             </summary>
         </member>
-        <member name="F:KeeperSecurity.Vault.RecordFieldMultiple.None">
+        <member name="F:KeeperSecurity.Vault.RecordFieldMultiple.Never">
             <summary>
             Single Value only
             </summary>
@@ -4327,7 +4475,7 @@
             Maybe multi-valued
             </summary>
         </member>
-        <member name="F:KeeperSecurity.Vault.RecordFieldMultiple.Default">
+        <member name="F:KeeperSecurity.Vault.RecordFieldMultiple.Always">
             <summary>
             Multi-Value field
             </summary>
@@ -4469,6 +4617,18 @@
             <param name="value">Property value</param>
             <returns>true is the property was set</returns>
         </member>
+        <member name="M:KeeperSecurity.Vault.IFieldTypeSerialize.SetValueAsString(System.String)">
+            <summary>
+            Sets field value from human friendly text
+            </summary>
+            <param name="value">String representation</param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IFieldTypeSerialize.GetValueAsString">
+            <summary>
+            Gets human friendly text
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:KeeperSecurity.Vault.FieldTypeHost">
             <summary>
             "host" field type
@@ -4487,14 +4647,18 @@
             Gets or sets port
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeHost.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+        <member name="P:KeeperSecurity.Vault.FieldTypeHost.Elements">
             <exclude />
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeHost.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+        <member name="P:KeeperSecurity.Vault.FieldTypeHost.ElementValues">
+            <exclude />
             <exclude />
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldTypeHost.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
-            <exclude />
+        <member name="M:KeeperSecurity.Vault.FieldTypeHost.SetValueAsString(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeHost.GetValueAsString">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypePhone">
             <summary>
@@ -4524,14 +4688,20 @@
             Gets or sets phone type
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypePhone.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+        <member name="P:KeeperSecurity.Vault.FieldTypePhone.Elements">
             <exclude />
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypePhone.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+        <member name="P:KeeperSecurity.Vault.FieldTypePhone.ElementValues">
             <exclude />
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldTypePhone.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+        <member name="M:KeeperSecurity.Vault.FieldTypePhone.SetElementValue(System.String,System.String)">
             <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypePhone.SetValueAsString(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypePhone.GetValueAsString">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypeName">
             <summary>
@@ -4556,14 +4726,20 @@
             Gets or sets middle name
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeName.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+        <member name="P:KeeperSecurity.Vault.FieldTypeName.Elements">
             <exclude />
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeName.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+        <member name="P:KeeperSecurity.Vault.FieldTypeName.ElementValues">
             <exclude />
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldTypeName.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+        <member name="M:KeeperSecurity.Vault.FieldTypeName.SetElementValue(System.String,System.String)">
             <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeName.SetValueAsString(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeName.GetValueAsString">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypeAddress">
             <summary>
@@ -4603,14 +4779,20 @@
             Gets or sets Country
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.Elements">
             <exclude />
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+        <member name="P:KeeperSecurity.Vault.FieldTypeAddress.ElementValues">
             <exclude />
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldTypeAddress.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+        <member name="M:KeeperSecurity.Vault.FieldTypeAddress.SetElementValue(System.String,System.String)">
             <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeAddress.SetValueAsString(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeAddress.GetValueAsString">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypeSecurityQuestion">
             <summary>
@@ -4630,14 +4812,20 @@
             Gets or sets Security Answer
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+        <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.Elements">
             <exclude />
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+        <member name="P:KeeperSecurity.Vault.FieldTypeSecurityQuestion.ElementValues">
             <exclude />
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldTypeSecurityQuestion.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
+        <member name="M:KeeperSecurity.Vault.FieldTypeSecurityQuestion.SetElementValue(System.String,System.String)">
             <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeSecurityQuestion.SetValueAsString(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeSecurityQuestion.GetValueAsString">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypeBankAccount">
             <summary>
@@ -4662,14 +4850,20 @@
             Gets or setsAccount Number
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
+        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.Elements">
             <exclude />
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
+        <member name="P:KeeperSecurity.Vault.FieldTypeBankAccount.ElementValues">
             <exclude />
         </member>
         <member name="M:KeeperSecurity.Vault.FieldTypeBankAccount.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
             <exclude />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeBankAccount.SetValueAsString(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeBankAccount.GetValueAsString">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypePaymentCard">
             <summary>
@@ -4694,14 +4888,20 @@
             Gets or sets Card Security Code
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
-            <exclude />
+        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.Elements">
+            <inheritdoc />
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
-            <exclude />
+        <member name="P:KeeperSecurity.Vault.FieldTypePaymentCard.ElementValues">
+            <inheritdoc />
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldTypePaymentCard.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
-            <exclude />
+        <member name="M:KeeperSecurity.Vault.FieldTypePaymentCard.SetElementValue(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypePaymentCard.SetValueAsString(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypePaymentCard.GetValueAsString">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypeKeyPair">
             <summary>
@@ -4718,14 +4918,20 @@
             Gets or sets Private Key
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.KeeperSecurity#Vault#IFieldTypeSerialize#Elements">
-            <exclude />
+        <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.Elements">
+            <inheritdoc />
         </member>
-        <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.KeeperSecurity#Vault#IFieldTypeSerialize#ElementValues">
-            <exclude />
+        <member name="P:KeeperSecurity.Vault.FieldTypeKeyPair.ElementValues">
+            <inheritdoc />
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldTypeKeyPair.KeeperSecurity#Vault#IFieldTypeSerialize#SetElementValue(System.String,System.String)">
-            <exclude />
+        <member name="M:KeeperSecurity.Vault.FieldTypeKeyPair.SetElementValue(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeKeyPair.SetValueAsString(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.FieldTypeKeyPair.GetValueAsString">
+            <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Vault.RecordTypesConstants">
             <summary>
@@ -5569,31 +5775,6 @@
         <member name="T:KeeperSecurity.Vault.VaultExtensions">
             <exclude/>
         </member>
-        <member name="M:KeeperSecurity.Vault.VaultExtensions.GetCustomField(KeeperSecurity.Vault.KeeperRecord,System.String)">
-            <summary>
-            Gets a custom field.
-            </summary>
-            <param name="record">KeeperRecord</param>
-            <param name="name">Custom field Name.</param>
-            <returns>Returns custom field or <c>null</c> is it was not found.</returns>
-        </member>
-        <member name="M:KeeperSecurity.Vault.VaultExtensions.DeleteCustomField(KeeperSecurity.Vault.KeeperRecord,System.String)">
-            <summary>
-            Deletes a custom field.
-            </summary>
-            <param name="record">KeeperRecord</param>
-            <param name="name">Custom field Name.</param>
-            <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
-        </member>
-        <member name="M:KeeperSecurity.Vault.VaultExtensions.SetCustomField(KeeperSecurity.Vault.KeeperRecord,System.String,System.String)">
-            <summary>
-            Adds or Changes custom field.
-            </summary>
-            <param name="record">KeeperRecord</param>
-            <param name="name">Name.</param>
-            <param name="value">Value.</param>
-            <returns>Added or modified custom field.</returns>
-        </member>
         <member name="T:KeeperSecurity.Vault.SharedFolderRecordOptions">
             <summary>
             Represents shared folder record permissions.
@@ -6297,6 +6478,12 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:KeeperSecurity.Vault.ITypedField.DeleteValueAt(System.Int32)">
+            <summary>
+            Deletes value at index.
+            </summary>
+            <param name="index">Index</param>
+        </member>
         <member name="M:KeeperSecurity.Vault.ITypedField.GetValueAt(System.Int32)">
             <summary>
             Gets value at index
@@ -6310,12 +6497,6 @@
             </summary>
             <param name="index">Index</param>
             <param name="value">Value</param>
-        </member>
-        <member name="M:KeeperSecurity.Vault.ITypedField.DeleteValueAt(System.Int32)">
-            <summary>
-            Deletes value at index.
-            </summary>
-            <param name="index">Index</param>
         </member>
         <member name="P:KeeperSecurity.Vault.ITypedField.Count">
             <summary>
@@ -6353,6 +6534,23 @@
         </member>
         <member name="T:KeeperSecurity.Vault.UnsupportedField">
             <exclude />
+        </member>
+        <member name="T:KeeperSecurity.Vault.ISerializeTypedField">
+            <summary>
+            Defines methods for typed field serialization
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISerializeTypedField.ImportTypedField(System.String)">
+            <summary>
+            Imports the content of typed field from text
+            </summary>
+            <param name="text">external field representation</param>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ISerializeTypedField.ExportTypedField">
+            <summary>
+            Exports typed field to text
+            </summary>
+            <returns>external field representation</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.TypedField`1">
             <summary>
@@ -6418,7 +6616,7 @@
             <summary>
             Appends a value.
             </summary>
-            <returns></returns>
+            <returns>Default value</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.PasswordRecord">
             <summary>
@@ -6459,6 +6657,31 @@
             <summary>
             A list of Attachments.
             </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.PasswordRecord.GetCustomField(System.String)">
+            <summary>
+            Gets a custom field.
+            </summary>
+            <param name="record">KeeperRecord</param>
+            <param name="name">Custom field Name.</param>
+            <returns>Returns custom field or <c>null</c> is it was not found.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.PasswordRecord.DeleteCustomField(System.String)">
+            <summary>
+            Deletes a custom field.
+            </summary>
+            <param name="record">KeeperRecord</param>
+            <param name="name">Custom field Name.</param>
+            <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.PasswordRecord.SetCustomField(System.String,System.String)">
+            <summary>
+            Adds or Changes custom field.
+            </summary>
+            <param name="record">KeeperRecord</param>
+            <param name="name">Name.</param>
+            <param name="value">Value.</param>
+            <returns>Added or modified custom field.</returns>
         </member>
         <member name="T:KeeperSecurity.Vault.CustomField">
             <summary>

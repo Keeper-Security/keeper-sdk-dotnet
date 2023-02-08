@@ -446,10 +446,24 @@ namespace Sample
                 await vault.StoreNonSharedData(search.Uid, nsd2);
             }
 
-            // Update record.
-            var cf = search.GetCustomField("Security Token");
-            var tokenValue = cf?.Value ?? "1";
-            search.SetCustomField("Security Token", tokenValue + "1");
+            // Update record
+            if (search is PasswordRecord password)
+            {
+                var cf = password.GetCustomField("Security Token");
+                var tokenValue = cf?.Value ?? "1";
+                password.SetCustomField("Security Token", tokenValue + "1");
+            }
+            else if (search is TypedRecord typed) 
+            {
+                var recordField = new RecordTypeField("text", "Security Token");
+                if (!typed.FindTypedField(recordField, out var rf)) {
+
+                    rf = recordField.CreateTypedField();
+                    typed.Custom.Add(rf);
+                }
+                var tokenValue = rf.ObjectValue == null ? "1" : rf.ObjectValue.ToString();
+                rf.ObjectValue = tokenValue + 1;
+            }
             search = await vault.UpdateRecord(search);
 
 

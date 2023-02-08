@@ -242,9 +242,10 @@ namespace KeeperSecurity.Vault
                     {
                         if (RecordTypesConstants.TryGetRecordField(x.Ref, out RecordField rf))
                         {
+                            RecordTypeField typeField;
                             if (x.Complexity != null)
                             {
-                                return new RecordTypePasswordField(rf, x.Label)
+                                typeField = new RecordTypePasswordField(rf, x.Label)
                                 {
                                     PasswordOptions = new PasswordGenerationOptions
                                     {
@@ -258,8 +259,9 @@ namespace KeeperSecurity.Vault
                             }
                             else
                             {
-                                return new RecordTypeField(rf, x.Label);
+                                typeField = new RecordTypeField(rf, x.Label);
                             }
+                            return typeField;
                         }
                         else
                         {

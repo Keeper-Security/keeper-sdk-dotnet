@@ -15,6 +15,7 @@ using System.Net;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using Cli;
+using System.Collections.Generic;
 
 namespace Commander
 {

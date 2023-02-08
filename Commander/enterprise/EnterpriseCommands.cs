@@ -1573,6 +1573,14 @@ namespace Commander
                 Limit = options.Limit,
             };
 
+            if (!string.IsNullOrEmpty(options.Order)) 
+            {
+                if (options.Order == "asc") 
+                {
+                    rq.Order = "ascending";
+                }
+            }
+
             if (!string.IsNullOrEmpty(options.ReportType))
             {
                 rq.ReportType = options.ReportType;
@@ -2154,6 +2162,9 @@ namespace Commander
     {
         [Option("limit", Required = false, Default = 100, HelpText = "maximum number of returned events")]
         public int Limit { get; set; }
+
+        [Option("order", Required = false, Default = null, HelpText = "sort order: asc, desc")]
+        public string Order { get; set; }
 
         [Option("created", Required = false, Default = null, HelpText = "event creation datetime")]
         public string Created { get; set; }

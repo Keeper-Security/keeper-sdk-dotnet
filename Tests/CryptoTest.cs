@@ -3,9 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Authentication;
+using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
+using KeeperSecurity.Vault;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Xunit;
@@ -21,15 +25,6 @@ namespace Tests
 
     public class CryptoTest
     {
-        private const string FieldPattern = "^(\\w+)(\\.[^\\[]+)?(\\[*.\\])?\\s*=\\s*(.*)$";
-        [Fact]
-        public void TestPattern()
-        {
-            var rx = new Regex(FieldPattern);
-            var m = rx.Match("text.fdfsd fff = sfsd dsf f sf sdf");
-            Assert.True(m.Success);
-        }
-
         private PasswordGenerationOptions RestoreRules(string password)
         {
             var options = new PasswordGenerationOptions();

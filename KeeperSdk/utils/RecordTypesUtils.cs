@@ -191,11 +191,7 @@ namespace KeeperSecurity.Utils
                     }
                     else if (value is IFieldTypeSerialize fts)
                     {
-                        var fields = fts.ElementValues.ToArray();
-                        if (fields.Any(x => !string.IsNullOrEmpty(x)))
-                        {
-                            yield return string.Join(" | ", fields.Select(x => x ?? ""));
-                        }
+                        yield return fts.GetValueAsString();
                     }
                 }
             }
