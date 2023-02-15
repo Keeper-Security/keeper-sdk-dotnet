@@ -111,7 +111,7 @@ namespace KeeperSecurity.Vault
             {
                 RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
                 ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                Revision = typed.Revision,
+                Revision = existingRecord.Revision,
             };
 
             var recordData = typed.ExtractRecordV3Data();
@@ -167,7 +167,7 @@ namespace KeeperSecurity.Vault
             var pru = new RecordUpdateRecord
             {
                 RecordUid = password.Uid,
-                Revision = password.Revision,
+                Revision = existingRecord.Revision,
             };
             vault.ResolveRecordAccessPath(pru, forEdit: true);
             var data = password.ExtractRecordData();

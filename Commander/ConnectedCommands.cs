@@ -704,7 +704,7 @@ namespace Commander
                             tab.AddRow(rs.Username, status);
                         }
                     }
-                    if (shareInfo?.SharedFolderPermissions.Length > 0)
+                    if (shareInfo?.SharedFolderPermissions != null)
                     {
                         tab.AddRow("", "");
                         tab.AddRow("Shared Folders:", "");
@@ -2505,6 +2505,10 @@ namespace Commander
             if (result.LegacyRecordCount > 0)
             {
                 table.AddRow("Legacy Records:", result.LegacyRecordCount);
+            }
+            if (result.UpdatedRecordCount > 0)
+            {
+                table.AddRow("Updated Records:", result.UpdatedRecordCount);
             }
             table.Dump();
         }

@@ -102,6 +102,7 @@ namespace KeeperSecurity
 
             static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
+                password.Uid = import.UID;
                 password.Title = import.Title;
                 password.Login = import.Login;
                 password.Password = import.Password;
@@ -257,6 +258,7 @@ namespace KeeperSecurity
 
             static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields, Action<Severity, string> logger)
             {
+                typed.Uid = import.UID;
                 typed.Title = import.Title;
                 typed.Notes = import.Notes;
 
@@ -578,8 +580,11 @@ namespace KeeperSecurity
                                         path += BatchVaultOperations.PathDelimiter + f.SharedFolderName;
                                     }
                                 }
-
-                                folder = bo.CreateFolderPath(path, options);
+                                folder = bo.GetFolderByPath(path);
+                                if (folder == null)
+                                {
+                                    folder = bo.CreateFolderPath(path, options);
+                                }
                             }
                         }
                         bo.AddRecord(keeperRecord, folder);
