@@ -9,6 +9,7 @@ using KeeperSecurity.Authentication;
 using Folder;
 using KeeperSecurity.Commands;
 using Records;
+using Org.BouncyCastle.Crypto.Digests;
 
 namespace KeeperSecurity
 {
@@ -33,6 +34,12 @@ namespace KeeperSecurity
             Information,
         }
 
+        public enum RecordMatch
+        {
+            MainFields,
+            AllFields,
+        }
+
         /// <summary>
         /// Represents Batch Vault Updater Summary
         /// </summary>
@@ -54,6 +61,10 @@ namespace KeeperSecurity
             /// Get number of added typed records
             /// </summary>
             public int TypedRecordCount { get; internal set; }
+            /// <summary>
+            /// Get number of updated records
+            /// </summary>
+            public int UpdatedRecordCount { get; internal set; }
         }
 
         /// <summary>
@@ -65,9 +76,13 @@ namespace KeeperSecurity
             private readonly List<Tuple<FolderNode, SharedFolderOptions>> _foldersToAdd = new List<Tuple<FolderNode, SharedFolderOptions>>();
             private readonly List<Tuple<PasswordRecord, FolderNode>> _legacyRecordsToAdd = new List<Tuple<PasswordRecord, FolderNode>>();
             private readonly List<Tuple<TypedRecord, FolderNode>> _typedRecordsToAdd = new List<Tuple<TypedRecord, FolderNode>>();
+            private readonly List<KeeperRecord> _recordsToUpdate = new List<KeeperRecord>();
 
-            private readonly Dictionary<string, FolderNode> _folderLookup = new Dictionary<string, FolderNode>();
+            private readonly Dictionary<string, FolderNode> _folderInfoLookup = new Dictionary<string, FolderNode>();
+            private readonly Dictionary<string, string> _folderPathLookup = new Dictionary<string, string>();
             private readonly HashSet<string> _recordSet = new HashSet<string>();
+            private readonly Dictionary<string, string> _recordFullHashes = new Dictionary<string, string>();
+            private readonly Dictionary<string, string> _recordMatchHashes = new Dictionary<string, string>();
 
             /// <summary>
             /// Instantiate <see cref="BatchVaultOperations"/>.
@@ -76,6 +91,7 @@ namespace KeeperSecurity
             public BatchVaultOperations(VaultOnline vault)
             {
                 _vault = vault;
+                RecordMatch = RecordMatch.AllFields;
                 Reset();
             }
 
@@ -87,8 +103,12 @@ namespace KeeperSecurity
                 _foldersToAdd.Clear();
                 _legacyRecordsToAdd.Clear();
                 _typedRecordsToAdd.Clear();
-                _folderLookup.Clear();
+                _recordsToUpdate.Clear();
+                _folderInfoLookup.Clear();
+                _folderPathLookup.Clear();
                 _recordSet.Clear();
+                _recordFullHashes.Clear();
+                _recordMatchHashes.Clear();
 
                 var folders = _vault.Folders.ToArray();
                 foreach (var folder in folders)
@@ -102,16 +122,141 @@ namespace KeeperSecurity
                         SharedFolderUid = folder.SharedFolderUid,
                         FolderKey = folder.FolderKey,
                     };
-
-
-                    _folderLookup[folder.FolderUid] = f;
-
+                    _folderInfoLookup[folder.FolderUid] = f;
+                }
+                foreach (var folder in folders)
+                { 
                     var path = GetFolderPath(folder.FolderUid).ToLower();
-                    if (!_folderLookup.ContainsKey(path))
+                    if (!_folderPathLookup.ContainsKey(path))
                     {
-                        _folderLookup.Add(path, f);
+                        _folderPathLookup.Add(path, folder.FolderUid);
                     }
                 }
+
+                var hash = new Sha256Digest();
+                foreach (var record in _vault.KeeperRecords)
+                {
+                    if (record is PasswordRecord || record is TypedRecord)
+                    {
+                        hash.Reset();
+                        foreach (var token in tokenizeKeeperRecord(record, RecordMatch.AllFields))
+                        {
+                            var buffer = Encoding.UTF8.GetBytes(token);
+                            hash.BlockUpdate(buffer, 0, buffer.Length);
+                        }
+
+                        var hashValue = new byte[hash.GetDigestSize()];
+                        hash.DoFinal(hashValue, 0);
+                        _recordFullHashes[hashValue.Base64UrlEncode()] = record.Uid;
+
+                        if (RecordMatch != RecordMatch.AllFields)
+                        {
+                            foreach (var token in tokenizeKeeperRecord(record, RecordMatch))
+                            {
+                                var buffer = Encoding.UTF8.GetBytes(token);
+                                hash.BlockUpdate(buffer, 0, buffer.Length);
+                            }
+                            var hashMatchValue = new byte[hash.GetDigestSize()];
+                            hash.DoFinal(hashMatchValue, 0);
+                            _recordMatchHashes[hashMatchValue.Base64UrlEncode()] = record.Uid;
+                        }
+                        else
+                        {
+                            _recordMatchHashes[hashValue.Base64UrlEncode()] = record.Uid;
+                        }
+                    }
+                }
+            }
+
+            private static IEnumerable<string> tokenizeKeeperRecord(KeeperRecord record, RecordMatch match)
+            {
+                var fields = new List<string>
+                {
+                    $"$title:{record.Title}"
+                };
+                if (record is PasswordRecord password)
+                {
+                    if (!string.IsNullOrEmpty(password.Login))
+                    {
+                        fields.Add($"$login:{password.Login}");
+                    }
+                    if (!string.IsNullOrEmpty(password.Password))
+                    {
+                        fields.Add($"$password:{password.Password}");
+                    }
+                    if (!string.IsNullOrEmpty(password.Link))
+                    {
+                        fields.Add($"$url:{password.Link}");
+                    }
+                    if (match == RecordMatch.AllFields)
+                    {
+                        if (!string.IsNullOrEmpty(password.Notes))
+                        {
+                            fields.Add($"$notes:{password.Notes}");
+                        }
+                        foreach (var field in password.Custom)
+                        {
+                            fields.Add($"{field.Name}:{field.Value ?? string.Empty}");
+                        }
+                    }
+                }
+                else if (record is TypedRecord typed)
+                {
+                    fields.Add($"$type:{typed.TypeName}");
+
+                    if (!string.IsNullOrEmpty(typed.Notes))
+                    {
+                        fields.Add($"$notes:{typed.Notes}");
+                    }
+                    foreach (var field in typed.Fields)
+                    {
+                        var token = getRecordFieldToken(field);
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            fields.Add(token);
+                        }
+                    }
+                    if (match == RecordMatch.AllFields)
+                    {
+                        foreach (var field in typed.Custom)
+                        {
+                            var token = getRecordFieldToken(field);
+                            if (!string.IsNullOrEmpty(token))
+                            {
+                                fields.Add(token);
+                            }
+                        }
+                    }
+                }
+
+                fields.Sort(StringComparer.InvariantCulture);
+                foreach (var token in fields)
+                {
+                    yield return token;
+                }
+            }
+
+            private static string getRecordFieldToken(ITypedField field)
+            {
+                if (field.FieldName.EndsWith("Ref"))
+                {
+                    return null;
+                }
+                if (!(field is ISerializeTypedField fts))
+                {
+                    return null;
+                }
+                var value = fts.ExportTypedField();
+                if (string.IsNullOrEmpty(value))
+                {
+                    return null;
+                }
+                string key = "$" + field.FieldName;
+                if (!string.IsNullOrEmpty(field.FieldLabel))
+                {
+                    key += "." + field.FieldLabel;
+                }
+                return key + ":" + value;
             }
 
             /// <exclude />
@@ -119,7 +264,7 @@ namespace KeeperSecurity
             private const string EscapedPathDelimiter = "\\\\";
             private string GetFolderPath(string folderUid)
             {
-                if (!_folderLookup.TryGetValue(folderUid, out var folder))
+                if (!_folderInfoLookup.TryGetValue(folderUid, out var folder))
                 {
                     return null;
                 }
@@ -132,7 +277,7 @@ namespace KeeperSecurity
                     {
                         break;
                     }
-                    else if (!_folderLookup.TryGetValue(folder.ParentUid, out folder))
+                    else if (!_folderInfoLookup.TryGetValue(folder.ParentUid, out folder))
                     {
                         break;
                     }
@@ -149,9 +294,12 @@ namespace KeeperSecurity
             /// <returns>folder node</returns>
             public FolderNode GetFolderByPath(string folderPath)
             {
-                if (_folderLookup.TryGetValue(folderPath, out var f))
+                if (_folderPathLookup.TryGetValue(folderPath.ToLower(), out var folderUid))
                 {
-                    return f;
+                    if (_folderInfoLookup.TryGetValue(folderUid, out var f))
+                    {
+                        return f;
+                    }
                 }
                 return null;
             }
@@ -232,7 +380,7 @@ namespace KeeperSecurity
                 }
                 else
                 {
-                    if (_folderLookup.TryGetValue(folder.FolderUid, out var existingFolder))
+                    if (_folderInfoLookup.TryGetValue(folder.FolderUid, out var existingFolder))
                     {
                         BatchLogger?.Invoke(Severity.Warning, $"Add Folder {folder.Name}: Folder UID \"{folder.FolderUid}\" already exists");
                         return existingFolder;
@@ -242,7 +390,7 @@ namespace KeeperSecurity
                 FolderNode parentFolder = null;
                 if (!string.IsNullOrEmpty(folder.ParentUid))
                 {
-                    if (_folderLookup.TryGetValue(folder.ParentUid, out parentFolder))
+                    if (_folderInfoLookup.TryGetValue(folder.ParentUid, out parentFolder))
                     {
                         if (sharedFolderOptions != null && parentFolder.FolderType != FolderType.UserFolder)
                         {
@@ -295,14 +443,35 @@ namespace KeeperSecurity
                 }
 
                 _foldersToAdd.Add(Tuple.Create(f, sharedFolderOptions));
-                _folderLookup[f.FolderUid] = f;
-                var path = GetFolderPath(f.FolderUid);
-                if (!string.IsNullOrEmpty(path) && !_folderLookup.ContainsKey(path))
+                _folderInfoLookup[f.FolderUid] = f;
+                var path = GetFolderPath(f.FolderUid).ToLower();
+                if (!string.IsNullOrEmpty(path) && !_folderPathLookup.ContainsKey(path))
                 {
-                    _folderLookup.Add(path, f);
+                    _folderPathLookup.Add(path, f.FolderUid);
                 }
 
                 return f;
+            }
+
+            public void UpdateRecord(KeeperRecord record)
+            {
+                if (_vault.TryGetKeeperRecord(record.Uid, out var r))
+                {
+                    if (ReferenceEquals(record, r))
+                    {
+                        return;
+                    }
+                    if (!ReferenceEquals(record.GetType(), r.GetType()))
+                    {
+                        BatchLogger?.Invoke(Severity.Error, $"Update Record {record.Title}: Invalid record type.");
+                        return;
+                    }
+                    _recordsToUpdate.Add(record);
+                }
+                else
+                {
+                    BatchLogger?.Invoke(Severity.Error, $"Update Record {record.Title}: Cannot find existing record.");
+                }
             }
 
             /// <summary>
@@ -312,32 +481,76 @@ namespace KeeperSecurity
             /// <param name="folder">folder</param>
             public void AddRecord(KeeperRecord record, FolderNode folder)
             {
-                if (string.IsNullOrEmpty(record.Uid))
+                var fullRecordHash = new Sha256Digest();
+                foreach (var token in tokenizeKeeperRecord(record, RecordMatch.AllFields))
                 {
-                    record.Uid = CryptoUtils.GenerateUid();
+                    var buffer = Encoding.UTF8.GetBytes(token);
+                    fullRecordHash.BlockUpdate(buffer, 0, buffer.Length);
                 }
-                else
+
+                var fullHashValue = new byte[fullRecordHash.GetDigestSize()];
+                fullRecordHash.DoFinal(fullHashValue, 0);
+                if (_recordFullHashes.ContainsKey(fullHashValue.Base64UrlEncode()))
                 {
-                    if (_vault.TryGetKeeperRecord(record.Uid, out _))
+                    BatchLogger?.Invoke(Severity.Error, $"Add Record {record.Title}: Duplicated record. Skipping.");
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(record.Uid))
+                {
+                    if (_vault.TryGetKeeperRecord(record.Uid, out var r))
                     {
-                        BatchLogger?.Invoke(Severity.Error, $"Add Record {record.Uid}: Record already exists");
+                        BatchLogger?.Invoke(Severity.Information, $"Add Record: Existing Record UID {record.Uid}: Update record.");
+                        record.RecordKey = r.RecordKey;
+                        UpdateRecord(record);
                         return;
                     }
                     if (_recordSet.Contains(record.Uid))
                     {
-                        BatchLogger?.Invoke(Severity.Error, $"Add Record {record.Uid}: Record already added");
+                        BatchLogger?.Invoke(Severity.Error, $"Add Record {record.Uid}: Record already added. Skipping.");
                         return;
                     }
                 }
 
+                byte[] matchHashValue;
+                if (RecordMatch != RecordMatch.MainFields)
+                {
+                    var matchRecordHash = new Sha256Digest();
+                    foreach (var token in tokenizeKeeperRecord(record, RecordMatch))
+                    {
+                        var buffer = Encoding.UTF8.GetBytes(token);
+                        matchRecordHash.BlockUpdate(buffer, 0, buffer.Length);
+                    }
+
+                    matchHashValue = new byte[matchRecordHash.GetDigestSize()];
+                    matchRecordHash.DoFinal(matchHashValue, 0);
+                    if (_recordMatchHashes.TryGetValue(matchHashValue.Base64UrlEncode(), out var recordUid))
+                    {
+                        if (_vault.TryGetKeeperRecord(recordUid, out var r))
+                        {
+                            record.Uid = r.Uid;
+                            record.RecordKey = r.RecordKey;
+                            BatchLogger?.Invoke(Severity.Information, $"Add Record: Matching record {record.Title}: Update record.");
+                            UpdateRecord(record);
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    matchHashValue = fullHashValue;
+                }
+
                 if (folder != null)
                 {
-                    if (!_folderLookup.TryGetValue(folder.FolderUid, out folder))
+                    if (!_folderInfoLookup.TryGetValue(folder.FolderUid, out folder))
                     {
                         BatchLogger?.Invoke(Severity.Error, $"Add Record {record.Uid}: Folder UID {folder.FolderUid} was not created");
                         return;
                     }
                 }
+
+                record.Uid = CryptoUtils.GenerateUid();
                 record.RecordKey = CryptoUtils.GenerateEncryptionKey();
                 if (record is PasswordRecord password)
                 {
@@ -353,6 +566,8 @@ namespace KeeperSecurity
                     return;
                 }
                 _recordSet.Add(record.Uid);
+                _recordFullHashes[fullHashValue.Base64UrlEncode()] = record.Uid;
+                _recordMatchHashes[matchHashValue.Base64UrlEncode()] = record.Uid;
             }
 
             /// <summary>
@@ -430,12 +645,12 @@ namespace KeeperSecurity
                                         CanEdit = (sharedFolderOptions?.CanEdit ?? false),
                                         CanShare = (sharedFolderOptions?.CanShare ?? false),
                                     };
-                                        
+
                                 }
                                 break;
                                 case FolderType.SharedFolderFolder:
                                 {
-                                    if (!_folderLookup.TryGetValue(folder.SharedFolderUid, out var sharedFolder))
+                                    if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out var sharedFolder))
                                     {
                                         BatchLogger?.Invoke(Severity.Warning, $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found");
                                         continue;
@@ -491,7 +706,7 @@ namespace KeeperSecurity
                                     case FolderType.SharedFolderFolder:
                                     {
                                         rrq.FolderType = Folder.FolderType.SharedFolderFolder;
-                                        if (!_folderLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
+                                        if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
                                         {
                                             BatchLogger?.Invoke(Severity.Warning, $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found");
                                             continue;
@@ -527,7 +742,7 @@ namespace KeeperSecurity
                         if (frs.Status.ToLower() == "success")
                         {
                             var folderUid = frs.FolderUid.ToArray().Base64UrlEncode();
-                            if (_folderLookup.TryGetValue(folderUid, out var f))
+                            if (_folderInfoLookup.TryGetValue(folderUid, out var f))
                             {
                                 if (f.FolderType == FolderType.SharedFolder)
                                 {
@@ -610,7 +825,7 @@ namespace KeeperSecurity
                                 case FolderType.SharedFolderFolder:
                                 {
                                     ra.FolderType = RecordFolderType.SharedFolderFolder;
-                                    if (!_folderLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
+                                    if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
                                     {
                                         BatchLogger?.Invoke(Severity.Warning, $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found");
                                         continue;
@@ -666,10 +881,28 @@ namespace KeeperSecurity
                     }
                 }
 
+                if (_recordsToUpdate.Count > 0)
+                {
+                    var statuses = await _vault.UpdateRecordBatch(_recordsToUpdate);
+                    foreach (var status in statuses)
+                    {
+                        if (status.Status != "success")
+                        {
+                            BatchLogger?.Invoke(Severity.Warning, $"Update record \"{status.RecordUid}\" error: {status.Message}");
+                        }
+                        else 
+                        {
+                            result.UpdatedRecordCount++;
+                        }
+                    }
+                }
+
                 Reset();
                 await _vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
                 return result;
             }
+
+            public RecordMatch RecordMatch { get; set; }
 
             /// <summary>
             /// Gets or sets logger
@@ -687,6 +920,10 @@ namespace KeeperSecurity
             /// Gets number of typed records to be added
             /// </summary>
             public int TypedRecordsToAdd => _typedRecordsToAdd.Count;
+            /// <summary>
+            /// Gets number of typed records to be updated
+            /// </summary>
+            public int RecordsToUpdate => _recordsToUpdate.Count;
         }
     }
 }
