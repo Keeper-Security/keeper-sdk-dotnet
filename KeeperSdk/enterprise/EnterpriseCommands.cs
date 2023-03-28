@@ -678,4 +678,22 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "enterprise_id")]
         public int EnterpriseId { get; set; }
     }
+
+    [DataContract]
+    public class ExtendAccountShareExpirationCommand : AuthenticatedCommand
+    {
+        public ExtendAccountShareExpirationCommand() : base("extend_account_share_expiration")
+        {
+        }
+
+        [DataMember(Name = "enterprise_user_id")]
+        public long EnterpriseUserId { get; set; }
+    }
+
+    [DataContract]
+    public class ExtendAccountShareExpirationResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "account_share_expiration")]
+        public long AccountShareExpiration { get; set; }
+    }
 }

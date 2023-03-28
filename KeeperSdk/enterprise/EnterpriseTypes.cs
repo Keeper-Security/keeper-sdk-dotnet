@@ -260,7 +260,9 @@ namespace KeeperSecurity.Enterprise
         /// <exclude />
         public string EncryptedData { get; internal set; }
 
-        /// <exclude />
+        /// <summary>
+        /// Account Share Expiration. Unix epoch time in milliseconds.
+        /// </summary>
         public long AccountShareExpiration { get; internal set; }
     }
 
