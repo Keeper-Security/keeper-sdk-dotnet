@@ -288,7 +288,7 @@ namespace KeeperSecurity.Enterprise
             {
                 sdk.UserStatus = UserStatus.Inactive;
             }
-
+            sdk.AccountShareExpiration = keeper.AccountShareExpiration;
             var enterprise = GetEnterprise?.Invoke();
             if (enterprise != null && enterprise.TreeKey != null)
             {
