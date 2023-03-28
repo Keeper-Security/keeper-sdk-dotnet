@@ -53,7 +53,8 @@
 <NamespaceSummaryItem name="KeeperSecurity.Vault" isDocumented="True" />
 <NamespaceSummaryItem name="Folder" isDocumented="False" />
 <NamespaceSummaryItem name="Records" isDocumented="False" />
-<NamespaceSummaryItem name="Tokens" isDocumented="False" /></NamespaceSummaries>
+<NamespaceSummaryItem name="Tokens" isDocumented="False" />
+<NamespaceSummaryItem name="BI" isDocumented="False" /></NamespaceSummaries>
     <ComponentConfigurations>
       <ComponentConfig id="Syntax Component" enabled="True" xmlns="">
         <component id="Syntax Component">

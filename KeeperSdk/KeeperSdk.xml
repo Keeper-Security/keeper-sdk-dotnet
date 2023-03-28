@@ -3108,7 +3108,9 @@
             <exclude />
         </member>
         <member name="P:KeeperSecurity.Enterprise.EnterpriseUser.AccountShareExpiration">
-            <exclude />
+            <summary>
+            Account Share Expiration. Unix epoch time in milliseconds.
+            </summary>
         </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseRole">
             <summary>
@@ -4131,6 +4133,11 @@
             Get number of added typed records
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.BatchResult.UpdatedRecordCount">
+            <summary>
+            Get number of updated records
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Vault.BatchVaultOperations">
             <summary>
             Represents Batch Vault Updater
@@ -4211,6 +4218,11 @@
         <member name="P:KeeperSecurity.Vault.BatchVaultOperations.TypedRecordsToAdd">
             <summary>
             Gets number of typed records to be added
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchVaultOperations.RecordsToUpdate">
+            <summary>
+            Gets number of typed records to be updated
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.AttachmentUploadTask">
