@@ -100,6 +100,13 @@ namespace Commander
                     Action = async options => { await context.TransferUserCommand(options); },
                 });
 
+            cli.Commands.Add("extend-account-share-expiration",
+                new ParseableCommand<EnterpriseUsersOptions>
+                {
+                    Order = 67,
+                    Description = "Extend Account Share Expiration",
+                    Action = async options => { await context.ExtendAccountShareExpirationCommand(options); },
+                });
             cli.Commands.Add("audit-report",
                 new ParseableCommand<AuditReportOptions>
                 {
@@ -583,6 +590,126 @@ namespace Commander
                 }
             }
             tab.Dump();
+        }
+
+        public static async Task ExtendAccountShareExpirationCommand(this IEnterpriseContext context, EnterpriseUsersOptions options)
+        {
+            var availabeUsers = new Dictionary<long, KeeperSecurity.Enterprise.EnterpriseUser>();
+            foreach (var u in context.EnterpriseData.Users)
+            {
+                if (u.AccountShareExpiration > 0)
+                {
+                    availabeUsers[u.Id] = u;
+                }
+            }
+            if (availabeUsers.Count == 0)
+            {
+                Console.WriteLine("There are no users with pending Account Share status");
+                return;
+            }
+
+            if (options.Users == null || !options.Users.Any())
+            {
+                var tab = new Tabulate(3)
+                {
+                    DumpRowNo = true
+                };
+                tab.AddHeader("User ID", "Email", "Expiration");
+                foreach (var u in availabeUsers.Values)
+                {
+                    var exp = DateTimeOffset.FromUnixTimeMilliseconds(u.AccountShareExpiration).ToLocalTime();
+                    tab.AddRow(u.Id, u.Email, exp.ToString("g"));
+                }
+                tab.Sort(1);
+                tab.Dump();
+                return;
+            }
+
+            var matchingUsers = new HashSet<long>();
+            foreach (var user in options.Users)
+            {
+                var cnt = matchingUsers.Count;
+                var allDigits = user.All(x => char.IsDigit(x));
+                if (allDigits)
+                {
+                    if (long.TryParse(user, out var userId))
+                    {
+                        if (availabeUsers.ContainsKey(userId))
+                        {
+                            matchingUsers.Add(userId);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var t in availabeUsers)
+                    {
+                        var matched = t.Value.Email.StartsWith(user, StringComparison.InvariantCultureIgnoreCase);
+                        if (!matched)
+                        {
+                            var m = Regex.Match(t.Value.Email, user, RegexOptions.IgnoreCase);
+                            matched = m.Success;
+
+                        }
+                        if (matched)
+                        {
+                            matchingUsers.Add(t.Key);
+                        }
+                    }
+                }
+
+                if (matchingUsers.Count > cnt)
+                {
+                    foreach (var uid in matchingUsers)
+                    {
+                        if (availabeUsers.ContainsKey(uid))
+                        {
+                            availabeUsers.Remove(uid);
+                        }
+                    }
+                    if (availabeUsers.Count == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+            if (matchingUsers.Count == 0)
+            {
+                Console.WriteLine("No users are found");
+                return;
+            }
+
+            Console.Write($"Do you want to extend Account Share Expiration period for {matchingUsers.Count} account(s) (Yes/No)? > ");
+            var answer = await Program.GetInputManager().ReadLine();
+            if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+            {
+                answer = "yes";
+            }
+
+            if (!string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase)) return;
+
+            var commands = matchingUsers.Select(x => new ExtendAccountShareExpirationCommand { EnterpriseUserId = x }).Cast<KeeperApiCommand>().ToArray();
+
+            var execRq = new ExecuteCommand
+            {
+                Requests = commands.Take(99).ToList()
+            };
+            var execRs = await context.Enterprise.Auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(execRq);
+            if (execRs.Results?.Count > 0)
+            {
+                var last = execRs.Results.Last();
+                var success = execRs.Results.Count + (last.IsSuccess ? 0 : -1);
+                if (success > 0)
+                {
+                    Console.WriteLine($"Successfully extended {success} account(s)");
+                }
+                if (!last.IsSuccess) 
+                {
+                    Console.WriteLine($"Error: {last.message}");
+                }
+            }
+
+            await context.Enterprise.Load();
         }
 
         private static string[] _privilegeNames = new string[] { "MANAGE_NODES", "MANAGE_USER", "MANAGE_ROLES", "MANAGE_TEAMS", "RUN_REPORTS", "MANAGE_BRIDGE", "APPROVE_DEVICE", "TRANSFER_ACCOUNT" };
@@ -2192,6 +2319,12 @@ namespace Commander
 
         [Option("columns", Required = false, HelpText = "report columns")]
         public IEnumerable<string> Columns { get; set; }
+    }
+
+    class EnterpriseUsersOptions : EnterpriseGenericOptions
+    {
+        [Value(0, Required = false, HelpText = "Email, User ID, or email pattern")]
+        public IEnumerable<string> Users { get; set; }
     }
 
     class ManagedCompanyLoginOptions : EnterpriseGenericOptions

@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Keeper Security Inc.")]
 [assembly: AssemblyProduct(".NET Commander")]
-[assembly: AssemblyCopyright("Copyright (c) 2022")]
+[assembly: AssemblyCopyright("Copyright (c) 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
