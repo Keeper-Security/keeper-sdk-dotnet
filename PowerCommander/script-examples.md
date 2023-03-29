@@ -11,6 +11,10 @@ $records = kr
 
 # Print values of the records
 $records
+UID                    Type                 Title                 Info
+---                    ----                 -----                 ----
+h9xFFgfCU_BAi3A5V_ZOnA databaseCredentials  MSSQL READ ONLY USER  sa (at) 192.168.1.10:1433
+VMOfbXOxKFMEwO4GUzOigA address              Home 
 
 # create variable of a record title to search for
 $titleToSearch = "MSSQL READ ONLY USER"
@@ -18,10 +22,14 @@ $titleToSearch = "MSSQL READ ONLY USER"
 # Find a record by it's title and store it to the variable 
 $foundRecord = $records | where Title -EQ $titleToSearch
 
+# make sure record is found
+$foundRecord
+UID                    Type                 Title                 Info
+---                    ----                 -----                 ----
+h9xFFgfCU_BAi3A5V_ZOnA databaseCredentials  MSSQL READ ONLY USER  sa (at) 192.168.1.10:1433
 
 # Modify password of the record
-Add-KeeperRecord -UpdateOnly -Title foundRecord.Title -Password "NEW PASSWORD"
-
+Add-KeeperRecord -Uid 'h9xFFgfCU_BAi3A5V_ZOnA' password="NEW PASSWORD"
 ```
 
 Configure Peristent Login (to run script silently and don't ask for credentials on each run)
