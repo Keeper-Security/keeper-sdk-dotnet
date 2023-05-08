@@ -440,6 +440,13 @@ namespace KeeperSecurity.Authentication
                                 keyId = keeperRs.KeyId;
                                 continue;
 
+                            case "throttled":
+#if DEBUG
+                                Debug.WriteLine("\"throttled\" sleeping for 10 seconds");
+#endif
+                                await Task.Delay(TimeSpan.FromSeconds(10));
+                                continue;
+
                             case "region_redirect":
                                 throw new KeeperRegionRedirect(keeperRs.RegionHost);
 
