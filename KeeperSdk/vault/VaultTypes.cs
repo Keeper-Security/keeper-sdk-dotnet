@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
+using System.Collections;
 
 namespace KeeperSecurity.Vault
 {
@@ -918,7 +919,60 @@ namespace KeeperSecurity.Vault
         public object ObjectValue
         {
             get => TypedValue;
-            set => TypedValue = (T) value;
+            set
+            {
+                if (value is T tv)
+                {
+                    TypedValue = tv;
+                }
+                else if (value is string sv)
+                {
+                    var o = (object) TypedValue;
+                    if (o is IFieldTypeSerialize fts)
+                    {
+                        fts.SetValueAsString(sv);
+                    }
+                    else
+                    {
+                        if (o is long lv)
+                        {
+                            if (sv.All(y => char.IsDigit(y)))
+                            {
+                                o = long.Parse(sv);
+                            }
+                            else if (FieldName == "date")
+                            {
+                                var dt = DateTimeOffset.Parse(sv);
+                                o = dt.ToUnixTimeMilliseconds();
+                            }
+                        }
+                        else if (o is bool) { 
+                            o = (new string[] { "1", "on", "true" }).Any(y => string.Equals(y, sv, StringComparison.InvariantCultureIgnoreCase));
+                        }
+                        TypedValue = (T) o;
+                    }
+                }
+                else if (value is IDictionary dv)
+                {
+                    var o = TypedValue;
+                    if (o is IFieldTypeSerialize fts)
+                    {
+                        foreach (var key in dv.Keys)
+                        {
+                            var fv = dv[key];
+                            if (key is string skey && fv is string sfv)
+                            {
+                                fts.SetElementValue(skey, sfv);
+                            }
+                        }
+                    }
+                    TypedValue = o;
+                }
+                else
+                {
+                    TypedValue = (T) value;
+                }
+            }
         }
 
         /// <summary>

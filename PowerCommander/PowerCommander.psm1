@@ -27,8 +27,8 @@ Export-ModuleMember -Alias kpwd, kcd, kdir, ko
 
 Export-ModuleMember -Function Get-KeeperRecords, Copy-KeeperToClipboard, Show-TwoFactorCode,
                               Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,
-                              Get-KeeperPasswordVisible
-Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv
+                              Get-KeeperPasswordVisible, Get-KeeperRecordTypes
+Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti
 
 Export-ModuleMember -Function Get-KeeperSharedFolders
 Export-ModuleMember -Alias ksf
