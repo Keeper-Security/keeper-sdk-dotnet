@@ -58,11 +58,11 @@ RequiredAssemblies = @('KeeperSdk.dll')
 
 # Type files (.ps1xml) to be loaded when importing this module
 TypesToProcess = @('PowerCommander.types.ps1xml', 'Library.types.ps1xml', 'Enterprise.types.ps1xml',
-                   'SecretsManager.types.ps1xml')
+                   'Record.types.ps1xml', 'SecretsManager.types.ps1xml')
 
 # Format files (.ps1xml) to be loaded when importing this module
 FormatsToProcess = @('PowerCommander.format.ps1xml', 'Library.format.ps1xml', 'Enterprise.format.ps1xml',
-					 'SecretsManager.format.ps1xml')
+                     'Record.format.ps1xml', 'SecretsManager.format.ps1xml')
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 NestedModules = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1', 
@@ -72,7 +72,7 @@ NestedModules = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1',
 FunctionsToExport = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation', 
 'Get-KeeperChildItems',	'Get-KeeperObject', 'Get-KeeperRecords', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode', 
 'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible',
-'Get-KeeperSharedFolders', 'Add-KeeperFolder', 'Remove-KeeperFolder', 
+'Get-KeeperSharedFolders', 'Add-KeeperFolder', 'Remove-KeeperFolder', 'Get-KeeperRecordTypes',
 'Get-KeeperEnterpriseUsers', 'Get-KeeperEnterpriseTeams', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNodes', 'Get-KeeperNodeName',
 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 'Remove-KeeperEnterpriseUser',
 'Get-KeeperManagedCompanies', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany','Edit-KeeperManagedCompany', 
@@ -91,7 +91,7 @@ CmdletsToExport = @( )
 # VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 
+AliasesToExport = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 'krti',
 	'ked', 'keu', 'ken', 'ket', 'ketu', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'lock-user', 'unlock-user', 'transfer-user', 
 	'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 
 	'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient')

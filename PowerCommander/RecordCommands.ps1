@@ -286,18 +286,40 @@ function Add-KeeperRecord {
 
     [CmdletBinding(DefaultParameterSetName = 'add')]
     Param (
-        [Parameter()][switch] $GeneratePassword,
-        [Parameter(ParameterSetName = 'add')][string] $RecordType,
-        [Parameter(ParameterSetName = 'add')][string] $Folder,
-        [Parameter(ParameterSetName = 'edit', Mandatory = $True)][string] $Uid,
-        [Parameter(ParameterSetName = 'add', Mandatory = $True)][string] $Title,
-        [Parameter()]$Notes,
-        [Parameter(ValueFromRemainingArguments = $true)][string[]] $Fields
+        [Parameter()] [switch] $GeneratePassword,
+        [Parameter(ParameterSetName = 'add')] [string] $RecordType,
+        [Parameter(ParameterSetName = 'add')] [string] $Folder,
+        [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
+        [Parameter(ParameterSetName = 'add', Mandatory = $True)] [string] $Title,
+        [Parameter()] $Notes,
+        [Parameter(ValueFromRemainingArguments = $true)] $Extra
     )
 
     Begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         [KeeperSecurity.Vault.KeeperRecord]$record = $null
+
+        $fields = @{}
+        $fieldName = $null
+        foreach ($var in $Extra) {
+            if ($var -match '^-') {
+                $fieldName = $var.Substring(1)
+                if ($var -match ':$') {
+                    $fieldName = $fieldName.Substring(0, $fieldName.Length - 1)
+                }
+            } elseif ($null -ne $fieldName) {
+                $fields[$fieldName] = $var
+                $fieldName = $null
+            } else {
+                if ($var -match '^([^=]+)=(.*)?') {
+                    $n = $Matches[1].Trim()
+                    $v = $Matches[2].Trim()
+                    if ($n -and $v) {
+                        $fields[$n] = $v
+                    }
+                }
+            }
+        }
     }
 
     Process {
@@ -335,69 +357,71 @@ function Add-KeeperRecord {
         }
 
         if ($GeneratePassword.IsPresent) {
-            $generatedPassword = [Keepersecurity.Utils.CryptoUtils]::GenerateUid()
-            $Fields += "password=${generatedPassword}"
+            $fields['password'] = [Keepersecurity.Utils.CryptoUtils]::GenerateUid()
         }
 
-        foreach ($field in $Fields) {
-            if ($field -match '^([^=\.]+)(\.[^=]+)?=(.*)$') {
-                $fieldName = $Matches[1]
-                $fieldLabel = $Matches[2]
-                if ($fieldLabel) {
-                    $fieldLabel = $fieldLabel.Trim().Trim('.')
+        foreach ($fieldName in $fields.Keys) {
+            $fieldValue = $fields[$fieldName]
+            $fieldLabel = ''
+            if ($fieldName -match '^([^.]+)(\..+)?$') {
+                if ($Matches[1] -and $Matches[2]) {
+                    $fieldName = $Matches[1].Trim()
+                    $fieldLabel = $Matches[2].Trim().Substring(1)
                 }
-                $fieldValue = $Matches[3]
-                if ($fieldValue) {
-                    $fieldValue = $fieldValue.Trim()
-                }
-                if ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
-                    switch ($fieldName) {
-                        'login' { $record.Login = $fieldValue }
-                        'password' { $record.Password = $fieldValue }
-                        'url' { $record.Link = $fieldValue }
-                        Default {
-                            if ($fieldValue) {
-                                [KeeperSecurity.Vault.VaultExtensions]::SetCustomField($record, $fieldName, $fieldValue) | Out-Null
-                            }
-                            else {
-                                [KeeperSecurity.Vault.VaultExtensions]::DeleteCustomField($record, $fieldName) | Out-Null
+            }
+            if ($fieldName -match '^\$') {
+                $fieldName = $fieldName.Substring(1).Trim()
+            }
+            if ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
+                switch ($fieldName) {
+                    'login' { $record.Login = $fieldValue }
+                    'password' { $record.Password = $fieldValue }
+                    'url' { $record.Link = $fieldValue }
+                    Default {
+                        if ($fieldLabel) {
+                            if ($fieldName -eq 'text') {
+                                $fieldName = $fieldLabel
+                            } else {
+                                $fieldName = "${fieldName}:${fieldLabel}"
                             }
                         }
-                    }
-                }
-                elseif ($record -is [KeeperSecurity.Vault.TypedRecord]) {
-                    if (-not $fieldLabel) {
-                        [KeeperSecurity.Vault.RecordField]$recordField = $null
-                        if (-not [KeeperSecurity.Vault.RecordTypesConstants]::TryGetRecordField($fieldName, [ref]$recordField)) {
-                            $fieldLabel = $fieldName
-                            $fieldName = 'text'
-                        }
-                    }
-                    $recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField $fieldName, $fieldLabel
-                    [KeeperSecurity.Vault.ITypedField]$typedField = $null
-                    if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($record, $recordTypeField, [ref]$typedField)) {
-                    }
-                    else {
                         if ($fieldValue) {
-                            $typedField = [KeeperSecurity.Vault.VaultDataExtensions]::CreateTypedField($fieldName, $fieldLabel)
-                            if ($typedField) {
-                                $record.Custom.Add($typedField)
-                            }
-                        }
-                    }
-                    if ($typedField) {
-                        if ($fieldValue) {
-                            $typedField.ObjectValue = $fieldValue
+                            [KeeperSecurity.Vault.VaultExtensions]::SetCustomField($record, $fieldName, $fieldValue) | Out-Null
                         }
                         else {
-                            $typedField.DeleteValueAt(0)
+                            [KeeperSecurity.Vault.VaultExtensions]::DeleteCustomField($record, $fieldName) | Out-Null
                         }
                     }
                 }
             }
-            else {
-                Write-Error -Message "Invalid field `"$field`""
-                return
+            elseif ($record -is [KeeperSecurity.Vault.TypedRecord]) {
+                if (-not $fieldLabel) {
+                    [KeeperSecurity.Vault.RecordField]$recordField = $null
+                    if (-not [KeeperSecurity.Vault.RecordTypesConstants]::TryGetRecordField($fieldName, [ref]$recordField)) {
+                        $fieldLabel = $fieldName
+                        $fieldName = 'text'
+                    }
+                }
+                $recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField $fieldName, $fieldLabel
+                [KeeperSecurity.Vault.ITypedField]$typedField = $null
+                if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($record, $recordTypeField, [ref]$typedField)) {
+                }
+                else {
+                    if ($fieldValue) {
+                        $typedField = [KeeperSecurity.Vault.VaultDataExtensions]::CreateTypedField($fieldName, $fieldLabel)
+                        if ($typedField) {
+                            $record.Custom.Add($typedField)
+                        }
+                    }
+                }
+                if ($typedField) {
+                    if ($fieldValue) {
+                        $typedField.ObjectValue = $fieldValue
+                    }
+                    else {
+                        $typedField.DeleteValueAt(0)
+                    }
+                }
             }
         }
     }
@@ -571,6 +595,35 @@ function Move-RecordToFolder {
 }
 New-Alias -Name kmv -Value Move-RecordToFolder
 Register-ArgumentCompleter -CommandName Move-RecordToFolder -ParameterName Folder -ScriptBlock $Keeper_FolderPathRecordCompleter
+
+
+function Get-KeeperRecordTypes {
+    <#
+	.Synopsis
+	Get Record Type Information
+
+	.Parameter Record
+	Record UID, Path or any object containing property Uid.
+
+	.Parameter Folder 
+	Folder Name, Path, or UID
+#>
+
+    [CmdletBinding()]
+    Param (
+        [switch] $ShowFields,
+        [Parameter(Position = 0, Mandatory = $false)][string] $Name
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    if ($ShowFields.IsPresent) {
+        [KeeperSecurity.Vault.RecordTypesConstants]::RecordFields | Where-Object {-not $Name -or $_.Name -eq $Name} | Sort-Object Name
+    } else {
+        $vault.RecordTypes | Where-Object {-not $Name -or $_.Name -eq $Name} | Sort-Object Name
+    }
+}
+New-Alias -Name krti -Value Get-KeeperRecordTypes
 
 function resolveFolderNode {
     Param ([KeeperSecurity.Vault.VaultOnline]$vault, $path)

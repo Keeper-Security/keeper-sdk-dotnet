@@ -17,6 +17,7 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Get-KeeperRecords                      | kr          | Enumerate all records
 | Get-KeeperSharedFolders                | ksf         | Enumerate all shared folders
 | Add-KeeperRecord                       | kadd        | Add/Modify Keeper record
+| Get-KeeperRecordTypes                  | krti        | Get Record Type Information
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
 | Add-KeeperFolder                       | kmkdir      | Create Keeper folder
@@ -127,6 +128,10 @@ To install the PowerCommander module copy PowerCommander\ directory to
     PS > kadd -RecordType login -Title 'Record for John Doe' -GeneratePassword login=email@company.com url=https://company.com 'User Name=John Doe' 
     ```
     creates a record of `login` type in Keeper 
+    ```
+    PS > $address = @{"street1" = "123 Main St."; "city" = "Neitherville"; "state" = "CA"; "zip" = "12345"}
+    PS > kadd -RecordType address -Title 'Home Address' -address $address phone.Home='(555)123-4567' name="Doe, John"
+    ```
     ```
     PS > kadd -Uid <RECORD UID> -GeneratePassword 
     ```
