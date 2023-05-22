@@ -108,7 +108,7 @@ namespace Commander
                 var lastLogin = storage.LastLogin;
                 if (!string.IsNullOrEmpty(lastLogin))
                 {
-                    Program.GetMainLoop().CommandQueue.Enqueue($"login {lastLogin}");
+                    Program.GetMainLoop().CommandQueue.Enqueue($"login --resume {lastLogin}");
                 }
             }
         }
