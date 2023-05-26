@@ -234,11 +234,18 @@ namespace KeeperSecurity.Vault
         string GetValueAsString();
     }
 
+
+    [DataContract]
+    public class FieldTypeBase : IExtensibleDataObject
+    {
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
     /// <summary>
     /// "host" field type
     /// </summary>
     [DataContract]
-    public class FieldTypeHost : IFieldTypeSerialize
+    public class FieldTypeHost : FieldTypeBase, IFieldTypeSerialize
     {
         /// <exclude />
         public FieldTypeHost()
@@ -262,7 +269,6 @@ namespace KeeperSecurity.Vault
         /// <exclude />
         public IEnumerable<string> Elements => HostElements;
         /// <exclude />
-        /// <exclude />
         public IEnumerable<string> ElementValues
         {
             get
@@ -271,7 +277,6 @@ namespace KeeperSecurity.Vault
                 yield return Port;
             }
         }
-        //=> new[] {  };
 
         public bool SetElementValue(string element, string value)
         {
@@ -327,7 +332,7 @@ namespace KeeperSecurity.Vault
     /// "phone" field type
     /// </summary>
     [DataContract]
-    public class FieldTypePhone : IFieldTypeSerialize
+    public class FieldTypePhone : FieldTypeBase, IFieldTypeSerialize
     {
         /// <exclude />
         public FieldTypePhone()
@@ -449,7 +454,7 @@ namespace KeeperSecurity.Vault
     /// "name" field type
     /// </summary>
     [DataContract(Name = "Name")]
-    public class FieldTypeName : IFieldTypeSerialize
+    public class FieldTypeName : FieldTypeBase, IFieldTypeSerialize
     {
         /// <exclude />
         public FieldTypeName()
@@ -559,7 +564,7 @@ namespace KeeperSecurity.Vault
     /// "address" field type
     /// </summary>
     [DataContract]
-    public class FieldTypeAddress : IFieldTypeSerialize
+    public class FieldTypeAddress : FieldTypeBase, IFieldTypeSerialize
     {
         /// <exclude />
         public FieldTypeAddress()
@@ -726,7 +731,7 @@ namespace KeeperSecurity.Vault
     /// "securityQuestion" field type
     /// </summary>
     [DataContract]
-    public class FieldTypeSecurityQuestion : IFieldTypeSerialize
+    public class FieldTypeSecurityQuestion : FieldTypeBase, IFieldTypeSerialize
     {
         /// <exclude />
         public FieldTypeSecurityQuestion()
@@ -814,7 +819,7 @@ namespace KeeperSecurity.Vault
     /// "bankAccount" field type
     /// </summary>
     [DataContract]
-    public class FieldTypeBankAccount : IFieldTypeSerialize
+    public class FieldTypeBankAccount : FieldTypeBase, IFieldTypeSerialize
     {
         /// <exclude />
         public FieldTypeBankAccount()
@@ -918,7 +923,7 @@ namespace KeeperSecurity.Vault
     /// </summary>
     [DataContract]
 
-    public class FieldTypePaymentCard : IFieldTypeSerialize
+    public class FieldTypePaymentCard : FieldTypeBase, IFieldTypeSerialize
     {
         /// <exclude />
         public FieldTypePaymentCard()
@@ -1018,7 +1023,7 @@ namespace KeeperSecurity.Vault
     /// "keyPair" field type
     /// </summary>
     [DataContract]
-    public class FieldTypeKeyPair : IFieldTypeSerialize
+    public class FieldTypeKeyPair : FieldTypeBase, IFieldTypeSerialize
     {
         public FieldTypeKeyPair()
         {
