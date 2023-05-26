@@ -517,10 +517,11 @@ namespace KeeperSecurity.Vault
                 {
                     field.Type = "text";
                 }
+
                 if (RecordTypesConstants.TryGetRecordField(field.Type, out var rf))
                 {
                     if (RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
-                    {
+                    { 
                         var xb = JsonUtils.DumpJson(field);
                         using (var ms = new MemoryStream(xb))
                         {
