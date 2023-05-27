@@ -71,7 +71,7 @@ NestedModules = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1',
 # Functions to export from this module
 FunctionsToExport = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation', 
 'Get-KeeperChildItems',	'Get-KeeperObject', 'Get-KeeperRecords', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode', 
-'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible',
+'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
 'Get-KeeperSharedFolders', 'Add-KeeperFolder', 'Remove-KeeperFolder', 'Get-KeeperRecordTypes',
 'Get-KeeperEnterpriseUsers', 'Get-KeeperEnterpriseTeams', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNodes', 'Get-KeeperNodeName',
 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 'Remove-KeeperEnterpriseUser',
