@@ -412,14 +412,6 @@ function Connect-Keeper {
             } else {
                 $action = ''
             }
-        } 
-        elseif ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.HttpProxyStep]) {
-            $proxyUser = Read-Host -Prompt 'Proxy username'
-            $securedPassword = Read-Host -Prompt 'Proxy password' -AsSecureString 
-            if ($securedPassword.Length -gt 0) {
-                $action = [Net.NetworkCredential]::new('', $securedPassword).Password
-            }
-            $action = "login `"$proxyUser`" `"$proxyPassword`""
         } else {
             $action = Read-Host -Prompt $prompt
         }
