@@ -108,10 +108,12 @@ function Copy-KeeperToClipboard {
                         'URL' { $fieldType = 'url' }
                     }
                     if ($fieldType) {
-                        $recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField $fieldType, $null
-                        [KeeperSecurity.Vault.ITypedField]$recordField = $null
-                        if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($rec, $recordTypeField, [ref]$recordField)) {
-                            $value = $recordField.Value
+                        $recordField = $rec.Fields | Where-Object FieldName -eq $fieldType | Select-Object -First 1
+                        if (-not $recordField) {
+                          $recordField = $rec.Custom | Where-Object FieldName -eq $fieldType | Select-Object -First 1
+                        }
+                        if ($recordField) {
+                            $value = $recordField.ObjectValue
                         }
                     }
                 }
