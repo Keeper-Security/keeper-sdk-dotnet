@@ -22,7 +22,7 @@ Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper
 Export-ModuleMember -Alias kc, ks, kq
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItems, 
-							  Get-KeeperObject
+ 							                Get-KeeperObject
 Export-ModuleMember -Alias kpwd, kcd, kdir, ko
 
 Export-ModuleMember -Function Get-KeeperRecords, Copy-KeeperToClipboard, Show-TwoFactorCode,
@@ -35,15 +35,15 @@ Export-ModuleMember -Alias ksf
 
 Export-ModuleMember -Function Add-KeeperFolder, Remove-KeeperFolder
 Export-ModuleMember -Alias kmkdir, krmdir
-
+ 
 Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUsers, Get-KeeperEnterpriseTeams, 
                               Get-KeeperEnterpriseNodes, Get-KeeperNodeName, Lock-KeeperEnterpriseUser, 
                               Unlock-KeeperEnterpriseUser, Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser,
                               Get-KeeperEnterpriseTeamUsers
 Export-ModuleMember -Alias ked, keu, ket, ketu, ken, lock-user, unlock-user, transfer-user, delete-user
 
-Export-ModuleMember -Function Get-KeeperManagedCompanies, New-KeeperManagedCompany, 
-                              Remove-KeeperManagedCompany, Edit-KeeperManagedCompany
+Export-ModuleMember -Function Get-KeeperManagedCompanies, New-KeeperManagedCompany, Remove-KeeperManagedCompany, 
+                              Edit-KeeperManagedCompany, Get-MspBillingReport
 Export-ModuleMember -Alias kmc, kamc, krmc, kemc
 
 Export-ModuleMember -Function Show-KeeperRecordShares, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess, 
@@ -53,7 +53,6 @@ Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf, kat
 Export-ModuleMember -Function Get-KeeperSecretManagerApps, New-KeeperSecretManagerApp, Grant-KeeperSecretManagerFolderAccess,
                               Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-KeeperSecretManagerClient
 Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
-
 
 # function Test-Keeper {
 #     [CmdletBinding()]

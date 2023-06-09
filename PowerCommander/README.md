@@ -52,6 +52,7 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | New-KeeperManagedCompany               | kamc        | Create Managed Company
 | Remove-KeeperManagedCompany            | krmc        | Remove Managed Company
 | Edit-KeeperManagedCompany              | kemc        | Edit Managed Company
+| Get-MspBillingReport                   |             | Runs MSP Billing Report
 
 ### Secret Manager Cmdlets
 | Cmdlet name                            | Alias       | Description
