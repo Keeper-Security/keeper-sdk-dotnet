@@ -101,6 +101,10 @@ namespace KeeperSecurity.Authentication
             {
                 var ws = new ClientWebSocket();
                 var delay = Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
+                if (endpoint.WebProxy != null) 
+                {
+                    ws.Options.Proxy = endpoint.WebProxy;
+                }
                 await ws.ConnectAsync(builder.Uri, _cancellationTokenSource.Token);
                 if (ws.State == WebSocketState.Open)
                 {
@@ -168,11 +172,15 @@ namespace KeeperSecurity.Authentication
                 _webSocket = null;
             }
 
-            if (_cancellationTokenSource != null) {
+            if (_cancellationTokenSource != null)
+            {
                 if (!_cancellationTokenSource.IsCancellationRequested)
                 {
                     _cancellationTokenSource.Cancel();
                 }
+            }
+            if (_cancellationTokenSource != null)
+            {
                 _cancellationTokenSource.Dispose();
                 _cancellationTokenSource = null;
             }

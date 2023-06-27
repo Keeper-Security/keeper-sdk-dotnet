@@ -100,8 +100,14 @@ namespace Cli
             }
 
             await auth.Login(email, passwds.ToArray());
-
-            await LoginFlow(auth, inputManager);
+            if (!auth.IsCompleted) 
+            {
+                await LoginFlow(auth, inputManager);
+            }
+            if (auth.Step is ErrorStep es) 
+            {
+                throw new KeeperApiException(es.Code, es.Message);
+            }
         }
 
         public static async Task LoginToSsoProvider(AuthSync auth, InputManager inputManager, string providerName = null)
