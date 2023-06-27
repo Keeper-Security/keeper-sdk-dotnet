@@ -33,7 +33,7 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     public class KeeperApiException : Exception
     {
-        internal KeeperApiException(string code, string message) : base(message)
+        public KeeperApiException(string code, string message) : base(message)
         {
             Code = code;
         }

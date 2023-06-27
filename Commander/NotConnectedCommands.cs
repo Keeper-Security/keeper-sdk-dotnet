@@ -5,6 +5,7 @@ using Authentication;
 using Cli;
 using CommandLine;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
 using KeeperSecurity.Utils;
@@ -21,6 +22,14 @@ namespace Commander
             public string Username { get; set; }
         }
 
+        private class ProxyOptions
+        {
+            [Option("user", Required = false, HelpText = "proxy user")]
+            public string User { get; set; }
+
+            [Option("password", Required = false, HelpText = "proxy password")]
+            public string Password { get; set; }
+        }
         private class LoginOptions
         {
             [Option("password", Required = false, HelpText = "master password")]
@@ -46,6 +55,13 @@ namespace Commander
             {
                 Endpoint = {DeviceName = "Commander C#", ClientVersion = "c16.5.0"}
             };
+
+            Commands.Add("proxy", new ParseableCommand<ProxyOptions>
+            { 
+                Order = 9,
+                Description = "Detect and setup proxy",
+                Action = DoProxy
+            });
 
             Commands.Add("login", new ParseableCommand<LoginOptions>
             {
@@ -205,6 +221,46 @@ namespace Commander
                 Username = username,
                 Password = password
             });
+        }
+
+        private async Task DoProxy(ProxyOptions options) 
+        {
+            Uri proxyUri = null;
+            string[] proxyMethods = null;
+            var hasProxy = await _auth.DetectProxy((uri, methods) => 
+            {
+                proxyUri = uri;
+                proxyMethods = methods;
+            });
+            if (proxyUri == null || proxyMethods == null) 
+            {
+                return;
+            }
+            var proxy_user = options.User;
+            if (string.IsNullOrEmpty(proxy_user)) 
+            {
+                Console.Write("Enter Proxy username: ");
+                proxy_user = await Program.GetInputManager().ReadLine();
+            }
+            if (string.IsNullOrEmpty(proxy_user))
+            {
+                return;
+            }
+            var proxy_password = options.Password;
+            if (string.IsNullOrEmpty(proxy_password))
+            {
+                Console.Write("Enter Proxy password: ");
+                proxy_password = await Program.GetInputManager().ReadLine(new ReadLineParameters 
+                { 
+                    IsSecured = true,
+                });
+            }
+            if (string.IsNullOrEmpty(proxy_password))
+            {
+                return;
+            }
+
+            _auth.Endpoint.WebProxy = AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyMethods, proxy_user, proxy_password);
         }
 
         private async Task DoLogin(LoginOptions options)

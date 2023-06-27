@@ -302,12 +302,21 @@ namespace KeeperSecurity.Authentication.Sync
         private async Task<AuthStep> OnConnected(AuthContext context)
         {
             authContext = context;
-            if (authContext.SessionTokenRestriction == 0 && PushNotifications is IPushNotificationChannel push)
-            {
-                await push.SendToWebSocket(authContext.SessionToken, false);
-            }
 
             this.StoreConfigurationIfChangedV3(_loginContext);
+
+            if (authContext.SessionTokenRestriction == 0 && PushNotifications is IPushNotificationChannel push)
+            {
+                try
+                {
+                    await push.SendToWebSocket(authContext.SessionToken, false);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e);
+                }
+            }
+
             try
             {
                 await PostLogin();

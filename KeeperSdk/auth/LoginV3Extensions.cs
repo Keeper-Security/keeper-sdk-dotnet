@@ -53,8 +53,17 @@ namespace KeeperSecurity.Authentication
                     DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                 };
                 var ws = new WebSocketChannel();
-                _ = ws.ConnectToPushServer(auth.Endpoint, connectRequest);
                 auth.SetPushNotifications(ws);
+                Task.Run(async () => {
+                    try 
+                    {
+                        await ws.ConnectToPushServer(auth.Endpoint, connectRequest);
+                    }
+                    catch 
+                    {
+                        auth.SetPushNotifications(null);
+                    }
+                });
             }
         }
         public static async Task EnsureDeviceTokenIsRegistered(this IAuth auth, LoginContext v3, string username)
