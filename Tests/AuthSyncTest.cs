@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using AccountSummary;
 using Authentication;
-using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
-using KeeperSecurity.Utils;
 using Moq;
-using Push;
 using Xunit;
 
 namespace Tests

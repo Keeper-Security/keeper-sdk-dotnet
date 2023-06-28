@@ -433,6 +433,16 @@ namespace KeeperSecurity.Authentication
             return response;
         }
 
+        /// <exclude/>
+        public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
+        {
+            if (!ReferenceEquals(PushNotifications, pushNotifications))
+            {
+                PushNotifications?.Dispose();
+                PushNotifications = pushNotifications;
+            }
+        }
+
         protected virtual IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
         {
 #if NET452_OR_GREATER

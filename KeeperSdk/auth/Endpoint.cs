@@ -88,9 +88,18 @@ namespace KeeperSecurity.Authentication
             _transmissionKey = CryptoUtils.GenerateEncryptionKey();
         }
 
-        public async Task ConnectToPushServer(IKeeperEndpoint endpoint, WssConnectionRequest connectionRequest) 
+        public async Task ConnectToPushServer(IKeeperEndpoint endpoint, WssConnectionRequest connectionRequest)
         {
+            if (_cancellationTokenSource != null)
+            {
+                if (!_cancellationTokenSource.IsCancellationRequested)
+                {
+                    _cancellationTokenSource.Cancel();
+                }
+                _cancellationTokenSource.Dispose();
+            }
             _cancellationTokenSource = new CancellationTokenSource();
+
             var apiRequest = endpoint.PrepareApiRequest(connectionRequest, _transmissionKey);
             var builder = new UriBuilder
             {
@@ -101,7 +110,7 @@ namespace KeeperSecurity.Authentication
             {
                 var ws = new ClientWebSocket();
                 var delay = Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
-                if (endpoint.WebProxy != null) 
+                if (endpoint.WebProxy != null)
                 {
                     ws.Options.Proxy = endpoint.WebProxy;
                 }
@@ -110,52 +119,58 @@ namespace KeeperSecurity.Authentication
                 {
                     _webSocket = ws;
                 }
-            }
-            // TODO reconnect
-            if (_webSocket != null && !_cancellationTokenSource.IsCancellationRequested) 
-            {
-                try
+                else 
                 {
-                    var buffer = new byte[1024];
-                    var segment = new ArraySegment<byte>(buffer);
-                    while (_webSocket.State == WebSocketState.Open)
+                    ws.Dispose();
+                }
+            }
+            if (_webSocket == null)
+            {
+                return;
+            }
+
+            // TODO reconnect
+            try
+            {
+                var buffer = new byte[1024];
+                var segment = new ArraySegment<byte>(buffer);
+                while (_webSocket.State == WebSocketState.Open)
+                {
+                    var rs = await _webSocket.ReceiveAsync(segment, _cancellationTokenSource.Token);
+                    if (rs?.Count > 0)
                     {
-                        var rs = await _webSocket.ReceiveAsync(segment, _cancellationTokenSource.Token);
-                        if (rs?.Count > 0)
-                        {
-                            var responseBytes = new byte[rs.Count];
-                            Array.Copy(buffer, segment.Offset, responseBytes, 0, responseBytes.Length);
-                            responseBytes = CryptoUtils.DecryptAesV2(responseBytes, _transmissionKey);
-                            var wssRs = WssClientResponse.Parser.ParseFrom(responseBytes);
+                        var responseBytes = new byte[rs.Count];
+                        Array.Copy(buffer, segment.Offset, responseBytes, 0, responseBytes.Length);
+                        responseBytes = CryptoUtils.DecryptAesV2(responseBytes, _transmissionKey);
+                        var wssRs = WssClientResponse.Parser.ParseFrom(responseBytes);
 #if DEBUG
-                            Debug.WriteLine($"REST push notification: {wssRs}");
+                        Debug.WriteLine($"REST push notification: {wssRs}");
 #endif
-                            try
-                            {
-                                var notification = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(wssRs.Message));
-                                Push(notification);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.Message);
-                            }
+                        try
+                        {
+                            var notification = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(wssRs.Message));
+                            Push(notification);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e.Message);
                         }
                     }
+                }
 
-                    if (_webSocket.State == WebSocketState.Open)
-                    {
-                        await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", _cancellationTokenSource.Token);
-                    }
-                }
-                catch (OperationCanceledException)
+                if (_webSocket.State == WebSocketState.Open)
                 {
+                    await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", _cancellationTokenSource.Token);
                 }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
-                Debug.WriteLine($"Websocket: Exited");
             }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+            }
+            Debug.WriteLine($"Websocket: Exited");
         }
 
         protected override void Dispose(bool disposing)
