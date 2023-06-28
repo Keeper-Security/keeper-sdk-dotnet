@@ -159,16 +159,6 @@ namespace KeeperSecurity.Authentication.Async
             set => base.Username = value;
         }
 
-        /// <exclude/>
-        public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
-        {
-            if (!ReferenceEquals(PushNotifications, pushNotifications))
-            {
-                PushNotifications?.Dispose();
-                PushNotifications = pushNotifications;
-            }
-        }
-
         /// <inheritdoc/>
         public new byte[] DeviceToken
         {

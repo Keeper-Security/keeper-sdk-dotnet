@@ -365,7 +365,6 @@ namespace KeeperSecurity.Authentication
                 }
                 catch (Exception e)
                 {
-                    auth.PushNotifications?.Dispose();
                     auth.SetPushNotifications(null);
                     if (attempt < 3 && e is KeeperInvalidDeviceToken)
                     {

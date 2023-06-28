@@ -65,23 +65,12 @@ namespace KeeperSecurity.Authentication.Sync
             set => base.Username = value;
         }
 
-        /// <exclude />
-        public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
-        {
-            if (!ReferenceEquals(PushNotifications, pushNotifications))
-            {
-                PushNotifications?.Dispose();
-                PushNotifications = pushNotifications;
-            }
-        }
-
         /// <inheritdoc/>>
         public new byte[] DeviceToken
         {
             get => base.DeviceToken;
             set => base.DeviceToken = value;
         }
-
 
         /// <summary>
         /// Gets a value that indicates whether login to Keeper has completed.
@@ -116,6 +105,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// </summary>
         public void Cancel()
         {
+            SetPushNotifications(null);
             Step = new ReadyToLoginStep();
         }
 
@@ -140,6 +130,7 @@ namespace KeeperSecurity.Authentication.Sync
             }
             catch (Exception e)
             {
+                SetPushNotifications(null);
                 var code = e is KeeperApiException kae ? kae.Code : "unknown_error";
                 Step = new ErrorStep(code, e.Message);
             }
@@ -326,10 +317,12 @@ namespace KeeperSecurity.Authentication.Sync
             }
             catch (KeeperApiException kae)
             {
+                SetPushNotifications(null);
                 return new ErrorStep(kae.Code, kae.Message);
             }
             catch (Exception e)
             {
+                SetPushNotifications(null);
                 return new ErrorStep("unknown_error", e.Message);
             }
         }
