@@ -123,7 +123,11 @@ function Copy-KeeperToClipboard {
                         $value
                     }
                     else {
-                        Set-Clipboard -Value $value
+                        if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq  [System.Threading.ApartmentState]::MTA) {
+                            powershell -sta "Set-Clipboard -Value '$value'"
+                        } else {
+                            Set-Clipboard -Value $value
+                        }
                         Write-Host "Copied to clipboard: $Field for $($rec.Title)"
                     }
                     if ($Field -eq 'Password') {
