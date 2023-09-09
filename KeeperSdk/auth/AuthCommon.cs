@@ -164,7 +164,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="responseType">Expected response type</param>
         /// <returns>Task returning Protobuf response.</returns>
         /// <seealso cref="AuthExtensions.ExecuteAuthRest"/>
-        Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null);
+        Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null, int apiVersion=0);
 
         /// <summary>
         /// Logout from Keeper server.
@@ -403,7 +403,7 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <inheritdoc/>
-        public async Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null)
+        public async Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null, int apiVersion=0)
         {
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"{endpoint}\": {request}");
@@ -411,7 +411,7 @@ namespace KeeperSecurity.Authentication
             var rq = new ApiRequestPayload
             {
                 EncryptedSessionToken = ByteString.CopyFrom(authContext.SessionToken),
-                ApiVersion = 3,
+                ApiVersion = apiVersion,
             };
             if (request != null)
             {

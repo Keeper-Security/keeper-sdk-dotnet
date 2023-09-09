@@ -96,130 +96,145 @@ namespace Records {
             "AyJZChJSZWNvcmRBZGRBdWRpdERhdGESEgoKcmVjb3JkX3VpZBgBIAEoDBIQ",
             "CghyZXZpc2lvbhgCIAEoAxIMCgRkYXRhGAMgASgMEg8KB3ZlcnNpb24YBCAB",
             "KAUiQwoTQWRkQXVkaXREYXRhUmVxdWVzdBIsCgdyZWNvcmRzGAEgAygLMhsu",
-            "UmVjb3Jkcy5SZWNvcmRBZGRBdWRpdERhdGEiYQoERmlsZRISCgpyZWNvcmRf",
+            "UmVjb3Jkcy5SZWNvcmRBZGRBdWRpdERhdGEidAoERmlsZRISCgpyZWNvcmRf",
             "dWlkGAEgASgMEhIKCnJlY29yZF9rZXkYAiABKAwSDAoEZGF0YRgDIAEoDBIQ",
-            "CghmaWxlU2l6ZRgEIAEoAxIRCgl0aHVtYlNpemUYBSABKAUiRAoPRmlsZXNB",
-            "ZGRSZXF1ZXN0EhwKBWZpbGVzGAEgAygLMg0uUmVjb3Jkcy5GaWxlEhMKC2Ns",
-            "aWVudF90aW1lGAIgASgDIqcBCg1GaWxlQWRkU3RhdHVzEhIKCnJlY29yZF91",
-            "aWQYASABKAwSJgoGc3RhdHVzGAIgASgOMhYuUmVjb3Jkcy5GaWxlQWRkUmVz",
-            "dWx0EgsKA3VybBgDIAEoCRISCgpwYXJhbWV0ZXJzGAQgASgJEhwKFHRodW1i",
-            "bmFpbF9wYXJhbWV0ZXJzGAUgASgJEhsKE3N1Y2Nlc3Nfc3RhdHVzX2NvZGUY",
-            "BiABKAUiSwoQRmlsZXNBZGRSZXNwb25zZRIlCgVmaWxlcxgBIAMoCzIWLlJl",
-            "Y29yZHMuRmlsZUFkZFN0YXR1cxIQCghyZXZpc2lvbhgCIAEoAyJmCg9GaWxl",
-            "c0dldFJlcXVlc3QSEwoLcmVjb3JkX3VpZHMYASADKAwSFgoOZm9yX3RodW1i",
-            "bmFpbHMYAiABKAgSJgoeZW1lcmdlbmN5X2FjY2Vzc19hY2NvdW50X293bmVy",
-            "GAMgASgJIqIBCg1GaWxlR2V0U3RhdHVzEhIKCnJlY29yZF91aWQYASABKAwS",
-            "JgoGc3RhdHVzGAIgASgOMhYuUmVjb3Jkcy5GaWxlR2V0UmVzdWx0EgsKA3Vy",
-            "bBgDIAEoCRIbChNzdWNjZXNzX3N0YXR1c19jb2RlGAQgASgFEisKC2ZpbGVL",
-            "ZXlUeXBlGAUgASgOMhYuUmVjb3Jkcy5SZWNvcmRLZXlUeXBlIjkKEEZpbGVz",
-            "R2V0UmVzcG9uc2USJQoFZmlsZXMYASADKAsyFi5SZWNvcmRzLkZpbGVHZXRT",
-            "dGF0dXMiaAoVQXBwbGljYXRpb25BZGRSZXF1ZXN0Eg8KB2FwcF91aWQYASAB",
-            "KAwSEgoKcmVjb3JkX2tleRgCIAEoDBIcChRjbGllbnRfbW9kaWZpZWRfdGlt",
-            "ZRgDIAEoAxIMCgRkYXRhGAQgASgMIogBCiJHZXRSZWNvcmREYXRhV2l0aEFj",
-            "Y2Vzc0luZm9SZXF1ZXN0EhIKCmNsaWVudFRpbWUYASABKAMSEQoJcmVjb3Jk",
-            "VWlkGAIgAygMEjsKFHJlY29yZERldGFpbHNJbmNsdWRlGAMgASgOMh0uUmVj",
-            "b3Jkcy5SZWNvcmREZXRhaWxzSW5jbHVkZSKrAQoOVXNlclBlcm1pc3Npb24S",
-            "EAoIdXNlcm5hbWUYASABKAkSDQoFb3duZXIYAiABKAgSEgoKc2hhcmVBZG1p",
-            "bhgDIAEoCBIQCghzaGFyYWJsZRgEIAEoCBIQCghlZGl0YWJsZRgFIAEoCBIY",
-            "ChBhd2FpdGluZ0FwcHJvdmFsGAYgASgIEhIKCmV4cGlyYXRpb24YByABKAMS",
-            "EgoKYWNjb3VudFVpZBgIIAEoDCJ9ChZTaGFyZWRGb2xkZXJQZXJtaXNzaW9u",
-            "EhcKD3NoYXJlZEZvbGRlclVpZBgBIAEoDBISCgpyZXNoYXJhYmxlGAIgASgI",
-            "EhAKCGVkaXRhYmxlGAMgASgIEhAKCHJldmlzaW9uGAQgASgDEhIKCmV4cGly",
-            "YXRpb24YBSABKAMi6AIKClJlY29yZERhdGESEAoIcmV2aXNpb24YASABKAMS",
-            "DwoHdmVyc2lvbhgCIAEoBRIOCgZzaGFyZWQYAyABKAgSGwoTZW5jcnlwdGVk",
-            "UmVjb3JkRGF0YRgEIAEoCRIaChJlbmNyeXB0ZWRFeHRyYURhdGEYBSABKAkS",
-            "GgoSY2xpZW50TW9kaWZpZWRUaW1lGAYgASgDEhUKDW5vblNoYXJlZERhdGEY",
-            "ByABKAkSLQoQbGlua2VkUmVjb3JkRGF0YRgIIAMoCzITLlJlY29yZHMuUmVj",
-            "b3JkRGF0YRIOCgZmaWxlSWQYCSADKAwSEAoIZmlsZVNpemUYCiABKAMSFQoN",
-            "dGh1bWJuYWlsU2l6ZRgLIAEoAxItCg1yZWNvcmRLZXlUeXBlGAwgASgOMhYu",
-            "UmVjb3Jkcy5SZWNvcmRLZXlUeXBlEhEKCXJlY29yZEtleRgNIAEoDBIRCgly",
-            "ZWNvcmRVaWQYDiABKAwiyAEKGFJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxIR",
-            "CglyZWNvcmRVaWQYASABKAwSJwoKcmVjb3JkRGF0YRgCIAEoCzITLlJlY29y",
-            "ZHMuUmVjb3JkRGF0YRIvCg51c2VyUGVybWlzc2lvbhgDIAMoCzIXLlJlY29y",
-            "ZHMuVXNlclBlcm1pc3Npb24SPwoWc2hhcmVkRm9sZGVyUGVybWlzc2lvbhgE",
-            "IAMoCzIfLlJlY29yZHMuU2hhcmVkRm9sZGVyUGVybWlzc2lvbiKJAQojR2V0",
-            "UmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvUmVzcG9uc2USQwoYcmVjb3JkRGF0",
-            "YVdpdGhBY2Nlc3NJbmZvGAEgAygLMiEuUmVjb3Jkcy5SZWNvcmREYXRhV2l0",
-            "aEFjY2Vzc0luZm8SHQoVbm9QZXJtaXNzaW9uUmVjb3JkVWlkGAIgAygMImoK",
-            "EklzT2JqZWN0U2hhcmVBZG1pbhILCgN1aWQYASABKAwSDwoHaXNBZG1pbhgC",
-            "IAEoCBI2CgpvYmplY3RUeXBlGAMgASgOMiIuUmVjb3Jkcy5DaGVja1NoYXJl",
-            "QWRtaW5PYmplY3RUeXBlIkgKDUFtSVNoYXJlQWRtaW4SNwoSaXNPYmplY3RT",
-            "aGFyZUFkbWluGAEgAygLMhsuUmVjb3Jkcy5Jc09iamVjdFNoYXJlQWRtaW4i",
-            "vAEKGFJlY29yZFNoYXJlVXBkYXRlUmVxdWVzdBIuCg9hZGRTaGFyZWRSZWNv",
-            "cmQYASADKAsyFS5SZWNvcmRzLlNoYXJlZFJlY29yZBIxChJ1cGRhdGVTaGFy",
-            "ZWRSZWNvcmQYAiADKAsyFS5SZWNvcmRzLlNoYXJlZFJlY29yZBIxChJyZW1v",
-            "dmVTaGFyZWRSZWNvcmQYAyADKAsyFS5SZWNvcmRzLlNoYXJlZFJlY29yZBIK",
-            "CgJwdBgEIAEoCSLpAQoMU2hhcmVkUmVjb3JkEhIKCnRvVXNlcm5hbWUYASAB",
-            "KAkSEQoJcmVjb3JkVWlkGAIgASgMEhEKCXJlY29yZEtleRgDIAEoDBIXCg9z",
-            "aGFyZWRGb2xkZXJVaWQYBCABKAwSDwoHdGVhbVVpZBgFIAEoDBIQCghlZGl0",
-            "YWJsZRgGIAEoCBIRCglzaGFyZWFibGUYByABKAgSEAoIdHJhbnNmZXIYCCAB",
-            "KAgSEQoJdXNlRWNjS2V5GAkgASgIEhcKD3JlbW92ZVZhdWx0RGF0YRgKIAEo",
-            "CBISCgpleHBpcmF0aW9uGAsgASgDItUBChlSZWNvcmRTaGFyZVVwZGF0ZVJl",
-            "c3BvbnNlEjoKFWFkZFNoYXJlZFJlY29yZFN0YXR1cxgBIAMoCzIbLlJlY29y",
-            "ZHMuU2hhcmVkUmVjb3JkU3RhdHVzEj0KGHVwZGF0ZVNoYXJlZFJlY29yZFN0",
-            "YXR1cxgCIAMoCzIbLlJlY29yZHMuU2hhcmVkUmVjb3JkU3RhdHVzEj0KGHJl",
-            "bW92ZVNoYXJlZFJlY29yZFN0YXR1cxgDIAMoCzIbLlJlY29yZHMuU2hhcmVk",
-            "UmVjb3JkU3RhdHVzIloKElNoYXJlZFJlY29yZFN0YXR1cxIRCglyZWNvcmRV",
-            "aWQYASABKAwSDgoGc3RhdHVzGAIgASgJEg8KB21lc3NhZ2UYAyABKAkSEAoI",
-            "dXNlcm5hbWUYBCABKAkiRwobR2V0UmVjb3JkUGVybWlzc2lvbnNSZXF1ZXN0",
-            "EhIKCnJlY29yZFVpZHMYASADKAwSFAoMaXNTaGFyZUFkbWluGAIgASgIIlQK",
-            "HEdldFJlY29yZFBlcm1pc3Npb25zUmVzcG9uc2USNAoRcmVjb3JkUGVybWlz",
-            "c2lvbnMYASADKAsyGS5SZWNvcmRzLlJlY29yZFBlcm1pc3Npb24ibAoQUmVj",
-            "b3JkUGVybWlzc2lvbhIRCglyZWNvcmRVaWQYASABKAwSDQoFb3duZXIYAiAB",
-            "KAgSDwoHY2FuRWRpdBgDIAEoCBIQCghjYW5TaGFyZRgEIAEoCBITCgtjYW5U",
-            "cmFuc2ZlchgFIAEoCCJoChZHZXRTaGFyZU9iamVjdHNSZXF1ZXN0EhEKCXN0",
-            "YXJ0V2l0aBgBIAEoCRIQCghjb250YWlucxgCIAEoCRIQCghmaWx0ZXJlZBgD",
-            "IAEoCBIXCg9zaGFyZWRGb2xkZXJVaWQYBCABKAwi5wIKF0dldFNoYXJlT2Jq",
-            "ZWN0c1Jlc3BvbnNlEi4KEnNoYXJlUmVsYXRpb25zaGlwcxgBIAMoCzISLlJl",
-            "Y29yZHMuU2hhcmVVc2VyEiwKEHNoYXJlRmFtaWx5VXNlcnMYAiADKAsyEi5S",
-            "ZWNvcmRzLlNoYXJlVXNlchIwChRzaGFyZUVudGVycHJpc2VVc2VycxgDIAMo",
-            "CzISLlJlY29yZHMuU2hhcmVVc2VyEiYKCnNoYXJlVGVhbXMYBCADKAsyEi5S",
-            "ZWNvcmRzLlNoYXJlVGVhbRIoCgxzaGFyZU1DVGVhbXMYBSADKAsyEi5SZWNv",
-            "cmRzLlNoYXJlVGVhbRIyChZzaGFyZU1DRW50ZXJwcmlzZVVzZXJzGAYgAygL",
-            "MhIuUmVjb3Jkcy5TaGFyZVVzZXISNgoUc2hhcmVFbnRlcnByaXNlTmFtZXMY",
-            "ByADKAsyGC5SZWNvcmRzLlNoYXJlRW50ZXJwcmlzZSKlAQoJU2hhcmVVc2Vy",
-            "EhAKCHVzZXJuYW1lGAEgASgJEhAKCGZ1bGxuYW1lGAIgASgJEhQKDGVudGVy",
-            "cHJpc2VJZBgDIAEoBRIkCgZzdGF0dXMYBCABKA4yFC5SZWNvcmRzLlNoYXJl",
-            "U3RhdHVzEhQKDGlzU2hhcmVBZG1pbhgFIAEoCBIiChppc0FkbWluT2ZTaGFy",
-            "ZWRGb2xkZXJPd25lchgGIAEoCCJECglTaGFyZVRlYW0SEAoIdGVhbW5hbWUY",
-            "ASABKAkSFAoMZW50ZXJwcmlzZUlkGAIgASgFEg8KB3RlYW1VaWQYAyABKAwi",
-            "PwoPU2hhcmVFbnRlcnByaXNlEhYKDmVudGVycHJpc2VuYW1lGAEgASgJEhQK",
-            "DGVudGVycHJpc2VJZBgCIAEoBSJTCh9SZWNvcmRzT253ZXJzaGlwVHJhbnNm",
-            "ZXJSZXF1ZXN0EjAKD3RyYW5zZmVyUmVjb3JkcxgBIAMoCzIXLlJlY29yZHMu",
-            "VHJhbnNmZXJSZWNvcmQiWwoOVHJhbnNmZXJSZWNvcmQSEAoIdXNlcm5hbWUY",
-            "ASABKAkSEQoJcmVjb3JkVWlkGAIgASgMEhEKCXJlY29yZEtleRgDIAEoDBIR",
-            "Cgl1c2VFY2NLZXkYBCABKAgiXwogUmVjb3Jkc09ud2Vyc2hpcFRyYW5zZmVy",
-            "UmVzcG9uc2USOwoUdHJhbnNmZXJSZWNvcmRTdGF0dXMYASADKAsyHS5SZWNv",
-            "cmRzLlRyYW5zZmVyUmVjb3JkU3RhdHVzIlwKFFRyYW5zZmVyUmVjb3JkU3Rh",
-            "dHVzEhAKCHVzZXJuYW1lGAEgASgJEhEKCXJlY29yZFVpZBgCIAEoDBIOCgZz",
-            "dGF0dXMYAyABKAkSDwoHbWVzc2FnZRgEIAEoCSpOCg9SZWNvcmRUeXBlU2Nv",
-            "cGUSDwoLUlRfU1RBTkRBUkQQABILCgdSVF9VU0VSEAESEQoNUlRfRU5URVJQ",
-            "UklTRRACEgoKBlJUX1BBTRADKtEBCg1SZWNvcmRLZXlUeXBlEgoKBk5PX0tF",
-            "WRAAEhkKFUVOQ1JZUFRFRF9CWV9EQVRBX0tFWRABEhsKF0VOQ1JZUFRFRF9C",
-            "WV9QVUJMSUNfS0VZEAISHQoZRU5DUllQVEVEX0JZX0RBVEFfS0VZX0dDTRAD",
-            "Eh8KG0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAEEh0KGUVOQ1JZUFRF",
-            "RF9CWV9ST09UX0tFWV9DQkMQBRIdChlFTkNSWVBURURfQllfUk9PVF9LRVlf",
-            "R0NNEAYqUAoQUmVjb3JkRm9sZGVyVHlwZRIPCgt1c2VyX2ZvbGRlchAAEhEK",
-            "DXNoYXJlZF9mb2xkZXIQARIYChRzaGFyZWRfZm9sZGVyX2ZvbGRlchACKsYC",
-            "ChJSZWNvcmRNb2RpZnlSZXN1bHQSDgoKUlNfU1VDQ0VTUxAAEhIKDlJTX09V",
-            "VF9PRl9TWU5DEAESFAoQUlNfQUNDRVNTX0RFTklFRBACEhMKD1JTX1NIQVJF",
-            "X0RFTklFRBADEhQKEFJTX1JFQ09SRF9FWElTVFMQBBIeChpSU19PTERfUkVD",
-            "T1JEX1ZFUlNJT05fVFlQRRAFEh4KGlJTX05FV19SRUNPUkRfVkVSU0lPTl9U",
-            "WVBFEAYSFgoSUlNfRklMRVNfTk9UX01BVENIEAcSGwoXUlNfUkVDT1JEX05P",
-            "VF9TSEFSRUFCTEUQCBIfChtSU19BVFRBQ0hNRU5UX05PVF9TSEFSRUFCTEUQ",
-            "CRIZChVSU19GSUxFX0xJTUlUX1JFQUNIRUQQChIaChZSU19TSVpFX0VYQ0VF",
-            "REVEX0xJTUlUEAsqLQoNRmlsZUFkZFJlc3VsdBIOCgpGQV9TVUNDRVNTEAAS",
-            "DAoIRkFfRVJST1IQASpDCg1GaWxlR2V0UmVzdWx0Eg4KCkZHX1NVQ0NFU1MQ",
-            "ABIMCghGR19FUlJPUhABEhQKEEZHX0FDQ0VTU19ERU5JRUQQAipKChRSZWNv",
-            "cmREZXRhaWxzSW5jbHVkZRITCg9EQVRBX1BMVVNfU0hBUkUQABINCglEQVRB",
-            "X09OTFkQARIOCgpTSEFSRV9PTkxZEAIqYgoZQ2hlY2tTaGFyZUFkbWluT2Jq",
-            "ZWN0VHlwZRIZChVDSEVDS19TQV9JTlZBTElEX1RZUEUQABISCg5DSEVDS19T",
-            "QV9PTl9TRhABEhYKEkNIRUNLX1NBX09OX1JFQ09SRBACKjEKC1NoYXJlU3Rh",
-            "dHVzEgoKBkFDVElWRRAAEgkKBUJMT0NLEAESCwoHSU5WSVRFRBACQiMKGGNv",
-            "bS5rZWVwZXJzZWN1cml0eS5wcm90b0IHUmVjb3Jkc2IGcHJvdG8z"));
+            "CghmaWxlU2l6ZRgEIAEoAxIRCgl0aHVtYlNpemUYBSABKAUSEQoJaXNfc2Ny",
+            "aXB0GAYgASgIIkQKD0ZpbGVzQWRkUmVxdWVzdBIcCgVmaWxlcxgBIAMoCzIN",
+            "LlJlY29yZHMuRmlsZRITCgtjbGllbnRfdGltZRgCIAEoAyKnAQoNRmlsZUFk",
+            "ZFN0YXR1cxISCgpyZWNvcmRfdWlkGAEgASgMEiYKBnN0YXR1cxgCIAEoDjIW",
+            "LlJlY29yZHMuRmlsZUFkZFJlc3VsdBILCgN1cmwYAyABKAkSEgoKcGFyYW1l",
+            "dGVycxgEIAEoCRIcChR0aHVtYm5haWxfcGFyYW1ldGVycxgFIAEoCRIbChNz",
+            "dWNjZXNzX3N0YXR1c19jb2RlGAYgASgFIksKEEZpbGVzQWRkUmVzcG9uc2US",
+            "JQoFZmlsZXMYASADKAsyFi5SZWNvcmRzLkZpbGVBZGRTdGF0dXMSEAoIcmV2",
+            "aXNpb24YAiABKAMiZgoPRmlsZXNHZXRSZXF1ZXN0EhMKC3JlY29yZF91aWRz",
+            "GAEgAygMEhYKDmZvcl90aHVtYm5haWxzGAIgASgIEiYKHmVtZXJnZW5jeV9h",
+            "Y2Nlc3NfYWNjb3VudF9vd25lchgDIAEoCSKiAQoNRmlsZUdldFN0YXR1cxIS",
+            "CgpyZWNvcmRfdWlkGAEgASgMEiYKBnN0YXR1cxgCIAEoDjIWLlJlY29yZHMu",
+            "RmlsZUdldFJlc3VsdBILCgN1cmwYAyABKAkSGwoTc3VjY2Vzc19zdGF0dXNf",
+            "Y29kZRgEIAEoBRIrCgtmaWxlS2V5VHlwZRgFIAEoDjIWLlJlY29yZHMuUmVj",
+            "b3JkS2V5VHlwZSI5ChBGaWxlc0dldFJlc3BvbnNlEiUKBWZpbGVzGAEgAygL",
+            "MhYuUmVjb3Jkcy5GaWxlR2V0U3RhdHVzImgKFUFwcGxpY2F0aW9uQWRkUmVx",
+            "dWVzdBIPCgdhcHBfdWlkGAEgASgMEhIKCnJlY29yZF9rZXkYAiABKAwSHAoU",
+            "Y2xpZW50X21vZGlmaWVkX3RpbWUYAyABKAMSDAoEZGF0YRgEIAEoDCKIAQoi",
+            "R2V0UmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvUmVxdWVzdBISCgpjbGllbnRU",
+            "aW1lGAEgASgDEhEKCXJlY29yZFVpZBgCIAMoDBI7ChRyZWNvcmREZXRhaWxz",
+            "SW5jbHVkZRgDIAEoDjIdLlJlY29yZHMuUmVjb3JkRGV0YWlsc0luY2x1ZGUi",
+            "qwEKDlVzZXJQZXJtaXNzaW9uEhAKCHVzZXJuYW1lGAEgASgJEg0KBW93bmVy",
+            "GAIgASgIEhIKCnNoYXJlQWRtaW4YAyABKAgSEAoIc2hhcmFibGUYBCABKAgS",
+            "EAoIZWRpdGFibGUYBSABKAgSGAoQYXdhaXRpbmdBcHByb3ZhbBgGIAEoCBIS",
+            "CgpleHBpcmF0aW9uGAcgASgDEhIKCmFjY291bnRVaWQYCCABKAwifQoWU2hh",
+            "cmVkRm9sZGVyUGVybWlzc2lvbhIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwS",
+            "EgoKcmVzaGFyYWJsZRgCIAEoCBIQCghlZGl0YWJsZRgDIAEoCBIQCghyZXZp",
+            "c2lvbhgEIAEoAxISCgpleHBpcmF0aW9uGAUgASgDIugCCgpSZWNvcmREYXRh",
+            "EhAKCHJldmlzaW9uGAEgASgDEg8KB3ZlcnNpb24YAiABKAUSDgoGc2hhcmVk",
+            "GAMgASgIEhsKE2VuY3J5cHRlZFJlY29yZERhdGEYBCABKAkSGgoSZW5jcnlw",
+            "dGVkRXh0cmFEYXRhGAUgASgJEhoKEmNsaWVudE1vZGlmaWVkVGltZRgGIAEo",
+            "AxIVCg1ub25TaGFyZWREYXRhGAcgASgJEi0KEGxpbmtlZFJlY29yZERhdGEY",
+            "CCADKAsyEy5SZWNvcmRzLlJlY29yZERhdGESDgoGZmlsZUlkGAkgAygMEhAK",
+            "CGZpbGVTaXplGAogASgDEhUKDXRodW1ibmFpbFNpemUYCyABKAMSLQoNcmVj",
+            "b3JkS2V5VHlwZRgMIAEoDjIWLlJlY29yZHMuUmVjb3JkS2V5VHlwZRIRCgly",
+            "ZWNvcmRLZXkYDSABKAwSEQoJcmVjb3JkVWlkGA4gASgMIsgBChhSZWNvcmRE",
+            "YXRhV2l0aEFjY2Vzc0luZm8SEQoJcmVjb3JkVWlkGAEgASgMEicKCnJlY29y",
+            "ZERhdGEYAiABKAsyEy5SZWNvcmRzLlJlY29yZERhdGESLwoOdXNlclBlcm1p",
+            "c3Npb24YAyADKAsyFy5SZWNvcmRzLlVzZXJQZXJtaXNzaW9uEj8KFnNoYXJl",
+            "ZEZvbGRlclBlcm1pc3Npb24YBCADKAsyHy5SZWNvcmRzLlNoYXJlZEZvbGRl",
+            "clBlcm1pc3Npb24iiQEKI0dldFJlY29yZERhdGFXaXRoQWNjZXNzSW5mb1Jl",
+            "c3BvbnNlEkMKGHJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxgBIAMoCzIhLlJl",
+            "Y29yZHMuUmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvEh0KFW5vUGVybWlzc2lv",
+            "blJlY29yZFVpZBgCIAMoDCJqChJJc09iamVjdFNoYXJlQWRtaW4SCwoDdWlk",
+            "GAEgASgMEg8KB2lzQWRtaW4YAiABKAgSNgoKb2JqZWN0VHlwZRgDIAEoDjIi",
+            "LlJlY29yZHMuQ2hlY2tTaGFyZUFkbWluT2JqZWN0VHlwZSJICg1BbUlTaGFy",
+            "ZUFkbWluEjcKEmlzT2JqZWN0U2hhcmVBZG1pbhgBIAMoCzIbLlJlY29yZHMu",
+            "SXNPYmplY3RTaGFyZUFkbWluIrwBChhSZWNvcmRTaGFyZVVwZGF0ZVJlcXVl",
+            "c3QSLgoPYWRkU2hhcmVkUmVjb3JkGAEgAygLMhUuUmVjb3Jkcy5TaGFyZWRS",
+            "ZWNvcmQSMQoSdXBkYXRlU2hhcmVkUmVjb3JkGAIgAygLMhUuUmVjb3Jkcy5T",
+            "aGFyZWRSZWNvcmQSMQoScmVtb3ZlU2hhcmVkUmVjb3JkGAMgAygLMhUuUmVj",
+            "b3Jkcy5TaGFyZWRSZWNvcmQSCgoCcHQYBCABKAki6QEKDFNoYXJlZFJlY29y",
+            "ZBISCgp0b1VzZXJuYW1lGAEgASgJEhEKCXJlY29yZFVpZBgCIAEoDBIRCgly",
+            "ZWNvcmRLZXkYAyABKAwSFwoPc2hhcmVkRm9sZGVyVWlkGAQgASgMEg8KB3Rl",
+            "YW1VaWQYBSABKAwSEAoIZWRpdGFibGUYBiABKAgSEQoJc2hhcmVhYmxlGAcg",
+            "ASgIEhAKCHRyYW5zZmVyGAggASgIEhEKCXVzZUVjY0tleRgJIAEoCBIXCg9y",
+            "ZW1vdmVWYXVsdERhdGEYCiABKAgSEgoKZXhwaXJhdGlvbhgLIAEoAyLVAQoZ",
+            "UmVjb3JkU2hhcmVVcGRhdGVSZXNwb25zZRI6ChVhZGRTaGFyZWRSZWNvcmRT",
+            "dGF0dXMYASADKAsyGy5SZWNvcmRzLlNoYXJlZFJlY29yZFN0YXR1cxI9Chh1",
+            "cGRhdGVTaGFyZWRSZWNvcmRTdGF0dXMYAiADKAsyGy5SZWNvcmRzLlNoYXJl",
+            "ZFJlY29yZFN0YXR1cxI9ChhyZW1vdmVTaGFyZWRSZWNvcmRTdGF0dXMYAyAD",
+            "KAsyGy5SZWNvcmRzLlNoYXJlZFJlY29yZFN0YXR1cyJaChJTaGFyZWRSZWNv",
+            "cmRTdGF0dXMSEQoJcmVjb3JkVWlkGAEgASgMEg4KBnN0YXR1cxgCIAEoCRIP",
+            "CgdtZXNzYWdlGAMgASgJEhAKCHVzZXJuYW1lGAQgASgJIkcKG0dldFJlY29y",
+            "ZFBlcm1pc3Npb25zUmVxdWVzdBISCgpyZWNvcmRVaWRzGAEgAygMEhQKDGlz",
+            "U2hhcmVBZG1pbhgCIAEoCCJUChxHZXRSZWNvcmRQZXJtaXNzaW9uc1Jlc3Bv",
+            "bnNlEjQKEXJlY29yZFBlcm1pc3Npb25zGAEgAygLMhkuUmVjb3Jkcy5SZWNv",
+            "cmRQZXJtaXNzaW9uImwKEFJlY29yZFBlcm1pc3Npb24SEQoJcmVjb3JkVWlk",
+            "GAEgASgMEg0KBW93bmVyGAIgASgIEg8KB2NhbkVkaXQYAyABKAgSEAoIY2Fu",
+            "U2hhcmUYBCABKAgSEwoLY2FuVHJhbnNmZXIYBSABKAgiaAoWR2V0U2hhcmVP",
+            "YmplY3RzUmVxdWVzdBIRCglzdGFydFdpdGgYASABKAkSEAoIY29udGFpbnMY",
+            "AiABKAkSEAoIZmlsdGVyZWQYAyABKAgSFwoPc2hhcmVkRm9sZGVyVWlkGAQg",
+            "ASgMIucCChdHZXRTaGFyZU9iamVjdHNSZXNwb25zZRIuChJzaGFyZVJlbGF0",
+            "aW9uc2hpcHMYASADKAsyEi5SZWNvcmRzLlNoYXJlVXNlchIsChBzaGFyZUZh",
+            "bWlseVVzZXJzGAIgAygLMhIuUmVjb3Jkcy5TaGFyZVVzZXISMAoUc2hhcmVF",
+            "bnRlcnByaXNlVXNlcnMYAyADKAsyEi5SZWNvcmRzLlNoYXJlVXNlchImCgpz",
+            "aGFyZVRlYW1zGAQgAygLMhIuUmVjb3Jkcy5TaGFyZVRlYW0SKAoMc2hhcmVN",
+            "Q1RlYW1zGAUgAygLMhIuUmVjb3Jkcy5TaGFyZVRlYW0SMgoWc2hhcmVNQ0Vu",
+            "dGVycHJpc2VVc2VycxgGIAMoCzISLlJlY29yZHMuU2hhcmVVc2VyEjYKFHNo",
+            "YXJlRW50ZXJwcmlzZU5hbWVzGAcgAygLMhguUmVjb3Jkcy5TaGFyZUVudGVy",
+            "cHJpc2UipQEKCVNoYXJlVXNlchIQCgh1c2VybmFtZRgBIAEoCRIQCghmdWxs",
+            "bmFtZRgCIAEoCRIUCgxlbnRlcnByaXNlSWQYAyABKAUSJAoGc3RhdHVzGAQg",
+            "ASgOMhQuUmVjb3Jkcy5TaGFyZVN0YXR1cxIUCgxpc1NoYXJlQWRtaW4YBSAB",
+            "KAgSIgoaaXNBZG1pbk9mU2hhcmVkRm9sZGVyT3duZXIYBiABKAgiRAoJU2hh",
+            "cmVUZWFtEhAKCHRlYW1uYW1lGAEgASgJEhQKDGVudGVycHJpc2VJZBgCIAEo",
+            "BRIPCgd0ZWFtVWlkGAMgASgMIj8KD1NoYXJlRW50ZXJwcmlzZRIWCg5lbnRl",
+            "cnByaXNlbmFtZRgBIAEoCRIUCgxlbnRlcnByaXNlSWQYAiABKAUiUwofUmVj",
+            "b3Jkc09ud2Vyc2hpcFRyYW5zZmVyUmVxdWVzdBIwCg90cmFuc2ZlclJlY29y",
+            "ZHMYASADKAsyFy5SZWNvcmRzLlRyYW5zZmVyUmVjb3JkIlsKDlRyYW5zZmVy",
+            "UmVjb3JkEhAKCHVzZXJuYW1lGAEgASgJEhEKCXJlY29yZFVpZBgCIAEoDBIR",
+            "CglyZWNvcmRLZXkYAyABKAwSEQoJdXNlRWNjS2V5GAQgASgIIl8KIFJlY29y",
+            "ZHNPbndlcnNoaXBUcmFuc2ZlclJlc3BvbnNlEjsKFHRyYW5zZmVyUmVjb3Jk",
+            "U3RhdHVzGAEgAygLMh0uUmVjb3Jkcy5UcmFuc2ZlclJlY29yZFN0YXR1cyJc",
+            "ChRUcmFuc2ZlclJlY29yZFN0YXR1cxIQCgh1c2VybmFtZRgBIAEoCRIRCgly",
+            "ZWNvcmRVaWQYAiABKAwSDgoGc3RhdHVzGAMgASgJEg8KB21lc3NhZ2UYBCAB",
+            "KAkieQoVUmVjb3Jkc1Vuc2hhcmVSZXF1ZXN0EjQKDXNoYXJlZEZvbGRlcnMY",
+            "ASADKAsyHS5SZWNvcmRzLlJlY29yZHNVbnNoYXJlRm9sZGVyEioKBXVzZXJz",
+            "GAIgAygLMhsuUmVjb3Jkcy5SZWNvcmRzVW5zaGFyZVVzZXIihgEKFlJlY29y",
+            "ZHNVbnNoYXJlUmVzcG9uc2USOgoNc2hhcmVkRm9sZGVycxgBIAMoCzIjLlJl",
+            "Y29yZHMuUmVjb3Jkc1Vuc2hhcmVGb2xkZXJTdGF0dXMSMAoFdXNlcnMYAiAD",
+            "KAsyIS5SZWNvcmRzLlJlY29yZHNVbnNoYXJlVXNlclN0YXR1cyJCChRSZWNv",
+            "cmRzVW5zaGFyZUZvbGRlchIRCglyZWNvcmRVaWQYASABKAwSFwoPc2hhcmVk",
+            "Rm9sZGVyVWlkGAIgASgMIjsKElJlY29yZHNVbnNoYXJlVXNlchIRCglyZWNv",
+            "cmRVaWQYASABKAwSEgoKYWNjb3VudFVpZBgCIAEoDCJIChpSZWNvcmRzVW5z",
+            "aGFyZUZvbGRlclN0YXR1cxIRCglyZWNvcmRVaWQYASABKAwSFwoPc2hhcmVk",
+            "Rm9sZGVyVWlkGAIgASgMIkEKGFJlY29yZHNVbnNoYXJlVXNlclN0YXR1cxIR",
+            "CglyZWNvcmRVaWQYASABKAwSEgoKYWNjb3VudFVpZBgCIAEoDCpoCg9SZWNv",
+            "cmRUeXBlU2NvcGUSDwoLUlRfU1RBTkRBUkQQABILCgdSVF9VU0VSEAESEQoN",
+            "UlRfRU5URVJQUklTRRACEgoKBlJUX1BBTRADEhgKFFJUX1BBTV9DT05GSUdV",
+            "UkFUSU9OEAQq0QEKDVJlY29yZEtleVR5cGUSCgoGTk9fS0VZEAASGQoVRU5D",
+            "UllQVEVEX0JZX0RBVEFfS0VZEAESGwoXRU5DUllQVEVEX0JZX1BVQkxJQ19L",
+            "RVkQAhIdChlFTkNSWVBURURfQllfREFUQV9LRVlfR0NNEAMSHwobRU5DUllQ",
+            "VEVEX0JZX1BVQkxJQ19LRVlfRUNDEAQSHQoZRU5DUllQVEVEX0JZX1JPT1Rf",
+            "S0VZX0NCQxAFEh0KGUVOQ1JZUFRFRF9CWV9ST09UX0tFWV9HQ00QBipQChBS",
+            "ZWNvcmRGb2xkZXJUeXBlEg8KC3VzZXJfZm9sZGVyEAASEQoNc2hhcmVkX2Zv",
+            "bGRlchABEhgKFHNoYXJlZF9mb2xkZXJfZm9sZGVyEAIq7AIKElJlY29yZE1v",
+            "ZGlmeVJlc3VsdBIOCgpSU19TVUNDRVNTEAASEgoOUlNfT1VUX09GX1NZTkMQ",
+            "ARIUChBSU19BQ0NFU1NfREVOSUVEEAISEwoPUlNfU0hBUkVfREVOSUVEEAMS",
+            "FAoQUlNfUkVDT1JEX0VYSVNUUxAEEh4KGlJTX09MRF9SRUNPUkRfVkVSU0lP",
+            "Tl9UWVBFEAUSHgoaUlNfTkVXX1JFQ09SRF9WRVJTSU9OX1RZUEUQBhIWChJS",
+            "U19GSUxFU19OT1RfTUFUQ0gQBxIbChdSU19SRUNPUkRfTk9UX1NIQVJFQUJM",
+            "RRAIEh8KG1JTX0FUVEFDSE1FTlRfTk9UX1NIQVJFQUJMRRAJEhkKFVJTX0ZJ",
+            "TEVfTElNSVRfUkVBQ0hFRBAKEhoKFlJTX1NJWkVfRVhDRUVERURfTElNSVQQ",
+            "CxIkCiBSU19PTkxZX09XTkVSX0NBTl9NT0RJRllfU0NSSVBUUxAMKi0KDUZp",
+            "bGVBZGRSZXN1bHQSDgoKRkFfU1VDQ0VTUxAAEgwKCEZBX0VSUk9SEAEqQwoN",
+            "RmlsZUdldFJlc3VsdBIOCgpGR19TVUNDRVNTEAASDAoIRkdfRVJST1IQARIU",
+            "ChBGR19BQ0NFU1NfREVOSUVEEAIqSgoUUmVjb3JkRGV0YWlsc0luY2x1ZGUS",
+            "EwoPREFUQV9QTFVTX1NIQVJFEAASDQoJREFUQV9PTkxZEAESDgoKU0hBUkVf",
+            "T05MWRACKmIKGUNoZWNrU2hhcmVBZG1pbk9iamVjdFR5cGUSGQoVQ0hFQ0tf",
+            "U0FfSU5WQUxJRF9UWVBFEAASEgoOQ0hFQ0tfU0FfT05fU0YQARIWChJDSEVD",
+            "S19TQV9PTl9SRUNPUkQQAioxCgtTaGFyZVN0YXR1cxIKCgZBQ1RJVkUQABIJ",
+            "CgVCTE9DSxABEgsKB0lOVklURUQQAio6ChVSZWNvcmRUcmFuc2FjdGlvblR5",
+            "cGUSDwoLUlRUX0dFTkVSQUwQABIQCgxSVFRfUk9UQVRJT04QAUIjChhjb20u",
+            "a2VlcGVyc2VjdXJpdHkucHJvdG9CB1JlY29yZHNiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.CheckShareAdminObjectType), typeof(global::Records.ShareStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.CheckShareAdminObjectType), typeof(global::Records.ShareStatus), typeof(global::Records.RecordTransactionType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordType), global::Records.RecordType.Parser, new[]{ "RecordTypeId", "Content", "Scope" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordTypesRequest), global::Records.RecordTypesRequest.Parser, new[]{ "Standard", "User", "Enterprise", "Pam" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordTypesResponse), global::Records.RecordTypesResponse.Parser, new[]{ "RecordTypes", "StandardCounter", "UserCounter", "EnterpriseCounter", "PamCounter" }, null, null, null, null),
@@ -248,7 +263,7 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsModifyResponse), global::Records.RecordsModifyResponse.Parser, new[]{ "Records", "Revision" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordAddAuditData), global::Records.RecordAddAuditData.Parser, new[]{ "RecordUid", "Revision", "Data", "Version" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.AddAuditDataRequest), global::Records.AddAuditDataRequest.Parser, new[]{ "Records" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.File), global::Records.File.Parser, new[]{ "RecordUid", "RecordKey", "Data", "FileSize", "ThumbSize" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.File), global::Records.File.Parser, new[]{ "RecordUid", "RecordKey", "Data", "FileSize", "ThumbSize", "IsScript" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesAddRequest), global::Records.FilesAddRequest.Parser, new[]{ "Files", "ClientTime" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FileAddStatus), global::Records.FileAddStatus.Parser, new[]{ "RecordUid", "Status", "Url", "Parameters", "ThumbnailParameters", "SuccessStatusCode" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesAddResponse), global::Records.FilesAddResponse.Parser, new[]{ "Files", "Revision" }, null, null, null, null),
@@ -279,7 +294,13 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsOnwershipTransferRequest), global::Records.RecordsOnwershipTransferRequest.Parser, new[]{ "TransferRecords" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.TransferRecord), global::Records.TransferRecord.Parser, new[]{ "Username", "RecordUid", "RecordKey", "UseEccKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsOnwershipTransferResponse), global::Records.RecordsOnwershipTransferResponse.Parser, new[]{ "TransferRecordStatus" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.TransferRecordStatus), global::Records.TransferRecordStatus.Parser, new[]{ "Username", "RecordUid", "Status", "Message" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.TransferRecordStatus), global::Records.TransferRecordStatus.Parser, new[]{ "Username", "RecordUid", "Status", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareRequest), global::Records.RecordsUnshareRequest.Parser, new[]{ "SharedFolders", "Users" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareResponse), global::Records.RecordsUnshareResponse.Parser, new[]{ "SharedFolders", "Users" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareFolder), global::Records.RecordsUnshareFolder.Parser, new[]{ "RecordUid", "SharedFolderUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareUser), global::Records.RecordsUnshareUser.Parser, new[]{ "RecordUid", "AccountUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareFolderStatus), global::Records.RecordsUnshareFolderStatus.Parser, new[]{ "RecordUid", "SharedFolderUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareUserStatus), global::Records.RecordsUnshareUserStatus.Parser, new[]{ "RecordUid", "AccountUid" }, null, null, null, null)
           }));
     }
     #endregion
@@ -291,6 +312,7 @@ namespace Records {
     [pbr::OriginalName("RT_USER")] RtUser = 1,
     [pbr::OriginalName("RT_ENTERPRISE")] RtEnterprise = 2,
     [pbr::OriginalName("RT_PAM")] RtPam = 3,
+    [pbr::OriginalName("RT_PAM_CONFIGURATION")] RtPamConfiguration = 4,
   }
 
   public enum RecordKeyType {
@@ -322,6 +344,7 @@ namespace Records {
     [pbr::OriginalName("RS_ATTACHMENT_NOT_SHAREABLE")] RsAttachmentNotShareable = 9,
     [pbr::OriginalName("RS_FILE_LIMIT_REACHED")] RsFileLimitReached = 10,
     [pbr::OriginalName("RS_SIZE_EXCEEDED_LIMIT")] RsSizeExceededLimit = 11,
+    [pbr::OriginalName("RS_ONLY_OWNER_CAN_MODIFY_SCRIPTS")] RsOnlyOwnerCanModifyScripts = 12,
   }
 
   public enum FileAddResult {
@@ -351,6 +374,11 @@ namespace Records {
     [pbr::OriginalName("ACTIVE")] Active = 0,
     [pbr::OriginalName("BLOCK")] Block = 1,
     [pbr::OriginalName("INVITED")] Invited = 2,
+  }
+
+  public enum RecordTransactionType {
+    [pbr::OriginalName("RTT_GENERAL")] RttGeneral = 0,
+    [pbr::OriginalName("RTT_ROTATION")] RttRotation = 1,
   }
 
   #endregion
@@ -8239,6 +8267,7 @@ namespace Records {
       data_ = other.data_;
       fileSize_ = other.fileSize_;
       thumbSize_ = other.thumbSize_;
+      isScript_ = other.isScript_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -8308,6 +8337,18 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "is_script" field.</summary>
+    public const int IsScriptFieldNumber = 6;
+    private bool isScript_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool IsScript {
+      get { return isScript_; }
+      set {
+        isScript_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -8328,6 +8369,7 @@ namespace Records {
       if (Data != other.Data) return false;
       if (FileSize != other.FileSize) return false;
       if (ThumbSize != other.ThumbSize) return false;
+      if (IsScript != other.IsScript) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -8340,6 +8382,7 @@ namespace Records {
       if (Data.Length != 0) hash ^= Data.GetHashCode();
       if (FileSize != 0L) hash ^= FileSize.GetHashCode();
       if (ThumbSize != 0) hash ^= ThumbSize.GetHashCode();
+      if (IsScript != false) hash ^= IsScript.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -8378,6 +8421,10 @@ namespace Records {
         output.WriteRawTag(40);
         output.WriteInt32(ThumbSize);
       }
+      if (IsScript != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(IsScript);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -8408,6 +8455,10 @@ namespace Records {
         output.WriteRawTag(40);
         output.WriteInt32(ThumbSize);
       }
+      if (IsScript != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(IsScript);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -8432,6 +8483,9 @@ namespace Records {
       }
       if (ThumbSize != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(ThumbSize);
+      }
+      if (IsScript != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -8459,6 +8513,9 @@ namespace Records {
       }
       if (other.ThumbSize != 0) {
         ThumbSize = other.ThumbSize;
+      }
+      if (other.IsScript != false) {
+        IsScript = other.IsScript;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -8495,6 +8552,10 @@ namespace Records {
             ThumbSize = input.ReadInt32();
             break;
           }
+          case 48: {
+            IsScript = input.ReadBool();
+            break;
+          }
         }
       }
     #endif
@@ -8528,6 +8589,10 @@ namespace Records {
           }
           case 40: {
             ThumbSize = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            IsScript = input.ReadBool();
             break;
           }
         }
@@ -17630,6 +17695,1318 @@ namespace Records {
           }
           case 34: {
             Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class RecordsUnshareRequest : pb::IMessage<RecordsUnshareRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordsUnshareRequest> _parser = new pb::MessageParser<RecordsUnshareRequest>(() => new RecordsUnshareRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordsUnshareRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[60]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareRequest(RecordsUnshareRequest other) : this() {
+      sharedFolders_ = other.sharedFolders_.Clone();
+      users_ = other.users_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareRequest Clone() {
+      return new RecordsUnshareRequest(this);
+    }
+
+    /// <summary>Field number for the "sharedFolders" field.</summary>
+    public const int SharedFoldersFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Records.RecordsUnshareFolder> _repeated_sharedFolders_codec
+        = pb::FieldCodec.ForMessage(10, global::Records.RecordsUnshareFolder.Parser);
+    private readonly pbc::RepeatedField<global::Records.RecordsUnshareFolder> sharedFolders_ = new pbc::RepeatedField<global::Records.RecordsUnshareFolder>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Records.RecordsUnshareFolder> SharedFolders {
+      get { return sharedFolders_; }
+    }
+
+    /// <summary>Field number for the "users" field.</summary>
+    public const int UsersFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Records.RecordsUnshareUser> _repeated_users_codec
+        = pb::FieldCodec.ForMessage(18, global::Records.RecordsUnshareUser.Parser);
+    private readonly pbc::RepeatedField<global::Records.RecordsUnshareUser> users_ = new pbc::RepeatedField<global::Records.RecordsUnshareUser>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Records.RecordsUnshareUser> Users {
+      get { return users_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordsUnshareRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordsUnshareRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!sharedFolders_.Equals(other.sharedFolders_)) return false;
+      if(!users_.Equals(other.users_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= sharedFolders_.GetHashCode();
+      hash ^= users_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      sharedFolders_.WriteTo(output, _repeated_sharedFolders_codec);
+      users_.WriteTo(output, _repeated_users_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      sharedFolders_.WriteTo(ref output, _repeated_sharedFolders_codec);
+      users_.WriteTo(ref output, _repeated_users_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += sharedFolders_.CalculateSize(_repeated_sharedFolders_codec);
+      size += users_.CalculateSize(_repeated_users_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordsUnshareRequest other) {
+      if (other == null) {
+        return;
+      }
+      sharedFolders_.Add(other.sharedFolders_);
+      users_.Add(other.users_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            sharedFolders_.AddEntriesFrom(input, _repeated_sharedFolders_codec);
+            break;
+          }
+          case 18: {
+            users_.AddEntriesFrom(input, _repeated_users_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            sharedFolders_.AddEntriesFrom(ref input, _repeated_sharedFolders_codec);
+            break;
+          }
+          case 18: {
+            users_.AddEntriesFrom(ref input, _repeated_users_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class RecordsUnshareResponse : pb::IMessage<RecordsUnshareResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordsUnshareResponse> _parser = new pb::MessageParser<RecordsUnshareResponse>(() => new RecordsUnshareResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordsUnshareResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[61]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareResponse(RecordsUnshareResponse other) : this() {
+      sharedFolders_ = other.sharedFolders_.Clone();
+      users_ = other.users_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareResponse Clone() {
+      return new RecordsUnshareResponse(this);
+    }
+
+    /// <summary>Field number for the "sharedFolders" field.</summary>
+    public const int SharedFoldersFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Records.RecordsUnshareFolderStatus> _repeated_sharedFolders_codec
+        = pb::FieldCodec.ForMessage(10, global::Records.RecordsUnshareFolderStatus.Parser);
+    private readonly pbc::RepeatedField<global::Records.RecordsUnshareFolderStatus> sharedFolders_ = new pbc::RepeatedField<global::Records.RecordsUnshareFolderStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Records.RecordsUnshareFolderStatus> SharedFolders {
+      get { return sharedFolders_; }
+    }
+
+    /// <summary>Field number for the "users" field.</summary>
+    public const int UsersFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Records.RecordsUnshareUserStatus> _repeated_users_codec
+        = pb::FieldCodec.ForMessage(18, global::Records.RecordsUnshareUserStatus.Parser);
+    private readonly pbc::RepeatedField<global::Records.RecordsUnshareUserStatus> users_ = new pbc::RepeatedField<global::Records.RecordsUnshareUserStatus>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Records.RecordsUnshareUserStatus> Users {
+      get { return users_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordsUnshareResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordsUnshareResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!sharedFolders_.Equals(other.sharedFolders_)) return false;
+      if(!users_.Equals(other.users_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= sharedFolders_.GetHashCode();
+      hash ^= users_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      sharedFolders_.WriteTo(output, _repeated_sharedFolders_codec);
+      users_.WriteTo(output, _repeated_users_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      sharedFolders_.WriteTo(ref output, _repeated_sharedFolders_codec);
+      users_.WriteTo(ref output, _repeated_users_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += sharedFolders_.CalculateSize(_repeated_sharedFolders_codec);
+      size += users_.CalculateSize(_repeated_users_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordsUnshareResponse other) {
+      if (other == null) {
+        return;
+      }
+      sharedFolders_.Add(other.sharedFolders_);
+      users_.Add(other.users_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            sharedFolders_.AddEntriesFrom(input, _repeated_sharedFolders_codec);
+            break;
+          }
+          case 18: {
+            users_.AddEntriesFrom(input, _repeated_users_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            sharedFolders_.AddEntriesFrom(ref input, _repeated_sharedFolders_codec);
+            break;
+          }
+          case 18: {
+            users_.AddEntriesFrom(ref input, _repeated_users_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class RecordsUnshareFolder : pb::IMessage<RecordsUnshareFolder>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordsUnshareFolder> _parser = new pb::MessageParser<RecordsUnshareFolder>(() => new RecordsUnshareFolder());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordsUnshareFolder> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[62]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareFolder() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareFolder(RecordsUnshareFolder other) : this() {
+      recordUid_ = other.recordUid_;
+      sharedFolderUid_ = other.sharedFolderUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareFolder Clone() {
+      return new RecordsUnshareFolder(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "sharedFolderUid" field.</summary>
+    public const int SharedFolderUidFieldNumber = 2;
+    private pb::ByteString sharedFolderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString SharedFolderUid {
+      get { return sharedFolderUid_; }
+      set {
+        sharedFolderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordsUnshareFolder);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordsUnshareFolder other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (SharedFolderUid != other.SharedFolderUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (SharedFolderUid.Length != 0) hash ^= SharedFolderUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (SharedFolderUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SharedFolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (SharedFolderUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SharedFolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (SharedFolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedFolderUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordsUnshareFolder other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.SharedFolderUid.Length != 0) {
+        SharedFolderUid = other.SharedFolderUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            SharedFolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            SharedFolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class RecordsUnshareUser : pb::IMessage<RecordsUnshareUser>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordsUnshareUser> _parser = new pb::MessageParser<RecordsUnshareUser>(() => new RecordsUnshareUser());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordsUnshareUser> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[63]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareUser() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareUser(RecordsUnshareUser other) : this() {
+      recordUid_ = other.recordUid_;
+      accountUid_ = other.accountUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareUser Clone() {
+      return new RecordsUnshareUser(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accountUid" field.</summary>
+    public const int AccountUidFieldNumber = 2;
+    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AccountUid {
+      get { return accountUid_; }
+      set {
+        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordsUnshareUser);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordsUnshareUser other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (AccountUid != other.AccountUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccountUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccountUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (AccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordsUnshareUser other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.AccountUid.Length != 0) {
+        AccountUid = other.AccountUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class RecordsUnshareFolderStatus : pb::IMessage<RecordsUnshareFolderStatus>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordsUnshareFolderStatus> _parser = new pb::MessageParser<RecordsUnshareFolderStatus>(() => new RecordsUnshareFolderStatus());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordsUnshareFolderStatus> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[64]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareFolderStatus() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareFolderStatus(RecordsUnshareFolderStatus other) : this() {
+      recordUid_ = other.recordUid_;
+      sharedFolderUid_ = other.sharedFolderUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareFolderStatus Clone() {
+      return new RecordsUnshareFolderStatus(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "sharedFolderUid" field.</summary>
+    public const int SharedFolderUidFieldNumber = 2;
+    private pb::ByteString sharedFolderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString SharedFolderUid {
+      get { return sharedFolderUid_; }
+      set {
+        sharedFolderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordsUnshareFolderStatus);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordsUnshareFolderStatus other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (SharedFolderUid != other.SharedFolderUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (SharedFolderUid.Length != 0) hash ^= SharedFolderUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (SharedFolderUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SharedFolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (SharedFolderUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SharedFolderUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (SharedFolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedFolderUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordsUnshareFolderStatus other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.SharedFolderUid.Length != 0) {
+        SharedFolderUid = other.SharedFolderUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            SharedFolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            SharedFolderUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class RecordsUnshareUserStatus : pb::IMessage<RecordsUnshareUserStatus>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RecordsUnshareUserStatus> _parser = new pb::MessageParser<RecordsUnshareUserStatus>(() => new RecordsUnshareUserStatus());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RecordsUnshareUserStatus> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[65]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareUserStatus() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareUserStatus(RecordsUnshareUserStatus other) : this() {
+      recordUid_ = other.recordUid_;
+      accountUid_ = other.accountUid_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RecordsUnshareUserStatus Clone() {
+      return new RecordsUnshareUserStatus(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "accountUid" field.</summary>
+    public const int AccountUidFieldNumber = 2;
+    private pb::ByteString accountUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AccountUid {
+      get { return accountUid_; }
+      set {
+        accountUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RecordsUnshareUserStatus);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RecordsUnshareUserStatus other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (AccountUid != other.AccountUid) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccountUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (AccountUid.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(AccountUid);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (AccountUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RecordsUnshareUserStatus other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.AccountUid.Length != 0) {
+        AccountUid = other.AccountUid;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            AccountUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            AccountUid = input.ReadBytes();
             break;
           }
         }
