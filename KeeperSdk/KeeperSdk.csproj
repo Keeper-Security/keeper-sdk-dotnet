@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <LangVersion>7.1</LangVersion>
-    <Version>1.0.5-beta08</Version>
+    <Version>1.0.5-beta09</Version>
     <Authors>Keeper Security Inc.</Authors>
     <Product>.NET Keeper Sdk</Product>
     <PackageTags>keeper password manager</PackageTags>
@@ -12,9 +12,9 @@
     <RepositoryUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <PackageProjectUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</PackageProjectUrl>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.5.26</AssemblyVersion>
-    <FileVersion>1.0.5.26</FileVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <AssemblyVersion>1.0.5.27</AssemblyVersion>
+    <FileVersion>1.0.5.27</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <IncludeSymbols>true</IncludeSymbols>
@@ -29,7 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.21.12" />
+    <PackageReference Include="Google.Protobuf" Version="3.24.3" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
 

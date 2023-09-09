@@ -94,56 +94,62 @@ namespace Folder {
             "Rm9sZGVyVXBkYXRlVGVhbRIgChhzaGFyZWRGb2xkZXJSZW1vdmVSZWNvcmQY",
             "ESADKAwSHgoWc2hhcmVkRm9sZGVyUmVtb3ZlVXNlchgSIAMoCRIeChZzaGFy",
             "ZWRGb2xkZXJSZW1vdmVUZWFtGBMgAygMEhkKEXNoYXJlZEZvbGRlck93bmVy",
-            "GBQgASgJIkMKHlNoYXJlZEZvbGRlclVwZGF0ZVJlY29yZFN0YXR1cxIRCgly",
-            "ZWNvcmRVaWQYASABKAwSDgoGc3RhdHVzGAIgASgJIkAKHFNoYXJlZEZvbGRl",
-            "clVwZGF0ZVVzZXJTdGF0dXMSEAoIdXNlcm5hbWUYASABKAkSDgoGc3RhdHVz",
-            "GAIgASgJIj8KHFNoYXJlZEZvbGRlclVwZGF0ZVRlYW1TdGF0dXMSDwoHdGVh",
-            "bVVpZBgBIAEoDBIOCgZzdGF0dXMYAiABKAki3wUKHFNoYXJlZEZvbGRlclVw",
-            "ZGF0ZVYzUmVzcG9uc2USEAoIcmV2aXNpb24YASABKAMSSwobc2hhcmVkRm9s",
-            "ZGVyQWRkUmVjb3JkU3RhdHVzGAIgAygLMiYuRm9sZGVyLlNoYXJlZEZvbGRl",
-            "clVwZGF0ZVJlY29yZFN0YXR1cxJHChlzaGFyZWRGb2xkZXJBZGRVc2VyU3Rh",
-            "dHVzGAMgAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVVzZXJTdGF0",
-            "dXMSRwoZc2hhcmVkRm9sZGVyQWRkVGVhbVN0YXR1cxgEIAMoCzIkLkZvbGRl",
-            "ci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzEk4KHnNoYXJlZEZvbGRl",
-            "clVwZGF0ZVJlY29yZFN0YXR1cxgFIAMoCzImLkZvbGRlci5TaGFyZWRGb2xk",
-            "ZXJVcGRhdGVSZWNvcmRTdGF0dXMSSgocc2hhcmVkRm9sZGVyVXBkYXRlVXNl",
-            "clN0YXR1cxgGIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVVc2Vy",
-            "U3RhdHVzEkoKHHNoYXJlZEZvbGRlclVwZGF0ZVRlYW1TdGF0dXMYByADKAsy",
-            "JC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxJOCh5zaGFy",
-            "ZWRGb2xkZXJSZW1vdmVSZWNvcmRTdGF0dXMYCCADKAsyJi5Gb2xkZXIuU2hh",
-            "cmVkRm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzEkoKHHNoYXJlZEZvbGRlclJl",
-            "bW92ZVVzZXJTdGF0dXMYCSADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBk",
-            "YXRlVXNlclN0YXR1cxJKChxzaGFyZWRGb2xkZXJSZW1vdmVUZWFtU3RhdHVz",
-            "GAogAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVRlYW1TdGF0dXMi",
-            "+gEKKUdldERlbGV0ZWRTaGFyZWRGb2xkZXJzQW5kUmVjb3Jkc1Jlc3BvbnNl",
-            "EjIKDXNoYXJlZEZvbGRlcnMYASADKAsyGy5Gb2xkZXIuRGVsZXRlZFNoYXJl",
-            "ZEZvbGRlchI+ChNzaGFyZWRGb2xkZXJSZWNvcmRzGAIgAygLMiEuRm9sZGVy",
-            "LkRlbGV0ZWRTaGFyZWRGb2xkZXJSZWNvcmQSNAoRZGVsZXRlZFJlY29yZERh",
-            "dGEYAyADKAsyGS5Gb2xkZXIuRGVsZXRlZFJlY29yZERhdGESIwoJdXNlcm5h",
-            "bWVzGAQgAygLMhAuRm9sZGVyLlVzZXJuYW1lItEBChNEZWxldGVkU2hhcmVk",
-            "Rm9sZGVyEhcKD3NoYXJlZEZvbGRlclVpZBgBIAEoDBIRCglmb2xkZXJVaWQY",
-            "AiABKAwSEQoJcGFyZW50VWlkGAMgASgMEhcKD3NoYXJlZEZvbGRlcktleRgE",
-            "IAEoDBItCg1mb2xkZXJLZXlUeXBlGAUgASgOMhYuUmVjb3Jkcy5SZWNvcmRL",
-            "ZXlUeXBlEgwKBGRhdGEYBiABKAwSEwoLZGF0ZURlbGV0ZWQYByABKAMSEAoI",
-            "cmV2aXNpb24YCCABKAMigQEKGURlbGV0ZWRTaGFyZWRGb2xkZXJSZWNvcmQS",
-            "EQoJZm9sZGVyVWlkGAEgASgMEhEKCXJlY29yZFVpZBgCIAEoDBIXCg9zaGFy",
-            "ZWRSZWNvcmRLZXkYAyABKAwSEwoLZGF0ZURlbGV0ZWQYBCABKAMSEAoIcmV2",
-            "aXNpb24YBSABKAMidAoRRGVsZXRlZFJlY29yZERhdGESEQoJcmVjb3JkVWlk",
-            "GAEgASgMEhAKCG93bmVyVWlkGAIgASgMEhAKCHJldmlzaW9uGAMgASgDEhoK",
-            "EmNsaWVudE1vZGlmaWVkVGltZRgEIAEoAxIMCgRkYXRhGAUgASgMIjAKCFVz",
-            "ZXJuYW1lEhIKCmFjY291bnRVaWQYASABKAwSEAoIdXNlcm5hbWUYAiABKAki",
-            "igEKLFJlc3RvcmVEZWxldGVkU2hhcmVkRm9sZGVyc0FuZFJlY29yZHNSZXF1",
-            "ZXN0EiwKB2ZvbGRlcnMYASADKAsyGy5Gb2xkZXIuUmVzdG9yZVNoYXJlZE9i",
-            "amVjdBIsCgdyZWNvcmRzGAIgAygLMhsuRm9sZGVyLlJlc3RvcmVTaGFyZWRP",
-            "YmplY3QiOwoTUmVzdG9yZVNoYXJlZE9iamVjdBIRCglmb2xkZXJVaWQYASAB",
-            "KAwSEQoJcmVjb3JkVWlkGAIgASgMKhoKClJlY29yZFR5cGUSDAoIcGFzc3dv",
-            "cmQQACpeCgpGb2xkZXJUeXBlEhIKDmRlZmF1bHRfZm9sZGVyEAASDwoLdXNl",
-            "cl9mb2xkZXIQARIRCg1zaGFyZWRfZm9sZGVyEAISGAoUc2hhcmVkX2ZvbGRl",
-            "cl9mb2xkZXIQAypWChBFbmNyeXB0ZWRLZXlUeXBlEgoKBm5vX2tleRAAEhkK",
-            "FWVuY3J5cHRlZF9ieV9kYXRhX2tleRABEhsKF2VuY3J5cHRlZF9ieV9wdWJs",
-            "aWNfa2V5EAIqTQoPU2V0Qm9vbGVhblZhbHVlEhUKEUJPT0xFQU5fTk9fQ0hB",
-            "TkdFEAASEAoMQk9PTEVBTl9UUlVFEAESEQoNQk9PTEVBTl9GQUxTRRACQiIK",
-            "GGNvbS5rZWVwZXJzZWN1cml0eS5wcm90b0IGRm9sZGVyYgZwcm90bzM="));
+            "GBQgASgJImMKHVNoYXJlZEZvbGRlclVwZGF0ZVYzUmVxdWVzdFYyEkIKFXNo",
+            "YXJlZEZvbGRlcnNVcGRhdGVWMxgBIAMoCzIjLkZvbGRlci5TaGFyZWRGb2xk",
+            "ZXJVcGRhdGVWM1JlcXVlc3QiQwoeU2hhcmVkRm9sZGVyVXBkYXRlUmVjb3Jk",
+            "U3RhdHVzEhEKCXJlY29yZFVpZBgBIAEoDBIOCgZzdGF0dXMYAiABKAkiQAoc",
+            "U2hhcmVkRm9sZGVyVXBkYXRlVXNlclN0YXR1cxIQCgh1c2VybmFtZRgBIAEo",
+            "CRIOCgZzdGF0dXMYAiABKAkiPwocU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0",
+            "YXR1cxIPCgd0ZWFtVWlkGAEgASgMEg4KBnN0YXR1cxgCIAEoCSKIBgocU2hh",
+            "cmVkRm9sZGVyVXBkYXRlVjNSZXNwb25zZRIQCghyZXZpc2lvbhgBIAEoAxJL",
+            "ChtzaGFyZWRGb2xkZXJBZGRSZWNvcmRTdGF0dXMYAiADKAsyJi5Gb2xkZXIu",
+            "U2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzEkcKGXNoYXJlZEZvbGRl",
+            "ckFkZFVzZXJTdGF0dXMYAyADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBk",
+            "YXRlVXNlclN0YXR1cxJHChlzaGFyZWRGb2xkZXJBZGRUZWFtU3RhdHVzGAQg",
+            "AygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVRlYW1TdGF0dXMSTgoe",
+            "c2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzGAUgAygLMiYuRm9sZGVy",
+            "LlNoYXJlZEZvbGRlclVwZGF0ZVJlY29yZFN0YXR1cxJKChxzaGFyZWRGb2xk",
+            "ZXJVcGRhdGVVc2VyU3RhdHVzGAYgAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRl",
+            "clVwZGF0ZVVzZXJTdGF0dXMSSgocc2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0",
+            "YXR1cxgHIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtU3Rh",
+            "dHVzEk4KHnNoYXJlZEZvbGRlclJlbW92ZVJlY29yZFN0YXR1cxgIIAMoCzIm",
+            "LkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0dXMSSgocc2hh",
+            "cmVkRm9sZGVyUmVtb3ZlVXNlclN0YXR1cxgJIAMoCzIkLkZvbGRlci5TaGFy",
+            "ZWRGb2xkZXJVcGRhdGVVc2VyU3RhdHVzEkoKHHNoYXJlZEZvbGRlclJlbW92",
+            "ZVRlYW1TdGF0dXMYCiADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRl",
+            "VGVhbVN0YXR1cxIXCg9zaGFyZWRGb2xkZXJVaWQYDCABKAwSDgoGc3RhdHVz",
+            "GA0gASgJIm0KHlNoYXJlZEZvbGRlclVwZGF0ZVYzUmVzcG9uc2VWMhJLCh1z",
+            "aGFyZWRGb2xkZXJzVXBkYXRlVjNSZXNwb25zZRgBIAMoCzIkLkZvbGRlci5T",
+            "aGFyZWRGb2xkZXJVcGRhdGVWM1Jlc3BvbnNlIvoBCilHZXREZWxldGVkU2hh",
+            "cmVkRm9sZGVyc0FuZFJlY29yZHNSZXNwb25zZRIyCg1zaGFyZWRGb2xkZXJz",
+            "GAEgAygLMhsuRm9sZGVyLkRlbGV0ZWRTaGFyZWRGb2xkZXISPgoTc2hhcmVk",
+            "Rm9sZGVyUmVjb3JkcxgCIAMoCzIhLkZvbGRlci5EZWxldGVkU2hhcmVkRm9s",
+            "ZGVyUmVjb3JkEjQKEWRlbGV0ZWRSZWNvcmREYXRhGAMgAygLMhkuRm9sZGVy",
+            "LkRlbGV0ZWRSZWNvcmREYXRhEiMKCXVzZXJuYW1lcxgEIAMoCzIQLkZvbGRl",
+            "ci5Vc2VybmFtZSLRAQoTRGVsZXRlZFNoYXJlZEZvbGRlchIXCg9zaGFyZWRG",
+            "b2xkZXJVaWQYASABKAwSEQoJZm9sZGVyVWlkGAIgASgMEhEKCXBhcmVudFVp",
+            "ZBgDIAEoDBIXCg9zaGFyZWRGb2xkZXJLZXkYBCABKAwSLQoNZm9sZGVyS2V5",
+            "VHlwZRgFIAEoDjIWLlJlY29yZHMuUmVjb3JkS2V5VHlwZRIMCgRkYXRhGAYg",
+            "ASgMEhMKC2RhdGVEZWxldGVkGAcgASgDEhAKCHJldmlzaW9uGAggASgDIoEB",
+            "ChlEZWxldGVkU2hhcmVkRm9sZGVyUmVjb3JkEhEKCWZvbGRlclVpZBgBIAEo",
+            "DBIRCglyZWNvcmRVaWQYAiABKAwSFwoPc2hhcmVkUmVjb3JkS2V5GAMgASgM",
+            "EhMKC2RhdGVEZWxldGVkGAQgASgDEhAKCHJldmlzaW9uGAUgASgDInQKEURl",
+            "bGV0ZWRSZWNvcmREYXRhEhEKCXJlY29yZFVpZBgBIAEoDBIQCghvd25lclVp",
+            "ZBgCIAEoDBIQCghyZXZpc2lvbhgDIAEoAxIaChJjbGllbnRNb2RpZmllZFRp",
+            "bWUYBCABKAMSDAoEZGF0YRgFIAEoDCIwCghVc2VybmFtZRISCgphY2NvdW50",
+            "VWlkGAEgASgMEhAKCHVzZXJuYW1lGAIgASgJIooBCixSZXN0b3JlRGVsZXRl",
+            "ZFNoYXJlZEZvbGRlcnNBbmRSZWNvcmRzUmVxdWVzdBIsCgdmb2xkZXJzGAEg",
+            "AygLMhsuRm9sZGVyLlJlc3RvcmVTaGFyZWRPYmplY3QSLAoHcmVjb3JkcxgC",
+            "IAMoCzIbLkZvbGRlci5SZXN0b3JlU2hhcmVkT2JqZWN0IjsKE1Jlc3RvcmVT",
+            "aGFyZWRPYmplY3QSEQoJZm9sZGVyVWlkGAEgASgMEhEKCXJlY29yZFVpZBgC",
+            "IAEoDCoaCgpSZWNvcmRUeXBlEgwKCHBhc3N3b3JkEAAqXgoKRm9sZGVyVHlw",
+            "ZRISCg5kZWZhdWx0X2ZvbGRlchAAEg8KC3VzZXJfZm9sZGVyEAESEQoNc2hh",
+            "cmVkX2ZvbGRlchACEhgKFHNoYXJlZF9mb2xkZXJfZm9sZGVyEAMqVgoQRW5j",
+            "cnlwdGVkS2V5VHlwZRIKCgZub19rZXkQABIZChVlbmNyeXB0ZWRfYnlfZGF0",
+            "YV9rZXkQARIbChdlbmNyeXB0ZWRfYnlfcHVibGljX2tleRACKk0KD1NldEJv",
+            "b2xlYW5WYWx1ZRIVChFCT09MRUFOX05PX0NIQU5HRRAAEhAKDEJPT0xFQU5f",
+            "VFJVRRABEhEKDUJPT0xFQU5fRkFMU0UQAkIiChhjb20ua2VlcGVyc2VjdXJp",
+            "dHkucHJvdG9CBkZvbGRlcmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), typeof(global::Folder.SetBooleanValue), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -164,10 +170,12 @@ namespace Folder {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateUser), global::Folder.SharedFolderUpdateUser.Parser, new[]{ "Username", "ManageUsers", "ManageRecords", "SharedFolderKey", "Expiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateTeam), global::Folder.SharedFolderUpdateTeam.Parser, new[]{ "TeamUid", "ManageUsers", "ManageRecords", "SharedFolderKey", "Expiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3Request), global::Folder.SharedFolderUpdateV3Request.Parser, new[]{ "SharedFolderUpdateOperationDontUse", "SharedFolderUid", "EncryptedSharedFolderName", "Revision", "ForceUpdate", "FromTeamUid", "DefaultManageUsers", "DefaultManageRecords", "DefaultCanEdit", "DefaultCanShare", "SharedFolderAddRecord", "SharedFolderAddUser", "SharedFolderAddTeam", "SharedFolderUpdateRecord", "SharedFolderUpdateUser", "SharedFolderUpdateTeam", "SharedFolderRemoveRecord", "SharedFolderRemoveUser", "SharedFolderRemoveTeam", "SharedFolderOwner" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3RequestV2), global::Folder.SharedFolderUpdateV3RequestV2.Parser, new[]{ "SharedFoldersUpdateV3" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateRecordStatus), global::Folder.SharedFolderUpdateRecordStatus.Parser, new[]{ "RecordUid", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateUserStatus), global::Folder.SharedFolderUpdateUserStatus.Parser, new[]{ "Username", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateTeamStatus), global::Folder.SharedFolderUpdateTeamStatus.Parser, new[]{ "TeamUid", "Status" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3Response), global::Folder.SharedFolderUpdateV3Response.Parser, new[]{ "Revision", "SharedFolderAddRecordStatus", "SharedFolderAddUserStatus", "SharedFolderAddTeamStatus", "SharedFolderUpdateRecordStatus", "SharedFolderUpdateUserStatus", "SharedFolderUpdateTeamStatus", "SharedFolderRemoveRecordStatus", "SharedFolderRemoveUserStatus", "SharedFolderRemoveTeamStatus" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3Response), global::Folder.SharedFolderUpdateV3Response.Parser, new[]{ "Revision", "SharedFolderAddRecordStatus", "SharedFolderAddUserStatus", "SharedFolderAddTeamStatus", "SharedFolderUpdateRecordStatus", "SharedFolderUpdateUserStatus", "SharedFolderUpdateTeamStatus", "SharedFolderRemoveRecordStatus", "SharedFolderRemoveUserStatus", "SharedFolderRemoveTeamStatus", "SharedFolderUid", "Status" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3ResponseV2), global::Folder.SharedFolderUpdateV3ResponseV2.Parser, new[]{ "SharedFoldersUpdateV3Response" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.GetDeletedSharedFoldersAndRecordsResponse), global::Folder.GetDeletedSharedFoldersAndRecordsResponse.Parser, new[]{ "SharedFolders", "SharedFolderRecords", "DeletedRecordData", "Usernames" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.DeletedSharedFolder), global::Folder.DeletedSharedFolder.Parser, new[]{ "SharedFolderUid", "FolderUid", "ParentUid", "SharedFolderKey", "FolderKeyType", "Data", "DateDeleted", "Revision" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.DeletedSharedFolderRecord), global::Folder.DeletedSharedFolderRecord.Parser, new[]{ "FolderUid", "RecordUid", "SharedRecordKey", "DateDeleted", "Revision" }, null, null, null, null),
@@ -5734,6 +5742,184 @@ namespace Folder {
 
   }
 
+  public sealed partial class SharedFolderUpdateV3RequestV2 : pb::IMessage<SharedFolderUpdateV3RequestV2>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SharedFolderUpdateV3RequestV2> _parser = new pb::MessageParser<SharedFolderUpdateV3RequestV2>(() => new SharedFolderUpdateV3RequestV2());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SharedFolderUpdateV3RequestV2> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[17]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SharedFolderUpdateV3RequestV2() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SharedFolderUpdateV3RequestV2(SharedFolderUpdateV3RequestV2 other) : this() {
+      sharedFoldersUpdateV3_ = other.sharedFoldersUpdateV3_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SharedFolderUpdateV3RequestV2 Clone() {
+      return new SharedFolderUpdateV3RequestV2(this);
+    }
+
+    /// <summary>Field number for the "sharedFoldersUpdateV3" field.</summary>
+    public const int SharedFoldersUpdateV3FieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateV3Request> _repeated_sharedFoldersUpdateV3_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.SharedFolderUpdateV3Request.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateV3Request> sharedFoldersUpdateV3_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateV3Request>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateV3Request> SharedFoldersUpdateV3 {
+      get { return sharedFoldersUpdateV3_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateV3RequestV2);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SharedFolderUpdateV3RequestV2 other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!sharedFoldersUpdateV3_.Equals(other.sharedFoldersUpdateV3_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= sharedFoldersUpdateV3_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      sharedFoldersUpdateV3_.WriteTo(output, _repeated_sharedFoldersUpdateV3_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      sharedFoldersUpdateV3_.WriteTo(ref output, _repeated_sharedFoldersUpdateV3_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += sharedFoldersUpdateV3_.CalculateSize(_repeated_sharedFoldersUpdateV3_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SharedFolderUpdateV3RequestV2 other) {
+      if (other == null) {
+        return;
+      }
+      sharedFoldersUpdateV3_.Add(other.sharedFoldersUpdateV3_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            sharedFoldersUpdateV3_.AddEntriesFrom(input, _repeated_sharedFoldersUpdateV3_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            sharedFoldersUpdateV3_.AddEntriesFrom(ref input, _repeated_sharedFoldersUpdateV3_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
   public sealed partial class SharedFolderUpdateRecordStatus : pb::IMessage<SharedFolderUpdateRecordStatus>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -5748,7 +5934,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[17]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5974,7 +6160,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[18]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6200,7 +6386,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[19]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6426,7 +6612,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[20]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6456,6 +6642,8 @@ namespace Folder {
       sharedFolderRemoveRecordStatus_ = other.sharedFolderRemoveRecordStatus_.Clone();
       sharedFolderRemoveUserStatus_ = other.sharedFolderRemoveUserStatus_.Clone();
       sharedFolderRemoveTeamStatus_ = other.sharedFolderRemoveTeamStatus_.Clone();
+      sharedFolderUid_ = other.sharedFolderUid_;
+      status_ = other.status_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -6576,6 +6764,30 @@ namespace Folder {
       get { return sharedFolderRemoveTeamStatus_; }
     }
 
+    /// <summary>Field number for the "sharedFolderUid" field.</summary>
+    public const int SharedFolderUidFieldNumber = 12;
+    private pb::ByteString sharedFolderUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString SharedFolderUid {
+      get { return sharedFolderUid_; }
+      set {
+        sharedFolderUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "status" field.</summary>
+    public const int StatusFieldNumber = 13;
+    private string status_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Status {
+      get { return status_; }
+      set {
+        status_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -6601,6 +6813,8 @@ namespace Folder {
       if(!sharedFolderRemoveRecordStatus_.Equals(other.sharedFolderRemoveRecordStatus_)) return false;
       if(!sharedFolderRemoveUserStatus_.Equals(other.sharedFolderRemoveUserStatus_)) return false;
       if(!sharedFolderRemoveTeamStatus_.Equals(other.sharedFolderRemoveTeamStatus_)) return false;
+      if (SharedFolderUid != other.SharedFolderUid) return false;
+      if (Status != other.Status) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -6618,6 +6832,8 @@ namespace Folder {
       hash ^= sharedFolderRemoveRecordStatus_.GetHashCode();
       hash ^= sharedFolderRemoveUserStatus_.GetHashCode();
       hash ^= sharedFolderRemoveTeamStatus_.GetHashCode();
+      if (SharedFolderUid.Length != 0) hash ^= SharedFolderUid.GetHashCode();
+      if (Status.Length != 0) hash ^= Status.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -6649,6 +6865,14 @@ namespace Folder {
       sharedFolderRemoveRecordStatus_.WriteTo(output, _repeated_sharedFolderRemoveRecordStatus_codec);
       sharedFolderRemoveUserStatus_.WriteTo(output, _repeated_sharedFolderRemoveUserStatus_codec);
       sharedFolderRemoveTeamStatus_.WriteTo(output, _repeated_sharedFolderRemoveTeamStatus_codec);
+      if (SharedFolderUid.Length != 0) {
+        output.WriteRawTag(98);
+        output.WriteBytes(SharedFolderUid);
+      }
+      if (Status.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteString(Status);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -6672,6 +6896,14 @@ namespace Folder {
       sharedFolderRemoveRecordStatus_.WriteTo(ref output, _repeated_sharedFolderRemoveRecordStatus_codec);
       sharedFolderRemoveUserStatus_.WriteTo(ref output, _repeated_sharedFolderRemoveUserStatus_codec);
       sharedFolderRemoveTeamStatus_.WriteTo(ref output, _repeated_sharedFolderRemoveTeamStatus_codec);
+      if (SharedFolderUid.Length != 0) {
+        output.WriteRawTag(98);
+        output.WriteBytes(SharedFolderUid);
+      }
+      if (Status.Length != 0) {
+        output.WriteRawTag(106);
+        output.WriteString(Status);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -6694,6 +6926,12 @@ namespace Folder {
       size += sharedFolderRemoveRecordStatus_.CalculateSize(_repeated_sharedFolderRemoveRecordStatus_codec);
       size += sharedFolderRemoveUserStatus_.CalculateSize(_repeated_sharedFolderRemoveUserStatus_codec);
       size += sharedFolderRemoveTeamStatus_.CalculateSize(_repeated_sharedFolderRemoveTeamStatus_codec);
+      if (SharedFolderUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedFolderUid);
+      }
+      if (Status.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Status);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -6718,6 +6956,12 @@ namespace Folder {
       sharedFolderRemoveRecordStatus_.Add(other.sharedFolderRemoveRecordStatus_);
       sharedFolderRemoveUserStatus_.Add(other.sharedFolderRemoveUserStatus_);
       sharedFolderRemoveTeamStatus_.Add(other.sharedFolderRemoveTeamStatus_);
+      if (other.SharedFolderUid.Length != 0) {
+        SharedFolderUid = other.SharedFolderUid;
+      }
+      if (other.Status.Length != 0) {
+        Status = other.Status;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -6771,6 +7015,14 @@ namespace Folder {
           }
           case 82: {
             sharedFolderRemoveTeamStatus_.AddEntriesFrom(input, _repeated_sharedFolderRemoveTeamStatus_codec);
+            break;
+          }
+          case 98: {
+            SharedFolderUid = input.ReadBytes();
+            break;
+          }
+          case 106: {
+            Status = input.ReadString();
             break;
           }
         }
@@ -6828,6 +7080,192 @@ namespace Folder {
             sharedFolderRemoveTeamStatus_.AddEntriesFrom(ref input, _repeated_sharedFolderRemoveTeamStatus_codec);
             break;
           }
+          case 98: {
+            SharedFolderUid = input.ReadBytes();
+            break;
+          }
+          case 106: {
+            Status = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class SharedFolderUpdateV3ResponseV2 : pb::IMessage<SharedFolderUpdateV3ResponseV2>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SharedFolderUpdateV3ResponseV2> _parser = new pb::MessageParser<SharedFolderUpdateV3ResponseV2>(() => new SharedFolderUpdateV3ResponseV2());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SharedFolderUpdateV3ResponseV2> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[22]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SharedFolderUpdateV3ResponseV2() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SharedFolderUpdateV3ResponseV2(SharedFolderUpdateV3ResponseV2 other) : this() {
+      sharedFoldersUpdateV3Response_ = other.sharedFoldersUpdateV3Response_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SharedFolderUpdateV3ResponseV2 Clone() {
+      return new SharedFolderUpdateV3ResponseV2(this);
+    }
+
+    /// <summary>Field number for the "sharedFoldersUpdateV3Response" field.</summary>
+    public const int SharedFoldersUpdateV3ResponseFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Folder.SharedFolderUpdateV3Response> _repeated_sharedFoldersUpdateV3Response_codec
+        = pb::FieldCodec.ForMessage(10, global::Folder.SharedFolderUpdateV3Response.Parser);
+    private readonly pbc::RepeatedField<global::Folder.SharedFolderUpdateV3Response> sharedFoldersUpdateV3Response_ = new pbc::RepeatedField<global::Folder.SharedFolderUpdateV3Response>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Folder.SharedFolderUpdateV3Response> SharedFoldersUpdateV3Response {
+      get { return sharedFoldersUpdateV3Response_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SharedFolderUpdateV3ResponseV2);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SharedFolderUpdateV3ResponseV2 other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!sharedFoldersUpdateV3Response_.Equals(other.sharedFoldersUpdateV3Response_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= sharedFoldersUpdateV3Response_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      sharedFoldersUpdateV3Response_.WriteTo(output, _repeated_sharedFoldersUpdateV3Response_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      sharedFoldersUpdateV3Response_.WriteTo(ref output, _repeated_sharedFoldersUpdateV3Response_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += sharedFoldersUpdateV3Response_.CalculateSize(_repeated_sharedFoldersUpdateV3Response_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SharedFolderUpdateV3ResponseV2 other) {
+      if (other == null) {
+        return;
+      }
+      sharedFoldersUpdateV3Response_.Add(other.sharedFoldersUpdateV3Response_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            sharedFoldersUpdateV3Response_.AddEntriesFrom(input, _repeated_sharedFoldersUpdateV3Response_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            sharedFoldersUpdateV3Response_.AddEntriesFrom(ref input, _repeated_sharedFoldersUpdateV3Response_codec);
+            break;
+          }
         }
       }
     }
@@ -6849,7 +7287,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[21]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7105,7 +7543,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[22]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7553,7 +7991,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[23]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7890,7 +8328,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[24]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8227,7 +8665,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[25]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8453,7 +8891,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[26]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8657,7 +9095,7 @@ namespace Folder {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[27]; }
+      get { return global::Folder.FolderReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

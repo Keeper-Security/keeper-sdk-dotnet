@@ -37,90 +37,100 @@ namespace SsoCloud {
             "dmlkZXJJZBgBIAEoBBIcChRzc29TcENvbmZpZ3VyYXRpb25JZBgCIAEoBBIM",
             "CgRuYW1lGAMgASgJEjcKE3Nzb0F1dGhQcm90b2NvbFR5cGUYBCABKA4yGi5T",
             "c29DbG91ZC5BdXRoUHJvdG9jb2xUeXBlEj4KFXNzb0Nsb3VkU2V0dGluZ0Fj",
-            "dGlvbhgFIAMoCzIfLlNzb0Nsb3VkLlNzb0Nsb3VkU2V0dGluZ0FjdGlvbiLl",
-            "AQodU3NvQ2xvdWRDb25maWd1cmF0aW9uUmVzcG9uc2USHAoUc3NvU2Vydmlj",
-            "ZVByb3ZpZGVySWQYASABKAQSHAoUc3NvU3BDb25maWd1cmF0aW9uSWQYAiAB",
-            "KAQSFAoMZW50ZXJwcmlzZUlkGAMgASgEEgwKBG5hbWUYBCABKAkSEAoIcHJv",
-            "dG9jb2wYBSABKAkSFAoMbGFzdE1vZGlmaWVkGAYgASgJEjwKFHNzb0Nsb3Vk",
-            "U2V0dGluZ1ZhbHVlGAcgAygLMh4uU3NvQ2xvdWQuU3NvQ2xvdWRTZXR0aW5n",
-            "VmFsdWUiRQoRU3NvSWRwVHlwZVJlcXVlc3QSFAoMc3NvSWRwVHlwZUlkGAEg",
-            "ASgNEgsKA3RhZxgCIAEoCRINCgVsYWJlbBgDIAEoCSJGChJTc29JZHBUeXBl",
-            "UmVzcG9uc2USFAoMc3NvSWRwVHlwZUlkGAEgASgFEgsKA3RhZxgCIAEoBRIN",
-            "CgVsYWJlbBgDIAEoBSI2ChZTc29DbG91ZFNBTUxMb2dSZXF1ZXN0EhwKFHNz",
-            "b1NlcnZpY2VQcm92aWRlcklkGAEgASgEItwBChRTc29DbG91ZFNBTUxMb2dF",
-            "bnRyeRISCgpzZXJ2ZXJUaW1lGAEgASgJEhEKCWRpcmVjdGlvbhgCIAEoCRIT",
-            "CgttZXNzYWdlVHlwZRgDIAEoCRIVCg1tZXNzYWdlSXNzdWVkGAQgASgJEhQK",
-            "DGZyb21FbnRpdHlJZBgFIAEoCRISCgpzYW1sU3RhdHVzGAYgASgJEhIKCnJl",
-            "bGF5U3RhdGUYByABKAkSEwoLc2FtbENvbnRlbnQYCCABKAkSEAoIaXNTaWdu",
-            "ZWQYCSABKAgSDAoEaXNPSxgKIAEoCCJmChdTc29DbG91ZFNBTUxMb2dSZXNw",
-            "b25zZRIcChRzc29TZXJ2aWNlUHJvdmlkZXJJZBgBIAEoBBItCgVlbnRyeRgC",
-            "IAMoCzIeLlNzb0Nsb3VkLlNzb0Nsb3VkU0FNTExvZ0VudHJ5ImIKJFNzb0Ns",
-            "b3VkU2VydmljZVByb3ZpZGVyVXBkYXRlUmVxdWVzdBIcChRzc29TZXJ2aWNl",
-            "UHJvdmlkZXJJZBgBIAEoBBIcChRzc29TcENvbmZpZ3VyYXRpb25JZBgCIAEo",
-            "BCJdChpTc29DbG91ZElkcE1ldGFkYXRhUmVxdWVzdBIcChRzc29TcENvbmZp",
-            "Z3VyYXRpb25JZBgBIAEoBBIQCghmaWxlbmFtZRgCIAEoCRIPCgdjb250ZW50",
-            "GAMgASgMIkYKJlNzb0Nsb3VkQ29uZmlndXJhdGlvblZhbGlkYXRpb25SZXF1",
-            "ZXN0EhwKFHNzb1NwQ29uZmlndXJhdGlvbklkGAEgAygEIl0KEVZhbGlkYXRp",
-            "b25Db250ZW50EhwKFHNzb1NwQ29uZmlndXJhdGlvbklkGAEgASgEEhQKDGlz",
-            "U3VjY2Vzc2Z1bBgCIAEoCBIUCgxlcnJvck1lc3NhZ2UYAyADKAkiYQonU3Nv",
-            "Q2xvdWRDb25maWd1cmF0aW9uVmFsaWRhdGlvblJlc3BvbnNlEjYKEXZhbGlk",
-            "YXRpb25Db250ZW50GAEgAygLMhsuU3NvQ2xvdWQuVmFsaWRhdGlvbkNvbnRl",
-            "bnQiTwovU3NvQ2xvdWRTZXJ2aWNlUHJvdmlkZXJDb25maWd1cmF0aW9uTGlz",
-            "dFJlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQidQoVQ29u",
-            "ZmlndXJhdGlvbkxpc3RJdGVtEhwKFHNzb1NwQ29uZmlndXJhdGlvbklkGAEg",
-            "ASgEEgwKBG5hbWUYAiABKAkSEgoKaXNTZWxlY3RlZBgDIAEoCBIcChRzc29T",
-            "ZXJ2aWNlUHJvdmlkZXJJZBgEIAMoBCJuCjBTc29DbG91ZFNlcnZpY2VQcm92",
-            "aWRlckNvbmZpZ3VyYXRpb25MaXN0UmVzcG9uc2USOgoRY29uZmlndXJhdGlv",
-            "bkl0ZW0YASADKAsyHy5Tc29DbG91ZC5Db25maWd1cmF0aW9uTGlzdEl0ZW0i",
-            "vwEKD1Nzb0Nsb3VkUmVxdWVzdBIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEo",
-            "DBIVCg1jbGllbnRWZXJzaW9uGAIgASgJEhAKCGVtYmVkZGVkGAMgASgIEgwK",
-            "BGpzb24YBCABKAgSDAoEZGVzdBgFIAEoCRIUCgxpZHBTZXNzaW9uSWQYBiAB",
-            "KAkSEgoKZm9yY2VMb2dpbhgHIAEoCBIQCgh1c2VybmFtZRgIIAEoCRIQCghk",
-            "ZXRhY2hlZBgJIAEoCCLJAQoQU3NvQ2xvdWRSZXNwb25zZRIPCgdjb21tYW5k",
-            "GAEgASgJEhkKEW1lc3NhZ2VTZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMg",
-            "ASgJEhsKE2VuY3J5cHRlZExvZ2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJO",
-            "YW1lGAUgASgJEhQKDGlkcFNlc3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRT",
-            "ZXNzaW9uVG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSJaChJTc29D",
-            "bG91ZExvZ1JlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQS",
-            "EwoLc2VydmljZU5hbWUYAiABKAkSEQoJc2VydmljZUlkGAMgASgNIogCCg5T",
-            "YW1sUmVsYXlTdGF0ZRIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIQCgh1",
-            "c2VybmFtZRgCIAEoCRIQCghlbWJlZGRlZBgDIAEoCBIMCgRqc29uGAQgASgI",
-            "Eg4KBmRlc3RJZBgFIAEoDRINCgVrZXlJZBgGIAEoBRI8ChFzdXBwb3J0ZWRM",
-            "YW5ndWFnZRgHIAEoDjIhLkF1dGhlbnRpY2F0aW9uLlN1cHBvcnRlZExhbmd1",
-            "YWdlEhAKCGNoZWNrc3VtGAggASgEEhYKDmlzR2VuZXJhdGVkVWlkGAkgASgI",
-            "EhAKCGRldmljZUlkGAogASgDEhAKCGRldGFjaGVkGAsgASgIInEKHlNzb0Ns",
-            "b3VkTWlncmF0aW9uU3RhdHVzUmVxdWVzdBIOCgZub2RlSWQYASABKAQSEgoK",
-            "ZnVsbFN0YXR1cxgCIAEoCBIcChRpbmNsdWRlTWlncmF0ZWRVc2VycxgDIAEo",
-            "CBINCgVsaW1pdBgEIAEoBSLoAgofU3NvQ2xvdWRNaWdyYXRpb25TdGF0dXNS",
-            "ZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEg8KB21lc3NhZ2UYAiABKAkSDgoG",
-            "bm9kZUlkGAMgASgEEhQKDHNzb0Nvbm5lY3RJZBgEIAEoBBIWCg5zc29Db25u",
-            "ZWN0TmFtZRgFIAEoCRIZChFzc29Db25uZWN0Q2xvdWRJZBgGIAEoBBIbChNz",
-            "c29Db25uZWN0Q2xvdWROYW1lGAcgASgJEhcKD3RvdGFsVXNlcnNDb3VudBgI",
-            "IAEoDRIaChJ1c2Vyc01pZ3JhdGVkQ291bnQYCSABKA0SOgoNbWlncmF0ZWRV",
-            "c2VycxgKIAMoCzIjLlNzb0Nsb3VkLlNzb0Nsb3VkTWlncmF0aW9uVXNlcklu",
-            "Zm8SPAoPdW5taWdyYXRlZFVzZXJzGAsgAygLMiMuU3NvQ2xvdWQuU3NvQ2xv",
-            "dWRNaWdyYXRpb25Vc2VySW5mbyJgChlTc29DbG91ZE1pZ3JhdGlvblVzZXJJ",
-            "bmZvEg4KBnVzZXJJZBgBIAEoDRINCgVlbWFpbBgCIAEoCRIQCghmdWxsTmFt",
-            "ZRgDIAEoCRISCgppc01pZ3JhdGVkGAQgASgIKh0KEEF1dGhQcm90b2NvbFR5",
-            "cGUSCQoFU0FNTDIQACqAAgoIRGF0YVR5cGUSBwoDQU5ZEAASCwoHQk9PTEVB",
-            "ThABEgsKB0lOVEVHRVIQAhIKCgZTVFJJTkcQAxIJCgVCWVRFUxAEEgcKA1VS",
-            "TBAFEi4KKmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9EYXRh",
-            "VHlwZRAGEjYKMmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9B",
-            "dXRoUHJvdG9jb2xUeXBlEAcSMAosY29tX2tlZXBlcnNlY3VyaXR5X3Byb3Rv",
-            "X1Nzb0Nsb3VkX1Nzb0lkcFR5cGUQCBIICgRMT05HEAkSDQoJVElNRVNUQU1Q",
-            "EAoqUgocU3NvQ2xvdWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIHCgNTRVQQABIH",
-            "CgNHRVQQARIKCgZERUxFVEUQAhIUChBSRVNFVF9UT19ERUZBVUxUEAMqggEK",
-            "ClNzb0lkcFR5cGUSDQoJWFhfVU5VU0VEEAASCwoHR0VORVJJQxABEgYKAkY1",
-            "EAISCgoGR09PR0xFEAMSCAoET0tUQRAEEggKBEFERlMQBRIJCgVBWlVSRRAG",
-            "EgwKCE9ORUxPR0lOEAcSCAoEUElORxAIEg0KCUpVTVBDTE9VRBAJQiQKGGNv",
-            "bS5rZWVwZXJzZWN1cml0eS5wcm90b0IIU3NvQ2xvdWRiBnByb3RvMw=="));
+            "dGlvbhgFIAMoCzIfLlNzb0Nsb3VkLlNzb0Nsb3VkU2V0dGluZ0FjdGlvbiJk",
+            "ChNTc29TaGFyZWRDb25maWdJdGVtEhwKFHNzb1NwQ29uZmlndXJhdGlvbklk",
+            "GAEgASgEEhwKFHNzb1NlcnZpY2VQcm92aWRlcklkGAIgASgEEhEKCXNzb05v",
+            "ZGVJZBgDIAEoBCKtAgodU3NvQ2xvdWRDb25maWd1cmF0aW9uUmVzcG9uc2US",
+            "HAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQSHAoUc3NvU3BDb25maWd1",
+            "cmF0aW9uSWQYAiABKAQSFAoMZW50ZXJwcmlzZUlkGAMgASgEEgwKBG5hbWUY",
+            "BCABKAkSEAoIcHJvdG9jb2wYBSABKAkSFAoMbGFzdE1vZGlmaWVkGAYgASgJ",
+            "EjwKFHNzb0Nsb3VkU2V0dGluZ1ZhbHVlGAcgAygLMh4uU3NvQ2xvdWQuU3Nv",
+            "Q2xvdWRTZXR0aW5nVmFsdWUSEAoIaXNTaGFyZWQYCCABKAgSNAoNc2hhcmVk",
+            "Q29uZmlncxgJIAMoCzIdLlNzb0Nsb3VkLlNzb1NoYXJlZENvbmZpZ0l0ZW0i",
+            "RQoRU3NvSWRwVHlwZVJlcXVlc3QSFAoMc3NvSWRwVHlwZUlkGAEgASgNEgsK",
+            "A3RhZxgCIAEoCRINCgVsYWJlbBgDIAEoCSJGChJTc29JZHBUeXBlUmVzcG9u",
+            "c2USFAoMc3NvSWRwVHlwZUlkGAEgASgFEgsKA3RhZxgCIAEoBRINCgVsYWJl",
+            "bBgDIAEoBSI2ChZTc29DbG91ZFNBTUxMb2dSZXF1ZXN0EhwKFHNzb1NlcnZp",
+            "Y2VQcm92aWRlcklkGAEgASgEItwBChRTc29DbG91ZFNBTUxMb2dFbnRyeRIS",
+            "CgpzZXJ2ZXJUaW1lGAEgASgJEhEKCWRpcmVjdGlvbhgCIAEoCRITCgttZXNz",
+            "YWdlVHlwZRgDIAEoCRIVCg1tZXNzYWdlSXNzdWVkGAQgASgJEhQKDGZyb21F",
+            "bnRpdHlJZBgFIAEoCRISCgpzYW1sU3RhdHVzGAYgASgJEhIKCnJlbGF5U3Rh",
+            "dGUYByABKAkSEwoLc2FtbENvbnRlbnQYCCABKAkSEAoIaXNTaWduZWQYCSAB",
+            "KAgSDAoEaXNPSxgKIAEoCCJmChdTc29DbG91ZFNBTUxMb2dSZXNwb25zZRIc",
+            "ChRzc29TZXJ2aWNlUHJvdmlkZXJJZBgBIAEoBBItCgVlbnRyeRgCIAMoCzIe",
+            "LlNzb0Nsb3VkLlNzb0Nsb3VkU0FNTExvZ0VudHJ5ImIKJFNzb0Nsb3VkU2Vy",
+            "dmljZVByb3ZpZGVyVXBkYXRlUmVxdWVzdBIcChRzc29TZXJ2aWNlUHJvdmlk",
+            "ZXJJZBgBIAEoBBIcChRzc29TcENvbmZpZ3VyYXRpb25JZBgCIAEoBCJdChpT",
+            "c29DbG91ZElkcE1ldGFkYXRhUmVxdWVzdBIcChRzc29TcENvbmZpZ3VyYXRp",
+            "b25JZBgBIAEoBBIQCghmaWxlbmFtZRgCIAEoCRIPCgdjb250ZW50GAMgASgM",
+            "IkYKJlNzb0Nsb3VkQ29uZmlndXJhdGlvblZhbGlkYXRpb25SZXF1ZXN0EhwK",
+            "FHNzb1NwQ29uZmlndXJhdGlvbklkGAEgAygEIl0KEVZhbGlkYXRpb25Db250",
+            "ZW50EhwKFHNzb1NwQ29uZmlndXJhdGlvbklkGAEgASgEEhQKDGlzU3VjY2Vz",
+            "c2Z1bBgCIAEoCBIUCgxlcnJvck1lc3NhZ2UYAyADKAkiYQonU3NvQ2xvdWRD",
+            "b25maWd1cmF0aW9uVmFsaWRhdGlvblJlc3BvbnNlEjYKEXZhbGlkYXRpb25D",
+            "b250ZW50GAEgAygLMhsuU3NvQ2xvdWQuVmFsaWRhdGlvbkNvbnRlbnQiTwov",
+            "U3NvQ2xvdWRTZXJ2aWNlUHJvdmlkZXJDb25maWd1cmF0aW9uTGlzdFJlcXVl",
+            "c3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQidQoVQ29uZmlndXJh",
+            "dGlvbkxpc3RJdGVtEhwKFHNzb1NwQ29uZmlndXJhdGlvbklkGAEgASgEEgwK",
+            "BG5hbWUYAiABKAkSEgoKaXNTZWxlY3RlZBgDIAEoCBIcChRzc29TZXJ2aWNl",
+            "UHJvdmlkZXJJZBgEIAMoBCJuCjBTc29DbG91ZFNlcnZpY2VQcm92aWRlckNv",
+            "bmZpZ3VyYXRpb25MaXN0UmVzcG9uc2USOgoRY29uZmlndXJhdGlvbkl0ZW0Y",
+            "ASADKAsyHy5Tc29DbG91ZC5Db25maWd1cmF0aW9uTGlzdEl0ZW0ivwEKD1Nz",
+            "b0Nsb3VkUmVxdWVzdBIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIVCg1j",
+            "bGllbnRWZXJzaW9uGAIgASgJEhAKCGVtYmVkZGVkGAMgASgIEgwKBGpzb24Y",
+            "BCABKAgSDAoEZGVzdBgFIAEoCRIUCgxpZHBTZXNzaW9uSWQYBiABKAkSEgoK",
+            "Zm9yY2VMb2dpbhgHIAEoCBIQCgh1c2VybmFtZRgIIAEoCRIQCghkZXRhY2hl",
+            "ZBgJIAEoCCLJAQoQU3NvQ2xvdWRSZXNwb25zZRIPCgdjb21tYW5kGAEgASgJ",
+            "EhkKEW1lc3NhZ2VTZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMgASgJEhsK",
+            "E2VuY3J5cHRlZExvZ2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJOYW1lGAUg",
+            "ASgJEhQKDGlkcFNlc3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRTZXNzaW9u",
+            "VG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSJaChJTc29DbG91ZExv",
+            "Z1JlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQSEwoLc2Vy",
+            "dmljZU5hbWUYAiABKAkSEQoJc2VydmljZUlkGAMgASgNIogCCg5TYW1sUmVs",
+            "YXlTdGF0ZRIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIQCgh1c2VybmFt",
+            "ZRgCIAEoCRIQCghlbWJlZGRlZBgDIAEoCBIMCgRqc29uGAQgASgIEg4KBmRl",
+            "c3RJZBgFIAEoDRINCgVrZXlJZBgGIAEoBRI8ChFzdXBwb3J0ZWRMYW5ndWFn",
+            "ZRgHIAEoDjIhLkF1dGhlbnRpY2F0aW9uLlN1cHBvcnRlZExhbmd1YWdlEhAK",
+            "CGNoZWNrc3VtGAggASgEEhYKDmlzR2VuZXJhdGVkVWlkGAkgASgIEhAKCGRl",
+            "dmljZUlkGAogASgDEhAKCGRldGFjaGVkGAsgASgIInEKHlNzb0Nsb3VkTWln",
+            "cmF0aW9uU3RhdHVzUmVxdWVzdBIOCgZub2RlSWQYASABKAQSEgoKZnVsbFN0",
+            "YXR1cxgCIAEoCBIcChRpbmNsdWRlTWlncmF0ZWRVc2VycxgDIAEoCBINCgVs",
+            "aW1pdBgEIAEoBSLoAgofU3NvQ2xvdWRNaWdyYXRpb25TdGF0dXNSZXNwb25z",
+            "ZRIPCgdzdWNjZXNzGAEgASgIEg8KB21lc3NhZ2UYAiABKAkSDgoGbm9kZUlk",
+            "GAMgASgEEhQKDHNzb0Nvbm5lY3RJZBgEIAEoBBIWCg5zc29Db25uZWN0TmFt",
+            "ZRgFIAEoCRIZChFzc29Db25uZWN0Q2xvdWRJZBgGIAEoBBIbChNzc29Db25u",
+            "ZWN0Q2xvdWROYW1lGAcgASgJEhcKD3RvdGFsVXNlcnNDb3VudBgIIAEoDRIa",
+            "ChJ1c2Vyc01pZ3JhdGVkQ291bnQYCSABKA0SOgoNbWlncmF0ZWRVc2VycxgK",
+            "IAMoCzIjLlNzb0Nsb3VkLlNzb0Nsb3VkTWlncmF0aW9uVXNlckluZm8SPAoP",
+            "dW5taWdyYXRlZFVzZXJzGAsgAygLMiMuU3NvQ2xvdWQuU3NvQ2xvdWRNaWdy",
+            "YXRpb25Vc2VySW5mbyJgChlTc29DbG91ZE1pZ3JhdGlvblVzZXJJbmZvEg4K",
+            "BnVzZXJJZBgBIAEoDRINCgVlbWFpbBgCIAEoCRIQCghmdWxsTmFtZRgDIAEo",
+            "CRISCgppc01pZ3JhdGVkGAQgASgIKh0KEEF1dGhQcm90b2NvbFR5cGUSCQoF",
+            "U0FNTDIQACqAAgoIRGF0YVR5cGUSBwoDQU5ZEAASCwoHQk9PTEVBThABEgsK",
+            "B0lOVEVHRVIQAhIKCgZTVFJJTkcQAxIJCgVCWVRFUxAEEgcKA1VSTBAFEi4K",
+            "KmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9EYXRhVHlwZRAG",
+            "EjYKMmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9BdXRoUHJv",
+            "dG9jb2xUeXBlEAcSMAosY29tX2tlZXBlcnNlY3VyaXR5X3Byb3RvX1Nzb0Ns",
+            "b3VkX1Nzb0lkcFR5cGUQCBIICgRMT05HEAkSDQoJVElNRVNUQU1QEAoqUgoc",
+            "U3NvQ2xvdWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIHCgNTRVQQABIHCgNHRVQQ",
+            "ARIKCgZERUxFVEUQAhIUChBSRVNFVF9UT19ERUZBVUxUEAMq0AIKClNzb0lk",
+            "cFR5cGUSDQoJWFhfVU5VU0VEEAASCwoHR0VORVJJQxABEgYKAkY1EAISCgoG",
+            "R09PR0xFEAMSCAoET0tUQRAEEggKBEFERlMQBRIJCgVBWlVSRRAGEgwKCE9O",
+            "RUxPR0lOEAcSBwoDQVdTEAgSDAoIQ0VOVFJJRlkQCRIHCgNEVU8QChIHCgNJ",
+            "Qk0QCxINCglKVU1QQ0xPVUQQDBIICgRQSU5HEA0SCwoHUElOR09ORRAOEgcK",
+            "A1JTQRAPEg4KClNFQ1VSRUFVVEgQEBIKCgZUSEFMRVMQERIJCgVBVVRIMBAS",
+            "EgoKBkJFWU9ORBATEggKBEhZUFIQFBIKCgZQVVJFSUQQFRIHCgNTRE8QFhIJ",
+            "CgVUUkFJVBAXEgwKCFRSQU5TTUlUEBgSCwoHVFJVU09OQRAZEgwKCFZFUklE",
+            "SVVNEBoSBwoDQ0FTEBtCJAoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQghT",
+            "c29DbG91ZGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::SsoCloud.AuthProtocolType), typeof(global::SsoCloud.DataType), typeof(global::SsoCloud.SsoCloudSettingOperationType), typeof(global::SsoCloud.SsoIdpType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudSettingValue), global::SsoCloud.SsoCloudSettingValue.Parser, new[]{ "SettingId", "SettingName", "Label", "Value", "ValueType", "LastModified", "IsFromFile", "IsEditable", "IsRequired" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudSettingAction), global::SsoCloud.SsoCloudSettingAction.Parser, new[]{ "SettingId", "SettingName", "Operation", "Value" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudConfigurationRequest), global::SsoCloud.SsoCloudConfigurationRequest.Parser, new[]{ "SsoServiceProviderId", "SsoSpConfigurationId", "Name", "SsoAuthProtocolType", "SsoCloudSettingAction" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudConfigurationResponse), global::SsoCloud.SsoCloudConfigurationResponse.Parser, new[]{ "SsoServiceProviderId", "SsoSpConfigurationId", "EnterpriseId", "Name", "Protocol", "LastModified", "SsoCloudSettingValue" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoSharedConfigItem), global::SsoCloud.SsoSharedConfigItem.Parser, new[]{ "SsoSpConfigurationId", "SsoServiceProviderId", "SsoNodeId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudConfigurationResponse), global::SsoCloud.SsoCloudConfigurationResponse.Parser, new[]{ "SsoServiceProviderId", "SsoSpConfigurationId", "EnterpriseId", "Name", "Protocol", "LastModified", "SsoCloudSettingValue", "IsShared", "SharedConfigs" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoIdpTypeRequest), global::SsoCloud.SsoIdpTypeRequest.Parser, new[]{ "SsoIdpTypeId", "Tag", "Label" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoIdpTypeResponse), global::SsoCloud.SsoIdpTypeResponse.Parser, new[]{ "SsoIdpTypeId", "Tag", "Label" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudSAMLLogRequest), global::SsoCloud.SsoCloudSAMLLogRequest.Parser, new[]{ "SsoServiceProviderId" }, null, null, null, null),
@@ -214,8 +224,26 @@ namespace SsoCloud {
     [pbr::OriginalName("ADFS")] Adfs = 5,
     [pbr::OriginalName("AZURE")] Azure = 6,
     [pbr::OriginalName("ONELOGIN")] Onelogin = 7,
-    [pbr::OriginalName("PING")] Ping = 8,
-    [pbr::OriginalName("JUMPCLOUD")] Jumpcloud = 9,
+    [pbr::OriginalName("AWS")] Aws = 8,
+    [pbr::OriginalName("CENTRIFY")] Centrify = 9,
+    [pbr::OriginalName("DUO")] Duo = 10,
+    [pbr::OriginalName("IBM")] Ibm = 11,
+    [pbr::OriginalName("JUMPCLOUD")] Jumpcloud = 12,
+    [pbr::OriginalName("PING")] Ping = 13,
+    [pbr::OriginalName("PINGONE")] Pingone = 14,
+    [pbr::OriginalName("RSA")] Rsa = 15,
+    [pbr::OriginalName("SECUREAUTH")] Secureauth = 16,
+    [pbr::OriginalName("THALES")] Thales = 17,
+    [pbr::OriginalName("AUTH0")] Auth0 = 18,
+    [pbr::OriginalName("BEYOND")] Beyond = 19,
+    [pbr::OriginalName("HYPR")] Hypr = 20,
+    [pbr::OriginalName("PUREID")] Pureid = 21,
+    [pbr::OriginalName("SDO")] Sdo = 22,
+    [pbr::OriginalName("TRAIT")] Trait = 23,
+    [pbr::OriginalName("TRANSMIT")] Transmit = 24,
+    [pbr::OriginalName("TRUSONA")] Trusona = 25,
+    [pbr::OriginalName("VERIDIUM")] Veridium = 26,
+    [pbr::OriginalName("CAS")] Cas = 27,
   }
 
   #endregion
@@ -1372,6 +1400,272 @@ namespace SsoCloud {
   }
 
   /// <summary>
+  ///* This represents the providers that share a given configuration 
+  /// </summary>
+  public sealed partial class SsoSharedConfigItem : pb::IMessage<SsoSharedConfigItem>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SsoSharedConfigItem> _parser = new pb::MessageParser<SsoSharedConfigItem>(() => new SsoSharedConfigItem());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SsoSharedConfigItem> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[3]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SsoSharedConfigItem() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SsoSharedConfigItem(SsoSharedConfigItem other) : this() {
+      ssoSpConfigurationId_ = other.ssoSpConfigurationId_;
+      ssoServiceProviderId_ = other.ssoServiceProviderId_;
+      ssoNodeId_ = other.ssoNodeId_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SsoSharedConfigItem Clone() {
+      return new SsoSharedConfigItem(this);
+    }
+
+    /// <summary>Field number for the "ssoSpConfigurationId" field.</summary>
+    public const int SsoSpConfigurationIdFieldNumber = 1;
+    private ulong ssoSpConfigurationId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong SsoSpConfigurationId {
+      get { return ssoSpConfigurationId_; }
+      set {
+        ssoSpConfigurationId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ssoServiceProviderId" field.</summary>
+    public const int SsoServiceProviderIdFieldNumber = 2;
+    private ulong ssoServiceProviderId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong SsoServiceProviderId {
+      get { return ssoServiceProviderId_; }
+      set {
+        ssoServiceProviderId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ssoNodeId" field.</summary>
+    public const int SsoNodeIdFieldNumber = 3;
+    private ulong ssoNodeId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong SsoNodeId {
+      get { return ssoNodeId_; }
+      set {
+        ssoNodeId_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SsoSharedConfigItem);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SsoSharedConfigItem other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SsoSpConfigurationId != other.SsoSpConfigurationId) return false;
+      if (SsoServiceProviderId != other.SsoServiceProviderId) return false;
+      if (SsoNodeId != other.SsoNodeId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SsoSpConfigurationId != 0UL) hash ^= SsoSpConfigurationId.GetHashCode();
+      if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
+      if (SsoNodeId != 0UL) hash ^= SsoNodeId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SsoSpConfigurationId != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(SsoSpConfigurationId);
+      }
+      if (SsoServiceProviderId != 0UL) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(SsoServiceProviderId);
+      }
+      if (SsoNodeId != 0UL) {
+        output.WriteRawTag(24);
+        output.WriteUInt64(SsoNodeId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SsoSpConfigurationId != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(SsoSpConfigurationId);
+      }
+      if (SsoServiceProviderId != 0UL) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(SsoServiceProviderId);
+      }
+      if (SsoNodeId != 0UL) {
+        output.WriteRawTag(24);
+        output.WriteUInt64(SsoNodeId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (SsoSpConfigurationId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(SsoSpConfigurationId);
+      }
+      if (SsoServiceProviderId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(SsoServiceProviderId);
+      }
+      if (SsoNodeId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(SsoNodeId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SsoSharedConfigItem other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SsoSpConfigurationId != 0UL) {
+        SsoSpConfigurationId = other.SsoSpConfigurationId;
+      }
+      if (other.SsoServiceProviderId != 0UL) {
+        SsoServiceProviderId = other.SsoServiceProviderId;
+      }
+      if (other.SsoNodeId != 0UL) {
+        SsoNodeId = other.SsoNodeId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            SsoSpConfigurationId = input.ReadUInt64();
+            break;
+          }
+          case 16: {
+            SsoServiceProviderId = input.ReadUInt64();
+            break;
+          }
+          case 24: {
+            SsoNodeId = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            SsoSpConfigurationId = input.ReadUInt64();
+            break;
+          }
+          case 16: {
+            SsoServiceProviderId = input.ReadUInt64();
+            break;
+          }
+          case 24: {
+            SsoNodeId = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
   ///* This is the response to an SsoConfigurationRequest 
   /// </summary>
   public sealed partial class SsoCloudConfigurationResponse : pb::IMessage<SsoCloudConfigurationResponse>
@@ -1388,7 +1682,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[3]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1415,6 +1709,8 @@ namespace SsoCloud {
       protocol_ = other.protocol_;
       lastModified_ = other.lastModified_;
       ssoCloudSettingValue_ = other.ssoCloudSettingValue_.Clone();
+      isShared_ = other.isShared_;
+      sharedConfigs_ = other.sharedConfigs_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1516,6 +1812,32 @@ namespace SsoCloud {
       get { return ssoCloudSettingValue_; }
     }
 
+    /// <summary>Field number for the "isShared" field.</summary>
+    public const int IsSharedFieldNumber = 8;
+    private bool isShared_;
+    /// <summary>
+    /// If true, this configuration is in use by multiple service providers
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool IsShared {
+      get { return isShared_; }
+      set {
+        isShared_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "sharedConfigs" field.</summary>
+    public const int SharedConfigsFieldNumber = 9;
+    private static readonly pb::FieldCodec<global::SsoCloud.SsoSharedConfigItem> _repeated_sharedConfigs_codec
+        = pb::FieldCodec.ForMessage(74, global::SsoCloud.SsoSharedConfigItem.Parser);
+    private readonly pbc::RepeatedField<global::SsoCloud.SsoSharedConfigItem> sharedConfigs_ = new pbc::RepeatedField<global::SsoCloud.SsoSharedConfigItem>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::SsoCloud.SsoSharedConfigItem> SharedConfigs {
+      get { return sharedConfigs_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -1538,6 +1860,8 @@ namespace SsoCloud {
       if (Protocol != other.Protocol) return false;
       if (LastModified != other.LastModified) return false;
       if(!ssoCloudSettingValue_.Equals(other.ssoCloudSettingValue_)) return false;
+      if (IsShared != other.IsShared) return false;
+      if(!sharedConfigs_.Equals(other.sharedConfigs_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1552,6 +1876,8 @@ namespace SsoCloud {
       if (Protocol.Length != 0) hash ^= Protocol.GetHashCode();
       if (LastModified.Length != 0) hash ^= LastModified.GetHashCode();
       hash ^= ssoCloudSettingValue_.GetHashCode();
+      if (IsShared != false) hash ^= IsShared.GetHashCode();
+      hash ^= sharedConfigs_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1595,6 +1921,11 @@ namespace SsoCloud {
         output.WriteString(LastModified);
       }
       ssoCloudSettingValue_.WriteTo(output, _repeated_ssoCloudSettingValue_codec);
+      if (IsShared != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(IsShared);
+      }
+      sharedConfigs_.WriteTo(output, _repeated_sharedConfigs_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1630,6 +1961,11 @@ namespace SsoCloud {
         output.WriteString(LastModified);
       }
       ssoCloudSettingValue_.WriteTo(ref output, _repeated_ssoCloudSettingValue_codec);
+      if (IsShared != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(IsShared);
+      }
+      sharedConfigs_.WriteTo(ref output, _repeated_sharedConfigs_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1659,6 +1995,10 @@ namespace SsoCloud {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(LastModified);
       }
       size += ssoCloudSettingValue_.CalculateSize(_repeated_ssoCloudSettingValue_codec);
+      if (IsShared != false) {
+        size += 1 + 1;
+      }
+      size += sharedConfigs_.CalculateSize(_repeated_sharedConfigs_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -1690,6 +2030,10 @@ namespace SsoCloud {
         LastModified = other.LastModified;
       }
       ssoCloudSettingValue_.Add(other.ssoCloudSettingValue_);
+      if (other.IsShared != false) {
+        IsShared = other.IsShared;
+      }
+      sharedConfigs_.Add(other.sharedConfigs_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -1731,6 +2075,14 @@ namespace SsoCloud {
           }
           case 58: {
             ssoCloudSettingValue_.AddEntriesFrom(input, _repeated_ssoCloudSettingValue_codec);
+            break;
+          }
+          case 64: {
+            IsShared = input.ReadBool();
+            break;
+          }
+          case 74: {
+            sharedConfigs_.AddEntriesFrom(input, _repeated_sharedConfigs_codec);
             break;
           }
         }
@@ -1776,6 +2128,14 @@ namespace SsoCloud {
             ssoCloudSettingValue_.AddEntriesFrom(ref input, _repeated_ssoCloudSettingValue_codec);
             break;
           }
+          case 64: {
+            IsShared = input.ReadBool();
+            break;
+          }
+          case 74: {
+            sharedConfigs_.AddEntriesFrom(ref input, _repeated_sharedConfigs_codec);
+            break;
+          }
         }
       }
     }
@@ -1800,7 +2160,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[4]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2075,7 +2435,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[5]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2350,7 +2710,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[6]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2542,7 +2902,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[7]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3067,7 +3427,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[8]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3287,7 +3647,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[9]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3518,7 +3878,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[10]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3789,7 +4149,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[11]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3973,7 +4333,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[12]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4232,7 +4592,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[13]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4414,7 +4774,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[14]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4611,7 +4971,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[15]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4918,7 +5278,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[16]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5104,7 +5464,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[17]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5621,7 +5981,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[18]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6097,7 +6457,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[19]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6373,7 +6733,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[20]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6983,7 +7343,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[21]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7304,7 +7664,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[22]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7878,7 +8238,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[23]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

@@ -79,11 +79,11 @@ namespace KeeperSecurity.Authentication
         /// <returns>Task returning Protobuf response.</returns>
         /// <seealso cref="IAuthentication.ExecuteAuthRest"/>
         /// <seealso cref="IKeeperEndpoint.ExecuteRest"/>
-        public static async Task<TR> ExecuteAuthRest<TC, TR>(this IAuthentication auth, string endpoint, TC request)
+        public static async Task<TR> ExecuteAuthRest<TC, TR>(this IAuthentication auth, string endpoint, TC request, int apiVersion=0)
             where TC : IMessage
             where TR : IMessage
         {
-            return (TR) await auth.ExecuteAuthRest(endpoint, request, typeof(TR));
+            return (TR) await auth.ExecuteAuthRest(endpoint, request, typeof(TR), apiVersion);
         }
 
         /// <exclude/>

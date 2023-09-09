@@ -324,15 +324,16 @@ namespace Commander
                     })
                     .ToArray();
 
-                var tab = new Tabulate(4)
+                var tab = new Tabulate(5)
                 {
                     DumpRowNo = true
                 };
-                tab.AddHeader("Email", "Display Name", "Status", "Teams");
+                tab.AddHeader("Email", "Display Name", "Status", "Teams", "Aliases");
                 foreach (var user in users)
                 {
                     var teams = context.EnterpriseData.GetTeamsForUser(user.Id);
-                    tab.AddRow(user.Email, user.DisplayName, user.UserStatus.ToString(), teams?.Length ?? 0);
+                    var aliases = context.UserAliasData.GetAliasesForUser(user.Id).Where(x => x != user.Email).ToArray();
+                    tab.AddRow(user.Email, user.DisplayName, user.UserStatus.ToString(), teams?.Length ?? 0, aliases);
                 }
 
                 tab.Sort(1);
@@ -416,6 +417,52 @@ namespace Commander
                 }
 
                 tab.Dump();
+            }
+            else if (arguments.Command == "alias-add" || arguments.Command == "alias-remove") {
+                if (string.IsNullOrEmpty(arguments.Alias))
+                {
+                    Console.WriteLine("User alias parameter is mandatory.");
+                    return;
+                }
+                if (arguments.Command == "alias-add")
+                {
+                    var aliasExists = context.UserAliasData.GetAliasesForUser(singleUser.Id).Where(x => x == arguments.Alias).Any();
+                    if (aliasExists)
+                    {
+                        var rq = new EnterpriseUserAliasRequest { 
+                            EnterpriseUserId = singleUser.Id,
+                            Alias = arguments.Alias
+                        };
+                        await context.Enterprise.Auth.ExecuteAuthRest("enterprise/enterprise_user_set_primary_alias", rq);
+                    }
+                    else {
+                        var rq = new EnterpriseUserAddAliasRequestV2();
+                        rq.EnterpriseUserAddAliasRequest.Add(new EnterpriseUserAddAliasRequest
+                        {
+                            Primary = true,
+                            EnterpriseUserId = singleUser.Id,
+                            Alias = arguments.Alias
+                        });
+                        var rs = await context.Enterprise.Auth.ExecuteAuthRest<EnterpriseUserAddAliasRequestV2, EnterpriseUserAddAliasResponse>("enterprise/enterprise_user_add_alias", rq, apiVersion: 1);
+                        foreach (var st in rs.Status)
+                        {
+                            if (st.Status != "success")
+                            {
+                                Console.WriteLine($"Failed to add alias to user {st.EnterpriseUserId}: {st.Status}");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    var rq = new EnterpriseUserAliasRequest
+                    {
+                        EnterpriseUserId = singleUser.Id,
+                        Alias = arguments.Alias
+                    };
+                    await context.Enterprise.Auth.ExecuteAuthRest("enterprise/enterprise_user_delete_alias", rq);
+                }
+                await context.Enterprise.Load();
             }
             else if (arguments.Command == "team-add" || arguments.Command == "team-remove")
             {
@@ -2203,6 +2250,9 @@ namespace Commander
         [Option("team", Required = false, HelpText = "team name or UID. \"team-add\", \"team-remove\"")]
         public string Team { get; set; }
 
+        [Option("alias", Required = false, HelpText = "user alias. \"alias-add\", \"alias-remove\"")]
+        public string Alias { get; set; }
+
         [Option("node", Required = false, HelpText = "node name or ID. \"invite\"")]
         public string Node { get; set; }
 
@@ -2212,7 +2262,8 @@ namespace Commander
         [Option("yes", Required = false, HelpText = "delete user without confirmation prompt. \"delete\"")]
         public bool Confirm { get; set; }
 
-        [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"invite\", \"lock\", \"unlock\", \"team-add\", \"team-remove\", \"delete\"")]
+        [Value(0, Required = false, HelpText = "enterprise-user command: \"list\", \"view\", \"invite\", \"lock\", \"unlock\", \"team-add\", \"team-remove\", " +
+            "\"delete\", \"alias-add\", \"alias-remove\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "enterprise user email, ID (except \"invite\")")]
