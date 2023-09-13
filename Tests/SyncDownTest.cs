@@ -180,7 +180,7 @@ namespace Tests
                 .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
                 .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse) _vaultEnv.GetSyncDownResponse()));
             authMock
-                .Setup(x => x.ExecuteAuthRest("vault/get_record_types", It.IsAny<Records.RecordTypesRequest>(), typeof(Records.RecordTypesResponse)))
+                .Setup(x => x.ExecuteAuthRest("vault/get_record_types", It.IsAny<Records.RecordTypesRequest>(), typeof(Records.RecordTypesResponse), It.IsAny<int>()))
                 .Returns<string, Records.RecordTypesRequest, Type>((e, rq, rst) =>
                 {
                     var rs = new Records.RecordTypesResponse()

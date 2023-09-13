@@ -314,9 +314,6 @@
         <member name="P:KeeperSecurity.Authentication.Async.Auth.Username">
             <inheritdoc/>
         </member>
-        <member name="M:KeeperSecurity.Authentication.Async.Auth.SetPushNotifications(KeeperSecurity.Utils.IFanOut{KeeperSecurity.Authentication.NotificationEvent})">
-            <exclude/>
-        </member>
         <member name="P:KeeperSecurity.Authentication.Async.Auth.DeviceToken">
             <inheritdoc/>
         </member>
@@ -533,7 +530,7 @@
             <returns>Task returning JSON response.</returns>
             <seealso cref="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthCommand(KeeperSecurity.Authentication.IAuthentication,KeeperSecurity.Commands.AuthenticatedCommand)"/>
         </member>
-        <member name="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)">
+        <member name="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type,System.Int32)">
             <summary>
             Executes Keeper Protobuf request.
             </summary>
@@ -541,7 +538,7 @@
             <param name="request">Protobuf request.</param>
             <param name="responseType">Expected response type</param>
             <returns>Task returning Protobuf response.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthRest``2(KeeperSecurity.Authentication.IAuthentication,System.String,``0)"/>
+            <seealso cref="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthRest``2(KeeperSecurity.Authentication.IAuthentication,System.String,``0,System.Int32)"/>
         </member>
         <member name="M:KeeperSecurity.Authentication.IAuthentication.Logout">
             <summary>
@@ -672,8 +669,11 @@
         <member name="M:KeeperSecurity.Authentication.AuthCommon.ExecuteAuthCommand(KeeperSecurity.Commands.AuthenticatedCommand,System.Type,System.Boolean)">
             <inheritdoc/>
         </member>
-        <member name="M:KeeperSecurity.Authentication.AuthCommon.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)">
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type,System.Int32)">
             <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.SetPushNotifications(KeeperSecurity.Utils.IFanOut{KeeperSecurity.Authentication.NotificationEvent})">
+            <exclude/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthCommon.DetectProxy(System.Action{System.Uri,System.String[]})">
             <exclude />
@@ -1030,9 +1030,6 @@
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.Username">
             <inheritdoc/>>
         </member>
-        <member name="M:KeeperSecurity.Authentication.Sync.AuthSync.SetPushNotifications(KeeperSecurity.Utils.IFanOut{KeeperSecurity.Authentication.NotificationEvent})">
-            <exclude />
-        </member>
         <member name="P:KeeperSecurity.Authentication.Sync.AuthSync.DeviceToken">
             <inheritdoc/>>
         </member>
@@ -1105,7 +1102,7 @@
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException">Keeper API Exception.</exception>
             <seealso cref="M:KeeperSecurity.Authentication.KeeperEndpointExtensions.ExecuteV2Command(KeeperSecurity.Authentication.IKeeperEndpoint,KeeperSecurity.Commands.KeeperApiCommand,System.Type)"/>
         </member>
-        <member name="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthRest``2(KeeperSecurity.Authentication.IAuthentication,System.String,``0)">
+        <member name="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthRest``2(KeeperSecurity.Authentication.IAuthentication,System.String,``0,System.Int32)">
             <summary>
             Executes Protobuf authenticated request.
             </summary>
@@ -1115,7 +1112,7 @@
             <param name="endpoint">URL path for request.</param>
             <param name="request"></param>
             <returns>Task returning Protobuf response.</returns>
-            <seealso cref="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type)"/>
+            <seealso cref="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type,System.Int32)"/>
             <seealso cref="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteRest(System.String,Authentication.ApiRequestPayload)"/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthExtensions.RegisterDataKeyForDevice(KeeperSecurity.Authentication.IAuthentication,AccountSummary.DeviceInfo)">
@@ -4449,6 +4446,80 @@
             <param name="logger">Logger</param>
             <returns></returns>
         </member>
+        <member name="T:KeeperSecurity.Vault.ExternalRecordShare">
+            <summary>
+            Represents External / One-Time Share
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ExternalRecordShare.RecordUid">
+            <summary>
+            Record UID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ExternalRecordShare.ClientId">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ExternalRecordShare.Name">
+            <summary>
+            Share Name
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ExternalRecordShare.CreatedOn">
+            <summary>
+            Share Created
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ExternalRecordShare.FirstAccessExpiresOn">
+            <exclude/>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ExternalRecordShare.AccessExpiresOn">
+            <summary>
+            Share Expiration
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ExternalRecordShare.FirstAccessed">
+            <summary>
+            URL Opened
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ExternalRecordShare.LastAccessed">
+            <summary>
+            Last Accessed
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.ExternalRecordShareExtensions">
+            <summary>
+            Miscellaneous External Share Methods
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ExternalRecordShareExtensions.GetExernalRecordShares(KeeperSecurity.Vault.VaultOnline,System.String)">
+            <summary>
+            Retrieve external shares for a record
+            </summary>
+            <param name="vault">Vault</param>
+            <param name="recordUid">Record UID</param>
+            <returns>List of external shares</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ExternalRecordShareExtensions.DeleteExernalRecordShares(KeeperSecurity.Vault.VaultOnline,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Deletes external shares for a record
+            </summary>
+            <param name="vault">Vault</param>
+            <param name="recordUid">Record UID</param>
+            <param name="clientIds">List of external share names</param>
+            <returns>Awaitable task</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.ExternalRecordShareExtensions.CreateExternalRecordShare(KeeperSecurity.Vault.VaultOnline,System.String,System.TimeSpan,System.String)">
+            <summary>
+            Creates an external share for a record
+            </summary>
+            <param name="vault">Vault</param>
+            <param name="recordUid">Record UID</param>
+            <param name="expireIn">Share Expiration</param>
+            <param name="shareName">Share Name</param>
+            <returns>External Share URL</returns>
+            <exception cref="T:KeeperSecurity.Vault.VaultException"></exception>
+        </member>
         <member name="T:KeeperSecurity.Vault.FieldType">
             <summary>
             Record Types Schema: Field Type definition.
@@ -4663,7 +4734,6 @@
             <exclude />
         </member>
         <member name="P:KeeperSecurity.Vault.FieldTypeHost.ElementValues">
-            <exclude />
             <exclude />
         </member>
         <member name="M:KeeperSecurity.Vault.FieldTypeHost.SetValueAsString(System.String)">
@@ -7270,6 +7340,9 @@
         <member name="F:AccountSummary.AccountSummaryRequest.SummaryVersionFieldNumber">
             <summary>Field number for the "summaryVersion" field.</summary>
         </member>
+        <member name="F:AccountSummary.AccountSummaryRequest.IncludeRecentActivityFieldNumber">
+            <summary>Field number for the "includeRecentActivity" field.</summary>
+        </member>
         <member name="F:AccountSummary.AccountSummaryElements.ClientKeyFieldNumber">
             <summary>Field number for the "clientKey" field.</summary>
         </member>
@@ -7311,6 +7384,15 @@
         </member>
         <member name="F:AccountSummary.AccountSummaryElements.IsShareAdminFieldNumber">
             <summary>Field number for the "isShareAdmin" field.</summary>
+        </member>
+        <member name="F:AccountSummary.AccountSummaryElements.AccountRecoveryFieldNumber">
+            <summary>Field number for the "accountRecovery" field.</summary>
+        </member>
+        <member name="F:AccountSummary.AccountSummaryElements.AccountRecoveryPromptFieldNumber">
+            <summary>Field number for the "accountRecoveryPrompt" field.</summary>
+        </member>
+        <member name="F:AccountSummary.AccountSummaryElements.MinMasterPasswordLengthNoPromptFieldNumber">
+            <summary>Field number for the "minMasterPasswordLengthNoPrompt" field.</summary>
         </member>
         <member name="F:AccountSummary.DeviceInfo.EncryptedDeviceTokenFieldNumber">
             <summary>Field number for the "encryptedDeviceToken" field.</summary>
@@ -7611,6 +7693,15 @@
         </member>
         <member name="F:AccountSummary.Settings.CanManageRecordTypesFieldNumber">
             <summary>Field number for the "canManageRecordTypes" field.</summary>
+        </member>
+        <member name="F:AccountSummary.Settings.RecordTypesPAMCounterFieldNumber">
+            <summary>Field number for the "recordTypesPAMCounter" field.</summary>
+        </member>
+        <member name="F:AccountSummary.Settings.LogoutTimerMinutesFieldNumber">
+            <summary>Field number for the "logoutTimerMinutes" field.</summary>
+        </member>
+        <member name="F:AccountSummary.Settings.SecurityKeysNoUserVerifyFieldNumber">
+            <summary>Field number for the "securityKeysNoUserVerify" field.</summary>
         </member>
         <member name="F:AccountSummary.KeyValue.KeyFieldNumber">
             <summary>Field number for the "key" field.</summary>
@@ -7938,16 +8029,6 @@
         <member name="F:Authentication.Region.Au">
             <summary>
             Australia
-            </summary>
-        </member>
-        <member name="F:Authentication.Region.Jp">
-            <summary>
-            Japan
-            </summary>
-        </member>
-        <member name="F:Authentication.Region.Ca">
-            <summary>
-            Canada
             </summary>
         </member>
         <member name="F:Authentication.ApiRequest.EncryptedTransmissionKeyFieldNumber">
@@ -9102,6 +9183,18 @@
         <member name="F:Authentication.EnterpriseUserAddAliasRequest.PrimaryFieldNumber">
             <summary>Field number for the "primary" field.</summary>
         </member>
+        <member name="F:Authentication.EnterpriseUserAddAliasRequestV2.EnterpriseUserAddAliasRequestFieldNumber">
+            <summary>Field number for the "enterpriseUserAddAliasRequest" field.</summary>
+        </member>
+        <member name="F:Authentication.EnterpriseUserAddAliasStatus.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Authentication.EnterpriseUserAddAliasStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Authentication.EnterpriseUserAddAliasResponse.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
         <member name="F:Authentication.Device.EncryptedDeviceTokenFieldNumber">
             <summary>Field number for the "encryptedDeviceToken" field.</summary>
         </member>
@@ -9742,6 +9835,27 @@
         <member name="F:Authentication.ChangeMasterPasswordResponse.EncryptedSessionTokenFieldNumber">
             <summary>Field number for the "encryptedSessionToken" field.</summary>
         </member>
+        <member name="F:Authentication.AccountRecoverySetupRequest.RecoveryEncryptedDataKeyFieldNumber">
+            <summary>Field number for the "recoveryEncryptedDataKey" field.</summary>
+        </member>
+        <member name="F:Authentication.AccountRecoverySetupRequest.RecoveryAuthHashFieldNumber">
+            <summary>Field number for the "recoveryAuthHash" field.</summary>
+        </member>
+        <member name="F:Authentication.AccountRecoveryVerifyCodeResponse.BackupKeyTypeFieldNumber">
+            <summary>Field number for the "backupKeyType" field.</summary>
+        </member>
+        <member name="F:Authentication.AccountRecoveryVerifyCodeResponse.BackupKeyDateFieldNumber">
+            <summary>Field number for the "backupKeyDate" field.</summary>
+        </member>
+        <member name="F:Authentication.AccountRecoveryVerifyCodeResponse.SecurityQuestionFieldNumber">
+            <summary>Field number for the "securityQuestion" field.</summary>
+        </member>
+        <member name="F:Authentication.AccountRecoveryVerifyCodeResponse.SaltFieldNumber">
+            <summary>Field number for the "salt" field.</summary>
+        </member>
+        <member name="F:Authentication.AccountRecoveryVerifyCodeResponse.IterationsFieldNumber">
+            <summary>Field number for the "iterations" field.</summary>
+        </member>
         <member name="T:BI.BIReflection">
             <summary>Holder for reflection information generated from BI.proto</summary>
         </member>
@@ -9812,6 +9926,18 @@
         </member>
         <member name="F:BI.SubscriptionStatusResponse.GradientStatusFieldNumber">
             <summary>Field number for the "gradientStatus" field.</summary>
+        </member>
+        <member name="F:BI.SubscriptionStatusResponse.HideTrialBannerFieldNumber">
+            <summary>Field number for the "hideTrialBanner" field.</summary>
+        </member>
+        <member name="F:BI.SubscriptionStatusResponse.GradientLastSyncDateFieldNumber">
+            <summary>Field number for the "gradientLastSyncDate" field.</summary>
+        </member>
+        <member name="F:BI.SubscriptionStatusResponse.GradientNextSyncDateFieldNumber">
+            <summary>Field number for the "gradientNextSyncDate" field.</summary>
+        </member>
+        <member name="F:BI.SubscriptionStatusResponse.IsGradientMappingPendingFieldNumber">
+            <summary>Field number for the "isGradientMappingPending" field.</summary>
         </member>
         <member name="F:BI.LicenseStats.TypeFieldNumber">
             <summary>Field number for the "type" field.</summary>
@@ -10068,23 +10194,6 @@
             <summary>Field number for the "success" field.</summary>
         </member>
         <member name="F:BI.GradientValidateKeyResponse.MessageFieldNumber">
-            <summary>Field number for the "message" field.</summary>
-        </member>
-        <member name="T:BI.GradientAddServiceRequest">
-            <summary>
-            -- POST: /bi_api/v2/enterprise_console/gradient/add-service
-            </summary>
-        </member>
-        <member name="F:BI.GradientAddServiceRequest.ServiceNameFieldNumber">
-            <summary>Field number for the "serviceName" field.</summary>
-        </member>
-        <member name="F:BI.GradientAddServiceRequest.ServiceDescFieldNumber">
-            <summary>Field number for the "serviceDesc" field.</summary>
-        </member>
-        <member name="F:BI.GradientAddServiceResponse.SuccessFieldNumber">
-            <summary>Field number for the "success" field.</summary>
-        </member>
-        <member name="F:BI.GradientAddServiceResponse.MessageFieldNumber">
             <summary>Field number for the "message" field.</summary>
         </member>
         <member name="T:BI.GradientSaveRequest">
@@ -10421,6 +10530,26 @@
             because user isn't in enterprise, i.e. deleted
              </summary>
         </member>
+        <member name="F:Enterprise.DeleteEnterpriseUsersResult.NotAnEnterpriseUser">
+             <summary>
+            the delete user is not an enterprise user
+             </summary>
+        </member>
+        <member name="F:Enterprise.DeleteEnterpriseUsersResult.CannotDeleteSelf">
+             <summary>
+            the delete user is the same as the calling user
+             </summary>
+        </member>
+        <member name="F:Enterprise.DeleteEnterpriseUsersResult.BridgeCannotDeleteActiveUser">
+             <summary>
+            bridge cannot delete active user
+             </summary>
+        </member>
+        <member name="F:Enterprise.DeleteEnterpriseUsersResult.Error">
+             <summary>
+            unexpected internal error
+             </summary>
+        </member>
         <member name="F:Enterprise.EnterpriseKeyPairRequest.EnterprisePublicKeyFieldNumber">
             <summary>Field number for the "enterprisePublicKey" field.</summary>
         </member>
@@ -10677,6 +10806,22 @@
         </member>
         <member name="F:Enterprise.EnterpriseUserDataKey.KeyTypeIdFieldNumber">
             <summary>Field number for the "keyTypeId" field.</summary>
+        </member>
+        <member name="F:Enterprise.EnterpriseUserDataKey.RoleKeyFieldNumber">
+            <summary>Field number for the "roleKey" field.</summary>
+        </member>
+        <member name="P:Enterprise.EnterpriseUserDataKey.RoleKey">
+            <summary>
+            Used for migration
+            </summary>
+        </member>
+        <member name="F:Enterprise.EnterpriseUserDataKey.PrivateKeyFieldNumber">
+            <summary>Field number for the "privateKey" field.</summary>
+        </member>
+        <member name="P:Enterprise.EnterpriseUserDataKey.PrivateKey">
+            <summary>
+            Used for migration
+            </summary>
         </member>
         <member name="F:Enterprise.EnterpriseUserDataKeys.KeysFieldNumber">
             <summary>Field number for the "keys" field.</summary>
@@ -12145,6 +12290,9 @@
         <member name="F:Enterprise.UserProfileExt.IsShareAdminForSharedFolderOwnerFieldNumber">
             <summary>Field number for the "isShareAdminForSharedFolderOwner" field.</summary>
         </member>
+        <member name="F:Enterprise.UserProfileExt.HasAccessToObjectFieldNumber">
+            <summary>Field number for the "hasAccessToObject" field.</summary>
+        </member>
         <member name="F:Enterprise.GetSharingAdminsResponse.UserProfileExtsFieldNumber">
             <summary>Field number for the "userProfileExts" field.</summary>
         </member>
@@ -12414,6 +12562,37 @@
         </member>
         <member name="F:Enterprise.UpdateMSPPermitsRequest.AllowUnlimitedLicensesFieldNumber">
             <summary>Field number for the "allowUnlimitedLicenses" field.</summary>
+        </member>
+        <member name="F:Enterprise.DeleteEnterpriseUsersRequest.EnterpriseUserIdsFieldNumber">
+            <summary>Field number for the "enterpriseUserIds" field.</summary>
+        </member>
+        <member name="F:Enterprise.DeleteEnterpriseUserStatus.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="P:Enterprise.DeleteEnterpriseUserStatus.EnterpriseUserId">
+             <summary>
+            the enterprise user id
+             </summary>
+        </member>
+        <member name="F:Enterprise.DeleteEnterpriseUserStatus.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="P:Enterprise.DeleteEnterpriseUserStatus.Status">
+             <summary>
+            the delete result
+             </summary>
+        </member>
+        <member name="F:Enterprise.DeleteEnterpriseUsersResponse.DeleteStatusFieldNumber">
+            <summary>Field number for the "deleteStatus" field.</summary>
+        </member>
+        <member name="F:Enterprise.ClearSecurityDataRequest.EnterpriseUserIdFieldNumber">
+            <summary>Field number for the "enterpriseUserId" field.</summary>
+        </member>
+        <member name="F:Enterprise.ClearSecurityDataRequest.AllUsersFieldNumber">
+            <summary>Field number for the "allUsers" field.</summary>
+        </member>
+        <member name="F:Enterprise.ClearSecurityDataRequest.TypeFieldNumber">
+            <summary>Field number for the "type" field.</summary>
         </member>
         <member name="T:Folder.FolderReflection">
             <summary>Holder for reflection information generated from folder.proto</summary>
@@ -12735,6 +12914,9 @@
             should have a sharing relationship w/ the calling user; ""=No Change(default); "delete"=unset
             </summary>
         </member>
+        <member name="F:Folder.SharedFolderUpdateV3RequestV2.SharedFoldersUpdateV3FieldNumber">
+            <summary>Field number for the "sharedFoldersUpdateV3" field.</summary>
+        </member>
         <member name="F:Folder.SharedFolderUpdateRecordStatus.RecordUidFieldNumber">
             <summary>Field number for the "recordUid" field.</summary>
         </member>
@@ -12782,6 +12964,15 @@
         </member>
         <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderRemoveTeamStatusFieldNumber">
             <summary>Field number for the "sharedFolderRemoveTeamStatus" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3Response.StatusFieldNumber">
+            <summary>Field number for the "status" field.</summary>
+        </member>
+        <member name="F:Folder.SharedFolderUpdateV3ResponseV2.SharedFoldersUpdateV3ResponseFieldNumber">
+            <summary>Field number for the "sharedFoldersUpdateV3Response" field.</summary>
         </member>
         <member name="F:Folder.GetDeletedSharedFoldersAndRecordsResponse.SharedFoldersFieldNumber">
             <summary>Field number for the "sharedFolders" field.</summary>
@@ -13365,6 +13556,9 @@
         <member name="F:Records.File.ThumbSizeFieldNumber">
             <summary>Field number for the "thumbSize" field.</summary>
         </member>
+        <member name="F:Records.File.IsScriptFieldNumber">
+            <summary>Field number for the "is_script" field.</summary>
+        </member>
         <member name="F:Records.FilesAddRequest.FilesFieldNumber">
             <summary>Field number for the "files" field.</summary>
         </member>
@@ -13865,6 +14059,42 @@
         <member name="F:Records.TransferRecordStatus.MessageFieldNumber">
             <summary>Field number for the "message" field.</summary>
         </member>
+        <member name="F:Records.RecordsUnshareRequest.SharedFoldersFieldNumber">
+            <summary>Field number for the "sharedFolders" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareRequest.UsersFieldNumber">
+            <summary>Field number for the "users" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareResponse.SharedFoldersFieldNumber">
+            <summary>Field number for the "sharedFolders" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareResponse.UsersFieldNumber">
+            <summary>Field number for the "users" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareFolder.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareFolder.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareUser.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareUser.AccountUidFieldNumber">
+            <summary>Field number for the "accountUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareFolderStatus.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareFolderStatus.SharedFolderUidFieldNumber">
+            <summary>Field number for the "sharedFolderUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareUserStatus.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="F:Records.RecordsUnshareUserStatus.AccountUidFieldNumber">
+            <summary>Field number for the "accountUid" field.</summary>
+        </member>
         <member name="T:SsoCloud.SsocloudReflection">
             <summary>Holder for reflection information generated from ssocloud.proto</summary>
         </member>
@@ -14045,6 +14275,20 @@
         <member name="F:SsoCloud.SsoCloudConfigurationRequest.SsoCloudSettingActionFieldNumber">
             <summary>Field number for the "ssoCloudSettingAction" field.</summary>
         </member>
+        <member name="T:SsoCloud.SsoSharedConfigItem">
+             <summary>
+            * This represents the providers that share a given configuration 
+             </summary>
+        </member>
+        <member name="F:SsoCloud.SsoSharedConfigItem.SsoSpConfigurationIdFieldNumber">
+            <summary>Field number for the "ssoSpConfigurationId" field.</summary>
+        </member>
+        <member name="F:SsoCloud.SsoSharedConfigItem.SsoServiceProviderIdFieldNumber">
+            <summary>Field number for the "ssoServiceProviderId" field.</summary>
+        </member>
+        <member name="F:SsoCloud.SsoSharedConfigItem.SsoNodeIdFieldNumber">
+            <summary>Field number for the "ssoNodeId" field.</summary>
+        </member>
         <member name="T:SsoCloud.SsoCloudConfigurationResponse">
              <summary>
             * This is the response to an SsoConfigurationRequest 
@@ -14085,6 +14329,17 @@
         </member>
         <member name="F:SsoCloud.SsoCloudConfigurationResponse.SsoCloudSettingValueFieldNumber">
             <summary>Field number for the "ssoCloudSettingValue" field.</summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudConfigurationResponse.IsSharedFieldNumber">
+            <summary>Field number for the "isShared" field.</summary>
+        </member>
+        <member name="P:SsoCloud.SsoCloudConfigurationResponse.IsShared">
+            <summary>
+            If true, this configuration is in use by multiple service providers
+            </summary>
+        </member>
+        <member name="F:SsoCloud.SsoCloudConfigurationResponse.SharedConfigsFieldNumber">
+            <summary>Field number for the "sharedConfigs" field.</summary>
         </member>
         <member name="T:SsoCloud.SsoIdpTypeRequest">
              <summary>
