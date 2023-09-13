@@ -392,10 +392,10 @@ function Add-KeeperRecord {
                             }
                         }
                         if ($fieldValue) {
-                            [KeeperSecurity.Vault.VaultExtensions]::SetCustomField($record, $fieldName, $fieldValue) | Out-Null
+                            $record.SetCustomField($fieldName, $fieldValue) | Out-Null
                         }
                         else {
-                            [KeeperSecurity.Vault.VaultExtensions]::DeleteCustomField($record, $fieldName) | Out-Null
+                            $record.DeleteCustomField($fieldName) | Out-Null
                         }
                     }
                 }
