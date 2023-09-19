@@ -1,7 +1,7 @@
-#requires -Version 5.0
+#requires -Version 5.1
 
 
-function Show-KeeperRecordShares {
+function Show-KeeperRecordShare {
     <#
         .Synopsis
         Shows a record sharing information
@@ -9,29 +9,29 @@ function Show-KeeperRecordShares {
     	.Parameter Record
 	    Record UID or any object containing property Uid
     #>
-    
+
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true, ValueFromPipeline=$true)]$Records
     )
     Begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-        [string[]]$recordUids = @() 
-    
+        [string[]]$recordUids = @()
+
     }
     Process {
         foreach ($r in $Records) {
             $uid = $null
             if ($r -is [String]) {
                 $uid = $r
-            } 
+            }
             elseif ($null -ne $r.Uid) {
                 $uid = $r.Uid
             }
             if ($uid) {
                 [KeeperSecurity.Vault.KeeperRecord] $rec = $null
                 if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
-                    $entries = Get-KeeperChildItems -Filter $uid -ObjectType Record
+                    $entries = Get-KeeperChildItem -Filter $uid -ObjectType Record
                     if ($entries.Uid) {
                         $vault.TryGetRecord($entries[0].Uid, [ref]$rec) | Out-Null
                     }
@@ -49,7 +49,7 @@ function Show-KeeperRecordShares {
         $vault.GetSharesForRecords($recordUids).GetAwaiter().GetResult()
     }
 }
-New-Alias -Name kshrsh -Value Show-KeeperRecordShares
+New-Alias -Name kshrsh -Value Show-KeeperRecordShare
 
 function Grant-KeeperRecordAccess {
     <#
@@ -69,7 +69,7 @@ function Grant-KeeperRecordAccess {
         Grant re-share permission
 
     #>
-    
+
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)]$Record,
@@ -77,7 +77,7 @@ function Grant-KeeperRecordAccess {
         [Parameter()][switch]$CanEdit,
         [Parameter()][switch]$CanShare
     )
-    
+
 	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Record -is [Array]) {
         if ($Record.Count -ne 1) {
@@ -88,7 +88,7 @@ function Grant-KeeperRecordAccess {
     $uid = $null
     if ($Record -is [String]) {
         $uid = $Record
-    } 
+    }
     elseif ($null -ne $Record.Uid) {
         $uid = $Record.Uid
     }
@@ -96,7 +96,7 @@ function Grant-KeeperRecordAccess {
     if ($uid) {
         [KeeperSecurity.Vault.KeeperRecord] $rec = $null
         if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
-            $entries = Get-KeeperChildItems -Filter $uid -ObjectType Record
+            $entries = Get-KeeperChildItem -Filter $uid -ObjectType Record
             if ($entries.Uid) {
                 $vault.TryGetRecord($entries[0].Uid, [ref]$rec) | Out-Null
             }
@@ -104,21 +104,21 @@ function Grant-KeeperRecordAccess {
         if ($rec) {
             try {
                 $vault.ShareRecordWithUser($rec.Uid, $User, $CanShare.IsPresent, $CanEdit.IsPresent).GetAwaiter().GetResult() | Out-Null
-                Write-Host "Record `"$($rec.Title)`" was shared with $($User)"
+                Write-Output "Record `"$($rec.Title)`" was shared with $($User)"
             }
             catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
-                Write-Host $_
+                Write-Output $_
                 $prompt =  "Do you want to send share invitation request to `"$($User)`"? (Yes/No)"
                 $answer = Read-Host -Prompt $prompt
                 if ($answer -in 'yes', 'y') {
                     $vault.SendShareInvitationRequest($User).GetAwaiter().GetResult() | Out-Null
-                    Write-Host("Invitation has been sent to $($User)`nPlease repeat this command when your invitation is accepted.");
+                    Write-Output("Invitation has been sent to $($User)`nPlease repeat this command when your invitation is accepted.");
                 }
             }
         } else {
             Write-Error -Message "Cannot find a Keeper record: $Record"
         }
-    } 
+    }
 }
 New-Alias -Name kshr -Value Grant-KeeperRecordAccess
 
@@ -133,13 +133,13 @@ function Revoke-KeeperRecordAccess {
         .Parameter User
 	    User email
     #>
-    
+
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)]$Record,
         [Parameter(Mandatory = $true)]$User
     )
-    
+
 	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Record -is [Array]) {
         if ($Record.Count -ne 1) {
@@ -151,7 +151,7 @@ function Revoke-KeeperRecordAccess {
     $uid = $null
     if ($Record -is [String]) {
         $uid = $Record
-    } 
+    }
     elseif ($null -ne $Record.Uid) {
         $uid = $Record.Uid
     }
@@ -160,7 +160,7 @@ function Revoke-KeeperRecordAccess {
     if ($uid) {
         [KeeperSecurity.Vault.KeeperRecord] $rec = $null
         if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
-            $entries = Get-KeeperChildItems -Filter $uid -ObjectType Record
+            $entries = Get-KeeperChildItem -Filter $uid -ObjectType Record
             if ($entries.Uid) {
                 $vault.TryGetRecord($entries[0].Uid, [ref]$rec) | Out-Null
             }
@@ -168,9 +168,9 @@ function Revoke-KeeperRecordAccess {
         if ($rec) {
             $found = $true
             $vault.RevokeShareFromUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
-            Write-Host "Record `"$($rec.Title)`" share has been removed from $($username)"
+            Write-Output "Record `"$($rec.Title)`" share has been removed from $($username)"
         }
-    } 
+    }
     if (-not $found) {
         Write-Error -Message "Cannot find a Keeper record: $Record"
     }
@@ -191,7 +191,7 @@ function Grant-KeeperSharedFolderAccess {
 
         .Parameter Team
 	    Team Name or UID
- 
+
         .Parameter ManageRecords
         Grant Manage Records permission
 
@@ -199,7 +199,7 @@ function Grant-KeeperSharedFolderAccess {
         Grant Manage Users permission
 
     #>
-    
+
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true, Position = 0)]$SharedFolder,
@@ -208,7 +208,7 @@ function Grant-KeeperSharedFolderAccess {
         [Parameter()][switch]$ManageRecords,
         [Parameter()][switch]$ManageUsers
     )
-    
+
     [KeeperSecurity.Vault.VaultOnline]$private:vault = getVault
 
     if ($SharedFolder -is [Array]) {
@@ -221,7 +221,7 @@ function Grant-KeeperSharedFolderAccess {
     $uid = $null
     if ($SharedFolder -is [String]) {
         $uid = $SharedFolder
-    } 
+    }
     elseif ($null -ne $Record.Uid) {
         $uid = $SharedFolder.Uid
     }
@@ -245,7 +245,7 @@ function Grant-KeeperSharedFolderAccess {
         if (-not $userId) {
             return
         }
-    } 
+    }
     elseif ($Team) {
         $userType = [KeeperSecurity.Vault.UserType]::Team
         [KeeperSecurity.Vault.TeamInfo]$teamInfo = $null
@@ -278,15 +278,15 @@ function Grant-KeeperSharedFolderAccess {
         $options.ManageRecords = $ManageRecords.IsPresent
         $options.ManageUsers = $ManageUsers.IsPresent
         $vault.PutUserToSharedFolder($sf.Uid, $userId, $userType, $options).GetAwaiter().GetResult() | Out-Null
-        Write-Host "${userType} `"$($userName)`" has been added to shared folder `"$($sf.Name)`""
+        Write-Output "${userType} `"$($userName)`" has been added to shared folder `"$($sf.Name)`""
     }
     catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
-        Write-Host $_
+        Write-Output $_
         $prompt =  "Do you want to send share invitation request to `"$($User)`"? (Yes/No)"
         $answer = Read-Host -Prompt $prompt
         if ($answer -in 'yes', 'y') {
             $vault.SendShareInvitationRequest($User).GetAwaiter().GetResult() | Out-Null
-            Write-Host("Invitation has been sent to `"$($User)`"`nPlease repeat this command when your invitation is accepted.");
+            Write-Output("Invitation has been sent to `"$($User)`"`nPlease repeat this command when your invitation is accepted.");
         }
     }
 
@@ -305,16 +305,16 @@ function Revoke-KeeperSharedFolderAccess {
 
         .Parameter Team
 	    Team Name or UID
- 
+
     #>
-    
+
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true, Position = 0)]$SharedFolder,
         [Parameter(Mandatory = $true, ParameterSetName='user')]$User,
         [Parameter(Mandatory = $true, ParameterSetName='team')]$Team
     )
-    
+
     [KeeperSecurity.Vault.VaultOnline]$private:vault = getVault
 
     if ($SharedFolder -is [Array]) {
@@ -327,7 +327,7 @@ function Revoke-KeeperSharedFolderAccess {
     $uid = $null
     if ($SharedFolder -is [String]) {
         $uid = $SharedFolder
-    } 
+    }
     elseif ($null -ne $Record.Uid) {
         $uid = $SharedFolder.Uid
     }
@@ -351,7 +351,7 @@ function Revoke-KeeperSharedFolderAccess {
         if (-not $userId) {
             return
         }
-    } 
+    }
     elseif ($Team) {
         $userType = [KeeperSecurity.Vault.UserType]::Team
         [KeeperSecurity.Vault.TeamInfo]$teamInfo = $null
@@ -380,7 +380,7 @@ function Revoke-KeeperSharedFolderAccess {
     }
 
     $vault.RemoveUserFromSharedFolder($sf.Uid, $userId, $userType).GetAwaiter().GetResult() | Out-Null
-    Write-Host "${userType} `"$($userName)`" has been removed from shared folder `"$($sf.Name)`""
+    Write-Output "${userType} `"$($userName)`" has been removed from shared folder `"$($sf.Name)`""
 }
 
 function ensureAvalableLoaded {
@@ -497,26 +497,26 @@ Register-ArgumentCompleter -CommandName Revoke-KeeperSharedFolderAccess -Paramet
 
 New-Alias -Name kushf -Value Revoke-KeeperSharedFolderAccess
 
-function Get-KeeperAvailableTeams {
+function Get-KeeperAvailableTeam {
 	<#
 		.Synopsis
 		Get Keeper Available Teams
-	
+
 		.Parameter Uid
 		Team UID
-	
+
 		.Parameter Filter
 		Return matching teams only
 	#>
 		[CmdletBinding()]
-		[OutputType([KeeperSecurity.Vault.TeamInfo[]])] 
+		[OutputType([KeeperSecurity.Vault.TeamInfo[]])]
 		Param (
 			[string] $Uid,
 			[string] $Filter
 		)
-	
+
         ensureAvalableLoaded
-        $teams = $Script:Context.AvailableTeams 
+        $teams = $Script:Context.AvailableTeams
 		if ($Uid) {
             $teams | Where-Object { $_.TeamUid -ceq $Uid } | Select-Object -First 1
 		} else {
@@ -531,5 +531,4 @@ function Get-KeeperAvailableTeams {
 			}
 		}
 	}
-	New-Alias -Name kat -Value Get-KeeperAvailableTeams
-	
+	New-Alias -Name kat -Value Get-KeeperAvailableTeam

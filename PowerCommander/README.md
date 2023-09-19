@@ -1,6 +1,10 @@
 ### Reference Keeper Commander Powershell module
+To install PowerCommander from PowerShell Gallery
+```
+Install-Module PowerCommander
+```
 
-To install the PowerCommander module copy PowerCommander\ directory to 
+To run the PowerCommander module from the source copy PowerCommander\ directory to 
 * `%USERPROFILE%\Documents\WindowsPowerShell\Modules` Per User
 * `C:\Program Files\WindowsPowerShell\Modules` All users
 
@@ -12,12 +16,12 @@ To install the PowerCommander module copy PowerCommander\ directory to
 | Disconnect-Keeper                      |             | Logout and clear the data
 | Get-KeeperLocation                     | kpwd        | Print current Keeper folder
 | Set-KeeperLocation                     | kcd         | Change Keeper folder
-| Get-KeeperChildItems                   | kdir        | Display subfolder and record names in the current Keeper folder
+| Get-KeeperChildItem                    | kdir        | Display subfolder and record names in the current Keeper folder
 | Get-KeeperObject                       | ko          | Get Keeper object by Uid
-| Get-KeeperRecords                      | kr          | Enumerate all records
-| Get-KeeperSharedFolders                | ksf         | Enumerate all shared folders
+| Get-KeeperRecord                       | kr          | Enumerate all records
+| Get-KeeperSharedFolder                 | ksf         | Enumerate all shared folders
 | Add-KeeperRecord                       | kadd        | Add/Modify Keeper record
-| Get-KeeperRecordTypes                  | krti        | Get Record Type Information
+| Get-KeeperRecordType                   | krti        | Get Record Type Information
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
 | Add-KeeperFolder                       | kmkdir      | Create Keeper folder
@@ -28,41 +32,41 @@ To install the PowerCommander module copy PowerCommander\ directory to
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
 |----------------------------------------|-------------|----------------------------
-| Show-KeeperRecordShares                | kshrsh      | Show a record sharing information
+| Show-KeeperRecordShare                 | kshrsh      | Show a record sharing information
 | Grant-KeeperRecordAccess               | kshr        | Share a record with user
 | Revoke-KeeperRecordAccess              | kushr       | Remove record share from user
 | Grant-KeeperSharedFolderAccess         | kshf        | Add a user or team to a shared foler
 | Revoke-KeeperSharedFolderAccess        | kushf       | Remove a user or team from a shared foler
-| Get-KeeperAvailableTeams               | kat         | Get available teams
+| Get-KeeperAvailableTeam                | kat         | Get available teams
 
 ### Enterprise Cmdlets
 | Cmdlet name                            | Alias       | Description
 |----------------------------------------|-------------|----------------------------
 | Sync-KeeperEnterprise                  | ked         | Sync Keeper enterprise information
-| Get-KeeperEnterpriseNodes              | ken         | Enumerate all enterprise nodes
-| Get-KeeperEnterpriseUsers              | keu         | Enumerate all enterprise users
-| Get-KeeperEnterpriseTeams              | ket         | Enumerate all enterprise teams
-| Get-KeeperEnterpriseTeamUsers          | ketu        | Get a list of enterprise users for team
+| Get-KeeperEnterpriseNode              | ken         | Enumerate all enterprise nodes
+| Get-KeeperEnterpriseUser               | keu         | Enumerate all enterprise users
+| Get-KeeperEnterpriseTeam               | ket         | Enumerate all enterprise teams
+| Get-KeeperEnterpriseTeamUser           | ketu        | Get a list of enterprise users for team
 | Lock-KeeperEnterpriseUser              | lock-user   | Lock Enterprise User
 | Unlock-KeeperEnterpriseUser            | unlock-user | Unlock Enterprise User
 | Move-KeeperEnterpriseUser              |transfer-user| Transfer user account to another user
 | Remove-KeeperEnterpriseUser            | delete-user | Delete Enterprise User
 | Get-KeeperMspLicenses                  | msp-license | Return MSP licenses
-| Get-KeeperManagedCompanies             | kmc         | Enumerate all enterprise managed companies
+| Get-KeeperManagedCompany               | kmc         | Enumerate all enterprise managed companies
 | New-KeeperManagedCompany               | kamc        | Create Managed Company
 | Remove-KeeperManagedCompany            | krmc        | Remove Managed Company
 | Edit-KeeperManagedCompany              | kemc        | Edit Managed Company
-| Get-MspBillingReport                   |             | Runs MSP Billing Report
+| Get-MspBillingReport                   |             | Run MSP Billing Report
 
 ### Secret Manager Cmdlets
 | Cmdlet name                            | Alias       | Description
 |----------------------------------------|-------------|----------------------------
-| Get-KeeperSecretManagerApps            | ksm         | Enumerate all Keeper Secret Manager Applications
-| New-KeeperSecretManagerApp             | ksm-create  | Create Keeper Secret Manager Application
-| Grant-KeeperSecretManagerFolderAccess  | ksm-share   | Add shared folder to KSM Application
-| Revoke-KeeperSecretManagerFolderAccess | ksm-unshare | Remove Shared Folder from KSM Application
-| Add-KeeperSecretManagerClient          |ksm-addclient| Adds client/device to KSM Application
-| Remove-KeeperSecretManagerClient       | ksm-rmclient| Removes client/device from KSM Application
+| Get-KeeperSecretManagerApp             | ksm         | Enumerate all Keeper Secret Manager Applications
+| Add-KeeperSecretManagerApp             | ksm-create  | Add a Keeper Secret Manager Application
+| Grant-KeeperSecretManagerFolderAccess  | ksm-share   | Add a shared folder to KSM Application
+| Revoke-KeeperSecretManagerFolderAccess | ksm-unshare | Remove a Shared Folder from KSM Application
+| Add-KeeperSecretManagerClient          |ksm-addclient| Add a client/device to KSM Application
+| Remove-KeeperSecretManagerClient       | ksm-rmclient| Remove a client/device from KSM Application
 
 
 #### Examples
@@ -103,7 +107,7 @@ To install the PowerCommander module copy PowerCommander\ directory to
     PS > kr|2fa
     ```
      where 
-    * `kr` is alias for `Get-KeeperRecords` 
+    * `kr` is alias for `Get-KeeperRecord` 
     * `2fa` is alias for `Show-TwoFactorCode`
 
 5. Copy record password to clipboard
@@ -151,7 +155,7 @@ To install the PowerCommander module copy PowerCommander\ directory to
 
 8. List all enterprise users
     ```
-    PS > Get-KeeperEnterpriseUsers
+    PS > Get-KeeperEnterpriseUser
     ```
 
 9. Create a new Managed Company

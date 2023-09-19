@@ -1,4 +1,4 @@
-#requires -Version 5.0
+#requires -Version 5.1
 
 $Keeper_KSMAppCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
@@ -42,14 +42,14 @@ $Keeper_KSMAppCompleter = {
     }
 }
 
-function Get-KeeperSecretManagerApps {
+function Get-KeeperSecretManagerApp {
     <#
         .Synopsis
         Get Keeper Secret Manager Applications
-    
+
         .Parameter Uid
         Record UID
-    
+
         .Parameter Filter
         Return matching applications only
 
@@ -62,7 +62,7 @@ function Get-KeeperSecretManagerApps {
         [string] $Filter,
         [Switch] $Detail
     )
-    
+
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Uid) {
         [KeeperSecurity.Vault.ApplicationRecord] $application = $null
@@ -92,13 +92,13 @@ function Get-KeeperSecretManagerApps {
         }
     }
 }
-New-Alias -Name ksm -Value Get-KeeperSecretManagerApps
-    
-function New-KeeperSecretManagerApp {
+New-Alias -Name ksm -Value Get-KeeperSecretManagerApp
+
+function Add-KeeperSecretManagerApp {
     <#
         .Synopsis
         Creates Keeper Secret Manager Application
-    
+
         .Parameter Name
         Secret Manager Application
     #>
@@ -106,17 +106,17 @@ function New-KeeperSecretManagerApp {
     Param (
         [Parameter(Position = 0, Mandatory = $true)][string]$AppName
     )
-    
+
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     $vault.CreateSecretManagerApplication($AppName).GetAwaiter().GetResult()
 }
-New-Alias -Name ksm-create -Value New-KeeperSecretManagerApp
+New-Alias -Name ksm-create -Value Add-KeeperSecretManagerApp
 
 function Grant-KeeperSecretManagerFolderAccess {
     <#
         .Synopsis
         Adds shared folder to KSM Application
-    
+
         .Parameter App
        KSM Application UID or Title
 
@@ -133,21 +133,21 @@ function Grant-KeeperSecretManagerFolderAccess {
         [Parameter(Mandatory = $true)][string]$Secret,
         [Parameter()][switch]$CanEdit
     )
-    
+
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApps -Filter $App
+    $apps = Get-KeeperSecretManagerApp -Filter $App
     if (-not $apps) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
 
     [string]$uid = $null
-    $sfs = Get-KeeperSharedFolders -Filter $Secret
+    $sfs = Get-KeeperSharedFolder -Filter $Secret
     if ($sfs) {
         $uid = $sfs[0].Uid
     }
     else {
-        $recs = Get-KeeperRecords -Filter $Secret
+        $recs = Get-KeeperRecord -Filter $Secret
         if ($recs) {
             $uid = $recs[0].Uid
         }
@@ -165,7 +165,7 @@ function Revoke-KeeperSecretManagerFolderAccess {
     <#
         .Synopsis
         Removes Shared Folder from KSM Application
-    
+
         .Parameter App
         Secret Manager Application
 
@@ -177,21 +177,21 @@ function Revoke-KeeperSecretManagerFolderAccess {
         [Parameter(Mandatory = $true)][string]$App,
         [Parameter(Mandatory = $true)][string]$Secret
     )
-    
+
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApps -Filter $App
+    $apps = Get-KeeperSecretManagerApp -Filter $App
     if (-not $apps) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
 
     [string]$uid = $null
-    $sfs = Get-KeeperSharedFolders -Filter $Secret
+    $sfs = Get-KeeperSharedFolder -Filter $Secret
     if ($sfs) {
         $uid = $sfs[0].Uid
     }
     else {
-        $recs = Get-KeeperRecords -Filter $Secret
+        $recs = Get-KeeperRecord -Filter $Secret
         if ($recs) {
             $uid = $recs[0].Uid
         }
@@ -209,7 +209,7 @@ function Add-KeeperSecretManagerClient {
     <#
         .Synopsis
         Adds client/device to KSM Application
-    
+
         .Parameter App
         KSM Application UID or Title
 
@@ -225,9 +225,9 @@ function Add-KeeperSecretManagerClient {
         [Parameter()][string]$Name,
         [Parameter()][switch]$UnlockIP
     )
-    
+
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApps -Filter $App
+    $apps = Get-KeeperSecretManagerApp -Filter $App
     if (-not $apps) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
@@ -243,7 +243,7 @@ function Remove-KeeperSecretManagerClient {
     <#
         .Synopsis
         Removes client/device from KSM Application
-    
+
         .Parameter App
         KSM Application UID or Title
 
@@ -251,14 +251,14 @@ function Remove-KeeperSecretManagerClient {
         Client Id or Device Name
 
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(Mandatory = $true)][string]$App,
         [Parameter(Mandatory = $true)][string]$Name
     )
-    
+
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    $apps = Get-KeeperSecretManagerApps -Filter $App -Detail
+    $apps = Get-KeeperSecretManagerApp -Filter $App -Detail
     if (-not $apps) {
         Write-Error -Message "Cannot find Secret Manager Application: $App" -ErrorAction Stop
     }
@@ -269,9 +269,10 @@ function Remove-KeeperSecretManagerClient {
         Write-Error -Message "Cannot find Device: $Name" -ErrorAction Stop
     }
 
-    $vault.DeleteSecretManagerClient($application.Uid, $device.DeviceId).GetAwaiter().GetResult() | Out-Null
-
-    Write-Information -MessageData "Device $($device.Name) has been deleted from KSM application `"$($application.Title)`"."
+    if ($PSCmdlet.ShouldProcess($application.Title, "Removing KSM Device '$($device.Name)'")) {
+        $vault.DeleteSecretManagerClient($application.Uid, $device.DeviceId).GetAwaiter().GetResult() | Out-Null
+        Write-Information -MessageData "Device $($device.Name) has been deleted from KSM application `"$($application.Title)`"."
+    }
 }
 
 Register-ArgumentCompleter -CommandName Remove-KeeperSecretManagerClient -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter

@@ -1,8 +1,8 @@
-#requires -Version 5.0
+#requires -Version 5.1
 
 $expires = @(
-    [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin, 
-    [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days, 
+    [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin,
+    [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days,
     [KeeperSecurity.Authentication.TwoFactorDuration]::Forever)
 
 function twoFactorChannelToText ([KeeperSecurity.Authentication.TwoFactorChannel] $channel) {
@@ -70,9 +70,6 @@ function getStepPrompt ([KeeperSecurity.Authentication.IAuthentication] $auth) {
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.ReadyToLoginStep]) {
         $prompt = "`nLogin"
     }
-    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.HttpProxyStep]) {
-        $prompt = "`nHTTP Proxy Login"
-    }
 
     return $prompt
 }
@@ -81,7 +78,7 @@ function printStepHelp ([KeeperSecurity.Authentication.IAuthentication] $auth) {
     $commands = @()
     if ($auth.step -is [KeeperSecurity.Authentication.Sync.DeviceApprovalStep]) {
         $channels = @()
-        foreach($ch in $auth.step.Channels) {
+        foreach ($ch in $auth.step.Channels) {
             $channels += deviceApprovalChannelToText $ch
         }
         if ($channels) {
@@ -92,7 +89,7 @@ function printStepHelp ([KeeperSecurity.Authentication.IAuthentication] $auth) {
     }
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.TwoFactorStep]) {
         $channels = @()
-        foreach($ch in $auth.step.Channels) {
+        foreach ($ch in $auth.step.Channels) {
             $channelText = twoFactorChannelToText $ch
             if ($channelText) {
                 $channels += $channelText
@@ -103,10 +100,10 @@ function printStepHelp ([KeeperSecurity.Authentication.IAuthentication] $auth) {
         }
 
         $channels = @()
-        foreach($ch in $auth.step.Channels) {
+        foreach ($ch in $auth.step.Channels) {
             $pushes = $auth.step.GetChannelPushActions($ch)
             if ($null -ne $pushes) {
-                foreach($push in $pushes) {
+                foreach ($push in $pushes) {
                     $channels += [KeeperSecurity.Authentication.AuthUIExtensions]::GetPushActionText($push)
                 }
             }
@@ -116,7 +113,7 @@ function printStepHelp ([KeeperSecurity.Authentication.IAuthentication] $auth) {
         }
 
         $channels = @()
-        foreach($exp in $expires) {
+        foreach ($exp in $expires) {
             $channels += twoFactorDurationToExpire $exp
         }
         $commands += "expire=<$($channels -join ' | ')> to set 2fa expiration."
@@ -136,7 +133,7 @@ function printStepHelp ([KeeperSecurity.Authentication.IAuthentication] $auth) {
     }
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoDataKeyStep]) {
         $channels = @()
-        foreach($ch in $auth.step.Channels) {
+        foreach ($ch in $auth.step.Channels) {
             $channels += [KeeperSecurity.Authentication.AuthUIExtensions]::SsoDataKeyShareChannelText($ch)
         }
         if ($channels) {
@@ -149,11 +146,11 @@ function printStepHelp ([KeeperSecurity.Authentication.IAuthentication] $auth) {
     }
 
     if ($commands) {
-        Write-Host "`nAvailable Commands`n"
+        Write-Output "`nAvailable Commands`n"
         foreach ($command in $commands) {
-            Write-Host $command
+            Write-Output $command
         }
-        Write-Host '<Enter> to resume'
+        Write-Output '<Enter> to resume'
     }
 }
 
@@ -169,13 +166,14 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         }
         elseif ($expire -eq '30_days') {
             $duration.Value = [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days
-        } else {
+        }
+        else {
             $duration.Value = [KeeperSecurity.Authentication.TwoFactorDuration]::EveryLogin
         }
-    
+
         return $result
     }
-    
+
     function tryTextToDeviceApprovalChannel ([string] $text, [ref] [KeeperSecurity.Authentication.DeviceApprovalChannel] $channel) {
         $result = $true
         if ($text -eq 'email') {
@@ -186,14 +184,15 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         }
         elseif ($text -eq '2fa') {
             $channel.Value = [KeeperSecurity.Authentication.DeviceApprovalChannel]::TwoFactorAuth
-        } else {
-            Write-Host 'Unsupported device approval channel:', $text
+        }
+        else {
+            Write-Output 'Unsupported device approval channel:', $text
             $result = $false
         }
-    
+
         return $result
     }
-    
+
     function tryTextToTwoFactorChannel ([string] $text, [ref] [KeeperSecurity.Authentication.TwoFactorChannel] $channel) {
         $result = $true
         if ($text -eq 'authenticator') {
@@ -210,17 +209,18 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         }
         elseif ($text -eq 'dna') {
             $channel.Value = [KeeperSecurity.Authentication.TwoFactorChannel]::KeeperDNA
-        } else {
-            Write-Host 'Unsupported 2FA channel:', $text
+        }
+        else {
+            Write-Output 'Unsupported 2FA channel:', $text
             $result = $false
         }
 
         return $result
     }
-    
+
     if ($auth.step -is [KeeperSecurity.Authentication.Sync.DeviceApprovalStep]) {
         if ($action -eq 'push') {
-           $auth.step.SendPush($auth.step.DefaultChannel).GetAwaiter().GetResult() | Out-Null
+            $auth.step.SendPush($auth.step.DefaultChannel).GetAwaiter().GetResult() | Out-Null
         }
         elseif ($action -match 'channel\s*=\s*(.*)') {
             $ch = $Matches.1
@@ -228,15 +228,16 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
             if (tryTextToDeviceApprovalChannel ($ch) ([ref]$cha)) {
                 $auth.step.DefaultChannel = $cha
             }
-        } else {
+        }
+        else {
             Try {
                 $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult() | Out-Null
             }
-            Catch [KeeperSecurity.Authentication.KeeperApiException]{
-                Write-Host $_ -ForegroundColor Red
+            Catch [KeeperSecurity.Authentication.KeeperApiException] {
+                Write-Output $_ -ForegroundColor Red
             }
             Catch {
-                Write-Host $_ -ForegroundColor Red
+                Write-Output $_ -ForegroundColor Red
             }
         }
     }
@@ -254,11 +255,12 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
             if (tryExpireToTwoFactorDuration($exp) ([ref]$dur)) {
                 $auth.step.Duration = $dur
             }
-        } else {
-            foreach($cha in $auth.step.Channels) {
+        }
+        else {
+            foreach ($cha in $auth.step.Channels) {
                 $pushes = $auth.step.GetChannelPushActions($cha)
                 if ($null -ne $pushes) {
-                    foreach($push in $pushes) {
+                    foreach ($push in $pushes) {
                         if ($action -eq [KeeperSecurity.Authentication.AuthUIExtensions]::GetPushActionText($push)) {
                             $auth.step.SendPush($push).GetAwaiter().GetResult() | Out-Null
                             return
@@ -269,7 +271,7 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
                     $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult() | Out-Null
                 }
                 Catch {
-                    Write-Host $_ -ForegroundColor Red
+                    Write-Output $_ -ForegroundColor Red
                 }
             }
         }
@@ -278,17 +280,18 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
         Try {
             $auth.step.VerifyPassword($action).GetAwaiter().GetResult() | Out-Null
         }
-        Catch [KeeperSecurity.Authentication.KeeperAuthFailed]{
-            Write-Host 'Invalid password' -ForegroundColor Red
+        Catch [KeeperSecurity.Authentication.KeeperAuthFailed] {
+            Write-Output 'Invalid password' -ForegroundColor Red
         }
         Catch {
-            Write-Host $_ -ForegroundColor Red
+            Write-Output $_ -ForegroundColor Red
         }
     }
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoTokenStep]) {
         if ($action -eq 'password') {
             $auth.step.LoginWithPassword().GetAwaiter().GetResult() | Out-Null
-        } else {
+        }
+        else {
             $auth.step.SetSsoToken($action).GetAwaiter().GetResult() | Out-Null
         }
     }
@@ -308,22 +311,16 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
             $auth.LoginSso($providerName).GetAwaiter().GetResult() | Out-Null
         }
     }
-    elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.HttpProxyStep]) {
-        $args = Invoke-Expression ".{`$args} $action"
-        if ($args.Count -eq 3 -and $args[0] -eq 'login') {
-            $auth.step.SetProxyCredentials($args[1], $args[2]).GetAwaiter().GetResult() | Out-Null
-        }
-    }
 }
 
 function Connect-Keeper {
-<#
+    <#
     .Synopsis
     Login to Keeper
 
    .Parameter Username
     User email
-    
+
     .Parameter NewLogin
     Do not use Last Login information
 
@@ -336,27 +333,28 @@ function Connect-Keeper {
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
         [Parameter(Position = 0)][string] $Username,
-        [Parameter()] $Password,
+        [Parameter()] [SecureString]$Password,
         [Parameter()][switch] $NewLogin,
-        [Parameter(ParameterSetName='sso_password')][switch] $SsoPassword,
-        [Parameter(ParameterSetName='sso_provider')][switch] $SsoProvider,
+        [Parameter(ParameterSetName = 'sso_password')][switch] $SsoPassword,
+        [Parameter(ParameterSetName = 'sso_provider')][switch] $SsoProvider,
         [Parameter()][string] $Server
     )
 
     Disconnect-Keeper -Resume | Out-Null
 
-	$storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
+    $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
     if (-not $Server) {
         $Server = $storage.LastServer
         if ($Server) {
             Write-Information -MessageData "`nUsing Keeper Server: $Server`n"
-        } else {
+        }
+        else {
             Write-Information -MessageData "`nUsing Default Keeper Server: $([KeeperSecurity.Authentication.KeeperEndpoint]::DefaultKeeperServer)`n"
         }
     }
-    
 
-	$endpoint = New-Object KeeperSecurity.Authentication.KeeperEndpoint($Server, $storage.Servers)
+
+    $endpoint = New-Object KeeperSecurity.Authentication.KeeperEndpoint($Server, $storage.Servers)
     $endpoint.DeviceName = 'PowerShell Commander'
     $endpoint.ClientVersion = 'c16.1.0'
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
@@ -376,15 +374,17 @@ function Connect-Keeper {
     }
 
     if ($Username) {
-        Write-Host "$(($namePrompt + ': ').PadLeft(21, ' ')) $Username"
-    } else {
+        Write-Output "$(($namePrompt + ': ').PadLeft(21, ' ')) $Username"
+    }
+    else {
         while (-not $Username) {
             $Username = Read-Host -Prompt $namePrompt.PadLeft(20, ' ')
-        }    
+        }
     }
     if ($SsoProvider.IsPresent) {
         $authFlow.LoginSso($Username).GetAwaiter().GetResult() | Out-Null
-    } else {
+    }
+    else {
         $passwords = @()
         if ($Password) {
             if ($Password -is [SecureString]) {
@@ -397,7 +397,7 @@ function Connect-Keeper {
         $authFlow.Login($Username, $passwords).GetAwaiter().GetResult() | Out-Null
     }
     Write-Output ""
-    while(-not $authFlow.IsCompleted) {
+    while (-not $authFlow.IsCompleted) {
         if ($lastStep -ne $authFlow.Step.State) {
             printStepHelp $authFlow
             $lastStep = $authFlow.Step.State
@@ -406,19 +406,22 @@ function Connect-Keeper {
         $prompt = getStepPrompt $authFlow
 
         if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
-            $securedPassword = Read-Host -Prompt $prompt -AsSecureString 
+            $securedPassword = Read-Host -Prompt $prompt -AsSecureString
             if ($securedPassword.Length -gt 0) {
                 $action = [Net.NetworkCredential]::new('', $securedPassword).Password
-            } else {
+            }
+            else {
                 $action = ''
             }
-        } else {
+        }
+        else {
             $action = Read-Host -Prompt $prompt
         }
 
         if ($action) {
             if ($action -eq '?') {
-            } else {
+            }
+            else {
                 executeStepAction $authFlow $action
             }
         }
@@ -426,7 +429,7 @@ function Connect-Keeper {
 
     if ($authFlow.Step.State -ne [KeeperSecurity.Authentication.Sync.AuthState]::Connected) {
         if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.ErrorStep]) {
-            Write-Host $authFlow.Step.Message -ForegroundColor Red
+            Write-Output $authFlow.Step.Message -ForegroundColor Red
         }
         return
     }
@@ -456,13 +459,13 @@ $Keeper_ConfigServerCompleter = {
     $prefixes = @('', 'dev.', 'qa.')
     $suffixes = $('.com', '.eu')
 
-    $prefixes | % { $p = $_; $suffixes | % {$s = $_; "${p}keepersecurity${s}" }} | Where-Object {$_.StartsWith($wordToComplete)}
+    $prefixes | ForEach-Object { $p = $_; $suffixes | ForEach-Object { $s = $_; "${p}keepersecurity${s}" } } | Where-Object { $_.StartsWith($wordToComplete) }
 }
 Register-ArgumentCompleter -Command Connect-Keeper -ParameterName Server -ScriptBlock $Keeper_ConfigServerCompleter
 New-Alias -Name kc -Value Connect-Keeper
 
 function Disconnect-Keeper {
-<#
+    <#
     .Synopsis
     Logout from Keeper
 #>
@@ -496,7 +499,7 @@ function Disconnect-Keeper {
 New-Alias -Name kq -Value Disconnect-Keeper
 
 function Sync-Keeper {
-<#
+    <#
     .Synopsis
     Sync down with Keeper
 #>
@@ -506,7 +509,8 @@ function Sync-Keeper {
     if ($vault) {
         $task = $vault.SyncDown()
         $task.GetAwaiter().GetResult() | Out-Null
-    } else {
+    }
+    else {
         Write-Error -Message "Not connected" -ErrorAction Stop
     }
 }

@@ -1,125 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration>
-  <ViewDefinitions>
-    <View>
-      <Name>KeeperSecurity.Vault.RecordField_TableView</Name>
-      <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Vault.RecordField</TypeName>
-      </ViewSelectedBy>
-      <TableControl>
-        <TableHeaders>
-          <TableColumnHeader />
-          <TableColumnHeader />
-          <TableColumnHeader />
-        </TableHeaders>
-        <TableRowEntries>
-          <TableRowEntry>
-            <TableColumnItems>
-              <TableColumnItem>
-                <PropertyName>Name</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>TypeName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>Multiple</PropertyName>
-              </TableColumnItem>
-            </TableColumnItems>
-          </TableRowEntry>
-        </TableRowEntries>
-      </TableControl>
-    </View>
+    <ViewDefinitions>
+        <View>
+            <Name>KeeperSecurity.Vault.RecordField_TableView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Vault.RecordField</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>TypeName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Multiple</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
 
-    <View>
-      <Name>KeeperSecurity.Vault.RecordTypeField_TableView</Name>
-      <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Vault.RecordTypeField</TypeName>
-      </ViewSelectedBy>
-      <TableControl>
-        <TableHeaders>
-          <TableColumnHeader />
-          <TableColumnHeader />
-          <TableColumnHeader />
-        </TableHeaders>
-        <TableRowEntries>
-          <TableRowEntry>
-            <TableColumnItems>
-              <TableColumnItem>
-                <PropertyName>FieldName</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>FieldLabel</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>TypeName</PropertyName>
-              </TableColumnItem>
-            </TableColumnItems>
-          </TableRowEntry>
-        </TableRowEntries>
-      </TableControl>
-    </View>
+        <View>
+            <Name>KeeperSecurity.Vault.RecordTypeField_TableView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Vault.RecordTypeField</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>FieldName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>FieldLabel</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>TypeName</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
 
-    <View>
-      <Name>KeeperSecurity.Vault.RecordType_TableView</Name>
-      <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Vault.RecordType</TypeName>
-      </ViewSelectedBy>
-      <TableControl>
-        <TableHeaders>
-          <TableColumnHeader />
-          <TableColumnHeader />
-          <TableColumnHeader />
-          <TableColumnHeader />
-        </TableHeaders>
-        <TableRowEntries>
-          <TableRowEntry>
-            <TableColumnItems>
-              <TableColumnItem>
-                <PropertyName>Name</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>Description</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>Scope</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>Fields</PropertyName>
-              </TableColumnItem>
-            </TableColumnItems>
-          </TableRowEntry>
-        </TableRowEntries>
-      </TableControl>
-    </View>
+        <View>
+            <Name>KeeperSecurity.Vault.RecordType_TableView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Vault.RecordType</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Description</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Scope</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Fields</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
 
-    <View>
-      <Name>KeeperSecurity.Vault.RecordField_ListView</Name>
-      <ViewSelectedBy>
-        <TypeName>KeeperSecurity.Vault.RecordField</TypeName>
-      </ViewSelectedBy>
-      <ListControl>
-        <ListEntries>
-          <ListEntry>
-            <ListItems>
-              <ListItem>
-                <PropertyName>Name</PropertyName>
-              </ListItem>
-              <ListItem>
-                <Label>TypeName</Label>
-                <ScriptBlock>$_.Type.Name</ScriptBlock>
-              </ListItem>
-              <ListItem>
-                <Label>Description</Label>
-                <ScriptBlock>$_.Type.Description</ScriptBlock>
-              </ListItem>
-              <ListItem>
-                <PropertyName>Multiple</PropertyName>
-              </ListItem>
-            </ListItems>
-          </ListEntry>
-        </ListEntries>
-      </ListControl>
-    </View>
+        <View>
+            <Name>KeeperSecurity.Vault.RecordField_ListView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Vault.RecordField</TypeName>
+            </ViewSelectedBy>
+            <ListControl>
+                <ListEntries>
+                    <ListEntry>
+                        <ListItems>
+                            <ListItem>
+                                <PropertyName>Name</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <Label>TypeName</Label>
+                                <ScriptBlock>$_.Type.Name</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>Description</Label>
+                                <ScriptBlock>$_.Type.Description</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>Multiple</PropertyName>
+                            </ListItem>
+                        </ListItems>
+                    </ListEntry>
+                </ListEntries>
+            </ListControl>
+        </View>
 
-  </ViewDefinitions>
+    </ViewDefinitions>
 </Configuration>

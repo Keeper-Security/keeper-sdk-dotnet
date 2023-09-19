@@ -1,0 +1,37 @@
+name: Publish PowerCommander 
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    environment: prod
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Load signing certificate
+        run: |
+          if (Test-Path -Path certificate.txt) { Remove-Item certificate.txt }
+          if (Test-Path -Path certificate.pfx) { Remove-Item certificate.pfx }
+          Set-Content -Path certificate.txt -Value '${{ secrets.PFX_CERT }}'
+          certutil -decode certificate.txt certificate.pfx
+          Remove-Item certificate.txt
+        shell: powershell
+
+      - name: Sign PowerShell scripts
+        working-directory: ./PowerCommander
+        run: |
+          $certPassword = ConvertTo-SecureString -String "${{ secrets.PFX_PASS }}" -AsPlainText -Force
+          $certData = Get-PfxData -FilePath "..\certificate.pfx" -Password $certPassword
+          $cert = $certData.EndEntityCertificates[0]
+          Set-AuthenticodeSignature -FilePath *.ps1 -Certificate $cert
+          Set-AuthenticodeSignature -FilePath *.ps1xml -Certificate $cert
+          Set-AuthenticodeSignature -FilePath PowerCommander.psd1 -Certificate $cert
+          Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert
+        shell: powershell      
+
+      - name: Publish to PowerShell Gallery
+        run: |
+          Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
+        shell: powershell      

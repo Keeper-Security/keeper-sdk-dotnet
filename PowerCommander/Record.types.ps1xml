@@ -1,25 +1,25 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <Types>
-  <Type>
-    <Name>KeeperSecurity.Vault.RecordField</Name>
-    <Members>
-      <ScriptProperty>
-        <Name>TypeName</Name>
-        <GetScriptBlock>
-          $this.Type.Name
-        </GetScriptBlock>
-      </ScriptProperty>
-    </Members>
-  </Type>
-  <Type>
-    <Name>KeeperSecurity.Vault.RecordTypeField</Name>
-    <Members>
-      <ScriptProperty>
-        <Name>TypeName</Name>
-        <GetScriptBlock>
-          $this.RecordField.TypeName
-        </GetScriptBlock>
-      </ScriptProperty>
-    </Members>
-  </Type>
+    <Type>
+        <Name>KeeperSecurity.Vault.RecordField</Name>
+        <Members>
+            <ScriptProperty>
+                <Name>TypeName</Name>
+                <GetScriptBlock>
+                    $this.Type.Name
+                </GetScriptBlock>
+            </ScriptProperty>
+        </Members>
+    </Type>
+    <Type>
+        <Name>KeeperSecurity.Vault.RecordTypeField</Name>
+        <Members>
+            <ScriptProperty>
+                <Name>TypeName</Name>
+                <GetScriptBlock>
+                    $this.RecordField.TypeName
+                </GetScriptBlock>
+            </ScriptProperty>
+        </Members>
+    </Type>
 </Types>

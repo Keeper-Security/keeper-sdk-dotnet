@@ -1,6 +1,6 @@
-#requires -Version 5.0
+#requires -Version 5.1
 
-function Get-KeeperRecords {
+function Get-KeeperRecord {
     <#
 	.Synopsis
 	Get Keeper Records
@@ -12,7 +12,7 @@ function Get-KeeperRecords {
 	Return matching records only
 #>
     [CmdletBinding()]
-    [OutputType([KeeperSecurity.Vault.KeeperRecord[]])] 
+    [OutputType([KeeperSecurity.Vault.KeeperRecord[]])]
     Param (
         [string] $Uid,
         [string] $Filter
@@ -37,13 +37,13 @@ function Get-KeeperRecords {
         }
     }
 }
-New-Alias -Name kr -Value Get-KeeperRecords
+New-Alias -Name kr -Value Get-KeeperRecord
 
 
 function Copy-KeeperToClipboard {
     <#
 	.Synopsis
-	Copy record password to clipboard or output 
+	Copy record password to clipboard or output
 
 	.Parameter Record
 	Record UID or any object containing property Uid
@@ -75,7 +75,7 @@ function Copy-KeeperToClipboard {
         $uid = $null
         if ($Record -is [String]) {
             $uid = $Record
-        } 
+        }
         elseif ($null -ne $Record.Uid) {
             $uid = $Record.Uid
         }
@@ -84,7 +84,7 @@ function Copy-KeeperToClipboard {
         if ($uid) {
             [KeeperSecurity.Vault.KeeperRecord] $rec = $null
             if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
-                $entries = Get-KeeperChildItems -Filter $uid -ObjectType Record
+                $entries = Get-KeeperChildItem -Filter $uid -ObjectType Record
                 if ($entries.Uid) {
                     $vault.TryGetRecord($entries[0].Uid, [ref]$rec) | Out-Null
                 }
@@ -110,7 +110,7 @@ function Copy-KeeperToClipboard {
                     if ($fieldType) {
                         $recordField = $rec.Fields | Where-Object FieldName -eq $fieldType | Select-Object -First 1
                         if (-not $recordField) {
-                          $recordField = $rec.Custom | Where-Object FieldName -eq $fieldType | Select-Object -First 1
+                            $recordField = $rec.Custom | Where-Object FieldName -eq $fieldType | Select-Object -First 1
                         }
                         if ($recordField) {
                             $value = $recordField.ObjectValue
@@ -123,22 +123,23 @@ function Copy-KeeperToClipboard {
                         $value
                     }
                     else {
-                        if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq  [System.Threading.ApartmentState]::MTA) {
+                        if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -eq [System.Threading.ApartmentState]::MTA) {
                             powershell -sta "Set-Clipboard -Value '$value'"
-                        } else {
+                        }
+                        else {
                             Set-Clipboard -Value $value
                         }
-                        Write-Host "Copied to clipboard: $Field for $($rec.Title)"
+                        Write-Output "Copied to clipboard: $Field for $($rec.Title)"
                     }
                     if ($Field -eq 'Password') {
                         $vault.AuditLogRecordCopyPassword($rec.Uid)
                     }
                 }
                 else {
-                    Write-Host "Record $($rec.Title) has no $Field"
+                    Write-Output "Record $($rec.Title) has no $Field"
                 }
             }
-        } 
+        }
         if (-not $found) {
             Write-Error -Message "Cannot find a Keeper record: $Record"
         }
@@ -161,6 +162,7 @@ function Get-KeeperPasswordVisible {
 
 function Set-KeeperPasswordVisible {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     Param ([switch] $Visible)
     $Script:PasswordVisible = $Visible.IsPresent
 }
@@ -182,7 +184,7 @@ function Show-TwoFactorCode {
 
             if ($r -is [String]) {
                 $uid = $r
-            } 
+            }
             elseif ($null -ne $r.Uid) {
                 $uid = $r.Uid
             }
@@ -250,7 +252,7 @@ $Keeper_RecordTypeNameCompleter = {
                 $result += $rt.Name
             }
         }
-    } 
+    }
     if ($result.Count -gt 0) {
         return $result
     }
@@ -265,11 +267,11 @@ function Add-KeeperRecord {
 	.Synopsis
 	Creates or Modifies a Keeper record in the current folder.
 
-	.Parameter Uid 
+	.Parameter Uid
 	Record UID. If provided the existing record to be updated. Otherwise record is added.
 
 	.Parameter RecordType
-	Record Type (if account supports record types). 
+	Record Type (if account supports record types).
 
 	.Parameter Title
 	Record Title. Mandatory field for added record.
@@ -278,7 +280,7 @@ function Add-KeeperRecord {
 	Record Notes.
 
 	.Parameter GeneratePassword
-	Generate random password. 
+	Generate random password.
 
 	.Parameter Fields
 	A list of record Fields. Record field format NAME=VALUE
@@ -287,7 +289,7 @@ function Add-KeeperRecord {
 	password		Password
 	url				Web Address
 	Any other name is added to Custom Fields
-	Example: login=username password=userpassword "Database Server=value1" 
+	Example: login=username password=userpassword "Database Server=value1"
 #>
 
     [CmdletBinding(DefaultParameterSetName = 'add')]
@@ -313,10 +315,12 @@ function Add-KeeperRecord {
                 if ($var -match ':$') {
                     $fieldName = $fieldName.Substring(0, $fieldName.Length - 1)
                 }
-            } elseif ($null -ne $fieldName) {
+            }
+            elseif ($null -ne $fieldName) {
                 $fields[$fieldName] = $var
                 $fieldName = $null
-            } else {
+            }
+            else {
                 if ($var -match '^([^=]+)=(.*)?') {
                     $n = $Matches[1].Trim()
                     $v = $Matches[2].Trim()
@@ -331,7 +335,7 @@ function Add-KeeperRecord {
     Process {
         if ($Uid) {
             if (-not $vault.TryGetKeeperRecord($Uid, [ref]$record)) {
-                $objs = Get-KeeperChildItems -ObjectType Record | Where-Object Name -eq $Uid
+                $objs = Get-KeeperChildItem -ObjectType Record | Where-Object Name -eq $Uid
                 if ($objs.Length -gt 1) {
                     $vault.TryGetKeeperRecord($objs[0].Uid, [ref]$record)
                 }
@@ -387,7 +391,8 @@ function Add-KeeperRecord {
                         if ($fieldLabel) {
                             if ($fieldName -eq 'text') {
                                 $fieldName = $fieldLabel
-                            } else {
+                            }
+                            else {
                                 $fieldName = "${fieldName}:${fieldLabel}"
                             }
                         }
@@ -461,6 +466,7 @@ function Remove-KeeperRecord {
 	Folder name or Folder UID
 #>
 
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     Param (
         [Parameter(Position = 0, Mandatory = $true)][string] $Name
@@ -483,7 +489,7 @@ function Remove-KeeperRecord {
         }
     }
     if (-not $recordUid) {
-        $objs = Get-KeeperChildItems -ObjectType Record | Where-Object Name -eq $Name
+        $objs = Get-KeeperChildItem -ObjectType Record | Where-Object Name -eq $Name
         if (-not $objs) {
             Write-Error -Message "Record `"$Name`" does not exist"
             return
@@ -512,7 +518,7 @@ function Move-RecordToFolder {
 	.Parameter Record
 	Record UID, Path or any object containing property Uid.
 
-	.Parameter Folder 
+	.Parameter Folder
 	Folder Name, Path, or UID
 #>
 
@@ -522,7 +528,7 @@ function Move-RecordToFolder {
         [Parameter(Position = 0, Mandatory = $true)][string]$Folder,
         [Parameter()][switch]$Link
     )
-	
+
     Begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
         $folderNode = resolveFolderNode $vault $Folder
@@ -562,7 +568,7 @@ function Move-RecordToFolder {
                 if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$fol)) {
                     $fol = $vault.RootFolder
                 }
-			
+
                 $comps = splitKeeperPath $r
                 $folder, $rest = parseKeeperPath $comps $vault $fol
                 if (-not $rest) {
@@ -585,7 +591,7 @@ function Move-RecordToFolder {
                 Write-Error "Record `"$r`" cannot be found" -ErrorAction Stop
             }
 
-            $rp = New-Object KeeperSecurity.Vault.RecordPath 
+            $rp = New-Object KeeperSecurity.Vault.RecordPath
             $rp.RecordUid = $record.Uid
             $rp.FolderUid = $folder.FolderUid
             $sourceRecords += $rp
@@ -603,7 +609,7 @@ New-Alias -Name kmv -Value Move-RecordToFolder
 Register-ArgumentCompleter -CommandName Move-RecordToFolder -ParameterName Folder -ScriptBlock $Keeper_FolderPathRecordCompleter
 
 
-function Get-KeeperRecordTypes {
+function Get-KeeperRecordType {
     <#
 	.Synopsis
 	Get Record Type Information
@@ -611,7 +617,7 @@ function Get-KeeperRecordTypes {
 	.Parameter Record
 	Record UID, Path or any object containing property Uid.
 
-	.Parameter Folder 
+	.Parameter Folder
 	Folder Name, Path, or UID
 #>
 
@@ -624,12 +630,13 @@ function Get-KeeperRecordTypes {
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
     if ($ShowFields.IsPresent) {
-        [KeeperSecurity.Vault.RecordTypesConstants]::RecordFields | Where-Object {-not $Name -or $_.Name -eq $Name} | Sort-Object Name
-    } else {
-        $vault.RecordTypes | Where-Object {-not $Name -or $_.Name -eq $Name} | Sort-Object Name
+        [KeeperSecurity.Vault.RecordTypesConstants]::RecordFields | Where-Object { -not $Name -or $_.Name -eq $Name } | Sort-Object Name
+    }
+    else {
+        $vault.RecordTypes | Where-Object { -not $Name -or $_.Name -eq $Name } | Sort-Object Name
     }
 }
-New-Alias -Name krti -Value Get-KeeperRecordTypes
+New-Alias -Name krti -Value Get-KeeperRecordType
 
 function resolveFolderNode {
     Param ([KeeperSecurity.Vault.VaultOnline]$vault, $path)
@@ -639,9 +646,9 @@ function resolveFolderNode {
         if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
             $folder = $vault.RootFolder
         }
-	
+
         $comps = splitKeeperPath $path
-        $folder, $rest = parseKeeperPath $comps $vault $folder	
+        $folder, $rest = parseKeeperPath $comps $vault $folder
         if ($rest) {
             Write-Error "Folder $path not found" -ErrorAction Stop
         }
