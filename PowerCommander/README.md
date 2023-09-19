@@ -1,7 +1,7 @@
 ### Reference Keeper Commander Powershell module
 To install PowerCommander from PowerShell Gallery
 ```
-Install-Module PowerCommander
+Install-Module -Name PowerCommander
 ```
 
 To run the PowerCommander module from the source copy PowerCommander\ directory to 
