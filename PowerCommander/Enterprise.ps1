@@ -190,7 +190,9 @@ function Lock-KeeperEnterpriseUser {
     $userObject = resolveUser $enterprise.enterpriseData $User
     if ($userObject) {
         $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $true).GetAwaiter().GetResult()
-        Write-Output "User `"$($saved.Email)`" was locked"
+        if ($saved) {
+            Write-Output "User `"$($saved.Email)`" was locked"
+        }
     }
 }
 Register-ArgumentCompleter -CommandName Lock-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_ActiveUserCompleter
@@ -242,7 +244,9 @@ function Unlock-KeeperEnterpriseUser {
     $userObject = resolveUser $enterprise.enterpriseData $User
     if ($userObject) {
         $saved = $enterprise.enterpriseData.SetUserLocked($userObject, $false).GetAwaiter().GetResult()
-        Write-Output "User `"$($saved.Email)`" was unlocked"
+        if ($saved) {
+            Write-Output "User `"$($saved.Email)`" was unlocked"
+        }
     }
 }
 Register-ArgumentCompleter -CommandName Unlock-KeeperEnterpriseUser -ParameterName User -ScriptBlock $Keeper_LockedUserCompleter
