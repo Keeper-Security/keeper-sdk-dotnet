@@ -57,7 +57,7 @@ namespace KeeperSecurity.Enterprise
             {
                 EnterpriseUserId = userId,
                 Lock = locked ? "locked" : "unlocked",
-                DeleteIfPending = true
+                DeleteIfPending = false
             };
             await Enterprise.Auth.ExecuteAuthCommand(rq);
             await Enterprise.Load();
