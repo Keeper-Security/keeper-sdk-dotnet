@@ -234,10 +234,10 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
                 $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult() | Out-Null
             }
             Catch [KeeperSecurity.Authentication.KeeperApiException] {
-                Write-Output $_ -ForegroundColor Red
+                Write-Warning $_
             }
             Catch {
-                Write-Output $_ -ForegroundColor Red
+                Write-Error $_
             }
         }
     }
@@ -271,7 +271,7 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
                     $auth.step.SendCode($auth.step.DefaultChannel, $action).GetAwaiter().GetResult() | Out-Null
                 }
                 Catch {
-                    Write-Output $_ -ForegroundColor Red
+                    Write-Error $_
                 }
             }
         }
@@ -281,10 +281,10 @@ function executeStepAction ([KeeperSecurity.Authentication.IAuthentication] $aut
             $auth.step.VerifyPassword($action).GetAwaiter().GetResult() | Out-Null
         }
         Catch [KeeperSecurity.Authentication.KeeperAuthFailed] {
-            Write-Output 'Invalid password' -ForegroundColor Red
+            Write-Warning 'Invalid password'
         }
         Catch {
-            Write-Output $_ -ForegroundColor Red
+            Write-Error $_
         }
     }
     elseif ($auth.step -is [KeeperSecurity.Authentication.Sync.SsoTokenStep]) {
@@ -429,7 +429,7 @@ function Connect-Keeper {
 
     if ($authFlow.Step.State -ne [KeeperSecurity.Authentication.Sync.AuthState]::Connected) {
         if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.ErrorStep]) {
-            Write-Output $authFlow.Step.Message -ForegroundColor Red
+            Write-Warning $authFlow.Step.Message
         }
         return
     }
