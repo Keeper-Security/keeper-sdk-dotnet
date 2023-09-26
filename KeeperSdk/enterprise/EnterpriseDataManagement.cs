@@ -321,7 +321,7 @@ namespace KeeperSecurity.Enterprise
                 RestrictView = team.RestrictView,
                 PublicKey = publicKey.Base64UrlEncode(),
                 PrivateKey = encryptedPrivateKey.Base64UrlEncode(),
-                NodeId = team.ParentNodeId,
+                NodeId = team.ParentNodeId == 0 ? RootNode.Id : team.ParentNodeId,
                 ManageOnly = true,
                 EncryptedTeamKey = CryptoUtils.EncryptAesV2(teamKey, Enterprise.TreeKey).Base64UrlEncode()
             };

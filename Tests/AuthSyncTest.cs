@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Authentication;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
+using KeeperSecurity.Utils;
 using Moq;
 using Xunit;
 
@@ -39,8 +40,13 @@ namespace Tests
             mEndpoint.SetupProperty(e => e.Server);
             mEndpoint.Object.Server = DataVault.DefaultEnvironment;
 
-            var mFlow = new Mock<AuthSync>(storage, mEndpoint.Object) {CallBase = true};
+            var mFlow = new Mock<AuthSync>(storage, mEndpoint.Object) { CallBase = true };
             var flow = mFlow.Object;
+            var pushes = new FanOut<NotificationEvent>();
+            LoginV3Extensions.EnsurePushNotification = (auth, lc) =>
+            {
+                auth.SetPushNotifications(pushes);
+            };
 
             mEndpoint.Setup(e => e.ExecuteRest(
                     It.IsAny<string>(),
@@ -116,7 +122,7 @@ namespace Tests
             });
             Assert.Equal(typeof(DeviceApprovalStep), flow.Step.GetType());
 
-            await das.SendCode(DeviceApprovalChannel.Email,  DataVault.DeviceVerificationEmailCode);
+            await das.SendCode(DeviceApprovalChannel.Email, DataVault.DeviceVerificationEmailCode);
             Assert.Equal(typeof(ConnectedStep), flow.Step.GetType());
         }
 
@@ -128,6 +134,7 @@ namespace Tests
 
             var flow = GetAuthSync();
             flow.Cancel();
+            flow.SetPushNotifications(new FanOut<NotificationEvent>());
 
             Assert.Equal(typeof(ReadyToLoginStep), flow.Step.GetType());
             await flow.Login(DataVault.UserName);
@@ -179,12 +186,12 @@ namespace Tests
                 }
             });
             await das.SendPush(DeviceApprovalChannel.KeeperPush);
-                StopAtDeviceApproval = false;
-                flow.PushNotifications.Push(new NotificationEvent
-                {
-                    Message = "device_approved",
-                    Approved = true,
-                });
+            StopAtDeviceApproval = false;
+            flow.PushNotifications.Push(new NotificationEvent
+            {
+                Message = "device_approved",
+                Approved = true,
+            });
 
             Assert.True(evt.Wait(TimeSpan.FromMilliseconds(100)));
 

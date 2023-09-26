@@ -153,19 +153,56 @@ namespace KeeperSecurity.Vault
         public T LoadNonSharedData<T>(string recordUid)
             where T : RecordNonSharedData, new()
         {
-            var nsd = Storage.NonSharedData.GetEntity(recordUid);
-            if (string.IsNullOrEmpty(nsd?.Data)) return new T();
+            if (TryGetKeeperRecord(recordUid, out var record))
+            {
+                var nsd = Storage.NonSharedData.GetEntity(recordUid);
+                if (string.IsNullOrEmpty(nsd?.Data)) return new T();
 
-            try
-            {
-                var data = CryptoUtils.DecryptAesV1(nsd.Data.Base64UrlDecode(), ClientKey);
-                return JsonUtils.ParseJson<T>(data);
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError($"Record UID \"{recordUid}\": Non-shared data loading error: {e.Message}");
+                byte[] data = null;
+                try
+                {
+                    if (record.Version <= 2)
+                    {
+                        data = CryptoUtils.DecryptAesV1(nsd.Data.Base64UrlDecode(), ClientKey);
+                    }
+                    else
+                    {
+                        data = CryptoUtils.DecryptAesV2(nsd.Data.Base64UrlDecode(), ClientKey);
+                    }
+                }
+                catch
+                {
+                    try {
+                        if (record.Version > 2)
+                        {
+                            data = CryptoUtils.DecryptAesV1(nsd.Data.Base64UrlDecode(), ClientKey);
+                        }
+                        else
+                        {
+                            data = CryptoUtils.DecryptAesV2(nsd.Data.Base64UrlDecode(), ClientKey);
+                        }
+                    }
+                    catch { }
+                }
+                if (data != null)
+                {
+                    try
+                    {
+                        return JsonUtils.ParseJson<T>(data);
+                    }
+                    catch (Exception e)
+                    {
+                        Trace.TraceError($"Record UID \"{recordUid}\": Non-shared data loading error: {e.Message}");
+                    }
+                }
+
                 return new T();
             }
+            else
+            {
+                Debug.WriteLine($"Record UID \"{recordUid}\" is not found");
+            }
+            return default;
         }
 
         /// <inheritdoc/>

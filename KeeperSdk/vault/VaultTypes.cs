@@ -276,7 +276,7 @@ namespace KeeperSecurity.Vault
         Task<IList<RecordUpdateStatus>> UpdateRecords(IEnumerable<KeeperRecord> records);
 
         /// <summary>
-        /// Deletes password records.
+        /// Deletes records.
         /// </summary>
         /// <param name="records">an array of record paths.</param>
         /// <returns>Awaitable task.</returns>

@@ -10,12 +10,12 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using Cli;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
 using KeeperSecurity.Commands;
@@ -25,289 +25,8 @@ using KeeperSecurity.Vault;
 
 namespace Sample
 {
-
-    public class AuthSyncCallback : IAuthSyncCallback
-    {
-        private readonly Action _onNextStep;
-        public AuthSyncCallback(Action onNextStep, Action<string> onMessage)
-        {
-            _onNextStep = onNextStep;
-        }
-
-        public void OnNextStep()
-        {
-            _onNextStep?.Invoke();
-        }
-    }
-
     internal static class Program
     {
-        private static string ChannelText(this DeviceApprovalChannel channel)
-        {
-            switch (channel)
-            {
-                case DeviceApprovalChannel.Email: return "email";
-                case DeviceApprovalChannel.KeeperPush: return "keeper";
-                case DeviceApprovalChannel.TwoFactorAuth: return "2fa";
-                default: return channel.ToString();
-            }
-        }
-
-        private static string ChannelText(this TwoFactorChannel channel)
-        {
-            switch (channel)
-            {
-                case TwoFactorChannel.Authenticator: return "authenticator";
-                case TwoFactorChannel.TextMessage: return "sms";
-                case TwoFactorChannel.DuoSecurity: return "duo";
-                case TwoFactorChannel.RSASecurID: return "rsa";
-                case TwoFactorChannel.KeeperDNA: return "dna";
-                case TwoFactorChannel.SecurityKey: return "key";
-                default: return channel.ToString().ToLowerInvariant();
-            }
-        }
-
-        private static string ExpireText(this TwoFactorDuration duration)
-        {
-            switch (duration)
-            {
-                case TwoFactorDuration.EveryLogin: return "now";
-                case TwoFactorDuration.Forever: return "never";
-                default: return $"{(int) duration}_days";
-            }
-        }
-
-        private const string PushCommand = "push";
-        private const string ChannelCommand = "channel";
-        private const string ExpireCommand = "expire";
-        private static readonly TwoFactorDuration[] Expires = {TwoFactorDuration.EveryLogin, TwoFactorDuration.Every30Days, TwoFactorDuration.Forever};
-
-        private static void PrintStepPrompt(AuthStep step)
-        {
-            var prompt = "";
-            if (step is DeviceApprovalStep das)
-            {
-                prompt = $"Device Approval ({das.DefaultChannel.ChannelText()})";
-            }
-            else if (step is TwoFactorStep tfs)
-            {
-                prompt = $"2FA ({tfs.DefaultChannel.ChannelText()}) [{tfs.Duration.ExpireText()}]";
-            }
-            else if (step is PasswordStep)
-            {
-                prompt = "Master Password";
-            }
-            else if (step is SsoTokenStep)
-            {
-                prompt = "SSO Token";
-            }
-            else if (step is SsoDataKeyStep)
-            {
-                prompt = "SSO Login Approval";
-            }
-
-            Console.Write($"\n{prompt} > ");
-        }
-
-        private static void PrintStepHelp(AuthStep step)
-        {
-            var commands = new List<string>();
-            if (step is DeviceApprovalStep das)
-            {
-                commands.Add($"\"{ChannelCommand}=<{string.Join(" | ", das.Channels.Select(x => x.ChannelText()))}>\" to select default channel");
-                commands.Add($"\"{PushCommand}\" to send a push to the channel");
-                commands.Add("<code> to send a code to the channel");
-            }
-            else if (step is TwoFactorStep tfs)
-            {
-                var pushes = tfs.Channels
-                    .SelectMany(x => tfs.GetChannelPushActions(x) ?? Enumerable.Empty<TwoFactorPushAction>())
-                    .Select(x => x.GetPushActionText())
-                    .ToArray();
-                if (pushes.Length > 0)
-                {
-                    commands.Add($"\"{string.Join(" | ", pushes)}\" to send a push");
-                }
-
-                commands.Add($"\"{ExpireCommand}=<{string.Join(" | ", Expires.Select(x => x.ExpireText()))}>\" to set 2fa expiration");
-                if (tfs.Channels.Length > 1)
-                {
-                    commands.Add($"\"{ChannelCommand}=<{string.Join(" | ", tfs.Channels.Select(x => x.ChannelText()))}>\" to select default channel.");
-                }
-
-                commands.Add("<code>");
-            }
-            else if (step is PasswordStep)
-            {
-                commands.Add("<password>");
-            }
-            else if (step is SsoTokenStep sts)
-            {
-                commands.Add("SSO Login URL");
-                commands.Add(sts.SsoLoginUrl);
-                commands.Add("");
-
-                commands.Add("\"password\" to login using master password");
-                commands.Add("<sso token> paste sso token");
-            }
-            else if (step is SsoDataKeyStep sdks)
-            {
-                foreach (var channel in sdks.Channels)
-                {
-                    commands.Add($"\"{channel.SsoDataKeyShareChannelText()}\"");
-                }
-            }
-
-            Console.WriteLine();
-            if (commands.Count > 0)
-            {
-                Console.WriteLine("\nAvailable commands:");
-                Console.WriteLine($"{string.Join("\n", commands)}");
-                Console.WriteLine("<Enter> to resume");
-            }
-
-            Console.WriteLine("<Ctrl-C> to quit");
-
-            _hideInput = step is PasswordStep;
-        }
-
-        private static async Task ProcessCommand(AuthSync auth, string command)
-        {
-            if (command == "?")
-            {
-                PrintStepHelp(auth.Step);
-                return;
-            }
-
-            if (auth.Step is DeviceApprovalStep das)
-            {
-                if (command.StartsWith($"{ChannelCommand}=", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var channelText = command.Substring(ChannelCommand.Length + 1).ToLowerInvariant();
-                    var channel = das.Channels.FirstOrDefault(x => x.ChannelText() == channelText);
-                    if (channel != default)
-                    {
-                        das.DefaultChannel = channel;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Device Approval push channel {channelText} not found.");
-                    }
-                }
-                else if (string.Compare(command, PushCommand, StringComparison.InvariantCultureIgnoreCase) == 0)
-                {
-                    await das.SendPush(das.DefaultChannel);
-                }
-                else
-                {
-                    await das.SendCode(das.DefaultChannel, command);
-                }
-            }
-
-            else if (auth.Step is TwoFactorStep tfs)
-            {
-                if (command.StartsWith($"{ChannelCommand}=", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var channelText = command.Substring(ChannelCommand.Length + 1).ToLowerInvariant();
-                    var channel = tfs.Channels.FirstOrDefault(x => x.ChannelText() == channelText);
-                    if (channel != default)
-                    {
-                        tfs.DefaultChannel = channel;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"2FA channel {channelText} not found.");
-                    }
-                }
-                else if (command.StartsWith($"{ExpireCommand}=", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var expireText = command.Substring(ExpireCommand.Length + 1).ToLowerInvariant();
-                    var duration = Expires.FirstOrDefault(x => x.ExpireText() == expireText);
-                    if (duration != default)
-                    {
-                        tfs.Duration = duration;
-                    }
-                }
-                else
-                {
-                    var push = tfs.Channels
-                        .SelectMany(x => tfs.GetChannelPushActions(x) ?? Enumerable.Empty<TwoFactorPushAction>())
-                        .FirstOrDefault(x => x.GetPushActionText() == command);
-                    if (push != default)
-                    {
-                        await tfs.SendPush(push);
-                    }
-                    else
-                    {
-                        await tfs.SendCode(tfs.DefaultChannel, command);
-                    }
-                }
-            }
-            else if (auth.Step is PasswordStep ps)
-            {
-                await ps.VerifyPassword(command);
-            }
-            else if (auth.Step is SsoTokenStep sts)
-            {
-                if (string.Compare(command, "password", StringComparison.InvariantCultureIgnoreCase) == 0)
-                {
-                    await sts.LoginWithPassword();
-                }
-                else
-                {
-                    await sts.SetSsoToken(command);
-                }
-            }
-            else if (auth.Step is SsoDataKeyStep sdks)
-            {
-                if (AuthUIExtensions.TryParseDataKeyShareChannel(command, out var channel))
-                {
-                    await sdks.RequestDataKey(channel);
-                }
-                else
-                {
-                    Console.WriteLine($"Invalid data key share channel: {command}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"Invalid command. Type \"?\" to list available commands.");
-            }
-        }
-
-        private static bool _hideInput;
-
-        private static string ReadInput()
-        {
-            var input = "";
-            while (true)
-            {
-                var key = Console.ReadKey(true);
-
-                if (key.Key == ConsoleKey.Enter)
-                {
-                    Console.WriteLine();
-                    break;
-                }
-
-                if (char.IsControl(key.KeyChar))
-                {
-                    if (input.Length > 0)
-                    {
-                        input = input.Remove(input.Length - 1);
-                        Console.Write("\b \b");
-                    }
-                }
-                else
-                {
-                    input += key.KeyChar;
-                    Console.Write(_hideInput ? "*" : key.KeyChar.ToString());
-                }
-            }
-
-            return input;
-        }
-
         private static async Task Main()
         {
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
@@ -315,8 +34,6 @@ namespace Sample
             // Keeper SDK needs a storage to save configuration
             // such as: last login name, device token, etc
             var configuration = new JsonConfigurationStorage("config.json");
-
-
             var prompt = "Enter Email Address: ";
             if (!string.IsNullOrEmpty(configuration.LastLogin))
             {
@@ -336,60 +53,17 @@ namespace Sample
                 username = configuration.LastLogin;
             }
 
-            var inReadLine = false;
-
-            var authFlow = new AuthSync(configuration);
-            authFlow.UiCallback = new AuthSyncCallback(() =>
-                {
-                    if (!inReadLine) return;
-                    if (authFlow.Step.State == AuthState.Connected || authFlow.Step.State == AuthState.Error)
-                    {
-                        Console.WriteLine("Press <Enter>");
-                    }
-                    else
-                    {
-                        PrintStepHelp(authFlow.Step);
-                        PrintStepPrompt(authFlow.Step);
-                    }
-                },
-                Console.WriteLine);
+            var inputManager = new SimpleInputManager();
 
             // Login to Keeper
             Console.WriteLine("Logging in...");
-            
-            var lastState = authFlow.Step.State;
-            await authFlow.Login(username);
-            while (!authFlow.IsCompleted)
-            {
-                if (authFlow.Step.State != lastState)
-                {
-                    PrintStepHelp(authFlow.Step);
-                }
-
-                lastState = authFlow.Step.State;
-                PrintStepPrompt(authFlow.Step);
-                inReadLine = true;
-                var cmd = ReadInput();
-                inReadLine = false;
-                if (string.IsNullOrEmpty(cmd)) continue;
-
-                try
-                {
-                    await ProcessCommand(authFlow, cmd);
-                }
-                catch (KeeperAuthFailed)
-                {
-                    Console.WriteLine("Invalid username or password");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
+            var authFlow = new AuthSync(configuration);
+            await Utils.LoginToKeeper(authFlow, inputManager, username);
 
             if (authFlow.Step is ErrorStep es)
             {
                 Console.WriteLine(es.Message);
+                return;
             }
             if (!authFlow.IsAuthenticated()) return;
 
@@ -410,41 +84,27 @@ namespace Sample
             // Create a record if it does not exist.
             if (search == null)
             {
-                if (auth.AuthContext.Settings.RecordTypesEnabled)
-                {
-                    var loginRecord = new TypedRecordFacade<LoginRecordType>();
-                    loginRecord.Fields.Login = "<Account Name>";
-                    loginRecord.Fields.Password = "<Account Password>";
-                    loginRecord.Fields.Url = "https://google.com";
+                var loginRecord = new TypedRecordFacade<LoginRecordType>();
+                loginRecord.Fields.Login = "<Account Name>";
+                loginRecord.Fields.Password = "<Account Password>";
+                loginRecord.Fields.Url = "https://google.com";
 
-                    var typed = loginRecord.TypedRecord;
-                    typed.Title = "Google";
-                    typed.Notes = "Stores google credentials";
+                var typed = loginRecord.TypedRecord;
+                typed.Title = "Google";
+                typed.Notes = "Stores google credentials";
 
-                    search = typed;
-                }
-                else
-                {
-                    search = new PasswordRecord
-                    {
-                        Title = "Google",
-                        Login = "<Account Name>",
-                        Password = "<Account Password>",
-                        Link = "https://google.com",
-                        Notes = "Stores google credentials"
-                    };
-                }
-
+                search = typed;
                 search = await vault.CreateRecord(search);
-                var nsd3 = vault.LoadNonSharedData<NonSharedData3>(search.Uid);
-                nsd3.Data1 = "1";
-                nsd3.Data3 = "3";
-                await vault.StoreNonSharedData(search.Uid, nsd3);
-
-                var nsd2 = vault.LoadNonSharedData<NonSharedData2>(search.Uid);
-                nsd2.Data2 = "2";
-                await vault.StoreNonSharedData(search.Uid, nsd2);
             }
+
+            var nsd3 = vault.LoadNonSharedData<NonSharedData3>(search.Uid);
+            nsd3.Data1 = "1";
+            nsd3.Data3 = "3";
+            await vault.StoreNonSharedData(search.Uid, nsd3);
+
+            var nsd2 = vault.LoadNonSharedData<NonSharedData2>(search.Uid);
+            nsd2.Data2 = "2";
+            await vault.StoreNonSharedData(search.Uid, nsd2);
 
             // Update record
             if (search is PasswordRecord password)

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Authentication;
 using Google.Protobuf;
@@ -42,7 +41,7 @@ namespace KeeperSecurity.Authentication
     /// <exclude />
     public static class LoginV3Extensions
     {
-        public static void EnsurePushNotification(this IAuth auth, LoginContext v3)
+        public static Action<IAuth, LoginContext> EnsurePushNotification = (IAuth auth, LoginContext v3) =>
         {
             if (auth.PushNotifications == null)
             {
@@ -54,18 +53,19 @@ namespace KeeperSecurity.Authentication
                 };
                 var ws = new WebSocketChannel();
                 auth.SetPushNotifications(ws);
-                Task.Run(async () => {
-                    try 
+                Task.Run(async () =>
+                {
+                    try
                     {
                         await ws.ConnectToPushServer(auth.Endpoint, connectRequest);
                     }
-                    catch 
+                    catch
                     {
                         auth.SetPushNotifications(null);
                     }
                 });
             }
-        }
+        };
         public static async Task EnsureDeviceTokenIsRegistered(this IAuth auth, LoginContext v3, string username)
         {
             if (string.Compare(auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
@@ -163,7 +163,7 @@ namespace KeeperSecurity.Authentication
                     }
                 }
 
-                auth.EnsurePushNotification(v3);
+                EnsurePushNotification(auth, v3);
             }
         }
 

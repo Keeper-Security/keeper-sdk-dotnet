@@ -1105,6 +1105,80 @@ namespace KeeperSecurity.Vault
         }
     }
 
+    /// <excluded/>
+    [DataContract]
+    public class JsonWebKey
+    {
+        [DataMember(Name = "kty", EmitDefaultValue = true)]
+        public string Kty {  get; set; }
+
+        [DataMember(Name = "crv", EmitDefaultValue = true)]
+        public string Crv { get; set; }
+
+        [DataMember(Name = "x", EmitDefaultValue = true)]
+        public string X { get; set; }
+
+        [DataMember(Name = "y", EmitDefaultValue = true)]
+        public string Y { get; set; }
+
+        [DataMember(Name = "kid", EmitDefaultValue = true)]
+        public string Kid { get; set; }
+    }
+
+    /// <summary>
+    /// "passkey" field type
+    /// </summary>
+    [DataContract]
+    public class FieldTypePasskey : FieldTypeBase
+    {
+        public FieldTypePasskey()
+        {
+            RelyingParty = "";
+            CredentialId = "";
+            UserId = "";
+            Username = "";
+        }
+
+        [DataMember(Name = "privateKey", EmitDefaultValue = true)]
+        public JsonWebKey PrivateKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets Relying Party
+        /// </summary>
+        [DataMember(Name = "relyingParty", EmitDefaultValue = true)]
+        public string RelyingParty { get; set; }
+
+        /// <summary>
+        /// Gets or sets Credential Id
+        /// </summary>
+        [DataMember(Name = "credentialId", EmitDefaultValue = true)]
+        public string CredentialId { get; set; }
+
+        /// <summary>
+        /// Gets or sets User Id
+        /// </summary>
+        [DataMember(Name = "userId", EmitDefaultValue = true)]
+        public string UserId { get; set; }
+
+        /// <summary>
+        /// Gets or sets Username
+        /// </summary>
+        [DataMember(Name = "username", EmitDefaultValue = true)]
+        public string Username { get; set; }
+
+        /// <summary>
+        /// Gets or sets Sign Count
+        /// </summary>
+        [DataMember(Name = "signCount", EmitDefaultValue = true)]
+        public long SignCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets Created Date
+        /// </summary>
+        [DataMember(Name = "createdDate", EmitDefaultValue = true)]
+        public long CreatedDate { get; set; }
+    }
+
     internal class RecordTypeInfo
     {
         public Type RecordFieldType { get; set; }   // RecordTypeDataField
@@ -1144,6 +1218,7 @@ namespace KeeperSecurity.Vault
                 new FieldType("date", typeof(long), "calendar date with validation, stored as unix milliseconds"),
                 new FieldType("bankAccount", typeof(FieldTypeBankAccount), "bank account information"),
                 new FieldType("privateKey", typeof(FieldTypeKeyPair), "private and/or public keys in ASN.1 format"),
+                new FieldType("passkey", typeof(JsonWebKey), "passwordless login passkey"),
                 new FieldType("checkbox", typeof(bool), "on/off checkbox"),
                 new FieldType("dropdown", typeof(string), "list of text choices"),
             };

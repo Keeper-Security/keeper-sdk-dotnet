@@ -348,7 +348,7 @@ namespace KeeperSecurity.Commands
         public bool RestrictView { get; set; }
 
         [DataMember(Name = "node_id", EmitDefaultValue = false)]
-        public long? NodeId { get; set; }
+        public long NodeId { get; set; }
     }
 
     [DataContract]

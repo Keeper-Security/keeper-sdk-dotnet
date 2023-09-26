@@ -111,7 +111,7 @@ namespace KeeperSecurity.Authentication.Sync
 
         private LoginContext _loginContext;
 
-        private async Task DoLogin(string username)
+        internal async Task DoLogin(string username)
         {
             Username = username.ToLowerInvariant();
             try

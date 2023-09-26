@@ -14,11 +14,67 @@ namespace Cli
         public bool IsHistory { get; set; }
     }
 
-    public class KeyboardInterrupt : Exception
-    { }
+    public class KeyboardInterrupt : Exception { }
 
     /// <exclude/>
-    public class InputManager
+    public interface IInputManager
+    {
+        Task<string> ReadLine(ReadLineParameters parameters = null);
+        void InterruptReadTask(Task<string> task);
+    }
+
+    public class SimpleInputManager : IInputManager
+    {
+        private string ReadPassword()
+        {
+            var result = new StringBuilder();
+            var done = false;
+            while (!done)
+            {
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                switch (key.Key)
+                {
+                    case ConsoleKey.Enter:
+                        done = true;
+                        break;
+                    case ConsoleKey.Backspace:
+                        if (result.Length > 0)
+                        {
+                            result.Length--;
+                            Console.Write("\b \b");
+                        }
+                        break;
+                    default:
+                        result.Append(key.KeyChar);
+                        Console.Write('*');
+                        break;
+                }
+            }
+            return result.ToString();
+        }
+
+        public void InterruptReadTask(Task<string> task)
+        {
+            Console.WriteLine("Press <Enter>");
+        }
+
+        public Task<string> ReadLine(ReadLineParameters parameters = null)
+        {
+            string input;
+            if (parameters?.IsSecured == true)
+            {
+                input = ReadPassword();
+            }
+            else
+            {
+                input = Console.ReadLine();
+            }
+            return Task.FromResult(input);
+        }
+    }
+
+    /// <exclude/>
+    public class InputManager : IInputManager
     {
         private readonly StringBuilder _buffer = new StringBuilder();
         private bool _isSecured;
@@ -283,7 +339,7 @@ namespace Cli
                             {
                                 newBuffer = _history[_history.Count - _positionInHistory];
                             }
-                        } 
+                        }
                         else if (!string.IsNullOrEmpty(_savedBuffer))
                         {
                             newBuffer = _savedBuffer;
