@@ -61,7 +61,7 @@ namespace Cli
             Console.WriteLine();
         }
 
-        public static async Task LoginToKeeper(AuthSync auth, InputManager inputManager, string username = null, string[] passwords = null)
+        public static async Task LoginToKeeper(AuthSync auth, IInputManager inputManager, string username = null, string[] passwords = null)
         {
             auth.Cancel();
             var email = username;
@@ -132,7 +132,7 @@ namespace Cli
             await LoginFlow(auth, inputManager);
         }
 
-        private static async Task LoginFlow(AuthSync auth, InputManager inputManager)
+        private static async Task LoginFlow(AuthSync auth, IInputManager inputManager)
         {
             Task<string> readTask = null;
             string answer = null;

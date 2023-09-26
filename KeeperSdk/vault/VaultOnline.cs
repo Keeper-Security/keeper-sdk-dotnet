@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -215,6 +216,10 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task MoveRecords(RecordPath[] records, string dstFolderUid, bool link = false)
         {
+            var recordUids = new HashSet<string>();
+
+            var toMove = new List<RecordPath>();
+            var toUnlink = new List<RecordPath>();
             foreach (var path in records)
             {
                 if (string.IsNullOrEmpty(path.RecordUid)) continue;
@@ -224,10 +229,27 @@ namespace KeeperSecurity.Vault
                 {
                     throw new VaultException($"Record {path.RecordUid} not found in the folder {srcFolder.Name} ({srcFolder.FolderUid})");
                 }
+                if (recordUids.Contains(path.RecordUid))
+                {
+                    if (!link)
+                    {
+                        toUnlink.Add(path);
+                    }
+                }
+                else
+                {
+                    recordUids.Add(path.RecordUid);
+                    toMove.Add(path);
+                }
+
             }
 
             var dstFolder = this.GetFolder(dstFolderUid);
-            await this.MoveToFolder(records, dstFolder.FolderUid, link);
+            await this.MoveToFolder(toMove, dstFolder.FolderUid, link);
+            if (toUnlink.Count > 0) 
+            {
+                await this.DeleteVaultObjects(toUnlink, true);
+            }
         }
 
         /// <inheritdoc/>

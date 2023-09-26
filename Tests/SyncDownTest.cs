@@ -181,7 +181,7 @@ namespace Tests
                 .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse) _vaultEnv.GetSyncDownResponse()));
             authMock
                 .Setup(x => x.ExecuteAuthRest("vault/get_record_types", It.IsAny<Records.RecordTypesRequest>(), typeof(Records.RecordTypesResponse), It.IsAny<int>()))
-                .Returns<string, Records.RecordTypesRequest, Type>((e, rq, rst) =>
+                .Returns<string, Records.RecordTypesRequest, Type, int>((e, rq, rst, apiVersion) =>
                 {
                     var rs = new Records.RecordTypesResponse()
                     {

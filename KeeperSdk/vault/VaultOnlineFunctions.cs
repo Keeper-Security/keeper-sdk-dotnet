@@ -216,7 +216,7 @@ namespace KeeperSecurity.Vault
                 throw new Exception($"Unsupported record type: {record.GetType().Name}");
             }
 
-            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
 
             return vault.TryGetKeeperRecord(record.Uid, out var r) ? r : record;
         }
@@ -350,13 +350,13 @@ namespace KeeperSecurity.Vault
             };
 
             await vault.Auth.ExecuteAuthCommand(request);
-            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
 
         public static async Task<IList<RecordUpdateStatus>> UpdateRecordBatch(this VaultOnline vault, IEnumerable<KeeperRecord> records)
         {
-            var v2Records = new List<RecordUpdateRecord>();
-            var v3Records = new List<RecordUpdate>();
+            var v2Records = new Dictionary<string, RecordUpdateRecord>();
+            var v3Records = new Dictionary<string, RecordUpdate>();
             var results = new List<RecordUpdateStatus>();
             var passwordChanged = new HashSet<string>();
             var isEnterpriseAccount = vault.Auth.AuthContext.EnterprisePublicEcKey != null;
@@ -375,31 +375,37 @@ namespace KeeperSecurity.Vault
 
                 if (record is PasswordRecord password)
                 {
-                    v2Records.Add(vault.ExtractPasswordRecordForUpdate(password, existingRecord));
-                    if (isEnterpriseAccount)
+                    if (!v2Records.ContainsKey(password.Uid))
                     {
-                        var er = existingRecord.LoadV2(record.RecordKey);
-                        if ((er.Password ?? "") != (password.Password ?? ""))
+                        v2Records.Add(password.Uid, vault.ExtractPasswordRecordForUpdate(password, existingRecord));
+                        if (isEnterpriseAccount)
                         {
-                            passwordChanged.Add(record.Uid);
+                            var er = existingRecord.LoadV2(record.RecordKey);
+                            if ((er.Password ?? "") != (password.Password ?? ""))
+                            {
+                                passwordChanged.Add(record.Uid);
+                            }
                         }
                     }
                 }
                 else if (record is TypedRecord typed)
                 {
-                    v3Records.Add(vault.ExtractTypedRecordForUpdate(typed, existingRecord));
-                    if (isEnterpriseAccount)
+                    if (!v3Records.ContainsKey(typed.Uid))
                     {
-                        var er = existingRecord.LoadV3(record.RecordKey);
-                        if (typed.FindTypedField(new RecordTypeField("password"), out var f1) &&
-                            er.FindTypedField(new RecordTypeField("password"), out var f2))
+                        v3Records.Add(typed.Uid, vault.ExtractTypedRecordForUpdate(typed, existingRecord));
+                        if (isEnterpriseAccount)
                         {
-                            var password1 = (f1.ObjectValue ?? "").ToString();
-                            var password2 = (f2.ObjectValue ?? "").ToString();
-
-                            if (password1 != password2)
+                            var er = existingRecord.LoadV3(record.RecordKey);
+                            if (typed.FindTypedField(new RecordTypeField("password"), out var f1) &&
+                                er.FindTypedField(new RecordTypeField("password"), out var f2))
                             {
-                                passwordChanged.Add(record.Uid);
+                                var password1 = (f1.ObjectValue ?? "").ToString();
+                                var password2 = (f2.ObjectValue ?? "").ToString();
+
+                                if (password1 != password2)
+                                {
+                                    passwordChanged.Add(record.Uid);
+                                }
                             }
                         }
                     }
@@ -417,11 +423,14 @@ namespace KeeperSecurity.Vault
             while (v2Records.Count > 0)
             {
                 var chunk = v2Records.Take(99).ToArray();
-                v2Records.RemoveRange(0, chunk.Length);
+                foreach (var pair in chunk)
+                {
+                    v2Records.Remove(pair.Key);
+                }
                 var command = new RecordUpdateCommand
                 {
                     deviceId = vault.Auth.Endpoint.DeviceName,
-                    UpdateRecords = chunk,
+                    UpdateRecords = chunk.Select(x => x.Value).ToArray(),
                 };
 
                 var rs = await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
@@ -446,8 +455,11 @@ namespace KeeperSecurity.Vault
                     ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                 };
                 var chunk = v3Records.Take(900).ToArray();
-                v3Records.RemoveRange(0, chunk.Length);
-                rq.Records.AddRange(chunk);
+                foreach (var pair in chunk)
+                {
+                    v3Records.Remove(pair.Key);
+                }
+                rq.Records.AddRange(chunk.Select(x => x.Value).ToArray());
 
                 var rs = await vault.Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>("vault/records_update", rq);
                 results.AddRange(rs.Records.Select(x =>
@@ -461,7 +473,7 @@ namespace KeeperSecurity.Vault
                             Status = "success",
                         };
                     }
-                    else 
+                    else
                     {
                         var status = Enum.GetName(typeof(RecordModifyResult), x.Status);
                         if (status.StartsWith("Rs"))
@@ -476,7 +488,7 @@ namespace KeeperSecurity.Vault
                         };
                     }
                 }));
-                if (v2Records.Count > 0)
+                if (v3Records.Count > 0)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5));
                 }
@@ -496,7 +508,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
 
             return results;
         }
@@ -529,24 +541,53 @@ namespace KeeperSecurity.Vault
         public static async Task PutNonSharedData<T>(this VaultOnline vault, string recordUid, T nonSharedData)
             where T : RecordNonSharedData, new()
         {
-            var existingData = vault.LoadNonSharedData<T>(recordUid) ?? new T();
-            nonSharedData.ExtensionData = existingData.ExtensionData;
-            var data = JsonUtils.DumpJson(nonSharedData);
+            if (vault.TryGetKeeperRecord(recordUid, out var record))
+            {
+                var existingData = vault.LoadNonSharedData<T>(record.Uid) ?? new T();
+                nonSharedData.ExtensionData = existingData.ExtensionData;
+                var data = JsonUtils.DumpJson(nonSharedData);
 
-            var existingRecord = vault.Storage.Records.GetEntity(recordUid);
-            var updateRecord = new RecordUpdateRecord
-            {
-                RecordUid = recordUid,
-                Revision = existingRecord?.Revision ?? 0,
-                NonSharedData = CryptoUtils.EncryptAesV1(data, vault.Auth.AuthContext.DataKey).Base64UrlEncode()
-            };
-            var command = new RecordUpdateCommand
-            {
-                deviceId = vault.Auth.Endpoint.DeviceName,
-                UpdateRecords = new[] { updateRecord }
-            };
-            await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
-            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+                var existingRecord = vault.Storage.Records.GetEntity(recordUid);
+                if (record.Version >= 3)
+                {
+                    var rq = new RecordsUpdateRequest
+                    {
+                        ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    };
+                    rq.Records.Add(new RecordUpdate
+                    {
+                        RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                        ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        Revision = existingRecord?.Revision ?? 0,
+                        NonSharedData = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(data, vault.Auth.AuthContext.DataKey)),
+                    });
+                    var rs = await vault.Auth.ExecuteAuthRest<RecordsUpdateRequest, RecordsModifyResponse>("vault/records_update", rq);
+                    if (rs.Records.Count > 0)
+                    {
+                        var status = rs.Records[0];
+                        if (status.Status != RecordModifyResult.RsSuccess)
+                        {
+                            throw new KeeperApiException(status.Status.ToString(), status.Message);
+                        }
+                    }
+                }
+                else
+                {
+                    var updateRecord = new RecordUpdateRecord
+                    {
+                        RecordUid = recordUid,
+                        Revision = existingRecord?.Revision ?? 0,
+                        NonSharedData = CryptoUtils.EncryptAesV1(data, vault.Auth.AuthContext.DataKey).Base64UrlEncode()
+                    };
+                    var command = new RecordUpdateCommand
+                    {
+                        deviceId = vault.Auth.Endpoint.DeviceName,
+                        UpdateRecords = new[] { updateRecord }
+                    };
+                    await vault.Auth.ExecuteAuthCommand<RecordUpdateCommand, RecordUpdateResponse>(command);
+                }
+                await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
+            }
         }
 
         public static async Task<FolderNode> AddFolder<T>(this VaultOnline vault, string folderName, string parentFolderUid = null, T sharedFolderOptions = null)
@@ -605,7 +646,7 @@ namespace KeeperSecurity.Vault
             }
 
             _ = await vault.Auth.ExecuteAuthCommand<FolderAddCommand, AddFolderResponse>(request);
-            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
             return vault.TryGetFolder(request.FolderUid, out var f) ? f : null;
         }
 
@@ -670,17 +711,13 @@ namespace KeeperSecurity.Vault
             if (folder.FolderType != FolderType.UserFolder)
             {
                 var sharedFolderUid = folder.FolderType == FolderType.UserFolder ? folder.FolderUid : folder.SharedFolderUid;
-                var perm = vault.ResolveSharedFolderAccessPath(vault.Auth.Username, sharedFolderUid, true, true);
+                var perm = vault.ResolveSharedFolderAccessPath(vault.Auth.Username, sharedFolderUid, false, true);
                 if (perm != null)
                 {
                     if (perm.UserType == UserType.Team)
                     {
                         request.TeamUid = perm.UserId;
                     }
-                }
-                else
-                {
-                    throw new VaultException($"You don't have permissions to modify shared folder ({sharedFolderUid})");
                 }
             }
 
@@ -698,7 +735,7 @@ namespace KeeperSecurity.Vault
             }
 
             await vault.Auth.ExecuteAuthCommand(request);
-            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
             return vault.TryGetFolder(request.FolderUid, out var f) ? f : null;
         }
 
@@ -713,15 +750,13 @@ namespace KeeperSecurity.Vault
                 if (folder.FolderType != FolderType.UserFolder)
                 {
                     var sharedFolderUid = folder.FolderType == FolderType.SharedFolder ? folder.FolderUid : folder.SharedFolderUid;
-                    var perm = vault.ResolveSharedFolderAccessPath(vault.Auth.Username, sharedFolderUid, true, true);
-                    if (perm == null)
+                    var perm = vault.ResolveSharedFolderAccessPath(vault.Auth.Username, sharedFolderUid, false, true);
+                    if (perm != null)
                     {
-                        throw new VaultException($"You don't have delete permissions in shared folder \"{folder.Name}\" ({sharedFolderUid})");
-                    }
-
-                    if (perm.UserType == UserType.Team)
-                    {
-                        teamUid = perm.UserId;
+                        if (perm.UserType == UserType.Team)
+                        {
+                            teamUid = perm.UserId;
+                        }
                     }
                 }
 
@@ -789,7 +824,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            await vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(100));
         }
     }
 }

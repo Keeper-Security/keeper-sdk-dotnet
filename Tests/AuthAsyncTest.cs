@@ -251,6 +251,11 @@ namespace Tests
 
             var mAuth = new Mock<Auth>(mUi.Object, storage, mEndpoint.Object) {CallBase = true};
             var auth = mAuth.Object;
+            var pushes = new FanOut<NotificationEvent>();
+            LoginV3Extensions.EnsurePushNotification = (auth, lc) =>
+            {
+                auth.SetPushNotifications(pushes);
+            };
 
             mEndpoint.Setup(e => e.ExecuteRest(
                     It.IsAny<string>(),
