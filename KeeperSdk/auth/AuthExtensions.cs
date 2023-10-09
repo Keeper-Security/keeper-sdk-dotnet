@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
@@ -26,13 +28,75 @@ namespace KeeperSecurity.Authentication
         /// <summary>
         /// Executes JSON authenticated command that does not return data.
         /// </summary>
-        /// <param name="auth">The authenticated connection.</param>
-        /// <param name="command">JSON authenticated command.</param>
-        /// <returns>A Task returning basic JSON response.</returns>
+        /// <param name="auth">The authenticated connection</param>
+        /// <param name="command">JSON authenticated command</param>
+        /// <returns>A JSON response</returns>
         /// <seealso cref="KeeperEndpointExtensions.ExecuteV2Command"/>
         public static async Task<KeeperApiResponse> ExecuteAuthCommand(this IAuthentication auth, AuthenticatedCommand command)
         {
             return await auth.ExecuteAuthCommand(command, typeof(KeeperApiResponse), true);
+        }
+
+        /// <summary>
+        /// Execute JSON authenticated command in a batch
+        /// </summary>
+        /// <param name="auth">The authenticated connection</param>
+        /// <param name="commands">JSON authenticated commands</param>
+        /// <returns>A list of JSON responses</returns>
+        public static async Task<IList<KeeperApiResponse>> ExecuteBatch(this IAuthentication auth, IList<KeeperApiCommand> commands)
+        {
+            var responses = new List<KeeperApiResponse>();
+            int pos = 0;
+            int delayInSec = 0;
+            while (pos < commands.Count)
+            {
+                if (delayInSec > 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(delayInSec));
+                }
+
+                var rq = new ExecuteCommand()
+                {
+                    Requests = commands.Skip(pos).Take(100).ToList(),
+                };
+                var execRs = await auth.ExecuteAuthCommand<ExecuteCommand, ExecuteResponse>(rq);
+                pos += execRs.Results.Count;
+
+                if (execRs.Results.Count == rq.Requests.Count)
+                {
+                    responses.AddRange(execRs.Results);
+                    delayInSec = 5;
+                }
+                else if (execRs.Results.Count > 0)
+                {
+                    delayInSec = 0;
+                    if (execRs.Results.Count > 50)
+                    {
+                        delayInSec = 5;
+                    }
+                    if (execRs.Results.Count > 1)
+                    {
+                        responses.AddRange(execRs.Results.Take(execRs.Results.Count - 1));
+                    }
+                    var lastStatus = responses.Last();
+                    if (lastStatus.resultCode == "throttled")
+                    {
+                        pos -= 1;
+                        delayInSec = 10;
+                    }
+                    else
+                    {
+                        responses.Add(lastStatus);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
+            }
+
+            return responses;
         }
 
         /// <summary>

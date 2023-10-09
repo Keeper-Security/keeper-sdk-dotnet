@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
@@ -142,35 +143,52 @@ namespace KeeperSecurity
 
             static Tuple<string, string> SplitFieldKey(string fieldKey)
             {
-                string type = "";
+                var fieldType = "";
+                var fieldLabel = "";
                 const char separator = ':';
                 if (fieldKey.StartsWith("$"))
                 {
                     var pos = fieldKey.IndexOf(separator);
                     if (pos > 0)
                     {
-                        type = fieldKey.Substring(1, pos - 1);
-                        fieldKey = fieldKey.Substring(pos + 1);
+                        fieldType = fieldKey.Substring(1, pos - 1);
+                        fieldLabel = fieldKey.Substring(pos + 1);
                     }
-                    else 
+                    else
                     {
-                        type = fieldKey.Substring(1); ;
-                        fieldKey = null;
+                        fieldType = fieldKey.Substring(1);
                     }
                 }
-                if (!string.IsNullOrEmpty(fieldKey))
+                else
                 {
-                    var indexPos = fieldKey.LastIndexOf(separator);
-                    if (indexPos == fieldKey.Length - 2)
+                    fieldType = "text";
+                    fieldLabel = fieldKey;
+                }
+
+                if (!string.IsNullOrEmpty(fieldLabel))
+                {
+                    var indexPos = fieldLabel.LastIndexOf(separator);
+                    if (indexPos == fieldLabel.Length - 2)
                     {
-                        char lastCh = fieldKey[fieldKey.Length - 1];
-                        if (Char.IsDigit(lastCh))
+                        char lastCh = fieldLabel[fieldLabel.Length - 1];
+                        if (char.IsDigit(lastCh))
                         {
-                            fieldKey = fieldKey.Substring(0, indexPos);
+                            fieldLabel = fieldLabel.Substring(0, indexPos);
                         }
                     }
                 }
-                return Tuple.Create(type, fieldKey);
+                if (!string.IsNullOrEmpty(fieldType))
+                {
+                    if (!RecordTypesConstants.TryGetRecordField(fieldType, out _))
+                    {
+                        if (string.IsNullOrEmpty(fieldLabel))
+                        {
+                            fieldLabel = fieldType;
+                        }
+                        fieldType = "text";
+                    }
+                }
+                return Tuple.Create(fieldType, fieldLabel);
             }
 
             static void AssignValueToField(this ITypedField field, object value, Action<Severity, string> logger)
@@ -360,9 +378,19 @@ namespace KeeperSecurity
                         }
 
                         var t = SplitFieldKey(fk);
-                        var field = new RecordTypeField(t.Item1, t.Item2).CreateTypedField();
-                        field.AssignValueToField(value, logger);
-                        typed.Custom.Add(field);
+                        var fieldType = t.Item1;
+                        var fieldLabel = t.Item2;
+
+                        try
+                        {
+                            var field = new RecordTypeField(t.Item1, t.Item2).CreateTypedField();
+                            field.AssignValueToField(value, logger);
+                            typed.Custom.Add(field);
+                        }
+                        catch (Exception e)
+                        {
+                            logger?.Invoke(Severity.Warning, $"Create field \"{fk}\" error: {e.Message}");
+                        }
                     }
                 }
             }
@@ -382,7 +410,7 @@ namespace KeeperSecurity
                             Name = path[i],
                             ParentUid = lastFolder?.FolderUid,
                         };
-                        folder = bvo.AddFolder(folder, i == path.Length - 1 ? options : null);
+                        folder = bvo.AddFolder(path[i], lastFolder?.FolderUid, i == path.Length - 1 ? options : null);
                     }
                     lastFolder = folder;
                 }
