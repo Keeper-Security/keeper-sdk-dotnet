@@ -134,10 +134,11 @@ namespace KeeperSecurity.Vault
 
             if (rs.userFolderSharedFoldersRemoved != null)
             {
-                storage.FolderRecords.DeleteLinksForSubjects(rs.userFolderSharedFoldersRemoved
-                    .Select(x => x.SharedFolderUid));
-                storage.Folders.DeleteUids(rs.userFolderSharedFoldersRemoved
-                    .Select(x => x.SharedFolderUid));
+                result.AddSharedFolders(rs.userFolderSharedFoldersRemoved.Select(x => x.FolderUid));
+                //storage.FolderRecords.DeleteLinksForSubjects(rs.userFolderSharedFoldersRemoved
+                //    .Select(x => x.SharedFolderUid));
+                //storage.Folders.DeleteUids(rs.userFolderSharedFoldersRemoved
+                //    .Select(x => x.SharedFolderUid));
             }
 
             if (rs.userFoldersRemovedRecords != null)
