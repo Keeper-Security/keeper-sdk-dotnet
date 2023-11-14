@@ -1,13 +1,25 @@
 ﻿using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Records;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AuthProto = Authentication;
+using EnterpriseProto = Enterprise;
 
 namespace KeeperSecurity.Vault
 {
@@ -216,6 +228,7 @@ namespace KeeperSecurity.Vault
                 LockIp = unlockIp != null ? !unlockIp.Value : true,
                 FirstAccessExpireOn = DateTimeOffset.UtcNow.AddMinutes(
                     firstAccessExpireInMinutes != null ? firstAccessExpireInMinutes.Value : 60).ToUnixTimeMilliseconds(),
+                AppClientType = EnterpriseProto.AppClientType.General,
             };
             if (accessExpiresInMinutes.HasValue)
             {
@@ -247,11 +260,352 @@ namespace KeeperSecurity.Vault
                 case "keepersecurity.com.au":
                     host = "AU";
                     break;
+                case "keepersecurity.jp":
+                    host = "JP";
+                    break;
+                case "keepersecurity.ca":
+                    host = "CA";
+                    break;
                 case "govcloud.keepersecurity.us":
                     host = "GOV";
                     break;
             }
             return Tuple.Create(device, $"{host}:{clientKey.Base64UrlEncode()}");
+        }
+
+        private const string ClientIdHashTag = "KEEPER_SECRETS_MANAGER_CLIENT_ID"; // Tag for hashing the client key to client id
+        private const string KsmClientVersion = "mn16.6.4";
+
+        [DataContract]
+        internal class KsmPayload 
+        {
+            [DataMember(Name = "clientVersion", EmitDefaultValue = false)]
+            public string ClientVersion { get; set; }
+            [DataMember(Name = "clientId", EmitDefaultValue = false)]
+            public string ClientId { get; set; }
+            [DataMember(Name = "publicKey", EmitDefaultValue = false)]
+            public string PublicKey { get; set; }
+            [DataMember(Name = "appKey", EmitDefaultValue = false)]
+            public string AppKey { get; set; }
+            [DataMember(Name = "requestedRecords", EmitDefaultValue = false)]
+            public string[] RequestedRecords { get; set; }
+        }
+
+        [DataContract]
+        internal class KsmResponseFile
+        {
+            [DataMember(Name = "fileUid", EmitDefaultValue = false)]
+            public string fileUid { get; set; }
+            [DataMember(Name = "fileKey", EmitDefaultValue = false)]
+            public string fileKey { get; set; }
+            [DataMember(Name = "data", EmitDefaultValue = false)]
+            public string data { get; set; }
+            [DataMember(Name = "url", EmitDefaultValue = false)]
+            public string url { get; set; }
+            [DataMember(Name = "thumbnailUrl", EmitDefaultValue = false)]
+            public string thumbnailUrl { get; set; }
+        }
+
+        [DataContract]
+        internal class KsmResponseRecord
+        {
+            [DataMember(Name = "recordUid", EmitDefaultValue = false)]
+            public string recordUid { get; set; }
+            [DataMember(Name = "recordKey", EmitDefaultValue = false)]
+            public string recordKey { get; set; }
+            [DataMember(Name = "data", EmitDefaultValue = false)]
+            public string data { get; set; }
+            [DataMember(Name = "revision", EmitDefaultValue = false)]
+            public long revision { get; set; }
+            [DataMember(Name = "isEditable", EmitDefaultValue = false)]
+            public bool isEditable { get; set; }
+            [DataMember(Name = "files", EmitDefaultValue = false)]
+            public KsmResponseFile[] files { get; set; }
+            [DataMember(Name = "innerFolderUid", EmitDefaultValue = false)]
+            public string innerFolderUid { get; set; }
+        }
+
+        [DataContract]
+        internal class KsmResponseFolder
+        {
+            [DataMember(Name = "folderUid", EmitDefaultValue = false)]
+            public string folderUid { get; set; }
+            [DataMember(Name = "folderKey", EmitDefaultValue = false)]
+            public string folderKey { get; set; }
+            [DataMember(Name = "data", EmitDefaultValue = false)]
+            public string data { get; set; }
+            [DataMember(Name = "parent", EmitDefaultValue = false)]
+            public string parent { get; set; }
+            [DataMember(Name = "records", EmitDefaultValue = false)]
+            public KsmResponseRecord[] records { get; set; }
+        }
+
+        [DataContract]
+        internal class KsmResponse
+        {
+            [DataMember(Name = "appData", EmitDefaultValue = false)]
+            public string AppData { get; set; }
+            [DataMember(Name = "encryptedAppKey", EmitDefaultValue = false)]
+            public string EncryptedAppKey { get; set; }
+            [DataMember(Name = "appOwnerPublicKey", EmitDefaultValue = false)]
+            public string AppOwnerPublicKey { get; set; }
+            [DataMember(Name = "folders", EmitDefaultValue = false)]
+            public KsmResponseFolder[] Folders { get; set; }
+            [DataMember(Name = "records", EmitDefaultValue = false)]
+            public KsmResponseRecord[] Records { get; set; }
+            [DataMember(Name = "expiresOn", EmitDefaultValue = false)]
+            public long ExpiresOn { get; set; }
+            [DataMember(Name = "warnings", EmitDefaultValue = false)]
+            public string[] Warnings { get; set; }
+        }
+
+        [DataContract]
+        internal class KsmError
+        {
+            [DataMember(Name = "key_id", EmitDefaultValue = false)]
+            public int KeyId { get; set; }
+            [DataMember(Name = "error", EmitDefaultValue = false)]
+            public string Error { get; set; }
+        }
+
+        [DataContract]
+        public class SecretManagerConfiguration : ISecretManagerConfiguration {
+            [DataMember(Name = "hostname", EmitDefaultValue = false)]
+            public string Hostname { get; set; }
+            [DataMember(Name = "clientId", EmitDefaultValue = false)]
+            public string ClientId { get; set; }
+            [DataMember(Name = "appKey", EmitDefaultValue = false)]
+            public string AppKey { get; set; }
+            [DataMember(Name = "privateKey", EmitDefaultValue = false)]
+            public string PrivateKey { get; set; }
+            [DataMember(Name = "serverPublicKeyId", EmitDefaultValue = false)]
+            public string ServerPublicKeyId { get; set; }
+            [DataMember(Name = "appOwnerPublicKey", EmitDefaultValue = false)]
+            public string AppOwnerPublicKey { get; set; }
+        }
+
+        private ECPrivateKeyParameters LoadKsmPrivateKey(byte[] data) 
+        {
+            var privateKeyInfo = PrivateKeyInfo.GetInstance(data);
+            var privateKeyStructure = ECPrivateKeyStructure.GetInstance(privateKeyInfo.ParsePrivateKey());
+            var privateKeyValue = privateKeyStructure.GetKey();
+            return new ECPrivateKeyParameters(privateKeyValue, CryptoUtils.EcParameters);
+        }
+
+        private byte[] UnloadKsmPrivateKey(ECPrivateKeyParameters privateKey)
+        {
+            var publicKey = CryptoUtils.GetPublicEcKey(privateKey);
+            DerBitString publicKeyDer = new DerBitString(publicKey.Q.GetEncoded(false));
+            ECDomainParameters dp = privateKey.Parameters;
+            int orderBitLength = dp.N.BitLength;
+            var x962 = new X962Parameters(X9ObjectIdentifiers.Prime256v1);
+            var ec = new ECPrivateKeyStructure(orderBitLength, privateKey.D, publicKeyDer, x962);
+            var algId = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
+            var privateKeyInfo = new PrivateKeyInfo(algId, ec);
+            return privateKeyInfo.GetDerEncoded();
+        }
+
+        private async Task<RS> ExecuteKsm<RQ, RS>(SecretManagerConfiguration configuration, string endpoint, RQ payload)
+        {
+
+            var payloadBytes = JsonUtils.DumpJson(payload);
+#if DEBUG
+            var rq = Encoding.UTF8.GetString(payloadBytes);
+            Debug.WriteLine($"[KSM RQ]: {endpoint}: {rq}");
+#endif
+            var privateKeyDer = Convert.FromBase64String(configuration.PrivateKey);
+            var privateKey = LoadKsmPrivateKey(privateKeyDer);
+
+            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+            var encryptedPayload = CryptoUtils.EncryptAesV2(payloadBytes, transmissionKey);
+
+            var attempt = 0;
+            var keyId = Auth.Endpoint.ServerKeyId;
+            if (!string.IsNullOrEmpty(configuration.ServerPublicKeyId)) 
+            {
+                if (int.TryParse(configuration.ServerPublicKeyId, out keyId)) {
+                }
+            }
+            if (!KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId)) 
+            {
+                keyId = 7;
+            }
+            var url = $"https://{configuration.Hostname}/api/rest/sm/v1/{endpoint}";
+
+            while (attempt < 2)
+            {
+                attempt++;
+                var encTransmissionKey = Auth.Endpoint.EncryptWithKeeperKey(transmissionKey, keyId);
+                var signatureBase = encTransmissionKey.Concat(encryptedPayload).ToArray();
+                var signer = SignerUtilities.GetSigner("SHA256withECDSA");
+
+                signer.Init(true, privateKey);
+                signer.BlockUpdate(signatureBase, 0, signatureBase.Length);
+                var signature = signer.GenerateSignature();
+
+                var request = (HttpWebRequest) WebRequest.Create(url);
+                request.Timeout = (int) TimeSpan.FromMinutes(5).TotalMilliseconds;
+                if (Auth.Endpoint.WebProxy != null)
+                {
+                    request.Proxy = Auth.Endpoint.WebProxy;
+                }
+
+                request.UserAgent = "KSM.Net/" + KsmClientVersion;
+                request.ContentType = "application/octet-stream";
+                request.Headers["PublicKeyId"] = keyId.ToString();
+                request.Headers["TransmissionKey"] = Convert.ToBase64String(encTransmissionKey);
+                request.Headers["Authorization"] = $"Signature {Convert.ToBase64String(signature)}";
+                request.Method = "POST";
+
+                HttpWebResponse response;
+                try
+                {
+                    using (var requestStream = request.GetRequestStream())
+                    {
+                        await requestStream.WriteAsync(encryptedPayload, 0, encryptedPayload.Length);
+                    }
+                    response = (HttpWebResponse) request.GetResponse();
+                }
+                catch (WebException e)
+                {
+                    response = (HttpWebResponse) e.Response;
+                    if (response == null) throw;
+                }
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    configuration.ServerPublicKeyId = keyId.ToString();
+                    using (var ms = new MemoryStream())
+                    using (var rss = response.GetResponseStream())
+                    {
+                        await rss.CopyToAsync(ms);
+                        await rss.FlushAsync();
+                        var data = ms.ToArray();
+                        if (data.Length > 0)
+                        {
+                            var decryptedRs = CryptoUtils.DecryptAesV2(data, transmissionKey);
+#if DEBUG
+                            var rs = Encoding.UTF8.GetString(decryptedRs);
+                            Debug.WriteLine($"[KSM RS]: {endpoint}: {rs}");
+#endif
+                            return JsonUtils.ParseJson<RS>(decryptedRs);
+                        }
+                    }
+                    return default(RS);
+                }
+                else
+                {
+                    if (response.ContentType == "application/json")
+                    {
+                        using (var ms = new MemoryStream())
+                        using (var rss = response.GetResponseStream())
+                        {
+                            await rss.CopyToAsync(ms);
+                            await ms.FlushAsync();
+                            var data = ms.ToArray();
+#if DEBUG
+                            var rs = Encoding.UTF8.GetString(data);
+                            Debug.WriteLine($"[KSM Error RS]: {endpoint}: {rs}");
+#endif
+                            var errorRs = JsonUtils.ParseJson<KsmError>(ms.ToArray());
+                            if (errorRs.Error == "key")
+                            {
+                                keyId = errorRs.KeyId;
+                                continue;
+                            }
+                            throw new KeeperApiException("ksm_error", errorRs.Error);
+                        }
+                    }
+                    throw new Exception("KSM API Http error: " + response.StatusCode);
+                }
+            }
+            throw new Exception("KSM API error");
+        }
+
+        /// <inheritdoc>
+        public async Task<ISecretManagerConfiguration> GetConfiguration(string oneTimeToken)
+        {
+            var tokenParts = oneTimeToken.Split(':');
+            string host;
+            string clientKey;
+            if (tokenParts.Length == 1)
+            {
+                host = Auth.Endpoint.Server;
+                clientKey = oneTimeToken;
+            }
+            else
+            {
+                switch (tokenParts[0].ToUpper())
+                {
+                    case "US":
+                        host = "keepersecurity.com";
+                        break;
+                    case "EU":
+                        host = "keepersecurity.eu";
+                        break;
+                    case "AU":
+                        host = "keepersecurity.com.au";
+                        break;
+                    case "GOV":
+                        host = "govcloud.keepersecurity.us";
+                        break;
+                    case "JP":
+                        host = "keepersecurity.jp";
+                        break;
+                    case "CA":
+                        host = "keepersecurity.ca";
+                        break;
+                    default:
+                        host = Auth.Endpoint.Server;
+                        break;
+                }
+                clientKey = tokenParts[1];
+            }
+
+            var clientKeyBytes = CryptoUtils.Base64UrlDecode(clientKey);
+            var hmac = new HMACSHA512(clientKeyBytes);
+            var clientKeyHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(ClientIdHashTag));
+            var clientId = Convert.ToBase64String(clientKeyHash);
+
+            var curve = ECNamedCurveTable.GetByName("secp256r1");
+            var EcParameters1 = new ECDomainParameters(curve.Curve, curve.G, curve.N);
+
+
+            var curveOid = X9ObjectIdentifiers.Prime256v1;
+            var Curve = X962NamedCurves.GetByOid(curveOid);
+            var ECParameters2 = new ECDomainParameters(Curve.Curve, Curve.G, Curve.N);
+
+            CryptoUtils.GenerateEcKey(out var privateKey, out var publicKey);
+            var privateKeyBytes = UnloadKsmPrivateKey(privateKey);
+
+            var configuration = new SecretManagerConfiguration
+            {
+                Hostname = host,
+                ClientId = clientId,
+                PrivateKey = Convert.ToBase64String(privateKeyBytes),
+                ServerPublicKeyId = Auth.Endpoint.ServerKeyId.ToString(),
+            };
+
+            var ksmPayload = new KsmPayload
+            {
+                ClientVersion = KsmClientVersion,
+                ClientId = clientId,
+                PublicKey = CryptoUtils.Base64UrlEncode(CryptoUtils.UnloadEcPublicKey(publicKey)),
+                RequestedRecords = new[] { "NON-EXISTING-RECORD-UID" },
+            };
+
+            var rs = await ExecuteKsm<KsmPayload, KsmResponse>(configuration, "get_secret", ksmPayload);
+            if (!string.IsNullOrEmpty(rs.EncryptedAppKey))
+            {
+                configuration.AppKey = Convert.ToBase64String(CryptoUtils.DecryptAesV2(rs.EncryptedAppKey.Base64UrlDecode(), clientKeyBytes));
+                ksmPayload.PublicKey = null;
+                if (!string.IsNullOrEmpty(rs.AppOwnerPublicKey))
+                {
+                    configuration.AppOwnerPublicKey = rs.AppOwnerPublicKey;
+                }
+                _ = await ExecuteKsm<KsmPayload, KsmResponse>(configuration, "get_secret", ksmPayload);
+            }
+
+            return configuration;
         }
 
         /// <inheritdoc/>
