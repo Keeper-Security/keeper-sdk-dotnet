@@ -223,7 +223,8 @@ function Add-KeeperSecretManagerClient {
     Param (
         [Parameter(Mandatory = $true)][string]$App,
         [Parameter()][string]$Name,
-        [Parameter()][switch]$UnlockIP
+        [Parameter()][switch]$UnlockIP,
+        [Parameter()][switch]$B64
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -234,7 +235,19 @@ function Add-KeeperSecretManagerClient {
     [KeeperSecurity.Vault.ApplicationRecord]$application = $apps[0]
 
     $rs = $vault.AddSecretManagerClient($application.Uid, $UnlockIP.IsPresent, $null, $null, $name).GetAwaiter().GetResult()
-    $rs.Item2
+    if ($rs) {
+        if ($B64.IsPresent) {
+            $configuration = $vault.GetConfiguration($rs.Item2).GetAwaiter().GetResult()
+            if ($configuration) {
+                $configData = [KeeperSecurity.Utils.JsonUtils]::DumpJson($configuration, $true)
+                [System.Convert]::ToBase64String($configData)
+        
+            }
+        } else {
+            $rs.Item2
+        }
+    
+    }
 }
 Register-ArgumentCompleter -CommandName Add-KeeperSecretManagerClient -ParameterName App -ScriptBlock $Keeper_KSMAppCompleter
 New-Alias -Name ksm-addclient -Value Add-KeeperSecretManagerClient
