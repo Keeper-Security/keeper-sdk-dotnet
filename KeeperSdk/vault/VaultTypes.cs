@@ -421,6 +421,34 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
+    /// Defines properties of Secrets Manager configuration
+    /// </summary>
+    public interface ISecretManagerConfiguration
+    {
+        /// <summary>
+        /// Keeper Hostname
+        /// </summary>
+        string Hostname { get; }
+        /// <summary>
+        /// Client or Device ID
+        /// </summary>
+        string ClientId { get; }
+        /// <summary>
+        /// Device Private Key
+        /// </summary>
+        string PrivateKey { get; }
+        /// <summary>
+        /// Application Key
+        /// </summary>
+        string AppKey { get; }
+        /// <exclude />
+        string ServerPublicKeyId { get; }
+        /// <summary>
+        /// Public Key for record creation
+        /// </summary>
+        string AppOwnerPublicKey { get; }
+    }
+    /// <summary>
     /// Define methods for Keeper Secret Maneger (KSM)
     /// </summary>
     public interface ISecretManager 
@@ -478,6 +506,13 @@ namespace KeeperSecurity.Vault
             string applicationId, bool? unlockIp=null, int? firstAccessExpireInMinutes=null, 
             int? AccessExpiresInMinutes=null, string name=null);
 
+        /// <summary>
+        /// Creates SecretsManager Configuration Storage
+        /// </summary>
+        /// <param name="oneTimeToken">One time token</param>
+        /// <returns>Configuration Storage</returns>
+        Task<ISecretManagerConfiguration> GetConfiguration(string oneTimeToken);
+        
         /// <summary>
         /// Deletes a client/device from Secret Manager Application
         /// </summary>

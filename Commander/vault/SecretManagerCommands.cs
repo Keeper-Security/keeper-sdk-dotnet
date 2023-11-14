@@ -278,7 +278,7 @@ namespace Commander
                 var unlockIp = arguments.UnlockIP;
                 int? firstAccess = arguments.CreateExpire > 0 ? arguments.CreateExpire : (int?) null;
                 int? accessExpire = arguments.AccessExpire > 0 ? arguments.AccessExpire : (int?) null;
-                var t = await context.Vault.AddSecretManagerClient(application.Uid, unlockIp: unlockIp,
+                var t = await context.Vault.AddSecretManagerClient(application.Uid, unlockIp: arguments.B64 ? false : unlockIp,
                     firstAccessExpireInMinutes: firstAccess, accessExpiresInMinutes: accessExpire,
                     name: arguments.ClientName);
 
@@ -286,11 +286,22 @@ namespace Commander
                 var clientKey = t.Item2;
 
                 Console.WriteLine("Successfully generated Client Device\n");
-                Console.WriteLine($"One-Time Access Token: {clientKey}");
-                var ipLock = device.LockIp ? "Enabled" : "Disabled";
-                Console.WriteLine($"IP Lock: {ipLock}");
-                var firstAccessOn = device.FirstAccessExpireOn.HasValue ? device.FirstAccessExpireOn.Value.ToString("G") : "Taken";
-                Console.WriteLine($"Token Expires On: {device.FirstAccessExpireOn.Value}");
+                if (arguments.B64)
+                {
+                    var configuration = await context.Vault.GetConfiguration(clientKey);
+                    var configData = JsonUtils.DumpJson(configuration);
+                    var configText = Convert.ToBase64String(configData);
+                    Console.WriteLine($"KSM Configuration:\n{configText}");
+                }
+                else 
+                {
+                    Console.WriteLine($"One-Time Access Token: {clientKey}");
+                    var ipLock = device.LockIp ? "Enabled" : "Disabled";
+                    Console.WriteLine($"IP Lock: {ipLock}");
+                    var firstAccessOn = device.FirstAccessExpireOn.HasValue ? device.FirstAccessExpireOn.Value.ToString("G") : "Taken";
+                    Console.WriteLine($"Token Expires On: {device.FirstAccessExpireOn.Value}");
+                }
+
                 var accessExpireOn = device.AccessExpireOn.HasValue ? device.AccessExpireOn.Value.ToString("G") : "Never";
                 Console.WriteLine($"App Access Expires On: {accessExpireOn}");
             }
@@ -412,6 +423,9 @@ namespace Commander
         public int CreateExpire { get; set; }
         [Option("access-expire", Required = false, HelpText = "Device access expitation in minutes.  \"add-client\" only")]
         public int AccessExpire { get; set; }
+        [Option("b64", Required = false, HelpText = "Return KSM configuration intead of one time token \"add-client\" only")]
+        public bool B64 { get; set; }
+
 
 
         [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"delete\", \"share\", \"unshare\", \"add-client\", \"delete-client\", \"list\"")]
