@@ -61,7 +61,7 @@ namespace KeeperSecurity.Vault
 
                 foreach (var sfmd in vault.Storage.SharedFolderKeys.GetLinksForSubject(rmd.SharedFolderUid))
                 {
-                    if (string.IsNullOrEmpty(sfmd.TeamUid))
+                    if (string.IsNullOrEmpty(sfmd.TeamUid) || sfmd.TeamUid == vault.Storage.PersonalScopeUid)
                     {
                         path.SharedFolderUid = sfmd.SharedFolderUid;
                         return rmd;
