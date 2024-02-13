@@ -128,7 +128,7 @@ namespace KeeperSecurity.Vault
                     .Concat(recordData.Custom ?? Enumerable.Empty<RecordTypeDataFieldBase>()))
                 .Where(x => !string.IsNullOrEmpty(x.Type))
                 .Where(x => x.Type.EndsWith("Ref"))
-                .Select(VaultExtensions.ConvertToTypedField)
+                .Select(ConvertToTypedField)
                 .OfType<TypedField<string>>()
                 .SelectMany(x => x.Values, (field, s) => s));
 
@@ -518,25 +518,27 @@ namespace KeeperSecurity.Vault
                     field.Type = "text";
                 }
 
+                var xb = JsonUtils.DumpJson(field);
+                Type dataType;
                 if (RecordTypesConstants.TryGetRecordField(field.Type, out var rf))
                 {
-                    if (RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
-                    { 
-                        var xb = JsonUtils.DumpJson(field);
-                        using (var ms = new MemoryStream(xb))
-                        {
-                            var f = (RecordTypeDataFieldBase) serializer.ReadObject(ms);
-                            return f.CreateTypedField();
-                        }
-                    }
-                    else
+                    dataType = rf.Type.Type;
+                }
+                else 
+                {
+                    dataType = typeof(AnyComplexField);
+                }
+                if (RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
+                { 
+                    using (var ms = new MemoryStream(xb))
                     {
-                        Debug.WriteLine($"Unsupported field type: {rf.Type.Type}");
+                        var f = (RecordTypeDataFieldBase) serializer.ReadObject(ms);
+                        return f.CreateTypedField();
                     }
                 }
                 else
                 {
-                    Debug.WriteLine($"Unsupported record field: {field.Type}");
+                    Debug.WriteLine($"Unsupported field type: {rf.Type.Type}");
                 }
             }
             catch (Exception e)
