@@ -11,7 +11,7 @@
     RootModule         = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion      = '0.9.4'
+    ModuleVersion      = '0.9.5'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -26,7 +26,7 @@
     CompanyName        = 'Keeper Security Inc.'
 
     # Copyright statement for this module
-    Copyright          = '(c) 2023 Keeper Security Inc. All rights reserved.'
+    Copyright          = '(c) 2024 Keeper Security Inc. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = 'PowerShell Commander'
@@ -111,7 +111,7 @@
             LicenseUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri  = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'Update .Net SDK'
+            ReleaseNotes = 'appFiller field type'
         }
     }
 
