@@ -163,36 +163,39 @@ namespace KeeperSecurity.Utils
         /// <returns>Field values.</returns>
         public static IEnumerable<string> GetTypedFieldValues(this ITypedField field)
         {
-            if (!RecordTypesConstants.TryGetRecordField(field.FieldName, out _))
+            for (var i = 0; i < field.Count; i++)
             {
-                yield return "<not supported>";
-            }
-            else
-            {
-                for (var i = 0; i < field.Count; i++)
-                {
-                    var value = field.GetValueAt(i);
-                    if (value == null) continue;
+                var value = field.GetValueAt(i);
+                if (value == null) continue;
 
-                    if (value is string str)
+                if (value is string str)
+                {
+                    if (!string.IsNullOrEmpty(str))
                     {
-                        if (!string.IsNullOrEmpty(str))
-                        {
-                            yield return str;
-                        }
+                        yield return str;
                     }
-                    else if (value is long l)
+                }
+                else if (value is long l)
+                {
+                    if (l != 0)
                     {
-                        if (l != 0)
-                        {
-                            var dt = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(l);
-                            yield return dt.ToString("d");
-                        }
+                        var dt = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(l);
+                        yield return dt.ToString("d");
                     }
-                    else if (value is IFieldTypeSerialize fts)
+                }
+                else if (value is bool b)
+                {
+                    if (b)
                     {
-                        yield return fts.GetValueAsString();
+                        yield return "true";
                     }
+                }
+                else if (value is IFieldTypeSerialize fts)
+                {
+                    yield return fts.GetValueAsString();
+                }
+                else {
+                    yield return "<not supported>";
                 }
             }
         }

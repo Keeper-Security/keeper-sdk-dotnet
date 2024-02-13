@@ -15,7 +15,7 @@ namespace KeeperSecurity.Utils
         internal static readonly DataContractJsonSerializerSettings JsonSettings = new DataContractJsonSerializerSettings
         {
             UseSimpleDictionaryFormat = true,
-            EmitTypeInformation = EmitTypeInformation.Never
+            EmitTypeInformation = EmitTypeInformation.Never,
         };
 
         /// <summary>

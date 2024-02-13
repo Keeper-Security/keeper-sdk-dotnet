@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
+using System.Text;
 
 namespace KeeperSecurity.Vault
 {
@@ -1105,6 +1106,58 @@ namespace KeeperSecurity.Vault
         }
     }
 
+    [DataContract]
+    public class FieldTypeAppFiller : FieldTypeBase, IFieldTypeSerialize
+    {
+        [DataMember(Name = "applicationTitle", EmitDefaultValue = true)]
+        public string ApplicationTitle { get; set; }
+
+        [DataMember(Name = "contentFilter", EmitDefaultValue = true)]
+        public string ContentFilter { get; set; }
+        [DataMember(Name = "macroSequence", EmitDefaultValue = true)]
+        public string MacroSequence { get; set; }
+
+
+        private static string[] KeyPairElements = new[] { "applicationTitle", "contentFilter", "macroSequence" };
+        IEnumerable<string> IFieldTypeSerialize.Elements => KeyPairElements;
+
+        IEnumerable<string> IFieldTypeSerialize.ElementValues
+        {
+            get
+            {
+                yield return ApplicationTitle;
+                yield return ContentFilter;
+                yield return MacroSequence;
+            }
+        }
+        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        {
+            switch (element)
+            {
+                case "applicationTitle": { ApplicationTitle = value; return true; }
+                case "macroSequence": { MacroSequence = value; return true; }
+                case "contentFilter": { ContentFilter = value; return true; }
+            }
+            return false;
+        }
+
+        void IFieldTypeSerialize.SetValueAsString(string value)
+        {
+            var appFiller = JsonUtils.ParseJson<FieldTypeAppFiller>(Encoding.UTF8.GetBytes(value));
+            if (appFiller != null) 
+            { 
+                ApplicationTitle = appFiller.ApplicationTitle;
+                MacroSequence = appFiller.MacroSequence;
+                ContentFilter = appFiller.ContentFilter;
+            }
+        }
+        string IFieldTypeSerialize.GetValueAsString()
+        {
+            var e = (this as IFieldTypeSerialize).ElementValues.ToArray();
+            return string.Join("\n", e);
+        }
+    }
+
     /// <excluded/>
     [DataContract]
     public class JsonWebKey
@@ -1179,6 +1232,38 @@ namespace KeeperSecurity.Vault
         public long CreatedDate { get; set; }
     }
 
+    public class AnyComplexField : Dictionary<string, string>, IExtensibleDataObject, IFieldTypeSerialize
+    {
+        public ExtensionDataObject ExtensionData { get; set; }
+        IEnumerable<string> IFieldTypeSerialize.Elements
+        {
+            get
+            {
+                return this.OrderBy(x => x.Key).Select(x => x.Key);
+            }
+        }
+        public IEnumerable<string> ElementValues
+        {
+            get
+            {
+                return this.OrderBy(x => x.Key).Select(x => x.Value);
+            }
+        }
+        bool IFieldTypeSerialize.SetElementValue(string element, string value)
+        {
+            this[element] = value;
+            return true;
+        }
+
+        void IFieldTypeSerialize.SetValueAsString(string value)
+        {
+        }
+        string IFieldTypeSerialize.GetValueAsString()
+        {
+            return string.Join("\n", ElementValues);
+        }
+    }
+
     internal class RecordTypeInfo
     {
         public Type RecordFieldType { get; set; }   // RecordTypeDataField
@@ -1221,6 +1306,7 @@ namespace KeeperSecurity.Vault
                 new FieldType("passkey", typeof(JsonWebKey), "passwordless login passkey"),
                 new FieldType("checkbox", typeof(bool), "on/off checkbox"),
                 new FieldType("dropdown", typeof(string), "list of text choices"),
+                new FieldType("appFiller", typeof(FieldTypeAppFiller), "Native Application Filler"),
             };
 
             foreach (var t in types)

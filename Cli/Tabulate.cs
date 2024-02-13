@@ -241,7 +241,7 @@ namespace Cli
                                 }
                             }
 
-                            value = value.Replace("\n", " ");
+                            value = value.Replace("\n", " ").Replace("\r", "");
                             if (value.Length > MaxColumnWidth)
                             {
                                 return value.Substring(0, MaxColumnWidth - 3) + "...";
@@ -255,7 +255,8 @@ namespace Cli
                         Console.Write("".PadLeft(LeftPadding));
                     }
 
-                    Console.WriteLine(string.Join(RowSeparator, r));
+                    var rowLine = string.Join(RowSeparator, r);
+                    Console.WriteLine(rowLine);
                 }
 
 
