@@ -1,6 +1,7 @@
 ﻿using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -14,11 +15,12 @@ namespace KeeperSecurity.Vault
     public class FieldType
     {
         /// <exclude />
-        public FieldType(string name, Type type, string description)
+        public FieldType(string name, Type type, string defaultValue, string description)
         {
             Name = name;
             Type = type;
             Description = description;
+            DefaultValue = defaultValue;
         }
 
         /// <summary>
@@ -33,6 +35,8 @@ namespace KeeperSecurity.Vault
         /// .Net Type object
         /// </summary>
         public Type Type { get; }
+
+        public string DefaultValue { get; }
     }
 
     /// <summary>
@@ -1283,30 +1287,30 @@ namespace KeeperSecurity.Vault
         {
             var types = new[]
             {
-                new FieldType("text", typeof(string), "plain text"),
-                new FieldType("url", typeof(string), "url string, can be clicked"),
-                new FieldType("multiline", typeof(string), "multiline text"),
-                new FieldType("fileRef", typeof(string), "reference to the file field on another record"),
-                new FieldType("email", typeof(string), "valid email address plus tag"),
-                new FieldType("host", typeof(FieldTypeHost), "multiple fields to capture host information"),
-                new FieldType("phone", typeof(FieldTypePhone), "numbers and symbols only plus tag"),
-                new FieldType("name", typeof(FieldTypeName), "multiple fields to capture name"),
-                new FieldType("address", typeof(FieldTypeAddress), "multiple fields to capture address"),
-                new FieldType("addressRef", typeof(string), "reference to the address field on another record"),
-                new FieldType("cardRef", typeof(string), "reference to the card record type"),
-                new FieldType("secret", typeof(string), "the field value is masked"),
-                new FieldType("login", typeof(string), "Login field, detected as the website login for browser extension or KFFA."),
-                new FieldType("password", typeof(string), "Field value is masked and allows for generation. Also complexity enforcements."),
-                new FieldType("securityQuestion", typeof(FieldTypeSecurityQuestion), "Security Question and Answer"),
-                new FieldType("otp", typeof(string), "captures the seed, displays QR code"),
-                new FieldType("paymentCard", typeof(FieldTypePaymentCard), "Field consisting of validated card number, expiration date and security code."),
-                new FieldType("date", typeof(long), "calendar date with validation, stored as unix milliseconds"),
-                new FieldType("bankAccount", typeof(FieldTypeBankAccount), "bank account information"),
-                new FieldType("privateKey", typeof(FieldTypeKeyPair), "private and/or public keys in ASN.1 format"),
-                new FieldType("passkey", typeof(JsonWebKey), "passwordless login passkey"),
-                new FieldType("checkbox", typeof(bool), "on/off checkbox"),
-                new FieldType("dropdown", typeof(string), "list of text choices"),
-                new FieldType("appFiller", typeof(FieldTypeAppFiller), "Native Application Filler"),
+                new FieldType("text", typeof(string), "''", "plain text"),
+                new FieldType("url", typeof(string), "''", "url string, can be clicked"),
+                new FieldType("multiline", typeof(string), "''", "multiline text"),
+                new FieldType("fileRef", typeof(string), "''", "reference to the file field on another record"),
+                new FieldType("email", typeof(string), "''", "valid email address plus tag"),
+                new FieldType("host", typeof(FieldTypeHost), "{'hostName': '', 'port': ''}", "multiple fields to capture host information"),
+                new FieldType("phone", typeof(FieldTypePhone), "{'region': '', 'number': '', 'ext': '', 'type': ''}", "numbers and symbols only plus tag"),
+                new FieldType("name", typeof(FieldTypeName), "{'first': '', 'middle': '', 'last': ''}", "multiple fields to capture name"),
+                new FieldType("address", typeof(FieldTypeAddress), "{'street1': '', 'street2': '', 'city': '', 'state': '', 'zip': '', 'country': ''}", "multiple fields to capture address"),
+                new FieldType("addressRef", typeof(string), "''", "reference to the address field on another record"),
+                new FieldType("cardRef", typeof(string), "''", "reference to the card record type"),
+                new FieldType("secret", typeof(string), "''", "the field value is masked"),
+                new FieldType("login", typeof(string), "''", "Login field, detected as the website login for browser extension or KFFA."),
+                new FieldType("password", typeof(string), "''", "Field value is masked and allows for generation. Also complexity enforcements."),
+                new FieldType("securityQuestion", typeof(FieldTypeSecurityQuestion), "{'question': '', 'answer': ''}", "Security Question and Answer"),
+                new FieldType("otp", typeof(string), "''", "captures the seed, displays QR code"),
+                new FieldType("paymentCard", typeof(FieldTypePaymentCard), "{'cardNumber': '', 'cardExpirationDate': '', 'cardSecurityCode': ''}", "Field consisting of validated card number, expiration date and security code."),
+                new FieldType("date", typeof(long), "0", "calendar date with validation, stored as unix milliseconds"),
+                new FieldType("bankAccount", typeof(FieldTypeBankAccount), "{'accountType': '', 'routingNumber': '', 'accountNumber': '', 'otherType': ''}", "bank account information"),
+                new FieldType("privateKey", typeof(FieldTypeKeyPair), "{'publicKey': '', 'privateKey': ''}", "private and/or public keys in ASN.1 format"),
+                new FieldType("passkey", typeof(JsonWebKey), "{'privateKey': {}, 'credentialId': '', 'signCount': 0, 'userId': '', 'relyingParty': '', 'username': '', 'createdDate': 0}", "passwordless login passkey"),
+                new FieldType("checkbox", typeof(bool), "false", "on/off checkbox"),
+                new FieldType("dropdown", typeof(string), "''", "list of text choices"),
+                new FieldType("appFiller", typeof(FieldTypeAppFiller), "{'macroSequence': '', 'applicationTitle': '', 'contentFilter': ''}", "native application filler"),
             };
 
             foreach (var t in types)

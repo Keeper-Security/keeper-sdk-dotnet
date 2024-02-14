@@ -9,6 +9,12 @@
                     $this.Type.Name
                 </GetScriptBlock>
             </ScriptProperty>
+            <ScriptProperty>
+                <Name>DefaultValue</Name>
+                <GetScriptBlock>
+                    $this.Type.DefaultValue
+                </GetScriptBlock>
+            </ScriptProperty>
         </Members>
     </Type>
     <Type>
