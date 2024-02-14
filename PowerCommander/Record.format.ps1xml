@@ -11,6 +11,7 @@
                     <TableColumnHeader />
                     <TableColumnHeader />
                     <TableColumnHeader />
+                    <TableColumnHeader />
                 </TableHeaders>
                 <TableRowEntries>
                     <TableRowEntry>
@@ -23,6 +24,9 @@
                             </TableColumnItem>
                             <TableColumnItem>
                                 <PropertyName>Multiple</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>DefaultValue</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>

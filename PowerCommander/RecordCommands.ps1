@@ -612,13 +612,13 @@ Register-ArgumentCompleter -CommandName Move-RecordToFolder -ParameterName Folde
 function Get-KeeperRecordType {
     <#
 	.Synopsis
-	Get Record Type Information
+	Get Record/Field Type Information
 
-	.Parameter Record
-	Record UID, Path or any object containing property Uid.
+    .Parameter ShowFields
+	Show Field Types
 
-	.Parameter Folder
-	Folder Name, Path, or UID
+	.Parameter Name
+	Record Type Name
 #>
 
     [CmdletBinding()]
