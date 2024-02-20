@@ -11,7 +11,7 @@
     RootModule         = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion      = '0.9.5'
+    ModuleVersion      = '0.9.6'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -81,9 +81,9 @@
         'Get-KeeperEnterpriseTeamUser',
         # 'Test-Keeper',
         'Show-KeeperRecordShare', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess',
-        'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Get-KeeperSecretManagerApp', 'Add-KeeperSecretManagerApp',
-        'Grant-KeeperSecretManagerFolderAccess', 'Revoke-KeeperSecretManagerFolderAccess', 'Add-KeeperSecretManagerClient',
-        'Remove-KeeperSecretManagerClient'
+        'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp', 
+        'Add-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess', 'Revoke-KeeperSecretManagerFolderAccess', 
+        'Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient'
     )
 
     # Cmdlets to export from this module
@@ -95,7 +95,7 @@
     # Aliases to export from this module
     AliasesToExport    = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 'krti',
         'ked', 'keu', 'ken', 'ket', 'ketu', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'lock-user', 'unlock-user', 'transfer-user',
-        'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat',
+        'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr',
         'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient')
 
     # List of all modules packaged with this module
@@ -111,7 +111,7 @@
             LicenseUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri  = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'appFiller field type'
+            ReleaseNotes = "appFiller field type`nMove-KeeperRecordOwnership cmdlet"
         }
     }
 
