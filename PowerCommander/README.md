@@ -35,15 +35,16 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Show-KeeperRecordShare                 | kshrsh      | Show a record sharing information
 | Grant-KeeperRecordAccess               | kshr        | Share a record with user
 | Revoke-KeeperRecordAccess              | kushr       | Remove record share from user
-| Grant-KeeperSharedFolderAccess         | kshf        | Add a user or team to a shared foler
-| Revoke-KeeperSharedFolderAccess        | kushf       | Remove a user or team from a shared foler
+| Move-KeeperRecordOwnership             | ktr         | Transfer record ownership to user
+| Grant-KeeperSharedFolderAccess         | kshf        | Add a user or team to a shared folder
+| Revoke-KeeperSharedFolderAccess        | kushf       | Remove a user or team from a shared folder
 | Get-KeeperAvailableTeam                | kat         | Get available teams
 
 ### Enterprise Cmdlets
 | Cmdlet name                            | Alias       | Description
 |----------------------------------------|-------------|----------------------------
 | Sync-KeeperEnterprise                  | ked         | Sync Keeper enterprise information
-| Get-KeeperEnterpriseNode              | ken         | Enumerate all enterprise nodes
+| Get-KeeperEnterpriseNode               | ken         | Enumerate all enterprise nodes
 | Get-KeeperEnterpriseUser               | keu         | Enumerate all enterprise users
 | Get-KeeperEnterpriseTeam               | ket         | Enumerate all enterprise teams
 | Get-KeeperEnterpriseTeamUser           | ketu        | Get a list of enterprise users for team

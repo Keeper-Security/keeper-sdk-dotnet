@@ -51,6 +51,68 @@ function Show-KeeperRecordShare {
 }
 New-Alias -Name kshrsh -Value Show-KeeperRecordShare
 
+function Move-KeeperRecordOwnership {
+    <#
+        .Synopsis
+        Transfers record ownership to a user
+
+    	.Parameter Record
+	    Record UID or any object containing property Uid
+
+        .Parameter User
+	    User email
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)]$Record,
+        [Parameter(Mandatory = $true)]$User
+    )
+
+	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    if ($Record -is [Array]) {
+        if ($Record.Count -ne 1) {
+            Write-Error -Message 'Only one record is expected' -ErrorAction Stop
+        }
+        $Record = $Record[0]
+    }
+    $uid = $null
+    if ($Record -is [String]) {
+        $uid = $Record
+    }
+    elseif ($null -ne $Record.Uid) {
+        $uid = $Record.Uid
+    }
+
+    if ($uid) {
+        [KeeperSecurity.Vault.KeeperRecord] $rec = $null
+        if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
+            $entries = Get-KeeperChildItem -Filter $uid -ObjectType Record
+            if ($entries.Uid) {
+                $vault.TryGetRecord($entries[0].Uid, [ref]$rec) | Out-Null
+            }
+        }
+        if ($rec) {
+            try {
+                $vault.TransferRecordToUser($rec.Uid, $User).GetAwaiter().GetResult() | Out-Null
+                Write-Output "Record `"$($rec.Title)`" was transfered to $($User)`nThe new record owner can edit or remove your access to this record."
+            }
+            catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
+                Write-Output $_
+                $prompt =  "Do you want to send share invitation request to `"$($User)`"? (Yes/No)"
+                $answer = Read-Host -Prompt $prompt
+                if ($answer -in 'yes', 'y') {
+                    $vault.SendShareInvitationRequest($User).GetAwaiter().GetResult() | Out-Null
+                    Write-Output("Invitation has been sent to $($User)`nPlease repeat this command when your invitation is accepted.");
+                }
+            }
+        } else {
+            Write-Error -Message "Cannot find a Keeper record: $Record"
+        }
+    }
+}
+New-Alias -Name ktr -Value Move-KeeperRecordOwnership
+
 function Grant-KeeperRecordAccess {
     <#
         .Synopsis
