@@ -746,7 +746,15 @@ namespace KeeperSecurity
                             };
                             if (!string.IsNullOrEmpty(folder.ParentUid))
                             {
-                                frq.ParentFolderUid = ByteString.CopyFrom(folder.ParentUid.Base64UrlDecode());
+                                var parentFolder = folder.ParentUid;
+                                if (folder.FolderType == FolderType.SharedFolderFolder && string.Equals(parentFolder, folder.SharedFolderUid))
+                                {
+                                    parentFolder = null;
+                                }
+                                if (!string.IsNullOrEmpty(parentFolder))
+                                {
+                                    frq.ParentFolderUid = ByteString.CopyFrom(parentFolder.Base64UrlDecode());
+                                }
                             }
 
                             var fd = new FolderData
