@@ -549,14 +549,45 @@ namespace KeeperSecurity
                     {
                         if (!string.IsNullOrEmpty(sharedFolder.Path))
                         {
-                            SharedFolderOptions options = new SharedFolderOptions
+                            var folderNode = bo.GetFolderByPath(sharedFolder.Path);
+                            if (folderNode == null)
                             {
-                                ManageRecords = sharedFolder.ManageRecords,
-                                ManageUsers = sharedFolder.ManageUsers,
-                                CanEdit = sharedFolder.CanEdit,
-                                CanShare = sharedFolder.CanShare,
-                            };
-                            bo.CreateFolderPath(sharedFolder.Path, options);
+                                SharedFolderOptions options = new SharedFolderOptions
+                                {
+                                    ManageRecords = sharedFolder.ManageRecords,
+                                    ManageUsers = sharedFolder.ManageUsers,
+                                    CanEdit = sharedFolder.CanEdit,
+                                    CanShare = sharedFolder.CanShare,
+                                };
+                                bo.CreateFolderPath(sharedFolder.Path, options);
+                            }
+                        }
+                    }
+                }
+                if (import.Records?.Length > 0)
+                {
+                    foreach (var record in import.Records)
+                    {
+                        if (record.Folders?.Length > 0)
+                        {
+                            foreach (var f in record.Folders)
+                            {
+                                if (!string.IsNullOrEmpty(f.SharedFolderName))
+                                {
+                                    var folderNode = bo.GetFolderByPath(f.SharedFolderName);
+                                    if (folderNode == null)
+                                    {
+                                        SharedFolderOptions options = new SharedFolderOptions
+                                        {
+                                            ManageRecords = false,
+                                            ManageUsers = false,
+                                            CanEdit = false,
+                                            CanShare = false,
+                                        };
+                                        bo.CreateFolderPath(f.SharedFolderName, options);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -591,27 +622,22 @@ namespace KeeperSecurity
                             var f = record.Folders[0];
                             if (!string.IsNullOrEmpty(f.FolderName) || !string.IsNullOrEmpty(f.SharedFolderName))
                             {
-                                SharedFolderOptions options = null;
                                 var path = string.IsNullOrEmpty(f.FolderName) ? "" : f.FolderName;
                                 if (!string.IsNullOrEmpty(f.SharedFolderName))
                                 {
-                                    options = new SharedFolderOptions
-                                    {
-                                        ManageRecords = false,
-                                        ManageUsers = false,
-                                        CanEdit = false,
-                                        CanShare = false,
-                                    };
-
                                     if (!string.IsNullOrEmpty(path))
                                     {
-                                        path += BatchVaultOperations.PathDelimiter + f.SharedFolderName;
+                                        if (f.SharedFolderName.EndsWith(BatchVaultOperations.PathDelimiter.ToString())) 
+                                        {
+                                            f.SharedFolderName = f.SharedFolderName.Substring(0, f.SharedFolderName.Length - 1); 
+                                        }
+                                        path = f.SharedFolderName + BatchVaultOperations.PathDelimiter + path;
                                     }
                                 }
                                 folder = bo.GetFolderByPath(path);
                                 if (folder == null)
                                 {
-                                    folder = bo.CreateFolderPath(path, options);
+                                    folder = bo.CreateFolderPath(path);
                                 }
                             }
                         }
