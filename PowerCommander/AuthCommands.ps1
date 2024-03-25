@@ -334,6 +334,7 @@ function Connect-Keeper {
     Param(
         [Parameter(Position = 0)][string] $Username,
         [Parameter()] [SecureString]$Password,
+        [Parameter()] [SecureString]$MasterPassword,
         [Parameter()][switch] $NewLogin,
         [Parameter(ParameterSetName = 'sso_password')][switch] $SsoPassword,
         [Parameter(ParameterSetName = 'sso_provider')][switch] $SsoProvider,
@@ -361,6 +362,10 @@ function Connect-Keeper {
 
     $authFlow.ResumeSession = $true
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
+
+    if ($MasterPassword.Length -gt 0) {
+        $authFlow.AlternatePassword = $true
+    }
 
     if (-not $NewLogin.IsPresent -and -not $SsoProvider.IsPresent) {
         if (-not $Username) {
@@ -399,14 +404,24 @@ function Connect-Keeper {
     Write-Output ""
     while (-not $authFlow.IsCompleted) {
         if ($lastStep -ne $authFlow.Step.State) {
-            printStepHelp $authFlow
+            
+            if (-not $MasterPassword.IsPresent) {
+                printStepHelp $authFlow
+            }
+            
             $lastStep = $authFlow.Step.State
         }
 
         $prompt = getStepPrompt $authFlow
 
         if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
-            $securedPassword = Read-Host -Prompt $prompt -AsSecureString
+
+             if ($MasterPassword.Length -gt 0) {
+                $securedPassword = $MasterPassword
+             } else {
+                $securedPassword = Read-Host -Prompt $prompt -AsSecureString
+             }
+             
             if ($securedPassword.Length -gt 0) {
                 $action = [Net.NetworkCredential]::new('', $securedPassword).Password
             }
