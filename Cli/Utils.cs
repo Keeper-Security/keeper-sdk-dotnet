@@ -383,7 +383,7 @@ namespace Cli
                             }
                             catch (KeeperAuthFailed)
                             {
-                                Console.WriteLine("\nInvalid password.");
+                                Console.WriteLine("Invalid password.");
                             }
                             catch (Exception e)
                             {

@@ -85,6 +85,10 @@ namespace KeeperSecurity
         public interface IBatchVaultOperations
         {
             /// <summary>
+            /// Gets the root folder
+            /// </summary>
+            FolderNode RootFolder { get; }
+            /// <summary>
             /// Gets folder node by folder UID
             /// </summary>
             /// <param name="folderUid">folder UID</param>
@@ -103,16 +107,28 @@ namespace KeeperSecurity
             /// Appends folder to folder structure
             /// </summary>
             /// <param name="folderName">folder name</param>
-            /// <param name="parentUid">parent folder e</param>
+            /// <param name="parentUid">parent folder</param>
             /// <param name="sharedFolderOptions">shared folder options</param>
             /// <returns>folder node to be added</returns>
             FolderNode AddFolder(string folderName, string parentUid = null, SharedFolderOptions sharedFolderOptions = null);
+            /// <summary>
+            /// Checks if the folder has to be created
+            /// </summary>
+            /// <param name="folderUid"></param>
+            /// <returns>true if folder is scheduled to be added</returns>
+            bool IsFolderPending(string folderUid);
+            /// <summary>
+            /// Checks if the record has to be created
+            /// </summary>
+            /// <param name="recordUid"></param>
+            /// <returns>true if record is scheduled to be added</returns>
+            bool IsRecordPending(string recordUid);
             /// <summary>
             /// Updates folder name
             /// </summary>
             /// <param name="folderUid">folder UID</param>
             /// <param name="folderName">new folder name</param>
-            /// <returns>true is folder is scheduled to be added</returns>
+            /// <returns>true if folder is scheduled to be added</returns>
             bool UpdateFolderName(string folderUid, string folderName);
             /// <summary>
             /// Update a record
@@ -169,6 +185,11 @@ namespace KeeperSecurity
         public class BatchVaultOperations: IBatchVaultOperations
         {
             private readonly VaultOnline _vault;
+
+            private readonly FolderNode _rootFolder = new FolderNode 
+            { 
+                FolderType = FolderType.UserFolder,
+            };
             private readonly List<Tuple<FolderNode, SharedFolderOptions>> _foldersToAdd = new List<Tuple<FolderNode, SharedFolderOptions>>();
             private readonly List<Tuple<PasswordRecord, FolderNode>> _legacyRecordsToAdd = new List<Tuple<PasswordRecord, FolderNode>>();
             private readonly List<Tuple<TypedRecord, FolderNode>> _typedRecordsToAdd = new List<Tuple<TypedRecord, FolderNode>>();
@@ -196,6 +217,9 @@ namespace KeeperSecurity
             /// <inheritdoc/>
             public void Reset()
             {
+                _rootFolder.Subfolders.Clear();
+                _rootFolder.Records.Clear();
+
                 _foldersToAdd.Clear();
                 _legacyRecordsToAdd.Clear();
                 _typedRecordsToAdd.Clear();
@@ -223,12 +247,23 @@ namespace KeeperSecurity
                     _folderInfoLookup[folder.FolderUid] = f;
                 }
                 foreach (var folder in folders)
-                { 
+                {
                     var path = GetFolderPath(folder.FolderUid).ToLower();
                     if (!_folderPathLookup.ContainsKey(path))
                     {
                         _folderPathLookup.Add(path, folder.FolderUid);
                     }
+
+                    FolderNode parentFolder;
+                    if (string.IsNullOrEmpty(folder.ParentUid))
+                    {
+                        parentFolder = _rootFolder;
+                    }
+                    else
+                    {
+                        _folderInfoLookup.TryGetValue(folder.ParentUid, out parentFolder);
+                    }
+                    parentFolder?.Subfolders.Add(folder.FolderUid);
                 }
 
                 // Load records
@@ -260,6 +295,23 @@ namespace KeeperSecurity
                                 var hashMatchValue = new byte[hash.GetDigestSize()];
                                 hash.DoFinal(hashMatchValue, 0);
                                 _recordMainHashes[hashMatchValue.Base64UrlEncode()] = record.Uid;
+                            }
+                        }
+                    }
+                    var loadedRecords = new HashSet<string>(_recordFullHashes.Values);
+                    foreach (var folder in _vault.Folders)
+                    {
+                        if (_folderInfoLookup.TryGetValue(folder.FolderUid, out var f))
+                        {
+                            if (folder.Records != null)
+                            {
+                                foreach (var recordUid in folder.Records)
+                                {
+                                    if (loadedRecords.Contains(recordUid))
+                                    {
+                                        f.Records.Add(recordUid);
+                                    }
+                                }
                             }
                         }
                     }
@@ -409,6 +461,9 @@ namespace KeeperSecurity
             }
 
             /// <inheritdoc />
+            public FolderNode RootFolder => _rootFolder;
+
+            /// <inheritdoc />
             public FolderNode GetFolderByPath(string folderPath)
             {
                 if (_folderPathLookup.TryGetValue(folderPath.ToLower(), out var folderUid))
@@ -517,38 +572,32 @@ namespace KeeperSecurity
                         return null;
                     }
                 }
+                else
+                {
+                    parentFolder = _rootFolder;
+                }
 
-                if (parentFolder != null)
+                if (!string.IsNullOrEmpty(parentFolder.FolderUid))
                 {
                     f.ParentUid = parentFolder.FolderUid;
-                    if (sharedFolderOptions != null && parentFolder.FolderType == FolderType.UserFolder)
-                    {
-                        f.FolderType = FolderType.SharedFolder;
-                        f.SharedFolderUid = f.FolderUid;
-                    }
-                    else if (parentFolder.FolderType == FolderType.UserFolder)
-                    {
-                        f.FolderType = FolderType.UserFolder;
-                    }
-                    else
-                    {
-                        f.FolderType = FolderType.SharedFolderFolder;
-                        f.SharedFolderUid = parentFolder.SharedFolderUid;
-                    }
+                }
+
+                if (sharedFolderOptions != null && parentFolder.FolderType == FolderType.UserFolder)
+                {
+                    f.FolderType = FolderType.SharedFolder;
+                    f.SharedFolderUid = f.FolderUid;
+                }
+                else if (parentFolder.FolderType == FolderType.UserFolder)
+                {
+                    f.FolderType = FolderType.UserFolder;
                 }
                 else
                 {
-                    if (sharedFolderOptions != null)
-                    {
-                        f.FolderType = FolderType.SharedFolder;
-                        f.SharedFolderUid = f.FolderUid;
-                    }
-                    else
-                    {
-                        f.FolderType = FolderType.UserFolder;
-                    }
+                    f.FolderType = FolderType.SharedFolderFolder;
+                    f.SharedFolderUid = parentFolder.SharedFolderUid;
                 }
 
+                parentFolder.Subfolders.Add(f.FolderUid);
                 _foldersToAdd.Add(Tuple.Create(f, sharedFolderOptions));
                 _folderInfoLookup[f.FolderUid] = f;
                 var path = GetFolderPath(f.FolderUid).ToLower();
@@ -702,7 +751,24 @@ namespace KeeperSecurity
                 {
                     _recordMainHashes[mainHashStr] = record.Uid;
                 }
+                if (folder != null)
+                {
+                    folder.Records.Add(record.Uid);
+                }
+
                 return true;
+            }
+
+            /// <inheritdoc/>
+            public bool IsFolderPending(string folderUid)
+            {
+                return _foldersToAdd.Any(x => x.Item1.FolderUid == folderUid);
+            }
+
+            /// <inheritdoc/>
+            public bool IsRecordPending(string recordUid)
+            {
+                return _recordSet.Contains(recordUid);
             }
 
             /// <inheritdoc/>

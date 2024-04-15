@@ -70,7 +70,7 @@ namespace Sample
             var auth = authFlow;
 
             var vault = new VaultOnline(auth);
-            Console.WriteLine("\nRetrieving records...");
+            Console.WriteLine("Retrieving records...");
             await vault.SyncDown();
 
             Console.WriteLine($"Hello {username}!");
