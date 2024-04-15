@@ -36,6 +36,7 @@ namespace Cli
                 {
                     case ConsoleKey.Enter:
                         done = true;
+                        Console.WriteLine();
                         break;
                     case ConsoleKey.Backspace:
                         if (result.Length > 0)

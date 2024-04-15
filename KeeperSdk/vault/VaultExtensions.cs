@@ -528,7 +528,7 @@ namespace KeeperSecurity.Vault
                 {
                     dataType = typeof(AnyComplexField);
                 }
-                if (RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
+                if (rf != null && RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
                 { 
                     using (var ms = new MemoryStream(xb))
                     {
@@ -538,7 +538,7 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    Debug.WriteLine($"Unsupported field type: {rf.Type.Type}");
+                    Debug.WriteLine($"Unsupported field type: {field.Type}");
                 }
             }
             catch (Exception e)
