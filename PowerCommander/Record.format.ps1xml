@@ -125,5 +125,102 @@
             </ListControl>
         </View>
 
+        <View>
+            <Name>KeeperSecurity.Vault.ExternalRecordShare_TableView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Vault.ExternalRecordShare</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                    <TableColumnHeader>
+                        <Label>CreatedOn</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>AccessExpiresOn</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>FirstAccessed</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>LastAccessed</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>RecordUid</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <FormatString>g</FormatString>
+                                <ScriptBlock>$_.CreatedOn.LocalDateTime</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <FormatString>g</FormatString>
+                                <ScriptBlock>$_.AccessExpiresOn.LocalDateTime</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <FormatString>g</FormatString>
+                                <ScriptBlock>$_.FirstAccessed.LocalDateTime</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <FormatString>g</FormatString>
+                                <ScriptBlock>$_.LastAccessed.LocalDateTime</ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <View>
+            <Name>KeeperSecurity.Vault.ExternalRecordShare_ListView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Vault.ExternalRecordShare</TypeName>
+            </ViewSelectedBy>
+            <ListControl>
+                <ListEntries>
+                    <ListEntry>
+                        <ListItems>
+                            <ListItem>
+                                <Label>Record UID</Label>
+                                <PropertyName>RecordUid</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <Label>Share Name</Label>
+                                <PropertyName>Name</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <Label>Created</Label>
+                                <FormatString>f</FormatString>
+                                <ScriptBlock>$_.CreatedOn.LocalDateTime</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>Access Expires</Label>
+                                <FormatString>f</FormatString>
+                                <ScriptBlock>$_.AccessExpiresOn.LocalDateTime</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>First Accessed</Label>
+                                <FormatString>f</FormatString>
+                                <ScriptBlock>$_.FirstAccessed.LocalDateTime</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>Last Accessed</Label>
+                                <FormatString>f</FormatString>
+                                <ScriptBlock>$_.LastAccessed.LocalDateTime</ScriptBlock>
+                            </ListItem>
+                        </ListItems>
+                    </ListEntry>
+                </ListEntries>
+            </ListControl>
+        </View>
+
+
     </ViewDefinitions>
 </Configuration>
