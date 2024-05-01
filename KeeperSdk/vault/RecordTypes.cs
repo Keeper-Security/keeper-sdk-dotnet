@@ -109,7 +109,7 @@ namespace KeeperSecurity.Vault
         /// Initializes a new instance of the RecordTypeField class
         /// </summary>
         /// <param name="fieldName">Field Name</param>
-        public RecordTypeField(string fieldName): this(fieldName, null)
+        public RecordTypeField(string fieldName) : this(fieldName, null)
         {
         }
         /// <summary>
@@ -119,7 +119,7 @@ namespace KeeperSecurity.Vault
         /// <param name="label">Field Label</param>
         public RecordTypeField(string fieldName, string label)
         {
-            if (string.IsNullOrEmpty(fieldName)) 
+            if (string.IsNullOrEmpty(fieldName))
             {
                 fieldName = "text";
             }
@@ -205,7 +205,7 @@ namespace KeeperSecurity.Vault
         public RecordTypeField[] Fields { get; internal set; }
     }
 
-    
+
     /// <summary>
     /// Defines access methods for compound record types
     /// </summary>
@@ -244,6 +244,30 @@ namespace KeeperSecurity.Vault
     public class FieldTypeBase : IExtensibleDataObject
     {
         public ExtensionDataObject ExtensionData { get; set; }
+    }
+
+    /// <ignored />
+    [DataContract]
+    public class FieldScript : FieldTypeBase
+    {
+        [DataMember(Name = "fileRef", EmitDefaultValue = true)]
+        public string FileRef { get; set; }
+        [DataMember(Name = "command", EmitDefaultValue = true)]
+        public string Command { get; set; }
+        [DataMember(Name = "recordRef", EmitDefaultValue = true)]
+        public string[] RecordRef { get; set; }
+    }
+
+    /// <ignored />
+    [DataContract]
+    public class FieldPamResources : FieldTypeBase
+    {
+        [DataMember(Name = "controllerUid", EmitDefaultValue = true)]
+        public string ControllerUid { get; set; }
+        [DataMember(Name = "folderUid", EmitDefaultValue = true)]
+        public string FolderUid { get; set; }
+        [DataMember(Name = "resourceRef", EmitDefaultValue = true)]
+        public string[] ResourceRef { get; set; }
     }
 
     /// <summary>
@@ -375,9 +399,9 @@ namespace KeeperSecurity.Vault
         public IEnumerable<string> Elements => PhoneElements;
 
         /// <exclude />
-        public IEnumerable<string> ElementValues 
-        { 
-            get 
+        public IEnumerable<string> ElementValues
+        {
+            get
             {
                 yield return Region;
                 yield return Number;
@@ -389,7 +413,7 @@ namespace KeeperSecurity.Vault
         /// <exclude />
         public bool SetElementValue(string element, string value)
         {
-            switch (element) 
+            switch (element)
             {
                 case "region": Region = value; return true;
                 case "number": Number = value; return true;
@@ -427,8 +451,8 @@ namespace KeeperSecurity.Vault
                 return;
             }
 
-            if (comps[0].StartsWith("+") || comps[0].Length == 2) 
-            { 
+            if (comps[0].StartsWith("+") || comps[0].Length == 2)
+            {
                 Region = comps[0];
                 comps[0] = null;
                 comps = comps.Where(x => !string.IsNullOrEmpty(x)).ToArray();
@@ -505,7 +529,7 @@ namespace KeeperSecurity.Vault
         /// <exclude />
         public bool SetElementValue(string element, string value)
         {
-            switch (element) 
+            switch (element)
             {
                 case "first": First = value; return true;
                 case "last": Last = value; return true;
@@ -625,7 +649,8 @@ namespace KeeperSecurity.Vault
         /// <exclude />
         public IEnumerable<string> ElementValues
         {
-            get {
+            get
+            {
                 yield return Street1;
                 yield return Street2;
                 yield return City;
@@ -664,10 +689,12 @@ namespace KeeperSecurity.Vault
                 return;
             }
             var comps = value.Split(',').Select(x => x.Trim()).ToArray();
-            if (comps.Length == 0) {
+            if (comps.Length == 0)
+            {
                 return;
             }
-            if (comps.Length >= 4) {
+            if (comps.Length >= 4)
+            {
                 Country = comps[comps.Length - 1];
                 comps = comps.Take(comps.Length - 1).ToArray();
             }
@@ -1148,8 +1175,8 @@ namespace KeeperSecurity.Vault
         void IFieldTypeSerialize.SetValueAsString(string value)
         {
             var appFiller = JsonUtils.ParseJson<FieldTypeAppFiller>(Encoding.UTF8.GetBytes(value));
-            if (appFiller != null) 
-            { 
+            if (appFiller != null)
+            {
                 ApplicationTitle = appFiller.ApplicationTitle;
                 MacroSequence = appFiller.MacroSequence;
                 ContentFilter = appFiller.ContentFilter;
@@ -1167,7 +1194,7 @@ namespace KeeperSecurity.Vault
     public class JsonWebKey
     {
         [DataMember(Name = "kty", EmitDefaultValue = true)]
-        public string Kty {  get; set; }
+        public string Kty { get; set; }
 
         [DataMember(Name = "crv", EmitDefaultValue = true)]
         public string Crv { get; set; }
@@ -1311,6 +1338,8 @@ namespace KeeperSecurity.Vault
                 new FieldType("checkbox", typeof(bool), "false", "on/off checkbox"),
                 new FieldType("dropdown", typeof(string), "''", "list of text choices"),
                 new FieldType("appFiller", typeof(FieldTypeAppFiller), "{'macroSequence': '', 'applicationTitle': '', 'contentFilter': ''}", "native application filler"),
+                new FieldType("script", typeof(FieldScript), "{'fileRef': '', 'command': '', 'recordRef': []}", "Post rotation script"),
+                new FieldType("pamResources", typeof(FieldPamResources), "{'controllerUid': '', 'folderUid': '', 'resourceRef': []}", "PAM resources"),
             };
 
             foreach (var t in types)
@@ -1332,20 +1361,13 @@ namespace KeeperSecurity.Vault
                 new RecordField("pinCode", _fieldTypes["secret"], RecordFieldMultiple.Never),
                 new RecordField("expirationDate", _fieldTypes["date"], RecordFieldMultiple.Never),
                 new RecordField("birthDate", _fieldTypes["date"], RecordFieldMultiple.Never),
-                new RecordField("text", _fieldTypes["text"]),
-                new RecordField("name", _fieldTypes["name"]),
-                new RecordField("phone", _fieldTypes["phone"]),
-                new RecordField("email", _fieldTypes["email"]),
-                new RecordField("address", _fieldTypes["address"]),
-                new RecordField("addressRef", _fieldTypes["addressRef"]),
-                new RecordField("date", _fieldTypes["date"]),
-                new RecordField("paymentCard", _fieldTypes["paymentCard"]),
-                new RecordField("cardRef", _fieldTypes["cardRef"]),
-                new RecordField("url", _fieldTypes["url"]),
-                new RecordField("host", _fieldTypes["host"]),
-                new RecordField("secret", _fieldTypes["secret"]),
                 new RecordField("securityQuestion", _fieldTypes["securityQuestion"], RecordFieldMultiple.Always),
                 new RecordField("fileRef", _fieldTypes["fileRef"], RecordFieldMultiple.Always),
+
+                new RecordField("pamResources", _fieldTypes["pamResources"], RecordFieldMultiple.Never),
+                new RecordField("pamHostname", _fieldTypes["host"], RecordFieldMultiple.Never),
+                new RecordField("databaseType", _fieldTypes["dropdown"], RecordFieldMultiple.Never),
+                new RecordField("directoryType", _fieldTypes["dropdown"], RecordFieldMultiple.Never),
             };
             foreach (var rf in fields)
             {

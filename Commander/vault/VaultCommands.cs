@@ -133,7 +133,7 @@ namespace Commander
                     Action = context.SearchCommand
                 });
 
-            cli.Commands.Add("list",
+            cli.Commands.Add("ls",
                 new ParseableCommand<ListCommandOptions>
                 {
                     Order = 11,
@@ -322,24 +322,21 @@ namespace Commander
                         {
                             Console.WriteLine("Resetting offline storage.");
                             context.Vault.Storage.Clear();
+                            context.Vault.RecordTypesLoaded = false;
                         }
 
                         var fullSync = context.Vault.Storage.Revision == 0;
                         Console.WriteLine("Syncing...");
-                        context.Vault.RecordTypesLoaded = false;
                         await context.Vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
-
-
                         if (fullSync)
                         {
-
                             Console.WriteLine($"Decrypted {context.Vault.RecordCount} record(s)");
                         }
                     }
                 });
 
 
-            cli.CommandAliases.Add("ls", "list");
+            cli.CommandAliases.Add("list", "search");
             cli.CommandAliases.Add("d", "sync-down");
             cli.CommandAliases.Add("add", "add-record");
             cli.CommandAliases.Add("edit", "update-record");

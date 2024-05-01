@@ -697,13 +697,11 @@ namespace KeeperSecurity.Vault
 
             _dataRevision = Storage.Revision;
 
-            OnDataRebuilt();
-        }
-
-        internal virtual void OnDataRebuilt()
-        {
             BuildFolders();
-            LoadRecordTypes();
+            if (fullRebuild) 
+            {
+                LoadRecordTypes();
+            }
         }
 
         internal void BuildFolders()

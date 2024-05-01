@@ -292,7 +292,14 @@ namespace KeeperSecurity.Enterprise
             var enterprise = GetEnterprise?.Invoke();
             if (enterprise != null && enterprise.TreeKey != null)
             {
-                EnterpriseUtils.DecryptEncryptedData(keeper.EncryptedData, enterprise.TreeKey, sdk);
+                if (keeper.KeyType == "no_key")
+                {
+                    sdk.DisplayName = keeper.EncryptedData;
+                }
+                else 
+                {
+                    EnterpriseUtils.DecryptEncryptedData(keeper.EncryptedData, enterprise.TreeKey, sdk);
+                }
             }
         }
 

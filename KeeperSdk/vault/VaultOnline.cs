@@ -105,6 +105,7 @@ namespace KeeperSecurity.Vault
                     {
                         _scheduledAt = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 1000;
                         await this.RunSyncDown();
+                        OnIdle();
                     }
                 }
                 finally
@@ -640,10 +641,8 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        internal override void OnDataRebuilt()
+        internal void OnIdle()
         {
-            base.OnDataRebuilt();
-
             string[] recordUids = null;
             lock (_recordsForAudit)
             {
