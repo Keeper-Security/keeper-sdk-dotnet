@@ -39,6 +39,9 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Grant-KeeperSharedFolderAccess         | kshf        | Add a user or team to a shared folder
 | Revoke-KeeperSharedFolderAccess        | kushf       | Remove a user or team from a shared folder
 | Get-KeeperAvailableTeam                | kat         | Get available teams
+| Get-KeeperOneTimeShare                 | kotsg       | Get One-Time Shares for a record
+| New-KeeperOneTimeShare                 | kotsn       | Create One-Time Share
+| Remove-KeeperOneTimeShare              | kotsr       | Remove One-Time Share
 
 ### Enterprise Cmdlets
 | Cmdlet name                            | Alias       | Description

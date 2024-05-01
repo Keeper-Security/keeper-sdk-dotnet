@@ -594,3 +594,86 @@ function Get-KeeperAvailableTeam {
 		}
 	}
 	New-Alias -Name kat -Value Get-KeeperAvailableTeam
+
+    function New-KeeperOneTimeShare {
+        <#
+        .Synopsis
+        New Keeper One-Time Share
+
+        .Parameter Uid
+        Shared Record UID
+
+        .Parameter Expiration
+        Expiration TimeSpan
+
+        .Parameter ShareName
+        One-Time Share Name
+    #>
+        [CmdletBinding()]
+        [OutputType([string])]
+        Param (
+            [Parameter(Mandatory = $true)][string] $Uid,
+            [Parameter(Mandatory=$true)][TimeSpan] $ExpireIn,
+            [Parameter(Mandatory=$false)][string] $ShareName
+        )
+
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        $oneTimeShare = [KeeperSecurity.Vault.ExternalRecordShareExtensions]::CreateExternalRecordShare($vault, $Uid, $ExpireIn, $ShareName).GetAwaiter().GetResult()
+        return $oneTimeShare
+    }
+
+    New-Alias -Name kotsn -Value New-KeeperOneTimeShare
+
+    function Get-KeeperOneTimeShare {
+        <#
+        .Synopsis
+        Get Keeper One-Time Shares
+
+        .Parameter Uid
+        Shared Record UID
+
+    #>
+        [CmdletBinding()]
+        [OutputType([string])]
+        Param (
+            [Parameter(Mandatory = $true, Position=0)][string] $Uid
+        )
+
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        [KeeperSecurity.Vault.ExternalRecordShareExtensions]::GetExernalRecordShares($vault, $Uid).GetAwaiter().GetResult()
+    }
+    New-Alias -Name kotsg -Value Get-KeeperOneTimeShare
+
+    function Remove-KeeperOneTimeShare {
+        <#
+        .Synopsis
+        Deletes Keeper One-Time Share(s)
+
+        .Parameter Uid
+        Shared Record UID
+
+        .Parameter ShareName
+        One-Time Share Name
+    #>
+        [CmdletBinding()]
+        [OutputType([string])]
+        Param (
+            [Parameter(Mandatory = $true)][string] $Uid,
+            [string[]] $ShareName
+        )
+
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+        $shares = Get-KeeperOneTimeShare $Uid
+        [String[]]$clientUids = @()
+        foreach ($n in $ShareName) {
+            $share = $shares | Where-Object { $_.Name -eq $n } | Select-Object -First 1
+            if ($share) {
+                $clientUids += $share.ClientId
+            } else {
+                Write-Information -MessageData "One-Time Share not found: $n"
+            }
+        }
+        [KeeperSecurity.Vault.ExternalRecordShareExtensions]::DeleteExernalRecordShares($vault, $Uid, $clientUids).GetAwaiter().GetResult() | Out-Null
+    }
+    New-Alias -Name kotsr -Value Remove-KeeperOneTimeShare
