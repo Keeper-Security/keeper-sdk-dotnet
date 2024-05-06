@@ -791,6 +791,8 @@ namespace KeeperSecurity.Vault
         /// Record custom data.
         /// </summary>
         public List<ITypedField> Custom { get; } = new List<ITypedField>();
+
+        internal Dictionary<string, byte[]> LinkedKeys;
     }
 
     internal interface IToRecordTypeDataField
