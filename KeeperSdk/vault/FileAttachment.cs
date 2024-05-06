@@ -503,6 +503,11 @@ namespace KeeperSecurity.Vault
                 SuccessStatusCode = uploadRs.SuccessStatusCode,
                 Parameters = JsonUtils.ParseJson<Dictionary<string, object>>(Encoding.UTF8.GetBytes(uploadRs.Parameters))
             };
+            if (record.LinkedKeys == null) 
+            {
+                record.LinkedKeys = new Dictionary<string, byte[]>();
+            }
+            record.LinkedKeys[fileUid] = fileKey;
 
             try
             {

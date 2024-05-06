@@ -137,17 +137,34 @@ namespace KeeperSecurity.Vault
                 .OfType<TypedField<string>>()
                 .SelectMany(x => x.Values, (field, s) => s));
 
-            recordUpdate.RecordLinksAdd.AddRange(currentRefs.Except(existingRefs)
-                .Select(x => vault.TryGetKeeperRecord(x, out var xr) ? xr : null)
-                .Where(x => x != null)
-                .Select(x => new Records.RecordLink
+            foreach (var newRef in currentRefs.Except(existingRefs))
+            {
+                byte[] refKey = null;
+                if (!typed.LinkedKeys.TryGetValue(newRef, out refKey))
                 {
-                    RecordUid = ByteString.CopyFrom(x.Uid.Base64UrlDecode()),
-                    RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(x.RecordKey, typed.RecordKey))
-                }));
+                    if (vault.TryGetKeeperRecord(newRef, out var xr))
+                    {
+                        refKey = xr.RecordKey;
+                    }
+                }
+                if (refKey != null)
+                {
+                    var recordLink = new Records.RecordLink
+                    {
+                        RecordUid = ByteString.CopyFrom(newRef.Base64UrlDecode()),
+                        RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(refKey, typed.RecordKey))
+                    };
+                    recordUpdate.RecordLinksAdd.Add(recordLink);
+                }
+                else 
+                {
+                    Trace.TraceError($"Lost record reference: record UID: \"{newRef}\"");
+                }
+            }
 
             recordUpdate.RecordLinksRemove.AddRange(existingRefs.Except(currentRefs)
                 .Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+
             if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
             {
                 var rad = typed.ExtractRecordAuditData();
