@@ -295,49 +295,49 @@ namespace KeeperSecurity.Vault
         internal class KsmResponseFile
         {
             [DataMember(Name = "fileUid", EmitDefaultValue = false)]
-            public string fileUid { get; set; }
+            public string FileUid { get; set; }
             [DataMember(Name = "fileKey", EmitDefaultValue = false)]
-            public string fileKey { get; set; }
+            public string FileKey { get; set; }
             [DataMember(Name = "data", EmitDefaultValue = false)]
-            public string data { get; set; }
+            public string Data { get; set; }
             [DataMember(Name = "url", EmitDefaultValue = false)]
-            public string url { get; set; }
+            public string Url { get; set; }
             [DataMember(Name = "thumbnailUrl", EmitDefaultValue = false)]
-            public string thumbnailUrl { get; set; }
+            public string ThumbnailUrl { get; set; }
         }
 
         [DataContract]
         internal class KsmResponseRecord
         {
             [DataMember(Name = "recordUid", EmitDefaultValue = false)]
-            public string recordUid { get; set; }
+            public string RecordUid { get; set; }
             [DataMember(Name = "recordKey", EmitDefaultValue = false)]
-            public string recordKey { get; set; }
+            public string RecordKey { get; set; }
             [DataMember(Name = "data", EmitDefaultValue = false)]
-            public string data { get; set; }
+            public string Data { get; set; }
             [DataMember(Name = "revision", EmitDefaultValue = false)]
-            public long revision { get; set; }
+            public long Revision { get; set; }
             [DataMember(Name = "isEditable", EmitDefaultValue = false)]
-            public bool isEditable { get; set; }
+            public bool IsEditable { get; set; }
             [DataMember(Name = "files", EmitDefaultValue = false)]
             public KsmResponseFile[] files { get; set; }
             [DataMember(Name = "innerFolderUid", EmitDefaultValue = false)]
-            public string innerFolderUid { get; set; }
+            public string InnerFolderUid { get; set; }
         }
 
         [DataContract]
         internal class KsmResponseFolder
         {
             [DataMember(Name = "folderUid", EmitDefaultValue = false)]
-            public string folderUid { get; set; }
+            public string FolderUid { get; set; }
             [DataMember(Name = "folderKey", EmitDefaultValue = false)]
-            public string folderKey { get; set; }
+            public string FolderKey { get; set; }
             [DataMember(Name = "data", EmitDefaultValue = false)]
-            public string data { get; set; }
+            public string Data { get; set; }
             [DataMember(Name = "parent", EmitDefaultValue = false)]
-            public string parent { get; set; }
+            public string Parent { get; set; }
             [DataMember(Name = "records", EmitDefaultValue = false)]
-            public KsmResponseRecord[] records { get; set; }
+            public KsmResponseRecord[] Records { get; set; }
         }
 
         [DataContract]
@@ -395,9 +395,9 @@ namespace KeeperSecurity.Vault
         private byte[] UnloadKsmPrivateKey(ECPrivateKeyParameters privateKey)
         {
             var publicKey = CryptoUtils.GetPublicEcKey(privateKey);
-            DerBitString publicKeyDer = new DerBitString(publicKey.Q.GetEncoded(false));
-            ECDomainParameters dp = privateKey.Parameters;
-            int orderBitLength = dp.N.BitLength;
+            var publicKeyDer = new DerBitString(publicKey.Q.GetEncoded(false));
+            var dp = privateKey.Parameters;
+            var orderBitLength = dp.N.BitLength;
             var x962 = new X962Parameters(X9ObjectIdentifiers.Prime256v1);
             var ec = new ECPrivateKeyStructure(orderBitLength, privateKey.D, publicKeyDer, x962);
             var algId = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
@@ -490,7 +490,7 @@ namespace KeeperSecurity.Vault
                             return JsonUtils.ParseJson<RS>(decryptedRs);
                         }
                     }
-                    return default(RS);
+                    return default;
                 }
                 else
                 {
@@ -521,7 +521,7 @@ namespace KeeperSecurity.Vault
             throw new Exception("KSM API error");
         }
 
-        /// <inheritdoc>
+        /// <inheritdoc/>
         public async Task<ISecretManagerConfiguration> GetConfiguration(string oneTimeToken)
         {
             var tokenParts = oneTimeToken.Split(':');
@@ -561,18 +561,10 @@ namespace KeeperSecurity.Vault
                 clientKey = tokenParts[1];
             }
 
-            var clientKeyBytes = CryptoUtils.Base64UrlDecode(clientKey);
+            var clientKeyBytes = clientKey.Base64UrlDecode();
             var hmac = new HMACSHA512(clientKeyBytes);
             var clientKeyHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(ClientIdHashTag));
             var clientId = Convert.ToBase64String(clientKeyHash);
-
-            var curve = ECNamedCurveTable.GetByName("secp256r1");
-            var EcParameters1 = new ECDomainParameters(curve.Curve, curve.G, curve.N);
-
-
-            var curveOid = X9ObjectIdentifiers.Prime256v1;
-            var Curve = X962NamedCurves.GetByOid(curveOid);
-            var ECParameters2 = new ECDomainParameters(Curve.Curve, Curve.G, Curve.N);
 
             CryptoUtils.GenerateEcKey(out var privateKey, out var publicKey);
             var privateKeyBytes = UnloadKsmPrivateKey(privateKey);
@@ -589,7 +581,7 @@ namespace KeeperSecurity.Vault
             {
                 ClientVersion = KsmClientVersion,
                 ClientId = clientId,
-                PublicKey = CryptoUtils.Base64UrlEncode(CryptoUtils.UnloadEcPublicKey(publicKey)),
+                PublicKey = CryptoUtils.UnloadEcPublicKey(publicKey).Base64UrlEncode(),
                 RequestedRecords = new[] { "NON-EXISTING-RECORD-UID" },
             };
 

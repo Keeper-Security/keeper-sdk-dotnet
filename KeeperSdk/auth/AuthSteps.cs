@@ -17,7 +17,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// </summary>
         DeviceApproval,
         /// <summary>
-        /// Two Factor Authentication
+        /// Two-Factor Authentication
         /// </summary>
         TwoFactor,
         /// <summary>
@@ -146,11 +146,11 @@ namespace KeeperSecurity.Authentication.Sync
         }
 
 
-        internal Action onDispose;
+        internal Action OnDispose;
 
         protected override void Dispose(bool disposing)
         {
-            onDispose?.Invoke();
+            OnDispose?.Invoke();
             base.Dispose(disposing);
         }
     }
@@ -266,7 +266,7 @@ namespace KeeperSecurity.Authentication.Sync
         {
         }
 
-        internal Func<string, Task> onPassword;
+        internal Func<string, Task> OnPassword;
 
         /// <summary>
         /// Verifies master password
@@ -275,10 +275,10 @@ namespace KeeperSecurity.Authentication.Sync
         /// <returns>Awaitable task</returns>
         public Task VerifyPassword(string password)
         {
-            return onPassword?.Invoke(password);
+            return OnPassword?.Invoke(password);
         }
 
-        internal Func<byte[], Task> onBiometricKey;
+        internal Func<byte[], Task> OnBiometricKey;
         /// <summary>
         /// Verifies biometric key
         /// </summary>
@@ -286,7 +286,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// <returns>Awaitable task</returns>
         public Task VerifyBiometricKey(byte[] biometricKey)
         {
-            return onBiometricKey?.Invoke(biometricKey);
+            return OnBiometricKey?.Invoke(biometricKey);
         }
     }
 
@@ -366,13 +366,13 @@ namespace KeeperSecurity.Authentication.Sync
             return OnRequestDataKey?.Invoke(channel);
         }
 
-        internal Func<Task> onResume;
+        internal Func<Task> OnResume;
         /// <summary>
         /// Resumes login flow
         /// </summary>
         public Task Resume()
         {
-            return onResume?.Invoke();
+            return OnResume?.Invoke();
         }
     }
 

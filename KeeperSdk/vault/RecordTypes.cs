@@ -1,7 +1,6 @@
 ﻿using KeeperSecurity.Utils;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -109,15 +108,8 @@ namespace KeeperSecurity.Vault
         /// Initializes a new instance of the RecordTypeField class
         /// </summary>
         /// <param name="fieldName">Field Name</param>
-        public RecordTypeField(string fieldName) : this(fieldName, null)
-        {
-        }
-        /// <summary>
-        /// Initializes a new instance of the RecordTypeField class
-        /// </summary>
-        /// <param name="fieldName">Field Name</param>
         /// <param name="label">Field Label</param>
-        public RecordTypeField(string fieldName, string label)
+        public RecordTypeField(string fieldName, string label = null)
         {
             if (string.IsNullOrEmpty(fieldName))
             {
@@ -344,7 +336,7 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public string GetValueAsString()
         {
-            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            if (ElementValues.All(string.IsNullOrEmpty))
             {
                 return "";
             }
@@ -469,12 +461,12 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public string GetValueAsString()
         {
-            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            if (ElementValues.All(string.IsNullOrEmpty))
             {
                 return "";
             }
             var result = !string.IsNullOrEmpty(Type) ? $"{Type}: " : "";
-            result += string.Join(" ", (new string[] { Region, Number, Ext }).Where(x => !string.IsNullOrEmpty(x)));
+            result += string.Join(" ", (new[] { Region, Number, Ext }).Where(x => !string.IsNullOrEmpty(x)));
             return result;
         }
     }
@@ -579,12 +571,12 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public string GetValueAsString()
         {
-            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            if (ElementValues.All(string.IsNullOrEmpty))
             {
                 return "";
             }
             var result = string.IsNullOrEmpty(Last) ? "" : $"{Last}, ";
-            result += string.Join(" ", (new string[] { First, Middle }).Where(x => !string.IsNullOrEmpty(x)));
+            result += string.Join(" ", (new[] { First, Middle }).Where(x => !string.IsNullOrEmpty(x)));
             return result.Trim();
         }
     }
@@ -709,7 +701,7 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    if (zip.Any(x => Char.IsNumber(x)))
+                    if (zip.Any(char.IsNumber))
                     {
                         Zip = zip;
                     }
@@ -740,7 +732,7 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public string GetValueAsString()
         {
-            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            if (ElementValues.All(string.IsNullOrEmpty))
             {
                 return "";
             }
@@ -783,9 +775,9 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "answer", EmitDefaultValue = true)]
         public string Answer { get; set; }
 
-        private static readonly string[] QAElements = new[] { "question", "answer" };
+        private static readonly string[] QaElements = new[] { "question", "answer" };
         /// <exclude />
-        public IEnumerable<string> Elements => QAElements;
+        public IEnumerable<string> Elements => QaElements;
 
         /// <exclude />
         public IEnumerable<string> ElementValues
@@ -832,7 +824,7 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public string GetValueAsString()
         {
-            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            if (ElementValues.All(string.IsNullOrEmpty))
             {
                 return "";
             }
@@ -939,13 +931,13 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public string GetValueAsString()
         {
-            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            if (ElementValues.All(string.IsNullOrEmpty))
             {
                 return "";
             }
 
             var result = string.IsNullOrEmpty(AccountType) ? "" : $"{AccountType}: ";
-            result += string.Join(" ", (new string[] { RoutingNumber, AccountNumber }).Where(x => !string.IsNullOrEmpty(x)));
+            result += string.Join(" ", (new[] { RoutingNumber, AccountNumber }).Where(x => !string.IsNullOrEmpty(x)));
             return result;
         }
     }
@@ -982,7 +974,7 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "cardSecurityCode", EmitDefaultValue = true)]
         public string CardSecurityCode { get; set; }
 
-        private static string[] CardElements = new[] { "cardNumber", "cardExpirationDate", "cardSecurityCode" };
+        private static readonly string[] CardElements = new[] { "cardNumber", "cardExpirationDate", "cardSecurityCode" };
 
         /// <inheritdoc />
         public IEnumerable<string> Elements => CardElements;
@@ -1042,12 +1034,12 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public string GetValueAsString()
         {
-            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            if (ElementValues.All(string.IsNullOrEmpty))
             {
                 return "";
             }
 
-            return string.Join(" ", (new string[] { CardNumber, CardExpirationDate, CardSecurityCode }).Where(x => !string.IsNullOrEmpty(x)));
+            return string.Join(" ", (new[] { CardNumber, CardExpirationDate, CardSecurityCode }).Where(x => !string.IsNullOrEmpty(x)));
         }
     }
 
@@ -1057,24 +1049,19 @@ namespace KeeperSecurity.Vault
     [DataContract]
     public class FieldTypeKeyPair : FieldTypeBase, IFieldTypeSerialize
     {
-        public FieldTypeKeyPair()
-        {
-            PublicKey = "";
-            PrivateKey = "";
-        }
         /// <summary>
         /// Gets or sets Public Key
         /// </summary>
         [DataMember(Name = "publicKey", EmitDefaultValue = true)]
-        public string PublicKey { get; set; }
+        public string PublicKey { get; set; } = "";
 
         /// <summary>
         /// Gets or sets Private Key
         /// </summary>
         [DataMember(Name = "privateKey", EmitDefaultValue = true)]
-        public string PrivateKey { get; set; }
+        public string PrivateKey { get; set; } = "";
 
-        private static string[] KeyPairElements = new[] { "publicKey", "privateKey" };
+        private static readonly string[] KeyPairElements = new[] { "publicKey", "privateKey" };
 
         /// <inheritdoc />
         public IEnumerable<string> Elements => KeyPairElements;
@@ -1124,7 +1111,7 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public string GetValueAsString()
         {
-            if (ElementValues.All(x => string.IsNullOrEmpty(x)))
+            if (ElementValues.All(string.IsNullOrEmpty))
             {
                 return "";
             }
@@ -1149,7 +1136,7 @@ namespace KeeperSecurity.Vault
         public string MacroSequence { get; set; }
 
 
-        private static string[] KeyPairElements = new[] { "applicationTitle", "contentFilter", "macroSequence" };
+        private static readonly string[] KeyPairElements = new[] { "applicationTitle", "contentFilter", "macroSequence" };
         IEnumerable<string> IFieldTypeSerialize.Elements => KeyPairElements;
 
         IEnumerable<string> IFieldTypeSerialize.ElementValues
@@ -1215,14 +1202,6 @@ namespace KeeperSecurity.Vault
     [DataContract]
     public class FieldTypePasskey : FieldTypeBase
     {
-        public FieldTypePasskey()
-        {
-            RelyingParty = "";
-            CredentialId = "";
-            UserId = "";
-            Username = "";
-        }
-
         [DataMember(Name = "privateKey", EmitDefaultValue = true)]
         public JsonWebKey PrivateKey { get; set; }
 
@@ -1230,25 +1209,25 @@ namespace KeeperSecurity.Vault
         /// Gets or sets Relying Party
         /// </summary>
         [DataMember(Name = "relyingParty", EmitDefaultValue = true)]
-        public string RelyingParty { get; set; }
+        public string RelyingParty { get; set; } = "";
 
         /// <summary>
         /// Gets or sets Credential Id
         /// </summary>
         [DataMember(Name = "credentialId", EmitDefaultValue = true)]
-        public string CredentialId { get; set; }
+        public string CredentialId { get; set; } = "";
 
         /// <summary>
         /// Gets or sets User Id
         /// </summary>
         [DataMember(Name = "userId", EmitDefaultValue = true)]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = "";
 
         /// <summary>
         /// Gets or sets Username
         /// </summary>
         [DataMember(Name = "username", EmitDefaultValue = true)]
-        public string Username { get; set; }
+        public string Username { get; set; } = "";
 
         /// <summary>
         /// Gets or sets Sign Count
@@ -1398,7 +1377,7 @@ namespace KeeperSecurity.Vault
 
         private static readonly Dictionary<Type, RecordTypeInfo> _recordTypeInfo = new Dictionary<Type, RecordTypeInfo>();
 
-        internal static bool GetRecordType(Type dataType, out RecordTypeInfo recordTypeInfo)
+        private static bool GetRecordType(Type dataType, out RecordTypeInfo recordTypeInfo)
         {
             lock (_recordTypeInfo)
             {

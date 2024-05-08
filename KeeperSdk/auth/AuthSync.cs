@@ -439,11 +439,11 @@ namespace KeeperSecurity.Authentication.Sync
 
             var step = new PasswordStep
             {
-                onPassword = async password =>
+                OnPassword = async password =>
                 {
                     await passwordInfo.InvokePasswordActionDelegate.Invoke(password);
                 },
-                onBiometricKey = async bioKey =>
+                OnBiometricKey = async bioKey =>
                 {
                     await passwordInfo.InvokeBiometricsActionDelegate.Invoke(bioKey);
                 }
@@ -495,7 +495,7 @@ namespace KeeperSecurity.Authentication.Sync
             {
                 Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
             };
-            deviceApprovalStep.onDispose = onDone;
+            deviceApprovalStep.OnDispose = onDone;
             return deviceApprovalStep;
         }
 
@@ -563,7 +563,7 @@ namespace KeeperSecurity.Authentication.Sync
                     await info.InvokeGetDataKeyAction();
                 }
             };
-            dataKeyStep.onResume = async () =>
+            dataKeyStep.OnResume = async () =>
             {
                 Step = await this.ResumeLogin(_loginContext, StartLoginSync, loginToken);
             };

@@ -352,16 +352,14 @@ namespace KeeperSecurity.Vault
                     var srcStream = response.GetResponseStream();
                     if (srcStream == null) throw;
                     await srcStream.CopyToAsync(stream);
-                    var responseText = Encoding.UTF8.GetString(stream.ToArray());
-                    Trace.TraceError(responseText);
+                    Trace.TraceError(Encoding.UTF8.GetString(stream.ToArray()));
                 }
 
                 throw;
             }
         }
 
-        /// <exclude />
-        public async Task UploadPasswordAttachment(PasswordRecord record, IAttachmentUploadTask uploadTask)
+        private async Task UploadPasswordAttachment(PasswordRecord record, IAttachmentUploadTask uploadTask)
         {
             var fileStream = uploadTask.Stream;
             if (fileStream == null)
@@ -436,9 +434,7 @@ namespace KeeperSecurity.Vault
             await UpdateRecord(record);
         }
 
-
-        /// <exclude />
-        public async Task UploadTypedAttachment(TypedRecord record, IAttachmentUploadTask uploadTask)
+        private async Task UploadTypedAttachment(TypedRecord record, IAttachmentUploadTask uploadTask)
         {
             var fileStream = uploadTask.Stream;
             if (fileStream == null)
