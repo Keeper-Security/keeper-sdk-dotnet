@@ -393,28 +393,30 @@ namespace KeeperSecurity.Vault
             };
 
             var rs = await Auth.ExecuteAuthCommand<GetRecordsCommand, GetRecordsResponse>(rq);
-
-            permissions.AddRange(rs.Records?.Select(x =>
+            if (rs.Records != null)
             {
-                return new RecordSharePermissions
+                permissions.AddRange(rs.Records.Select(x =>
                 {
-                    RecordUid = x.RecordUid,
-                    UserPermissions = x.UserPermissions?.Select(y => new UserRecordPermissions
+                    return new RecordSharePermissions
                     {
-                        Username = y.Username,
-                        Owner = y.Owner,
-                        CanEdit = y.Editable,
-                        CanShare = y.Sharable,
-                        AwaitingApproval = y.AwaitingApproval
-                    }).ToArray(),
-                    SharedFolderPermissions = x.SharedFolderPermissions?.Select(y => new SharedFolderRecordPermissions
-                    {
-                        SharedFolderUid = y.SharedFolderUid,
-                        CanEdit = y.Editable,
-                        CanShare = y.Reshareable,
-                    }).ToArray()
-                };
-            }));
+                        RecordUid = x.RecordUid,
+                        UserPermissions = x.UserPermissions?.Select(y => new UserRecordPermissions
+                        {
+                            Username = y.Username,
+                            Owner = y.Owner,
+                            CanEdit = y.Editable,
+                            CanShare = y.Sharable,
+                            AwaitingApproval = y.AwaitingApproval
+                        }).ToArray(),
+                        SharedFolderPermissions = x.SharedFolderPermissions?.Select(y => new SharedFolderRecordPermissions
+                        {
+                            SharedFolderUid = y.SharedFolderUid,
+                            CanEdit = y.Editable,
+                            CanShare = y.Reshareable,
+                        }).ToArray()
+                    };
+                }));
+            }
 
             return permissions;
         }
@@ -506,7 +508,7 @@ namespace KeeperSecurity.Vault
                 var keyTuple = await GetUserPublicKeys(username);
                 var rsaKey = keyTuple.Item1;
                 var ecKey = keyTuple.Item2;
-                var useEcKey = ecKey != null && record?.Version != 2;
+                var useEcKey = ecKey != null && record.Version != 2;
                 if (useEcKey)
                 {
                     var pk = CryptoUtils.LoadPublicEcKey(ecKey);
@@ -539,7 +541,6 @@ namespace KeeperSecurity.Vault
                 throw new KeeperApiException(status.Status, status.Message);
             }
         }
-
 
         /// <inheritdoc/>
         public async Task TransferRecordToUser(string recordUid, string username)

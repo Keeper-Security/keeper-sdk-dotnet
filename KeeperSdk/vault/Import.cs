@@ -1,12 +1,9 @@
 ﻿using KeeperSecurity.Commands;
-using KeeperSecurity.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
@@ -32,7 +29,7 @@ namespace KeeperSecurity
         public class ImportRecord
         {
             [DataMember(Name = "uid", EmitDefaultValue = false)]
-            public string UID { get; set; }
+            public string Uid { get; set; }
             [DataMember(Name = "title", EmitDefaultValue = false)]
             public string Title { get; set; }
             [DataMember(Name = "$type", EmitDefaultValue = false)]
@@ -99,11 +96,11 @@ namespace KeeperSecurity
         /// </summary>
         public static class KeeperImport
         {
-            internal const string TWO_FACTOR_CODE = "TFC:Keeper";
+            private const string TWO_FACTOR_CODE = "TFC:Keeper";
 
             static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
-                password.Uid = import.UID;
+                password.Uid = import.Uid;
                 password.Title = import.Title;
                 password.Login = import.Login;
                 password.Password = import.Password;
@@ -143,7 +140,7 @@ namespace KeeperSecurity
 
             static Tuple<string, string> SplitFieldKey(string fieldKey)
             {
-                var fieldType = "";
+                string fieldType;
                 var fieldLabel = "";
                 const char separator = ':';
                 if (fieldKey.StartsWith("$"))
@@ -276,7 +273,7 @@ namespace KeeperSecurity
 
             static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields, Action<Severity, string> logger)
             {
-                typed.Uid = import.UID;
+                typed.Uid = import.Uid;
                 typed.Title = import.Title;
                 typed.Notes = import.Notes;
 
@@ -405,11 +402,6 @@ namespace KeeperSecurity
                     var folder = bvo.GetFolderByPath(currentPath);
                     if (folder == null)
                     {
-                        folder = new FolderNode
-                        {
-                            Name = path[i],
-                            ParentUid = lastFolder?.FolderUid,
-                        };
                         folder = bvo.AddFolder(path[i], lastFolder?.FolderUid, i == path.Length - 1 ? options : null);
                     }
                     lastFolder = folder;
@@ -440,7 +432,7 @@ namespace KeeperSecurity
                                     switch (pair.Key)
                                     {
                                         case "title": rec.Title = pair.Value as string; break;
-                                        case "uid": rec.UID = pair.Value as string; break;
+                                        case "uid": rec.Uid = pair.Value as string; break;
                                         case "$type": rec.RecordType = pair.Value as string; break;
                                         case "login": rec.Login = pair.Value as string; break;
                                         case "password": rec.Password = pair.Value as string; break;
@@ -596,7 +588,7 @@ namespace KeeperSecurity
                 {
                     foreach (var record in import.Records)
                     {
-                        KeeperRecord keeperRecord = null;
+                        KeeperRecord keeperRecord;
                         if (string.IsNullOrEmpty(record.RecordType))
                         {
                             var password = new PasswordRecord();
@@ -605,8 +597,7 @@ namespace KeeperSecurity
                         }
                         else
                         {
-                            RecordType recordType;
-                            if (!vault.TryGetRecordTypeByName(record.RecordType, out recordType))
+                            if (!vault.TryGetRecordTypeByName(record.RecordType, out var recordType))
                             {
                                 record.RecordType = "login";
                                 vault.TryGetRecordTypeByName(record.RecordType, out recordType);

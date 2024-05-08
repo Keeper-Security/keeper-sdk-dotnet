@@ -80,13 +80,8 @@ namespace KeeperSecurity.Authentication
     public class WebSocketChannel : FanOut<NotificationEvent>, IPushNotificationChannel
     {
         private ClientWebSocket _webSocket;
-        private readonly byte[] _transmissionKey;
+        private readonly byte[] _transmissionKey = CryptoUtils.GenerateEncryptionKey();
         private CancellationTokenSource _cancellationTokenSource;
-
-        public WebSocketChannel()
-        {
-            _transmissionKey = CryptoUtils.GenerateEncryptionKey();
-        }
 
         public async Task ConnectToPushServer(IKeeperEndpoint endpoint, WssConnectionRequest connectionRequest)
         {
@@ -347,7 +342,7 @@ namespace KeeperSecurity.Authentication
 
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
         {
-            Uri uri = null;
+            Uri uri;
 
             if (endpoint.StartsWith("https://"))
             {

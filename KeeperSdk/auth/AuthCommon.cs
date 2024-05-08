@@ -162,6 +162,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="endpoint">Request endpoint.</param>
         /// <param name="request">Protobuf request.</param>
         /// <param name="responseType">Expected response type</param>
+        /// <param name="apiVersion">Request version</param>
         /// <returns>Task returning Protobuf response.</returns>
         /// <seealso cref="AuthExtensions.ExecuteAuthRest"/>
         Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null, int apiVersion=0);
