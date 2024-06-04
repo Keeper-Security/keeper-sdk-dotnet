@@ -599,7 +599,7 @@ namespace KeeperSecurity.Authentication
         internal static Tuple<IDeviceApprovalChannelInfo[], Action> ApproveDevicePrepare(
             this IAuth auth,
             LoginContext v3,
-            Action<ByteString> onLoginToken,
+            Func<ByteString, Task> onLoginToken,
             ByteString loginToken)
         {
             var email = new DeviceApprovalEmailResend();
@@ -611,7 +611,7 @@ namespace KeeperSecurity.Authentication
             email.InvokeDeviceApprovalOtpAction = async (code) =>
             {
                 await auth.ValidateDeviceVerificationCode(v3, code);
-                onLoginToken(loginToken);
+                await onLoginToken(loginToken);
             };
 
             var push = new DeviceApprovalKeeperPushAction
@@ -742,7 +742,7 @@ namespace KeeperSecurity.Authentication
 
         internal static Tuple<ITwoFactorChannelInfo[], Action> TwoFactorValidatePrepare(
             this IAuth auth,
-            Action<ByteString> onLoginToken,
+            Func<ByteString, Task> onLoginToken,
             ByteString loginToken,
             IEnumerable<TwoFactorChannelInfo> channels)
         {
@@ -782,7 +782,7 @@ namespace KeeperSecurity.Authentication
                         Value = code,
                     };
                     var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
-                    onLoginToken(validateRs.EncryptedLoginToken);
+                    await onLoginToken(validateRs.EncryptedLoginToken);
                 };
             }
 
@@ -871,7 +871,7 @@ namespace KeeperSecurity.Authentication
                                 {
                                     InvokeTwoFactorPushAction = async (action) =>
                                     {
-                                        var signature = keyUi.AuthenticatePublicKeyRequest(rqs.publicKeyCredentialRequestOptions).GetAwaiter().GetResult();
+                                        var signature = await keyUi.AuthenticatePublicKeyRequest(rqs.publicKeyCredentialRequestOptions);
 
                                         var request = new TwoFactorValidateRequest
                                         {
@@ -882,7 +882,7 @@ namespace KeeperSecurity.Authentication
                                             Value = signature,
                                         };
                                         var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
-                                        onLoginToken(validateRs.EncryptedLoginToken);
+                                        await onLoginToken(validateRs.EncryptedLoginToken);
                                     }
                                 };
                                 availableChannels.Add(key2Fa);

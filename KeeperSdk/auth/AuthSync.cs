@@ -222,7 +222,7 @@ namespace KeeperSecurity.Authentication.Sync
                     return TwoFactorValidate(response.EncryptedLoginToken, response.Channels.ToArray());
 
                 case LoginState.RequiresAuthHash:
-                    return ValidateAuthHash(response.EncryptedLoginToken, response.Salt.ToArray());
+                    return await ValidateAuthHash(response.EncryptedLoginToken, response.Salt.ToArray());
 
                 case LoginState.DeviceApprovalRequired:
                     return ApproveDevice(response.EncryptedLoginToken);
@@ -331,11 +331,11 @@ namespace KeeperSecurity.Authentication.Sync
         {
             var tfaStep = new TwoFactorStep();
             var t = this.TwoFactorValidatePrepare(
-                token =>
+                async (token) =>
                 {
                     if (ReferenceEquals(Step, tfaStep))
                     {
-                        Step = this.ResumeLogin(_loginContext, StartLoginSync, token).Result;
+                        Step = await this.ResumeLogin(_loginContext, StartLoginSync, token);
                     }
                 },
                 loginToken,
@@ -409,7 +409,7 @@ namespace KeeperSecurity.Authentication.Sync
             return tfaStep;
         }
 
-        private PasswordStep ValidateAuthHash(ByteString loginToken, Salt[] salts)
+        private async Task<PasswordStep> ValidateAuthHash(ByteString loginToken, Salt[] salts)
         {
             var passwordInfo = this.ValidateAuthHashPrepare(_loginContext,
                 async context => { Step = await OnConnected(context); },
@@ -422,7 +422,7 @@ namespace KeeperSecurity.Authentication.Sync
                 var password = _loginContext.PasswordQueue.Dequeue();
                 try
                 {
-                    passwordInfo.InvokePasswordActionDelegate.Invoke(password).GetAwaiter().GetResult();
+                    await passwordInfo.InvokePasswordActionDelegate.Invoke(password);
                     if (Step.State == AuthState.Connected)
                     {
                         return null;
@@ -458,11 +458,11 @@ namespace KeeperSecurity.Authentication.Sync
 
             var t = this.ApproveDevicePrepare(
                 _loginContext,
-                (token) =>
+                async (token) =>
                 {
                     if (ReferenceEquals(Step, deviceApprovalStep))
                     {
-                        Step = this.ResumeLogin(_loginContext, StartLoginSync, token).Result;
+                        Step = await this.ResumeLogin(_loginContext, StartLoginSync, token);
                     }
                 },
                 loginToken);
@@ -512,11 +512,23 @@ namespace KeeperSecurity.Authentication.Sync
 
             var ssoAction = isCloudSso
                 ? this.AuthorizeUsingCloudSsoPrepare(_loginContext,
-                    (token) => { Step = ResumeAfterSso(token).GetAwaiter().GetResult(); },
+                    (token) => 
+                    {
+                        Task.Run(async () =>
+                        {
+                            Step = await ResumeAfterSso(token);
+                        });
+                    },
                     ssoBaseUrl,
                     forceLogin)
                 : this.AuthorizeUsingOnsiteSsoPrepare(_loginContext,
-                    () => { Step = ResumeAfterSso(loginToken).GetAwaiter().GetResult(); },
+                    () =>
+                    {
+                        Task.Run(async () =>
+                        {
+                            Step = await ResumeAfterSso(loginToken);
+                        });
+                    },
                     ssoBaseUrl,
                     forceLogin);
 

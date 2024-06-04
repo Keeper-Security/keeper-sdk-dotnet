@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Net;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Authentication;
@@ -8,7 +6,6 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Async;
 using KeeperSecurity.Utils;
 using Moq;
-using Push;
 using Xunit;
 
 namespace Tests
@@ -171,7 +168,7 @@ namespace Tests
         }
 
         [Fact]
-        public void TestLoginSuccessV3TwoFactorCancel()
+        public async Task TestLoginSuccessV3TwoFactorCancel()
         {
             ResetStops();
             StopAtTwoFactor = true;
@@ -181,7 +178,7 @@ namespace Tests
             authMock.Setup(x => x.WaitForTwoFactorCode(It.IsAny<ITwoFactorChannelInfo[]>(),
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(false));
-            Assert.ThrowsAsync<KeeperCanceled>(() => auth.Login(DataVault.UserName));
+            await Assert.ThrowsAsync<KeeperCanceled>(() => auth.Login(DataVault.UserName));
         }
 
         [Fact]
@@ -205,7 +202,7 @@ namespace Tests
         }
 
         [Fact]
-        public void TestFailedWithPassword()
+        public async Task TestFailedWithPassword()
         {
             ResetStops();
             StopAtPassword = true;
@@ -233,7 +230,7 @@ namespace Tests
                     });
                     return src.Task;
                 });
-            Assert.ThrowsAsync<KeeperCanceled>(() => auth.Login(DataVault.UserPassword));
+            await Assert.ThrowsAsync<KeeperCanceled>(() => auth.Login(DataVault.UserPassword));
         }
 
         internal Auth GetAuthAsync()

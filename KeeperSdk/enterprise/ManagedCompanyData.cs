@@ -11,7 +11,7 @@ using KeeperSecurity.Utils;
 namespace KeeperSecurity.Enterprise
 {
     /// <exclude />
-    public interface IManagedCompanyData 
+    public interface IManagedCompanyData
     {
         IEnumerable<EnterpriseManagedCompany> ManagedCompanies { get; }
     }
@@ -177,7 +177,7 @@ namespace KeeperSecurity.Enterprise
 
     /// <exclude />
     public class MspPrice
-    { 
+    {
         public float Amount { get; internal set; }
         public Cost.Types.AmountPer Rate { get; internal set; }
         public long AmountConsumed { get; internal set; }
@@ -266,73 +266,75 @@ namespace KeeperSecurity.Enterprise
                 names[700] = ManagedCompanyConstants.StoragePlan1TB;
                 names[800] = ManagedCompanyConstants.StoragePlan10TB;
 
-                try
+                Task.Run(async () =>
                 {
-                    var endpoint = enterprise.Auth.GetBiUrl("mapping/addons");
-                    var rq = new MappingAddonsRequest();
-                    var rs = enterprise.Auth.ExecuteAuthRest<MappingAddonsRequest, MappingAddonsResponse>(endpoint, rq).GetAwaiter().GetResult();
-                    foreach (var fp in rs.FilePlans)
+                    try
                     {
-                        names[fp.Id * 100] = fp.Name;
+                        var endpoint = enterprise.Auth.GetBiUrl("mapping/addons");
+                        var rq = new MappingAddonsRequest();
+                        var rs = await enterprise.Auth.ExecuteAuthRest<MappingAddonsRequest, MappingAddonsResponse>(endpoint, rq);
+                        foreach (var fp in rs.FilePlans)
+                        {
+                            names[fp.Id * 100] = fp.Name;
+                        }
+                        foreach (var ap in rs.Addons)
+                        {
+                            names[ap.Id * 10000] = ap.Name;
+                        }
                     }
-                    foreach (var ap in rs.Addons)
+                    catch (Exception e)
                     {
-                        names[ap.Id * 10000] = ap.Name;
+                        Debug.WriteLine(e.Message);
                     }
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
 
-                try
-                {
-                    var endpoint = enterprise.Auth.GetBiUrl("subscription/mc_pricing");
-                    var rq = new SubscriptionMcPricingRequest();
-                    var rs = enterprise.Auth.ExecuteAuthRest<SubscriptionMcPricingRequest, SubscriptionMcPricingResponse>(endpoint, rq).GetAwaiter().GetResult();
-                    foreach (var bp in rs.BasePlans)
+                    try
                     {
-                        if (names.TryGetValue(bp.Id, out var name))
+                        var endpoint = enterprise.Auth.GetBiUrl("subscription/mc_pricing");
+                        var rq = new SubscriptionMcPricingRequest();
+                        var rs = await enterprise.Auth.ExecuteAuthRest<SubscriptionMcPricingRequest, SubscriptionMcPricingResponse>(endpoint, rq);
+                        foreach (var bp in rs.BasePlans)
                         {
-                            _prices[name] = new MspPrice
+                            if (names.TryGetValue(bp.Id, out var name))
                             {
-                                Amount = (float) bp.Cost.Amount,
-                                Currency = bp.Cost.Currency,
-                                Rate = bp.Cost.AmountPer,
-                            };
+                                _prices[name] = new MspPrice
+                                {
+                                    Amount = (float) bp.Cost.Amount,
+                                    Currency = bp.Cost.Currency,
+                                    Rate = bp.Cost.AmountPer,
+                                };
+                            }
+                        }
+                        foreach (var fp in rs.FilePlans)
+                        {
+                            if (names.TryGetValue(fp.Id * 100, out var name))
+                            {
+                                _prices[name] = new MspPrice
+                                {
+                                    Amount = (float) fp.Cost.Amount,
+                                    Currency = fp.Cost.Currency,
+                                    Rate = fp.Cost.AmountPer,
+                                };
+                            }
+                        }
+                        foreach (var ap in rs.Addons)
+                        {
+                            if (names.TryGetValue(ap.Id * 10000, out var name))
+                            {
+                                _prices[name] = new MspPrice
+                                {
+                                    Amount = (float) ap.Cost.Amount,
+                                    Currency = ap.Cost.Currency,
+                                    Rate = ap.Cost.AmountPer,
+                                    AmountConsumed = ap.AmountConsumed,
+                                };
+                            }
                         }
                     }
-                    foreach (var fp in rs.FilePlans)
+                    catch (Exception e)
                     {
-                        if (names.TryGetValue(fp.Id * 100, out var name))
-                        {
-                            _prices[name] = new MspPrice
-                            {
-                                Amount = (float) fp.Cost.Amount,
-                                Currency = fp.Cost.Currency,
-                                Rate = fp.Cost.AmountPer,
-                            };
-                        }
+                        Debug.WriteLine(e.Message);
                     }
-                    foreach (var ap in rs.Addons)
-                    {
-                        if (names.TryGetValue(ap.Id * 10000, out var name))
-                        {
-                            _prices[name] = new MspPrice
-                            {
-                                Amount = (float) ap.Cost.Amount,
-                                Currency = ap.Cost.Currency,
-                                Rate = ap.Cost.AmountPer,
-                                AmountConsumed = ap.AmountConsumed,
-                            };
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
-
+                });
             }
         }
 
@@ -340,7 +342,7 @@ namespace KeeperSecurity.Enterprise
     }
 
     /// <exclude />
-    public class ManagedCompanyAuth: AuthCommon
+    public class ManagedCompanyAuth : AuthCommon
     {
         public byte[] TreeKey { get; private set; }
 
@@ -352,7 +354,7 @@ namespace KeeperSecurity.Enterprise
             var mcRq = new LoginToMcRequest
             {
                 McEnterpriseId = mcEnterpriseId,
-                
+
             };
             var mcRs = await enterprise.Auth.ExecuteAuthRest<LoginToMcRequest, LoginToMcResponse>(
                 "authentication/login_to_mc", mcRq);
