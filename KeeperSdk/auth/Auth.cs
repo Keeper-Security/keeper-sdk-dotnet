@@ -473,7 +473,7 @@ namespace KeeperSecurity.Authentication.Async
 
             var loginTokenSource = new TaskCompletionSource<ByteString>();
             var t = this.TwoFactorValidatePrepare(
-                token => loginTokenSource.SetResult(token),
+                token => { loginTokenSource.SetResult(token); return Task.FromResult(true); },
                 loginToken,
                 channels);
             var channelInfo = t.Item1;
@@ -557,7 +557,7 @@ namespace KeeperSecurity.Authentication.Async
         {
             var loginTokenTask = new TaskCompletionSource<ByteString>();
             var t = this.ApproveDevicePrepare(v3,
-                (token) => { loginTokenTask.SetResult(token); },
+                (token) => { loginTokenTask.SetResult(token); return Task.FromResult(true); },
                 loginToken);
             var channelInfo = t.Item1;
             var onDone = t.Item2;
