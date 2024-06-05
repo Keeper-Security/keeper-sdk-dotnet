@@ -195,16 +195,29 @@ function Get-KeeperChildItem {
     }
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    [KeeperSecurity.Vault.FolderNode] $currentDir = $null
+    if (!$vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$currentDir)) {
+        $currentDir = $vault.RootFolder
+    }
 
     [KeeperSecurity.Vault.FolderNode] $baseDir = $null
-    if (!$vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$baseDir)) {
-        $baseDir = $vault.RootFolder
-    }
     if ($Path) {
-        $components = splitKeeperPath $Path
-        $rs = parseKeeperPath $components $vault $baseDir
-        $baseDir = $rs[0]
+        if (-not $vault.TryGetFolder($Path, [ref]$baseDir)) {
+            $components = splitKeeperPath $Path
+            $rs = parseKeeperPath $components $vault $currentDir
+            if ($rs -is [array]) {
+                if (-not $rs[1]) {
+                    $baseDir = $rs[0]
+                }
+            }
+        }
+    } else {
+        $baseDir = $currentDir
     }
+    if (-not $baseDir) {
+        Write-Error -Message "Cannot find path '$Path'" -ErrorAction Stop            
+    }
+
     [KeeperSecurity.Vault.FolderNode[]]$folders = @($baseDir)
     if ($Recursive.IsPresent) {
         $pos = 0

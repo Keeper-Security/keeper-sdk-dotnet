@@ -55,6 +55,9 @@ Export-ModuleMember -Function Get-KeeperSecretManagerApp, Add-KeeperSecretManage
 Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-KeeperSecretManagerClient
 Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
 
+Export-ModuleMember -Function Copy-KeeperFileAttachment
+Export-ModuleMember -Alias kda
+
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (
