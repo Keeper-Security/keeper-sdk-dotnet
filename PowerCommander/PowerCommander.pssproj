@@ -10,7 +10,7 @@
     <PackageEntryPoint>PowerCommander.tests.ps1</PackageEntryPoint>
     <DotNetVersion>net462</DotNetVersion>
     <PackageType>Console</PackageType>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <PowerShellVersion>Windows PowerShell</PowerShellVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
