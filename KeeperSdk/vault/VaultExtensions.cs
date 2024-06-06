@@ -239,16 +239,16 @@ namespace KeeperSecurity.Vault
         {
             return new RecordData
             {
-                title = record.Title,
-                secret1 = record.Login,
-                secret2 = record.Password,
-                link = record.Link,
-                notes = record.Notes,
+                title = record.Title ?? "",
+                secret1 = record.Login ?? "",
+                secret2 = record.Password ?? "",
+                link = record.Link ?? "",
+                notes = record.Notes ?? "",
                 custom = record.Custom?.Select(x => new RecordDataCustom
                 {
-                    name = x.Name,
+                    name = x.Name ?? "Custom Field",
                     value = x.Value,
-                    type = x.Type
+                    type = x.Type ?? "text"
                 }).ToArray()
             };
         }
