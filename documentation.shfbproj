@@ -24,7 +24,7 @@
     <SyntaxFilters>C#</SyntaxFilters>
     <PresentationStyle>VS2013</PresentationStyle>
     <CleanIntermediates>True</CleanIntermediates>
-    <KeepLogFile>True</KeepLogFile>
+    <KeepLogFile>False</KeepLogFile>
     <DisableCodeBlockComponent>False</DisableCodeBlockComponent>
     <IndentHtml>False</IndentHtml>
     <BuildAssemblerVerbosity>OnlyWarningsAndErrors</BuildAssemblerVerbosity>
@@ -36,25 +36,26 @@
     <VisibleItems>ProtectedInternalAsProtected</VisibleItems>
     <NamespaceSummaries>
       <NamespaceSummaryItem name="AccountSummary" isDocumented="False" />
-<NamespaceSummaryItem name="Authentication" isDocumented="False" />
-<NamespaceSummaryItem name="BreachWatch" isDocumented="False" />
-<NamespaceSummaryItem name="Enterprise" isDocumented="False" />
-<NamespaceSummaryItem name="KeeperSecurity.Sdk" isDocumented="False" />
-<NamespaceSummaryItem name="MimeTypes" isDocumented="False" />
-<NamespaceSummaryItem name="Push" isDocumented="False" />
-<NamespaceSummaryItem name="SsoCloud" isDocumented="False" />
-<NamespaceSummaryItem name="KeeperSecurity.Sdk.Commands" isDocumented="False" />
-<NamespaceSummaryItem name="KeeperSecurity" isDocumented="True" />
-<NamespaceSummaryItem name="KeeperSecurity.Commands" isDocumented="False" />
-<NamespaceSummaryItem name="(global)" isDocumented="False" />
-<NamespaceSummaryItem name="KeeperSecurity.Configuration" isDocumented="True" />
-<NamespaceSummaryItem name="KeeperSecurity.Enterprise" isDocumented="True" />
-<NamespaceSummaryItem name="KeeperSecurity.Utils" isDocumented="True" />
-<NamespaceSummaryItem name="KeeperSecurity.Vault" isDocumented="True" />
-<NamespaceSummaryItem name="Folder" isDocumented="False" />
-<NamespaceSummaryItem name="Records" isDocumented="False" />
-<NamespaceSummaryItem name="Tokens" isDocumented="False" />
-<NamespaceSummaryItem name="BI" isDocumented="False" /></NamespaceSummaries>
+      <NamespaceSummaryItem name="Authentication" isDocumented="False" />
+      <NamespaceSummaryItem name="BreachWatch" isDocumented="False" />
+      <NamespaceSummaryItem name="Enterprise" isDocumented="False" />
+      <NamespaceSummaryItem name="KeeperSecurity.Sdk" isDocumented="False" />
+      <NamespaceSummaryItem name="MimeTypes" isDocumented="False" />
+      <NamespaceSummaryItem name="Push" isDocumented="False" />
+      <NamespaceSummaryItem name="SsoCloud" isDocumented="False" />
+      <NamespaceSummaryItem name="KeeperSecurity.Sdk.Commands" isDocumented="False" />
+      <NamespaceSummaryItem name="KeeperSecurity" isDocumented="True" />
+      <NamespaceSummaryItem name="KeeperSecurity.Commands" isDocumented="False" />
+      <NamespaceSummaryItem name="(global)" isDocumented="False" />
+      <NamespaceSummaryItem name="KeeperSecurity.Configuration" isDocumented="True" />
+      <NamespaceSummaryItem name="KeeperSecurity.Enterprise" isDocumented="True" />
+      <NamespaceSummaryItem name="KeeperSecurity.Utils" isDocumented="True" />
+      <NamespaceSummaryItem name="KeeperSecurity.Vault" isDocumented="True" />
+      <NamespaceSummaryItem name="Folder" isDocumented="False" />
+      <NamespaceSummaryItem name="Records" isDocumented="False" />
+      <NamespaceSummaryItem name="Tokens" isDocumented="False" />
+      <NamespaceSummaryItem name="BI" isDocumented="False" />
+    </NamespaceSummaries>
     <ComponentConfigurations>
       <ComponentConfig id="Syntax Component" enabled="True" xmlns="">
         <component id="Syntax Component">

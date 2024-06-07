@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -14,22 +13,21 @@ using Records;
 
 namespace KeeperSecurity.Vault
 {
-    /// <summary>
-    /// Represents shared folder record permissions.
-    /// </summary>
+    /// <inheritdoc/>>
     public class SharedFolderRecordOptions : ISharedFolderRecordOptions
     {
+        /// <inheritdoc/>>
         public bool? CanEdit { get; set; }
+        /// <inheritdoc/>>
         public bool? CanShare { get; set; }
     }
 
-    /// <summary>
-    /// Defines shared folder user permissions.
-    /// </summary>
-
+    /// <inheritdoc/>>
     public class SharedFolderUserOptions : ISharedFolderUserOptions
     {
+        /// <inheritdoc/>>
         public bool? ManageRecords { get; set; }
+        /// <inheritdoc/>>
         public bool? ManageUsers { get; set; }
     }
 
@@ -38,9 +36,13 @@ namespace KeeperSecurity.Vault
     /// </summary>
     public class SharedFolderOptions : ISharedFolderRecordOptions, ISharedFolderUserOptions
     {
+        /// <inheritdoc/>>
         public bool? CanEdit { get; set; }
+        /// <inheritdoc/>>
         public bool? CanShare { get; set; }
+        /// <inheritdoc/>>
         public bool? ManageUsers { get; set; }
+        /// <inheritdoc/>>
         public bool? ManageRecords { get; set; }
     }
 

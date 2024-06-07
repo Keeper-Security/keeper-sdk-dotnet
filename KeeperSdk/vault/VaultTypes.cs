@@ -538,7 +538,7 @@ namespace KeeperSecurity.Vault
         /// <param name="options">Shared Folder User Permissions.</param>
         /// <returns>Awaitable task.</returns>
         /// <remarks>
-        /// If <seealso cref="options"/> parameter is <c>null</c> then user gets default user permissions when added./>
+        /// If <c>options</c>c> parameter is <c>null</c> then user gets default user permissions when added./>
         /// </remarks>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <exception cref="NoActiveShareWithUserException" />
@@ -1213,7 +1213,6 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Gets a custom field.
         /// </summary>
-        /// <param name="record">KeeperRecord</param>
         /// <param name="name">Custom field Name.</param>
         /// <returns>Returns custom field or <c>null</c> is it was not found.</returns>
         public ICustomField GetCustomField(string name)
@@ -1224,7 +1223,6 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Deletes a custom field.
         /// </summary>
-        /// <param name="record">KeeperRecord</param>
         /// <param name="name">Custom field Name.</param>
         /// <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
         public ICustomField DeleteCustomField(string name)
@@ -1243,7 +1241,6 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Adds or Changes custom field.
         /// </summary>
-        /// <param name="record">KeeperRecord</param>
         /// <param name="name">Name.</param>
         /// <param name="value">Value.</param>
         /// <returns>Added or modified custom field.</returns>
@@ -1460,6 +1457,7 @@ namespace KeeperSecurity.Vault
         public string Type { get; set; }
     }
 
+    /// <exclude/>
     public class SecretsManagerDevice
     {
         public string Name { get; internal set; }
@@ -1474,11 +1472,14 @@ namespace KeeperSecurity.Vault
         public DateTimeOffset? AccessExpireOn { get; internal set; }
     }
 
+    /// <exclude/>
     public enum SecretManagerSecretType 
     { 
         Record = 0,
         Folder = 1,
     }
+
+    /// <exclude/>
     public class SecretManagerShare
     {
         public string SecretUid { get; internal set; }
@@ -1487,6 +1488,7 @@ namespace KeeperSecurity.Vault
         public DateTimeOffset CreatedOn { get; internal set; }
     }
 
+    /// <exclude/>
     public class SecretsManagerApplication : ApplicationRecord
     {
         public SecretsManagerDevice[] Devices { get; internal set; }

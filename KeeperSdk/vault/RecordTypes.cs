@@ -149,6 +149,7 @@ namespace KeeperSecurity.Vault
         public string FieldLabel { get; }
     }
 
+    /// <exclude/>
     public class RecordTypePasswordField : RecordTypeField
     {
         public RecordTypePasswordField(RecordField recordField, string label) : base(recordField, label)
@@ -232,13 +233,14 @@ namespace KeeperSecurity.Vault
     }
 
 
+    /// <exclude/>
     [DataContract]
     public class FieldTypeBase : IExtensibleDataObject
     {
         public ExtensionDataObject ExtensionData { get; set; }
     }
 
-    /// <ignored />
+    /// <exclude/>
     [DataContract]
     public class FieldScript : FieldTypeBase
     {
@@ -250,7 +252,7 @@ namespace KeeperSecurity.Vault
         public string[] RecordRef { get; set; }
     }
 
-    /// <ignored />
+    /// <exclude/>
     [DataContract]
     public class FieldPamResources : FieldTypeBase
     {
@@ -1124,6 +1126,7 @@ namespace KeeperSecurity.Vault
         }
     }
 
+    /// <exclude />
     [DataContract]
     public class FieldTypeAppFiller : FieldTypeBase, IFieldTypeSerialize
     {
@@ -1176,7 +1179,7 @@ namespace KeeperSecurity.Vault
         }
     }
 
-    /// <excluded/>
+    /// <exclude />
     [DataContract]
     public class JsonWebKey
     {
@@ -1242,6 +1245,7 @@ namespace KeeperSecurity.Vault
         public long CreatedDate { get; set; }
     }
 
+    /// <exclude />
     public class AnyComplexField : Dictionary<string, string>, IExtensibleDataObject, IFieldTypeSerialize
     {
         public ExtensionDataObject ExtensionData { get; set; }

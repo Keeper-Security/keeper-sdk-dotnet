@@ -140,6 +140,7 @@ namespace KeeperSecurity.Authentication
         /// <param name="auth">The authenticated connection.</param>
         /// <param name="endpoint">URL path for request.</param>
         /// <param name="request"></param>
+        /// <param name="apiVersion">request version</param>
         /// <returns>Task returning Protobuf response.</returns>
         /// <seealso cref="IAuthentication.ExecuteAuthRest"/>
         /// <seealso cref="IKeeperEndpoint.ExecuteRest"/>
