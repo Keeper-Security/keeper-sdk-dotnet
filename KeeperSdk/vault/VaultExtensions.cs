@@ -419,7 +419,7 @@ namespace KeeperSecurity.Vault
         private static readonly DataContractJsonSerializer ExtraSerializer =
             new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
 
-        public static PasswordRecord LoadV2(this IStorageRecord r, byte[] key)
+        internal static PasswordRecord LoadV2(this IStorageRecord r, byte[] key)
         {
             var record = new PasswordRecord()
             {

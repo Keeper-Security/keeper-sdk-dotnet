@@ -16,8 +16,6 @@ namespace KeeperSecurity.Authentication
     /// <summary>
     ///     Provides base types for establishing connection to Keeper servers.
     /// </summary>
-    /// <seealso cref="Async.Auth"/>
-    /// <seealso cref="Sync.AuthSync"/>
     [CompilerGenerated]
     internal class NamespaceDoc
     {
@@ -28,82 +26,46 @@ namespace KeeperSecurity.Authentication
         /// <summary>
         ///     Provides types for connecting to Keeper servers (sync).
         /// </summary>
-        [CompilerGenerated]
-        internal class NamespaceDoc
-        {
-        }
-    }
-
-    namespace Async
-    {
-        /// <summary>
-        ///     Provides types for connecting to Keeper servers (async).
-        /// </summary>
         /// <example>
-        ///     This example shows how to authenticate at Keeper server.
-        ///     <code>
-        /// using System.Linq;
-        /// using System.Threading;
-        /// using System.Threading.Tasks;
-        /// using KeeperSecurity.Authentication;
-        /// using KeeperSecurity.Authentication.Async;
-        /// using KeeperSecurity.Configuration;
-        /// 
-        /// class AuthUi : IAuthUI
-        /// {
-        ///     public Task&lt;bool&gt; WaitForDeviceApproval(IDeviceApprovalChannelInfo[] channels, CancellationToken token)
-        ///     {
-        ///         // find email device approval channel.
-        ///         var emailChannel = channels
-        ///             .Cast&lt;IDeviceApprovalPushInfo&gt;()
-        ///             .FirstOrDefault(x => x.Channel == DeviceApprovalChannel.Email);
-        ///         if (emailChannel != null)
-        ///         {
-        ///             // invoke send email action.
-        ///             _ = Task.Run(async () =>
-        ///             {
-        ///                 await emailChannel.InvokeDeviceApprovalPushAction();
-        ///             });
-        ///         }
-        ///         return new TaskCompletionSource&lt;bool&gt;().Task;
-        ///     }
-        ///     public async Task&lt;bool&gt; WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token)
-        ///     {
-        ///         // find 2FA code channel.
-        ///         var codeChannel = channels
-        ///             .Cast&lt;ITwoFactorAppCodeInfo&gt;()
-        ///             .FirstOrDefault();
-        ///         if (codeChannel != null)
-        ///         {
-        ///             Console.WriteLine("Enter 2FA code: ");
-        ///             var code = Console.ReadLine();
-        ///             await codeChannel.InvokeTwoFactorCodeAction("code");
-        ///             return true;
-        ///         }
-        ///         return false;
-        ///     }
-        ///     public async Task&lt;bool&gt; WaitForUserPassword(IPasswordInfo info, CancellationToken token)
-        ///     {
-        ///         Console.WriteLine($"Enter password for {info.Username}: ");
-        ///         var password = Console.ReadLine();
-        ///         await info.InvokePasswordActionDelegate(password);
-        ///         return true;
-        ///     }
-        /// }
-        /// 
-        /// internal static class Program
-        /// {
-        ///     private static async Task Main()
-        ///     {
-        ///         var auth = new Auth(new AuthUi(), new JsonConfigurationStorage());
-        ///         await auth.Login("username@company.com");
-        ///     }
-        /// }
-        /// </code>
-        /// </example>
-        /// <seealso cref="IAuth" />
-        /// <seealso cref="IAuthUI" />
-        /// <seealso cref="Configuration.JsonConfigurationStorage" />
+        ///   <code>
+        ///using System;
+        ///using System.Threading.Tasks;
+        ///using Cli;
+        ///using KeeperSecurity.Authentication;
+        ///using KeeperSecurity.Authentication.Sync;
+        ///using KeeperSecurity.Configuration;
+        ///using KeeperSecurity.Vault;
+        ///
+        ///namespace Sample
+        ///{
+        ///    internal static class Program
+        ///    {
+        ///        private static async Task Main()
+        ///        {
+        ///            // Keeper SDK needs a storage to save configuration
+        ///            // such as: last login name, device token, etc
+        ///            var configuration = new JsonConfigurationStorage("config.json");
+        ///            var inputManager = new SimpleInputManager();
+        ///
+        ///            // Login to Keeper
+        ///            Console.WriteLine("Logging in...");
+        ///            var authFlow = new AuthSync(configuration);
+        ///            await Utils.LoginToKeeper(authFlow, inputManager, "username@company.com");
+        ///
+        ///            if (authFlow.Step is ErrorStep es)
+        ///            {
+        ///                Console.WriteLine(es.Message);
+        ///                return;
+        ///            }
+        ///            if (!authFlow.IsAuthenticated()) return;
+        ///            var auth = authFlow;
+        ///            var vault = new VaultOnline(auth);
+        ///            await vault.SyncDown();
+        ///        }
+        ///    }
+        ///}
+        ///   </code>
+        ///</example>
         [CompilerGenerated]
         internal class NamespaceDoc
         {

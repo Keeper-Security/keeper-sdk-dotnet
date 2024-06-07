@@ -71,6 +71,7 @@ namespace KeeperSecurity.Authentication
         public string origin;
     }
 
+    /// <exclude/>
     [DataContract]
     public class SignatureResponse
     {
@@ -82,6 +83,7 @@ namespace KeeperSecurity.Authentication
         public string signature;
     }
 
+    /// <exclude/>
     [DataContract]
     public class ClientExtensionResults
     {

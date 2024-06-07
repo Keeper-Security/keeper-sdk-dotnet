@@ -326,76 +326,6 @@
         <member name="M:KeeperSecurity.Authentication.Async.Auth.Dispose">
             <exclude />
         </member>
-        <member name="T:KeeperSecurity.Authentication.Async.NamespaceDoc">
-            <summary>
-                Provides types for connecting to Keeper servers (async).
-            </summary>
-            <example>
-                This example shows how to authenticate at Keeper server.
-                <code>
-            using System.Linq;
-            using System.Threading;
-            using System.Threading.Tasks;
-            using KeeperSecurity.Authentication;
-            using KeeperSecurity.Authentication.Async;
-            using KeeperSecurity.Configuration;
-            
-            class AuthUi : IAuthUI
-            {
-                public Task&lt;bool&gt; WaitForDeviceApproval(IDeviceApprovalChannelInfo[] channels, CancellationToken token)
-                {
-                    // find email device approval channel.
-                    var emailChannel = channels
-                        .Cast&lt;IDeviceApprovalPushInfo&gt;()
-                        .FirstOrDefault(x => x.Channel == DeviceApprovalChannel.Email);
-                    if (emailChannel != null)
-                    {
-                        // invoke send email action.
-                        _ = Task.Run(async () =>
-                        {
-                            await emailChannel.InvokeDeviceApprovalPushAction();
-                        });
-                    }
-                    return new TaskCompletionSource&lt;bool&gt;().Task;
-                }
-                public async Task&lt;bool&gt; WaitForTwoFactorCode(ITwoFactorChannelInfo[] channels, CancellationToken token)
-                {
-                    // find 2FA code channel.
-                    var codeChannel = channels
-                        .Cast&lt;ITwoFactorAppCodeInfo&gt;()
-                        .FirstOrDefault();
-                    if (codeChannel != null)
-                    {
-                        Console.WriteLine("Enter 2FA code: ");
-                        var code = Console.ReadLine();
-                        await codeChannel.InvokeTwoFactorCodeAction("code");
-                        return true;
-                    }
-                    return false;
-                }
-                public async Task&lt;bool&gt; WaitForUserPassword(IPasswordInfo info, CancellationToken token)
-                {
-                    Console.WriteLine($"Enter password for {info.Username}: ");
-                    var password = Console.ReadLine();
-                    await info.InvokePasswordActionDelegate(password);
-                    return true;
-                }
-            }
-            
-            internal static class Program
-            {
-                private static async Task Main()
-                {
-                    var auth = new Auth(new AuthUi(), new JsonConfigurationStorage());
-                    await auth.Login("username@company.com");
-                }
-            }
-            </code>
-            </example>
-            <seealso cref="T:KeeperSecurity.Authentication.IAuth" />
-            <seealso cref="T:KeeperSecurity.Authentication.Async.IAuthUI" />
-            <seealso cref="T:KeeperSecurity.Configuration.JsonConfigurationStorage" />
-        </member>
         <member name="T:KeeperSecurity.Authentication.AccountAuthType">
             <summary>
             Specifies login type
@@ -537,6 +467,7 @@
             <param name="endpoint">Request endpoint.</param>
             <param name="request">Protobuf request.</param>
             <param name="responseType">Expected response type</param>
+            <param name="apiVersion">Request version</param>
             <returns>Task returning Protobuf response.</returns>
             <seealso cref="M:KeeperSecurity.Authentication.AuthExtensions.ExecuteAuthRest``2(KeeperSecurity.Authentication.IAuthentication,System.String,``0,System.Int32)"/>
         </member>
@@ -645,7 +576,6 @@
             <summary>
             Represents base authentication class
             </summary>
-            <seealso cref="T:KeeperSecurity.Authentication.Async.Auth"/>
             <seealso cref="T:KeeperSecurity.Authentication.Sync.AuthSync"/>
         </member>
         <member name="P:KeeperSecurity.Authentication.AuthCommon.Endpoint">
@@ -706,13 +636,51 @@
             <summary>
                 Provides base types for establishing connection to Keeper servers.
             </summary>
-            <seealso cref="T:KeeperSecurity.Authentication.Async.Auth"/>
-            <seealso cref="T:KeeperSecurity.Authentication.Sync.AuthSync"/>
         </member>
         <member name="T:KeeperSecurity.Authentication.Sync.NamespaceDoc">
-            <summary>
-                Provides types for connecting to Keeper servers (sync).
-            </summary>
+             <summary>
+                 Provides types for connecting to Keeper servers (sync).
+             </summary>
+             <example>
+               <code>
+            using System;
+            using System.Threading.Tasks;
+            using Cli;
+            using KeeperSecurity.Authentication;
+            using KeeperSecurity.Authentication.Sync;
+            using KeeperSecurity.Configuration;
+            using KeeperSecurity.Vault;
+            
+            namespace Sample
+            {
+                internal static class Program
+                {
+                    private static async Task Main()
+                    {
+                        // Keeper SDK needs a storage to save configuration
+                        // such as: last login name, device token, etc
+                        var configuration = new JsonConfigurationStorage("config.json");
+                        var inputManager = new SimpleInputManager();
+            
+                        // Login to Keeper
+                        Console.WriteLine("Logging in...");
+                        var authFlow = new AuthSync(configuration);
+                        await Utils.LoginToKeeper(authFlow, inputManager, "username@company.com");
+            
+                        if (authFlow.Step is ErrorStep es)
+                        {
+                            Console.WriteLine(es.Message);
+                            return;
+                        }
+                        if (!authFlow.IsAuthenticated()) return;
+                        var auth = authFlow;
+                        var vault = new VaultOnline(auth);
+                        await vault.SyncDown();
+                    }
+                }
+            }
+               </code>
+            </example>
         </member>
         <member name="T:KeeperSecurity.Authentication.Sync.AuthState">
             <summary>
@@ -731,7 +699,7 @@
         </member>
         <member name="F:KeeperSecurity.Authentication.Sync.AuthState.TwoFactor">
             <summary>
-            Two Factor Authentication
+            Two-Factor Authentication
             </summary>
         </member>
         <member name="F:KeeperSecurity.Authentication.Sync.AuthState.Password">
@@ -1119,6 +1087,7 @@
             <param name="auth">The authenticated connection.</param>
             <param name="endpoint">URL path for request.</param>
             <param name="request"></param>
+            <param name="apiVersion">request version</param>
             <returns>Task returning Protobuf response.</returns>
             <seealso cref="M:KeeperSecurity.Authentication.IAuthentication.ExecuteAuthRest(System.String,Google.Protobuf.IMessage,System.Type,System.Int32)"/>
             <seealso cref="M:KeeperSecurity.Authentication.IKeeperEndpoint.ExecuteRest(System.String,Authentication.ApiRequestPayload)"/>
@@ -1231,14 +1200,19 @@
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.KeeperPostLoginErrors">
-            <summary>
-            User is not allowed to login.
-            </summary>
+            <exclude />
         </member>
         <member name="T:KeeperSecurity.Authentication.KeeperApiException">
             <summary>
             Keeper JSON API error.
             </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.KeeperApiException.#ctor(System.String,System.String)">
+            <summary>
+            Creates KeeperApiException
+            </summary>
+            <param name="code">Kepper Error Code</param>
+            <param name="message">Error Message</param>
         </member>
         <member name="P:KeeperSecurity.Authentication.KeeperApiException.Code">
             <summary>
@@ -1290,6 +1264,12 @@
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.SecurityKeyClientData">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.SignatureResponse">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Authentication.ClientExtensionResults">
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Authentication.KeeperWebAuthnSignature">
@@ -2750,16 +2730,15 @@
             <exclude />
         </member>
         <member name="T:KeeperSecurity.Enterprise.NamespaceDoc">
-            <summary>
-                Provides types for manipulating Keeper Enterprise data.
-            </summary>
-            <example>
-                <code>
+             <summary>
+                 Provides types for manipulating Keeper Enterprise data.
+             </summary>
+             <example>
+               <code>
             using System.Linq;
-            using System.Threading;
             using System.Threading.Tasks;
             using KeeperSecurity.Authentication;
-            using KeeperSecurity.Vault;
+            using KeeperSecurity.Enterprise;
             
             internal static class Program
             {
@@ -2768,15 +2747,15 @@
                     IAuthentication auth = await ConnectToKeeperAs("username@company.com");
                     if (auth.AuthContext.IsEnterpriseAdmin)
                     {
-                        // LoadV2 enterprise data.
+                        // Load base enterprise data.
                         var enterprise = new EnterpriseData();
-                        var enterpriseLoader = new EnterpriseLoader(auth, new [] { enterprise });
-                        await enterpriseLoader.LoadV2();
+                        var enterpriseLoader = new EnterpriseLoader(auth, new[] { enterprise });
+                        await enterpriseLoader.Load();
             
                         // Find team with name "Google".
                         var team = enterprise.Teams
-                            .FirstOrDefault(x => string.Compare(x.Name, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
-                        if (team == null)
+                            .FirstOrDefault(x => string.Equals(x.Name, "Google", System.StringComparison.InvariantCultureIgnoreCase));
+                       if (team == null)
                         {
                             // Create team.
                             team = await enterprise.CreateTeam(new EnterpriseTeam
@@ -2787,18 +2766,18 @@
                                 RestrictView = false,
                             });
                         }
+            
                         // Add users to the "Google" team.
                         await enterprise.AddUsersToTeams(
                             new[] { "username@company.com", "username1@company.com" },
-                            new[] { team.Uid },
-                            Console.WriteLine);
+                            new[] { team.Uid });
                     }
                 }
             }
-            </code>
-            </example>
-            <seealso cref="T:KeeperSecurity.Enterprise.IEnterpriseLoader" />
-            <seealso cref="T:KeeperSecurity.Enterprise.EnterpriseData" />
+               </code>
+             </example>
+             <seealso cref="T:KeeperSecurity.Enterprise.IEnterpriseLoader" />
+             <seealso cref="T:KeeperSecurity.Enterprise.EnterpriseData" />
         </member>
         <member name="T:KeeperSecurity.Enterprise.EnterpriseExtensions">
             <summary>
@@ -2915,6 +2894,51 @@
             Enterprise Node ID
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Enterprise.AccountTransferResult">
+            <summary>
+            Defines Transfer Account Result properties
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.RecordsTransfered">
+            <summary>
+            Number of records
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.SharedFoldersTransfered">
+            <summary>
+            Number of shared folders
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.TeamsTransfered">
+            <summary>
+            Number of teams
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.UserFoldersTransfered">
+            <summary>
+            Number of user folders
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.RecordsCorrupted">
+            <summary>
+            Number of corrupted records
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.SharedFoldersCorrupted">
+            <summary>
+            Number of corrupted shared folders
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.TeamsCorrupted">
+            <summary>
+            Number of corrupted teams
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Enterprise.AccountTransferResult.UserFoldersCorrupted">
+            <summary>
+            Number of corrupted user folders
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Enterprise.IEnterpriseDataManagement">
             <summary>
             Defines methods for modifying enterprise users and teams. 
@@ -2978,7 +3002,7 @@
                 Adds Users to Team.
             </summary>
             <param name="emails">Emails</param>
-            <param name="teamUid">Team Uid</param>
+            <param name="teamUids">Array of team Uids</param>
             <param name="warnings">(Optional)</param>
             <returns>Task</returns>
         </member>
@@ -4105,12 +4129,17 @@
         </member>
         <member name="F:KeeperSecurity.Vault.Severity.Warning">
             <summary>
-            Skippable error
+            Warning
             </summary>
         </member>
         <member name="F:KeeperSecurity.Vault.Severity.Information">
             <summary>
-            Infomation
+            Information
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordMatch">
+            <summary>
+            Represents record existing match strategy
             </summary>
         </member>
         <member name="F:KeeperSecurity.Vault.RecordMatch.None">
@@ -4163,6 +4192,11 @@
             Declares Batch Vault Updater methods
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.IBatchVaultOperations.RootFolder">
+            <summary>
+            Gets the root folder
+            </summary>
+        </member>
         <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.TryGetFolderByUid(System.String,KeeperSecurity.Vault.FolderNode@)">
             <summary>
             Gets folder node by folder UID
@@ -4185,9 +4219,23 @@
             Appends folder to folder structure
             </summary>
             <param name="folderName">folder name</param>
-            <param name="parentUid">parent folder e</param>
+            <param name="parentUid">parent folder</param>
             <param name="sharedFolderOptions">shared folder options</param>
             <returns>folder node to be added</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.IsFolderPending(System.String)">
+            <summary>
+            Checks if the folder has to be created
+            </summary>
+            <param name="folderUid"></param>
+            <returns>true if folder is scheduled to be added</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.IsRecordPending(System.String)">
+            <summary>
+            Checks if the record has to be created
+            </summary>
+            <param name="recordUid"></param>
+            <returns>true if record is scheduled to be added</returns>
         </member>
         <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.UpdateFolderName(System.String,System.String)">
             <summary>
@@ -4195,7 +4243,7 @@
             </summary>
             <param name="folderUid">folder UID</param>
             <param name="folderName">new folder name</param>
-            <returns>true is folder is scheduled to be added</returns>
+            <returns>true if folder is scheduled to be added</returns>
         </member>
         <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.UpdateRecord(KeeperSecurity.Vault.KeeperRecord)">
             <summary>
@@ -4238,12 +4286,16 @@
             Instantiate <see cref="T:KeeperSecurity.Vault.BatchVaultOperations"/>.
             </summary>
             <param name="vault">Vault instance</param>
+            <param name="recordMatch">Record matching strategy</param>
         </member>
         <member name="M:KeeperSecurity.Vault.BatchVaultOperations.Reset">
             <inheritdoc/>
         </member>
         <member name="F:KeeperSecurity.Vault.BatchVaultOperations.PathDelimiter">
             <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.BatchVaultOperations.RootFolder">
+            <inheritdoc />
         </member>
         <member name="M:KeeperSecurity.Vault.BatchVaultOperations.GetFolderByPath(System.String)">
             <inheritdoc />
@@ -4275,6 +4327,12 @@
             <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.BatchVaultOperations.AddRecord(KeeperSecurity.Vault.KeeperRecord,KeeperSecurity.Vault.FolderNode)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.IsFolderPending(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.IsRecordPending(System.String)">
             <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.BatchVaultOperations.ApplyChanges">
@@ -4376,12 +4434,6 @@
         <member name="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachmentFile(System.String,KeeperSecurity.Vault.AttachmentFile,System.IO.Stream)">
             <exclude />
         </member>
-        <member name="M:KeeperSecurity.Vault.VaultOnline.UploadPasswordAttachment(KeeperSecurity.Vault.PasswordRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
-            <exclude />
-        </member>
-        <member name="M:KeeperSecurity.Vault.VaultOnline.UploadTypedAttachment(KeeperSecurity.Vault.TypedRecord,KeeperSecurity.Vault.IAttachmentUploadTask)">
-            <exclude />
-        </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.GetSecretManagerApplication(System.String,System.Boolean)">
             <inheritdoc/>
         </member>
@@ -4398,6 +4450,9 @@
             <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.AddSecretManagerClient(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Nullable{System.Int32},System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.VaultOnline.GetConfiguration(System.String)">
             <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.VaultOnline.DeleteSecretManagerClient(System.String,System.String)">
@@ -4617,7 +4672,7 @@
             Record Types Schema: Field Type definition.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Vault.FieldType.#ctor(System.String,System.Type,System.String)">
+        <member name="M:KeeperSecurity.Vault.FieldType.#ctor(System.String,System.Type,System.String,System.String)">
             <exclude />
         </member>
         <member name="P:KeeperSecurity.Vault.FieldType.Name">
@@ -4698,12 +4753,6 @@
             Record Types Schema: Record Field definition.
             </summary>
         </member>
-        <member name="M:KeeperSecurity.Vault.RecordTypeField.#ctor(System.String)">
-            <summary>
-            Initializes a new instance of the RecordTypeField class
-            </summary>
-            <param name="fieldName">Field Name</param>
-        </member>
         <member name="M:KeeperSecurity.Vault.RecordTypeField.#ctor(System.String,System.String)">
             <summary>
             Initializes a new instance of the RecordTypeField class
@@ -4732,6 +4781,9 @@
             <summary>
             Gets field label
             </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordTypePasswordField">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Vault.RecordType">
             <summary>
@@ -4803,6 +4855,15 @@
             Gets human friendly text
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypeBase">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldScript">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Vault.FieldPamResources">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypeHost">
             <summary>
@@ -5107,8 +5168,11 @@
         <member name="M:KeeperSecurity.Vault.FieldTypeKeyPair.GetValueAsString">
             <inheritdoc/>
         </member>
+        <member name="T:KeeperSecurity.Vault.FieldTypeAppFiller">
+            <exclude />
+        </member>
         <member name="T:KeeperSecurity.Vault.JsonWebKey">
-            <excluded/>
+            <exclude />
         </member>
         <member name="T:KeeperSecurity.Vault.FieldTypePasskey">
             <summary>
@@ -5144,6 +5208,9 @@
             <summary>
             Gets or sets Created Date
             </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.AnyComplexField">
+            <exclude />
         </member>
         <member name="T:KeeperSecurity.Vault.RecordTypesConstants">
             <summary>
@@ -5884,19 +5951,20 @@
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Vault.NamespaceDoc">
-            <summary>
-                Provides types for loading and storing the Keeper Vault data.
-            </summary>
-            <example>
-                <code>
-            using System.Linq;
-            using System.Threading;
-            using System.Threading.Tasks;
-            using KeeperSecurity.Authentication;
-            using KeeperSecurity.Vault;
+             <summary>
+                 Provides types for loading and storing the Keeper Vault data.
+             </summary>
+             <example>
+                 <code>
+             using System;
+             using System.Linq;
+             using System.IO;
+             using System.Threading.Tasks;
+             using KeeperSecurity.Authentication;
+             using KeeperSecurity.Vault;
             
-            internal static class Program
-            {
+             internal static class Program
+             {
                 private static async Task Main()
                 {
                     IAuthentication auth = await ConnectToKeeperAs("username@company.com");
@@ -5908,28 +5976,43 @@
                     Console.WriteLine($"Your vault has {vault.RecordCount} records.");
             
                     // Find record with title "Google"
-                    var search = vault.Records.FirstOrDefault(x => string.Compare(x.Title, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
+                    var search = vault.KeeperRecords.FirstOrDefault(x => string.Compare(x.Title, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
                     // Create a record if it does not exist.
                     if (search == null)
                     {
-                        search = new PasswordRecord
+                        var typed = new TypedRecord("login")
                         {
                             Title = "Google",
-                            Login = "/Account Name/",
-                            Password = "/Account Password/",
-                            Link = "https://google.com",
                             Notes = "Stores google credentials"
                         };
-                        search = await vault.CreateRecord(search);
+                        var loginRecord = new TypedRecordFacade&lt;LoginRecordType&gt;(typed);
+                        loginRecord.Fields.Login = "/Account Name/";
+                        loginRecord.Fields.Password = "/Account Password/";
+                        loginRecord.Fields.Url = "https://google.com";
+            
+                        search = await vault.CreateRecord(typed);
                     }
             
-                    // Update record.
-                    search.SetCustomField("Security Token", "11111111");
+                    // Update record
+                    if (search is TypedRecord tr)
+                    {
+                        var recordField = new RecordTypeField("secret", "Security Token");
+                        if (!tr.FindTypedField(recordField, out var rf))
+                        {
+                            rf = recordField.CreateTypedField();
+                            tr.Custom.Add(rf);
+                        }
+                        var tokenValue = rf.ObjectValue == null ? "1" : rf.ObjectValue.ToString() + "1";
+                    }
+                    else if (search is PasswordRecord pr)
+                    {
+                        pr.SetCustomField("Security Token", "11111111");
+                    }
                     search = await vault.UpdateRecord(search);
             
-                    // find file attachment.
-                    var attachment = search.Attachments
-                        .FirstOrDefault(x => string.Compare(x.Title, "google", StringComparison.InvariantCultureIgnoreCase) == 0);
+                    // find file attachment
+                    var attachment = vault.RecordAttachments(search)
+                        .FirstOrDefault(x => string.Equals(x.Title, "google", StringComparison.InvariantCultureIgnoreCase));
                     if (attachment == null)
                     {
                         // Upload local file "google.txt"
@@ -5946,8 +6029,7 @@
                         await vault.DownloadAttachment(search, attachment.Id, stream);
             
                         // Delete attachment. Remove it from the record 
-                        search.Attachments.Remove(attachment);
-                        await vault.UpdateRecord(search);
+                        await vault.DeleteAttachment(search, attachment.Id);
                     }
             
                     // Find shared folder with name "Google".
@@ -5976,31 +6058,51 @@
                     // Add record to shared folder.
                     await vault.MoveRecords(new[] { new RecordPath { RecordUid = search.Uid } }, sharedFolder.Uid, true);
                 }
-            }
-            </code>
-            </example>
-            <seealso cref="T:KeeperSecurity.Authentication.IAuthentication" />
-            <seealso cref="T:KeeperSecurity.Vault.IVaultData" />
-            <seealso cref="T:KeeperSecurity.Vault.VaultOnline" />
-            <seealso cref="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachment(KeeperSecurity.Vault.KeeperRecord,System.String,System.IO.Stream)" />
+             }
+             </code>
+             </example>
+             <seealso cref="T:KeeperSecurity.Authentication.IAuthentication" />
+             <seealso cref="T:KeeperSecurity.Vault.IVaultData" />
+             <seealso cref="T:KeeperSecurity.Vault.VaultOnline" />
+             <seealso cref="M:KeeperSecurity.Vault.VaultOnline.DownloadAttachment(KeeperSecurity.Vault.KeeperRecord,System.String,System.IO.Stream)" />
         </member>
         <member name="T:KeeperSecurity.Vault.VaultExtensions">
             <exclude/>
         </member>
         <member name="T:KeeperSecurity.Vault.SharedFolderRecordOptions">
-            <summary>
-            Represents shared folder record permissions.
-            </summary>
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderRecordOptions.CanEdit">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderRecordOptions.CanShare">
+            <inheritdoc/>>
         </member>
         <member name="T:KeeperSecurity.Vault.SharedFolderUserOptions">
-            <summary>
-            Defines shared folder user permissions.
-            </summary>
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderUserOptions.ManageRecords">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderUserOptions.ManageUsers">
+            <inheritdoc/>>
         </member>
         <member name="T:KeeperSecurity.Vault.SharedFolderOptions">
             <summary>
              Defines shared folder user and record permissions.
             </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderOptions.CanEdit">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderOptions.CanShare">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderOptions.ManageUsers">
+            <inheritdoc/>>
+        </member>
+        <member name="P:KeeperSecurity.Vault.SharedFolderOptions.ManageRecords">
+            <inheritdoc/>>
         </member>
         <member name="T:KeeperSecurity.Vault.IVaultData">
             <summary>
@@ -6416,6 +6518,39 @@
             <param name="username">User account email</param>
             <returns>Awaitable task.</returns>
         </member>
+        <member name="T:KeeperSecurity.Vault.ISecretManagerConfiguration">
+            <summary>
+            Defines properties of Secrets Manager configuration
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ISecretManagerConfiguration.Hostname">
+            <summary>
+            Keeper Hostname
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ISecretManagerConfiguration.ClientId">
+            <summary>
+            Client or Device ID
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ISecretManagerConfiguration.PrivateKey">
+            <summary>
+            Device Private Key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ISecretManagerConfiguration.AppKey">
+            <summary>
+            Application Key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.ISecretManagerConfiguration.ServerPublicKeyId">
+            <exclude />
+        </member>
+        <member name="P:KeeperSecurity.Vault.ISecretManagerConfiguration.AppOwnerPublicKey">
+            <summary>
+            Public Key for record creation
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Vault.ISecretManager">
             <summary>
             Define methods for Keeper Secret Maneger (KSM)
@@ -6471,6 +6606,13 @@
             <param name="name">Optional. Client/Device name</param>
             <returns>Tuple: Client Device, Client Key</returns>
         </member>
+        <member name="M:KeeperSecurity.Vault.ISecretManager.GetConfiguration(System.String)">
+            <summary>
+            Creates SecretsManager Configuration Storage
+            </summary>
+            <param name="oneTimeToken">One time token</param>
+            <returns>Configuration Storage</returns>
+        </member>
         <member name="M:KeeperSecurity.Vault.ISecretManager.DeleteSecretManagerClient(System.String,System.String)">
             <summary>
             Deletes a client/device from Secret Manager Application
@@ -6495,7 +6637,7 @@
             <param name="options">Shared Folder User Permissions.</param>
             <returns>Awaitable task.</returns>
             <remarks>
-            If <seealso cref="!:options"/> parameter is <c>null</c> then user gets default user permissions when added./>
+            If <c>options</c>c> parameter is <c>null</c> then user gets default user permissions when added./>
             </remarks>
             <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
             <exception cref="T:KeeperSecurity.Vault.NoActiveShareWithUserException" />
@@ -6874,7 +7016,6 @@
             <summary>
             Gets a custom field.
             </summary>
-            <param name="record">KeeperRecord</param>
             <param name="name">Custom field Name.</param>
             <returns>Returns custom field or <c>null</c> is it was not found.</returns>
         </member>
@@ -6882,7 +7023,6 @@
             <summary>
             Deletes a custom field.
             </summary>
-            <param name="record">KeeperRecord</param>
             <param name="name">Custom field Name.</param>
             <returns>Deleted custom field or <c>null</c> is it was not found.</returns>
         </member>
@@ -6890,7 +7030,6 @@
             <summary>
             Adds or Changes custom field.
             </summary>
-            <param name="record">KeeperRecord</param>
             <param name="name">Name.</param>
             <param name="value">Value.</param>
             <returns>Added or modified custom field.</returns>
@@ -7097,6 +7236,18 @@
             <summary>
             Application Type.
             </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.SecretsManagerDevice">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Vault.SecretManagerSecretType">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Vault.SecretManagerShare">
+            <exclude/>
+        </member>
+        <member name="T:KeeperSecurity.Vault.SecretsManagerApplication">
+            <exclude/>
         </member>
         <member name="T:KeeperSecurity.Vault.UserRecordPermissions">
             <summary>

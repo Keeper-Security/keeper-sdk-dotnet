@@ -18,9 +18,7 @@ namespace KeeperSecurity.Authentication
         public string Value { get; }
     }
 
-    /// <summary>
-    /// User is not allowed to login.
-    /// </summary>
+    /// <exclude />
     public class KeeperPostLoginErrors : KeeperApiException
     {
         public KeeperPostLoginErrors(string code, string message) : base(code, message)
@@ -33,6 +31,11 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     public class KeeperApiException : Exception
     {
+        /// <summary>
+        /// Creates KeeperApiException
+        /// </summary>
+        /// <param name="code">Kepper Error Code</param>
+        /// <param name="message">Error Message</param>
         public KeeperApiException(string code, string message) : base(message)
         {
             Code = code;

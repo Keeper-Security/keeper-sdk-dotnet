@@ -48,16 +48,43 @@ namespace KeeperSecurity.Enterprise
         public long? NodeId { get; set; }
     }
 
+    /// <summary>
+    /// Defines Transfer Account Result properties
+    /// </summary>
     public class AccountTransferResult
     {
+        /// <summary>
+        /// Number of records
+        /// </summary>
         public int RecordsTransfered { get; internal set; }
+        /// <summary>
+        /// Number of shared folders
+        /// </summary>
         public int SharedFoldersTransfered { get; internal set; }
+        /// <summary>
+        /// Number of teams
+        /// </summary>
         public int TeamsTransfered { get; internal set; }
+        /// <summary>
+        /// Number of user folders
+        /// </summary>
         public int UserFoldersTransfered { get; internal set; }
 
+        /// <summary>
+        /// Number of corrupted records
+        /// </summary>
         public int RecordsCorrupted { get; internal set; }
+        /// <summary>
+        /// Number of corrupted shared folders
+        /// </summary>
         public int SharedFoldersCorrupted { get; internal set; }
+        /// <summary>
+        /// Number of corrupted teams
+        /// </summary>
         public int TeamsCorrupted { get; internal set; }
+        /// <summary>
+        /// Number of corrupted user folders
+        /// </summary>
         public int UserFoldersCorrupted { get; internal set; }
     };
 
@@ -117,7 +144,7 @@ namespace KeeperSecurity.Enterprise
         ///     Adds Users to Team.
         /// </summary>
         /// <param name="emails">Emails</param>
-        /// <param name="teamUid">Team Uid</param>
+        /// <param name="teamUids">Array of team Uids</param>
         /// <param name="warnings">(Optional)</param>
         /// <returns>Task</returns>
         Task AddUsersToTeams(string[] emails, string[] teamUids, Action<string> warnings = null);

@@ -34,6 +34,9 @@ namespace KeeperSecurity.Vault
         Information,
     }
 
+    /// <summary>
+    /// Represents record existing match strategy
+    /// </summary>
     public enum RecordMatch
     {
         /// <summary>

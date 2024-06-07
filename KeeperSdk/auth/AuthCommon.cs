@@ -315,7 +315,6 @@ namespace KeeperSecurity.Authentication
     /// <summary>
     /// Represents base authentication class
     /// </summary>
-    /// <seealso cref="Async.Auth"/>
     /// <seealso cref="Sync.AuthSync"/>
     public abstract class AuthCommon : IAuthentication, IDisposable
     {
