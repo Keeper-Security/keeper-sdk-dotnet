@@ -39,13 +39,13 @@ jobs:
           echo "BUILD_VERSION=${buildVersion}" >> $Env:GITHUB_ENV
         shell: powershell      
 
-      - uses: actions/checkout@v2
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
-         dotnet-version: 5.0.x
-      - uses: microsoft/setup-msbuild@v1.0.2
+         dotnet-version: 6.0.x
+      - uses: microsoft/setup-msbuild@v2
       
-      - uses: nuget/setup-nuget@v1
+      - uses: nuget/setup-nuget@v2
       - run: nuget restore KeeperSdk.sln
 
 
@@ -58,14 +58,21 @@ jobs:
           Remove-Item certificate.txt
         shell: powershell
 
+      - name: Build Keeper SDK Nuget package
+        working-directory: ./KeeperSdk
+        run: |
+          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
+          dotnet build /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
+          dotnet pack --no-build --no-restore --no-dependencies /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
+        shell: powershell      
+
       - name: Build SQLite Vault Storage
-        if: ${{ github.event.inputs.sqlite_storage == 'true' }}
         working-directory: ./OfflineStorageSqlite
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet restore
-          dotnet clean --configuration=Release
-          dotnet build --configuration=Release
+          dotnet build --configuration=Release --no-dependencies
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK Offline SQLite Storage" "bin\Release\\netstandard2.0\OfflineStorageSqlite.dll"
           dotnet pack --no-build --no-restore --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
@@ -74,39 +81,25 @@ jobs:
         working-directory: ./Cli
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet restore
-          dotnet clean --configuration=Release
-          dotnet build --configuration=Release
+          dotnet build --configuration=Release --no-dependencies
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net472\Cli.dll"
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\Cli.dll"
-          dotnet pack --no-build --no-restore --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
+          dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
       - name: Build .Net Commander
         working-directory: ./Commander
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          msbuild /T:Restore,Clean /P:Configuration=Release
-          msbuild /T:Build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
+          msbuild /T:Restore /P:Configuration=Release
+          msbuild /T:Build /P:Configuration=Release /p:BuildProjectReferences=false
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
-        shell: powershell      
-
-      - name: Build Keeper SDK Nuget package
-        working-directory: ./KeeperSdk
-        run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet restore /P:Configuration=Release
-          dotnet clean /P:Configuration=Release
-          dotnet build /P:Configuration=Release /P:Version=${Env:SDK_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
-          dotnet pack --no-build --no-restore /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell      
 
       - name: Zip Commander
         run: |
           $params = @{
-            Path = "Commander/bin/Release/Commander.*", "Commander/bin/Release/CommandLine.dll", "Cli/bin/Release/net472/Cli.dll", "KeeperSdk/bin/Release/net452/*.dll"
+            Path = "Commander/bin/Release/*.exe", "Commander/bin/Release/Commander.exe.config", "Commander/bin/Release/*.dll", "OfflineStorageSqlite/bin/Release/netstandard2.0/OfflineStorageSqlite.dll"
             CompressionLevel = "Fastest"
             DestinationPath = "Commander-${Env:PACKAGE_VERSION}.zip"
           }
@@ -114,7 +107,7 @@ jobs:
         shell: powershell
 
       - name: Store SDK Nuget artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: KeeperSdk-${{ env.PACKAGE_VERSION }}-Nuget-Package
           path: |
@@ -123,7 +116,7 @@ jobs:
           retention-days: 1
 
       - name: Store Commander artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Commander-${{ env.PACKAGE_VERSION }}
           path: Commander-${{ env.PACKAGE_VERSION }}.zip
@@ -131,7 +124,7 @@ jobs:
 
       - name: Store SQLite Offline Storage artifacts
         if: ${{ github.event.inputs.sqlite_storage == 'true' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: OfflineStorageSqlite
           path: |
@@ -141,7 +134,7 @@ jobs:
 
       - name: Store artifacts
         if: ${{ github.event.inputs.cli == 'true' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Cli
           path: |
