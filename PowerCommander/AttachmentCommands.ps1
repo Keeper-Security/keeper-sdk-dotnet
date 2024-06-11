@@ -1,5 +1,6 @@
 #requires -Version 5.1
 
+
 function Copy-KeeperFileAttachment {
     <#
 	.Synopsis
@@ -63,7 +64,7 @@ function Copy-KeeperFileAttachment {
             }
             foreach ($atta in $vault.RecordAttachments($keeperRecord)) {
                 if ($Name) {
-                    if (-not (($atta.Name, $atta.Title) -contains $name)) {
+                    if (-not (($atta.Name, $atta.Title) -contains $Name)) {
                         continue
                     }
                 }
@@ -95,3 +96,35 @@ function Copy-KeeperFileAttachment {
     }
 }
 New-Alias -Name kda -Value Copy-KeeperFileAttachment
+
+function Get-KeeperFileAttachmentToStream {
+    <#
+    .Synopsis
+    Get Attachment as stream
+
+    .Record 
+    Keeper Record Uid
+
+    .AttachmentName
+    Attachment Name
+
+    .Stream
+    Attachment will be written to this stream
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string] $Record,
+        [Parameter()][string] $AttachmentName,
+        [Parameter(Position = 0, Mandatory = $true)][System.IO.Stream] $Stream
+    )
+
+    $keeperRecord = Get-KeeperRecord $Record
+    if ($keeperRecord.Length -ne 1) {
+        Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
+    }
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $vault.DownloadAttachment($keeperRecord, $AttachmentName, $Stream).GetAwaiter().GetResult() | Out-Null
+}
+
+
