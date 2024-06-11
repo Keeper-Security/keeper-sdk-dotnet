@@ -97,7 +97,7 @@ function Copy-KeeperFileAttachment {
 }
 New-Alias -Name kda -Value Copy-KeeperFileAttachment
 
-function Get-KeeperFileAttachmentToStream {
+function Copy-KeeperFileAttachmentToStream {
     <#
     .Synopsis
     Get Attachment as stream
@@ -126,5 +126,3 @@ function Get-KeeperFileAttachmentToStream {
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     $vault.DownloadAttachment($keeperRecord, $AttachmentName, $Stream).GetAwaiter().GetResult() | Out-Null
 }
-
-

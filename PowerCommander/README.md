@@ -29,6 +29,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard
 | Show-TwoFactorCode                     | 2fa         | Display Two Factor Code 
 | Copy-KeeperFileAttachment              | kda         | Download file attachments 
+| Copy-KeeperFileAttachmentToStream      |             | Download file attachement to stream
 
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
