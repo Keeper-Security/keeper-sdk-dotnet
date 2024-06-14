@@ -283,13 +283,70 @@ function Add-KeeperRecord {
 	Generate random password.
 
 	.Parameter Fields
-	A list of record Fields. Record field format NAME=VALUE
+	A list of record Fields. See DESCRIPTION
+    
+    .DESCRIPTION
+    Record field format [NAME=VALUE] or [-name $value]
+    if field starts with `-` then the following parameter contains field value 
+    otherwise NAME=VALUE pattern is assumed
+
 	Predefined fields are
 	login 			Login Name
-	password		Password
+	password        Password
 	url				Web Address
+
 	Any other name is added to Custom Fields
-	Example: login=username password=userpassword "Database Server=value1"
+    
+    Typed records only:
+
+    A field has [TYPE.LABEL] format. A TYPE or LABEL can be omitted.
+    Field Type        Description            Value Type     Examples
+    ===========       ==================     ==========     =====================================
+    date              Unix epoch time.       integer        1668639533000 | 03/23/2022
+    host              host name / port       object         @{hostName=''; port=''} 
+                                                            192.168.1.2:4321
+    address           Address                object         @{street1=""; street2=""; city="";
+                                                              state=""; zip=""; country=""}
+                                                            123 Main St, SmallTown, CA 12345, USA
+    phone             Phone                  object         @{region=""; number=""; ext=""; type=""}
+                                                            Mobile: US (555)555-1234
+    name              Person name            object         @{first=""; middle=""; last=""}
+                                                            Doe, John Jr. | Jane Doe
+    paymentCard       Payment Card           object         @{cardNumber=""; cardExpirationDate=""; 
+                                                              cardSecurityCode=""}
+                                                            4111111111111111 04/2026 123
+    bankAccount       Bank Account           object         @{accountType=""; routingNumber=""; 
+                                                              accountNumber=""}
+                                                            Checking: 123456789 987654321
+    keyPair           Key Pair               object         @{publicKey=""; privateKey=""}
+
+    oneTimeCode       TOTP URL               string         otpauth://totp/Example?secret=JBSWY3DPEHPK3PXP
+    note              Masked multiline text  string         
+    multiline         Multiline text         string         
+    secret            Masked text            string         
+    login             Login                  string                                         
+    email             Email                  string         'name@company.com'                                
+    password          Password               string         
+    url               URL                    string         https://google.com/
+    text              Free form text         string         This field type generally has a label
+
+    .EXAMPLE 
+    PS> $password = Read-Host -AsSecureString -Prompt "Enter Password"
+    PS> Add-KeeperRecord -Title "New Record" login=username -password $password
+
+    .EXAMPLE
+    PS> $h = @{hostName='google.com'; port='123'} 
+	PS> Add-KeeperRecord -Uid ... -"host.Google Host" $h 
+
+    .EXAMPLE
+	PS> Add-KeeperRecord -Uid ... "host.Google Host=google.com:123" 
+
+    .EXAMPLE
+    PS> $rsa = [System.Security.Cryptography.RSA]::Create(2048)
+    PS> $privateKey = [Convert]::ToBase64String($rsa.ExportPkcs8PrivateKey())
+    PS> $publicKey = [Convert]::ToBase64String($rsa.ExportRSAPublicKey())
+    PS> $keyPair = @{privateKey=$privateKey; publicKey=$publicKey}
+    PS> Add-KeeperRecord -Uid ... -keyPair $keyPair
 #>
 
     [CmdletBinding(DefaultParameterSetName = 'add')]
@@ -298,8 +355,8 @@ function Add-KeeperRecord {
         [Parameter(ParameterSetName = 'add')] [string] $RecordType,
         [Parameter(ParameterSetName = 'add')] [string] $Folder,
         [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
-        [Parameter(ParameterSetName = 'add', Mandatory = $True)] [string] $Title,
-        [Parameter()] $Notes,
+        [Parameter()] [string] $Title,
+        [Parameter()] [string] $Notes,
         [Parameter(ValueFromRemainingArguments = $true)] $Extra
     )
 
@@ -341,11 +398,14 @@ function Add-KeeperRecord {
                 }
             }
             if (-not $record) {
-                Write-Error -Message "Record `"$Uid`" not found"
+                Write-Error -Message "Record `"$Uid`" not found" -ErrorAction Stop
                 return
             }
         }
         else {
+            if (!$Title) {
+                Write-Error -Message "-Title parameter is required" -ErrorAction Stop
+            }
             if (-not $RecordType -or $RecordType -eq 'legacy') {
                 $record = New-Object KeeperSecurity.Vault.PasswordRecord
             }
@@ -353,6 +413,8 @@ function Add-KeeperRecord {
                 $record = New-Object KeeperSecurity.Vault.TypedRecord $RecordType
                 [KeeperSecurity.Utils.RecordTypesUtils]::AdjustTypedRecord($vault, $record)
             }
+        }
+        if ($Title) {
             $record.Title = $Title
         }
 
@@ -381,6 +443,9 @@ function Add-KeeperRecord {
             }
             if ($fieldName -match '^\$') {
                 $fieldName = $fieldName.Substring(1).Trim()
+            }
+            if ($fieldValue -is [securestring]) {
+                $fieldValue = (New-Object PSCredential 'a', $fieldValue).GetNetworkCredential().Password
             }
             if ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
                 switch ($fieldName) {
