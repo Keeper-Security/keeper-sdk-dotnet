@@ -65,7 +65,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Represents Keeper vault loaded from the <see cref="IKeeperStorage"/> and decrypted.
     /// </summary>
-    public class VaultData: IVaultData, IDisposable
+    public class VaultData : IVaultData, IDisposable
     {
         /// <summary>
         /// Instantiates <see cref="VaultData"/> instance. 
@@ -87,8 +87,10 @@ namespace KeeperSecurity.Vault
 
         /// <inheritdoc/>
         public int RecordCount => keeperRecords.Count;
+
         /// <inheritdoc/>
         public IEnumerable<KeeperRecord> KeeperRecords => keeperRecords.Values;
+
         /// <inheritdoc/>
         public bool TryGetKeeperRecord(string recordUid, out KeeperRecord record)
         {
@@ -96,8 +98,26 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
-        public int ApplicationCount => keeperApplications.Count;
+        public bool TryLoadKeeperRecord(string recordUid, out KeeperRecord record)
+        {
+            record = null;
+            if (TryGetKeeperRecord(recordUid, out var r)) 
+            {
+                var storageRecord = Storage.Records.GetEntity(recordUid);
+                if (storageRecord != null)
+                {
+                    record = storageRecord.Load(r.RecordKey);
+                }
+            }
+
+            return record != null;
+        }
+
         /// <inheritdoc/>
+        public int ApplicationCount => keeperApplications.Count;
+
+        /// <inheritdoc/>
+        
         public IEnumerable<ApplicationRecord> KeeperApplications => keeperApplications.Values;
         /// <inheritdoc/>
         public bool TryGetKeeperApplication(string applicationUid, out ApplicationRecord record)
@@ -639,25 +659,7 @@ namespace KeeperSecurity.Vault
                     {
                         try
                         {
-                            KeeperRecord record = null;
-                            switch (r.Version)
-                            {
-                                case 0:
-                                case 1:
-                                case 2:
-                                    record = r.LoadV2(rKey);
-                                    break;
-                                case 3:
-                                    record = r.LoadV3(rKey);
-                                    break;
-                                case 4:
-                                    record = r.LoadV4(rKey);
-                                    break;
-                                case 5:
-                                    record = r.LoadV5(rKey);
-                                    break;
-                            }
-
+                            KeeperRecord record = r.Load(rKey);
                             if (record != null)
                             {
                                 record.Revision = r.Revision;

@@ -4187,6 +4187,11 @@
             Get number of updated records
             </summary>
         </member>
+        <member name="P:KeeperSecurity.Vault.BatchResult.UpdatedFolderCount">
+            <summary>
+            Get number of updated folders
+            </summary>
+        </member>
         <member name="T:KeeperSecurity.Vault.IBatchVaultOperations">
             <summary>
             Declares Batch Vault Updater methods
@@ -4205,6 +4210,14 @@
             <param name="folder">folder node</param>
             <seealso cref="T:KeeperSecurity.Vault.FolderNode"/>
             <returns>true if folder is found</returns>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.TryGetRecordByUid(System.String,KeeperSecurity.Vault.KeeperRecord@)">
+            <summary>
+            Gets record by record UID. Returns both pending and active records.
+            </summary>
+            <param name="recordUid">record UID</param>
+            <param name="record">Keeper record</param>
+            <returns></returns>
         </member>
         <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.GetFolderByPath(System.String)">
             <summary>
@@ -4321,6 +4334,9 @@
             <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.BatchVaultOperations.UpdateFolderName(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.TryGetRecordByUid(System.String,KeeperSecurity.Vault.KeeperRecord@)">
             <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.BatchVaultOperations.UpdateRecord(KeeperSecurity.Vault.KeeperRecord)">
@@ -5896,6 +5912,9 @@
         <member name="M:KeeperSecurity.Vault.VaultData.TryGetKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)">
             <inheritdoc/>
         </member>
+        <member name="M:KeeperSecurity.Vault.VaultData.TryLoadKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)">
+            <inheritdoc/>
+        </member>
         <member name="P:KeeperSecurity.Vault.VaultData.ApplicationCount">
             <inheritdoc/>
         </member>
@@ -6150,11 +6169,22 @@
         </member>
         <member name="M:KeeperSecurity.Vault.IVaultData.TryGetKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)">
             <summary>
-            Gets the legacy record associated with the specified record UID.
+            Gets the Keeper record associated with the specified record UID from a record cache.
             </summary>
-            <param name="recordUid">Record UID.</param>
-            <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c>.</param>
+            <param name="recordUid">Record UID</param>
+            <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c></param>
             <returns><c>true</c> in the vault contains a record with specified UID; otherwise, <c>false</c></returns>
+            <seealso cref="M:KeeperSecurity.Vault.IVaultData.TryLoadKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)"/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.IVaultData.TryLoadKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)">
+            <summary>
+            Tries to load a Keeper from storage. 
+            The loaded record can be modified and discarded without changing a record cache.
+            </summary>
+            <param name="recordUid">Record UID</param>
+            <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c></param>
+            <returns><c>true</c> in the vault contains a record with specified UID; otherwise, <c>false</c></returns>
+            <seealso cref="M:KeeperSecurity.Vault.IVaultData.TryGetKeeperRecord(System.String,KeeperSecurity.Vault.KeeperRecord@)"/>
         </member>
         <member name="P:KeeperSecurity.Vault.IVaultData.Records">
             <summary>
@@ -6314,6 +6344,26 @@
         <member name="P:KeeperSecurity.Vault.NoActiveShareWithUserException.Username">
             <summary>
             Gets user email to send share invite
+            </summary>
+        </member>
+        <member name="T:KeeperSecurity.Vault.RecordHistory">
+            <summary>
+            Represents a record history
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordHistory.KeeperRecord">
+            <summary>
+            Keeper record
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordHistory.Username">
+            <summary>
+            User modified the record
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Vault.RecordHistory.RecordChange">
+            <summary>
+            Summary of changes
             </summary>
         </member>
         <member name="T:KeeperSecurity.Vault.IVault">

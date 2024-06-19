@@ -164,6 +164,14 @@ namespace Commander
                     Description = "Display specified Keeper record/folder/team",
                     Action = context.GetCommand
                 });
+            cli.Commands.Add("record-history",
+                new SimpleCommand
+                {
+                    Order = 15,
+                    Description = "Display record history",
+                    Action = context.RecordHistoryCommand
+                });
+
             if (context.Vault.Auth.AuthContext.Settings.RecordTypesEnabled)
             {
                 cli.Commands.Add("record-type-info",
@@ -565,6 +573,78 @@ namespace Commander
         {
             context.PrintTree(context.Vault.RootFolder, "", true);
             return Task.FromResult(true);
+        }
+
+
+        private static IEnumerable<string> ToRecordChangeNames(this RecordChange changes)
+        {
+            if ((changes & RecordChange.RecordType) != 0) 
+            { 
+                yield return "Record Type";
+            }
+            if ((changes & RecordChange.Title) != 0)
+            {
+                yield return "Title";
+            }
+            if ((changes & RecordChange.Login) != 0)
+            {
+                yield return "Login";
+            }
+            if ((changes & RecordChange.Password) != 0)
+            {
+                yield return "Password";
+            }
+            if ((changes & RecordChange.Url) != 0)
+            {
+                yield return "URL";
+            }
+            if ((changes & RecordChange.Notes) != 0)
+            {
+                yield return "Notes";
+            }
+            if ((changes & RecordChange.Totp) != 0)
+            {
+                yield return "Totp";
+            }
+            if ((changes & RecordChange.Hostname) != 0)
+            {
+                yield return "Hostname";
+            }
+            if ((changes & RecordChange.Address) != 0)
+            {
+                yield return "Address";
+            }
+            if ((changes & RecordChange.PaymentCard) != 0)
+            {
+                yield return "Payment Card";
+            }
+            if ((changes & RecordChange.CustomField) != 0)
+            {
+                yield return "Custom Field";
+            }
+            if ((changes & RecordChange.File) != 0)
+            {
+                yield return "File";
+            }
+        }
+
+        private static async Task RecordHistoryCommand(this VaultContext context, string recordUid) 
+        {
+            if (string.IsNullOrEmpty(recordUid)) 
+            { 
+                throw new Exception("\"record-history\" command requires <RECORD UID> parameter");
+            }
+            var tab = new Tabulate(4);
+            tab.AddHeader("Version", "Modification Date", "Username", "Changed");
+            var history = await context.Vault.GetRecordHistory(recordUid);
+            for (var i = 0; i < history.Length; i++) 
+            { 
+                var h = history[i];
+
+                var changes = string.Join(", ", h.RecordChange.ToRecordChangeNames());
+                tab.AddRow($"V.{history.Length - i}", h.KeeperRecord.ClientModified.ToString("G"), h.Username, changes);
+            }
+            tab.Dump();
         }
 
         private static async Task GetCommand(this VaultContext context, string uid)

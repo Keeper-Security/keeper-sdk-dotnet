@@ -85,6 +85,11 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public int UpdatedRecordCount { get; internal set; }
 
+        /// <summary>
+        /// Get number of updated folders
+        /// </summary>
+        public int UpdatedFolderCount { get; internal set; }
+
         public IDictionary<string, string> FolderFailure { get; } = new Dictionary<string, string>();
         public IDictionary<string, string> RecordFailure { get; } = new Dictionary<string, string>();
     }
@@ -107,6 +112,14 @@ namespace KeeperSecurity.Vault
         /// <seealso cref="FolderNode"/>
         /// <returns>true if folder is found</returns>
         bool TryGetFolderByUid(string folderUid, out FolderNode folder);
+
+        /// <summary>
+        /// Gets record by record UID. Returns both pending and active records.
+        /// </summary>
+        /// <param name="recordUid">record UID</param>
+        /// <param name="record">Keeper record</param>
+        /// <returns></returns>
+        bool TryGetRecordByUid(string recordUid, out KeeperRecord record);
 
         /// <summary>
         /// Finds folder node by folder path
@@ -429,33 +442,9 @@ namespace KeeperSecurity.Vault
                 yield return token;
             }
         }
-
-        private static string GetRecordFieldToken(ITypedField field)
+        internal static string GetRecordFieldToken(ITypedField field)
         {
-            var value = "";
-            if (field is ISerializeTypedField fts)
-            {
-                value = fts.ExportTypedField();
-            }
-            else
-            {
-                var vs = new List<string>();
-                for (var i = 0; i < field.Count; i++)
-                {
-                    var v = field.GetValueAt(i);
-                    if (v is IConvertible)
-                    {
-                        vs.Add(v.ToString());
-                    }
-                }
-
-                if (vs.Count > 0)
-                {
-                    vs.Sort();
-                    value = string.Join("|", vs);
-                }
-            }
-
+            var value = field.GetExternalValue();
             if (string.IsNullOrEmpty(value))
             {
                 return null;
@@ -684,6 +673,28 @@ namespace KeeperSecurity.Vault
             return false;
         }
 
+        /// <inheritdoc/>
+        public bool TryGetRecordByUid(string recordUid, out KeeperRecord record)
+        {
+            record = null;
+            if (_recordSet.Contains(recordUid))
+            {
+                record = _legacyRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid);
+                if (record == null)
+                {
+                    record = _typedRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid);
+                }
+            }
+            else
+            {
+                record = _recordsToUpdate.FirstOrDefault(x => x.Uid == recordUid);
+                if (record == null)
+                {
+                    _vault.TryGetKeeperRecord(recordUid, out record);
+                }
+            }
+            return record != null;
+        }
 
         /// <inheritdoc/>
         public bool UpdateRecord(KeeperRecord record)
@@ -1320,7 +1331,11 @@ namespace KeeperSecurity.Vault
                         {
                             var rs = updateResults[i];
                             var rq = folderUpdateRequests[i];
-                            if (!rs.IsSuccess)
+                            if (rs.IsSuccess)
+                            {
+                                result.UpdatedRecordCount++;
+                            }
+                            else
                             {
                                 if (rq is FolderUpdateCommand fuc)
                                 {

@@ -69,7 +69,12 @@ namespace KeeperSecurity.Utils
         /// <returns>UID. 16 random bytes Base64 URL encoded.</returns>
         public static string GenerateUid()
         {
-            return GetRandomBytes(16).Base64UrlEncode();
+            var uid = GetRandomBytes(16);
+            if ((uid[0] & 0xf8) == 0xf8)
+            {
+                uid[0] = (byte)(uid[0] & 0x7f);
+            }
+            return uid.Base64UrlEncode();
         }
 
         /// <summary>
