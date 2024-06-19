@@ -70,8 +70,8 @@ namespace KeeperSecurity.Vault
         public static ITypedField CreateTypedField(this IRecordTypeField fieldInfo)
         {
             var tf = CreateTypedField(fieldInfo.FieldName, fieldInfo.FieldLabel);
-            if (fieldInfo is RecordTypeField rtf) 
-            { 
+            if (fieldInfo is RecordTypeField rtf)
+            {
             }
 
             return tf;
@@ -85,11 +85,16 @@ namespace KeeperSecurity.Vault
                 {
                     return false;
                 }
+                if (fieldInfo.FieldLabel == null)    // NULL means ignore label
+                {
+                    return true;
+                }
                 if (string.IsNullOrEmpty(x.FieldLabel) && string.IsNullOrEmpty(fieldInfo.FieldLabel))
                 {
                     return true;
                 }
                 return string.Equals(x.FieldLabel, fieldInfo.FieldLabel, StringComparison.InvariantCultureIgnoreCase);
+
             });
             return field != null;
         }
@@ -103,5 +108,40 @@ namespace KeeperSecurity.Vault
 
             return record.Custom.FindTypedField(fieldInfo, out field);
         }
+
+        public static bool FindTypedField(this TypedRecord record, string fieldType, string fieldLabel, out ITypedField field)
+        {
+            var fieldInfo = new RecordTypeField(fieldType, fieldLabel);
+            return record.FindTypedField(fieldInfo, out field);
+        }
+
+        internal static string GetExternalValue(this ITypedField field)
+        {
+            var value = "";
+            if (field is ISerializeTypedField fts)
+            {
+                value = fts.ExportTypedField();
+            }
+            else
+            {
+                var vs = new List<string>();
+                for (var i = 0; i < field.Count; i++)
+                {
+                    var v = field.GetValueAt(i);
+                    if (v is IConvertible)
+                    {
+                        vs.Add(v.ToString());
+                    }
+                }
+
+                if (vs.Count > 0)
+                {
+                    vs.Sort();
+                    value = string.Join("|", vs);
+                }
+            }
+            return value;
+        }
     }
+
 }

@@ -112,7 +112,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Encrypted record data 
         /// </summary>
-        string Data { get; set; }
+        string Data { get; }
         /// <summary>
         /// Encrypted record extra data.
         /// </summary>

@@ -707,4 +707,5 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "records", EmitDefaultValue = false)]
         public RecordDetail[] Records;
     }
+
 }

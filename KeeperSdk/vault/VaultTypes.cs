@@ -54,12 +54,23 @@ namespace KeeperSecurity.Vault
         /// </summary>
         IEnumerable<KeeperRecord> KeeperRecords { get; }
         /// <summary>
-        /// Gets the legacy record associated with the specified record UID.
+        /// Gets the Keeper record associated with the specified record UID from a record cache.
         /// </summary>
-        /// <param name="recordUid">Record UID.</param>
-        /// <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c>.</param>
+        /// <param name="recordUid">Record UID</param>
+        /// <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c></param>
         /// <returns><c>true</c> in the vault contains a record with specified UID; otherwise, <c>false</c></returns>
+        /// <seealso cref="TryLoadKeeperRecord"/>
         bool TryGetKeeperRecord(string recordUid, out KeeperRecord record);
+
+        /// <summary>
+        /// Tries to load a Keeper from storage. 
+        /// The loaded record can be modified and discarded without changing a record cache.
+        /// </summary>
+        /// <param name="recordUid">Record UID</param>
+        /// <param name="record">When this method returns <c>true</c>, contains requested record; otherwise <c>null</c></param>
+        /// <returns><c>true</c> in the vault contains a record with specified UID; otherwise, <c>false</c></returns>
+        /// <seealso cref="TryGetKeeperRecord"/>
+        bool TryLoadKeeperRecord(string recordUid, out KeeperRecord record);
 
         /// <summary>
         /// Get the list of all legacy records in the vault.
@@ -220,6 +231,43 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public string Username { get; }
     }
+
+    [Flags]
+    public enum RecordChange 
+    { 
+        RecordType = 1 << 0,
+        Title = 1 << 1,
+        Login = 1 << 2,
+        Password = 1 << 3,
+        Url = 1 << 4,
+        Totp = 1 << 5,
+        Hostname = 1 << 6,
+        Address = 1 << 7,
+        PaymentCard = 1 << 8,
+        Notes = 1 << 9,
+        File = 1 << 10,
+        CustomField = 1 << 11,
+    }
+
+    /// <summary>
+    /// Represents a record history
+    /// </summary>
+    public class RecordHistory
+    {
+        /// <summary>
+        /// Keeper record
+        /// </summary>
+        public KeeperRecord KeeperRecord { get; internal set; }
+        /// <summary>
+        /// User modified the record
+        /// </summary>
+        public string Username { get; internal set; }
+        /// <summary>
+        /// Summary of changes
+        /// </summary>
+        public RecordChange RecordChange { get; internal set; }
+    }
+
 
     /// <summary>
     /// Defines methods for modifying the vault records and folders. 
@@ -418,6 +466,8 @@ namespace KeeperSecurity.Vault
         /// <param name="username">User account email</param>
         /// <returns>Awaitable task.</returns>
         Task RevokeShareFromUser(string recordUid, string username);
+
+        Task<RecordHistory[]> GetRecordHistory(string recordUid);
     }
 
     /// <summary>
@@ -758,8 +808,6 @@ namespace KeeperSecurity.Vault
         /// Gets the number of values
         /// </summary>
         int Count { get; }
-
-
     }
 
     /// <summary>

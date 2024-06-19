@@ -115,7 +115,7 @@ namespace KeeperSecurity.Vault
                     }
                 }
 
-                var dataSerializer = new DataContractJsonSerializer(typeof(Commands.RecordData), JsonUtils.JsonSettings);
+                var dataSerializer = new DataContractJsonSerializer(typeof(KeeperSecurity.Commands.RecordData), JsonUtils.JsonSettings);
                 var data = pr.ExtractRecordData();
                 using (var ms = new MemoryStream())
                 {
