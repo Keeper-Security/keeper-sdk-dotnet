@@ -360,9 +360,8 @@ namespace KeeperSecurity.Authentication
             }
 
             var keyId = ServerKeyId;
-
-            payload.ApiVersion = 3;
             var attempt = 0;
+            Exception lastKeeperError = null;
             while (attempt < 3)
             {
                 attempt++;
@@ -452,6 +451,7 @@ namespace KeeperSecurity.Authentication
 
                         var serializer = new DataContractJsonSerializer(typeof(KeeperApiErrorResponse));
                         var keeperRs = serializer.ReadObject(ms) as KeeperApiErrorResponse;
+                        lastKeeperError = new KeeperApiException(keeperRs.Error, keeperRs.Message);
                         switch (keeperRs.Error)
                         {
                             case "key":
@@ -479,14 +479,13 @@ namespace KeeperSecurity.Authentication
                                 throw new KeeperCanceled(keeperRs.Error, keeperRs.Message);
                         }
 
-                        throw new KeeperApiException(keeperRs.Error, keeperRs.Message);
+                        throw lastKeeperError;
                     }
                 }
 
                 throw new Exception("Keeper Api Http error: " + response.StatusCode);
             }
-
-            throw new Exception("Keeper Api error");
+            throw lastKeeperError ?? new Exception("Keeper Api error");
         }
 
         private readonly byte[] _transmissionKey = CryptoUtils.GetRandomBytes(32);
