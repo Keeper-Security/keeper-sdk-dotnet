@@ -383,6 +383,59 @@
             Gets device token
             </summary>
         </member>
+        <member name="T:KeeperSecurity.Authentication.UserKeys">
+            <summary>
+            Defines user or team keys
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.UserKeys.#ctor(System.Byte[],System.Byte[],System.Byte[])">
+            <excluded />
+        </member>
+        <member name="P:KeeperSecurity.Authentication.UserKeys.AesKey">
+            <summary>
+            AES key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.UserKeys.RsaPublicKey">
+            <summary>
+            RSA public key
+            </summary>
+        </member>
+        <member name="P:KeeperSecurity.Authentication.UserKeys.EcPublicKey">
+            <summary>
+            ECC public key
+            </summary>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IKeyLoader.LoadUsersKeys(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Loads user's keys
+            </summary>
+            <param name="users">list of user emails</param>
+            <returns></returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IKeyLoader.TryGetUserKeys(System.String,KeeperSecurity.Authentication.UserKeys@)">
+            <summary>
+            Gets user's keys.
+            </summary>
+            <param name="username">Username</param>
+            <param name="keys">user's keys</param>
+            <returns>true if keys exist false if does not</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IKeyLoader.TryGetTeamKeys(System.String,KeeperSecurity.Authentication.UserKeys@)">
+            <summary>
+            Gets team's keys.
+            </summary>
+            <param name="teamUid">Team UID</param>
+            <param name="keys">team's keys</param>
+            <returns>true if keys exist false if does not</returns>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.IKeyLoader.LoadTeamKeys(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Load team's keys
+            </summary>
+            <param name="teamUids">list of team Uids</param>
+            <returns>List of unknown teams</returns>
+        </member>
         <member name="T:KeeperSecurity.Authentication.IAuth">
             <summary>
             Defines the properties and methods of not connected Keeper authentication object.
@@ -624,6 +677,18 @@
             <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Authentication.AuthCommon.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.LoadTeamKeys(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.LoadUsersKeys(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.TryGetTeamKeys(System.String,KeeperSecurity.Authentication.UserKeys@)">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Authentication.AuthCommon.TryGetUserKeys(System.String,KeeperSecurity.Authentication.UserKeys@)">
             <inheritdoc/>
         </member>
         <member name="T:KeeperSecurity.Authentication.NotificationEvent">
@@ -4273,6 +4338,22 @@
             <param name="folder">folder</param>
             <returns>true is record is scheduled to be added</returns>
         </member>
+        <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.PutUserToSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType,KeeperSecurity.Vault.ISharedFolderUserOptions)">
+            <summary>
+            Adds (if needed) user or team to the shared folder and set user access permissions.
+            </summary>
+            <param name="sharedFolderUid">Shared Folder UID.</param>
+            <param name="userId">User email or Team UID.</param>
+            <param name="userType">Type of userId parameter.</param>
+            <param name="options">Shared Folder User Permissions.</param>
+            <returns>true if parameters are accepted</returns>
+            <remarks>
+            If <c>options</c>c> parameter is <c>null</c> then user gets default user permissions when added./>
+            </remarks>
+            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
+            <exception cref="T:KeeperSecurity.Vault.NoActiveShareWithUserException" />
+            <seealso cref="T:KeeperSecurity.Vault.SharedFolderUserOptions"/>
+        </member>
         <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.ApplyChanges">
             <summary>
             Applies pending changes
@@ -4352,6 +4433,9 @@
             <inheritdoc/>
         </member>
         <member name="M:KeeperSecurity.Vault.BatchVaultOperations.ApplyChanges">
+            <inheritdoc/>
+        </member>
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.PutUserToSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType,KeeperSecurity.Vault.ISharedFolderUserOptions)">
             <inheritdoc/>
         </member>
         <member name="P:KeeperSecurity.Vault.BatchVaultOperations.RecordMatch">

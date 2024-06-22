@@ -79,6 +79,66 @@ namespace KeeperSecurity.Authentication
     }
 
     /// <summary>
+    /// Defines user or team keys
+    /// </summary>
+    public class UserKeys
+    {
+        /// <excluded />
+        public UserKeys(byte[] aes = null, byte[] rsa = null, byte[] ec = null)
+        {
+            AesKey = aes;
+            RsaPublicKey = rsa;
+            EcPublicKey = ec;
+        }
+        /// <summary>
+        /// AES key
+        /// </summary>
+        public byte[] AesKey { get; }
+        /// <summary>
+        /// RSA public key
+        /// </summary>
+        public byte[] RsaPublicKey { get; }
+        /// <summary>
+        /// ECC public key
+        /// </summary>
+        public byte[] EcPublicKey { get; }
+    }
+
+    public interface IKeyLoader
+    {
+        /// <summary>
+        /// Loads user's keys
+        /// </summary>
+        /// <param name="users">list of user emails</param>
+        /// <returns></returns>
+        Task<IEnumerable<string>> LoadUsersKeys(IEnumerable<string> users);
+
+        /// <summary>
+        /// Gets user's keys.
+        /// </summary>
+        /// <param name="username">Username</param>
+        /// <param name="keys">user's keys</param>
+        /// <returns>true if keys exist false if does not</returns>
+        bool TryGetUserKeys(string username, out UserKeys keys);
+
+        /// <summary>
+        /// Gets team's keys.
+        /// </summary>
+        /// <param name="teamUid">Team UID</param>
+        /// <param name="keys">team's keys</param>
+        /// <returns>true if keys exist false if does not</returns>
+        bool TryGetTeamKeys(string teamUid, out UserKeys keys);
+
+        /// <summary>
+        /// Load team's keys
+        /// </summary>
+        /// <param name="teamUids">list of team Uids</param>
+        /// <returns>List of unknown teams</returns>
+        Task<IEnumerable<string>> LoadTeamKeys(IEnumerable<string> teamUids);
+
+    }
+
+    /// <summary>
     /// Defines the properties and methods of not connected Keeper authentication object.
     /// </summary>
     public interface IAuth: IAuthEndpoint
@@ -139,7 +199,7 @@ namespace KeeperSecurity.Authentication
     /// <summary>
     /// Defines properties and methods of connected Keeper authentication object.
     /// </summary>
-    public interface IAuthentication : IAuthEndpoint
+    public interface IAuthentication : IAuthEndpoint, IKeyLoader
     {
         /// <summary>
         /// Gets authentication context
@@ -316,7 +376,7 @@ namespace KeeperSecurity.Authentication
     /// Represents base authentication class
     /// </summary>
     /// <seealso cref="Sync.AuthSync"/>
-    public abstract class AuthCommon : IAuthentication, IDisposable
+    public abstract partial class AuthCommon : IAuthentication, IDisposable
     {
         /// <inheritdoc/>
 

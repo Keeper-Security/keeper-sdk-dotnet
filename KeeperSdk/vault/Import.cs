@@ -486,30 +486,41 @@ namespace KeeperSecurity
                                 var sf = new ImportSharedFolder();
                                 foreach (var pair in sharedFolder)
                                 {
+
                                     switch (pair.Key)
                                     {
-                                        case "path": sf.Path = pair.Value as string; break;
-                                        case "can_edit":
+                                        case "path": { sf.Path = pair.Value as string; } break;
+                                        case "can_edit": { sf.CanEdit = (pair.Value is bool b ? b : false); } break;
+                                        case "can_share": { sf.CanShare = (pair.Value is bool b ? b : false); } break;
+                                        case "manage_records": { sf.ManageRecords = (pair.Value is bool b ? b : false); } break;
+                                        case "manage_users": { sf.ManageUsers = (pair.Value is bool b ? b : false); } break;
+                                        case "permissions":
                                         {
-                                            sf.CanEdit = (pair.Value is bool b ? b : false);
+                                            var permissions = new List<ImportSharedFolderPermissions>();
+                                            if (pair.Value is Array ar)
+                                            {
+                                                foreach (var sfp in ar)
+                                                {
+                                                    if (sfp is IDictionary<string, object> permission)
+                                                    {
+                                                        var perm = new ImportSharedFolderPermissions();
+                                                        foreach (var ppair in permission)
+                                                        {
+                                                            switch (ppair.Key)
+                                                            {
+                                                                case "uid": { perm.Uid = (ppair.Value ?? "").ToString(); } break;
+                                                                case "name": { perm.Name = (ppair.Value ?? "").ToString(); } break;
+                                                                case "manage_records": { perm.ManageRecords = (ppair.Value is bool b ? b : false); } break;
+                                                                case "manage_users": { perm.ManageUsers = (ppair.Value is bool b ? b : false); } break;
+                                                            }
+                                                        }
+                                                        permissions.Add(perm);
+                                                    }
+                                                }
+                                                sf.Permissions = permissions.ToArray();
+                                            }
                                         }
                                         break;
-                                        case "can_share":
-                                        {
-                                            sf.CanShare = (pair.Value is bool b ? b : false);
-                                        }
-                                        break;
-                                        case "manage_records":
-                                        {
-                                            sf.ManageRecords = (pair.Value is bool b ? b : false);
-                                        }
-                                        break;
-                                        case "manage_users":
-                                        {
-                                            sf.ManageUsers = (pair.Value is bool b ? b : false);
-                                        }
-                                        break;
-                                        // TODO permissions
                                     }
                                 }
                                 sharedFolderList.Add(sf);
@@ -537,6 +548,13 @@ namespace KeeperSecurity
 
                 if (import.SharedFolders?.Length > 0)
                 {
+                    var teamLookup = new Dictionary<string, string>();
+                    foreach (var team in await vault.GetTeamsForShare())
+                    {
+                        teamLookup[team.TeamUid] = team.TeamUid;
+                        teamLookup[team.Name.ToLower()] = team.TeamUid;
+                    }
+
                     foreach (var sharedFolder in import.SharedFolders)
                     {
                         if (!string.IsNullOrEmpty(sharedFolder.Path))
@@ -551,11 +569,52 @@ namespace KeeperSecurity
                                     CanEdit = sharedFolder.CanEdit,
                                     CanShare = sharedFolder.CanShare,
                                 };
-                                bo.CreateFolderPath(sharedFolder.Path, options);
+                                folderNode = bo.CreateFolderPath(sharedFolder.Path, options);
+                            }
+
+                            if (folderNode != null && sharedFolder.Permissions != null)
+                            {
+                                foreach (var permission in sharedFolder.Permissions)
+                                {
+                                    string userId = null;
+                                    UserType userType = UserType.Team;
+
+                                    if (!string.IsNullOrEmpty(permission.Uid) && teamLookup.ContainsKey(permission.Uid))
+                                    {
+                                        userId = teamLookup[permission.Uid];
+                                    }
+                                    else if (!string.IsNullOrEmpty(permission.Name))
+                                    {
+                                        var name = permission.Name.ToLower();
+                                        if (teamLookup.ContainsKey(name))
+                                        {
+                                            userId = teamLookup[name];
+                                        }
+                                        else
+                                        {
+                                            try
+                                            {
+                                                var addr = new System.Net.Mail.MailAddress(name);
+                                                userId = name;
+                                                userType = UserType.User;
+                                            }
+                                            catch { /*ignored*/}
+                                        }
+                                    }
+                                    if (!string.IsNullOrEmpty(userId))
+                                    {
+                                        bo.PutUserToSharedFolder(folderNode.FolderUid, userId, userType, new SharedFolderUserOptions
+                                        {
+                                            ManageRecords = permission.ManageRecords,
+                                            ManageUsers = permission.ManageUsers,
+                                        });
+                                    }
+                                }
                             }
                         }
                     }
                 }
+
                 if (import.Records?.Length > 0)
                 {
                     foreach (var record in import.Records)
