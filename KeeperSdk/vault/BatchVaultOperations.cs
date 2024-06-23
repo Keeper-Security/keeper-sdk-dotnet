@@ -702,11 +702,8 @@ namespace KeeperSecurity.Vault
             record = null;
             if (_recordSet.Contains(recordUid))
             {
-                record = _legacyRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid);
-                if (record == null)
-                {
-                    record = _typedRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid);
-                }
+                record = (KeeperRecord)_typedRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid)
+                         ?? _legacyRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid);
             }
             else
             {
@@ -1292,10 +1289,7 @@ namespace KeeperSecurity.Vault
                                 data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
                             }
                         }
-                        catch
-                        {
-                            // ignored
-                        }
+                        catch {/* ignored */}
 
                         if (data == null)
                         {
@@ -1340,7 +1334,7 @@ namespace KeeperSecurity.Vault
                             var rq = folderUpdateRequests[i];
                             if (rs.IsSuccess)
                             {
-                                result.UpdatedRecordCount++;
+                                result.UpdatedFolderCount++;
                             }
                             else
                             {
@@ -1651,8 +1645,6 @@ namespace KeeperSecurity.Vault
                         BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" is not a shared folder");
                     }
                     break;
-                default:
-                    break;
             }
 
             SharedFolderMember pendingMembership = null;
@@ -1709,8 +1701,6 @@ namespace KeeperSecurity.Vault
                     {
                         BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" is not a shared folder");
                     }
-                    break;
-                default:
                     break;
             }
 
