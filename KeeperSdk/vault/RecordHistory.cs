@@ -1,7 +1,6 @@
 ﻿using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
-using KeeperSecurity.Vault;
 using KeeperSecurity.Vault.Commands;
 using System;
 using System.Collections.Generic;
@@ -28,15 +27,14 @@ namespace KeeperSecurity
                 };
                 var rs = await Auth.ExecuteAuthCommand<GetRecordHistoryCommand, GetRecordHistoryResponse>(rq);
                 var history = new List<RecordHistory>();
-                for (int i = 0; i < rs.History.Length; i++)
+                foreach (var rh in rs.History)
                 {
-                    var rh = rs.History[i];
                     try
                     {
                         history.Add(new RecordHistory
                         {
-                            KeeperRecord = rs.History[i].Load(r.RecordKey),
-                            Username = rs.History[i].Username,
+                            KeeperRecord = rh.Load(r.RecordKey),
+                            Username = rh.Username,
                         });
                     }
                     catch (Exception e)
@@ -383,13 +381,8 @@ namespace KeeperSecurity
                 public bool Shared { get; internal set; }
                 [DataMember(Name = "client_modified_time")]
                 internal double _client_modified_time;
-                public long ClientModifiedTime
-                {
-                    get
-                    {
-                        return (long) _client_modified_time;
-                    }
-                }
+                public long ClientModifiedTime => (long) _client_modified_time;
+
                 [DataMember(Name = "data")]
                 public string Data { get; internal set; }
                 [DataMember(Name = "extra")]
@@ -397,18 +390,8 @@ namespace KeeperSecurity
 
 
                 [DataMember(Name = "udata")]
-                public SyncDownRecordUData udata;
-                public string Udata
-                {
-                    get
-                    {
-                        if (udata != null)
-                        {
-                            return Encoding.UTF8.GetString(JsonUtils.DumpJson(udata));
-                        }
-                        return null;
-                    }
-                }
+                internal SyncDownRecordUData udata;
+                public string Udata => udata != null ? Encoding.UTF8.GetString(JsonUtils.DumpJson(udata)) : null;
 
                 public bool Owner { get; set; }
                 string IUid.Uid => RecordUid;
@@ -417,10 +400,6 @@ namespace KeeperSecurity
             [DataContract]
             internal class GetRecordHistoryResponse : KeeperApiResponse
             {
-                public GetRecordHistoryResponse() : base()
-                {
-                }
-
                 [DataMember(Name = "history")]
                 public RecordHistoryStorage[] History;
             }
