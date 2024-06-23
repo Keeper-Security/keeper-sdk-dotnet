@@ -1292,10 +1292,7 @@ namespace KeeperSecurity.Vault
                                 data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
                             }
                         }
-                        catch
-                        {
-                            // ignored
-                        }
+                        catch {/* ignored */}
 
                         if (data == null)
                         {
@@ -1340,7 +1337,7 @@ namespace KeeperSecurity.Vault
                             var rq = folderUpdateRequests[i];
                             if (rs.IsSuccess)
                             {
-                                result.UpdatedRecordCount++;
+                                result.UpdatedFolderCount++;
                             }
                             else
                             {
