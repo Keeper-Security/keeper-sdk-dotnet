@@ -588,7 +588,7 @@ namespace KeeperSecurity.Commands
         public string FileParameter;
 
         [DataMember(Name = "parameters")]
-        public IDictionary<string, object> Parameters;
+        public IDictionary<string, string> Parameters;
 
     }
 

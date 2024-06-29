@@ -50,6 +50,7 @@
 
   <ItemGroup>
     <Reference Include="System.Web" Condition="'$(TargetFramework)' == 'net452'" />
+    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == 'net452'" />
   </ItemGroup>
   
 </Project>

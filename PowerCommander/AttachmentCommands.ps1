@@ -9,7 +9,7 @@ function Copy-KeeperFileAttachment {
     .Folder
     Keeper Folder
 
-    .Record 
+    .Record
     Keeper Record
 
 	.Parameter Path
@@ -32,7 +32,7 @@ function Copy-KeeperFileAttachment {
             $Path = '.'
         }
         $records = $null
-        if ($Record) { 
+        if ($Record) {
             $r = Get-KeeperRecord $record
             if ($r) {
                 $records = @()
@@ -87,7 +87,7 @@ function Copy-KeeperFileAttachment {
                 $fileStream = $newFile.OpenWrite()
                 try {
                     $vault.DownloadAttachment($keeperRecord, $atta.Id, $fileStream).GetAwaiter().GetResult() | Out-Null
-                } 
+                }
                 finally {
                     $fileStream.Dispose()
                 }
@@ -102,7 +102,7 @@ function Copy-KeeperFileAttachmentToStream {
     .Synopsis
     Get Attachment as stream
 
-    .Record 
+    .Record
     Keeper Record Uid
 
     .AttachmentName
@@ -125,4 +125,34 @@ function Copy-KeeperFileAttachmentToStream {
     }
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     $vault.DownloadAttachment($keeperRecord, $AttachmentName, $Stream).GetAwaiter().GetResult() | Out-Null
+}
+
+function Copy-FileToKeeperRecord {
+    <#
+    .Synopsis
+    Upload file attachment to a record
+
+    .Record
+    Keeper Record Uid
+
+    .Filename
+    File path
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string] $Record,
+        [Parameter(Position = 0, Mandatory = $true)][string] $Filename
+    )
+
+    $keeperRecord = Get-KeeperRecord $Record
+    if ($keeperRecord.Length -ne 1) {
+        Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
+    }
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    $path = Resolve-Path $Filename -ErrorAction Stop
+    $uploadTask  = New-Object -TypeName KeeperSecurity.Vault.FileAttachmentUploadTask -ArgumentList $path.Path, $null
+
+    $vault.UploadAttachment($keeperRecord, $uploadTask).GetAwaiter().GetResult() | Out-Null
 }
