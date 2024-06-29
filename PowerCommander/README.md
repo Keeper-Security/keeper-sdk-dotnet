@@ -30,6 +30,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Show-TwoFactorCode                     | 2fa         | Display Two Factor Code 
 | Copy-KeeperFileAttachment              | kda         | Download file attachments 
 | Copy-KeeperFileAttachmentToStream      |             | Download file attachement to stream
+| Copy-FileToKeeperRecord                |             | Upload file attachment to a record
 
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
