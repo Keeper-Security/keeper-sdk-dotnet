@@ -573,14 +573,7 @@ namespace Commander
             }
 
             var uploadTask = new FileAttachmentUploadTask(options.FileName);
-            if (record is PasswordRecord password)
-            {
-                await context.Vault.UploadAttachment(password, uploadTask);
-            }
-            else if (record is TypedRecord typed)
-            {
-                await context.Vault.UploadAttachment(typed, uploadTask);
-            }
+            await context.Vault.UploadAttachment(record, uploadTask);
         }
 
         public static async Task RemoveRecordCommand(this VaultContext context, RemoveRecordOptions options)
