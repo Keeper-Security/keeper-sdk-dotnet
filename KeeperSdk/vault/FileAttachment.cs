@@ -258,24 +258,6 @@ namespace KeeperSecurity.Vault {
             }
         }
 
-        internal static async Task UploadSingleFile(UploadParameters upload, Stream inputStream, IWebProxy proxy = null)
-        {
-            var content = new MultipartFormDataContent();
-            foreach (var pair in upload.Parameters) content.Add(new StringContent(pair.Value), pair.Key);
-            var fileContent = new StreamContent(inputStream);
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            content.Add(fileContent, upload.FileParameter);
-            var httpMessageHandler = new HttpClientHandler();
-            if (proxy != null) {
-                httpMessageHandler.Proxy = proxy;
-            }
-            using (var httpClient = new HttpClient(httpMessageHandler, true)) {
-                var rs = await httpClient.PostAsync(upload.Url, content);
-                if ((int) rs.StatusCode != upload.SuccessStatusCode)
-                    throw new Exception($"File upload HTTP error: {rs.StatusCode}");
-            }
-        }
-
         private async Task UploadPasswordAttachment(PasswordRecord record, IAttachmentUploadTask uploadTask)
         {
             var fileStream = uploadTask.Stream;
@@ -311,7 +293,7 @@ namespace KeeperSecurity.Vault {
             };
             var transform = new EncryptAesV1Transform(key);
             using (var cryptoStream = new CryptoStream(fileStream, transform, CryptoStreamMode.Read)) {
-                await UploadSingleFile(fileUpload, cryptoStream);
+                await Auth.Endpoint.UploadSingleFile(fileUpload, cryptoStream);
                 atta.Size = transform.EncryptedBytes;
             }
 
@@ -319,7 +301,7 @@ namespace KeeperSecurity.Vault {
                 try {
                     transform = new EncryptAesV1Transform(key);
                     using (var cryptoStream = new CryptoStream(thumbStream, transform, CryptoStreamMode.Read)) {
-                        await UploadSingleFile(thumbUpload, cryptoStream);
+                        await Auth.Endpoint.UploadSingleFile(thumbUpload, cryptoStream);
                     }
 
                     var thumbnail = new AttachmentFileThumb {
@@ -403,7 +385,7 @@ namespace KeeperSecurity.Vault {
 
             try {
                 using (var cryptoStream = File.OpenRead(tempFile)) {
-                    await UploadSingleFile(fileUpload, cryptoStream);
+                    await Auth.Endpoint.UploadSingleFile(fileUpload, cryptoStream);
                 }
             } catch (Exception e) {
                 Trace.TraceError("Upload Thumbnail: {0}: \"{1}\"", e.GetType().Name, e.Message);
@@ -418,7 +400,7 @@ namespace KeeperSecurity.Vault {
                 };
                 try {
                     using (var cryptoStream = new MemoryStream(encryptedThumb)) {
-                        await UploadSingleFile(thumbUpload, cryptoStream);
+                        await Auth.Endpoint.UploadSingleFile(thumbUpload, cryptoStream);
                     }
                 } catch (Exception e) {
                     Trace.TraceError("Upload Thumbnail: {0}: \"{1}\"", e.GetType().Name, e.Message);

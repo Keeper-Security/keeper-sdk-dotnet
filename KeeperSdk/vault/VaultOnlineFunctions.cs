@@ -14,28 +14,29 @@ using Records;
 namespace KeeperSecurity.Vault
 {
     /// <inheritdoc/>>
-    public class SharedFolderRecordOptions : ISharedFolderRecordOptions
-    {
+    public class SharedFolderRecordOptions : IRecordShareOptions {
         /// <inheritdoc/>>
         public bool? CanEdit { get; set; }
         /// <inheritdoc/>>
         public bool? CanShare { get; set; }
+        /// <inheritdoc/>>
+        public DateTimeOffset? Expiration { get; set; }
     }
 
     /// <inheritdoc/>>
-    public class SharedFolderUserOptions : ISharedFolderUserOptions
-    {
+    public class SharedFolderUserOptions : IUserShareOptions {
         /// <inheritdoc/>>
         public bool? ManageRecords { get; set; }
         /// <inheritdoc/>>
         public bool? ManageUsers { get; set; }
+        /// <inheritdoc/>>
+        public DateTimeOffset? Expiration { get; set; }
     }
 
     /// <summary>
-    ///  Defines shared folder user and record permissions.
+    ///  Defines  default shared folder permissions.
     /// </summary>
-    public class SharedFolderOptions : ISharedFolderRecordOptions, ISharedFolderUserOptions
-    {
+    public class SharedFolderOptions {
         /// <inheritdoc/>>
         public bool? CanEdit { get; set; }
         /// <inheritdoc/>>
@@ -592,8 +593,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public static async Task<FolderNode> AddFolder<T>(this VaultOnline vault, string folderName, string parentFolderUid = null, T sharedFolderOptions = null)
-            where T : class, ISharedFolderUserOptions, ISharedFolderRecordOptions
+        public static async Task<FolderNode> AddFolder(this VaultOnline vault, string folderName, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null)
         {
             var parent = vault.GetFolder(parentFolderUid);
             FolderType folderType;

@@ -649,13 +649,13 @@ namespace KeeperSecurity.Authentication
                 var privateKeyData =
                     CryptoUtils.DecryptAesV1(keys.EncryptedPrivateKey.Base64UrlDecode(),
                         authContext.DataKey);
-                authContext.PrivateRsaKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+                authContext.PrivateRsaKey = CryptoUtils.LoadRsaPrivateKey(privateKeyData);
             }
             if (keys.EncryptedEcPrivateKey != null) {
                 var privateKeyData =
                     CryptoUtils.DecryptAesV2(keys.EncryptedEcPrivateKey.Base64UrlDecode(),
                         authContext.DataKey);
-                authContext.PrivateEcKey = CryptoUtils.LoadPrivateEcKey(privateKeyData);
+                authContext.PrivateEcKey = CryptoUtils.LoadEcPrivateKey(privateKeyData);
             }
 
             if (!string.IsNullOrEmpty(clientKey))
@@ -766,7 +766,7 @@ namespace KeeperSecurity.Authentication
                             "enterprise/get_enterprise_public_key", null,
                             typeof(BreachWatch.EnterprisePublicKeyResponse));
                         authContext.EnterprisePublicEcKey =
-                            CryptoUtils.LoadPublicEcKey(rs.EnterpriseECCPublicKey.ToByteArray());
+                            CryptoUtils.LoadEcPublicKey(rs.EnterpriseECCPublicKey.ToByteArray());
                     }
                     catch (Exception e)
                     {

@@ -119,7 +119,7 @@ namespace KeeperSecurity.Utils
         /// </summary>
         /// <param name="key">RSA public key DER encoded.</param>
         /// <returns>RSA Public Key</returns>
-        public static RsaKeyParameters LoadPublicKey(byte[] key)
+        public static RsaKeyParameters LoadRsaPublicKey(byte[] key)
         {
             var algorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
             var publicKeyStructure = RsaPublicKeyStructure.GetInstance(Asn1Sequence.GetInstance(key));
@@ -128,18 +128,32 @@ namespace KeeperSecurity.Utils
             return PublicKeyFactory.CreateKey(publicKeyInfo) as RsaKeyParameters;
         }
 
+        /// <exclude />
+        [Obsolete("Use LoadRsaPublicKey")]
+        public static RsaKeyParameters LoadPublicKey(byte[] key)
+        {
+            return LoadRsaPublicKey(key);
+        }
+
         /// <summary>
         ///     Loads RSA private key.
         /// </summary>
         /// <param name="key">RSA private key DER encoded.</param>
         /// <returns>RSA Private Key</returns>
-        public static RsaPrivateCrtKeyParameters LoadPrivateKey(byte[] key)
+        public static RsaPrivateCrtKeyParameters LoadRsaPrivateKey(byte[] key)
         {
             var algorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
             var privateKeyStructure = RsaPrivateKeyStructure.GetInstance(Asn1Sequence.GetInstance(key));
             var privateKeyInfo = new PrivateKeyInfo(algorithm, privateKeyStructure);
 
             return PrivateKeyFactory.CreateKey(privateKeyInfo) as RsaPrivateCrtKeyParameters;
+        }
+
+        /// <exclude />
+        [Obsolete("Use LoadRsaPrivateKey")]
+        public static RsaPrivateCrtKeyParameters LoadPrivateKey(byte[] key)
+        {
+            return LoadRsaPrivateKey(key);
         }
 
         /// <summary>
@@ -457,9 +471,16 @@ namespace KeeperSecurity.Utils
         /// <param name="key">private key bytes</param>
         /// <returns>EC private key.</returns>
         /// <exception cref="Exception">invalid key bytes</exception>
-        public static ECPrivateKeyParameters LoadPrivateEcKey(byte[] key)
+        public static ECPrivateKeyParameters LoadEcPrivateKey(byte[] key)
         {
             return new ECPrivateKeyParameters(new BigInteger(1, key), EcParameters);
+        }
+
+        /// <exclude />
+        [Obsolete("Use LoadEcPrivateKey")]
+        public static ECPrivateKeyParameters LoadPrivateEcKey(byte[] key)
+        {
+            return LoadEcPrivateKey(key);
         }
 
         /// <summary>
@@ -468,10 +489,17 @@ namespace KeeperSecurity.Utils
         /// <param name="key">public key bytes.</param>
         /// <returns>EC public key</returns>
         /// <exception cref="Exception">invalid key bytes</exception>
-        public static ECPublicKeyParameters LoadPublicEcKey(byte[] key)
+        public static ECPublicKeyParameters LoadEcPublicKey(byte[] key)
         {
             var point = new X9ECPoint(EcParameters.Curve, new DerOctetString(key)).Point;
             return new ECPublicKeyParameters(point, EcParameters);
+        }
+
+        /// <exclude />
+        [Obsolete("Use LoadEcPublicKey")]
+        public static ECPublicKeyParameters LoadPublicEcKey(byte[] key)
+        {
+            return LoadEcPublicKey(key);
         }
 
         /// <exclude />
@@ -506,7 +534,7 @@ namespace KeeperSecurity.Utils
         /// <returns>Plain data.</returns>
         public static byte[] DecryptEc(byte[] data, ECPrivateKeyParameters privateKey)
         {
-            var ePublicKey = LoadPublicEcKey(data.Take(65).ToArray());
+            var ePublicKey = LoadEcPublicKey(data.Take(65).ToArray());
             var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
             agreement.Init(privateKey);
             var key = agreement.CalculateAgreement(ePublicKey).ToByteArrayUnsigned();

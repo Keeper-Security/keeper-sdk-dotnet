@@ -109,7 +109,7 @@ namespace KeeperSecurity.Enterprise
             {
                 throw new KeeperApiException("public_key_error", $"Cannot get user {targetUser.Email} public key");
             }
-            var targetKey = CryptoUtils.LoadPublicKey(targetPublicKey);
+            var targetKey = CryptoUtils.LoadRsaPublicKey(targetPublicKey);
 
             var preRq = new PreAccountTransferCommand
             {
@@ -131,7 +131,7 @@ namespace KeeperSecurity.Enterprise
                 throw new KeeperApiException("transfer_key_error", $"Cannot resolve Account Transfer role key for user {targetUser.Email}");
             }
             var pk = CryptoUtils.DecryptAesV1(preRs.RolePrivateKey.Base64UrlDecode(), roleKey);
-            var rolePrivateKey = CryptoUtils.LoadPrivateKey(pk);
+            var rolePrivateKey = CryptoUtils.LoadRsaPrivateKey(pk);
             var userDataKey = CryptoUtils.DecryptRsa(preRs.TransferKey.Base64UrlDecode(), rolePrivateKey);
             byte[] userRsaPrivateKey = null;
             byte[] userEcPrivateKey = null;
@@ -143,8 +143,8 @@ namespace KeeperSecurity.Enterprise
             {
                 userEcPrivateKey = CryptoUtils.DecryptAesV2(preRs.UserEccPrivateKey.Base64UrlDecode(), userDataKey);
             }
-            var userRsaKey = userRsaPrivateKey != null ? CryptoUtils.LoadPrivateKey(userRsaPrivateKey) : null;
-            var userEcKey = userEcPrivateKey != null ? CryptoUtils.LoadPrivateEcKey(userEcPrivateKey) : null;
+            var userRsaKey = userRsaPrivateKey != null ? CryptoUtils.LoadRsaPrivateKey(userRsaPrivateKey) : null;
+            var userEcKey = userEcPrivateKey != null ? CryptoUtils.LoadEcPrivateKey(userEcPrivateKey) : null;
 
             Func<byte[], int, byte[]> convert = (encryptedKey, keyType) =>
             {
@@ -430,7 +430,7 @@ namespace KeeperSecurity.Enterprise
                 if (!TryGetUserByEmail(userPair.Key, out var user)) continue;
                 try
                 {
-                    var publicKey = CryptoUtils.LoadPublicKey(userPair.Value);
+                    var publicKey = CryptoUtils.LoadRsaPublicKey(userPair.Value);
                     foreach (var teamPair in teamKeys.Where(x => x.Value != null))
                     {
                         if (!TryGetTeam(teamPair.Key, out var team)) continue;

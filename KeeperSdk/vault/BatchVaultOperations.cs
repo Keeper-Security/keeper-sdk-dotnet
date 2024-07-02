@@ -190,7 +190,7 @@ namespace KeeperSecurity.Vault
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <exception cref="NoActiveShareWithUserException" />
         /// <seealso cref="SharedFolderUserOptions"/>
-        bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, ISharedFolderUserOptions options = null);
+        bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, IUserShareOptions options = null);
         /// <summary>
         /// Removes user or team from shared folder.
         /// </summary>
@@ -222,7 +222,7 @@ namespace KeeperSecurity.Vault
     {
         public string UserId { get; set; }
         public UserType UserType { get; set; }
-        public ISharedFolderUserOptions Options { get; set; }
+        public IUserShareOptions Options { get; set; }
         public bool IsRemove { get; set; }
     }
 
@@ -1444,8 +1444,11 @@ namespace KeeperSecurity.Vault
                                             {
                                                 throw new Exception($"RSA public key not found");
                                             }
-                                            var rsaPublicKey = CryptoUtils.LoadPublicKey(keys.RsaPublicKey);
-                                            sfuu.SharedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey));
+                                            var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
+                                            sfuu.TypedSharedFolderKey = new EncryptedDataKey {
+                                                EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey)),
+                                                EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey
+                                            };
                                         }
                                         catch (Exception e)
                                         {
@@ -1488,12 +1491,18 @@ namespace KeeperSecurity.Vault
                                         {
                                             if (keys.AesKey != null)
                                             {
-                                                sfut.SharedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, keys.AesKey));
+                                                sfut.TypedSharedFolderKey = new EncryptedDataKey { 
+                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, keys.AesKey)),
+                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByDataKey,
+                                                };
                                             }
                                             else if (keys.RsaPublicKey != null)
                                             {
-                                                var rsaPublicKey = CryptoUtils.LoadPublicKey(keys.RsaPublicKey);
-                                                sfut.SharedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey));
+                                                var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
+                                                sfut.TypedSharedFolderKey = new EncryptedDataKey { 
+                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey)),
+                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey,
+                                                };
                                             }
                                             else
                                             {
@@ -1620,7 +1629,7 @@ namespace KeeperSecurity.Vault
 
 
         /// <inheritdoc/>
-        public bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, ISharedFolderUserOptions options = null)
+        public bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, IUserShareOptions options = null)
         {
             if (!TryGetFolderByUid(sharedFolderUid, out var f))
             {

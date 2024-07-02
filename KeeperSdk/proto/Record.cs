@@ -119,122 +119,148 @@ namespace Records {
             "R2V0UmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvUmVxdWVzdBISCgpjbGllbnRU",
             "aW1lGAEgASgDEhEKCXJlY29yZFVpZBgCIAMoDBI7ChRyZWNvcmREZXRhaWxz",
             "SW5jbHVkZRgDIAEoDjIdLlJlY29yZHMuUmVjb3JkRGV0YWlsc0luY2x1ZGUi",
-            "qwEKDlVzZXJQZXJtaXNzaW9uEhAKCHVzZXJuYW1lGAEgASgJEg0KBW93bmVy",
+            "6gEKDlVzZXJQZXJtaXNzaW9uEhAKCHVzZXJuYW1lGAEgASgJEg0KBW93bmVy",
             "GAIgASgIEhIKCnNoYXJlQWRtaW4YAyABKAgSEAoIc2hhcmFibGUYBCABKAgS",
             "EAoIZWRpdGFibGUYBSABKAgSGAoQYXdhaXRpbmdBcHByb3ZhbBgGIAEoCBIS",
-            "CgpleHBpcmF0aW9uGAcgASgDEhIKCmFjY291bnRVaWQYCCABKAwifQoWU2hh",
-            "cmVkRm9sZGVyUGVybWlzc2lvbhIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwS",
-            "EgoKcmVzaGFyYWJsZRgCIAEoCBIQCghlZGl0YWJsZRgDIAEoCBIQCghyZXZp",
-            "c2lvbhgEIAEoAxISCgpleHBpcmF0aW9uGAUgASgDIugCCgpSZWNvcmREYXRh",
-            "EhAKCHJldmlzaW9uGAEgASgDEg8KB3ZlcnNpb24YAiABKAUSDgoGc2hhcmVk",
-            "GAMgASgIEhsKE2VuY3J5cHRlZFJlY29yZERhdGEYBCABKAkSGgoSZW5jcnlw",
-            "dGVkRXh0cmFEYXRhGAUgASgJEhoKEmNsaWVudE1vZGlmaWVkVGltZRgGIAEo",
-            "AxIVCg1ub25TaGFyZWREYXRhGAcgASgJEi0KEGxpbmtlZFJlY29yZERhdGEY",
-            "CCADKAsyEy5SZWNvcmRzLlJlY29yZERhdGESDgoGZmlsZUlkGAkgAygMEhAK",
-            "CGZpbGVTaXplGAogASgDEhUKDXRodW1ibmFpbFNpemUYCyABKAMSLQoNcmVj",
-            "b3JkS2V5VHlwZRgMIAEoDjIWLlJlY29yZHMuUmVjb3JkS2V5VHlwZRIRCgly",
-            "ZWNvcmRLZXkYDSABKAwSEQoJcmVjb3JkVWlkGA4gASgMIsgBChhSZWNvcmRE",
-            "YXRhV2l0aEFjY2Vzc0luZm8SEQoJcmVjb3JkVWlkGAEgASgMEicKCnJlY29y",
-            "ZERhdGEYAiABKAsyEy5SZWNvcmRzLlJlY29yZERhdGESLwoOdXNlclBlcm1p",
-            "c3Npb24YAyADKAsyFy5SZWNvcmRzLlVzZXJQZXJtaXNzaW9uEj8KFnNoYXJl",
-            "ZEZvbGRlclBlcm1pc3Npb24YBCADKAsyHy5SZWNvcmRzLlNoYXJlZEZvbGRl",
-            "clBlcm1pc3Npb24iiQEKI0dldFJlY29yZERhdGFXaXRoQWNjZXNzSW5mb1Jl",
-            "c3BvbnNlEkMKGHJlY29yZERhdGFXaXRoQWNjZXNzSW5mbxgBIAMoCzIhLlJl",
-            "Y29yZHMuUmVjb3JkRGF0YVdpdGhBY2Nlc3NJbmZvEh0KFW5vUGVybWlzc2lv",
-            "blJlY29yZFVpZBgCIAMoDCJqChJJc09iamVjdFNoYXJlQWRtaW4SCwoDdWlk",
-            "GAEgASgMEg8KB2lzQWRtaW4YAiABKAgSNgoKb2JqZWN0VHlwZRgDIAEoDjIi",
-            "LlJlY29yZHMuQ2hlY2tTaGFyZUFkbWluT2JqZWN0VHlwZSJICg1BbUlTaGFy",
-            "ZUFkbWluEjcKEmlzT2JqZWN0U2hhcmVBZG1pbhgBIAMoCzIbLlJlY29yZHMu",
-            "SXNPYmplY3RTaGFyZUFkbWluIrwBChhSZWNvcmRTaGFyZVVwZGF0ZVJlcXVl",
-            "c3QSLgoPYWRkU2hhcmVkUmVjb3JkGAEgAygLMhUuUmVjb3Jkcy5TaGFyZWRS",
-            "ZWNvcmQSMQoSdXBkYXRlU2hhcmVkUmVjb3JkGAIgAygLMhUuUmVjb3Jkcy5T",
-            "aGFyZWRSZWNvcmQSMQoScmVtb3ZlU2hhcmVkUmVjb3JkGAMgAygLMhUuUmVj",
-            "b3Jkcy5TaGFyZWRSZWNvcmQSCgoCcHQYBCABKAki6QEKDFNoYXJlZFJlY29y",
-            "ZBISCgp0b1VzZXJuYW1lGAEgASgJEhEKCXJlY29yZFVpZBgCIAEoDBIRCgly",
-            "ZWNvcmRLZXkYAyABKAwSFwoPc2hhcmVkRm9sZGVyVWlkGAQgASgMEg8KB3Rl",
-            "YW1VaWQYBSABKAwSEAoIZWRpdGFibGUYBiABKAgSEQoJc2hhcmVhYmxlGAcg",
-            "ASgIEhAKCHRyYW5zZmVyGAggASgIEhEKCXVzZUVjY0tleRgJIAEoCBIXCg9y",
-            "ZW1vdmVWYXVsdERhdGEYCiABKAgSEgoKZXhwaXJhdGlvbhgLIAEoAyLVAQoZ",
-            "UmVjb3JkU2hhcmVVcGRhdGVSZXNwb25zZRI6ChVhZGRTaGFyZWRSZWNvcmRT",
-            "dGF0dXMYASADKAsyGy5SZWNvcmRzLlNoYXJlZFJlY29yZFN0YXR1cxI9Chh1",
-            "cGRhdGVTaGFyZWRSZWNvcmRTdGF0dXMYAiADKAsyGy5SZWNvcmRzLlNoYXJl",
-            "ZFJlY29yZFN0YXR1cxI9ChhyZW1vdmVTaGFyZWRSZWNvcmRTdGF0dXMYAyAD",
-            "KAsyGy5SZWNvcmRzLlNoYXJlZFJlY29yZFN0YXR1cyJaChJTaGFyZWRSZWNv",
-            "cmRTdGF0dXMSEQoJcmVjb3JkVWlkGAEgASgMEg4KBnN0YXR1cxgCIAEoCRIP",
-            "CgdtZXNzYWdlGAMgASgJEhAKCHVzZXJuYW1lGAQgASgJIkcKG0dldFJlY29y",
-            "ZFBlcm1pc3Npb25zUmVxdWVzdBISCgpyZWNvcmRVaWRzGAEgAygMEhQKDGlz",
-            "U2hhcmVBZG1pbhgCIAEoCCJUChxHZXRSZWNvcmRQZXJtaXNzaW9uc1Jlc3Bv",
-            "bnNlEjQKEXJlY29yZFBlcm1pc3Npb25zGAEgAygLMhkuUmVjb3Jkcy5SZWNv",
-            "cmRQZXJtaXNzaW9uImwKEFJlY29yZFBlcm1pc3Npb24SEQoJcmVjb3JkVWlk",
-            "GAEgASgMEg0KBW93bmVyGAIgASgIEg8KB2NhbkVkaXQYAyABKAgSEAoIY2Fu",
-            "U2hhcmUYBCABKAgSEwoLY2FuVHJhbnNmZXIYBSABKAgiaAoWR2V0U2hhcmVP",
-            "YmplY3RzUmVxdWVzdBIRCglzdGFydFdpdGgYASABKAkSEAoIY29udGFpbnMY",
-            "AiABKAkSEAoIZmlsdGVyZWQYAyABKAgSFwoPc2hhcmVkRm9sZGVyVWlkGAQg",
-            "ASgMIucCChdHZXRTaGFyZU9iamVjdHNSZXNwb25zZRIuChJzaGFyZVJlbGF0",
-            "aW9uc2hpcHMYASADKAsyEi5SZWNvcmRzLlNoYXJlVXNlchIsChBzaGFyZUZh",
-            "bWlseVVzZXJzGAIgAygLMhIuUmVjb3Jkcy5TaGFyZVVzZXISMAoUc2hhcmVF",
-            "bnRlcnByaXNlVXNlcnMYAyADKAsyEi5SZWNvcmRzLlNoYXJlVXNlchImCgpz",
-            "aGFyZVRlYW1zGAQgAygLMhIuUmVjb3Jkcy5TaGFyZVRlYW0SKAoMc2hhcmVN",
-            "Q1RlYW1zGAUgAygLMhIuUmVjb3Jkcy5TaGFyZVRlYW0SMgoWc2hhcmVNQ0Vu",
-            "dGVycHJpc2VVc2VycxgGIAMoCzISLlJlY29yZHMuU2hhcmVVc2VyEjYKFHNo",
-            "YXJlRW50ZXJwcmlzZU5hbWVzGAcgAygLMhguUmVjb3Jkcy5TaGFyZUVudGVy",
-            "cHJpc2UipQEKCVNoYXJlVXNlchIQCgh1c2VybmFtZRgBIAEoCRIQCghmdWxs",
-            "bmFtZRgCIAEoCRIUCgxlbnRlcnByaXNlSWQYAyABKAUSJAoGc3RhdHVzGAQg",
-            "ASgOMhQuUmVjb3Jkcy5TaGFyZVN0YXR1cxIUCgxpc1NoYXJlQWRtaW4YBSAB",
-            "KAgSIgoaaXNBZG1pbk9mU2hhcmVkRm9sZGVyT3duZXIYBiABKAgiRAoJU2hh",
-            "cmVUZWFtEhAKCHRlYW1uYW1lGAEgASgJEhQKDGVudGVycHJpc2VJZBgCIAEo",
-            "BRIPCgd0ZWFtVWlkGAMgASgMIj8KD1NoYXJlRW50ZXJwcmlzZRIWCg5lbnRl",
-            "cnByaXNlbmFtZRgBIAEoCRIUCgxlbnRlcnByaXNlSWQYAiABKAUiUwofUmVj",
-            "b3Jkc09ud2Vyc2hpcFRyYW5zZmVyUmVxdWVzdBIwCg90cmFuc2ZlclJlY29y",
-            "ZHMYASADKAsyFy5SZWNvcmRzLlRyYW5zZmVyUmVjb3JkIlsKDlRyYW5zZmVy",
-            "UmVjb3JkEhAKCHVzZXJuYW1lGAEgASgJEhEKCXJlY29yZFVpZBgCIAEoDBIR",
-            "CglyZWNvcmRLZXkYAyABKAwSEQoJdXNlRWNjS2V5GAQgASgIIl8KIFJlY29y",
-            "ZHNPbndlcnNoaXBUcmFuc2ZlclJlc3BvbnNlEjsKFHRyYW5zZmVyUmVjb3Jk",
-            "U3RhdHVzGAEgAygLMh0uUmVjb3Jkcy5UcmFuc2ZlclJlY29yZFN0YXR1cyJc",
-            "ChRUcmFuc2ZlclJlY29yZFN0YXR1cxIQCgh1c2VybmFtZRgBIAEoCRIRCgly",
-            "ZWNvcmRVaWQYAiABKAwSDgoGc3RhdHVzGAMgASgJEg8KB21lc3NhZ2UYBCAB",
-            "KAkieQoVUmVjb3Jkc1Vuc2hhcmVSZXF1ZXN0EjQKDXNoYXJlZEZvbGRlcnMY",
-            "ASADKAsyHS5SZWNvcmRzLlJlY29yZHNVbnNoYXJlRm9sZGVyEioKBXVzZXJz",
-            "GAIgAygLMhsuUmVjb3Jkcy5SZWNvcmRzVW5zaGFyZVVzZXIihgEKFlJlY29y",
-            "ZHNVbnNoYXJlUmVzcG9uc2USOgoNc2hhcmVkRm9sZGVycxgBIAMoCzIjLlJl",
-            "Y29yZHMuUmVjb3Jkc1Vuc2hhcmVGb2xkZXJTdGF0dXMSMAoFdXNlcnMYAiAD",
-            "KAsyIS5SZWNvcmRzLlJlY29yZHNVbnNoYXJlVXNlclN0YXR1cyJCChRSZWNv",
-            "cmRzVW5zaGFyZUZvbGRlchIRCglyZWNvcmRVaWQYASABKAwSFwoPc2hhcmVk",
-            "Rm9sZGVyVWlkGAIgASgMIjsKElJlY29yZHNVbnNoYXJlVXNlchIRCglyZWNv",
-            "cmRVaWQYASABKAwSEgoKYWNjb3VudFVpZBgCIAEoDCJIChpSZWNvcmRzVW5z",
-            "aGFyZUZvbGRlclN0YXR1cxIRCglyZWNvcmRVaWQYASABKAwSFwoPc2hhcmVk",
-            "Rm9sZGVyVWlkGAIgASgMIkEKGFJlY29yZHNVbnNoYXJlVXNlclN0YXR1cxIR",
-            "CglyZWNvcmRVaWQYASABKAwSEgoKYWNjb3VudFVpZBgCIAEoDCpoCg9SZWNv",
-            "cmRUeXBlU2NvcGUSDwoLUlRfU1RBTkRBUkQQABILCgdSVF9VU0VSEAESEQoN",
-            "UlRfRU5URVJQUklTRRACEgoKBlJUX1BBTRADEhgKFFJUX1BBTV9DT05GSUdV",
-            "UkFUSU9OEAQq0QEKDVJlY29yZEtleVR5cGUSCgoGTk9fS0VZEAASGQoVRU5D",
-            "UllQVEVEX0JZX0RBVEFfS0VZEAESGwoXRU5DUllQVEVEX0JZX1BVQkxJQ19L",
-            "RVkQAhIdChlFTkNSWVBURURfQllfREFUQV9LRVlfR0NNEAMSHwobRU5DUllQ",
-            "VEVEX0JZX1BVQkxJQ19LRVlfRUNDEAQSHQoZRU5DUllQVEVEX0JZX1JPT1Rf",
-            "S0VZX0NCQxAFEh0KGUVOQ1JZUFRFRF9CWV9ST09UX0tFWV9HQ00QBipQChBS",
-            "ZWNvcmRGb2xkZXJUeXBlEg8KC3VzZXJfZm9sZGVyEAASEQoNc2hhcmVkX2Zv",
-            "bGRlchABEhgKFHNoYXJlZF9mb2xkZXJfZm9sZGVyEAIq7AIKElJlY29yZE1v",
-            "ZGlmeVJlc3VsdBIOCgpSU19TVUNDRVNTEAASEgoOUlNfT1VUX09GX1NZTkMQ",
-            "ARIUChBSU19BQ0NFU1NfREVOSUVEEAISEwoPUlNfU0hBUkVfREVOSUVEEAMS",
-            "FAoQUlNfUkVDT1JEX0VYSVNUUxAEEh4KGlJTX09MRF9SRUNPUkRfVkVSU0lP",
-            "Tl9UWVBFEAUSHgoaUlNfTkVXX1JFQ09SRF9WRVJTSU9OX1RZUEUQBhIWChJS",
-            "U19GSUxFU19OT1RfTUFUQ0gQBxIbChdSU19SRUNPUkRfTk9UX1NIQVJFQUJM",
-            "RRAIEh8KG1JTX0FUVEFDSE1FTlRfTk9UX1NIQVJFQUJMRRAJEhkKFVJTX0ZJ",
-            "TEVfTElNSVRfUkVBQ0hFRBAKEhoKFlJTX1NJWkVfRVhDRUVERURfTElNSVQQ",
-            "CxIkCiBSU19PTkxZX09XTkVSX0NBTl9NT0RJRllfU0NSSVBUUxAMKi0KDUZp",
-            "bGVBZGRSZXN1bHQSDgoKRkFfU1VDQ0VTUxAAEgwKCEZBX0VSUk9SEAEqQwoN",
-            "RmlsZUdldFJlc3VsdBIOCgpGR19TVUNDRVNTEAASDAoIRkdfRVJST1IQARIU",
-            "ChBGR19BQ0NFU1NfREVOSUVEEAIqSgoUUmVjb3JkRGV0YWlsc0luY2x1ZGUS",
-            "EwoPREFUQV9QTFVTX1NIQVJFEAASDQoJREFUQV9PTkxZEAESDgoKU0hBUkVf",
-            "T05MWRACKmIKGUNoZWNrU2hhcmVBZG1pbk9iamVjdFR5cGUSGQoVQ0hFQ0tf",
-            "U0FfSU5WQUxJRF9UWVBFEAASEgoOQ0hFQ0tfU0FfT05fU0YQARIWChJDSEVD",
-            "S19TQV9PTl9SRUNPUkQQAioxCgtTaGFyZVN0YXR1cxIKCgZBQ1RJVkUQABIJ",
-            "CgVCTE9DSxABEgsKB0lOVklURUQQAio6ChVSZWNvcmRUcmFuc2FjdGlvblR5",
-            "cGUSDwoLUlRUX0dFTkVSQUwQABIQCgxSVFRfUk9UQVRJT04QAUIjChhjb20u",
-            "a2VlcGVyc2VjdXJpdHkucHJvdG9CB1JlY29yZHNiBnByb3RvMw=="));
+            "CgpleHBpcmF0aW9uGAcgASgDEhIKCmFjY291bnRVaWQYCCABKAwSPQoVdGlt",
+            "ZXJOb3RpZmljYXRpb25UeXBlGAkgASgOMh4uUmVjb3Jkcy5UaW1lck5vdGlm",
+            "aWNhdGlvblR5cGUivAEKFlNoYXJlZEZvbGRlclBlcm1pc3Npb24SFwoPc2hh",
+            "cmVkRm9sZGVyVWlkGAEgASgMEhIKCnJlc2hhcmFibGUYAiABKAgSEAoIZWRp",
+            "dGFibGUYAyABKAgSEAoIcmV2aXNpb24YBCABKAMSEgoKZXhwaXJhdGlvbhgF",
+            "IAEoAxI9ChV0aW1lck5vdGlmaWNhdGlvblR5cGUYBiABKA4yHi5SZWNvcmRz",
+            "LlRpbWVyTm90aWZpY2F0aW9uVHlwZSLoAgoKUmVjb3JkRGF0YRIQCghyZXZp",
+            "c2lvbhgBIAEoAxIPCgd2ZXJzaW9uGAIgASgFEg4KBnNoYXJlZBgDIAEoCBIb",
+            "ChNlbmNyeXB0ZWRSZWNvcmREYXRhGAQgASgJEhoKEmVuY3J5cHRlZEV4dHJh",
+            "RGF0YRgFIAEoCRIaChJjbGllbnRNb2RpZmllZFRpbWUYBiABKAMSFQoNbm9u",
+            "U2hhcmVkRGF0YRgHIAEoCRItChBsaW5rZWRSZWNvcmREYXRhGAggAygLMhMu",
+            "UmVjb3Jkcy5SZWNvcmREYXRhEg4KBmZpbGVJZBgJIAMoDBIQCghmaWxlU2l6",
+            "ZRgKIAEoAxIVCg10aHVtYm5haWxTaXplGAsgASgDEi0KDXJlY29yZEtleVR5",
+            "cGUYDCABKA4yFi5SZWNvcmRzLlJlY29yZEtleVR5cGUSEQoJcmVjb3JkS2V5",
+            "GA0gASgMEhEKCXJlY29yZFVpZBgOIAEoDCLIAQoYUmVjb3JkRGF0YVdpdGhB",
+            "Y2Nlc3NJbmZvEhEKCXJlY29yZFVpZBgBIAEoDBInCgpyZWNvcmREYXRhGAIg",
+            "ASgLMhMuUmVjb3Jkcy5SZWNvcmREYXRhEi8KDnVzZXJQZXJtaXNzaW9uGAMg",
+            "AygLMhcuUmVjb3Jkcy5Vc2VyUGVybWlzc2lvbhI/ChZzaGFyZWRGb2xkZXJQ",
+            "ZXJtaXNzaW9uGAQgAygLMh8uUmVjb3Jkcy5TaGFyZWRGb2xkZXJQZXJtaXNz",
+            "aW9uIokBCiNHZXRSZWNvcmREYXRhV2l0aEFjY2Vzc0luZm9SZXNwb25zZRJD",
+            "ChhyZWNvcmREYXRhV2l0aEFjY2Vzc0luZm8YASADKAsyIS5SZWNvcmRzLlJl",
+            "Y29yZERhdGFXaXRoQWNjZXNzSW5mbxIdChVub1Blcm1pc3Npb25SZWNvcmRV",
+            "aWQYAiADKAwiagoSSXNPYmplY3RTaGFyZUFkbWluEgsKA3VpZBgBIAEoDBIP",
+            "Cgdpc0FkbWluGAIgASgIEjYKCm9iamVjdFR5cGUYAyABKA4yIi5SZWNvcmRz",
+            "LkNoZWNrU2hhcmVBZG1pbk9iamVjdFR5cGUiSAoNQW1JU2hhcmVBZG1pbhI3",
+            "ChJpc09iamVjdFNoYXJlQWRtaW4YASADKAsyGy5SZWNvcmRzLklzT2JqZWN0",
+            "U2hhcmVBZG1pbiK8AQoYUmVjb3JkU2hhcmVVcGRhdGVSZXF1ZXN0Ei4KD2Fk",
+            "ZFNoYXJlZFJlY29yZBgBIAMoCzIVLlJlY29yZHMuU2hhcmVkUmVjb3JkEjEK",
+            "EnVwZGF0ZVNoYXJlZFJlY29yZBgCIAMoCzIVLlJlY29yZHMuU2hhcmVkUmVj",
+            "b3JkEjEKEnJlbW92ZVNoYXJlZFJlY29yZBgDIAMoCzIVLlJlY29yZHMuU2hh",
+            "cmVkUmVjb3JkEgoKAnB0GAQgASgJIqgCCgxTaGFyZWRSZWNvcmQSEgoKdG9V",
+            "c2VybmFtZRgBIAEoCRIRCglyZWNvcmRVaWQYAiABKAwSEQoJcmVjb3JkS2V5",
+            "GAMgASgMEhcKD3NoYXJlZEZvbGRlclVpZBgEIAEoDBIPCgd0ZWFtVWlkGAUg",
+            "ASgMEhAKCGVkaXRhYmxlGAYgASgIEhEKCXNoYXJlYWJsZRgHIAEoCBIQCgh0",
+            "cmFuc2ZlchgIIAEoCBIRCgl1c2VFY2NLZXkYCSABKAgSFwoPcmVtb3ZlVmF1",
+            "bHREYXRhGAogASgIEhIKCmV4cGlyYXRpb24YCyABKAMSPQoVdGltZXJOb3Rp",
+            "ZmljYXRpb25UeXBlGAwgASgOMh4uUmVjb3Jkcy5UaW1lck5vdGlmaWNhdGlv",
+            "blR5cGUi1QEKGVJlY29yZFNoYXJlVXBkYXRlUmVzcG9uc2USOgoVYWRkU2hh",
+            "cmVkUmVjb3JkU3RhdHVzGAEgAygLMhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRT",
+            "dGF0dXMSPQoYdXBkYXRlU2hhcmVkUmVjb3JkU3RhdHVzGAIgAygLMhsuUmVj",
+            "b3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMSPQoYcmVtb3ZlU2hhcmVkUmVjb3Jk",
+            "U3RhdHVzGAMgAygLMhsuUmVjb3Jkcy5TaGFyZWRSZWNvcmRTdGF0dXMiWgoS",
+            "U2hhcmVkUmVjb3JkU3RhdHVzEhEKCXJlY29yZFVpZBgBIAEoDBIOCgZzdGF0",
+            "dXMYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIQCgh1c2VybmFtZRgEIAEoCSJH",
+            "ChtHZXRSZWNvcmRQZXJtaXNzaW9uc1JlcXVlc3QSEgoKcmVjb3JkVWlkcxgB",
+            "IAMoDBIUCgxpc1NoYXJlQWRtaW4YAiABKAgiVAocR2V0UmVjb3JkUGVybWlz",
+            "c2lvbnNSZXNwb25zZRI0ChFyZWNvcmRQZXJtaXNzaW9ucxgBIAMoCzIZLlJl",
+            "Y29yZHMuUmVjb3JkUGVybWlzc2lvbiJsChBSZWNvcmRQZXJtaXNzaW9uEhEK",
+            "CXJlY29yZFVpZBgBIAEoDBINCgVvd25lchgCIAEoCBIPCgdjYW5FZGl0GAMg",
+            "ASgIEhAKCGNhblNoYXJlGAQgASgIEhMKC2NhblRyYW5zZmVyGAUgASgIImgK",
+            "FkdldFNoYXJlT2JqZWN0c1JlcXVlc3QSEQoJc3RhcnRXaXRoGAEgASgJEhAK",
+            "CGNvbnRhaW5zGAIgASgJEhAKCGZpbHRlcmVkGAMgASgIEhcKD3NoYXJlZEZv",
+            "bGRlclVpZBgEIAEoDCLnAgoXR2V0U2hhcmVPYmplY3RzUmVzcG9uc2USLgoS",
+            "c2hhcmVSZWxhdGlvbnNoaXBzGAEgAygLMhIuUmVjb3Jkcy5TaGFyZVVzZXIS",
+            "LAoQc2hhcmVGYW1pbHlVc2VycxgCIAMoCzISLlJlY29yZHMuU2hhcmVVc2Vy",
+            "EjAKFHNoYXJlRW50ZXJwcmlzZVVzZXJzGAMgAygLMhIuUmVjb3Jkcy5TaGFy",
+            "ZVVzZXISJgoKc2hhcmVUZWFtcxgEIAMoCzISLlJlY29yZHMuU2hhcmVUZWFt",
+            "EigKDHNoYXJlTUNUZWFtcxgFIAMoCzISLlJlY29yZHMuU2hhcmVUZWFtEjIK",
+            "FnNoYXJlTUNFbnRlcnByaXNlVXNlcnMYBiADKAsyEi5SZWNvcmRzLlNoYXJl",
+            "VXNlchI2ChRzaGFyZUVudGVycHJpc2VOYW1lcxgHIAMoCzIYLlJlY29yZHMu",
+            "U2hhcmVFbnRlcnByaXNlIqUBCglTaGFyZVVzZXISEAoIdXNlcm5hbWUYASAB",
+            "KAkSEAoIZnVsbG5hbWUYAiABKAkSFAoMZW50ZXJwcmlzZUlkGAMgASgFEiQK",
+            "BnN0YXR1cxgEIAEoDjIULlJlY29yZHMuU2hhcmVTdGF0dXMSFAoMaXNTaGFy",
+            "ZUFkbWluGAUgASgIEiIKGmlzQWRtaW5PZlNoYXJlZEZvbGRlck93bmVyGAYg",
+            "ASgIIkQKCVNoYXJlVGVhbRIQCgh0ZWFtbmFtZRgBIAEoCRIUCgxlbnRlcnBy",
+            "aXNlSWQYAiABKAUSDwoHdGVhbVVpZBgDIAEoDCI/Cg9TaGFyZUVudGVycHJp",
+            "c2USFgoOZW50ZXJwcmlzZW5hbWUYASABKAkSFAoMZW50ZXJwcmlzZUlkGAIg",
+            "ASgFIlMKH1JlY29yZHNPbndlcnNoaXBUcmFuc2ZlclJlcXVlc3QSMAoPdHJh",
+            "bnNmZXJSZWNvcmRzGAEgAygLMhcuUmVjb3Jkcy5UcmFuc2ZlclJlY29yZCJb",
+            "Cg5UcmFuc2ZlclJlY29yZBIQCgh1c2VybmFtZRgBIAEoCRIRCglyZWNvcmRV",
+            "aWQYAiABKAwSEQoJcmVjb3JkS2V5GAMgASgMEhEKCXVzZUVjY0tleRgEIAEo",
+            "CCJfCiBSZWNvcmRzT253ZXJzaGlwVHJhbnNmZXJSZXNwb25zZRI7ChR0cmFu",
+            "c2ZlclJlY29yZFN0YXR1cxgBIAMoCzIdLlJlY29yZHMuVHJhbnNmZXJSZWNv",
+            "cmRTdGF0dXMiXAoUVHJhbnNmZXJSZWNvcmRTdGF0dXMSEAoIdXNlcm5hbWUY",
+            "ASABKAkSEQoJcmVjb3JkVWlkGAIgASgMEg4KBnN0YXR1cxgDIAEoCRIPCgdt",
+            "ZXNzYWdlGAQgASgJInkKFVJlY29yZHNVbnNoYXJlUmVxdWVzdBI0Cg1zaGFy",
+            "ZWRGb2xkZXJzGAEgAygLMh0uUmVjb3Jkcy5SZWNvcmRzVW5zaGFyZUZvbGRl",
+            "chIqCgV1c2VycxgCIAMoCzIbLlJlY29yZHMuUmVjb3Jkc1Vuc2hhcmVVc2Vy",
+            "IoYBChZSZWNvcmRzVW5zaGFyZVJlc3BvbnNlEjoKDXNoYXJlZEZvbGRlcnMY",
+            "ASADKAsyIy5SZWNvcmRzLlJlY29yZHNVbnNoYXJlRm9sZGVyU3RhdHVzEjAK",
+            "BXVzZXJzGAIgAygLMiEuUmVjb3Jkcy5SZWNvcmRzVW5zaGFyZVVzZXJTdGF0",
+            "dXMiQgoUUmVjb3Jkc1Vuc2hhcmVGb2xkZXISEQoJcmVjb3JkVWlkGAEgASgM",
+            "EhcKD3NoYXJlZEZvbGRlclVpZBgCIAEoDCI7ChJSZWNvcmRzVW5zaGFyZVVz",
+            "ZXISEQoJcmVjb3JkVWlkGAEgASgMEhIKCmFjY291bnRVaWQYAiABKAwiSAoa",
+            "UmVjb3Jkc1Vuc2hhcmVGb2xkZXJTdGF0dXMSEQoJcmVjb3JkVWlkGAEgASgM",
+            "EhcKD3NoYXJlZEZvbGRlclVpZBgCIAEoDCJBChhSZWNvcmRzVW5zaGFyZVVz",
+            "ZXJTdGF0dXMSEQoJcmVjb3JkVWlkGAEgASgMEhIKCmFjY291bnRVaWQYAiAB",
+            "KAwiWwoaVGltZWRBY2Nlc3NDYWxsYmFja1BheWxvYWQSPQoVdGltZUxpbWl0",
+            "ZWRBY2Nlc3NUeXBlGAEgASgOMh4uUmVjb3Jkcy5UaW1lTGltaXRlZEFjY2Vz",
+            "c1R5cGUi/QEKGFRpbWVMaW1pdGVkQWNjZXNzUmVxdWVzdBISCgphY2NvdW50",
+            "VWlkGAEgAygMEg8KB3RlYW1VaWQYAiADKAwSEQoJcmVjb3JkVWlkGAMgAygM",
+            "EhcKD3NoYXJlZE9iamVjdFVpZBgEIAEoDBI9ChV0aW1lTGltaXRlZEFjY2Vz",
+            "c1R5cGUYBSABKA4yHi5SZWNvcmRzLlRpbWVMaW1pdGVkQWNjZXNzVHlwZRIS",
+            "CgpleHBpcmF0aW9uGAYgASgDEj0KFXRpbWVyTm90aWZpY2F0aW9uVHlwZRgH",
+            "IAEoDjIeLlJlY29yZHMuVGltZXJOb3RpZmljYXRpb25UeXBlIjcKF1RpbWVM",
+            "aW1pdGVkQWNjZXNzU3RhdHVzEgsKA3VpZBgBIAEoDBIPCgdtZXNzYWdlGAIg",
+            "ASgJIuMBChlUaW1lTGltaXRlZEFjY2Vzc1Jlc3BvbnNlEhAKCHJldmlzaW9u",
+            "GAEgASgDEjoKEHVzZXJBY2Nlc3NTdGF0dXMYAiADKAsyIC5SZWNvcmRzLlRp",
+            "bWVMaW1pdGVkQWNjZXNzU3RhdHVzEjoKEHRlYW1BY2Nlc3NTdGF0dXMYAyAD",
+            "KAsyIC5SZWNvcmRzLlRpbWVMaW1pdGVkQWNjZXNzU3RhdHVzEjwKEnJlY29y",
+            "ZEFjY2Vzc1N0YXR1cxgEIAMoCzIgLlJlY29yZHMuVGltZUxpbWl0ZWRBY2Nl",
+            "c3NTdGF0dXMqaAoPUmVjb3JkVHlwZVNjb3BlEg8KC1JUX1NUQU5EQVJEEAAS",
+            "CwoHUlRfVVNFUhABEhEKDVJUX0VOVEVSUFJJU0UQAhIKCgZSVF9QQU0QAxIY",
+            "ChRSVF9QQU1fQ09ORklHVVJBVElPThAEKtEBCg1SZWNvcmRLZXlUeXBlEgoK",
+            "Bk5PX0tFWRAAEhkKFUVOQ1JZUFRFRF9CWV9EQVRBX0tFWRABEhsKF0VOQ1JZ",
+            "UFRFRF9CWV9QVUJMSUNfS0VZEAISHQoZRU5DUllQVEVEX0JZX0RBVEFfS0VZ",
+            "X0dDTRADEh8KG0VOQ1JZUFRFRF9CWV9QVUJMSUNfS0VZX0VDQxAEEh0KGUVO",
+            "Q1JZUFRFRF9CWV9ST09UX0tFWV9DQkMQBRIdChlFTkNSWVBURURfQllfUk9P",
+            "VF9LRVlfR0NNEAYqUAoQUmVjb3JkRm9sZGVyVHlwZRIPCgt1c2VyX2ZvbGRl",
+            "chAAEhEKDXNoYXJlZF9mb2xkZXIQARIYChRzaGFyZWRfZm9sZGVyX2ZvbGRl",
+            "chACKuwCChJSZWNvcmRNb2RpZnlSZXN1bHQSDgoKUlNfU1VDQ0VTUxAAEhIK",
+            "DlJTX09VVF9PRl9TWU5DEAESFAoQUlNfQUNDRVNTX0RFTklFRBACEhMKD1JT",
+            "X1NIQVJFX0RFTklFRBADEhQKEFJTX1JFQ09SRF9FWElTVFMQBBIeChpSU19P",
+            "TERfUkVDT1JEX1ZFUlNJT05fVFlQRRAFEh4KGlJTX05FV19SRUNPUkRfVkVS",
+            "U0lPTl9UWVBFEAYSFgoSUlNfRklMRVNfTk9UX01BVENIEAcSGwoXUlNfUkVD",
+            "T1JEX05PVF9TSEFSRUFCTEUQCBIfChtSU19BVFRBQ0hNRU5UX05PVF9TSEFS",
+            "RUFCTEUQCRIZChVSU19GSUxFX0xJTUlUX1JFQUNIRUQQChIaChZSU19TSVpF",
+            "X0VYQ0VFREVEX0xJTUlUEAsSJAogUlNfT05MWV9PV05FUl9DQU5fTU9ESUZZ",
+            "X1NDUklQVFMQDCotCg1GaWxlQWRkUmVzdWx0Eg4KCkZBX1NVQ0NFU1MQABIM",
+            "CghGQV9FUlJPUhABKkMKDUZpbGVHZXRSZXN1bHQSDgoKRkdfU1VDQ0VTUxAA",
+            "EgwKCEZHX0VSUk9SEAESFAoQRkdfQUNDRVNTX0RFTklFRBACKkoKFFJlY29y",
+            "ZERldGFpbHNJbmNsdWRlEhMKD0RBVEFfUExVU19TSEFSRRAAEg0KCURBVEFf",
+            "T05MWRABEg4KClNIQVJFX09OTFkQAipiChlDaGVja1NoYXJlQWRtaW5PYmpl",
+            "Y3RUeXBlEhkKFUNIRUNLX1NBX0lOVkFMSURfVFlQRRAAEhIKDkNIRUNLX1NB",
+            "X09OX1NGEAESFgoSQ0hFQ0tfU0FfT05fUkVDT1JEEAIqMQoLU2hhcmVTdGF0",
+            "dXMSCgoGQUNUSVZFEAASCQoFQkxPQ0sQARILCgdJTlZJVEVEEAIqOgoVUmVj",
+            "b3JkVHJhbnNhY3Rpb25UeXBlEg8KC1JUVF9HRU5FUkFMEAASEAoMUlRUX1JP",
+            "VEFUSU9OEAEq5gEKFVRpbWVMaW1pdGVkQWNjZXNzVHlwZRIkCiBJTlZBTElE",
+            "X1RJTUVfTElNSVRFRF9BQ0NFU1NfVFlQRRAAEhkKFVVTRVJfQUNDRVNTX1RP",
+            "X1JFQ09SRBABEicKI1VTRVJfT1JfVEVBTV9BQ0NFU1NfVE9fU0hBUkVERk9M",
+            "REVSEAISIQodUkVDT1JEX0FDQ0VTU19UT19TSEFSRURGT0xERVIQAxIfChtV",
+            "U0VSX0FDQ0VTU19UT19TSEFSRURGT0xERVIQBBIfChtURUFNX0FDQ0VTU19U",
+            "T19TSEFSRURGT0xERVIQBSpcChVUaW1lck5vdGlmaWNhdGlvblR5cGUSFAoQ",
+            "Tk9USUZJQ0FUSU9OX09GRhAAEhAKDE5PVElGWV9PV05FUhABEhsKF05PVElG",
+            "WV9QUklWSUxFR0VEX1VTRVJTEAJCIwoYY29tLmtlZXBlcnNlY3VyaXR5LnBy",
+            "b3RvQgdSZWNvcmRzYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.CheckShareAdminObjectType), typeof(global::Records.ShareStatus), typeof(global::Records.RecordTransactionType), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Records.RecordTypeScope), typeof(global::Records.RecordKeyType), typeof(global::Records.RecordFolderType), typeof(global::Records.RecordModifyResult), typeof(global::Records.FileAddResult), typeof(global::Records.FileGetResult), typeof(global::Records.RecordDetailsInclude), typeof(global::Records.CheckShareAdminObjectType), typeof(global::Records.ShareStatus), typeof(global::Records.RecordTransactionType), typeof(global::Records.TimeLimitedAccessType), typeof(global::Records.TimerNotificationType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordType), global::Records.RecordType.Parser, new[]{ "RecordTypeId", "Content", "Scope" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordTypesRequest), global::Records.RecordTypesRequest.Parser, new[]{ "Standard", "User", "Enterprise", "Pam" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordTypesResponse), global::Records.RecordTypesResponse.Parser, new[]{ "RecordTypes", "StandardCounter", "UserCounter", "EnterpriseCounter", "PamCounter" }, null, null, null, null),
@@ -272,15 +298,15 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.FilesGetResponse), global::Records.FilesGetResponse.Parser, new[]{ "Files" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.ApplicationAddRequest), global::Records.ApplicationAddRequest.Parser, new[]{ "AppUid", "RecordKey", "ClientModifiedTime", "Data" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetRecordDataWithAccessInfoRequest), global::Records.GetRecordDataWithAccessInfoRequest.Parser, new[]{ "ClientTime", "RecordUid", "RecordDetailsInclude" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.UserPermission), global::Records.UserPermission.Parser, new[]{ "Username", "Owner", "ShareAdmin", "Sharable", "Editable", "AwaitingApproval", "Expiration", "AccountUid" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedFolderPermission), global::Records.SharedFolderPermission.Parser, new[]{ "SharedFolderUid", "Resharable", "Editable", "Revision", "Expiration" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.UserPermission), global::Records.UserPermission.Parser, new[]{ "Username", "Owner", "ShareAdmin", "Sharable", "Editable", "AwaitingApproval", "Expiration", "AccountUid", "TimerNotificationType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedFolderPermission), global::Records.SharedFolderPermission.Parser, new[]{ "SharedFolderUid", "Resharable", "Editable", "Revision", "Expiration", "TimerNotificationType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordData), global::Records.RecordData.Parser, new[]{ "Revision", "Version", "Shared", "EncryptedRecordData", "EncryptedExtraData", "ClientModifiedTime", "NonSharedData", "LinkedRecordData", "FileId", "FileSize", "ThumbnailSize", "RecordKeyType", "RecordKey", "RecordUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordDataWithAccessInfo), global::Records.RecordDataWithAccessInfo.Parser, new[]{ "RecordUid", "RecordData", "UserPermission", "SharedFolderPermission" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetRecordDataWithAccessInfoResponse), global::Records.GetRecordDataWithAccessInfoResponse.Parser, new[]{ "RecordDataWithAccessInfo", "NoPermissionRecordUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.IsObjectShareAdmin), global::Records.IsObjectShareAdmin.Parser, new[]{ "Uid", "IsAdmin", "ObjectType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.AmIShareAdmin), global::Records.AmIShareAdmin.Parser, new[]{ "IsObjectShareAdmin" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordShareUpdateRequest), global::Records.RecordShareUpdateRequest.Parser, new[]{ "AddSharedRecord", "UpdateSharedRecord", "RemoveSharedRecord", "Pt" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedRecord), global::Records.SharedRecord.Parser, new[]{ "ToUsername", "RecordUid", "RecordKey", "SharedFolderUid", "TeamUid", "Editable", "Shareable", "Transfer", "UseEccKey", "RemoveVaultData", "Expiration" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedRecord), global::Records.SharedRecord.Parser, new[]{ "ToUsername", "RecordUid", "RecordKey", "SharedFolderUid", "TeamUid", "Editable", "Shareable", "Transfer", "UseEccKey", "RemoveVaultData", "Expiration", "TimerNotificationType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordShareUpdateResponse), global::Records.RecordShareUpdateResponse.Parser, new[]{ "AddSharedRecordStatus", "UpdateSharedRecordStatus", "RemoveSharedRecordStatus" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.SharedRecordStatus), global::Records.SharedRecordStatus.Parser, new[]{ "RecordUid", "Status", "Message", "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.GetRecordPermissionsRequest), global::Records.GetRecordPermissionsRequest.Parser, new[]{ "RecordUids", "IsShareAdmin" }, null, null, null, null),
@@ -300,7 +326,11 @@ namespace Records {
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareFolder), global::Records.RecordsUnshareFolder.Parser, new[]{ "RecordUid", "SharedFolderUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareUser), global::Records.RecordsUnshareUser.Parser, new[]{ "RecordUid", "AccountUid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareFolderStatus), global::Records.RecordsUnshareFolderStatus.Parser, new[]{ "RecordUid", "SharedFolderUid" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareUserStatus), global::Records.RecordsUnshareUserStatus.Parser, new[]{ "RecordUid", "AccountUid" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.RecordsUnshareUserStatus), global::Records.RecordsUnshareUserStatus.Parser, new[]{ "RecordUid", "AccountUid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.TimedAccessCallbackPayload), global::Records.TimedAccessCallbackPayload.Parser, new[]{ "TimeLimitedAccessType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.TimeLimitedAccessRequest), global::Records.TimeLimitedAccessRequest.Parser, new[]{ "AccountUid", "TeamUid", "RecordUid", "SharedObjectUid", "TimeLimitedAccessType", "Expiration", "TimerNotificationType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.TimeLimitedAccessStatus), global::Records.TimeLimitedAccessStatus.Parser, new[]{ "Uid", "Message" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Records.TimeLimitedAccessResponse), global::Records.TimeLimitedAccessResponse.Parser, new[]{ "Revision", "UserAccessStatus", "TeamAccessStatus", "RecordAccessStatus" }, null, null, null, null)
           }));
     }
     #endregion
@@ -381,9 +411,31 @@ namespace Records {
     [pbr::OriginalName("RTT_ROTATION")] RttRotation = 1,
   }
 
+  public enum TimeLimitedAccessType {
+    [pbr::OriginalName("INVALID_TIME_LIMITED_ACCESS_TYPE")] InvalidTimeLimitedAccessType = 0,
+    [pbr::OriginalName("USER_ACCESS_TO_RECORD")] UserAccessToRecord = 1,
+    [pbr::OriginalName("USER_OR_TEAM_ACCESS_TO_SHAREDFOLDER")] UserOrTeamAccessToSharedfolder = 2,
+    [pbr::OriginalName("RECORD_ACCESS_TO_SHAREDFOLDER")] RecordAccessToSharedfolder = 3,
+    /// <summary>
+    /// used for scheduler callback
+    /// </summary>
+    [pbr::OriginalName("USER_ACCESS_TO_SHAREDFOLDER")] UserAccessToSharedfolder = 4,
+    /// <summary>
+    /// used for scheduler callback
+    /// </summary>
+    [pbr::OriginalName("TEAM_ACCESS_TO_SHAREDFOLDER")] TeamAccessToSharedfolder = 5,
+  }
+
+  public enum TimerNotificationType {
+    [pbr::OriginalName("NOTIFICATION_OFF")] NotificationOff = 0,
+    [pbr::OriginalName("NOTIFY_OWNER")] NotifyOwner = 1,
+    [pbr::OriginalName("NOTIFY_PRIVILEGED_USERS")] NotifyPrivilegedUsers = 2,
+  }
+
   #endregion
 
   #region Messages
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordType : pb::IMessage<RecordType>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -597,7 +649,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -624,7 +680,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -647,6 +707,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordTypesRequest : pb::IMessage<RecordTypesRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -889,7 +950,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -920,7 +985,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -947,6 +1016,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordTypesResponse : pb::IMessage<RecordTypesResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -1207,7 +1277,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1242,7 +1316,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1273,6 +1351,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordTypeModifyResponse : pb::IMessage<RecordTypeModifyResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -1463,7 +1542,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1486,7 +1569,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1505,6 +1592,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsGetRequest : pb::IMessage<RecordsGetRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -1678,7 +1766,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1701,7 +1793,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1720,6 +1816,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class Record : pb::IMessage<Record>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2096,7 +2193,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2147,7 +2248,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2194,6 +2299,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class FolderRecordKey : pb::IMessage<FolderRecordKey>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2407,7 +2513,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2434,7 +2544,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2457,6 +2571,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class Folder : pb::IMessage<Folder>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2670,7 +2785,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2697,7 +2816,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2720,6 +2843,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class Team : pb::IMessage<Team>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2980,7 +3104,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -3015,7 +3143,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -3046,6 +3178,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsGetResponse : pb::IMessage<RecordsGetResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -3244,7 +3377,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -3275,7 +3412,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -3302,6 +3443,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordLink : pb::IMessage<RecordLink>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -3486,7 +3628,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -3509,7 +3655,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -3528,6 +3678,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordAudit : pb::IMessage<RecordAudit>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -3712,7 +3863,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -3735,7 +3890,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -3754,6 +3913,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordAdd : pb::IMessage<RecordAdd>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4162,7 +4322,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4220,7 +4384,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4274,6 +4442,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsAddRequest : pb::IMessage<RecordsAddRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4447,7 +4616,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4470,7 +4643,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4489,6 +4666,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordUpdate : pb::IMessage<RecordUpdate>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4828,7 +5006,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4878,7 +5060,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4924,6 +5110,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsUpdateRequest : pb::IMessage<RecordsUpdateRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -5097,7 +5284,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -5120,7 +5311,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -5139,6 +5334,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordFileForConversion : pb::IMessage<RecordFileForConversion>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -5445,7 +5641,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -5484,7 +5684,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -5519,6 +5723,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordFolderForConversion : pb::IMessage<RecordFolderForConversion>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -5706,7 +5911,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -5729,7 +5938,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -5748,6 +5961,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordConvertToV3 : pb::IMessage<RecordConvertToV3>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -6087,7 +6301,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6137,7 +6355,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6183,6 +6405,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsConvertToV3Request : pb::IMessage<RecordsConvertToV3Request>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -6356,7 +6579,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6379,7 +6606,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6401,6 +6632,7 @@ namespace Records {
   /// <summary>
   /// to be used with records_remove and records_delete
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsRemoveRequest : pb::IMessage<RecordsRemoveRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -6545,7 +6777,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6564,7 +6800,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6579,6 +6819,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordRevert : pb::IMessage<RecordRevert>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -6763,7 +7004,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6786,7 +7031,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6805,6 +7054,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsRevertRequest : pb::IMessage<RecordsRevertRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -6949,7 +7199,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6968,7 +7222,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6983,6 +7241,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordLinkError : pb::IMessage<RecordLinkError>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -7196,7 +7455,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7223,7 +7486,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -7246,6 +7513,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordModifyStatus : pb::IMessage<RecordModifyStatus>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -7477,7 +7745,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7508,7 +7780,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -7535,6 +7811,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsModifyResponse : pb::IMessage<RecordsModifyResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -7708,7 +7985,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7731,7 +8012,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -7750,6 +8035,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordAddAuditData : pb::IMessage<RecordAddAuditData>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -7992,7 +8278,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -8023,7 +8313,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -8050,6 +8344,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class AddAuditDataRequest : pb::IMessage<AddAuditDataRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -8194,7 +8489,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -8213,7 +8512,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -8228,6 +8531,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class File : pb::IMessage<File>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -8528,7 +8832,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -8567,7 +8875,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -8602,6 +8914,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class FilesAddRequest : pb::IMessage<FilesAddRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -8775,7 +9088,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -8798,7 +9115,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -8817,6 +9138,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class FileAddStatus : pb::IMessage<FileAddStatus>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -9117,7 +9439,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -9156,7 +9482,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -9191,6 +9521,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class FilesAddResponse : pb::IMessage<FilesAddResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -9364,7 +9695,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -9387,7 +9722,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -9406,6 +9745,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class FilesGetRequest : pb::IMessage<FilesGetRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -9608,7 +9948,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -9635,7 +9979,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -9658,6 +10006,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class FileGetStatus : pb::IMessage<FileGetStatus>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -9929,7 +10278,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -9964,7 +10317,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -9995,6 +10352,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class FilesGetResponse : pb::IMessage<FilesGetResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -10139,7 +10497,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -10158,7 +10520,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -10173,6 +10539,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class ApplicationAddRequest : pb::IMessage<ApplicationAddRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -10415,7 +10782,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -10446,7 +10817,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -10473,6 +10848,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class GetRecordDataWithAccessInfoRequest : pb::IMessage<GetRecordDataWithAccessInfoRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -10675,7 +11051,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -10702,7 +11082,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -10725,6 +11109,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class UserPermission : pb::IMessage<UserPermission>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -10767,6 +11152,7 @@ namespace Records {
       awaitingApproval_ = other.awaitingApproval_;
       expiration_ = other.expiration_;
       accountUid_ = other.accountUid_;
+      timerNotificationType_ = other.timerNotificationType_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -10878,6 +11264,18 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "timerNotificationType" field.</summary>
+    public const int TimerNotificationTypeFieldNumber = 9;
+    private global::Records.TimerNotificationType timerNotificationType_ = global::Records.TimerNotificationType.NotificationOff;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Records.TimerNotificationType TimerNotificationType {
+      get { return timerNotificationType_; }
+      set {
+        timerNotificationType_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -10901,6 +11299,7 @@ namespace Records {
       if (AwaitingApproval != other.AwaitingApproval) return false;
       if (Expiration != other.Expiration) return false;
       if (AccountUid != other.AccountUid) return false;
+      if (TimerNotificationType != other.TimerNotificationType) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -10916,6 +11315,7 @@ namespace Records {
       if (AwaitingApproval != false) hash ^= AwaitingApproval.GetHashCode();
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
       if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= TimerNotificationType.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -10966,6 +11366,10 @@ namespace Records {
         output.WriteRawTag(66);
         output.WriteBytes(AccountUid);
       }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        output.WriteRawTag(72);
+        output.WriteEnum((int) TimerNotificationType);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -11008,6 +11412,10 @@ namespace Records {
         output.WriteRawTag(66);
         output.WriteBytes(AccountUid);
       }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        output.WriteRawTag(72);
+        output.WriteEnum((int) TimerNotificationType);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -11041,6 +11449,9 @@ namespace Records {
       }
       if (AccountUid.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(AccountUid);
+      }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) TimerNotificationType);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -11078,6 +11489,9 @@ namespace Records {
       if (other.AccountUid.Length != 0) {
         AccountUid = other.AccountUid;
       }
+      if (other.TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        TimerNotificationType = other.TimerNotificationType;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -11089,7 +11503,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -11125,6 +11543,10 @@ namespace Records {
             AccountUid = input.ReadBytes();
             break;
           }
+          case 72: {
+            TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
         }
       }
     #endif
@@ -11136,7 +11558,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -11172,6 +11598,10 @@ namespace Records {
             AccountUid = input.ReadBytes();
             break;
           }
+          case 72: {
+            TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
         }
       }
     }
@@ -11179,6 +11609,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SharedFolderPermission : pb::IMessage<SharedFolderPermission>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -11218,6 +11649,7 @@ namespace Records {
       editable_ = other.editable_;
       revision_ = other.revision_;
       expiration_ = other.expiration_;
+      timerNotificationType_ = other.timerNotificationType_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -11290,6 +11722,18 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "timerNotificationType" field.</summary>
+    public const int TimerNotificationTypeFieldNumber = 6;
+    private global::Records.TimerNotificationType timerNotificationType_ = global::Records.TimerNotificationType.NotificationOff;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Records.TimerNotificationType TimerNotificationType {
+      get { return timerNotificationType_; }
+      set {
+        timerNotificationType_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -11310,6 +11754,7 @@ namespace Records {
       if (Editable != other.Editable) return false;
       if (Revision != other.Revision) return false;
       if (Expiration != other.Expiration) return false;
+      if (TimerNotificationType != other.TimerNotificationType) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -11322,6 +11767,7 @@ namespace Records {
       if (Editable != false) hash ^= Editable.GetHashCode();
       if (Revision != 0L) hash ^= Revision.GetHashCode();
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= TimerNotificationType.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -11360,6 +11806,10 @@ namespace Records {
         output.WriteRawTag(40);
         output.WriteInt64(Expiration);
       }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) TimerNotificationType);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -11390,6 +11840,10 @@ namespace Records {
         output.WriteRawTag(40);
         output.WriteInt64(Expiration);
       }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) TimerNotificationType);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -11414,6 +11868,9 @@ namespace Records {
       }
       if (Expiration != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(Expiration);
+      }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) TimerNotificationType);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -11442,6 +11899,9 @@ namespace Records {
       if (other.Expiration != 0L) {
         Expiration = other.Expiration;
       }
+      if (other.TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        TimerNotificationType = other.TimerNotificationType;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -11453,7 +11913,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -11477,6 +11941,10 @@ namespace Records {
             Expiration = input.ReadInt64();
             break;
           }
+          case 48: {
+            TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
         }
       }
     #endif
@@ -11488,7 +11956,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -11512,6 +11984,10 @@ namespace Records {
             Expiration = input.ReadInt64();
             break;
           }
+          case 48: {
+            TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
         }
       }
     }
@@ -11519,6 +11995,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordData : pb::IMessage<RecordData>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -12044,7 +12521,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -12115,7 +12596,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -12182,6 +12667,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordDataWithAccessInfo : pb::IMessage<RecordDataWithAccessInfo>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -12405,7 +12891,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -12439,7 +12929,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -12469,6 +12963,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class GetRecordDataWithAccessInfoResponse : pb::IMessage<GetRecordDataWithAccessInfoResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -12631,7 +13126,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -12654,7 +13153,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -12673,6 +13176,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class IsObjectShareAdmin : pb::IMessage<IsObjectShareAdmin>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -12889,7 +13393,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -12916,7 +13424,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -12942,6 +13454,7 @@ namespace Records {
   /// <summary>
   /// used for both request and response
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class AmIShareAdmin : pb::IMessage<AmIShareAdmin>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -13086,7 +13599,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -13105,7 +13622,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -13120,6 +13641,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordShareUpdateRequest : pb::IMessage<RecordShareUpdateRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -13329,7 +13851,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -13360,7 +13886,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -13387,6 +13917,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SharedRecord : pb::IMessage<SharedRecord>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -13432,6 +13963,7 @@ namespace Records {
       useEccKey_ = other.useEccKey_;
       removeVaultData_ = other.removeVaultData_;
       expiration_ = other.expiration_;
+      timerNotificationType_ = other.timerNotificationType_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -13573,6 +14105,18 @@ namespace Records {
       }
     }
 
+    /// <summary>Field number for the "timerNotificationType" field.</summary>
+    public const int TimerNotificationTypeFieldNumber = 12;
+    private global::Records.TimerNotificationType timerNotificationType_ = global::Records.TimerNotificationType.NotificationOff;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Records.TimerNotificationType TimerNotificationType {
+      get { return timerNotificationType_; }
+      set {
+        timerNotificationType_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -13599,6 +14143,7 @@ namespace Records {
       if (UseEccKey != other.UseEccKey) return false;
       if (RemoveVaultData != other.RemoveVaultData) return false;
       if (Expiration != other.Expiration) return false;
+      if (TimerNotificationType != other.TimerNotificationType) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -13617,6 +14162,7 @@ namespace Records {
       if (UseEccKey != false) hash ^= UseEccKey.GetHashCode();
       if (RemoveVaultData != false) hash ^= RemoveVaultData.GetHashCode();
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= TimerNotificationType.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -13679,6 +14225,10 @@ namespace Records {
         output.WriteRawTag(88);
         output.WriteInt64(Expiration);
       }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        output.WriteRawTag(96);
+        output.WriteEnum((int) TimerNotificationType);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -13733,6 +14283,10 @@ namespace Records {
         output.WriteRawTag(88);
         output.WriteInt64(Expiration);
       }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        output.WriteRawTag(96);
+        output.WriteEnum((int) TimerNotificationType);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -13775,6 +14329,9 @@ namespace Records {
       }
       if (Expiration != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(Expiration);
+      }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) TimerNotificationType);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -13821,6 +14378,9 @@ namespace Records {
       if (other.Expiration != 0L) {
         Expiration = other.Expiration;
       }
+      if (other.TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        TimerNotificationType = other.TimerNotificationType;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -13832,7 +14392,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -13880,6 +14444,10 @@ namespace Records {
             Expiration = input.ReadInt64();
             break;
           }
+          case 96: {
+            TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
         }
       }
     #endif
@@ -13891,7 +14459,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -13939,6 +14511,10 @@ namespace Records {
             Expiration = input.ReadInt64();
             break;
           }
+          case 96: {
+            TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
         }
       }
     }
@@ -13946,6 +14522,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordShareUpdateResponse : pb::IMessage<RecordShareUpdateResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -14126,7 +14703,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -14153,7 +14734,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -14176,6 +14761,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SharedRecordStatus : pb::IMessage<SharedRecordStatus>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -14421,7 +15007,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -14452,7 +15042,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -14479,6 +15073,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class GetRecordPermissionsRequest : pb::IMessage<GetRecordPermissionsRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -14652,7 +15247,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -14675,7 +15274,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -14694,6 +15297,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class GetRecordPermissionsResponse : pb::IMessage<GetRecordPermissionsResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -14838,7 +15442,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -14857,7 +15465,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -14872,6 +15484,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordPermission : pb::IMessage<RecordPermission>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -15143,7 +15756,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -15178,7 +15795,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -15209,6 +15830,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class GetShareObjectsRequest : pb::IMessage<GetShareObjectsRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -15463,7 +16085,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -15494,7 +16120,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -15521,6 +16151,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class GetShareObjectsResponse : pb::IMessage<GetShareObjectsResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -15794,7 +16425,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -15837,7 +16472,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -15876,6 +16515,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class ShareUser : pb::IMessage<ShareUser>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -16185,7 +16825,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -16224,7 +16868,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -16259,6 +16907,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class ShareTeam : pb::IMessage<ShareTeam>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -16472,7 +17121,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -16499,7 +17152,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -16522,6 +17179,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class ShareEnterprise : pb::IMessage<ShareEnterprise>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -16706,7 +17364,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -16729,7 +17391,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -16748,6 +17414,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsOnwershipTransferRequest : pb::IMessage<RecordsOnwershipTransferRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -16892,7 +17559,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -16911,7 +17582,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -16926,6 +17601,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class TransferRecord : pb::IMessage<TransferRecord>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -17168,7 +17844,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -17199,7 +17879,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -17226,6 +17910,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsOnwershipTransferResponse : pb::IMessage<RecordsOnwershipTransferResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -17370,7 +18055,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -17389,7 +18078,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -17404,6 +18097,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class TransferRecordStatus : pb::IMessage<TransferRecordStatus>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -17646,7 +18340,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -17677,7 +18375,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -17704,6 +18406,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsUnshareRequest : pb::IMessage<RecordsUnshareRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -17866,7 +18569,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -17889,7 +18596,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -17908,6 +18619,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsUnshareResponse : pb::IMessage<RecordsUnshareResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -18070,7 +18782,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -18093,7 +18809,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -18112,6 +18832,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsUnshareFolder : pb::IMessage<RecordsUnshareFolder>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -18296,7 +19017,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -18319,7 +19044,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -18338,6 +19067,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsUnshareUser : pb::IMessage<RecordsUnshareUser>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -18522,7 +19252,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -18545,7 +19279,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -18564,6 +19302,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsUnshareFolderStatus : pb::IMessage<RecordsUnshareFolderStatus>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -18748,7 +19487,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -18771,7 +19514,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -18790,6 +19537,7 @@ namespace Records {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class RecordsUnshareUserStatus : pb::IMessage<RecordsUnshareUserStatus>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -18974,7 +19722,11 @@ namespace Records {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -18997,7 +19749,11 @@ namespace Records {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -19007,6 +19763,1129 @@ namespace Records {
           }
           case 18: {
             AccountUid = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TimedAccessCallbackPayload : pb::IMessage<TimedAccessCallbackPayload>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TimedAccessCallbackPayload> _parser = new pb::MessageParser<TimedAccessCallbackPayload>(() => new TimedAccessCallbackPayload());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TimedAccessCallbackPayload> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[66]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimedAccessCallbackPayload() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimedAccessCallbackPayload(TimedAccessCallbackPayload other) : this() {
+      timeLimitedAccessType_ = other.timeLimitedAccessType_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimedAccessCallbackPayload Clone() {
+      return new TimedAccessCallbackPayload(this);
+    }
+
+    /// <summary>Field number for the "timeLimitedAccessType" field.</summary>
+    public const int TimeLimitedAccessTypeFieldNumber = 1;
+    private global::Records.TimeLimitedAccessType timeLimitedAccessType_ = global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Records.TimeLimitedAccessType TimeLimitedAccessType {
+      get { return timeLimitedAccessType_; }
+      set {
+        timeLimitedAccessType_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TimedAccessCallbackPayload);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TimedAccessCallbackPayload other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (TimeLimitedAccessType != other.TimeLimitedAccessType) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) hash ^= TimeLimitedAccessType.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) TimeLimitedAccessType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) TimeLimitedAccessType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) TimeLimitedAccessType);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TimedAccessCallbackPayload other) {
+      if (other == null) {
+        return;
+      }
+      if (other.TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        TimeLimitedAccessType = other.TimeLimitedAccessType;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            TimeLimitedAccessType = (global::Records.TimeLimitedAccessType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            TimeLimitedAccessType = (global::Records.TimeLimitedAccessType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TimeLimitedAccessRequest : pb::IMessage<TimeLimitedAccessRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TimeLimitedAccessRequest> _parser = new pb::MessageParser<TimeLimitedAccessRequest>(() => new TimeLimitedAccessRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TimeLimitedAccessRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[67]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessRequest(TimeLimitedAccessRequest other) : this() {
+      accountUid_ = other.accountUid_.Clone();
+      teamUid_ = other.teamUid_.Clone();
+      recordUid_ = other.recordUid_.Clone();
+      sharedObjectUid_ = other.sharedObjectUid_;
+      timeLimitedAccessType_ = other.timeLimitedAccessType_;
+      expiration_ = other.expiration_;
+      timerNotificationType_ = other.timerNotificationType_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessRequest Clone() {
+      return new TimeLimitedAccessRequest(this);
+    }
+
+    /// <summary>Field number for the "accountUid" field.</summary>
+    public const int AccountUidFieldNumber = 1;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_accountUid_codec
+        = pb::FieldCodec.ForBytes(10);
+    private readonly pbc::RepeatedField<pb::ByteString> accountUid_ = new pbc::RepeatedField<pb::ByteString>();
+    /// <summary>
+    ///list of users that have access to a record or shared folder
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<pb::ByteString> AccountUid {
+      get { return accountUid_; }
+    }
+
+    /// <summary>Field number for the "teamUid" field.</summary>
+    public const int TeamUidFieldNumber = 2;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_teamUid_codec
+        = pb::FieldCodec.ForBytes(18);
+    private readonly pbc::RepeatedField<pb::ByteString> teamUid_ = new pbc::RepeatedField<pb::ByteString>();
+    /// <summary>
+    ///list of teams that have access to a shared folder
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<pb::ByteString> TeamUid {
+      get { return teamUid_; }
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 3;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_recordUid_codec
+        = pb::FieldCodec.ForBytes(26);
+    private readonly pbc::RepeatedField<pb::ByteString> recordUid_ = new pbc::RepeatedField<pb::ByteString>();
+    /// <summary>
+    ///list of records that have access to a shared folder (aka that are shared via a shared folder)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<pb::ByteString> RecordUid {
+      get { return recordUid_; }
+    }
+
+    /// <summary>Field number for the "sharedObjectUid" field.</summary>
+    public const int SharedObjectUidFieldNumber = 4;
+    private pb::ByteString sharedObjectUid_ = pb::ByteString.Empty;
+    /// <summary>
+    ///recordUid or sharedFolderUid of which the timer will be set or deleted
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString SharedObjectUid {
+      get { return sharedObjectUid_; }
+      set {
+        sharedObjectUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "timeLimitedAccessType" field.</summary>
+    public const int TimeLimitedAccessTypeFieldNumber = 5;
+    private global::Records.TimeLimitedAccessType timeLimitedAccessType_ = global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Records.TimeLimitedAccessType TimeLimitedAccessType {
+      get { return timeLimitedAccessType_; }
+      set {
+        timeLimitedAccessType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "expiration" field.</summary>
+    public const int ExpirationFieldNumber = 6;
+    private long expiration_;
+    /// <summary>
+    ///delete timer when expiration==0
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long Expiration {
+      get { return expiration_; }
+      set {
+        expiration_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "timerNotificationType" field.</summary>
+    public const int TimerNotificationTypeFieldNumber = 7;
+    private global::Records.TimerNotificationType timerNotificationType_ = global::Records.TimerNotificationType.NotificationOff;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Records.TimerNotificationType TimerNotificationType {
+      get { return timerNotificationType_; }
+      set {
+        timerNotificationType_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TimeLimitedAccessRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TimeLimitedAccessRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!accountUid_.Equals(other.accountUid_)) return false;
+      if(!teamUid_.Equals(other.teamUid_)) return false;
+      if(!recordUid_.Equals(other.recordUid_)) return false;
+      if (SharedObjectUid != other.SharedObjectUid) return false;
+      if (TimeLimitedAccessType != other.TimeLimitedAccessType) return false;
+      if (Expiration != other.Expiration) return false;
+      if (TimerNotificationType != other.TimerNotificationType) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= accountUid_.GetHashCode();
+      hash ^= teamUid_.GetHashCode();
+      hash ^= recordUid_.GetHashCode();
+      if (SharedObjectUid.Length != 0) hash ^= SharedObjectUid.GetHashCode();
+      if (TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) hash ^= TimeLimitedAccessType.GetHashCode();
+      if (Expiration != 0L) hash ^= Expiration.GetHashCode();
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= TimerNotificationType.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      accountUid_.WriteTo(output, _repeated_accountUid_codec);
+      teamUid_.WriteTo(output, _repeated_teamUid_codec);
+      recordUid_.WriteTo(output, _repeated_recordUid_codec);
+      if (SharedObjectUid.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(SharedObjectUid);
+      }
+      if (TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) TimeLimitedAccessType);
+      }
+      if (Expiration != 0L) {
+        output.WriteRawTag(48);
+        output.WriteInt64(Expiration);
+      }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) TimerNotificationType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      accountUid_.WriteTo(ref output, _repeated_accountUid_codec);
+      teamUid_.WriteTo(ref output, _repeated_teamUid_codec);
+      recordUid_.WriteTo(ref output, _repeated_recordUid_codec);
+      if (SharedObjectUid.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(SharedObjectUid);
+      }
+      if (TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) TimeLimitedAccessType);
+      }
+      if (Expiration != 0L) {
+        output.WriteRawTag(48);
+        output.WriteInt64(Expiration);
+      }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        output.WriteRawTag(56);
+        output.WriteEnum((int) TimerNotificationType);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += accountUid_.CalculateSize(_repeated_accountUid_codec);
+      size += teamUid_.CalculateSize(_repeated_teamUid_codec);
+      size += recordUid_.CalculateSize(_repeated_recordUid_codec);
+      if (SharedObjectUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SharedObjectUid);
+      }
+      if (TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) TimeLimitedAccessType);
+      }
+      if (Expiration != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Expiration);
+      }
+      if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) TimerNotificationType);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TimeLimitedAccessRequest other) {
+      if (other == null) {
+        return;
+      }
+      accountUid_.Add(other.accountUid_);
+      teamUid_.Add(other.teamUid_);
+      recordUid_.Add(other.recordUid_);
+      if (other.SharedObjectUid.Length != 0) {
+        SharedObjectUid = other.SharedObjectUid;
+      }
+      if (other.TimeLimitedAccessType != global::Records.TimeLimitedAccessType.InvalidTimeLimitedAccessType) {
+        TimeLimitedAccessType = other.TimeLimitedAccessType;
+      }
+      if (other.Expiration != 0L) {
+        Expiration = other.Expiration;
+      }
+      if (other.TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
+        TimerNotificationType = other.TimerNotificationType;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            accountUid_.AddEntriesFrom(input, _repeated_accountUid_codec);
+            break;
+          }
+          case 18: {
+            teamUid_.AddEntriesFrom(input, _repeated_teamUid_codec);
+            break;
+          }
+          case 26: {
+            recordUid_.AddEntriesFrom(input, _repeated_recordUid_codec);
+            break;
+          }
+          case 34: {
+            SharedObjectUid = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            TimeLimitedAccessType = (global::Records.TimeLimitedAccessType) input.ReadEnum();
+            break;
+          }
+          case 48: {
+            Expiration = input.ReadInt64();
+            break;
+          }
+          case 56: {
+            TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            accountUid_.AddEntriesFrom(ref input, _repeated_accountUid_codec);
+            break;
+          }
+          case 18: {
+            teamUid_.AddEntriesFrom(ref input, _repeated_teamUid_codec);
+            break;
+          }
+          case 26: {
+            recordUid_.AddEntriesFrom(ref input, _repeated_recordUid_codec);
+            break;
+          }
+          case 34: {
+            SharedObjectUid = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            TimeLimitedAccessType = (global::Records.TimeLimitedAccessType) input.ReadEnum();
+            break;
+          }
+          case 48: {
+            Expiration = input.ReadInt64();
+            break;
+          }
+          case 56: {
+            TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TimeLimitedAccessStatus : pb::IMessage<TimeLimitedAccessStatus>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TimeLimitedAccessStatus> _parser = new pb::MessageParser<TimeLimitedAccessStatus>(() => new TimeLimitedAccessStatus());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TimeLimitedAccessStatus> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[68]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessStatus() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessStatus(TimeLimitedAccessStatus other) : this() {
+      uid_ = other.uid_;
+      message_ = other.message_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessStatus Clone() {
+      return new TimeLimitedAccessStatus(this);
+    }
+
+    /// <summary>Field number for the "uid" field.</summary>
+    public const int UidFieldNumber = 1;
+    private pb::ByteString uid_ = pb::ByteString.Empty;
+    /// <summary>
+    /// accountUid or teamUid or recordUid
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString Uid {
+      get { return uid_; }
+      set {
+        uid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "message" field.</summary>
+    public const int MessageFieldNumber = 2;
+    private string message_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Message {
+      get { return message_; }
+      set {
+        message_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TimeLimitedAccessStatus);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TimeLimitedAccessStatus other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Uid != other.Uid) return false;
+      if (Message != other.Message) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Uid.Length != 0) hash ^= Uid.GetHashCode();
+      if (Message.Length != 0) hash ^= Message.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Uid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Uid);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Uid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Uid);
+      }
+      if (Message.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Message);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Uid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Uid);
+      }
+      if (Message.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TimeLimitedAccessStatus other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Uid.Length != 0) {
+        Uid = other.Uid;
+      }
+      if (other.Message.Length != 0) {
+        Message = other.Message;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Uid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Uid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Message = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class TimeLimitedAccessResponse : pb::IMessage<TimeLimitedAccessResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TimeLimitedAccessResponse> _parser = new pb::MessageParser<TimeLimitedAccessResponse>(() => new TimeLimitedAccessResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TimeLimitedAccessResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Records.RecordReflection.Descriptor.MessageTypes[69]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessResponse(TimeLimitedAccessResponse other) : this() {
+      revision_ = other.revision_;
+      userAccessStatus_ = other.userAccessStatus_.Clone();
+      teamAccessStatus_ = other.teamAccessStatus_.Clone();
+      recordAccessStatus_ = other.recordAccessStatus_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TimeLimitedAccessResponse Clone() {
+      return new TimeLimitedAccessResponse(this);
+    }
+
+    /// <summary>Field number for the "revision" field.</summary>
+    public const int RevisionFieldNumber = 1;
+    private long revision_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long Revision {
+      get { return revision_; }
+      set {
+        revision_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "userAccessStatus" field.</summary>
+    public const int UserAccessStatusFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Records.TimeLimitedAccessStatus> _repeated_userAccessStatus_codec
+        = pb::FieldCodec.ForMessage(18, global::Records.TimeLimitedAccessStatus.Parser);
+    private readonly pbc::RepeatedField<global::Records.TimeLimitedAccessStatus> userAccessStatus_ = new pbc::RepeatedField<global::Records.TimeLimitedAccessStatus>();
+    /// <summary>
+    /// uid is accountUid
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Records.TimeLimitedAccessStatus> UserAccessStatus {
+      get { return userAccessStatus_; }
+    }
+
+    /// <summary>Field number for the "teamAccessStatus" field.</summary>
+    public const int TeamAccessStatusFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::Records.TimeLimitedAccessStatus> _repeated_teamAccessStatus_codec
+        = pb::FieldCodec.ForMessage(26, global::Records.TimeLimitedAccessStatus.Parser);
+    private readonly pbc::RepeatedField<global::Records.TimeLimitedAccessStatus> teamAccessStatus_ = new pbc::RepeatedField<global::Records.TimeLimitedAccessStatus>();
+    /// <summary>
+    /// uid is teamUid
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Records.TimeLimitedAccessStatus> TeamAccessStatus {
+      get { return teamAccessStatus_; }
+    }
+
+    /// <summary>Field number for the "recordAccessStatus" field.</summary>
+    public const int RecordAccessStatusFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Records.TimeLimitedAccessStatus> _repeated_recordAccessStatus_codec
+        = pb::FieldCodec.ForMessage(34, global::Records.TimeLimitedAccessStatus.Parser);
+    private readonly pbc::RepeatedField<global::Records.TimeLimitedAccessStatus> recordAccessStatus_ = new pbc::RepeatedField<global::Records.TimeLimitedAccessStatus>();
+    /// <summary>
+    /// uid is recordUid
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Records.TimeLimitedAccessStatus> RecordAccessStatus {
+      get { return recordAccessStatus_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TimeLimitedAccessResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TimeLimitedAccessResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Revision != other.Revision) return false;
+      if(!userAccessStatus_.Equals(other.userAccessStatus_)) return false;
+      if(!teamAccessStatus_.Equals(other.teamAccessStatus_)) return false;
+      if(!recordAccessStatus_.Equals(other.recordAccessStatus_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Revision != 0L) hash ^= Revision.GetHashCode();
+      hash ^= userAccessStatus_.GetHashCode();
+      hash ^= teamAccessStatus_.GetHashCode();
+      hash ^= recordAccessStatus_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Revision != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Revision);
+      }
+      userAccessStatus_.WriteTo(output, _repeated_userAccessStatus_codec);
+      teamAccessStatus_.WriteTo(output, _repeated_teamAccessStatus_codec);
+      recordAccessStatus_.WriteTo(output, _repeated_recordAccessStatus_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Revision != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Revision);
+      }
+      userAccessStatus_.WriteTo(ref output, _repeated_userAccessStatus_codec);
+      teamAccessStatus_.WriteTo(ref output, _repeated_teamAccessStatus_codec);
+      recordAccessStatus_.WriteTo(ref output, _repeated_recordAccessStatus_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Revision != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Revision);
+      }
+      size += userAccessStatus_.CalculateSize(_repeated_userAccessStatus_codec);
+      size += teamAccessStatus_.CalculateSize(_repeated_teamAccessStatus_codec);
+      size += recordAccessStatus_.CalculateSize(_repeated_recordAccessStatus_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TimeLimitedAccessResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Revision != 0L) {
+        Revision = other.Revision;
+      }
+      userAccessStatus_.Add(other.userAccessStatus_);
+      teamAccessStatus_.Add(other.teamAccessStatus_);
+      recordAccessStatus_.Add(other.recordAccessStatus_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Revision = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            userAccessStatus_.AddEntriesFrom(input, _repeated_userAccessStatus_codec);
+            break;
+          }
+          case 26: {
+            teamAccessStatus_.AddEntriesFrom(input, _repeated_teamAccessStatus_codec);
+            break;
+          }
+          case 34: {
+            recordAccessStatus_.AddEntriesFrom(input, _repeated_recordAccessStatus_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Revision = input.ReadInt64();
+            break;
+          }
+          case 18: {
+            userAccessStatus_.AddEntriesFrom(ref input, _repeated_userAccessStatus_codec);
+            break;
+          }
+          case 26: {
+            teamAccessStatus_.AddEntriesFrom(ref input, _repeated_teamAccessStatus_codec);
+            break;
+          }
+          case 34: {
+            recordAccessStatus_.AddEntriesFrom(ref input, _repeated_recordAccessStatus_codec);
             break;
           }
         }

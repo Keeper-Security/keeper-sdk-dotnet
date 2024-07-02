@@ -725,7 +725,7 @@ namespace KeeperSecurity.Vault
                 TeamUid = team.TeamUid,
                 Name = team.Name,
                 TeamKey = teamKey,
-                TeamPrivateKey = CryptoUtils.LoadPrivateKey(CryptoUtils.DecryptAesV1(pk, teamKey)),
+                TeamPrivateKey = CryptoUtils.LoadRsaPrivateKey(CryptoUtils.DecryptAesV1(pk, teamKey)),
                 RestrictEdit = team.RestrictEdit,
                 RestrictShare = team.RestrictShare,
                 RestrictView = team.RestrictView,

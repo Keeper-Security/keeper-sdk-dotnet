@@ -136,7 +136,7 @@ namespace Commander
             }
             else
             {
-                context.EnterprisePrivateKey = CryptoUtils.LoadPrivateEcKey(context.Enterprise.EcPrivateKey);
+                context.EnterprisePrivateKey = CryptoUtils.LoadEcPrivateKey(context.Enterprise.EcPrivateKey);
             }
         }
 
@@ -1500,7 +1500,7 @@ namespace Commander
             {
                 if (!dataKeys.TryGetValue(device.EnterpriseUserId, out var dk)) continue;
                 if (device.DevicePublicKey.IsEmpty) continue;
-                var devicePublicKey = CryptoUtils.LoadPublicEcKey(device.DevicePublicKey.ToByteArray());
+                var devicePublicKey = CryptoUtils.LoadEcPublicKey(device.DevicePublicKey.ToByteArray());
 
                 try
                 {

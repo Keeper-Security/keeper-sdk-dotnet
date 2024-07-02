@@ -155,7 +155,7 @@ namespace KeeperSecurity.Authentication
         public static async Task<bool> RegisterDataKeyForDevice(this IAuthentication auth, DeviceInfo device)
         {
             var publicKeyBytes = device.DevicePublicKey.ToByteArray();
-            var publicKey = CryptoUtils.LoadPublicEcKey(publicKeyBytes);
+            var publicKey = CryptoUtils.LoadEcPublicKey(publicKeyBytes);
             var encryptedDataKey = CryptoUtils.EncryptEc(auth.AuthContext.DataKey, publicKey);
             var request = new RegisterDeviceDataKeyRequest
             {

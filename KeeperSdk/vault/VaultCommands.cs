@@ -570,7 +570,7 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
-    internal class UploadParameters
+    public class UploadParameters
     {
         [DataMember(Name = "url")]
         public string Url;
@@ -616,96 +616,4 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "to_email")]
         public string ToEmail;
     }
-
-    [DataContract]
-    internal class GetRecordsCommand : AuthenticatedCommand
-    {
-        public GetRecordsCommand() : base("get_records")
-        {
-        }
-
-        [DataMember(Name = "include", EmitDefaultValue = false)]
-        public string[] Include;
-
-        [DataMember(Name = "client_time")]
-        public long ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-        [DataMember(Name = "records", EmitDefaultValue = false)]
-        public RecordAccessPath[] Records;
-    }
-
-
-    [DataContract]
-    internal class RecordUserPermission
-    {
-        [DataMember(Name = "username")]
-        public string Username;
-
-        [DataMember(Name = "owner")]
-        public bool Owner { get; set; }
-
-        [DataMember(Name = "sharable")]
-        public bool Sharable { get; set; }
-
-        [DataMember(Name = "editable")]
-        public bool Editable { get; set; }
-
-        [DataMember(Name = "awaiting_approval")]
-        public bool AwaitingApproval { get; set; }
-    }
-
-    [DataContract]
-    internal class RecordSharedFolderPermission
-    {
-        [DataMember(Name = "shared_folder_uid")]
-        public string SharedFolderUid;
-
-        [DataMember(Name = "revision")]
-        public long Revision;
-
-        [DataMember(Name = "reshareable")]
-        public bool Reshareable { get; set; }
-
-        [DataMember(Name = "editable")]
-        public bool Editable { get; set; }
-    }
-
-    [DataContract]
-    internal class RecordDetail
-    {
-        [DataMember(Name = "record_uid")]
-        public string RecordUid;
-
-        [DataMember(Name = "revision")]
-        public long Revision;
-
-        [DataMember(Name = "version")]
-        public int Version;
-
-        [DataMember(Name = "shared")]
-        public bool Shared;
-
-        [DataMember(Name = "data")]
-        public string Data;
-
-        [DataMember(Name = "extra")]
-        public string Extra;
-
-        [DataMember(Name = "non_shared_data")]
-        public string NonSharedData;
-
-        [DataMember(Name = "user_permissions")]
-        public RecordUserPermission[] UserPermissions;
-
-        [DataMember(Name = "shared_folder_permissions")]
-        public RecordSharedFolderPermission[] SharedFolderPermissions;
-    }
-
-    [DataContract]
-    internal class GetRecordsResponse : KeeperApiResponse
-    {
-        [DataMember(Name = "records", EmitDefaultValue = false)]
-        public RecordDetail[] Records;
-    }
-
 }

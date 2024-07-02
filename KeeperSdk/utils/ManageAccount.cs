@@ -101,7 +101,7 @@ namespace KeeperSecurity
                 if (shareAccountTo != null)
                     foreach (var shareTo in shareAccountTo)
                     {
-                        var key = CryptoUtils.LoadPublicKey(shareTo.PublicKey.Base64UrlDecode());
+                        var key = CryptoUtils.LoadRsaPublicKey(shareTo.PublicKey.Base64UrlDecode());
                         var command = new ShareAccountCommand
                         {
                             ToRoleId = shareTo.RoleId,

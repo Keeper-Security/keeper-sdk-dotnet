@@ -130,7 +130,7 @@ namespace KeeperSecurity.Authentication
                 {
                     if (!(deviceConf.DeviceKey?.Length > 0)) throw new KeeperInvalidDeviceToken("invalid configuration");
                     auth.DeviceToken = deviceConf.DeviceToken.Base64UrlDecode();
-                    v3.DeviceKey = CryptoUtils.LoadPrivateEcKey(deviceConf.DeviceKey);
+                    v3.DeviceKey = CryptoUtils.LoadEcPrivateKey(deviceConf.DeviceKey);
                 }
                 catch (Exception e)
                 {
@@ -191,7 +191,7 @@ namespace KeeperSecurity.Authentication
 
         private static async Task RegisterDeviceInRegion(this IAuth auth, IDeviceConfiguration device)
         {
-            var privateKey = CryptoUtils.LoadPrivateEcKey(device.DeviceKey);
+            var privateKey = CryptoUtils.LoadEcPrivateKey(device.DeviceKey);
             var publicKey = CryptoUtils.GetPublicEcKey(privateKey);
             var request = new RegisterDeviceInRegionRequest
             {
@@ -1012,7 +1012,7 @@ namespace KeeperSecurity.Authentication
                 InvokeSsoTokenAction = async tokenStr =>
                 {
                     var token = JsonUtils.ParseJson<SsoToken>(Encoding.UTF8.GetBytes(tokenStr));
-                    var pk = CryptoUtils.LoadPrivateKey(privateKey);
+                    var pk = CryptoUtils.LoadRsaPrivateKey(privateKey);
 
                     auth.Username = token.Email;
                     await auth.EnsureDeviceTokenIsRegistered(v3, auth.Username);

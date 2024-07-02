@@ -16,10 +16,9 @@ namespace KeeperSecurity.Vault
         public async Task PutUserToSharedFolder(string sharedFolderUid,
             string userId,
             UserType userType,
-            ISharedFolderUserOptions options)
+            IUserShareOptions options)
         {
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);
-            var perm = this.ResolveSharedFolderAccessPath(Auth.Username, sharedFolderUid, true);
 
             var request = new SharedFolderUpdateV3Request
             {
@@ -28,88 +27,85 @@ namespace KeeperSecurity.Vault
                 ForceUpdate = true,
 
             };
+            var perm = this.ResolveSharedFolderAccessPath(Auth.Username, sharedFolderUid, true);
             if (perm != null && perm.UserType == UserType.Team)
             {
                 request.FromTeamUid = ByteString.CopyFrom(perm.UserId.Base64UrlDecode());
             }
 
-            if (userType == UserType.User)
-            {
-                if (sharedFolder.UsersPermissions.Any(x => x.UserType == UserType.User && x.UserId == userId))
-                {
-                    request.SharedFolderUpdateUser.Add(new Folder.SharedFolderUpdateUser
-                    {
+            if (userType == UserType.User) {
+                if (sharedFolder.UsersPermissions.Any(x => x.UserType == UserType.User && x.UserId == userId)) {
+                    request.SharedFolderUpdateUser.Add(new Folder.SharedFolderUpdateUser {
                         Username = userId,
                         ManageUsers = options.ManageUsers == null ? SetBooleanValue.BooleanNoChange
                         : options.ManageUsers.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
                         ManageRecords = options.ManageRecords == null ? SetBooleanValue.BooleanNoChange
                         : options.ManageRecords.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
+                        Expiration = options?.Expiration == null ? 0 : options.Expiration.Value.ToUnixTimeMilliseconds(),
                     });
+                } else {
+                    await Auth.LoadUsersKeys(Enumerable.Repeat(userId, 1));
+                    if (Auth.TryGetUserKeys(userId, out var keys)) {
+                        var publicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
+                        request.SharedFolderAddUser.Add(new Folder.SharedFolderUpdateUser {
+                            Username = userId,
+                            ManageUsers = options.ManageUsers == null
+                            ? (sharedFolder.DefaultManageUsers ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
+                            : options.ManageUsers.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
+                            ManageRecords = options.ManageRecords == null
+                            ? (sharedFolder.DefaultManageRecords ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
+                            : options.ManageRecords.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
+                            TypedSharedFolderKey = new EncryptedDataKey {
+                                EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, publicKey)),
+                                EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey
+                            },
+                            Expiration = options?.Expiration == null ? 0 : options.Expiration.Value.ToUnixTimeMilliseconds(),
+                        });
+                    }
                 }
-                else
-                {
-                    var keyTuple = await GetUserPublicKeys(userId);
-                    var publicKey = CryptoUtils.LoadPublicKey(keyTuple.Item1);
-                    request.SharedFolderAddUser.Add(new Folder.SharedFolderUpdateUser
-                    {
-                        Username = userId,
-                        ManageUsers = options.ManageUsers == null
-                        ? (sharedFolder.DefaultManageUsers ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
-                        : options.ManageUsers.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
-                        ManageRecords = options.ManageRecords == null
-                        ? (sharedFolder.DefaultManageRecords ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
-                        : options.ManageRecords.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
-                        SharedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, publicKey)),
-                    });
-                }
-            }
-            else
-            {
+            } else {
                 var p = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == UserType.Team && x.UserId == userId);
-                if (p != null)
-                {
-                    request.SharedFolderUpdateTeam.Add(new Folder.SharedFolderUpdateTeam
-                    {
+                if (p != null) {
+                    request.SharedFolderUpdateTeam.Add(new Folder.SharedFolderUpdateTeam {
                         TeamUid = ByteString.CopyFrom(userId.Base64UrlDecode()),
                         ManageUsers = options.ManageUsers == null ? p.ManageUsers : options.ManageUsers.Value,
                         ManageRecords = options.ManageRecords == null ? p.ManageRecords : options.ManageRecords.Value,
+                        Expiration = options?.Expiration == null ? 0 : options.Expiration.Value.ToUnixTimeMilliseconds(),
                     });
-                }
-                else
-                {
+                } else {
                     byte[] encryptedSharedFolderKey;
-                    if (TryGetTeam(userId, out var team))
-                    {
+                    EncryptedKeyType encryptedKeyType;
+                    if (TryGetTeam(userId, out var team)) {
                         encryptedSharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, team.TeamKey);
-                    }
-                    else
-                    {
-                        var tkRq = new TeamGetKeysCommand
-                        {
+                        encryptedKeyType = EncryptedKeyType.EncryptedByDataKey;
+                    } else {
+                        var tkRq = new TeamGetKeysCommand {
                             teams = new[] { userId },
                         };
                         var tkRs = await Auth.ExecuteAuthCommand<TeamGetKeysCommand, TeamGetKeysResponse>(tkRq);
-                        if (tkRs.keys == null || tkRs.keys.Length == 0)
-                        {
+                        if (tkRs.keys == null || tkRs.keys.Length == 0) {
                             throw new VaultException($"Cannot get public key of team: {userId}");
                         }
 
                         var tk = tkRs.keys[0];
-                        if (!string.IsNullOrEmpty(tk.resultCode))
-                        {
+                        if (!string.IsNullOrEmpty(tk.resultCode)) {
                             throw new KeeperApiException(tk.resultCode, tk.message);
                         }
 
-                        var tpk = CryptoUtils.LoadPublicKey(tk.key.Base64UrlDecode());
+                        var tpk = CryptoUtils.LoadRsaPublicKey(tk.key.Base64UrlDecode());
                         encryptedSharedFolderKey = CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, tpk);
+                        encryptedKeyType = EncryptedKeyType.EncryptedByPublicKey;
                     }
 
-                    request.SharedFolderAddTeam.Add(new Folder.SharedFolderUpdateTeam
-                    {
+                    request.SharedFolderAddTeam.Add(new Folder.SharedFolderUpdateTeam {
                         TeamUid = ByteString.CopyFrom(userId.Base64UrlDecode()),
                         ManageUsers = options.ManageUsers == null ? sharedFolder.DefaultManageUsers : options.ManageUsers.Value,
                         ManageRecords = options.ManageRecords == null ? sharedFolder.DefaultManageRecords : options.ManageRecords.Value,
-                        SharedFolderKey = ByteString.CopyFrom(encryptedSharedFolderKey),
+                        TypedSharedFolderKey = new EncryptedDataKey { 
+                            EncryptedKey = ByteString.CopyFrom(encryptedSharedFolderKey),
+                            EncryptedKeyType = encryptedKeyType
+                        },
+                        Expiration = options?.Expiration == null ? 0 : options.Expiration.Value.ToUnixTimeMilliseconds(),
                     });
                 }
             }
@@ -195,7 +191,7 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>>
-        public async Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, ISharedFolderRecordOptions options)
+        public async Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, IRecordShareOptions options)
         {
             var sharedFolder = this.GetSharedFolder(sharedFolderUid);
 
