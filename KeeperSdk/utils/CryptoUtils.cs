@@ -115,9 +115,35 @@ namespace KeeperSecurity.Utils
         }
 
         /// <summary>
+        ///     Generates RSA key pair.
+        /// </summary>
+        /// <param name="privateKey"><c>out</c>Rsa Private key.</param>
+        /// <param name="publicKey"><c>out</c>Rsa Public Key</param>
+        public static void GenerateRsaKey(out RsaPrivateCrtKeyParameters privateKey, out RsaKeyParameters publicKey)
+        {
+            var r = new RsaKeyPairGenerator();
+            r.Init(new KeyGenerationParameters(RngCsp, 2048));
+            var keyPair = r.GenerateKeyPair();
+
+            privateKey = (RsaPrivateCrtKeyParameters) keyPair.Private;
+            publicKey = (RsaKeyParameters) keyPair.Public;
+        }
+
+        /// <summary>
+        ///     Unloads RSA public key.
+        /// </summary>
+        /// <param name="key">RSA public key</param>
+        /// <returns>RSA Public Key DER encoded</returns>
+        public static byte[] UnloadRsaPublicKey(RsaKeyParameters publicKey)
+        {
+            var publicKeyInfo = new RsaPublicKeyStructure(publicKey.Modulus, publicKey.Exponent);
+            return publicKeyInfo.GetDerEncoded();
+        }
+
+        /// <summary>
         ///     Loads RSA public key.
         /// </summary>
-        /// <param name="key">RSA public key DER encoded.</param>
+        /// <param name="key">RSA public key DER encoded</param>
         /// <returns>RSA Public Key</returns>
         public static RsaKeyParameters LoadRsaPublicKey(byte[] key)
         {
@@ -128,11 +154,15 @@ namespace KeeperSecurity.Utils
             return PublicKeyFactory.CreateKey(publicKeyInfo) as RsaKeyParameters;
         }
 
-        /// <exclude />
-        [Obsolete("Use LoadRsaPublicKey")]
-        public static RsaKeyParameters LoadPublicKey(byte[] key)
+        /// <summary>
+        ///     Unloads RSA private key.
+        /// </summary>
+        /// <param name="key">RSA private key</param>
+        /// <returns>RSA Private Key DER encoded</returns>
+        public static byte[] UnloadRsaPrivateKey(RsaPrivateCrtKeyParameters privateKey)
         {
-            return LoadRsaPublicKey(key);
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
+            return privateKeyInfo.ParsePrivateKey().GetDerEncoded();
         }
 
         /// <summary>
@@ -147,13 +177,6 @@ namespace KeeperSecurity.Utils
             var privateKeyInfo = new PrivateKeyInfo(algorithm, privateKeyStructure);
 
             return PrivateKeyFactory.CreateKey(privateKeyInfo) as RsaPrivateCrtKeyParameters;
-        }
-
-        /// <exclude />
-        [Obsolete("Use LoadRsaPrivateKey")]
-        public static RsaPrivateCrtKeyParameters LoadPrivateKey(byte[] key)
-        {
-            return LoadRsaPrivateKey(key);
         }
 
         /// <summary>
@@ -372,26 +395,6 @@ namespace KeeperSecurity.Utils
         }
 
         /// <summary>
-        ///     Generates RSA key pair.
-        /// </summary>
-        /// <param name="privateKey"><c>out</c> Private key.</param>
-        /// <param name="publicKey"><c>out</c> Public Key</param>
-        public static void GenerateRsaKey(out byte[] privateKey, out byte[] publicKey)
-        {
-            var r = new RsaKeyPairGenerator();
-            r.Init(new KeyGenerationParameters(RngCsp, 2048));
-            var keys = r.GenerateKeyPair();
-
-            var privateParams = (RsaPrivateCrtKeyParameters) keys.Private;
-            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateParams);
-            privateKey = privateKeyInfo.ParsePrivateKey().GetDerEncoded();
-
-            var publicParams = (RsaKeyParameters) keys.Public;
-            var publicKeyInfo = new RsaPublicKeyStructure(publicParams.Modulus, publicParams.Exponent);
-            publicKey = publicKeyInfo.GetDerEncoded();
-        }
-
-        /// <summary>
         ///     Derives encryption key from password.
         /// </summary>
         /// <param name="domain">Domain.</param>
@@ -476,13 +479,6 @@ namespace KeeperSecurity.Utils
             return new ECPrivateKeyParameters(new BigInteger(1, key), EcParameters);
         }
 
-        /// <exclude />
-        [Obsolete("Use LoadEcPrivateKey")]
-        public static ECPrivateKeyParameters LoadPrivateEcKey(byte[] key)
-        {
-            return LoadEcPrivateKey(key);
-        }
-
         /// <summary>
         ///     LoadV2 EC public key.
         /// </summary>
@@ -496,14 +492,7 @@ namespace KeeperSecurity.Utils
         }
 
         /// <exclude />
-        [Obsolete("Use LoadEcPublicKey")]
-        public static ECPublicKeyParameters LoadPublicEcKey(byte[] key)
-        {
-            return LoadEcPublicKey(key);
-        }
-
-        /// <exclude />
-        public static ECPublicKeyParameters GetPublicEcKey(ECPrivateKeyParameters privateKey)
+        public static ECPublicKeyParameters GetEcPublicKey(ECPrivateKeyParameters privateKey)
         {
             return new ECPublicKeyParameters(privateKey.Parameters.G.Multiply(privateKey.D), privateKey.Parameters);
         }

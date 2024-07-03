@@ -977,7 +977,9 @@ namespace KeeperSecurity.Vault
                                 }
 
                                 frq.FolderType = Folder.FolderType.SharedFolderFolder;
-                                frq.EncryptedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(folder.FolderKey, sharedFolder.FolderKey));
+                                frq.EncryptedFolderKey =
+                                    ByteString.CopyFrom(CryptoUtils.EncryptAesV1(folder.FolderKey,
+                                        sharedFolder.FolderKey));
                                 frq.SharedFolderFolderFields = new SharedFolderFolderFields
                                 {
                                     SharedFolderUid = ByteString.CopyFrom(folder.SharedFolderUid.Base64UrlDecode()),
@@ -1033,7 +1035,7 @@ namespace KeeperSecurity.Vault
                                     rrq.FolderType = Folder.FolderType.SharedFolderFolder;
                                     if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
                                     {
-                                        var message = $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found";
+                                            var message = $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found";
                                         BatchLogger?.Invoke(Severity.Warning, message);
                                         result.FolderFailure[folder.FolderUid] = message;
                                         continue;
@@ -1046,7 +1048,7 @@ namespace KeeperSecurity.Vault
 
                             if (sharedFolder != null)
                             {
-                                rrq.EncryptedRecordFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(record.RecordKey, sharedFolder.FolderKey));
+                                    rrq.EncryptedRecordFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(record.RecordKey, sharedFolder.FolderKey));
                             }
                         }
                         else
@@ -1064,7 +1066,7 @@ namespace KeeperSecurity.Vault
                 }
 
                 BatchLogger?.Invoke(Severity.Information, "Create Folders and Legacy Records");
-                var rs = await _vault.Auth.ExecuteAuthRest<ImportFolderRecordRequest, ImportFolderRecordResponse>("folder/import_folders_and_records", rq);
+                    var rs = await _vault.Auth.ExecuteAuthRest<ImportFolderRecordRequest, ImportFolderRecordResponse>("folder/import_folders_and_records", rq);
                 foreach (var frs in rs.FolderResponse)
                 {
                     if (frs.Status.ToLower() == "success")
@@ -1115,12 +1117,12 @@ namespace KeeperSecurity.Vault
             BatchLogger?.Invoke(Severity.Information, "Create Typed Records");
             while (_typedRecordsToAdd.Count > 0)
             {
-                var left = 999;
+                    var left = 999;
 
                 Tuple<TypedRecord, FolderNode>[] chunk;
-                if (_typedRecordsToAdd.Count > left)
+                    if (_typedRecordsToAdd.Count > left)
                 {
-                    chunk = _typedRecordsToAdd.Take(left).ToArray();
+                        chunk = _typedRecordsToAdd.Take(left).ToArray();
                     _typedRecordsToAdd.RemoveRange(0, chunk.Length);
                 }
                 else
@@ -1179,7 +1181,7 @@ namespace KeeperSecurity.Vault
 
                         if (sharedFolder != null)
                         {
-                            ra.FolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(typed.RecordKey, sharedFolder.FolderKey));
+                                ra.FolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(typed.RecordKey, sharedFolder.FolderKey));
                         }
                     }
                     else
@@ -1200,7 +1202,8 @@ namespace KeeperSecurity.Vault
                         ra.Audit = new RecordAudit
                         {
                             Version = 0,
-                            Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(data, _vault.Auth.AuthContext.EnterprisePublicEcKey))
+                            Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(data,
+                                _vault.Auth.AuthContext.EnterprisePublicEcKey))
                         };
                     }
 
@@ -1276,7 +1279,7 @@ namespace KeeperSecurity.Vault
                             FolderUid = folder.FolderUid,
                             FolderType = folder.FolderType.GetFolderTypeText(),
                             ParentUid = string.IsNullOrEmpty(folder.ParentUid) ? null : folder.ParentUid,
-                            SharedFolderUid = string.IsNullOrEmpty(folder.SharedFolderUid) ? null : folder.SharedFolderUid,
+                                SharedFolderUid = string.IsNullOrEmpty(folder.SharedFolderUid) ? null : folder.SharedFolderUid,
                         };
 
                         var newName = _folderNameUpdates[folderUid];
@@ -1286,7 +1289,7 @@ namespace KeeperSecurity.Vault
                             var existingFolder = _vault.Storage.Folders.GetEntity(folderUid);
                             if (folder.FolderKey != null && !string.IsNullOrEmpty(existingFolder?.Data))
                             {
-                                data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
+                                    data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
                             }
                         }
                         catch {/* ignored */}
@@ -1309,14 +1312,14 @@ namespace KeeperSecurity.Vault
                             {
                                 if (perm.UserType == UserType.Team)
                                 {
-                                    request.TeamUid = perm.UserId;
+                                    request.TeamUid = perm.Uid;
                                 }
                             }
                         }
 
                         if (folder.FolderType == FolderType.SharedFolder)
                         {
-                            request.Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(newName), folder.FolderKey).Base64UrlEncode();
+                                request.Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(newName), folder.FolderKey).Base64UrlEncode();
                         }
 
                         folderUpdateRequests.Add(request);
@@ -1369,7 +1372,8 @@ namespace KeeperSecurity.Vault
                         {
                             if (!membership.IsRemove)
                             {
-                                var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.UserId == membership.UserId);
+                                // TODO name
+                                var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.Uid == membership.UserId);
                                 if (existingUser == null)
                                 {
                                     (membership.UserType == UserType.User ? userEmails : teamUids).Add(membership.UserId);
@@ -1404,7 +1408,8 @@ namespace KeeperSecurity.Vault
                     };
                     foreach (var membership in _sharedFolderMembership[sharedFolderUid].Values)
                     {
-                        var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.UserId == membership.UserId);
+                        // TODO name
+                        var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.Uid == membership.UserId);
                         if (membership.IsRemove)
                         {
                             if (existingUser == null) continue;
@@ -1440,15 +1445,24 @@ namespace KeeperSecurity.Vault
                                     {
                                         try
                                         {
-                                            if (keys.RsaPublicKey == null)
-                                            {
-                                                throw new Exception($"RSA public key not found");
+                                            if (_vault.Auth.AuthContext.ForbidKeyType2 && keys.EcPublicKey != null) {
+                                                var ecPublicKey = CryptoUtils.LoadEcPublicKey(keys.EcPublicKey);
+                                                sfuu.TypedSharedFolderKey = new EncryptedDataKey {
+                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(sharedFolder.SharedFolderKey, ecPublicKey)),
+                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKeyEcc
+                                                };
                                             }
-                                            var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
-                                            sfuu.TypedSharedFolderKey = new EncryptedDataKey {
-                                                EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey)),
-                                                EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey
-                                            };
+                                            else if (!_vault.Auth.AuthContext.ForbidKeyType2 && keys.RsaPublicKey != null) {
+                                                var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
+                                                sfuu.TypedSharedFolderKey = new EncryptedDataKey
+                                                {
+                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey)),
+                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey
+                                                };
+                                            }
+                                            else {
+                                                throw new Exception($"User \"{membership.UserId}\" public key not found");
+                                            }
                                         }
                                         catch (Exception e)
                                         {
@@ -1491,17 +1505,37 @@ namespace KeeperSecurity.Vault
                                         {
                                             if (keys.AesKey != null)
                                             {
-                                                sfut.TypedSharedFolderKey = new EncryptedDataKey { 
-                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, keys.AesKey)),
-                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByDataKey,
-                                                };
+                                                if (_vault.Auth.AuthContext.ForbidKeyType2)
+                                                {
+                                                    sfut.TypedSharedFolderKey = new EncryptedDataKey
+                                                    {
+                                                        EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(sharedFolder.SharedFolderKey, keys.AesKey)),
+                                                        EncryptedKeyType = EncryptedKeyType.EncryptedByDataKeyGcm,
+                                                    };
+                                                }
+                                                else {
+                                                    sfut.TypedSharedFolderKey = new EncryptedDataKey
+                                                    {
+                                                        EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, keys.AesKey)),
+                                                        EncryptedKeyType = EncryptedKeyType.EncryptedByDataKey,
+                                                    };
+                                                }
                                             }
-                                            else if (keys.RsaPublicKey != null)
+                                            else if (!_vault.Auth.AuthContext.ForbidKeyType2 && keys.RsaPublicKey != null)
                                             {
                                                 var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
-                                                sfut.TypedSharedFolderKey = new EncryptedDataKey { 
+                                                sfut.TypedSharedFolderKey = new EncryptedDataKey
+                                                {
                                                     EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey)),
                                                     EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey,
+                                                };
+                                            }
+                                            else if (_vault.Auth.AuthContext.ForbidKeyType2 && keys.EcPublicKey != null) {
+                                                var ecPublicKey = CryptoUtils.LoadEcPublicKey(keys.EcPublicKey);
+                                                sfut.TypedSharedFolderKey = new EncryptedDataKey
+                                                {
+                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(sharedFolder.SharedFolderKey, ecPublicKey)),
+                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKeyEcc,
                                                 };
                                             }
                                             else
@@ -1729,8 +1763,9 @@ namespace KeeperSecurity.Vault
 
             if (_vault.TryGetSharedFolder(sharedFolderUid, out var sharedFolder))
             {
+                // TODO name
                 var existingMembership = sharedFolder.UsersPermissions.FirstOrDefault(
-                    x => x.UserType == userType && string.Equals(x.UserId, userId, 
+                    x => x.UserType == userType && string.Equals(x.Uid, userId, 
                     x.UserType == UserType.User ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture));
                 if (existingMembership != null)
                 {

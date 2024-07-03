@@ -215,6 +215,9 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "teams_removed")]
         public string[] teamsRemoved;
 
+        string ISharedFolder.Data => null;
+        string ISharedFolder.OwnerAccountUid => null;
+
         string IUid.Uid => SharedFolderUid;
     }
 
@@ -234,7 +237,7 @@ namespace KeeperSecurity.Commands
         public int KeyType { get; set; }
 
         [DataMember(Name = "team_private_key")]
-        public string TeamPrivateKey { get; set; }
+        public string TeamRsaPrivateKey { get; set; }
 
         [DataMember(Name = "restrict_edit")]
         public bool RestrictEdit { get; set; }
@@ -249,7 +252,9 @@ namespace KeeperSecurity.Commands
         public string[] removedSharedFolders;
 
         [DataMember(Name = "shared_folder_keys")]
-        public SyncDownSharedFolderKey[] sharedFolderKeys;
+        public SyncDownSharedFolderKey[] SharedFolderKeys;
+
+        string IEnterpriseTeam.TeamEcPrivateKey => null;
 
         string IUid.Uid => TeamUid;
     }
@@ -286,6 +291,8 @@ namespace KeeperSecurity.Commands
         public bool ManageUsers { get; set; }
 
         public string SharedFolderUid { get; set; }
+
+        long ISharedFolderPermission.Expiration => 0;
 
         string ISharedFolderPermission.UserId => TeamUid;
         int ISharedFolderPermission.UserType => (int) UserType.Team;
@@ -325,6 +332,7 @@ namespace KeeperSecurity.Commands
         public bool ManageUsers { get; set; }
 
         public string SharedFolderUid { get; set; }
+        long ISharedFolderPermission.Expiration => 0;
 
         string IUidLink.SubjectUid => SharedFolderUid;
         string IUidLink.ObjectUid => Username;
@@ -353,7 +361,11 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "can_edit")]
         public bool CanEdit { get; set; }
 
+        string IRecordMetadata.OwnerAccountUid => null;
+        long IRecordMetadata.Expiration => 0;
+
         public string SharedFolderUid { get; set; }
+
         string IUidLink.SubjectUid => RecordUid;
         string IUidLink.ObjectUid => SharedFolderUid;
     }
@@ -545,13 +557,6 @@ namespace KeeperSecurity.Commands
         }
 
         public string Uid => RecordUid;
-    }
-
-    [DataContract]
-    public class FolderData
-    {
-        [DataMember(Name = "name")]
-        public string name;
     }
 
 #pragma warning restore 0649

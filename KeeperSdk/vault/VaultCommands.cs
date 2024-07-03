@@ -496,26 +496,6 @@ namespace KeeperSecurity.Commands
         public string message;
     }
 
-    /// <exclude/>
-    [DataContract]
-    public class TeamGetKeysCommand : AuthenticatedCommand
-    {
-        public TeamGetKeysCommand() : base("team_get_keys")
-        {
-        }
-
-        [DataMember(Name = "teams", EmitDefaultValue = false)]
-        public string[] teams;
-    }
-
-    /// <exclude/>
-    [DataContract]
-    public class TeamGetKeysResponse : KeeperApiResponse
-    {
-        [DataMember(Name = "keys", EmitDefaultValue = false)]
-        public TeamKeyObject[] keys;
-    }
-
     [DataContract]
     internal class RequestDownloadCommand : AuthenticatedCommand, IRecordAccessPath
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using KeeperSecurity.Vault;
 
 namespace KeeperSecurity.Utils
@@ -48,6 +49,10 @@ namespace KeeperSecurity.Utils
                 return "file";
             }
 
+            if (record is ApplicationRecord ar)
+            {
+                return ar.Type;
+            }
             return "";
         }
 
@@ -194,8 +199,18 @@ namespace KeeperSecurity.Utils
                 {
                     yield return fts.GetValueAsString();
                 }
-                else {
-                    yield return "<not supported>";
+                else
+                {
+                    string text;
+                    try
+                    {
+                        text = Encoding.UTF8.GetString(JsonUtils.DumpJson(value, indent: true));
+                    }
+                    catch
+                    {
+                        text = "<not supported>";
+                    }
+                    yield return text;
                 }
             }
         }

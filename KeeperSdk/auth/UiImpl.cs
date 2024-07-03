@@ -345,56 +345,34 @@ namespace KeeperSecurity.Authentication
             {DataKeyShareChannel.AdminApproval, "request_admin"},
         };
 
+        private static readonly IDictionary<TwoFactorDuration, string> Durations = new Dictionary<TwoFactorDuration, string>
+        {
+            {TwoFactorDuration.EveryLogin, "never"},
+            {TwoFactorDuration.Forever, "forever"},
+            {TwoFactorDuration.Every12Hours, "12 hours"},
+            {TwoFactorDuration.Every24Hours, "24 hours"},
+            {TwoFactorDuration.Every30Days, "30 days"},
+        };
+
         public static string DurationToText(TwoFactorDuration duration)
         {
-            switch (duration)
+            if (Durations.TryGetValue(duration, out var text))
             {
-                case TwoFactorDuration.EveryLogin:
-                    return "never";
-                case TwoFactorDuration.Forever:
-                    return "forever";
-                default:
-                    return $"{(int) duration} days";
+                return text;
             }
+            return "";
         }
 
         public static bool TryParseTextToDuration(string text, out TwoFactorDuration duration)
         {
-            text = text.Trim().ToLowerInvariant();
-            switch (text)
-            {
-                case "never":
-                    duration = TwoFactorDuration.EveryLogin;
+            foreach (var pair in Durations) {
+                if (string.Equals(pair.Value, text, StringComparison.InvariantCultureIgnoreCase)) { 
+                    duration = pair.Key;
                     return true;
-                case "forever":
-                    duration = TwoFactorDuration.Forever;
-                    return true;
-                default:
-                    var idx = text.IndexOf(' ');
-                    if (idx > 0)
-                    {
-                        text = text.Substring(0, idx);
-                    }
-
-                    if (int.TryParse(text, out var days))
-                    {
-                        foreach (var d in Enum.GetValues(typeof(TwoFactorDuration)).OfType<TwoFactorDuration>())
-                        {
-                            if ((int) d == days)
-                            {
-                                duration = d;
-                                return true;
-                            }
-                        }
-                    }
-
-                    break;
+                }
             }
-
             duration = TwoFactorDuration.EveryLogin;
             return false;
         }
-
-
     }
 }

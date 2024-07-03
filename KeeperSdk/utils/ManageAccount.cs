@@ -101,12 +101,15 @@ namespace KeeperSecurity
                 if (shareAccountTo != null)
                     foreach (var shareTo in shareAccountTo)
                     {
-                        var key = CryptoUtils.LoadRsaPublicKey(shareTo.PublicKey.Base64UrlDecode());
                         var command = new ShareAccountCommand
                         {
                             ToRoleId = shareTo.RoleId,
-                            TransferKey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode()
                         };
+                        if (!auth.AuthContext.ForbidKeyType2)
+                        {
+                            var key = CryptoUtils.LoadRsaPublicKey(shareTo.PublicKey.Base64UrlDecode());
+                            command.TransferKey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode();
+                        }
                         await auth.ExecuteAuthCommand(command);
                     }
             }

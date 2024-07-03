@@ -6,17 +6,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
-using Org.BouncyCastle.Utilities.Zlib;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Net.Http.Headers;
 
-namespace KeeperSecurity.Vault {
+namespace KeeperSecurity.Vault
+{
 
     /// <summary>
     /// Creates an attachment upload task.
@@ -200,8 +197,6 @@ namespace KeeperSecurity.Vault {
             return deleted;
         }
 
-
-
         /// <exclude/>
         public async Task DownloadFile(FileRecord fileRecord, Stream destination)
         {
@@ -221,24 +216,19 @@ namespace KeeperSecurity.Vault {
                 throw new KeeperApiException(status, fileRecord.Name ?? fileRecord.Title);
             }
 
-            var request = WebRequest.Create(new Uri(fileResult.Url));
 
-            using (var response = (HttpWebResponse) await request.GetResponseAsync()) {
-                using (var stream = response.GetResponseStream()) {
-                    var transform = new DecryptAesV2Transform(fileRecord.RecordKey);
-                    using (var decodeStream = new CryptoStream(stream, transform, CryptoStreamMode.Read)) {
-                        if (destination != null) {
-                            await decodeStream.CopyToAsync(destination);
-                        }
-                    }
-                }
+            var transform = new DecryptAesV2Transform(fileRecord.RecordKey);
+            using (var decodeStream = new CryptoStream(destination, transform, CryptoStreamMode.Write))
+            {
+                await Auth.Endpoint.DownloadFromUrl(new Uri(fileResult.Url), decodeStream);
             }
         }
 
         /// <exclude />
         public async Task DownloadAttachmentFile(string recordUid, AttachmentFile attachment, Stream destination)
         {
-            var command = new RequestDownloadCommand {
+            var command = new RequestDownloadCommand
+            {
                 RecordUid = recordUid,
                 FileIDs = new[] { attachment.Id }
             };
@@ -246,15 +236,11 @@ namespace KeeperSecurity.Vault {
             var rs = await this.Auth.ExecuteAuthCommand<RequestDownloadCommand, RequestDownloadResponse>(command);
 
             var download = rs.Downloads[0];
-            var request = WebRequest.Create(new Uri(download.Url));
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
-            using (var stream = response.GetResponseStream()) {
-                var transform = new DecryptAesV1Transform(attachment.Key.Base64UrlDecode());
-                using (var decodeStream = new CryptoStream(stream, transform, CryptoStreamMode.Read)) {
-                    if (destination != null) {
-                        await decodeStream.CopyToAsync(destination);
-                    }
-                }
+
+            var transform = new DecryptAesV2Transform(attachment.Key.Base64UrlDecode());
+            using (var decodeStream = new CryptoStream(destination, transform, CryptoStreamMode.Write))
+            {
+                await Auth.Endpoint.DownloadFromUrl(new Uri(download.Url), decodeStream);
             }
         }
 
@@ -292,7 +278,8 @@ namespace KeeperSecurity.Vault {
                 LastModified = DateTimeOffset.Now,
             };
             var transform = new EncryptAesV1Transform(key);
-            using (var cryptoStream = new CryptoStream(fileStream, transform, CryptoStreamMode.Read)) {
+            using (var cryptoStream = new CryptoStream(fileStream, transform, CryptoStreamMode.Read))
+            {
                 await Auth.Endpoint.UploadSingleFile(fileUpload, cryptoStream);
                 atta.Size = transform.EncryptedBytes;
             }
@@ -300,7 +287,8 @@ namespace KeeperSecurity.Vault {
             if (thumbUpload != null && thumbStream != null) {
                 try {
                     transform = new EncryptAesV1Transform(key);
-                    using (var cryptoStream = new CryptoStream(thumbStream, transform, CryptoStreamMode.Read)) {
+                    using (var cryptoStream = new CryptoStream(thumbStream, transform, CryptoStreamMode.Read))
+                    {
                         await Auth.Endpoint.UploadSingleFile(thumbUpload, cryptoStream);
                     }
 
@@ -363,7 +351,7 @@ namespace KeeperSecurity.Vault {
                 RecordUid = ByteString.CopyFrom(fileUid.Base64UrlDecode()),
                 RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(fileKey, Auth.AuthContext.DataKey)),
                 Data = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(JsonUtils.DumpJson(fileData), fileKey)),
-                FileSize = fileInfo.Length,
+                FileSize = fileInfo.Length + 100,
                 ThumbSize = encryptedThumb?.Length ?? 0,
             };
             var rq = new Records.FilesAddRequest {
@@ -378,13 +366,16 @@ namespace KeeperSecurity.Vault {
                 SuccessStatusCode = uploadRs.SuccessStatusCode,
                 Parameters = JsonUtils.ParseJson<Dictionary<string, string>>(Encoding.UTF8.GetBytes(uploadRs.Parameters))
             };
-            if (record.LinkedKeys == null) {
+            if (record.LinkedKeys == null) 
+            {
                 record.LinkedKeys = new Dictionary<string, byte[]>();
             }
             record.LinkedKeys[fileUid] = fileKey;
 
-            try {
-                using (var cryptoStream = File.OpenRead(tempFile)) {
+            try
+            {
+                using (var cryptoStream = File.OpenRead(tempFile))
+                {
                     await Auth.Endpoint.UploadSingleFile(fileUpload, cryptoStream);
                 }
             } catch (Exception e) {
@@ -398,8 +389,10 @@ namespace KeeperSecurity.Vault {
                     SuccessStatusCode = uploadRs.SuccessStatusCode,
                     Parameters = JsonUtils.ParseJson<Dictionary<string, string>>(Encoding.UTF8.GetBytes(uploadRs.ThumbnailParameters))
                 };
-                try {
-                    using (var cryptoStream = new MemoryStream(encryptedThumb)) {
+                try
+                {
+                    using (var cryptoStream = new MemoryStream(encryptedThumb))
+                    {
                         await Auth.Endpoint.UploadSingleFile(thumbUpload, cryptoStream);
                     }
                 } catch (Exception e) {

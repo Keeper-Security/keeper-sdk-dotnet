@@ -53,7 +53,7 @@ namespace Commander
             var storage = Program.CommanderStorage.GetConfigurationStorage(null, new CommanderConfigurationProtection());
             _auth = new AuthSync(storage)
             {
-                Endpoint = {DeviceName = "Commander C#", ClientVersion = "c16.5.0"}
+                Endpoint = {DeviceName = "Commander C#", ClientVersion = "c17.0.0"}
             };
 
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>
@@ -77,7 +77,7 @@ namespace Commander
                 Action = DoCreateAccount
             });
 
-            Commands.Add("server", new Cli.SimpleCommand
+            Commands.Add("server", new SimpleCommand
             {
                 Order = 20,
                 Description = "Display or change Keeper Server",

@@ -21,10 +21,6 @@ namespace KeeperSecurity.Commands
         public string clientVersion;
     }
 
-    public interface IBatchCommand
-    {
-    }
-
     [DataContract]
     public class KeeperApiResponse
     {
@@ -208,6 +204,27 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "ignored", EmitDefaultValue = false)]
         public AuditEventItem[] Ignored { get; set; }
     }
+
+    /// <exclude/>
+    [DataContract]
+    public class TeamGetKeysCommand : AuthenticatedCommand
+    {
+        public TeamGetKeysCommand() : base("team_get_keys")
+        {
+        }
+
+        [DataMember(Name = "teams", EmitDefaultValue = false)]
+        public string[] teams;
+    }
+
+    /// <exclude/>
+    [DataContract]
+    public class TeamGetKeysResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "keys", EmitDefaultValue = false)]
+        public TeamKeyObject[] keys;
+    }
+
 
 }
 

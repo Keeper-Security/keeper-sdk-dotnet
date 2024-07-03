@@ -13,30 +13,36 @@ using Records;
 
 namespace KeeperSecurity.Vault
 {
-    /// <inheritdoc/>>
-    public class SharedFolderRecordOptions : IRecordShareOptions {
+    /// <summary>
+    /// Represents shared folder record permissions.
+    /// </summary>
+    public class SharedFolderRecordOptions : IRecordShareOptions
+    {
         /// <inheritdoc/>>
         public bool? CanEdit { get; set; }
         /// <inheritdoc/>>
         public bool? CanShare { get; set; }
-        /// <inheritdoc/>>
-        public DateTimeOffset? Expiration { get; set; }
-    }
-
-    /// <inheritdoc/>>
-    public class SharedFolderUserOptions : IUserShareOptions {
-        /// <inheritdoc/>>
-        public bool? ManageRecords { get; set; }
-        /// <inheritdoc/>>
-        public bool? ManageUsers { get; set; }
-        /// <inheritdoc/>>
         public DateTimeOffset? Expiration { get; set; }
     }
 
     /// <summary>
-    ///  Defines  default shared folder permissions.
+    /// Defines shared folder user permissions.
     /// </summary>
-    public class SharedFolderOptions {
+
+    public class SharedFolderUserOptions : IUserShareOptions
+    {
+        /// <inheritdoc/>>
+        public bool? ManageRecords { get; set; }
+        /// <inheritdoc/>>
+        public bool? ManageUsers { get; set; }
+        public DateTimeOffset? Expiration { get; set; }
+    }
+
+    /// <summary>
+    ///  Defines shared folder user and record permissions.
+    /// </summary>
+    public class SharedFolderOptions 
+    {
         /// <inheritdoc/>>
         public bool? CanEdit { get; set; }
         /// <inheritdoc/>>
@@ -718,7 +724,7 @@ namespace KeeperSecurity.Vault
                 {
                     if (perm.UserType == UserType.Team)
                     {
-                        request.TeamUid = perm.UserId;
+                        request.TeamUid = perm.Uid;
                     }
                 }
             }
@@ -757,7 +763,7 @@ namespace KeeperSecurity.Vault
                     {
                         if (perm.UserType == UserType.Team)
                         {
-                            teamUid = perm.UserId;
+                            teamUid = perm.Uid;
                         }
                     }
                 }

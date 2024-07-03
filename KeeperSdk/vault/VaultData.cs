@@ -97,11 +97,10 @@ namespace KeeperSecurity.Vault
             return keeperRecords.TryGetValue(recordUid, out record);
         }
 
-        /// <inheritdoc/>
         public bool TryLoadKeeperRecord(string recordUid, out KeeperRecord record)
         {
             record = null;
-            if (TryGetKeeperRecord(recordUid, out var r)) 
+            if (TryGetKeeperRecord(recordUid, out var r))
             {
                 var storageRecord = Storage.Records.GetEntity(recordUid);
                 if (storageRecord != null)
@@ -111,18 +110,6 @@ namespace KeeperSecurity.Vault
             }
 
             return record != null;
-        }
-
-        /// <inheritdoc/>
-        public int ApplicationCount => keeperApplications.Count;
-
-        /// <inheritdoc/>
-        
-        public IEnumerable<ApplicationRecord> KeeperApplications => keeperApplications.Values;
-        /// <inheritdoc/>
-        public bool TryGetKeeperApplication(string applicationUid, out ApplicationRecord record)
-        {
-            return keeperApplications.TryGetValue(applicationUid, out record);
         }
 
         IEnumerable<PasswordRecord> IVaultData.Records => keeperRecords.Values.OfType<PasswordRecord>();
@@ -242,9 +229,6 @@ namespace KeeperSecurity.Vault
 
         protected readonly FolderNode rootFolder;
 
-        protected readonly ConcurrentDictionary<string, ApplicationRecord> keeperApplications =
-            new ConcurrentDictionary<string, ApplicationRecord>();
-
         /// <inheritdoc/>
         public IKeeperStorage Storage { get; }
         /// <inheritdoc/>
@@ -255,6 +239,9 @@ namespace KeeperSecurity.Vault
 
         protected readonly ConcurrentBag<RecordType> _customRecordTypes =
             new ConcurrentBag<RecordType>();
+
+        protected readonly ConcurrentDictionary<string, string> _keeperUserAccounts =
+            new ConcurrentDictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <inheritdoc/>
         public IEnumerable<RecordType> RecordTypes => _keeperRecordTypes.Values.Concat(_customRecordTypes);
@@ -276,6 +263,28 @@ namespace KeeperSecurity.Vault
             }
             return false;
         }
+
+        /// <inheritdoc/>
+        public bool TryGetUsername(string accountUid, out string username)
+        {
+            return _keeperUserAccounts.TryGetValue(accountUid, out username);
+        }
+
+        /// <inheritdoc/>
+        public bool TryGetAccountUid(string username, out string accountUid)
+        {
+            foreach(var ae in _keeperUserAccounts) 
+            {
+                if (string.Equals(ae.Value, username, StringComparison.InvariantCultureIgnoreCase)) 
+                {
+                    accountUid = ae.Key;
+                    return true;
+                }
+            }
+            accountUid = null;
+            return false;
+        }
+
 
         private void LoadRecordTypes()
         {
@@ -340,9 +349,6 @@ namespace KeeperSecurity.Vault
             }
         }
 
-
-        private long _dataRevision = 0;
-
         private bool DecryptSharedFolderKey(ISharedFolderKey sfmd, out byte[] sharedFolderKey)
         {
             try
@@ -350,43 +356,24 @@ namespace KeeperSecurity.Vault
                 var sfKey = sfmd.SharedFolderKey.Base64UrlDecode();
                 switch (sfmd.KeyType)
                 {
-                    case (int) KeyType.DataKey:
-                        sharedFolderKey = CryptoUtils.DecryptAesV1(sfKey, ClientKey);
+                    case (int) KeyType.ClientKey_AES_GCM:
+                        sharedFolderKey = CryptoUtils.DecryptAesV2(sfKey, ClientKey);
                         return true;
-                    case (int) KeyType.TeamKey:
+                    case (int) KeyType.TeamKey_AES_GCM:
                     {
                         if (keeperTeams.TryGetValue(sfmd.TeamUid, out var team))
                         {
-                            if (sfKey.Length < 100)
-                            {
-                                sharedFolderKey = CryptoUtils.DecryptAesV1(sfKey, team.TeamKey);
-                                return true;
-                            }
-
-                            sharedFolderKey = CryptoUtils.DecryptRsa(sfKey, team.TeamPrivateKey);
+                            sharedFolderKey = CryptoUtils.DecryptAesV2(sfKey, team.TeamKey);
                             return true;
 
                         }
                         Trace.TraceError($"Shared Folder key: Team {sfmd.TeamUid} not found");
                     }
 
-                    break;
-
-                    case (int) KeyType.TeamPrivateKey:
-                    {
-                        if (keeperTeams.TryGetValue(sfmd.TeamUid, out var team))
-                        {
-                            sharedFolderKey = CryptoUtils.DecryptRsa(sfKey, team.TeamPrivateKey);
-                            return true;
-                        }
-
-                        Trace.TraceError($"Shared Folder key: Team {sfmd.TeamUid} not found");
-
-                    }
                     break;
 
                     default:
-                        Trace.TraceError($"Unsupported key type {KeyType.DataKey} for shared folder {sfmd.SharedFolderUid}.");
+                        Trace.TraceError($"Unsupported key type {sfmd.KeyType} for shared folder {sfmd.SharedFolderUid}.");
                         break;
                 }
             }
@@ -406,13 +393,11 @@ namespace KeeperSecurity.Vault
                 var rKey = rmd.RecordKey.Base64UrlDecode();
                 switch (rmd.RecordKeyType)
                 {
-                    case (int) KeyType.NoKey:
-                    case (int) KeyType.DataKey:
-                    case (int) KeyType.PrivateKey:
-                        recordKey = CryptoUtils.DecryptAesV1(rKey, ClientKey);
+                    case (int) KeyType.ClientKey_AES_GCM:
+                        recordKey = CryptoUtils.DecryptAesV2(rKey, ClientKey);
                         return true;
 
-                    case (int) KeyType.SharedFolderKey:
+                    case (int) KeyType.SharedFolderKey_AES_Any:
                         if (keeperSharedFolders.TryGetValue(rmd.SharedFolderUid, out var sf))
                         {
                             recordKey = rKey.Length == 60 ? CryptoUtils.DecryptAesV2(rKey, sf.SharedFolderKey) : CryptoUtils.DecryptAesV1(rKey, sf.SharedFolderKey);
@@ -423,9 +408,6 @@ namespace KeeperSecurity.Vault
                             Trace.TraceError($"Record UID \"{rmd.RecordUid}\": Shared Folder \"{rmd.SharedFolderUid}\" not found.");
                             break;
                         }
-
-                    case (int) KeyType.RecordKey:
-                        break;
 
                     default:
                         Trace.TraceError($"Record UID \"{rmd.RecordUid}\": Unsupported record key type.");
@@ -443,7 +425,7 @@ namespace KeeperSecurity.Vault
 
         internal void RebuildData(RebuildTask changes = null)
         {
-            var fullRebuild = _dataRevision == 0 || changes == null || changes.IsFullSync;
+            var fullRebuild = changes == null || changes.IsFullSync;
             var entityKeys = new Dictionary<string, byte[]>();
 
             // teams
@@ -452,8 +434,7 @@ namespace KeeperSecurity.Vault
             {
                 try
                 {
-
-                    var teamKey = CryptoUtils.DecryptAesV1(team.TeamKey.Base64UrlDecode(), ClientKey);
+                    var teamKey = CryptoUtils.DecryptAesV2(team.TeamKey.Base64UrlDecode(), ClientKey);
                     var t = team.Load(teamKey);
                     keeperTeams.TryAdd(t.TeamUid, t);
                 }
@@ -508,7 +489,7 @@ namespace KeeperSecurity.Vault
                             foreach (var sfKey in Storage.SharedFolderKeys.GetLinksForSubject(sharedFolderUid))
                             {
                                 if (!DecryptSharedFolderKey(sfKey, out var key)) continue;
-                                
+
                                 entityKeys[sfKey.SharedFolderUid] = key;
                                 break;
                             }
@@ -523,11 +504,7 @@ namespace KeeperSecurity.Vault
                     if (entityKeys.ContainsKey(sharedFolder.SharedFolderUid))
                     {
                         var sfKey = entityKeys[sharedFolder.SharedFolderUid];
-                        var sfmds = Storage.RecordKeys.GetLinksForObject(sharedFolder.SharedFolderUid)
-                            .ToArray();
-                        var sfus = Storage.SharedFolderPermissions
-                            .GetLinksForSubject(sharedFolder.SharedFolderUid).ToArray();
-                        var sf = sharedFolder.Load(sfmds, sfus, sfKey);
+                        var sf = sharedFolder.Load(Storage, sfKey);
                         keeperSharedFolders.TryAdd(sharedFolder.SharedFolderUid, sf);
                     }
                     else
@@ -539,15 +516,17 @@ namespace KeeperSecurity.Vault
 
                 if (uids.Count > 0)
                 {
-                    Storage.SharedFolders.DeleteUids(uids);
+                    Trace.WriteLine($"Detected {uids.Count} shared folders to delete.");
                     Storage.RecordKeys.DeleteLinksForObjects(uids);
-                    Storage.SharedFolderKeys.DeleteLinksForSubjects(uids);
                     Storage.SharedFolderPermissions.DeleteLinksForSubjects(uids);
+                    Storage.SharedFolderKeys.DeleteLinksForSubjects(uids);
+                    Storage.SharedFolders.DeleteUids(uids);
                 }
             }
 
             // records
             {
+                var recordOwnership = new HashSet<string>();
                 entityKeys.Clear();
                 var lostKeys = new List<IUidLink>();
                 var recordKeyLinks = new List<IRecordMetadata>();
@@ -559,7 +538,6 @@ namespace KeeperSecurity.Vault
                 if (fullRebuild)
                 {
                     keeperRecords.Clear();
-                    keeperApplications.Clear();
                     foreach (var record in Storage.Records.GetAll())
                     {
                         recordsToLoad[record.RecordUid] = record;
@@ -567,12 +545,16 @@ namespace KeeperSecurity.Vault
 
                     foreach (var rmd in Storage.RecordKeys.GetAllLinks())
                     {
+                        if (rmd.Owner && !recordOwnership.Contains(rmd.RecordUid))
+                        {
+                            recordOwnership.Add(rmd.RecordUid);
+                        }
                         if (entityKeys.ContainsKey(rmd.RecordUid)) continue;
                         if (!recordsToLoad.ContainsKey(rmd.RecordUid))
                         {
                             lostKeys.Add(rmd);
                         }
-                        else if (rmd.RecordKeyType == (int) KeyType.RecordKey)
+                        else if (rmd.RecordKeyType == (int) KeyType.RecordKey_AES_GCM)
                         {
                             if (recordsToLoad.ContainsKey(rmd.SubjectUid))
                             {
@@ -603,14 +585,15 @@ namespace KeeperSecurity.Vault
                             if (r == null) continue;
                             recordsToLoad[r.RecordUid] = r;
 
-                            if (!keeperRecords.TryRemove(recordUid, out _))
-                            {
-                                keeperApplications.TryRemove(recordUid, out _);
-                            }
+                            keeperRecords.TryRemove(recordUid, out _);
 
                             foreach (var rmd in Storage.RecordKeys.GetLinksForSubject(r.RecordUid))
                             {
-                                if (rmd.RecordKeyType == (int) KeyType.RecordKey)
+                                if (rmd.Owner && !recordOwnership.Contains(rmd.RecordUid))
+                                {
+                                    recordOwnership.Add(rmd.RecordUid);
+                                }
+                                if (rmd.RecordKeyType == (int) KeyType.RecordKey_AES_GCM)
                                 {
                                     recordKeyLinks.Add(rmd);
                                 }
@@ -662,15 +645,9 @@ namespace KeeperSecurity.Vault
                             KeeperRecord record = r.Load(rKey);
                             if (record != null)
                             {
+                                record.Owner = recordOwnership.Contains(r.RecordUid);
                                 record.Revision = r.Revision;
-                                if (record is ApplicationRecord ar)
-                                {
-                                    keeperApplications.TryAdd(r.RecordUid, ar);
-                                }
-                                else
-                                {
-                                    keeperRecords.TryAdd(r.RecordUid, record);
-                                }
+                                keeperRecords.TryAdd(r.RecordUid, record);
                             }
                         }
                         catch (Exception e)
@@ -696,44 +673,71 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-
-            _dataRevision = Storage.Revision;
-
             BuildFolders();
-            if (fullRebuild) 
+            if (fullRebuild)
             {
                 LoadRecordTypes();
+            }
+        
+
+            foreach (var u in Storage.UserEmails.GetAll())
+            {
+                _keeperUserAccounts[u.AccountUid] = u.Email;
             }
         }
 
         internal void BuildFolders()
         {
+            var uids = new HashSet<string>();
             var folderMap = new Dictionary<string, IFolder>();
             foreach (var folder in Storage.Folders.GetAll())
             {
+                if (folder.FolderType != VaultTypeExtensions.GetFolderTypeText(FolderType.UserFolder)) 
+                {
+                    if (!keeperSharedFolders.ContainsKey(folder.SharedFolderUid))
+                    {
+                        uids.Add(folder.FolderUid);
+                        continue;
+                    }
+                }
                 folderMap[folder.FolderUid] = folder;
             }
-            var uids = new HashSet<string>();
-            
-            // check shared folder exists. 
-            foreach (var folder in folderMap.Values)
-            {
-                if (folder.FolderType == "user_folder") continue;
-                if (string.IsNullOrEmpty(folder.SharedFolderUid)) continue;
-
-                if (!keeperSharedFolders.ContainsKey(folder.SharedFolderUid))
-                {
-                    uids.Add(folder.FolderUid);
-                }
-            }
-
             if (uids.Count > 0)
             {
                 Storage.FolderRecords.DeleteLinksForObjects(uids);
                 Storage.Folders.DeleteUids(uids);
-                foreach (var folderUid in uids)
+            }
+            uids.Clear();
+
+            var folderUids = folderMap.Keys.ToArray();
+            foreach (var folderUid in folderUids)
+            {
+                var folder = folderMap[folderUid];
+                while (!string.IsNullOrEmpty(folder.ParentUid))
                 {
-                    folderMap.Remove(folderUid);
+                    if (uids.Contains(folder.ParentUid))
+                    {
+                        uids.Add(folder.Uid);
+                        break;
+                    }
+                    if (folderMap.ContainsKey(folder.ParentUid))
+                    {
+                        folder = folderMap[folder.ParentUid];
+                    }
+                    else
+                    {
+                        uids.Add(folder.Uid);
+                        break;
+                    }
+                }
+            }
+            if (uids.Count > 0)
+            {
+                Storage.FolderRecords.DeleteLinksForObjects(uids);
+                Storage.Folders.DeleteUids(uids);
+                foreach (var uid in uids)
+                {
+                    folderMap.Remove(uid);
                 }
             }
 

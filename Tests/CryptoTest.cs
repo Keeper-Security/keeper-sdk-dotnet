@@ -166,8 +166,8 @@ namespace Tests
             var privKey = "HIIeyuuRkVGvhtax8mlX7fangaC6DKa2R8VAg5AAtBY";
             var pubKey ="BBbdHwhMWW6gTtUU1Qy6ICgFOMOMTJK5agJhPSWcsXBzh3WNprrZMTDzDcLmj3yfmJFVVeEdiccdPdBe1C1r6Ng";
 
-            var privateKey = CryptoUtils.LoadPrivateEcKey(privKey.Base64UrlDecode());
-            var publicKey = CryptoUtils.LoadPublicEcKey(pubKey.Base64UrlDecode());
+            var privateKey = CryptoUtils.LoadEcPrivateKey(privKey.Base64UrlDecode());
+            var publicKey = CryptoUtils.LoadEcPublicKey(pubKey.Base64UrlDecode());
 
             var aggr = AgreementUtilities.GetBasicAgreement("ECDHC");
             aggr.Init(privateKey);
@@ -247,9 +247,9 @@ namespace Tests
         public void TestLocalRsa()
         {
             var data = CryptoUtils.GetRandomBytes(100);
-            var publicKey = CryptoUtils.LoadPublicKey(TestPublicKey.Base64UrlDecode());
+            var publicKey = CryptoUtils.LoadRsaPublicKey(TestPublicKey.Base64UrlDecode());
             var encData = CryptoUtils.EncryptRsa(data, publicKey);
-            var privateKey = CryptoUtils.LoadPrivateKey(TestPrivateKey.Base64UrlDecode());
+            var privateKey = CryptoUtils.LoadRsaPrivateKey(TestPrivateKey.Base64UrlDecode());
             var unencData = CryptoUtils.DecryptRsa(encData, privateKey);
 
             Assert.Equal(data, unencData);

@@ -48,6 +48,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 typeof(ExternalFolder),
                 typeof(ExternalFolderRecordLink),
                 typeof(ExternalRecordType),
+                typeof(ExternalUserEmail),
                 typeof(InternalUserAccount),
                 typeof(InternalConfiguration),
             };

@@ -29,9 +29,10 @@ namespace KeeperSecurity.Vault
             var context = vault.Auth.AuthContext;
             var clientKey = vault.ClientKey;
 
+            var settings = storage.VaultSettings;
             var command = new SyncDownCommand
             {
-                revision = storage.Revision,
+                revision = settings?.Revision ?? 0,
                 include = new[] { "sfheaders", "sfrecords", "sfusers", "teams", "folders", "typed_record", "app_record" },
                 deviceName = vault.Auth.Endpoint.DeviceName,
                 deviceId = vault.Auth.Endpoint.DeviceName
@@ -246,40 +247,14 @@ namespace KeeperSecurity.Vault
                     .Where(x => x != null));
             }
 
-            var recordOwnership = new Dictionary<string, bool>();
-            if (rs.recordMetaData != null)
-            {
-                foreach (var rmd in rs.recordMetaData)
-                {
-                    recordOwnership[rmd.RecordUid] = rmd.Owner;
-                }
-            }
-
             if (rs.records != null)
             {
                 result.AddRecords(rs.records.Select(x => x.RecordUid));
-
-                foreach (var recordUid in rs.records
-                    .Where(x => !recordOwnership.ContainsKey(x.RecordUid))
-                    .Select(x => storage.Records.GetEntity(x.RecordUid))
-                    .Where(x => x != null)
-                    .Where(x => x.Owner)
-                    .Select(x => x.RecordUid)
-                )
-                {
-                    recordOwnership[recordUid] = true;
-                }
 
                 storage.Records.PutEntities(rs.records
                     .Select(x =>
                     {
                         x.AdjustUdata();
-                        if (recordOwnership.ContainsKey(x.RecordUid))
-                        {
-                            x.Owner = recordOwnership[x.RecordUid];
-                            recordOwnership.Remove(x.RecordUid);
-                        }
-
                         return x;
                     }));
 
@@ -290,7 +265,7 @@ namespace KeeperSecurity.Vault
                         RecordUid = x.RecordUid,
                         SharedFolderUid = x.OwnerRecordId,
                         RecordKey = x.LinkKey,
-                        RecordKeyType = (int) KeyType.RecordKey,
+                        RecordKeyType = (int) KeyType.RecordKey_AES_GCM,
                         CanEdit = false,
                         CanShare = false,
                     })
@@ -304,26 +279,6 @@ namespace KeeperSecurity.Vault
             if (rs.recordMetaData != null)
             {
                 result.AddRecords(rs.recordMetaData.Select(x => x.RecordUid));
-
-                var toUpdate = rs.recordMetaData
-                    .Where(x => recordOwnership.ContainsKey(x.RecordUid))
-                    .Select(x =>
-                    {
-                        var sr = storage.Records.GetEntity(x.RecordUid);
-                        if (sr == null) return null;
-                        if (sr.Owner == x.Owner) return null;
-
-                        sr.Owner = x.Owner;
-                        return sr;
-
-                    })
-                    .Where(x => x != null)
-                    .ToArray();
-                if (toUpdate.Any())
-                {
-                    storage.Records.PutEntities(toUpdate);
-                }
-
                 var rmds = rs.recordMetaData
                     .Select(rmd =>
                     {
@@ -354,8 +309,8 @@ namespace KeeperSecurity.Vault
 
                             if (key != null)
                             {
-                                rmd.RecordKey = CryptoUtils.EncryptAesV1(key, context.ClientKey).Base64UrlEncode();
-                                rmd.RecordKeyType = (int) KeyType.DataKey;
+                                rmd.RecordKey = CryptoUtils.EncryptAesV2(key, context.ClientKey).Base64UrlEncode();
+                                rmd.RecordKeyType = (int) KeyType.ClientKey_AES_GCM;
                                 rmd.SharedFolderUid = storage.PersonalScopeUid;
                                 return rmd;
                             }
@@ -387,6 +342,7 @@ namespace KeeperSecurity.Vault
                     storage.SharedFolderKeys.DeleteLinks(removedSharedFolderLinks);
                 }
 
+                var teamKeys = new Dictionary<string, byte[]>();
                 var teams = rs.teams
                     .Select(x =>
                     {
@@ -410,9 +366,9 @@ namespace KeeperSecurity.Vault
                                 default:
                                     throw new Exception($"Team UID {x.TeamUid}: unsupported key type {x.KeyType}");
                             }
-
-                            x.TeamKey = CryptoUtils.EncryptAesV1(teamKey, clientKey).Base64UrlEncode();
-                            x.KeyType = (int) KeyType.DataKey;
+                            teamKeys[x.TeamUid] = teamKey;
+                            x.TeamKey = CryptoUtils.EncryptAesV2(teamKey, clientKey).Base64UrlEncode();
+                            x.KeyType = (int) KeyType.ClientKey_AES_GCM;
                             return x;
                         }
                         catch (Exception e)
@@ -426,16 +382,48 @@ namespace KeeperSecurity.Vault
                     .ToArray();
                 storage.Teams.PutEntities(teams);
 
-                var sharedFolderKeys = rs.teams
-                    .Where(x => x.sharedFolderKeys != null)
-                    .SelectMany(x => x.sharedFolderKeys,
-                        (team, sharedFolderKey) =>
+                var sharedFolderKeys = new List<SyncDownSharedFolderKey>();
+                foreach (var team in rs.teams) 
+                {
+                    if (teamKeys.TryGetValue(team.TeamUid, out var teamKey)) 
+                    {
+                        foreach (var sfk in team.SharedFolderKeys)
                         {
-                            sharedFolderKey.TeamUid = team.TeamUid;
-                            sharedFolderKey.KeyType = sharedFolderKey.KeyType == 2 ? (int) KeyType.TeamPrivateKey : (int) KeyType.TeamKey;
-                            return sharedFolderKey;
-                        })
-                    .ToArray();
+                            try {
+                                var sharedFolderKeyEncrypted = sfk.SharedFolderKey.Base64UrlDecode();
+                                byte[] sharedFolderKey = null;
+                                switch (sfk.KeyType)
+                                {
+                                    case 1:
+                                    {
+                                        sharedFolderKey = CryptoUtils.DecryptAesV1(sharedFolderKeyEncrypted, teamKey);
+                                        break;
+                                    }
+                                    case 2:
+                                    {
+                                        var teamPrivateKey = CryptoUtils.DecryptAesV1(team.TeamRsaPrivateKey.Base64UrlDecode(), teamKey);
+                                        var privateKey = CryptoUtils.LoadRsaPrivateKey(teamPrivateKey);
+                                        sharedFolderKey = CryptoUtils.DecryptRsa(sharedFolderKeyEncrypted, privateKey);
+                                        break;
+                                    }
+                                    default:
+                                        break;
+                                }
+                                if (sharedFolderKey != null)
+                                {
+                                    sfk.TeamUid = team.TeamUid;
+                                    sfk.KeyType = (int) KeyType.TeamKey_AES_GCM;
+                                    sfk.SharedFolderKey = CryptoUtils.EncryptAesV2(sharedFolderKey, teamKey).Base64UrlEncode();
+                                    sharedFolderKeys.Add(sfk);
+                                }
+                            }
+                            catch (Exception e) 
+                            {
+                                Trace.TraceError(e.Message);
+                            }
+                        }
+                    }
+                }
                 storage.SharedFolderKeys.PutLinks(sharedFolderKeys);
             }
 
@@ -477,9 +465,9 @@ namespace KeeperSecurity.Vault
                             {
                                 SharedFolderUid = x.SharedFolderUid,
                                 TeamUid = storage.PersonalScopeUid,
-                                SharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolderKey, clientKey)
+                                SharedFolderKey = CryptoUtils.EncryptAesV2(sharedFolderKey, clientKey)
                                     .Base64UrlEncode(),
-                                KeyType = (int) KeyType.DataKey
+                                KeyType = (int) KeyType.ClientKey_AES_GCM
                             };
                         }
                         catch (Exception e)
@@ -509,7 +497,7 @@ namespace KeeperSecurity.Vault
                             SharedFolderUid = sf.SharedFolderUid,
                             RecordUid = sfr.RecordUid,
                             RecordKey = sfr.RecordKey,
-                            RecordKeyType = (int) KeyType.SharedFolderKey,
+                            RecordKeyType = (int) KeyType.SharedFolderKey_AES_Any,
                             CanEdit = sfr.CanEdit,
                             CanShare = sfr.CanShare
                         })
@@ -574,8 +562,8 @@ namespace KeeperSecurity.Vault
                                     throw new Exception($"User Folder UID {uf.FolderUid}: unsupported key type {uf.keyType}");
                             }
 
-                            uf.FolderKey = CryptoUtils.EncryptAesV1(folderKey, clientKey).Base64UrlEncode();
-                            uf.keyType = (int) KeyType.DataKey;
+                            uf.FolderKey = CryptoUtils.EncryptAesV2(folderKey, clientKey).Base64UrlEncode();
+                            uf.keyType = (int) KeyType.ClientKey_AES_GCM;
                             return uf;
                         }
                         catch (Exception e)
@@ -614,7 +602,9 @@ namespace KeeperSecurity.Vault
                 storage.FolderRecords.PutLinks(rs.sharedFolderFolderRecords);
             }
 
-            storage.Revision = rs.revision;
+            var sds = new VaultSettings(settings);
+            sds.Revision = rs.revision;
+            storage.VaultSettings = sds;
             Debug.WriteLine("Sync Down: Process Leave");
 
             if (auth.AuthContext.Settings?.RecordTypesEnabled == true && !vault.RecordTypesLoaded)

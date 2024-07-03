@@ -95,9 +95,7 @@ namespace KeeperSecurity.Vault
             if (!vault.TryGetSharedFolder(sharedFolderUid, out var sf)) return null;
 
             var permissions = sf.UsersPermissions
-                .Where(x =>
-                    x.UserType == UserType.User && x.UserId == username ||
-                    x.UserType == UserType.Team && vault.TryGetTeam(x.UserId, out _))
+                .Where(x => x.Uid == username || string.Equals(x.Name, username, StringComparison.InvariantCultureIgnoreCase))
                 .Where(x => (!forManageUsers || x.ManageUsers) && (!forManageRecords || x.ManageRecords))
                 .ToArray();
 
@@ -451,7 +449,6 @@ namespace KeeperSecurity.Vault
                 Uid = r.RecordUid,
                 Version = 2,
                 Shared = r.Shared,
-                Owner = r.Owner,
                 ClientModified = r.ClientModifiedTime != 0
                     ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
                     : DateTimeOffset.Now,
@@ -597,10 +594,9 @@ namespace KeeperSecurity.Vault
             var typedRecord = new TypedRecord(rtd.Type)
             {
                 Uid = r.RecordUid,
-                Version = 3,
+                Version = r.Version,
                 RecordKey = key,
                 Shared = r.Shared,
-                Owner = r.Owner,
                 ClientModified = r.ClientModifiedTime != 0
                     ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
                     : DateTimeOffset.Now,
@@ -631,7 +627,6 @@ namespace KeeperSecurity.Vault
                 Uid = r.RecordUid,
                 Version = 4,
                 Shared = r.Shared,
-                Owner = r.Owner,
                 ClientModified = r.ClientModifiedTime != 0
                     ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
                     : DateTimeOffset.Now,
@@ -663,7 +658,6 @@ namespace KeeperSecurity.Vault
                 Uid = r.RecordUid,
                 Version = 5,
                 Shared = r.Shared,
-                Owner = r.Owner,
                 ClientModified = r.ClientModifiedTime != 0
                     ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(r.ClientModifiedTime)
                     : DateTimeOffset.Now,
@@ -673,8 +667,7 @@ namespace KeeperSecurity.Vault
             return applicationRecord;
         }
 
-        public static SharedFolder Load(this ISharedFolder sf, IEnumerable<IRecordMetadata> records,
-            IEnumerable<ISharedFolderPermission> users, byte[] sharedFolderKey)
+        public static SharedFolder Load(this ISharedFolder sf, IKeeperStorage storage, byte[] sharedFolderKey)
         {
             var sharedFolder = new SharedFolder
             {
@@ -687,13 +680,32 @@ namespace KeeperSecurity.Vault
                 SharedFolderKey = sharedFolderKey,
             };
 
+            var users = storage.SharedFolderPermissions.GetLinksForSubject(sf.SharedFolderUid).ToArray();
             if (users != null)
             {
                 foreach (var u in users)
                 {
+                    string name = "";
+                    if (u.UserType == (int) UserType.User)
+                    {
+                        var e = storage.UserEmails.GetEntity(u.UserId);
+                        if (e != null)
+                        {
+                            name = e.Email;
+                        }
+                    }
+                    else
+                    {
+                        var t = storage.Teams.GetEntity(u.UserId);
+                        if (t != null) 
+                        {
+                            name = t.Name;
+                        }
+                    }
                     sharedFolder.UsersPermissions.Add(new SharedFolderPermission
                     {
-                        UserId = u.UserId,
+                        Uid = u.UserId,
+                        Name = name,
                         UserType = (UserType) u.UserType,
                         ManageRecords = u.ManageRecords,
                         ManageUsers = u.ManageUsers
@@ -701,17 +713,14 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            if (records != null)
+            foreach (var r in storage.RecordKeys.GetLinksForObject(sf.SharedFolderUid))
             {
-                foreach (var r in records)
+                sharedFolder.RecordPermissions.Add(new SharedFolderRecord
                 {
-                    sharedFolder.RecordPermissions.Add(new SharedFolderRecord
-                    {
-                        RecordUid = r.RecordUid,
-                        CanEdit = r.CanEdit,
-                        CanShare = r.CanShare
-                    });
-                }
+                    RecordUid = r.RecordUid,
+                    CanEdit = r.CanEdit,
+                    CanShare = r.CanShare
+                });
             }
 
             return sharedFolder;
@@ -719,17 +728,42 @@ namespace KeeperSecurity.Vault
 
         public static Team Load(this IEnterpriseTeam team, byte[] teamKey)
         {
-            var pk = team.TeamPrivateKey.Base64UrlDecode();
-            return new Team
+            var t = new Team
             {
                 TeamUid = team.TeamUid,
                 Name = team.Name,
                 TeamKey = teamKey,
-                TeamPrivateKey = CryptoUtils.LoadRsaPrivateKey(CryptoUtils.DecryptAesV1(pk, teamKey)),
                 RestrictEdit = team.RestrictEdit,
                 RestrictShare = team.RestrictShare,
                 RestrictView = team.RestrictView,
             };
+
+            if (!string.IsNullOrEmpty(team.TeamRsaPrivateKey))
+            {
+                try
+                {
+                    var rsaPk = CryptoUtils.DecryptAesV1(team.TeamRsaPrivateKey.Base64UrlDecode(), teamKey);
+                    t.TeamRsaPrivateKey = CryptoUtils.LoadRsaPrivateKey(rsaPk);
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError($"Decrypt team \"{t.TeamUid}\" RSA private key error:  {e.Message}");
+                }
+            }
+            if (!string.IsNullOrEmpty(team.TeamEcPrivateKey))
+            {
+                try
+                {
+                    var ecPk = CryptoUtils.DecryptAesV2(team.TeamEcPrivateKey.Base64UrlDecode(), teamKey);
+                    t.TeamEcPrivateKey = CryptoUtils.LoadEcPrivateKey(ecPk);
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError($"Decrypt team \"{t.TeamUid}\" EC private key error:  {e.Message}");
+                }
+            }
+
+            return t;
         }
     }
 }

@@ -220,25 +220,17 @@ namespace Commander
                 {
                     DumpRowNo = true
                 };
-                tab.SetColumnRightAlign(2, true);
-                tab.SetColumnRightAlign(3, true);
-                tab.AddHeader(new[] { "User ID", "User Type", "Manage Records", "Manage Users" });
-                foreach (var p in sf.UsersPermissions.OrderBy(x => $"{(int) x.UserType} {x.UserId.ToLowerInvariant()}"))
+                tab.AddHeader(new[] { "User Type", "User ID", "User Name", "Permissions" });
+                foreach (var p in sf.UsersPermissions.OrderBy(x => $"{(int) x.UserType} {x.Name.ToLowerInvariant()}"))
                 {
-                    if (p.UserType == UserType.User)
+                    string permission = "No User Permission";
+                    if (p.ManageRecords || p.ManageUsers)
                     {
-                        tab.AddRow(new[]
-                            {p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-", p.ManageUsers ? "X" : "="});
+                        permission = "Can Manage " +
+                            string.Join(" & ", new string[] { p.ManageUsers ? "Users" : "", p.ManageRecords ? "Records" : "" }.Where(x => !string.IsNullOrEmpty(x)));
                     }
-                    else
-                    {
-                        var team = teams.FirstOrDefault(x => x.TeamUid == p.UserId);
-                        tab.AddRow(new[]
-                        {
-                            team?.Name ?? p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-",
-                            p.ManageUsers ? "X" : "-"
-                        });
-                    }
+                    tab.AddRow(new[]
+                        {p.UserType.ToString(), p.Uid, p.Name, permission});
                 }
 
                 tab.Dump();
@@ -246,68 +238,76 @@ namespace Commander
             else
             {
                 var userType = UserType.User;
-                string userId = null;
+                string userUid = null;
                 var rx = new Regex(EmailPattern);
-                if (rx.IsMatch(options.User))
+                if (rx.IsMatch(options.User))   // check account email
                 {
-                    userId = options.User.ToLowerInvariant();
+                    context.Vault.TryGetAccountUid(options.User, out userUid);
                 }
-                else
+                if (string.IsNullOrEmpty(userUid))   // check user Account Uid
                 {
-                    userType = UserType.Team;
-                    if (context.Vault.TryGetTeam(options.User, out var team))
+                    if (context.Vault.TryGetUsername(options.User, out _))
                     {
-                        userId = team.TeamUid;
+                        userUid = options.User;
+                    }
+                }
+                if (string.IsNullOrEmpty(userUid)) 
+                {
+                    if (context.Vault.TryGetTeam(options.User, out _)) 
+                    { 
+                        userUid = options.User;
+                        userType = UserType.Team;
+                    }
+                }
+                if (string.IsNullOrEmpty(userUid))
+                {
+                    var team = context.Vault.Teams.FirstOrDefault(x =>
+                        string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0);
+                    if (team != null)
+                    {
+                        userUid = team.TeamUid;
+                        userType = UserType.Team;
                     }
                     else
                     {
-                        team = context.Vault.Teams.FirstOrDefault(x =>
-                            string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0);
-                        if (team != null)
+                        var teams = await context.GetAvailableTeams();
+                        var teamInfo = teams.FirstOrDefault(x =>
+                            string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0 ||
+                            string.CompareOrdinal(x.TeamUid, options.User) == 0
+                        );
+                        if (teamInfo != null)
                         {
-                            userId = team.TeamUid;
+                            userUid = teamInfo.TeamUid;
+                            userType = UserType.Team;
                         }
-                        else
-                        {
-                            var teams = await context.GetAvailableTeams();
-                            var teamInfo = teams.FirstOrDefault(x =>
-                                string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0 ||
-                                string.CompareOrdinal(x.TeamUid, options.User) == 0
-                            );
-                            if (teamInfo != null)
-                            {
-                                userId = teamInfo.TeamUid;
-                            }
-                        }
-                    }
-
-                    if (userId == null)
-                    {
-                        Console.WriteLine($"User {options.User} cannot be resolved as email or team");
-                        return;
                     }
                 }
 
+                if (string.IsNullOrEmpty(userUid))
+                {
+                    Console.WriteLine($"User {options.User} cannot be resolved as email or team");
+                    return;
+                }
                 var userPermission =
-                    sf.UsersPermissions.FirstOrDefault(x => x.UserType == userType && x.UserId == userId);
+                    sf.UsersPermissions.FirstOrDefault(x => x.UserType == userType && x.Uid == userUid);
 
                 if (options.Delete)
                 {
                     if (userPermission != null)
                     {
-                        await context.Vault.RemoveUserFromSharedFolder(sf.Uid, userId, userType);
+                        await context.Vault.RemoveUserFromSharedFolder(sf.Uid, userUid, userType);
                     }
                     else
                     {
                         Console.WriteLine(
-                            $"{(userType == UserType.User ? "User" : "Team")} \'{userId}\' is not a part of Shared Folder \'{sf.Name}\'");
+                            $"{(userType == UserType.User ? "User" : "Team")} \'{userUid}\' is not a part of Shared Folder \'{sf.Name}\'");
                     }
                 }
                 else
                 {
                     try
                     {
-                        await context.Vault.PutUserToSharedFolder(sf.Uid, userId, userType, new SharedFolderUserOptions
+                        await context.Vault.PutUserToSharedFolder(sf.Uid, userUid, userType, new SharedFolderUserOptions
                         {
                             ManageUsers = options.ManageUsers ?? sf.DefaultManageUsers,
                             ManageRecords = options.ManageRecords ?? sf.DefaultManageRecords,

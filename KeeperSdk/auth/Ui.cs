@@ -67,15 +67,23 @@ namespace KeeperSecurity.Authentication
         /// <summary>
         /// Requires 2FA every login
         /// </summary>
-        EveryLogin = 0,
+        EveryLogin,
+        /// <summary>
+        /// Requires 2FA every 12 hours
+        /// </summary>
+        Every12Hours,
+        /// <summary>
+        /// Requires 2FA every 24 hours
+        /// </summary>
+        Every24Hours,
         /// <summary>
         /// Requires 2FA every 30 days
         /// </summary>
-        Every30Days = 30,
+        Every30Days,
         /// <summary>
         /// Stores 2FA forever.
         /// </summary>
-        Forever = 9999,
+        Forever,
     }
 
     /// <summary>

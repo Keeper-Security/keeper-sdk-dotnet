@@ -116,12 +116,12 @@ namespace Commander
                 });
 
 
-            cli.CommandAliases["eget"] = "enterprise-get-data";
-            cli.CommandAliases["en"] = "enterprise-node";
-            cli.CommandAliases["eu"] = "enterprise-user";
-            cli.CommandAliases["et"] = "enterprise-team";
-            cli.CommandAliases["er"] = "enterprise-role";
-            cli.CommandAliases["ed"] = "enterprise-device";
+            cli.Aliases["eget"] = "enterprise-get-data";
+            cli.Aliases["en"] = "enterprise-node";
+            cli.Aliases["eu"] = "enterprise-user";
+            cli.Aliases["et"] = "enterprise-team";
+            cli.Aliases["er"] = "enterprise-role";
+            cli.Aliases["ed"] = "enterprise-device";
 
 
             if (context.Enterprise.EcPrivateKey == null)
@@ -212,12 +212,11 @@ namespace Commander
                 parentNode = enterpriseData.ResolveNodeName(arguments.Parent);
             }
 
-            if (string.Equals(arguments.Command, "add", StringComparison.OrdinalIgnoreCase))  // node in the name of new node
+            if (string.Equals(arguments.Command, "add", StringComparison.OrdinalIgnoreCase)) 
             {
                 if (string.IsNullOrEmpty(arguments.Node))
                 {
-                    var usage = CommandExtensions.GetCommandUsage<EnterpriseNodeOptions>(Console.WindowWidth);
-                    Console.WriteLine(usage);
+                    Console.WriteLine($"\"node\" parameter is missing");
                 }
                 else
                 {
@@ -229,7 +228,7 @@ namespace Commander
                     }
                 }
             }
-            else  // node is the name of the existing node
+            else  
             {
                 EnterpriseNode node;
                 if (string.IsNullOrEmpty(arguments.Node))
@@ -240,8 +239,7 @@ namespace Commander
                     }
                     else
                     {
-                        var usage = CommandExtensions.GetCommandUsage<EnterpriseNodeOptions>(Console.WindowWidth);
-                        Console.WriteLine(usage);
+                        Console.WriteLine($"\"node\" parameter is missing");
                         return;
                     }
                 }

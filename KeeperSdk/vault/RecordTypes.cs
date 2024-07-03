@@ -264,6 +264,28 @@ namespace KeeperSecurity.Vault
         public string[] ResourceRef { get; set; }
     }
 
+    /// <exclude />
+    [DataContract]
+    public class FieldSchedule : FieldTypeBase
+    {
+        [DataMember(Name = "type", EmitDefaultValue = true)]
+        public string Type { get; set; }
+        [DataMember(Name = "time", EmitDefaultValue = true)]
+        public string Time { get; set; }
+        [DataMember(Name = "tz", EmitDefaultValue = true)]
+        public string TimeZone { get; set; }
+        [DataMember(Name = "weekday", EmitDefaultValue = false)]
+        public string Weekday { get; set; }
+        [DataMember(Name = "month", EmitDefaultValue = false)]
+        public string Month { get; set; }
+        [DataMember(Name = "monthDay", EmitDefaultValue = false)]
+        public string MonthDay { get; set; }
+        [DataMember(Name = "cron", EmitDefaultValue = false)]
+        public string Cron { get; set; }
+        [DataMember(Name = "intervalCount", EmitDefaultValue = true)]
+        public string IntervalCount { get; set; }
+    }
+
     /// <summary>
     /// "host" field type
     /// </summary>
@@ -1323,6 +1345,7 @@ namespace KeeperSecurity.Vault
                 new FieldType("appFiller", typeof(FieldTypeAppFiller), "{'macroSequence': '', 'applicationTitle': '', 'contentFilter': ''}", "native application filler"),
                 new FieldType("script", typeof(FieldScript), "{'fileRef': '', 'command': '', 'recordRef': []}", "Post rotation script"),
                 new FieldType("pamResources", typeof(FieldPamResources), "{'controllerUid': '', 'folderUid': '', 'resourceRef': []}", "PAM resources"),
+                new FieldType("schedule", typeof(FieldSchedule), "{'type': '', 'time': '', 'cron', 'month': '', 'weekday': '', 'monthDay': ''}", "schedule information"),
             };
 
             foreach (var t in types)

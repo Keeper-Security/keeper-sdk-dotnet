@@ -208,7 +208,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
         where TD : class, new()
     {
         public SqliteDataStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
-            : base(getConnection, new TableSchema(typeof(TD), owner != null ? owner.Item1 : null), 
+            : base(getConnection, new TableSchema(typeof(TD), owner != null ? owner.Item1 : null),
                   owner != null ? owner.Item2 : null)
         {
         }
@@ -233,7 +233,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
     public class SqliteRecordStorage<TD> : SqliteDataStorage<TD> where TD : class, new()
     {
-        public SqliteRecordStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null) 
+        public SqliteRecordStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
             : base(getConnection, owner)
         {
         }
@@ -268,7 +268,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         protected string EntityColumnName { get; }
 
-        public SqliteEntityStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null) 
+        public SqliteEntityStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
             : base(getConnection, owner)
         {
             EntityColumnName = Schema.PrimaryKey[0];
@@ -276,7 +276,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         public T GetEntity(string uid)
         {
-            var cmd = GetSelectStatement(new[] { EntityColumnName  });
+            var cmd = GetSelectStatement(new[] { EntityColumnName });
             var entityParameter = (IDbDataParameter) cmd.Parameters[$"@{EntityColumnName}"];
             entityParameter.Value = uid;
 
@@ -331,7 +331,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
         }
     }
 
-    public class SqliteLinkStorage<T, TD> : SqliteDataStorage<TD>, IPredicateStorage<T>
+    public class SqliteLinkStorage<T, TD> : SqliteDataStorage<TD>, ILinkStorage<T>
         where T : IUidLink
         where TD : class, IEntityLink, T, IEntityCopy<T>, new()
     {
@@ -365,7 +365,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         public void DeleteLinks(IEnumerable<IUidLink> links)
         {
-            var cmd = GetDeleteStatement(new[] { SubjectColumnName, ObjectColumnName  });
+            var cmd = GetDeleteStatement(new[] { SubjectColumnName, ObjectColumnName });
             var subjectParameter = (IDbDataParameter) cmd.Parameters[$"@{SubjectColumnName}"];
             var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
 
@@ -447,6 +447,19 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
             {
                 return Schema.PopulateDataObjects<TD>(reader).ToArray();
+            }
+        }
+
+        public T GetLink(IUidLink link)
+        {
+            var cmd = GetSelectStatement(new[] { SubjectColumnName, ObjectColumnName });
+            var subjectParameter = (IDbDataParameter) cmd.Parameters[$"@{SubjectColumnName}"];
+            subjectParameter.Value = link.SubjectUid;
+            var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
+            objectParameter.Value = link.ObjectUid;
+            using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+            {
+                return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
             }
         }
     }

@@ -28,7 +28,12 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task<SecretsManagerApplication> GetSecretManagerApplication(string recordUid, bool force = false)
         {
-            if (!TryGetKeeperApplication(recordUid, out var ar))
+            if (!TryGetKeeperRecord(recordUid, out var r))
+            {
+                return null;
+            }
+            var ar = r as ApplicationRecord;
+            if (ar == null) 
             {
                 return null;
             }
@@ -38,7 +43,7 @@ namespace KeeperSecurity.Vault
                 return ksma;
             }
 
-            var applicationUid = ar.Uid.Base64UrlDecode();
+            var applicationUid = r.Uid.Base64UrlDecode();
             var rq = new AuthProto.GetAppInfoRequest();
             rq.AppRecordUid.Add(ByteString.CopyFrom(applicationUid));
 
@@ -91,7 +96,7 @@ namespace KeeperSecurity.Vault
                 }).ToArray()
             };
 
-            keeperApplications.TryAdd(application.Uid, application);
+            keeperRecords.TryAdd(application.Uid, application);
 
             return application;
         }
@@ -120,9 +125,9 @@ namespace KeeperSecurity.Vault
             };
             await Auth.ExecuteAuthRest("vault/application_add", rq);
             await ScheduleSyncDown(TimeSpan.FromSeconds(0));
-            if (TryGetKeeperApplication(appUid, out var ar))
+            if (TryGetKeeperRecord(appUid, out var r))
             {
-                return ar;
+                return r as ApplicationRecord;
             }
             return null;
         }
@@ -137,7 +142,12 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid, bool editable)
         {
-            if (!TryGetKeeperApplication(applicationId, out var application))
+            if (!TryGetKeeperRecord(applicationId, out var record))
+            {
+                throw new KeeperInvalidParameter("ShareToSecretManagerApplication", "applicationId", applicationId, "Application not found");
+            }
+            var application = record as ApplicationRecord;
+            if (application == null)
             {
                 throw new KeeperInvalidParameter("ShareToSecretManagerApplication", "applicationId", applicationId, "Application not found");
             }
@@ -183,7 +193,12 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task<SecretsManagerApplication> UnshareFromSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid)
         {
-            if (!TryGetKeeperApplication(applicationId, out var application))
+            if (!TryGetKeeperRecord(applicationId, out var record))
+            {
+                throw new KeeperInvalidParameter("UnshareFromSecretManagerApplication", "applicationId", applicationId, "Application not found");
+            }
+            var application = record as ApplicationRecord;
+            if (application == null)
             {
                 throw new KeeperInvalidParameter("UnshareFromSecretManagerApplication", "applicationId", applicationId, "Application not found");
             }
@@ -209,7 +224,12 @@ namespace KeeperSecurity.Vault
             string applicationId, bool? unlockIp = null, int? firstAccessExpireInMinutes = null,
             int? accessExpiresInMinutes = null, string name = null)
         {
-            if (!TryGetKeeperApplication(applicationId, out var application))
+            if (!TryGetKeeperRecord(applicationId, out var record))
+            {
+                throw new KeeperInvalidParameter("AddSecretManagerClient", "applicationId", applicationId, "Application not found");
+            }
+            var application = record as ApplicationRecord;
+            if (application == null)
             {
                 throw new KeeperInvalidParameter("AddSecretManagerClient", "applicationId", applicationId, "Application not found");
             }
@@ -394,7 +414,7 @@ namespace KeeperSecurity.Vault
 
         private byte[] UnloadKsmPrivateKey(ECPrivateKeyParameters privateKey)
         {
-            var publicKey = CryptoUtils.GetPublicEcKey(privateKey);
+            var publicKey = CryptoUtils.GetEcPublicKey(privateKey);
             var publicKeyDer = new DerBitString(publicKey.Q.GetEncoded(false));
             var dp = privateKey.Parameters;
             var orderBitLength = dp.N.BitLength;
@@ -603,7 +623,12 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task DeleteSecretManagerClient(string applicationId, string deviceId)
         {
-            if (!TryGetKeeperApplication(applicationId, out var application))
+            if (!TryGetKeeperRecord(applicationId, out var record))
+            {
+                throw new KeeperInvalidParameter("RemoveSecretManagerClient", "applicationId", applicationId, "Application not found");
+            }
+            var application = record as ApplicationRecord;
+            if (application == null)
             {
                 throw new KeeperInvalidParameter("RemoveSecretManagerClient", "applicationId", applicationId, "Application not found");
             }

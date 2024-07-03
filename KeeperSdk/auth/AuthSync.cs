@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Authentication;
 using Google.Protobuf;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
+
+[assembly: InternalsVisibleTo("Tests")]
 
 namespace KeeperSecurity.Authentication.Sync
 {
@@ -311,9 +314,9 @@ namespace KeeperSecurity.Authentication.Sync
             try
             {
                 await PostLogin();
-                return authContext.SessionTokenRestriction == 0 
-                    ? (AuthStep) new ConnectedStep() 
-                    : (AuthStep) new RestrictedConnectionStep();
+                return authContext.SessionTokenRestriction == 0
+                    ? (AuthStep) new ConnectedStep()
+                    : new RestrictedConnectionStep();
             }
             catch (KeeperApiException kae)
             {

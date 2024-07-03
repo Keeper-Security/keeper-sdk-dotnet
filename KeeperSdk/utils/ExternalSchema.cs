@@ -122,7 +122,6 @@ namespace KeeperSecurity.Utils
             Extra = source.Extra;
             Udata = source.Udata;
             Shared = source.Shared;
-            Owner = source.Owner;
         }
     }
 
@@ -155,6 +154,18 @@ namespace KeeperSecurity.Utils
         [DataMember(Name = "can_edit")]
         public bool CanEdit { get; set; }
 
+        [SqlColumn]
+        [DataMember(Name = "expiration")]
+        public long Expiration { get; set; }
+
+        [SqlColumn]
+        [DataMember(Name = "owner")]
+        public bool Owner { get; set; }
+
+        [SqlColumn]
+        [DataMember(Name = "owner_account_uid")]
+        public string OwnerAccountUid { get; set; }
+
         public string SubjectUid
         {
             get => RecordUid;
@@ -175,6 +186,9 @@ namespace KeeperSecurity.Utils
             RecordKey = source.RecordKey;
             CanShare = source.CanShare;
             CanEdit = source.CanEdit;
+            Expiration = source.Expiration;
+            Owner = source.Owner;
+            OwnerAccountUid = source.OwnerAccountUid;
         }
     }
 
@@ -221,6 +235,14 @@ namespace KeeperSecurity.Utils
         public string Name { get; set; }
 
         [SqlColumn]
+        [DataMember(Name = "data", EmitDefaultValue = false)]
+        public string Data { get; set; }
+
+        [SqlColumn]
+        [DataMember(Name = "owner_account_uid", EmitDefaultValue = false)]
+        public string OwnerAccountUid { get; set; }
+
+        [SqlColumn]
         [DataMember(Name = "default_manage_records")]
         public bool DefaultManageRecords { get; set; }
 
@@ -247,10 +269,38 @@ namespace KeeperSecurity.Utils
             SharedFolderUid = source.Uid;
             Revision = source.Revision;
             Name = source.Name;
+            Data = source.Data;
+            OwnerAccountUid = source.OwnerAccountUid;
             DefaultManageRecords = source.DefaultManageRecords;
             DefaultManageUsers = source.DefaultManageUsers;
             DefaultCanEdit = source.DefaultCanEdit;
             DefaultCanShare = source.DefaultCanShare;
+        }
+    }
+
+    /// <exclude/>
+    [SqlTable(Name = "UserEmails", PrimaryKey = new[] { "AccountUid" }, Index1 = new[] { "Email" })]
+    [DataContract]
+    public class ExternalUserEmail : IEntity, IUserEmail, IEntityCopy<IUserEmail>
+    {
+        [SqlColumn(Length = 32)]
+        [DataMember(Name = "account_uid", EmitDefaultValue = false)]
+        public string AccountUid { get; set; }
+
+        [SqlColumn(Length = 64)]
+        [DataMember(Name = "email", EmitDefaultValue = false)]
+        public string Email { get; set; }
+
+        public string Uid
+        { 
+            get => AccountUid;
+            set => AccountUid = value;
+        }
+
+        public void CopyFields(IUserEmail source)
+        {
+            AccountUid = source.AccountUid;
+            Email = source.Email;
         }
     }
 
@@ -321,6 +371,10 @@ namespace KeeperSecurity.Utils
         [DataMember(Name = "manage_users")]
         public bool ManageUsers { get; set; }
 
+        [SqlColumn]
+        [DataMember(Name = "expiration")]
+        public long Expiration { get; set; }
+
         public string SubjectUid
         {
             get => SharedFolderUid;
@@ -340,6 +394,7 @@ namespace KeeperSecurity.Utils
             UserType = source.UserType;
             ManageRecords = source.ManageRecords;
             ManageUsers = source.ManageUsers;
+            Expiration = source.Expiration;
         }
     }
 
@@ -365,8 +420,12 @@ namespace KeeperSecurity.Utils
         public int KeyType { get; set; }
 
         [SqlColumn]
-        [DataMember(Name = "team_private_key", EmitDefaultValue = false)]
-        public string TeamPrivateKey { get; set; }
+        [DataMember(Name = "team_rsa_private_key", EmitDefaultValue = false)]
+        public string TeamRsaPrivateKey { get; set; }
+
+        [SqlColumn]
+        [DataMember(Name = "team_ec_private_key", EmitDefaultValue = false)]
+        public string TeamEcPrivateKey { get; set; }
 
         [SqlColumn]
         [DataMember(Name = "restrict_edit")]
@@ -392,7 +451,8 @@ namespace KeeperSecurity.Utils
             Name = source.Name;
             TeamKey = source.TeamKey;
             KeyType = source.KeyType;
-            TeamPrivateKey = source.TeamPrivateKey;
+            TeamRsaPrivateKey = source.TeamRsaPrivateKey;
+            TeamEcPrivateKey = source.TeamEcPrivateKey;
             RestrictEdit = source.RestrictEdit;
             RestrictShare = source.RestrictShare;
             RestrictView = source.RestrictView;

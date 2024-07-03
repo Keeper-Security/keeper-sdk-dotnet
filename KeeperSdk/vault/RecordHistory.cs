@@ -378,7 +378,7 @@ namespace KeeperSecurity
                 [DataMember(Name = "revision")]
                 public long Revision { get; internal set; }
                 [DataMember(Name = "shared")]
-                public bool Shared { get; internal set; }
+                public bool Shared { get; set; }
                 [DataMember(Name = "client_modified_time")]
                 internal double _client_modified_time;
                 public long ClientModifiedTime => (long) _client_modified_time;
