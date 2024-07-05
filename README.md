@@ -16,7 +16,7 @@ Additional development tools in Python and other languages is available at our [
 ### .Net SDK
 For source integration into your .Net code, please utilize the [KeeperSDK Library source code](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
 
-[User Guide](https://docs.keeper.io/secrets-manager/commander-cli/using-commander/dotnet-powershell)
+[User Guide](https://docs.keeper.io/en/v/secrets-manager/commander-cli/commander-installation-setup/net-developer-sdk)
 
 [API documentation](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
 
