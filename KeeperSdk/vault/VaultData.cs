@@ -318,6 +318,7 @@ namespace KeeperSecurity.Vault
                             {
                                 typeField = new RecordTypeField(rf, x.Label);
                             }
+                            typeField.Required = x.Required ?? false;
                             return typeField;
                         }
                         else

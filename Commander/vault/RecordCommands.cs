@@ -411,7 +411,6 @@ namespace Commander
             await context.Vault.CreateRecord(record, node.FolderUid);
         }
 
-
         public static async Task UpdateRecordCommand(this VaultContext context, UpdateRecordOptions options)
         {
             if (context.Vault.TryGetKeeperRecord(options.RecordId, out var record))
@@ -433,6 +432,21 @@ namespace Commander
             {
                 Console.WriteLine($"Cannot resolve record {options.RecordId}");
                 return;
+            }
+            if (!string.IsNullOrEmpty(options.RecordType))
+            {
+                if (record is TypedRecord typed)
+                {
+                    if (context.Vault.TryGetRecordTypeByName(options.RecordType, out var rt))
+                    {
+                        typed.TypeName = rt.Name;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"{options.RecordId} is a legacy record. Record type is not supported.");
+                    return;
+                }
             }
 
             if (!string.IsNullOrEmpty(options.Title))
@@ -573,14 +587,7 @@ namespace Commander
             }
 
             var uploadTask = new FileAttachmentUploadTask(options.FileName);
-            if (record is PasswordRecord password)
-            {
-                await context.Vault.UploadAttachment(password, uploadTask);
-            }
-            else if (record is TypedRecord typed)
-            {
-                await context.Vault.UploadAttachment(typed, uploadTask);
-            }
+            await context.Vault.UploadAttachment(record, uploadTask);
         }
 
         public static async Task RemoveRecordCommand(this VaultContext context, RemoveRecordOptions options)
@@ -740,7 +747,7 @@ namespace Commander
         [Option("folder", Required = false, HelpText = "folder")]
         public string Folder { get; set; }
 
-        [Option('t', "type", Required = true, HelpText = "record type. legacy if omitted.")]
+        [Option('t', "type", Required = true, HelpText = "record type.")]
         public string RecordType { get; set; }
 
         [Option("title", Required = true, HelpText = "record title.")]
@@ -757,6 +764,9 @@ namespace Commander
     {
         [Option("title", Required = false, HelpText = "title")]
         public string Title { get; set; }
+
+        [Option('t', "type", Required = true, HelpText = "record type. typed records only.")]
+        public string RecordType { get; set; }
 
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }

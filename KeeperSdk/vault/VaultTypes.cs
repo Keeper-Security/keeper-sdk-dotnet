@@ -808,6 +808,11 @@ namespace KeeperSecurity.Vault
         /// Gets the number of values
         /// </summary>
         int Count { get; }
+
+        /// <summary>
+        /// Gets required flag
+        /// </summary>
+        bool Required { get; set; }
     }
 
     /// <summary>
@@ -855,6 +860,7 @@ namespace KeeperSecurity.Vault
         internal UnsupportedField(RecordTypeDataFieldBase dataField)
         {
             _dataField = dataField;
+            Required = dataField.Required;
         }
 
         RecordTypeDataFieldBase IToRecordTypeDataField.ToRecordTypeDataField()
@@ -888,6 +894,8 @@ namespace KeeperSecurity.Vault
 
         string IRecordTypeField.FieldName => _dataField.Type;
         string IRecordTypeField.FieldLabel => _dataField.Label;
+
+        public bool Required { get; set; }
     }
 
     /// <summary>
@@ -951,6 +959,9 @@ namespace KeeperSecurity.Vault
         /// Field values.
         /// </summary>
         public List<T> Values { get; } = new List<T>();
+
+        /// <inheritdoc />
+        public bool Required { get; set; }
 
         public T AppendTypedValue()
         {
