@@ -194,7 +194,8 @@ namespace KeeperSecurity.Utils
                 {
                     yield return fts.GetValueAsString();
                 }
-                else {
+                else
+                {
                     yield return "<not supported>";
                 }
             }
@@ -387,59 +388,62 @@ namespace KeeperSecurity.Utils
         {
             if (!vault.TryGetRecordTypeByName(typed.TypeName, out var recordType)) return;
 
-            var fields = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
-            for (var i = 0; i < typed.Fields.Count; i++)
+            var allFields = new Dictionary<string, ITypedField>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var rf in typed.Fields.Concat(typed.Custom))
             {
-                var rf = typed.Fields[i];
-                fields[rf.GetTypedFieldName()] = i;
-            }
-
-            foreach (var field in recordType.Fields)
-            {
-                if (!fields.ContainsKey(field.GetTypedFieldName()))
+                for (var i = rf.Count - 1; i >= 0; i--)
                 {
-                    typed.Fields.Add(field.CreateTypedField());
-                }
-            }
-
-            fields.Clear();
-            for (var i = 0; i < recordType.Fields.Length; i++)
-            {
-                var rf = recordType.Fields[i];
-                fields[rf.GetTypedFieldName()] = i;
-            }
-
-            typed.Fields.Sort((f1, f2) =>
-            {
-                var name1 = f1.GetTypedFieldName();
-                var name2 = f2.GetTypedFieldName();
-                if (fields.ContainsKey(name1) && fields.ContainsKey(name2))
-                {
-                    return fields[name1] - fields[name2];
-                }
-
-                if (fields.ContainsKey(name1))
-                {
-                    return -1;
-                }
-
-                if (fields.ContainsKey(name2))
-                {
-                    return 1;
-                }
-
-                return 0;
-            });
-            foreach (var field in typed.Fields.Concat(typed.Custom))
-            {
-                for (var i = field.Count - 1; i >= 0; i--)
-                {
-                    var value = field.GetValueAt(i);
+                    var value = rf.GetValueAt(i);
                     if (value == null)
                     {
-                        field.DeleteValueAt(0);
+                        rf.DeleteValueAt(i);
                     }
                 }
+                var fieldKey = rf.GetTypedFieldName();
+                if (!allFields.ContainsKey(fieldKey))
+                {
+                    allFields.Add(fieldKey, rf);
+                }
+            }
+
+            typed.Fields.Clear();
+            foreach (var field in recordType.Fields)
+            {
+                var fieldKey = field.GetTypedFieldName();
+                if (allFields.TryGetValue(fieldKey, out var rf))
+                {
+                    allFields.Remove(fieldKey);
+                }
+                else
+                {
+                    rf = field.CreateTypedField();
+                }
+                rf.Required = field.Required;
+                typed.Fields.Add(rf);
+            }
+
+            var customFields = new List<ITypedField>(typed.Custom);
+            typed.Custom.Clear();
+            foreach (var rf in customFields)
+            {
+                if (rf.Count > 0)
+                {
+                    var fieldKey = rf.GetTypedFieldName();
+                    if (allFields.ContainsKey(fieldKey))
+                    {
+                        typed.Custom.Add(rf);
+                        allFields.Remove(fieldKey);
+                    }
+                }
+            }
+            if (allFields.Count > 0)
+            {
+                typed.Custom.AddRange(allFields.Values.Where(x => x.Count > 0));
+            }
+            typed.Custom.RemoveAll((rf) => rf.Count == 0);
+            foreach (var rf in typed.Custom)
+            {
+                rf.Required = false;
             }
         }
     }

@@ -147,6 +147,8 @@ namespace KeeperSecurity.Vault
         /// Gets field label
         /// </summary>
         public string FieldLabel { get; }
+
+        public bool Required { get; internal set; }
     }
 
     /// <exclude/>
@@ -1528,13 +1530,17 @@ namespace KeeperSecurity.Vault
 
         public override ITypedField CreateTypedField()
         {
-            return new TypedField<T>(this);
+            return new TypedField<T>(this)
+            {
+                Required = Required
+            };
         }
 
         public RecordTypeDataField(TypedField<T> typedField)
         {
             Type = typedField.FieldName;
             Label = typedField.FieldLabel;
+            Required = typedField.Required;
             Value = typedField.Values.Where(x => x != null).ToArray();
         }
     }
@@ -1547,6 +1553,9 @@ namespace KeeperSecurity.Vault
         public string Type { get; set; }
         [DataMember(Name = "label", Order = 2, EmitDefaultValue = false)]
         public string Label { get; set; }
+        [DataMember(Name = "required", Order = 3, EmitDefaultValue = false)]
+        public bool Required { get; set; }
+
         public ExtensionDataObject ExtensionData { get; set; }
 
         public virtual ITypedField CreateTypedField()

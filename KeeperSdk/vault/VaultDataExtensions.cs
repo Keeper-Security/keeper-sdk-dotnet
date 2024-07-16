@@ -69,12 +69,7 @@ namespace KeeperSecurity.Vault
 
         public static ITypedField CreateTypedField(this IRecordTypeField fieldInfo)
         {
-            var tf = CreateTypedField(fieldInfo.FieldName, fieldInfo.FieldLabel);
-            if (fieldInfo is RecordTypeField rtf)
-            {
-            }
-
-            return tf;
+            return CreateTypedField(fieldInfo.FieldName, fieldInfo.FieldLabel);
         }
 
         public static bool FindTypedField(this IList<ITypedField> fields, IRecordTypeField fieldInfo, out ITypedField field)
