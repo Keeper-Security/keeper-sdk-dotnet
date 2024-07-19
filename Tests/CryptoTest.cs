@@ -53,6 +53,17 @@ namespace Tests
         }
 
         [Fact]
+        public void TestInvalidRsaKey()
+        {
+            var encryptedText = "NePhr5g-Ee8oyYrPZUlsYanKmVKC1GTCFk-t0JoHm_ceQlZjBMd-_qZb-73_n-hSyJtkzQUa6jmoPLNlkVkukiiKMOFD93V4N4_1yxjyLMHp2RMHZJjszJwiqZ0JAjySpFOSJ5owYUrSVyhIgl6d3a_l_dbTxRNqy2UYMkMeSSJv2LjufxUyf5eYpPloWWWx8WSqizXuCo3hDfe0RtIRNshKAx1I1Xc6pixib58lIRtD0NzO6jsGyyGbdlqI6W0olkSvZpBVU5edqmAhclXLoeNF5xK7jYuGxqBFxrhKCwRcbaSOI-1DdyTYdj5LC_MmB5QXi-Lc_RoGs0g5sTIP";
+            var privateKeyText = "MIIEogIBAAKCAQBc7ja0E2D3FqTgrCMl-W_wjyH8FfFOlfiIbUC5U2iW_8zeo6KyHI-O47XF7uniILOQmj7q02qR8jPdWwYzGRfQyASDbk41nWUrEGr-RQ6bht_jRJNOYiwIza5kr06mcgoXjsRBzNhhMsTl-aTZaBRUGVBx0mLdic70E_0W9dKyHJvbBfSPxJto7hCuu93yViIN2w_QSNrOzagFFZGhdz-BzrOybuUhoBE18cARTdPUZ_UlU_vIymORTHbBvneqXZ2Ua6ohsc7_AM38FYlftkJBNDGnH_UruLGd6kLzGszzdchxexjjE488rahibXDvMbl3-hR1OyL2-6q_uPi5whhpAgMBAAECggEAORHVqFrqRnOyh4NPBogbtXjBHyV-jotNGMM3Z1iQt4KaFvQY-xbNFqxCui5RlZwNijUfhGiXXs-GCF9Y_FJhrMbY9rnr78McGQk5G7PfF6YJonE_oXhqoHFnss9yFoecKQF1Bw-8plxeTPk1wonHSipNm8jfDDwQSxZnbA1E-joW4Gy9MchmE96pS2OxrN8y2MpEhKMz_fkCbUjUj5-ipP8hYJr-WbpcnyeWDgFS3j7xuB31312yroWEgaQ_a8hbVM6gyqn2DuLjcYImCR38ZK39vBtqc9j9E_7Cl_BSfGR7FFmoIVndW60XQFEJJgxAZhbusYjAb59H6UfDRz4tjQKBgQCsdEvXrUP3Rx_7juvVEt6k8MbdDBuERvDlz-1KMEXa_3e5TZStgU1-MNcF98Kx9lHqHd7TZuCmsFf4wnvVZLhO9AH6uR7VvOCXtnqfbiZG54YpQzYty4o_EqM-TosPaRaF6-z6YnBtSUS74qUDzKa3RKbpO66zstM3CfsPsJzLFwKBgQCJ82p4_1g4Oh-ro0HNWH42u3XNN83YynPmSkeYCTaEhMVfVx4EOh7LuPV4itt7U9SkcWkFhGw1abwZC4m9cEHzsVOFR5Hk5Gnke7MGHRHTjat_olYcb5wYE1p3KcZOa6Zoa4J52UliehbE6e3HpcF8P3PiJ_16QvUn3hIl7UhofwKBgQCJTHnJd6_h4mWLMSl_VWufI_cfq_EIajaGsPk5lJ85ESVviV2ymXxp2FaI8M24Q-TJoQhzhLec3k7bxXMz3OGEMm6U_-eVwa-J-gU8g0TENLYyiclLwn4JYzxGcd_y3_bHnqLoYZEi4S9w6qv4D2o4BNdiX1rixJ-2dSLGRhU-9wKBgFENbh-Nl93heL41-_GU7wNlfT-IbC_WM-a4-fvAXgHaqMTtwLsnEvULxV5_55k8lhHQeK4_MfzoFRZ6CwH9NSLjq3kBphzgf785VuRerByqfntNfF7UzNfwdxTQvK1S3sE3eb_yBQYRSdOExqqpH1fLSGE2sd3l_XjhJ7SVCBgtAoGAGhV87Flduuxm29U28EWIBAZGJnABgZocEdc6xTj_3fdEW1CSZXLL5fR27OPeO_esDhZKgFsNrHw8bdNFXtiWLNECwPleLhEYnmQHbd40hZ6mAQu899i_OVIyzgXtkqS1-nD3uLTl8VRxxOmi3NhnaQrr6Kl2Ou6kVYyvfO8AoVg";
+            var pk = CryptoUtils.LoadPrivateKey(privateKeyText.Base64UrlDecode());
+            var encryptedData = encryptedText.Base64UrlDecode();
+            var decryptedData = CryptoUtils.DecryptRsa(encryptedData, pk);
+            Assert.True(decryptedData.Length > 0);
+        }
+
+        [Fact]
         public void TestGeneratePassword() 
         {
             var password = CryptoUtils.GeneratePassword();
