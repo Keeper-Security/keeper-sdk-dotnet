@@ -1,0 +1,104 @@
+﻿<Window x:Class="WPFSample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:clr="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:WPFSample"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="400" Width="500">
+    <Window.Resources>
+        <local:MockLoginModel x:Key="DesignViewModel"/>
+        <x:Array x:Key="DataSources" Type="clr:String">
+            <clr:String>US</clr:String>
+            <clr:String>EU</clr:String>
+            <clr:String>CA</clr:String>
+            <clr:String>AU</clr:String>
+        </x:Array>
+    </Window.Resources>
+    <Grid d:DataContext="{Binding Source={StaticResource DesignViewModel}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="260"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="80"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <ContentPresenter  x:Name="LoginForm" Content="{Binding StepData}" Margin="90,28,10,0" Grid.RowSpan="2" Grid.ColumnSpan="2">
+            <ContentPresenter.Resources>
+                <DataTemplate DataType="{x:Type local:UsernameLoginStep}">
+                    <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <TextBlock Margin="0,20,0,10"  Style="{StaticResource DefaultTextBlock}" Text="Email Address"/>
+                        <TextBox x:Name="username" HorizontalAlignment="Stretch" Style="{DynamicResource PaddedTextBoxStyle}" 
+                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Command="{Binding Path=Command, ElementName=NextButton}" Key="Enter" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <TextBlock Margin="0,20,0,10"  Style="{StaticResource DefaultTextBlock}" Text="Data Center"/>
+                        <ComboBox x:Name="datacenters" IsEditable="False" IsReadOnly="True" HorizontalAlignment="Left" ItemsSource="{StaticResource DataSources}" 
+                                  SelectedValue="{Binding DataCenter, Mode=TwoWay}" IsSynchronizedWithCurrentItem="True" />
+
+                    </StackPanel>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:ApproveDeviceMethods}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                        <TextBlock Margin="0,0,0,10"  Style="{StaticResource HeadingTextBlock}" HorizontalAlignment="Center" Text="Device Approval Needed"/>
+                        <TextBlock Margin="0,0,0,10"  Style="{StaticResource DefaultTextBlock}" Text="Approve this device by selecting a method below:"/>
+                        <ItemsControl x:Name="DeviceMethods"  ItemsSource="{Binding DeviceApproveActionButtons}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="local:DeviceApproveActionButton">
+                                    <Button Margin="10,0,10,10" Height="36" Style="{StaticResource ActionButtonStyle}" 
+                                                Command="{Binding Path=DataContext.DeviceApproveCommand, ElementName=DeviceMethods}" 
+                                                CommandParameter="{Binding Channel}" Content="{Binding Title}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:VerificationCodeStep}">
+                    <StackPanel Grid.Row="0" x:Name="verificationCodeScreen" Margin="0,0,0,0" Orientation="Vertical" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10 " Style="{StaticResource HeadingTextBlock}" Text="{Binding Title}" />
+                        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10" TextWrapping="Wrap" Style="{StaticResource DefaultTextBlock}" Text="{Binding Description}" />
+                        <Grid Margin="0,0,0,10" HorizontalAlignment="Stretch">
+                            <TextBox Style="{DynamicResource PaddedTextBoxStyle}" Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Command="{Binding Path=Command, ElementName=NextButton}" Key="Enter" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </Grid>
+                    </StackPanel>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:EnterMasterPasswordStep}">
+                    <StackPanel Grid.Row="0" x:Name="masterPasswordScreen" Margin="0,0,0,0" Orientation="Vertical" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10 " Style="{StaticResource HeadingTextBlock}" Text="Enter Master Password" />
+                        <TextBlock HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" Style="{StaticResource DefaultTextBlock}" Text="Username" />
+                        <TextBlock HorizontalAlignment="Left" Margin="0,0,0,20" TextWrapping="Wrap" Style="{StaticResource HeadingTextBlock}" Text="{Binding Username}" />
+                        <TextBlock HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" Style="{StaticResource DefaultTextBlock}" Text="Password" />
+                        <PasswordBox HorizontalAlignment="Stretch" Style="{DynamicResource PaddedPasswordBoxStyle}" 
+                                 PasswordChanged="PasswordBox_PasswordChanged">
+                            <PasswordBox.InputBindings>
+                                <KeyBinding Command="{Binding Path=Command, ElementName=NextButton}" Key="Enter" />
+                            </PasswordBox.InputBindings>
+                        </PasswordBox>
+                    </StackPanel>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:LoginFinishedStep}">
+                    <StackPanel Grid.Row="0" x:Name="verificationCodeScreen" Margin="0,0,0,0" Orientation="Vertical" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10 " Style="{StaticResource HeadingTextBlock}" Text="{Binding Status}" />
+                    </StackPanel>
+                </DataTemplate>
+
+            </ContentPresenter.Resources>
+        </ContentPresenter>
+        <TextBlock Grid.Column="1" Grid.Row="2" Foreground="Crimson" TextWrapping="Wrap" Text="{Binding ErrorText}"/>
+        <Button Grid.Column="1" Grid.Row="3" x:Name="NextButton" Command="{Binding NextCommand}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                Margin="0,10,0,0" Height="36" Style="{StaticResource PrimaryButtonStyle}" Content="Next"/>
+        <Button Grid.Column="1" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Top" x:Name="CloseButton" Click="CloseButton_Click"
+                Margin="0,10,0,0" Height="36" Style="{StaticResource SecondaryButtonStyle}">Close</Button>
+    </Grid>
+</Window>
