@@ -9,6 +9,7 @@ using Google.Protobuf;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 
+
 [assembly: InternalsVisibleTo("Tests")]
 
 namespace KeeperSecurity.Authentication.Async
