@@ -63,66 +63,69 @@ namespace SsoCloud {
             "ZXJJZBgBIAEoBBIcChRzc29TcENvbmZpZ3VyYXRpb25JZBgCIAEoBCJdChpT",
             "c29DbG91ZElkcE1ldGFkYXRhUmVxdWVzdBIcChRzc29TcENvbmZpZ3VyYXRp",
             "b25JZBgBIAEoBBIQCghmaWxlbmFtZRgCIAEoCRIPCgdjb250ZW50GAMgASgM",
-            "IkYKJlNzb0Nsb3VkQ29uZmlndXJhdGlvblZhbGlkYXRpb25SZXF1ZXN0EhwK",
-            "FHNzb1NwQ29uZmlndXJhdGlvbklkGAEgAygEIl0KEVZhbGlkYXRpb25Db250",
-            "ZW50EhwKFHNzb1NwQ29uZmlndXJhdGlvbklkGAEgASgEEhQKDGlzU3VjY2Vz",
-            "c2Z1bBgCIAEoCBIUCgxlcnJvck1lc3NhZ2UYAyADKAkiYQonU3NvQ2xvdWRD",
-            "b25maWd1cmF0aW9uVmFsaWRhdGlvblJlc3BvbnNlEjYKEXZhbGlkYXRpb25D",
-            "b250ZW50GAEgAygLMhsuU3NvQ2xvdWQuVmFsaWRhdGlvbkNvbnRlbnQiTwov",
-            "U3NvQ2xvdWRTZXJ2aWNlUHJvdmlkZXJDb25maWd1cmF0aW9uTGlzdFJlcXVl",
-            "c3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQidQoVQ29uZmlndXJh",
-            "dGlvbkxpc3RJdGVtEhwKFHNzb1NwQ29uZmlndXJhdGlvbklkGAEgASgEEgwK",
-            "BG5hbWUYAiABKAkSEgoKaXNTZWxlY3RlZBgDIAEoCBIcChRzc29TZXJ2aWNl",
-            "UHJvdmlkZXJJZBgEIAMoBCJuCjBTc29DbG91ZFNlcnZpY2VQcm92aWRlckNv",
-            "bmZpZ3VyYXRpb25MaXN0UmVzcG9uc2USOgoRY29uZmlndXJhdGlvbkl0ZW0Y",
-            "ASADKAsyHy5Tc29DbG91ZC5Db25maWd1cmF0aW9uTGlzdEl0ZW0ivwEKD1Nz",
-            "b0Nsb3VkUmVxdWVzdBIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIVCg1j",
-            "bGllbnRWZXJzaW9uGAIgASgJEhAKCGVtYmVkZGVkGAMgASgIEgwKBGpzb24Y",
-            "BCABKAgSDAoEZGVzdBgFIAEoCRIUCgxpZHBTZXNzaW9uSWQYBiABKAkSEgoK",
-            "Zm9yY2VMb2dpbhgHIAEoCBIQCgh1c2VybmFtZRgIIAEoCRIQCghkZXRhY2hl",
-            "ZBgJIAEoCCLJAQoQU3NvQ2xvdWRSZXNwb25zZRIPCgdjb21tYW5kGAEgASgJ",
-            "EhkKEW1lc3NhZ2VTZXNzaW9uVWlkGAIgASgMEg0KBWVtYWlsGAMgASgJEhsK",
-            "E2VuY3J5cHRlZExvZ2luVG9rZW4YBCABKAwSFAoMcHJvdmlkZXJOYW1lGAUg",
-            "ASgJEhQKDGlkcFNlc3Npb25JZBgGIAEoCRIdChVlbmNyeXB0ZWRTZXNzaW9u",
-            "VG9rZW4YByABKAwSEgoKZXJyb3JUb2tlbhgIIAEoCSJaChJTc29DbG91ZExv",
-            "Z1JlcXVlc3QSHAoUc3NvU2VydmljZVByb3ZpZGVySWQYASABKAQSEwoLc2Vy",
-            "dmljZU5hbWUYAiABKAkSEQoJc2VydmljZUlkGAMgASgNIogCCg5TYW1sUmVs",
-            "YXlTdGF0ZRIZChFtZXNzYWdlU2Vzc2lvblVpZBgBIAEoDBIQCgh1c2VybmFt",
-            "ZRgCIAEoCRIQCghlbWJlZGRlZBgDIAEoCBIMCgRqc29uGAQgASgIEg4KBmRl",
-            "c3RJZBgFIAEoDRINCgVrZXlJZBgGIAEoBRI8ChFzdXBwb3J0ZWRMYW5ndWFn",
-            "ZRgHIAEoDjIhLkF1dGhlbnRpY2F0aW9uLlN1cHBvcnRlZExhbmd1YWdlEhAK",
-            "CGNoZWNrc3VtGAggASgEEhYKDmlzR2VuZXJhdGVkVWlkGAkgASgIEhAKCGRl",
-            "dmljZUlkGAogASgDEhAKCGRldGFjaGVkGAsgASgIInEKHlNzb0Nsb3VkTWln",
-            "cmF0aW9uU3RhdHVzUmVxdWVzdBIOCgZub2RlSWQYASABKAQSEgoKZnVsbFN0",
-            "YXR1cxgCIAEoCBIcChRpbmNsdWRlTWlncmF0ZWRVc2VycxgDIAEoCBINCgVs",
-            "aW1pdBgEIAEoBSLoAgofU3NvQ2xvdWRNaWdyYXRpb25TdGF0dXNSZXNwb25z",
-            "ZRIPCgdzdWNjZXNzGAEgASgIEg8KB21lc3NhZ2UYAiABKAkSDgoGbm9kZUlk",
-            "GAMgASgEEhQKDHNzb0Nvbm5lY3RJZBgEIAEoBBIWCg5zc29Db25uZWN0TmFt",
-            "ZRgFIAEoCRIZChFzc29Db25uZWN0Q2xvdWRJZBgGIAEoBBIbChNzc29Db25u",
-            "ZWN0Q2xvdWROYW1lGAcgASgJEhcKD3RvdGFsVXNlcnNDb3VudBgIIAEoDRIa",
-            "ChJ1c2Vyc01pZ3JhdGVkQ291bnQYCSABKA0SOgoNbWlncmF0ZWRVc2VycxgK",
-            "IAMoCzIjLlNzb0Nsb3VkLlNzb0Nsb3VkTWlncmF0aW9uVXNlckluZm8SPAoP",
-            "dW5taWdyYXRlZFVzZXJzGAsgAygLMiMuU3NvQ2xvdWQuU3NvQ2xvdWRNaWdy",
-            "YXRpb25Vc2VySW5mbyJgChlTc29DbG91ZE1pZ3JhdGlvblVzZXJJbmZvEg4K",
-            "BnVzZXJJZBgBIAEoDRINCgVlbWFpbBgCIAEoCRIQCghmdWxsTmFtZRgDIAEo",
-            "CRISCgppc01pZ3JhdGVkGAQgASgIKh0KEEF1dGhQcm90b2NvbFR5cGUSCQoF",
-            "U0FNTDIQACqAAgoIRGF0YVR5cGUSBwoDQU5ZEAASCwoHQk9PTEVBThABEgsK",
-            "B0lOVEVHRVIQAhIKCgZTVFJJTkcQAxIJCgVCWVRFUxAEEgcKA1VSTBAFEi4K",
-            "KmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9EYXRhVHlwZRAG",
-            "EjYKMmNvbV9rZWVwZXJzZWN1cml0eV9wcm90b19Tc29DbG91ZF9BdXRoUHJv",
-            "dG9jb2xUeXBlEAcSMAosY29tX2tlZXBlcnNlY3VyaXR5X3Byb3RvX1Nzb0Ns",
-            "b3VkX1Nzb0lkcFR5cGUQCBIICgRMT05HEAkSDQoJVElNRVNUQU1QEAoqUgoc",
-            "U3NvQ2xvdWRTZXR0aW5nT3BlcmF0aW9uVHlwZRIHCgNTRVQQABIHCgNHRVQQ",
-            "ARIKCgZERUxFVEUQAhIUChBSRVNFVF9UT19ERUZBVUxUEAMq0AIKClNzb0lk",
-            "cFR5cGUSDQoJWFhfVU5VU0VEEAASCwoHR0VORVJJQxABEgYKAkY1EAISCgoG",
-            "R09PR0xFEAMSCAoET0tUQRAEEggKBEFERlMQBRIJCgVBWlVSRRAGEgwKCE9O",
-            "RUxPR0lOEAcSBwoDQVdTEAgSDAoIQ0VOVFJJRlkQCRIHCgNEVU8QChIHCgNJ",
-            "Qk0QCxINCglKVU1QQ0xPVUQQDBIICgRQSU5HEA0SCwoHUElOR09ORRAOEgcK",
-            "A1JTQRAPEg4KClNFQ1VSRUFVVEgQEBIKCgZUSEFMRVMQERIJCgVBVVRIMBAS",
-            "EgoKBkJFWU9ORBATEggKBEhZUFIQFBIKCgZQVVJFSUQQFRIHCgNTRE8QFhIJ",
-            "CgVUUkFJVBAXEgwKCFRSQU5TTUlUEBgSCwoHVFJVU09OQRAZEgwKCFZFUklE",
-            "SVVNEBoSBwoDQ0FTEBtCJAoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQghT",
-            "c29DbG91ZGIGcHJvdG8z"));
+            "IpsBCiFTc29DbG91ZElkcE1ldGFkYXRhU3VwcG9ydFJlcXVlc3QSHAoUc3Nv",
+            "U2VydmljZVByb3ZpZGVySWQYASABKAQSHAoUc3NvU3BDb25maWd1cmF0aW9u",
+            "SWQYAiABKAQSFwoPc3NvRW50ZXJwcmlzZUlkGAMgASgEEhAKCGZpbGVuYW1l",
+            "GAQgASgJEg8KB2NvbnRlbnQYBSABKAwiRgomU3NvQ2xvdWRDb25maWd1cmF0",
+            "aW9uVmFsaWRhdGlvblJlcXVlc3QSHAoUc3NvU3BDb25maWd1cmF0aW9uSWQY",
+            "ASADKAQiXQoRVmFsaWRhdGlvbkNvbnRlbnQSHAoUc3NvU3BDb25maWd1cmF0",
+            "aW9uSWQYASABKAQSFAoMaXNTdWNjZXNzZnVsGAIgASgIEhQKDGVycm9yTWVz",
+            "c2FnZRgDIAMoCSJhCidTc29DbG91ZENvbmZpZ3VyYXRpb25WYWxpZGF0aW9u",
+            "UmVzcG9uc2USNgoRdmFsaWRhdGlvbkNvbnRlbnQYASADKAsyGy5Tc29DbG91",
+            "ZC5WYWxpZGF0aW9uQ29udGVudCJPCi9Tc29DbG91ZFNlcnZpY2VQcm92aWRl",
+            "ckNvbmZpZ3VyYXRpb25MaXN0UmVxdWVzdBIcChRzc29TZXJ2aWNlUHJvdmlk",
+            "ZXJJZBgBIAEoBCJ1ChVDb25maWd1cmF0aW9uTGlzdEl0ZW0SHAoUc3NvU3BD",
+            "b25maWd1cmF0aW9uSWQYASABKAQSDAoEbmFtZRgCIAEoCRISCgppc1NlbGVj",
+            "dGVkGAMgASgIEhwKFHNzb1NlcnZpY2VQcm92aWRlcklkGAQgAygEIm4KMFNz",
+            "b0Nsb3VkU2VydmljZVByb3ZpZGVyQ29uZmlndXJhdGlvbkxpc3RSZXNwb25z",
+            "ZRI6ChFjb25maWd1cmF0aW9uSXRlbRgBIAMoCzIfLlNzb0Nsb3VkLkNvbmZp",
+            "Z3VyYXRpb25MaXN0SXRlbSK/AQoPU3NvQ2xvdWRSZXF1ZXN0EhkKEW1lc3Nh",
+            "Z2VTZXNzaW9uVWlkGAEgASgMEhUKDWNsaWVudFZlcnNpb24YAiABKAkSEAoI",
+            "ZW1iZWRkZWQYAyABKAgSDAoEanNvbhgEIAEoCBIMCgRkZXN0GAUgASgJEhQK",
+            "DGlkcFNlc3Npb25JZBgGIAEoCRISCgpmb3JjZUxvZ2luGAcgASgIEhAKCHVz",
+            "ZXJuYW1lGAggASgJEhAKCGRldGFjaGVkGAkgASgIIskBChBTc29DbG91ZFJl",
+            "c3BvbnNlEg8KB2NvbW1hbmQYASABKAkSGQoRbWVzc2FnZVNlc3Npb25VaWQY",
+            "AiABKAwSDQoFZW1haWwYAyABKAkSGwoTZW5jcnlwdGVkTG9naW5Ub2tlbhgE",
+            "IAEoDBIUCgxwcm92aWRlck5hbWUYBSABKAkSFAoMaWRwU2Vzc2lvbklkGAYg",
+            "ASgJEh0KFWVuY3J5cHRlZFNlc3Npb25Ub2tlbhgHIAEoDBISCgplcnJvclRv",
+            "a2VuGAggASgJIloKElNzb0Nsb3VkTG9nUmVxdWVzdBIcChRzc29TZXJ2aWNl",
+            "UHJvdmlkZXJJZBgBIAEoBBITCgtzZXJ2aWNlTmFtZRgCIAEoCRIRCglzZXJ2",
+            "aWNlSWQYAyABKA0iiAIKDlNhbWxSZWxheVN0YXRlEhkKEW1lc3NhZ2VTZXNz",
+            "aW9uVWlkGAEgASgMEhAKCHVzZXJuYW1lGAIgASgJEhAKCGVtYmVkZGVkGAMg",
+            "ASgIEgwKBGpzb24YBCABKAgSDgoGZGVzdElkGAUgASgNEg0KBWtleUlkGAYg",
+            "ASgFEjwKEXN1cHBvcnRlZExhbmd1YWdlGAcgASgOMiEuQXV0aGVudGljYXRp",
+            "b24uU3VwcG9ydGVkTGFuZ3VhZ2USEAoIY2hlY2tzdW0YCCABKAQSFgoOaXNH",
+            "ZW5lcmF0ZWRVaWQYCSABKAgSEAoIZGV2aWNlSWQYCiABKAMSEAoIZGV0YWNo",
+            "ZWQYCyABKAgicQoeU3NvQ2xvdWRNaWdyYXRpb25TdGF0dXNSZXF1ZXN0Eg4K",
+            "Bm5vZGVJZBgBIAEoBBISCgpmdWxsU3RhdHVzGAIgASgIEhwKFGluY2x1ZGVN",
+            "aWdyYXRlZFVzZXJzGAMgASgIEg0KBWxpbWl0GAQgASgFIugCCh9Tc29DbG91",
+            "ZE1pZ3JhdGlvblN0YXR1c1Jlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSDwoH",
+            "bWVzc2FnZRgCIAEoCRIOCgZub2RlSWQYAyABKAQSFAoMc3NvQ29ubmVjdElk",
+            "GAQgASgEEhYKDnNzb0Nvbm5lY3ROYW1lGAUgASgJEhkKEXNzb0Nvbm5lY3RD",
+            "bG91ZElkGAYgASgEEhsKE3Nzb0Nvbm5lY3RDbG91ZE5hbWUYByABKAkSFwoP",
+            "dG90YWxVc2Vyc0NvdW50GAggASgNEhoKEnVzZXJzTWlncmF0ZWRDb3VudBgJ",
+            "IAEoDRI6Cg1taWdyYXRlZFVzZXJzGAogAygLMiMuU3NvQ2xvdWQuU3NvQ2xv",
+            "dWRNaWdyYXRpb25Vc2VySW5mbxI8Cg91bm1pZ3JhdGVkVXNlcnMYCyADKAsy",
+            "Iy5Tc29DbG91ZC5Tc29DbG91ZE1pZ3JhdGlvblVzZXJJbmZvImAKGVNzb0Ns",
+            "b3VkTWlncmF0aW9uVXNlckluZm8SDgoGdXNlcklkGAEgASgNEg0KBWVtYWls",
+            "GAIgASgJEhAKCGZ1bGxOYW1lGAMgASgJEhIKCmlzTWlncmF0ZWQYBCABKAgq",
+            "HQoQQXV0aFByb3RvY29sVHlwZRIJCgVTQU1MMhAAKoACCghEYXRhVHlwZRIH",
+            "CgNBTlkQABILCgdCT09MRUFOEAESCwoHSU5URUdFUhACEgoKBlNUUklORxAD",
+            "EgkKBUJZVEVTEAQSBwoDVVJMEAUSLgoqY29tX2tlZXBlcnNlY3VyaXR5X3By",
+            "b3RvX1Nzb0Nsb3VkX0RhdGFUeXBlEAYSNgoyY29tX2tlZXBlcnNlY3VyaXR5",
+            "X3Byb3RvX1Nzb0Nsb3VkX0F1dGhQcm90b2NvbFR5cGUQBxIwCixjb21fa2Vl",
+            "cGVyc2VjdXJpdHlfcHJvdG9fU3NvQ2xvdWRfU3NvSWRwVHlwZRAIEggKBExP",
+            "TkcQCRINCglUSU1FU1RBTVAQCipSChxTc29DbG91ZFNldHRpbmdPcGVyYXRp",
+            "b25UeXBlEgcKA1NFVBAAEgcKA0dFVBABEgoKBkRFTEVURRACEhQKEFJFU0VU",
+            "X1RPX0RFRkFVTFQQAyrQAgoKU3NvSWRwVHlwZRINCglYWF9VTlVTRUQQABIL",
+            "CgdHRU5FUklDEAESBgoCRjUQAhIKCgZHT09HTEUQAxIICgRPS1RBEAQSCAoE",
+            "QURGUxAFEgkKBUFaVVJFEAYSDAoIT05FTE9HSU4QBxIHCgNBV1MQCBIMCghD",
+            "RU5UUklGWRAJEgcKA0RVTxAKEgcKA0lCTRALEg0KCUpVTVBDTE9VRBAMEggK",
+            "BFBJTkcQDRILCgdQSU5HT05FEA4SBwoDUlNBEA8SDgoKU0VDVVJFQVVUSBAQ",
+            "EgoKBlRIQUxFUxAREgkKBUFVVEgwEBISCgoGQkVZT05EEBMSCAoESFlQUhAU",
+            "EgoKBlBVUkVJRBAVEgcKA1NETxAWEgkKBVRSQUlUEBcSDAoIVFJBTlNNSVQQ",
+            "GBILCgdUUlVTT05BEBkSDAoIVkVSSURJVU0QGhIHCgNDQVMQG0IkChhjb20u",
+            "a2VlcGVyc2VjdXJpdHkucHJvdG9CCFNzb0Nsb3VkYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::SsoCloud.AuthProtocolType), typeof(global::SsoCloud.DataType), typeof(global::SsoCloud.SsoCloudSettingOperationType), typeof(global::SsoCloud.SsoIdpType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -138,6 +141,7 @@ namespace SsoCloud {
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudSAMLLogResponse), global::SsoCloud.SsoCloudSAMLLogResponse.Parser, new[]{ "SsoServiceProviderId", "Entry" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudServiceProviderUpdateRequest), global::SsoCloud.SsoCloudServiceProviderUpdateRequest.Parser, new[]{ "SsoServiceProviderId", "SsoSpConfigurationId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudIdpMetadataRequest), global::SsoCloud.SsoCloudIdpMetadataRequest.Parser, new[]{ "SsoSpConfigurationId", "Filename", "Content" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudIdpMetadataSupportRequest), global::SsoCloud.SsoCloudIdpMetadataSupportRequest.Parser, new[]{ "SsoServiceProviderId", "SsoSpConfigurationId", "SsoEnterpriseId", "Filename", "Content" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudConfigurationValidationRequest), global::SsoCloud.SsoCloudConfigurationValidationRequest.Parser, new[]{ "SsoSpConfigurationId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.ValidationContent), global::SsoCloud.ValidationContent.Parser, new[]{ "SsoSpConfigurationId", "IsSuccessful", "ErrorMessage" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::SsoCloud.SsoCloudConfigurationValidationResponse), global::SsoCloud.SsoCloudConfigurationValidationResponse.Parser, new[]{ "ValidationContent" }, null, null, null, null),
@@ -252,6 +256,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This is the value of a Configuration setting 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudSettingValue : pb::IMessage<SsoCloudSettingValue>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -654,7 +659,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -705,7 +714,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -755,6 +768,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This performs an edit operation on a Configuration setting 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudSettingAction : pb::IMessage<SsoCloudSettingAction>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -1009,7 +1023,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1040,7 +1058,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1070,6 +1092,7 @@ namespace SsoCloud {
   /// <summary>
   ///* Requesting the value of or a change to an SSO Configuration 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudConfigurationRequest : pb::IMessage<SsoCloudConfigurationRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -1333,7 +1356,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1368,7 +1395,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1402,6 +1433,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This represents the providers that share a given configuration 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoSharedConfigItem : pb::IMessage<SsoSharedConfigItem>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -1615,7 +1647,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1642,7 +1678,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1668,6 +1708,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This is the response to an SsoConfigurationRequest 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudConfigurationResponse : pb::IMessage<SsoCloudConfigurationResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2045,7 +2086,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2096,7 +2141,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2146,6 +2195,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This is a request to the IdpType API. 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoIdpTypeRequest : pb::IMessage<SsoIdpTypeRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2368,7 +2418,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2395,7 +2449,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2421,6 +2479,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This is a response from the IdpType API calls. 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoIdpTypeResponse : pb::IMessage<SsoIdpTypeResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2643,7 +2702,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2670,7 +2733,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2696,6 +2763,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This is the request for the SAML logs of a service provider.  Used for both saml_log_get and saml_log_clear  
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudSAMLLogRequest : pb::IMessage<SsoCloudSAMLLogRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2851,7 +2919,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2870,7 +2942,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2888,6 +2964,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This represents one SAML message in the log. 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudSAMLLogEntry : pb::IMessage<SsoCloudSAMLLogEntry>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -3304,7 +3381,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -3359,7 +3440,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -3413,6 +3498,7 @@ namespace SsoCloud {
   /// <summary>
   ///* This represents an array of SAML responses from the log. 
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudSAMLLogResponse : pb::IMessage<SsoCloudSAMLLogResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -3586,7 +3672,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -3609,7 +3699,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -3633,6 +3727,7 @@ namespace SsoCloud {
   /// This is a request to set the SSO Configuration for an SSO Service Provider, by ID.
   /// The response is an instance of SsoCloudConfigurationRequest.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudServiceProviderUpdateRequest : pb::IMessage<SsoCloudServiceProviderUpdateRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -3817,7 +3912,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -3840,7 +3939,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -3864,6 +3967,7 @@ namespace SsoCloud {
   /// This request is to upload the IdP metadata file as its UTF-8 byte content.
   /// The response is an SsoCloudConfigurationValidationResponse.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudIdpMetadataRequest : pb::IMessage<SsoCloudIdpMetadataRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4080,7 +4184,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4107,7 +4215,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4132,9 +4244,364 @@ namespace SsoCloud {
 
   /// <summary>
   ///*
+  /// This request is by the API Test Tool to upload the IdP metadata file as its UTF-8 byte content.
+  /// The response is an SsoCloudConfigurationValidationResponse.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class SsoCloudIdpMetadataSupportRequest : pb::IMessage<SsoCloudIdpMetadataSupportRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SsoCloudIdpMetadataSupportRequest> _parser = new pb::MessageParser<SsoCloudIdpMetadataSupportRequest>(() => new SsoCloudIdpMetadataSupportRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SsoCloudIdpMetadataSupportRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[12]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SsoCloudIdpMetadataSupportRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SsoCloudIdpMetadataSupportRequest(SsoCloudIdpMetadataSupportRequest other) : this() {
+      ssoServiceProviderId_ = other.ssoServiceProviderId_;
+      ssoSpConfigurationId_ = other.ssoSpConfigurationId_;
+      ssoEnterpriseId_ = other.ssoEnterpriseId_;
+      filename_ = other.filename_;
+      content_ = other.content_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SsoCloudIdpMetadataSupportRequest Clone() {
+      return new SsoCloudIdpMetadataSupportRequest(this);
+    }
+
+    /// <summary>Field number for the "ssoServiceProviderId" field.</summary>
+    public const int SsoServiceProviderIdFieldNumber = 1;
+    private ulong ssoServiceProviderId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong SsoServiceProviderId {
+      get { return ssoServiceProviderId_; }
+      set {
+        ssoServiceProviderId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ssoSpConfigurationId" field.</summary>
+    public const int SsoSpConfigurationIdFieldNumber = 2;
+    private ulong ssoSpConfigurationId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong SsoSpConfigurationId {
+      get { return ssoSpConfigurationId_; }
+      set {
+        ssoSpConfigurationId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ssoEnterpriseId" field.</summary>
+    public const int SsoEnterpriseIdFieldNumber = 3;
+    private ulong ssoEnterpriseId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong SsoEnterpriseId {
+      get { return ssoEnterpriseId_; }
+      set {
+        ssoEnterpriseId_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "filename" field.</summary>
+    public const int FilenameFieldNumber = 4;
+    private string filename_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Filename {
+      get { return filename_; }
+      set {
+        filename_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "content" field.</summary>
+    public const int ContentFieldNumber = 5;
+    private pb::ByteString content_ = pb::ByteString.Empty;
+    /// <summary>
+    /// UTF-8 bytes of the file content
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString Content {
+      get { return content_; }
+      set {
+        content_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SsoCloudIdpMetadataSupportRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SsoCloudIdpMetadataSupportRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SsoServiceProviderId != other.SsoServiceProviderId) return false;
+      if (SsoSpConfigurationId != other.SsoSpConfigurationId) return false;
+      if (SsoEnterpriseId != other.SsoEnterpriseId) return false;
+      if (Filename != other.Filename) return false;
+      if (Content != other.Content) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SsoServiceProviderId != 0UL) hash ^= SsoServiceProviderId.GetHashCode();
+      if (SsoSpConfigurationId != 0UL) hash ^= SsoSpConfigurationId.GetHashCode();
+      if (SsoEnterpriseId != 0UL) hash ^= SsoEnterpriseId.GetHashCode();
+      if (Filename.Length != 0) hash ^= Filename.GetHashCode();
+      if (Content.Length != 0) hash ^= Content.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SsoServiceProviderId != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(SsoServiceProviderId);
+      }
+      if (SsoSpConfigurationId != 0UL) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(SsoSpConfigurationId);
+      }
+      if (SsoEnterpriseId != 0UL) {
+        output.WriteRawTag(24);
+        output.WriteUInt64(SsoEnterpriseId);
+      }
+      if (Filename.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Filename);
+      }
+      if (Content.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(Content);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SsoServiceProviderId != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(SsoServiceProviderId);
+      }
+      if (SsoSpConfigurationId != 0UL) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(SsoSpConfigurationId);
+      }
+      if (SsoEnterpriseId != 0UL) {
+        output.WriteRawTag(24);
+        output.WriteUInt64(SsoEnterpriseId);
+      }
+      if (Filename.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Filename);
+      }
+      if (Content.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(Content);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (SsoServiceProviderId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(SsoServiceProviderId);
+      }
+      if (SsoSpConfigurationId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(SsoSpConfigurationId);
+      }
+      if (SsoEnterpriseId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(SsoEnterpriseId);
+      }
+      if (Filename.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Filename);
+      }
+      if (Content.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Content);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SsoCloudIdpMetadataSupportRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SsoServiceProviderId != 0UL) {
+        SsoServiceProviderId = other.SsoServiceProviderId;
+      }
+      if (other.SsoSpConfigurationId != 0UL) {
+        SsoSpConfigurationId = other.SsoSpConfigurationId;
+      }
+      if (other.SsoEnterpriseId != 0UL) {
+        SsoEnterpriseId = other.SsoEnterpriseId;
+      }
+      if (other.Filename.Length != 0) {
+        Filename = other.Filename;
+      }
+      if (other.Content.Length != 0) {
+        Content = other.Content;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            SsoServiceProviderId = input.ReadUInt64();
+            break;
+          }
+          case 16: {
+            SsoSpConfigurationId = input.ReadUInt64();
+            break;
+          }
+          case 24: {
+            SsoEnterpriseId = input.ReadUInt64();
+            break;
+          }
+          case 34: {
+            Filename = input.ReadString();
+            break;
+          }
+          case 42: {
+            Content = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            SsoServiceProviderId = input.ReadUInt64();
+            break;
+          }
+          case 16: {
+            SsoSpConfigurationId = input.ReadUInt64();
+            break;
+          }
+          case 24: {
+            SsoEnterpriseId = input.ReadUInt64();
+            break;
+          }
+          case 34: {
+            Filename = input.ReadString();
+            break;
+          }
+          case 42: {
+            Content = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  ///*
   /// Request validation of one or more SsoCloudConfigurations.
   /// The response is SsoCloudConfigurationValidationResponse.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudConfigurationValidationRequest : pb::IMessage<SsoCloudConfigurationValidationRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4149,7 +4616,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[12]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4279,7 +4746,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4299,7 +4770,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4319,6 +4794,7 @@ namespace SsoCloud {
   ///*
   /// This is part of SsoCloudConfigurationValidationResponse.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class ValidationContent : pb::IMessage<ValidationContent>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4333,7 +4809,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[13]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4524,7 +5000,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4551,7 +5031,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4578,6 +5062,7 @@ namespace SsoCloud {
   ///*
   /// This response is sent for a configuration validation request and for a Metadata upload request.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudConfigurationValidationResponse : pb::IMessage<SsoCloudConfigurationValidationResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4592,7 +5077,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[14]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4722,7 +5207,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4741,7 +5230,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4760,6 +5253,7 @@ namespace SsoCloud {
   ///*
   /// This request is sent to retrieve the list of configurations defined in an enterprise.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudServiceProviderConfigurationListRequest : pb::IMessage<SsoCloudServiceProviderConfigurationListRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4774,7 +5268,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[15]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4918,7 +5412,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4937,7 +5435,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4957,6 +5459,7 @@ namespace SsoCloud {
   /// This represents one configuration in the list.
   /// If isSelected is true this configuration is currently being used by the sso service provider(s) listed.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class ConfigurationListItem : pb::IMessage<ConfigurationListItem>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -4971,7 +5474,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[16]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5200,7 +5703,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -5232,7 +5739,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -5264,6 +5775,7 @@ namespace SsoCloud {
   ///*
   /// This represents a list of Configuration entries.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudServiceProviderConfigurationListResponse : pb::IMessage<SsoCloudServiceProviderConfigurationListResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -5278,7 +5790,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[17]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5411,7 +5923,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -5430,7 +5946,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -5450,6 +5970,7 @@ namespace SsoCloud {
   /// For security, this structure is used to make a Cloud SSO login or logout request rather than sending the parameters in the URL or in a form.
   /// A typical call is: https://www.keepersecurity.com/api/rest/sso/saml/login/123456789?payload=encodedEncryptedAPIRequestContainingAnSsoCloudRequest
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudRequest : pb::IMessage<SsoCloudRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -5464,7 +5985,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[18]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5864,7 +6385,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -5915,7 +6440,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -5967,6 +6496,7 @@ namespace SsoCloud {
   /// For security, this structure is used to return values from a Cloud SSO login or logout.
   /// It is encrypted with the key sent along with the SsoCloudRequest.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudResponse : pb::IMessage<SsoCloudResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -5981,7 +6511,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[19]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6349,7 +6879,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6396,7 +6930,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6443,6 +6981,7 @@ namespace SsoCloud {
   ///*
   /// This allows the user to retrieve or clear SSO logs related to a service provider.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudLogRequest : pb::IMessage<SsoCloudLogRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -6457,7 +6996,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[20]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6665,7 +7204,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6692,7 +7235,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6719,6 +7266,7 @@ namespace SsoCloud {
   ///*
   /// This is used internally by Cloud SSO.  Clients do not use it.
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SamlRelayState : pb::IMessage<SamlRelayState>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -6733,7 +7281,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[21]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7197,7 +7745,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7256,7 +7808,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -7329,6 +7885,7 @@ namespace SsoCloud {
   /// @see SsoCloudMigrationStatusResponse
   /// @since MH: 2022-01-11
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudMigrationStatusRequest : pb::IMessage<SsoCloudMigrationStatusRequest>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -7343,7 +7900,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[22]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7583,7 +8140,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7614,7 +8175,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -7650,6 +8215,7 @@ namespace SsoCloud {
   /// @see SsoCloudMigrationStatusRequest
   /// @since MH: 2022-01-11
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudMigrationStatusResponse : pb::IMessage<SsoCloudMigrationStatusResponse>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -7664,7 +8230,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[23]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8106,7 +8672,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -8165,7 +8735,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -8224,6 +8798,7 @@ namespace SsoCloud {
   ///*
   /// @since MH: 2022-01-11
   /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class SsoCloudMigrationUserInfo : pb::IMessage<SsoCloudMigrationUserInfo>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -8238,7 +8813,7 @@ namespace SsoCloud {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[24]; }
+      get { return global::SsoCloud.SsocloudReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8478,7 +9053,11 @@ namespace SsoCloud {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -8509,7 +9088,11 @@ namespace SsoCloud {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;

@@ -365,7 +365,7 @@ namespace KeeperSecurity
             }
 
             [DataContract]
-            public class RecordHistoryStorage : IStorageRecord
+            internal class RecordHistoryStorage : IStorageRecord
             {
                 [DataMember(Name = "record_uid")]
                 public string RecordUid { get; internal set; }

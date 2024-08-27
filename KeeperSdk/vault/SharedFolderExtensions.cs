@@ -59,7 +59,11 @@ namespace KeeperSecurity.Vault
                         ManageRecords = options.ManageRecords == null
                         ? (sharedFolder.DefaultManageRecords ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse)
                         : options.ManageRecords.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
-                        SharedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, publicKey)),
+                        TypedSharedFolderKey = new EncryptedDataKey
+                        {
+                            EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, publicKey)),
+                            EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey
+                        },
                     });
                 }
             }
@@ -109,7 +113,11 @@ namespace KeeperSecurity.Vault
                         TeamUid = ByteString.CopyFrom(userId.Base64UrlDecode()),
                         ManageUsers = options.ManageUsers == null ? sharedFolder.DefaultManageUsers : options.ManageUsers.Value,
                         ManageRecords = options.ManageRecords == null ? sharedFolder.DefaultManageRecords : options.ManageRecords.Value,
-                        SharedFolderKey = ByteString.CopyFrom(encryptedSharedFolderKey),
+                        TypedSharedFolderKey = new EncryptedDataKey
+                        { 
+                            EncryptedKey = ByteString.CopyFrom(encryptedSharedFolderKey),
+                            EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey,
+                        }
                     });
                 }
             }
