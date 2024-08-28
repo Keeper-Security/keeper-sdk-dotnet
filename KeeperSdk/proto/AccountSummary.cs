@@ -56,7 +56,7 @@ namespace AccountSummary {
             "ZXkYByABKAwigQEKB1N5bmNMb2cSEwoLY291bnRyeU5hbWUYASABKAkSEgoK",
             "c2Vjb25kc0FnbxgCIAEoAxISCgpkZXZpY2VOYW1lGAMgASgJEhMKC2NvdW50",
             "cnlDb2RlGAQgASgJEhEKCWRldmljZVVJRBgFIAEoDBIRCglpcEFkZHJlc3MY",
-            "BiABKAki/QUKB0xpY2Vuc2USGAoQc3Vic2NyaXB0aW9uQ29kZRgBIAEoCRIV",
+            "BiABKAki4gUKB0xpY2Vuc2USGAoQc3Vic2NyaXB0aW9uQ29kZRgBIAEoCRIV",
             "Cg1wcm9kdWN0VHlwZUlkGAIgASgFEhcKD3Byb2R1Y3RUeXBlTmFtZRgDIAEo",
             "CRIWCg5leHBpcmF0aW9uRGF0ZRgEIAEoCRIeChZzZWNvbmRzVW50aWxFeHBp",
             "cmF0aW9uGAUgASgDEhIKCm1heERldmljZXMYBiABKAUSFAoMZmlsZVBsYW5U",
@@ -72,65 +72,64 @@ namespace AccountSummary {
             "ASgJEhoKEmJyZWFjaFdhdGNoRW5hYmxlZBgXIAEoCBIaChJicmVhY2hXYXRj",
             "aFNjYW5uZWQYGCABKAgSHQoVYnJlYWNoV2F0Y2hFeHBpcmF0aW9uGBkgASgD",
             "Eh4KFmJyZWFjaFdhdGNoRGF0ZUNyZWF0ZWQYGiABKAMSJQoFZXJyb3IYGyAB",
-            "KAsyFi5BY2NvdW50U3VtbWFyeS5SZXN1bHQSGQoRcGVuZGluZ0VudGVycHJp",
-            "c2UYISABKAgiowEKBUFkZE9uEhQKDGxpY2Vuc2VLZXlJZBgBIAEoBRIMCgRu",
-            "YW1lGAIgASgJEhYKDmV4cGlyYXRpb25EYXRlGAMgASgDEhMKC2NyZWF0ZWRE",
-            "YXRlGAQgASgDEg8KB2lzVHJpYWwYBSABKAgSDwoHZW5hYmxlZBgGIAEoCBIP",
-            "CgdzY2FubmVkGAcgASgIEhYKDmZlYXR1cmVEaXNhYmxlGAggASgIIqIJCghT",
-            "ZXR0aW5ncxINCgVhdWRpdBgBIAEoCBIhChltdXN0UGVyZm9ybUFjY291bnRT",
-            "aGFyZUJ5GAIgASgDEj4KDnNoYXJlQWNjb3VudFRvGAMgAygLMiYuQWNjb3Vu",
-            "dFN1bW1hcnkuTWlzc2luZ0FjY291bnRTaGFyZUtleRIrCgVydWxlcxgEIAMo",
-            "CzIcLkFjY291bnRTdW1tYXJ5LlBhc3N3b3JkUnVsZRIaChJwYXNzd29yZFJ1",
-            "bGVzSW50cm8YBSABKAkSFgoOYXV0b0JhY2t1cERheXMYBiABKAUSDQoFdGhl",
-            "bWUYByABKAkSDwoHY2hhbm5lbBgIIAEoCRIUCgxjaGFubmVsVmFsdWUYCSAB",
-            "KAkSFQoNcnNhQ29uZmlndXJlZBgKIAEoCBIVCg1lbWFpbFZlcmlmaWVkGAsg",
-            "ASgIEiIKGm1hc3RlclBhc3N3b3JkTGFzdE1vZGlmaWVkGAwgASgBEhgKEGFj",
-            "Y291bnRGb2xkZXJLZXkYDSABKAwSMQoMc2VjdXJpdHlLZXlzGA4gAygLMhsu",
-            "QWNjb3VudFN1bW1hcnkuU2VjdXJpdHlLZXkSKwoJa2V5VmFsdWVzGA8gAygL",
-            "MhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUSDwoHc3NvVXNlchgQIAEoCBIY",
-            "ChBvbmxpbmVBY2Nlc3NPbmx5GBEgASgIEhwKFG1hc3RlclBhc3N3b3JkRXhw",
-            "aXJ5GBIgASgFEhkKEXR3b0ZhY3RvclJlcXVpcmVkGBMgASgIEhYKDmRpc2Fs",
-            "bG93RXhwb3J0GBQgASgIEhUKDXJlc3RyaWN0RmlsZXMYFSABKAgSGgoScmVz",
-            "dHJpY3RBbGxTaGFyaW5nGBYgASgIEhcKD3Jlc3RyaWN0U2hhcmluZxgXIAEo",
-            "CBIiChpyZXN0cmljdFNoYXJpbmdJbmNvbWluZ0FsbBgYIAEoCBIpCiFyZXN0",
-            "cmljdFNoYXJpbmdJbmNvbWluZ0VudGVycHJpc2UYGSABKAgSEwoLbG9nb3V0",
-            "VGltZXIYGiABKAMSFwoPcGVyc2lzdGVudExvZ2luGBsgASgIEhwKFGlwRGlz",
-            "YWJsZUF1dG9BcHByb3ZlGBwgASgIEiQKHHNoYXJlRGF0YUtleVdpdGhFY2NQ",
-            "dWJsaWNLZXkYHSABKAgSJwofc2hhcmVEYXRhS2V5V2l0aERldmljZVB1Ymxp",
-            "Y0tleRgeIAEoCBIaChJSZWNvcmRUeXBlc0NvdW50ZXIYHyABKAUSJAocUmVj",
-            "b3JkVHlwZXNFbnRlcnByaXNlQ291bnRlchggIAEoBRIaChJyZWNvcmRUeXBl",
-            "c0VuYWJsZWQYISABKAgSHAoUY2FuTWFuYWdlUmVjb3JkVHlwZXMYIiABKAgS",
-            "HQoVcmVjb3JkVHlwZXNQQU1Db3VudGVyGCMgASgFEhoKEmxvZ291dFRpbWVy",
-            "TWludXRlcxgkIAEoBRIgChhzZWN1cml0eUtleXNOb1VzZXJWZXJpZnkYJSAB",
-            "KAgSNgoIY2hhbm5lbHMYJiADKA4yJC5BdXRoZW50aWNhdGlvbi5Ud29GYWN0",
-            "b3JDaGFubmVsVHlwZSImCghLZXlWYWx1ZRILCgNrZXkYASABKAkSDQoFdmFs",
-            "dWUYAiABKAkiLQoPS2V5VmFsdWVCb29sZWFuEgsKA2tleRgBIAEoCRINCgV2",
-            "YWx1ZRgCIAEoCCIqCgxLZXlWYWx1ZUxvbmcSCwoDa2V5GAEgASgJEg0KBXZh",
-            "bHVlGAIgASgDIj0KBlJlc3VsdBISCgpyZXN1bHRDb2RlGAEgASgJEg8KB21l",
-            "c3NhZ2UYAiABKAkSDgoGcmVzdWx0GAMgASgJIsIBCgxFbmZvcmNlbWVudHMS",
-            "KQoHc3RyaW5ncxgBIAMoCzIYLkFjY291bnRTdW1tYXJ5LktleVZhbHVlEjEK",
-            "CGJvb2xlYW5zGAIgAygLMh8uQWNjb3VudFN1bW1hcnkuS2V5VmFsdWVCb29s",
-            "ZWFuEisKBWxvbmdzGAMgAygLMhwuQWNjb3VudFN1bW1hcnkuS2V5VmFsdWVM",
-            "b25nEicKBWpzb25zGAQgAygLMhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUi",
-            "PAoWTWlzc2luZ0FjY291bnRTaGFyZUtleRIPCgdyb2xlX2lkGAEgASgDEhEK",
-            "CXB1YmxpY0tleRgCIAEoDCJ1CgxQYXNzd29yZFJ1bGUSEAoIcnVsZVR5cGUY",
-            "ASABKAkSDwoHcGF0dGVybhgCIAEoCRINCgVtYXRjaBgDIAEoCBIPCgdtaW5p",
-            "bXVtGAQgASgFEhMKC2Rlc2NyaXB0aW9uGAUgASgJEg0KBXZhbHVlGAYgASgJ",
-            "IpcBCgtTZWN1cml0eUtleRIQCghkZXZpY2VJZBgBIAEoAxISCgpkZXZpY2VO",
-            "YW1lGAIgASgJEhEKCWRhdGVBZGRlZBgDIAEoAxIPCgdpc1ZhbGlkGAQgASgI",
-            "Ej4KEmRldmljZVJlZ2lzdHJhdGlvbhgFIAEoCzIiLkFjY291bnRTdW1tYXJ5",
-            "LkRldmljZVJlZ2lzdHJhdGlvbiJ5ChJEZXZpY2VSZWdpc3RyYXRpb24SEQoJ",
-            "a2V5SGFuZGxlGAEgASgJEhEKCXB1YmxpY0tleRgCIAEoDBIXCg9hdHRlc3Rh",
-            "dGlvbkNlcnQYAyABKAkSDwoHY291bnRlchgEIAEoAxITCgtjb21wcm9taXNl",
-            "ZBgFIAEoCCJrCgVHcm91cBINCgVhZG1pbhgBIAEoCBIdChVncm91cFZlcmlm",
-            "aWNhdGlvbkNvZGUYAiABKAkSNAoNYWRtaW5pc3RyYXRvchgEIAEoCzIdLkFj",
-            "Y291bnRTdW1tYXJ5LkFkbWluaXN0cmF0b3IiwAEKDUFkbWluaXN0cmF0b3IS",
-            "EQoJZmlyc3ROYW1lGAEgASgJEhAKCGxhc3ROYW1lGAIgASgJEg0KBWVtYWls",
-            "GAMgASgJEhwKFGN1cnJlbnROdW1iZXJPZlVzZXJzGAQgASgFEhUKDW51bWJl",
-            "ck9mVXNlcnMYBSABKAUSGAoQc3Vic2NyaXB0aW9uQ29kZRgHIAEoCRIWCg5l",
-            "eHBpcmF0aW9uRGF0ZRgIIAEoCRIUCgxwdXJjaGFzZURhdGUYCSABKAlCKgoY",
-            "Y29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQg5BY2NvdW50U3VtbWFyeWIGcHJv",
-            "dG8z"));
+            "KAsyFi5BY2NvdW50U3VtbWFyeS5SZXN1bHQiowEKBUFkZE9uEhQKDGxpY2Vu",
+            "c2VLZXlJZBgBIAEoBRIMCgRuYW1lGAIgASgJEhYKDmV4cGlyYXRpb25EYXRl",
+            "GAMgASgDEhMKC2NyZWF0ZWREYXRlGAQgASgDEg8KB2lzVHJpYWwYBSABKAgS",
+            "DwoHZW5hYmxlZBgGIAEoCBIPCgdzY2FubmVkGAcgASgIEhYKDmZlYXR1cmVE",
+            "aXNhYmxlGAggASgIIqIJCghTZXR0aW5ncxINCgVhdWRpdBgBIAEoCBIhChlt",
+            "dXN0UGVyZm9ybUFjY291bnRTaGFyZUJ5GAIgASgDEj4KDnNoYXJlQWNjb3Vu",
+            "dFRvGAMgAygLMiYuQWNjb3VudFN1bW1hcnkuTWlzc2luZ0FjY291bnRTaGFy",
+            "ZUtleRIrCgVydWxlcxgEIAMoCzIcLkFjY291bnRTdW1tYXJ5LlBhc3N3b3Jk",
+            "UnVsZRIaChJwYXNzd29yZFJ1bGVzSW50cm8YBSABKAkSFgoOYXV0b0JhY2t1",
+            "cERheXMYBiABKAUSDQoFdGhlbWUYByABKAkSDwoHY2hhbm5lbBgIIAEoCRIU",
+            "CgxjaGFubmVsVmFsdWUYCSABKAkSFQoNcnNhQ29uZmlndXJlZBgKIAEoCBIV",
+            "Cg1lbWFpbFZlcmlmaWVkGAsgASgIEiIKGm1hc3RlclBhc3N3b3JkTGFzdE1v",
+            "ZGlmaWVkGAwgASgBEhgKEGFjY291bnRGb2xkZXJLZXkYDSABKAwSMQoMc2Vj",
+            "dXJpdHlLZXlzGA4gAygLMhsuQWNjb3VudFN1bW1hcnkuU2VjdXJpdHlLZXkS",
+            "KwoJa2V5VmFsdWVzGA8gAygLMhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUS",
+            "DwoHc3NvVXNlchgQIAEoCBIYChBvbmxpbmVBY2Nlc3NPbmx5GBEgASgIEhwK",
+            "FG1hc3RlclBhc3N3b3JkRXhwaXJ5GBIgASgFEhkKEXR3b0ZhY3RvclJlcXVp",
+            "cmVkGBMgASgIEhYKDmRpc2FsbG93RXhwb3J0GBQgASgIEhUKDXJlc3RyaWN0",
+            "RmlsZXMYFSABKAgSGgoScmVzdHJpY3RBbGxTaGFyaW5nGBYgASgIEhcKD3Jl",
+            "c3RyaWN0U2hhcmluZxgXIAEoCBIiChpyZXN0cmljdFNoYXJpbmdJbmNvbWlu",
+            "Z0FsbBgYIAEoCBIpCiFyZXN0cmljdFNoYXJpbmdJbmNvbWluZ0VudGVycHJp",
+            "c2UYGSABKAgSEwoLbG9nb3V0VGltZXIYGiABKAMSFwoPcGVyc2lzdGVudExv",
+            "Z2luGBsgASgIEhwKFGlwRGlzYWJsZUF1dG9BcHByb3ZlGBwgASgIEiQKHHNo",
+            "YXJlRGF0YUtleVdpdGhFY2NQdWJsaWNLZXkYHSABKAgSJwofc2hhcmVEYXRh",
+            "S2V5V2l0aERldmljZVB1YmxpY0tleRgeIAEoCBIaChJSZWNvcmRUeXBlc0Nv",
+            "dW50ZXIYHyABKAUSJAocUmVjb3JkVHlwZXNFbnRlcnByaXNlQ291bnRlchgg",
+            "IAEoBRIaChJyZWNvcmRUeXBlc0VuYWJsZWQYISABKAgSHAoUY2FuTWFuYWdl",
+            "UmVjb3JkVHlwZXMYIiABKAgSHQoVcmVjb3JkVHlwZXNQQU1Db3VudGVyGCMg",
+            "ASgFEhoKEmxvZ291dFRpbWVyTWludXRlcxgkIAEoBRIgChhzZWN1cml0eUtl",
+            "eXNOb1VzZXJWZXJpZnkYJSABKAgSNgoIY2hhbm5lbHMYJiADKA4yJC5BdXRo",
+            "ZW50aWNhdGlvbi5Ud29GYWN0b3JDaGFubmVsVHlwZSImCghLZXlWYWx1ZRIL",
+            "CgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAkiLQoPS2V5VmFsdWVCb29sZWFu",
+            "EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCCIqCgxLZXlWYWx1ZUxvbmcS",
+            "CwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgDIj0KBlJlc3VsdBISCgpyZXN1",
+            "bHRDb2RlGAEgASgJEg8KB21lc3NhZ2UYAiABKAkSDgoGcmVzdWx0GAMgASgJ",
+            "IsIBCgxFbmZvcmNlbWVudHMSKQoHc3RyaW5ncxgBIAMoCzIYLkFjY291bnRT",
+            "dW1tYXJ5LktleVZhbHVlEjEKCGJvb2xlYW5zGAIgAygLMh8uQWNjb3VudFN1",
+            "bW1hcnkuS2V5VmFsdWVCb29sZWFuEisKBWxvbmdzGAMgAygLMhwuQWNjb3Vu",
+            "dFN1bW1hcnkuS2V5VmFsdWVMb25nEicKBWpzb25zGAQgAygLMhguQWNjb3Vu",
+            "dFN1bW1hcnkuS2V5VmFsdWUiPAoWTWlzc2luZ0FjY291bnRTaGFyZUtleRIP",
+            "Cgdyb2xlX2lkGAEgASgDEhEKCXB1YmxpY0tleRgCIAEoDCJ1CgxQYXNzd29y",
+            "ZFJ1bGUSEAoIcnVsZVR5cGUYASABKAkSDwoHcGF0dGVybhgCIAEoCRINCgVt",
+            "YXRjaBgDIAEoCBIPCgdtaW5pbXVtGAQgASgFEhMKC2Rlc2NyaXB0aW9uGAUg",
+            "ASgJEg0KBXZhbHVlGAYgASgJIpcBCgtTZWN1cml0eUtleRIQCghkZXZpY2VJ",
+            "ZBgBIAEoAxISCgpkZXZpY2VOYW1lGAIgASgJEhEKCWRhdGVBZGRlZBgDIAEo",
+            "AxIPCgdpc1ZhbGlkGAQgASgIEj4KEmRldmljZVJlZ2lzdHJhdGlvbhgFIAEo",
+            "CzIiLkFjY291bnRTdW1tYXJ5LkRldmljZVJlZ2lzdHJhdGlvbiJ5ChJEZXZp",
+            "Y2VSZWdpc3RyYXRpb24SEQoJa2V5SGFuZGxlGAEgASgJEhEKCXB1YmxpY0tl",
+            "eRgCIAEoDBIXCg9hdHRlc3RhdGlvbkNlcnQYAyABKAkSDwoHY291bnRlchgE",
+            "IAEoAxITCgtjb21wcm9taXNlZBgFIAEoCCJrCgVHcm91cBINCgVhZG1pbhgB",
+            "IAEoCBIdChVncm91cFZlcmlmaWNhdGlvbkNvZGUYAiABKAkSNAoNYWRtaW5p",
+            "c3RyYXRvchgEIAEoCzIdLkFjY291bnRTdW1tYXJ5LkFkbWluaXN0cmF0b3Ii",
+            "wAEKDUFkbWluaXN0cmF0b3ISEQoJZmlyc3ROYW1lGAEgASgJEhAKCGxhc3RO",
+            "YW1lGAIgASgJEg0KBWVtYWlsGAMgASgJEhwKFGN1cnJlbnROdW1iZXJPZlVz",
+            "ZXJzGAQgASgFEhUKDW51bWJlck9mVXNlcnMYBSABKAUSGAoQc3Vic2NyaXB0",
+            "aW9uQ29kZRgHIAEoCRIWCg5leHBpcmF0aW9uRGF0ZRgIIAEoCRIUCgxwdXJj",
+            "aGFzZURhdGUYCSABKAlCKgoYY29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQg5B",
+            "Y2NvdW50U3VtbWFyeWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -139,7 +138,7 @@ namespace AccountSummary {
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.DeviceInfo), global::AccountSummary.DeviceInfo.Parser, new[]{ "EncryptedDeviceToken", "DeviceName", "DeviceStatus", "DevicePublicKey", "EncryptedDataKeyDoNotUse", "ClientVersion", "Username", "IpAddress", "ApproveRequestTime", "EncryptedDataKeyPresent", "GroupId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeysInfo), global::AccountSummary.KeysInfo.Parser, new[]{ "EncryptionParams", "EncryptedDataKey", "DataKeyBackupDate", "UserAuthUid", "EncryptedPrivateKey", "EncryptedEccPrivateKey", "EccPublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.SyncLog), global::AccountSummary.SyncLog.Parser, new[]{ "CountryName", "SecondsAgo", "DeviceName", "CountryCode", "DeviceUID", "IpAddress" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.License), global::AccountSummary.License.Parser, new[]{ "SubscriptionCode", "ProductTypeId", "ProductTypeName", "ExpirationDate", "SecondsUntilExpiration", "MaxDevices", "FilePlanType", "BytesUsed", "BytesTotal", "SecondsUntilStorageExpiration", "StorageExpirationDate", "HasAutoRenewableAppstoreSubscription", "AccountType", "UploadsRemaining", "EnterpriseId", "ChatEnabled", "AuditAndReportingEnabled", "BreachWatchFeatureDisable", "AccountUid", "AllowPersonalLicense", "LicensedBy", "Email", "BreachWatchEnabled", "BreachWatchScanned", "BreachWatchExpiration", "BreachWatchDateCreated", "Error", "PendingEnterprise" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.License), global::AccountSummary.License.Parser, new[]{ "SubscriptionCode", "ProductTypeId", "ProductTypeName", "ExpirationDate", "SecondsUntilExpiration", "MaxDevices", "FilePlanType", "BytesUsed", "BytesTotal", "SecondsUntilStorageExpiration", "StorageExpirationDate", "HasAutoRenewableAppstoreSubscription", "AccountType", "UploadsRemaining", "EnterpriseId", "ChatEnabled", "AuditAndReportingEnabled", "BreachWatchFeatureDisable", "AccountUid", "AllowPersonalLicense", "LicensedBy", "Email", "BreachWatchEnabled", "BreachWatchScanned", "BreachWatchExpiration", "BreachWatchDateCreated", "Error" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.AddOn), global::AccountSummary.AddOn.Parser, new[]{ "LicenseKeyId", "Name", "ExpirationDate", "CreatedDate", "IsTrial", "Enabled", "Scanned", "FeatureDisable" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Settings), global::AccountSummary.Settings.Parser, new[]{ "Audit", "MustPerformAccountShareBy", "ShareAccountTo", "Rules", "PasswordRulesIntro", "AutoBackupDays", "Theme", "Channel", "ChannelValue", "RsaConfigured", "EmailVerified", "MasterPasswordLastModified", "AccountFolderKey", "SecurityKeys", "KeyValues", "SsoUser", "OnlineAccessOnly", "MasterPasswordExpiry", "TwoFactorRequired", "DisallowExport", "RestrictFiles", "RestrictAllSharing", "RestrictSharing", "RestrictSharingIncomingAll", "RestrictSharingIncomingEnterprise", "LogoutTimer", "PersistentLogin", "IpDisableAutoApprove", "ShareDataKeyWithEccPublicKey", "ShareDataKeyWithDevicePublicKey", "RecordTypesCounter", "RecordTypesEnterpriseCounter", "RecordTypesEnabled", "CanManageRecordTypes", "RecordTypesPAMCounter", "LogoutTimerMinutes", "SecurityKeysNoUserVerify", "Channels" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValue), global::AccountSummary.KeyValue.Parser, new[]{ "Key", "Value" }, null, null, null, null),
@@ -344,11 +343,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -371,11 +366,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1023,11 +1014,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1132,11 +1119,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1683,11 +1666,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1746,11 +1725,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2135,11 +2110,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2182,11 +2153,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2526,11 +2493,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2569,11 +2532,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -2670,7 +2629,6 @@ namespace AccountSummary {
       breachWatchExpiration_ = other.breachWatchExpiration_;
       breachWatchDateCreated_ = other.breachWatchDateCreated_;
       error_ = other.error_ != null ? other.error_.Clone() : null;
-      pendingEnterprise_ = other.pendingEnterprise_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2995,27 +2953,15 @@ namespace AccountSummary {
     /// <summary>Field number for the "error" field.</summary>
     public const int ErrorFieldNumber = 27;
     private global::AccountSummary.Result error_;
+    /// <summary>
+    ///repeated AddOn addOns = 28;
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::AccountSummary.Result Error {
       get { return error_; }
       set {
         error_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "pendingEnterprise" field.</summary>
-    public const int PendingEnterpriseFieldNumber = 33;
-    private bool pendingEnterprise_;
-    /// <summary>
-    ///repeated AddOn addOns = 28;
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool PendingEnterprise {
-      get { return pendingEnterprise_; }
-      set {
-        pendingEnterprise_ = value;
       }
     }
 
@@ -3061,7 +3007,6 @@ namespace AccountSummary {
       if (BreachWatchExpiration != other.BreachWatchExpiration) return false;
       if (BreachWatchDateCreated != other.BreachWatchDateCreated) return false;
       if (!object.Equals(Error, other.Error)) return false;
-      if (PendingEnterprise != other.PendingEnterprise) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3096,7 +3041,6 @@ namespace AccountSummary {
       if (BreachWatchExpiration != 0L) hash ^= BreachWatchExpiration.GetHashCode();
       if (BreachWatchDateCreated != 0L) hash ^= BreachWatchDateCreated.GetHashCode();
       if (error_ != null) hash ^= Error.GetHashCode();
-      if (PendingEnterprise != false) hash ^= PendingEnterprise.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3223,10 +3167,6 @@ namespace AccountSummary {
         output.WriteRawTag(218, 1);
         output.WriteMessage(Error);
       }
-      if (PendingEnterprise != false) {
-        output.WriteRawTag(136, 2);
-        output.WriteBool(PendingEnterprise);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3345,10 +3285,6 @@ namespace AccountSummary {
         output.WriteRawTag(218, 1);
         output.WriteMessage(Error);
       }
-      if (PendingEnterprise != false) {
-        output.WriteRawTag(136, 2);
-        output.WriteBool(PendingEnterprise);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -3439,9 +3375,6 @@ namespace AccountSummary {
       }
       if (error_ != null) {
         size += 2 + pb::CodedOutputStream.ComputeMessageSize(Error);
-      }
-      if (PendingEnterprise != false) {
-        size += 2 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3539,9 +3472,6 @@ namespace AccountSummary {
         }
         Error.MergeFrom(other.Error);
       }
-      if (other.PendingEnterprise != false) {
-        PendingEnterprise = other.PendingEnterprise;
-      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -3553,11 +3483,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -3672,10 +3598,6 @@ namespace AccountSummary {
             input.ReadMessage(Error);
             break;
           }
-          case 264: {
-            PendingEnterprise = input.ReadBool();
-            break;
-          }
         }
       }
     #endif
@@ -3687,11 +3609,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -3804,10 +3722,6 @@ namespace AccountSummary {
               Error = new global::AccountSummary.Result();
             }
             input.ReadMessage(Error);
-            break;
-          }
-          case 264: {
-            PendingEnterprise = input.ReadBool();
             break;
           }
         }
@@ -4176,11 +4090,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -4227,11 +4137,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -4527,7 +4433,7 @@ namespace AccountSummary {
         = pb::FieldCodec.ForMessage(122, global::AccountSummary.KeyValue.Parser);
     private readonly pbc::RepeatedField<global::AccountSummary.KeyValue> keyValues_ = new pbc::RepeatedField<global::AccountSummary.KeyValue>();
     /// <summary>
-    ///&#x2F;/// ?????
+    /////// ?????
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -5460,11 +5366,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -5632,11 +5534,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -5985,11 +5883,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6012,11 +5906,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6220,11 +6110,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6247,11 +6133,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6455,11 +6337,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6482,11 +6360,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6719,11 +6593,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -6750,11 +6620,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -6976,11 +6842,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7011,11 +6873,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -7227,11 +7085,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7254,11 +7108,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -7578,11 +7428,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7621,11 +7467,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -7935,11 +7777,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -7977,11 +7815,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -8287,11 +8121,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -8326,11 +8156,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -8581,11 +8407,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -8615,11 +8437,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -9010,11 +8828,7 @@ namespace AccountSummary {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -9061,11 +8875,7 @@ namespace AccountSummary {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
+        switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;

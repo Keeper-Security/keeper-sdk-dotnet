@@ -23,12 +23,20 @@ namespace Commander
             var isRoot = string.IsNullOrEmpty(indent);
             Console.WriteLine(indent + (isRoot ? "" : "+-- ") + folder.Name);
             indent += isRoot ? " " : (last ? "    " : "|   ");
+
+            var subfolders = new List<FolderNode>();
             for (var i = 0; i < folder.Subfolders.Count; i++)
             {
                 if (Vault.TryGetFolder(folder.Subfolders[i], out var node))
                 {
-                    PrintTree(node, indent, i == folder.Subfolders.Count - 1);
+                    subfolders.Add(node);
                 }
+            }
+            subfolders.Sort((x, y) => string.Compare(x.Name, y.Name));
+            for (var i = 0; i < subfolders.Count; i++)
+            {
+                var node = subfolders[i];
+                PrintTree(node, indent, i == subfolders.Count - 1);
             }
         }
 
@@ -70,7 +78,7 @@ namespace Commander
                     node = Vault.RootFolder;
                 }
 
-                foreach (var folder in path.TokenizeArguments(CommandExtensions.IsPathDelimiter))
+                foreach (var folder in path.TokenizeArguments(Cli.CommandExtensions.IsPathDelimiter))
                 {
                     if (folder == "..")
                     {
@@ -126,7 +134,7 @@ namespace Commander
         internal static void AppendVaultCommands(this VaultContext context, CliCommands cli)
         {
             cli.Commands.Add("search",
-                new Cli.ParseableCommand<SearchCommandOptions>
+                new ParseableCommand<SearchCommandOptions>
                 {
                     Order = 10,
                     Description = "Search the vault. Can use a regular expression",
@@ -182,7 +190,7 @@ namespace Commander
                         Action = context.RecordTypeInfoCommand
                     }
                 );
-                cli.CommandAliases.Add("rti", "record-type-info");
+                cli.Aliases.Add("rti", "record-type-info");
 
             }
 
@@ -282,13 +290,17 @@ namespace Commander
                     Action = context.ShareFolderRecordPermissionCommand
                 });
 
-            cli.Commands.Add("share-record",
-                new ParseableCommand<ShareRecordOptions>
-                {
-                    Order = 33,
-                    Description = "Change the sharing permissions of an individual record",
-                    Action = context.ShareRecordCommand
-                });
+            var cmd = new ParsebleVerbCommand
+            {
+                Order = 33,
+                Description = "Change the sharing permissions of an individual record",
+            };
+            cmd.AddVerb<ShareRecordShareOptions>(context.ShareRecordShareCommand);
+            cmd.AddVerb<ShareRecordCancelOptions>(context.ShareRecordCancelCommand);
+            cmd.AddVerb<ShareRecordRevokeOptions>(context.ShareRecordRevokeCommand);
+            cmd.AddVerb<ShareRecordTransferOptions>(context.ShareRecordTransferCommand);
+
+            cli.Commands.Add("share-record", cmd);
 
             cli.Commands.Add("import",
                 new ParseableCommand<ImportCommandOptions>
@@ -333,7 +345,7 @@ namespace Commander
                             context.Vault.RecordTypesLoaded = false;
                         }
 
-                        var fullSync = context.Vault.Storage.Revision == 0;
+                        var fullSync = (context.Vault.Storage.VaultSettings?.Revision ?? 0) == 0;
                         Console.WriteLine("Syncing...");
                         await context.Vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
                         if (fullSync)
@@ -344,10 +356,10 @@ namespace Commander
                 });
 
 
-            cli.CommandAliases.Add("list", "search");
-            cli.CommandAliases.Add("d", "sync-down");
-            cli.CommandAliases.Add("add", "add-record");
-            cli.CommandAliases.Add("edit", "update-record");
+            cli.Aliases.Add("list", "search");
+            cli.Aliases.Add("d", "sync-down");
+            cli.Aliases.Add("add", "add-record");
+            cli.Aliases.Add("edit", "update-record");
 
         }
         private static Task SearchCommand(this VaultContext context, SearchCommandOptions options)
@@ -365,7 +377,7 @@ namespace Commander
                 ? null
                 : new Regex(options.Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            var matchedRecords = context.Vault.KeeperRecords
+            var matchedRecords = context.Vault.KeeperRecords.Where(x => options.Verbose || x.Version == 2 || x.Version == 3)
                 .Where(record =>
                 {
                     if (pattern == null)
@@ -706,10 +718,21 @@ namespace Commander
                                 var v = i < values.Length ? values[i] : "";
                                 if (v.Length > 80)
                                 {
-                                    v = v.Substring(0, 77) + "...";
+                                    var lines = v.Split('\n').Select(x => x.TrimEnd('\r')).ToArray();
+                                    for (var j = 0; j < lines.Length; j++)
+                                    {
+                                        var l = lines[j];
+                                        if (l.Length > 80)
+                                        {
+                                            l = l.Substring(0, 77) + "...";
+                                        }
+                                        tab.AddRow(i == 0 && j == 0 ? $"{label}:" : "", l);
+                                    }
                                 }
-
-                                tab.AddRow(i == 0 ? $"{label}:" : "", v);
+                                else
+                                {
+                                    tab.AddRow(i == 0 ? $"{label}:" : "", v);
+                                }
                             }
                         }
                     }
@@ -840,12 +863,46 @@ namespace Commander
                     tab.AddRow("Record Permissions:");
                     foreach (var r in sf.RecordPermissions)
                     {
-                        tab.AddRow(r.RecordUid + ":",
-                            $"Can Edit: {(r.CanEdit ? "Y" : "N")} Can Share: {(r.CanShare ? "Y" : "N")}");
+                        var permission = "";
+                        if (r.CanEdit && r.CanShare)
+                        {
+                            permission = "Can Edit & Share";
+                        }
+                        else if (r.CanEdit)
+                        {
+                            permission = "Can Edit";
+                        }
+                        else if (r.CanShare)
+                        {
+                            permission = "Can Share";
+                        }
+                        else
+                        {
+                            permission = "View Only";
+                        }
+                        tab.AddRow(r.RecordUid + ":", permission);
                     }
                 }
 
-                var teamLookup = context.Vault.Teams.ToDictionary(t => t.TeamUid, t => t.Name);
+                string getUsername(string userId, UserType userType)
+                {
+                    switch (userType)
+                    {
+                        case UserType.User:
+                            if (context.Vault.TryGetUsername(userId, out var email))
+                            {
+                                return email;
+                            }
+                            break;
+                        case UserType.Team:
+                            if (context.Vault.TryGetTeam(userId, out var team))
+                            {
+                                return team.Name;
+                            }
+                            break;
+                    }
+                    return userId;
+                }
                 if (sf.UsersPermissions.Count > 0)
                 {
                     tab.AddRow("");
@@ -856,25 +913,27 @@ namespace Commander
                         var res = x.UserType.CompareTo(y.UserType);
                         if (res == 0)
                         {
-                            if (x.UserType == UserType.User)
-                            {
-                                res = string.Compare(x.UserId, y.UserId, StringComparison.OrdinalIgnoreCase);
-                            }
-                            else
-                            {
-                                var xName = teamLookup[x.UserId] ?? x.UserId;
-                                var yName = teamLookup[y.UserId] ?? y.UserId;
-                                res = string.Compare(xName, yName, StringComparison.OrdinalIgnoreCase);
-                            }
+                            var xName = getUsername(x.Uid, x.UserType);
+                            var yName = getUsername(y.Uid, y.UserType);
+                            res = string.Compare(xName, yName, StringComparison.OrdinalIgnoreCase);
                         }
 
                         return res;
                     });
                     foreach (var u in sortedList)
                     {
-                        var subjectName = u.UserType == UserType.User ? u.UserId : (teamLookup[u.UserId] ?? u.UserId);
-                        tab.AddRow($"{u.UserType} {subjectName}:", $"Can Manage Records: {u.ManageRecords}",
-                            $"Can Manage Users: {u.ManageUsers}");
+                        string permissions;
+                        if (u.ManageRecords || u.ManageUsers)
+                        {
+                            permissions = "Can Manage " +
+                                string.Join(" & ", new string[] { u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }.Where(x => !string.IsNullOrEmpty(x)));
+                        }
+                        else
+                        {
+                            permissions = "No User Permissions";
+                        }
+                        var subjectName = getUsername(u.Uid, u.UserType);
+                        tab.AddRow($"{u.UserType} {subjectName}:", permissions);
                     }
                 }
             }
@@ -903,6 +962,9 @@ namespace Commander
 
     class SearchCommandOptions
     {
+        [Option('v', "verbose", Required = false, Default = false, HelpText = "show all records")]
+        public bool Verbose { get; set; }
+
         [Option("limit", Required = false, Default = 0, HelpText = "limit output")]
         public int Limit { get; set; }
 
@@ -927,6 +989,4 @@ namespace Commander
         [Option("reset", Required = false, Default = false, HelpText = "resets on-disk storage")]
         public bool Reset { get; set; }
     }
-
-
 }

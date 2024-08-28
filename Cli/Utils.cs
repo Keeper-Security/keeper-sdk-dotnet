@@ -421,6 +421,10 @@ namespace Cli
                             {
                                 break;
                             }
+                            if (string.IsNullOrEmpty(answer)) 
+                            {
+                                continue;
+                            }
                             if (string.Compare(answer, "cancel", StringComparison.InvariantCultureIgnoreCase) == 0)
                             {
                                 auth.Cancel();

@@ -7,10 +7,12 @@ using System.Linq;
 namespace KeeperSecurity.OfflineStorage.Sqlite
 {
     [SqlTable(Name = "UserSettings")]
-    internal class InternalUserAccount
+    internal class InternalUserAccount: IVaultSettings
     {
         [SqlColumn]
         public long Revision { get; set; }
+        [SqlColumn]
+        public string SyncDownToken { get; set; }
     }
 
 
@@ -36,7 +38,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             Folders = new SqliteEntityStorage<IFolder, ExternalFolder>(getConnection, owner);
             FolderRecords = new SqliteLinkStorage<IFolderRecordLink, ExternalFolderRecordLink>(getConnection, owner);
             RecordTypes = new SqliteEntityStorage<IRecordType, ExternalRecordType>(getConnection, owner);
-
+            UserEmails = new SqliteEntityStorage<IUserEmail, ExternalUserEmail>(getConnection, owner);
             _userStorage = new SqliteRecordStorage<InternalUserAccount>(getConnection, owner);
         }
 
@@ -44,14 +46,25 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         private SqliteRecordStorage<InternalUserAccount> _userStorage;
 
-        public long Revision
+        public IVaultSettings VaultSettings
         {
-            get => _userStorage.Get()?.Revision ?? 0;
+            get => _userStorage.Get();
             set
             {
-                var user = _userStorage.Get() ?? new InternalUserAccount();
-                user.Revision = value;
-                _userStorage.Put(user);
+                InternalUserAccount settings;
+                if (value is InternalUserAccount)
+                {
+                    settings = (InternalUserAccount) value;
+                }
+                else
+                {
+                    settings = new InternalUserAccount
+                    {
+                        Revision = value.Revision,
+                        SyncDownToken = value.SyncDownToken,
+                    };
+                }
+                _userStorage.Put(settings);
             }
         }
 
@@ -59,20 +72,20 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
         public IEntityStorage<ISharedFolder> SharedFolders { get; }
         public IEntityStorage<IEnterpriseTeam> Teams { get; }
         public IEntityStorage<INonSharedData> NonSharedData { get; }
-        public IPredicateStorage<IRecordMetadata> RecordKeys { get; }
-        public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; }
-        public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; }
+        public ILinkStorage<IRecordMetadata> RecordKeys { get; }
+        public ILinkStorage<ISharedFolderKey> SharedFolderKeys { get; }
+        public ILinkStorage<ISharedFolderPermission> SharedFolderPermissions { get; }
         public IEntityStorage<IFolder> Folders { get; }
-        public IPredicateStorage<IFolderRecordLink> FolderRecords { get; }
+        public ILinkStorage<IFolderRecordLink> FolderRecords { get; }
         public IEntityStorage<IRecordType> RecordTypes { get; }
+        public IEntityStorage<IUserEmail> UserEmails { get; }
 
         public void Clear()
         {
-            Revision = 0;
             var tables = new object[]
             {
                 Records, SharedFolders, Teams, NonSharedData, RecordKeys, SharedFolderKeys,
-                SharedFolderPermissions, Folders, FolderRecords, _userStorage
+                SharedFolderPermissions, Folders, FolderRecords, UserEmails, _userStorage
             };
             using (var txn = GetConnection().BeginTransaction())
             {

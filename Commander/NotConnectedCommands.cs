@@ -53,11 +53,11 @@ namespace Commander
             var storage = Program.CommanderStorage.GetConfigurationStorage(null, new CommanderConfigurationProtection());
             _auth = new AuthSync(storage)
             {
-                Endpoint = {DeviceName = "Commander C#", ClientVersion = "c16.5.0"}
+                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c16.11.0" }
             };
 
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>
-            { 
+            {
                 Order = 9,
                 Description = "Detect and setup proxy",
                 Action = DoProxy
@@ -77,7 +77,7 @@ namespace Commander
                 Action = DoCreateAccount
             });
 
-            Commands.Add("server", new Cli.SimpleCommand
+            Commands.Add("server", new SimpleCommand
             {
                 Order = 20,
                 Description = "Display or change Keeper Server",
@@ -140,7 +140,7 @@ namespace Commander
             while (true)
             {
                 Console.Write("\nEnter Master Password: ");
-                password = await Program.GetInputManager().ReadLine(new ReadLineParameters {IsSecured = true});
+                password = await Program.GetInputManager().ReadLine(new ReadLineParameters { IsSecured = true });
                 var failedRules = matcher.MatchFailedRules(password);
                 if (failedRules == null) break;
                 if (failedRules.Length == 0) break;
@@ -223,21 +223,21 @@ namespace Commander
             });
         }
 
-        private async Task DoProxy(ProxyOptions options) 
+        private async Task DoProxy(ProxyOptions options)
         {
             Uri proxyUri = null;
             string[] proxyMethods = null;
-            var hasProxy = await _auth.DetectProxy((uri, methods) => 
+            var hasProxy = await _auth.DetectProxy((uri, methods) =>
             {
                 proxyUri = uri;
                 proxyMethods = methods;
             });
-            if (proxyUri == null || proxyMethods == null) 
+            if (proxyUri == null || proxyMethods == null)
             {
                 return;
             }
             var proxy_user = options.User;
-            if (string.IsNullOrEmpty(proxy_user)) 
+            if (string.IsNullOrEmpty(proxy_user))
             {
                 Console.Write("Enter Proxy username: ");
                 proxy_user = await Program.GetInputManager().ReadLine();
@@ -250,8 +250,8 @@ namespace Commander
             if (string.IsNullOrEmpty(proxy_password))
             {
                 Console.Write("Enter Proxy password: ");
-                proxy_password = await Program.GetInputManager().ReadLine(new ReadLineParameters 
-                { 
+                proxy_password = await Program.GetInputManager().ReadLine(new ReadLineParameters
+                {
                     IsSecured = true,
                 });
             }
@@ -325,7 +325,7 @@ namespace Commander
             {
             }
             catch (KeyboardInterrupt)
-            { 
+            {
             }
         }
 

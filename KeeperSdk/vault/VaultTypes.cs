@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System.Collections;
+using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Vault
 {
@@ -139,20 +140,20 @@ namespace KeeperSecurity.Vault
         bool TryGetRecordTypeByName(string name, out RecordType recordType);
 
         /// <summary>
-        /// Gets number of all Keeper Secret Manager Applications.
+        /// Gets user email by user account Uid
         /// </summary>
-        int ApplicationCount { get; }
+        /// <param name="accountUid">User Account Uid</param>
+        /// <param name="username">Username / Email</param>
+        /// <returns><c>true</c> if accountUid exists; otherwise, <c>false</c>.</returns>
+        bool TryGetUsername(string accountUid, out string username);
+
         /// <summary>
-        /// Gets list of all Keeper Secret Manager Applications.
+        /// Gets user email by user account Uid
         /// </summary>
-        IEnumerable<ApplicationRecord> KeeperApplications { get; }
-        /// <summary>
-        /// Gets a KSM application associated with a specified team UID.
-        /// </summary>
-        /// <param name="applicationUid">Team UID.</param>
-        /// <param name="application">When this method returns <c>true</c>, contains requested team; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the vault contains a application with specified UID; otherwise, <c>false</c>.</returns>
-        bool TryGetKeeperApplication(string applicationUid, out ApplicationRecord application);
+        /// <param name="username">Username / Email</param>
+        /// <param name="accountUid">User Account Uid</param>
+        /// <returns><c>true</c> if email exists; otherwise, <c>false</c>.</returns>
+        bool TryGetAccountUid(string username, out string accountUid);
     }
 
     /// <summary>
@@ -173,7 +174,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Defines shared folder record permissions.
     /// </summary>
-    public interface ISharedFolderRecordOptions
+    public interface IRecordShareOptions
     {
         /// <summary>
         /// Record can be edited.
@@ -183,12 +184,16 @@ namespace KeeperSecurity.Vault
         /// Record can be re-shared.
         /// </summary>
         bool? CanShare { get; }
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        DateTimeOffset? Expiration { get; }
     }
 
     /// <summary>
     /// Defines shared folder user permissions.
     /// </summary>
-    public interface ISharedFolderUserOptions
+    public interface IUserShareOptions
     {
         /// <summary>
         /// User can manage other users.
@@ -198,6 +203,10 @@ namespace KeeperSecurity.Vault
         /// User can manage records.
         /// </summary>
         bool? ManageRecords { get; }
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        DateTimeOffset? Expiration { get; }
     }
 
     /// <summary>
@@ -409,15 +418,6 @@ namespace KeeperSecurity.Vault
         Task<ShareWithUsers> GetUsersForShare();
 
         /// <summary>
-        /// Gets user public keys.
-        /// </summary>
-        /// <param name="username"></param>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
-        /// <exception cref="NoActiveShareWithUserException"/>
-        /// <returns>Awaitable task returning RSA and ECC public keys</returns>
-        Task<Tuple<byte[], byte[]>> GetUserPublicKeys(string username);
-
-        /// <summary>
         /// Sends share invitation request to the user.
         /// </summary>
         /// <param name="username">User email</param>
@@ -445,11 +445,10 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="recordUid">Record UID.</param>
         /// <param name="username">User account email</param>
-        /// <param name="canReshare">Can record be re-shared</param>
-        /// <param name="canEdit">Can record be modified</param>
+        /// <param name="options">Record share options</param>
         /// <exception cref="NoActiveShareWithUserException"/>
         /// <returns>Awaitable task.</returns>
-        Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit);
+        Task ShareRecordWithUser(string recordUid, string username, IRecordShareOptions options);
 
         /// <summary>
         /// Transfers a record to user
@@ -593,7 +592,7 @@ namespace KeeperSecurity.Vault
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <exception cref="NoActiveShareWithUserException" />
         /// <seealso cref="SharedFolderUserOptions"/>
-        Task PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, ISharedFolderUserOptions options = null);
+        Task PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, IUserShareOptions options = null);
         /// <summary>
         /// Removes user or team from shared folder.
         /// </summary>
@@ -615,7 +614,7 @@ namespace KeeperSecurity.Vault
         /// Use <see cref="IVault.CreateRecord"/> or <see cref="IVault.MoveRecords"/>.
         /// </remarks>
         /// <seealso cref="SharedFolderRecordOptions"/>
-        Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, ISharedFolderRecordOptions options);
+        Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, IRecordShareOptions options);
     }
 
     /// <summary>
@@ -808,7 +807,7 @@ namespace KeeperSecurity.Vault
         /// Gets the number of values
         /// </summary>
         int Count { get; }
-
+    
         /// <summary>
         /// Gets required flag
         /// </summary>
@@ -1580,6 +1579,10 @@ namespace KeeperSecurity.Vault
         /// Flag indicating if the user has pending invitation.
         /// </summary>
         public bool AwaitingApproval { get; internal set; }
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        public DateTimeOffset? Expiration { get; internal set; }
     }
 
     /// <summary>
@@ -1599,6 +1602,10 @@ namespace KeeperSecurity.Vault
         /// Flag indicating if the shared folder has rights to edit the record
         /// </summary>
         public bool CanEdit { get; internal set; }
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        public DateTimeOffset? Expiration { get; internal set; }
     }
 
     /// <summary>
@@ -1659,9 +1666,13 @@ namespace KeeperSecurity.Vault
     public class SharedFolderPermission
     {
         /// <summary>
-        /// User email or team UID.
+        /// AccountUid or TeamUid.
         /// </summary>
-        public string UserId { get; internal set; }
+        public string Uid { get; internal set; }
+        /// <summary>
+        /// Email or Team Name.
+        /// </summary>
+        public string Name { get; internal set; }
         /// <summary>
         /// The type of <see cref="UserId"/> property.
         /// </summary>
@@ -1782,9 +1793,13 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Team RSA private key.
         /// </summary>
-        public RsaPrivateCrtKeyParameters TeamPrivateKey { get; internal set; }
+        public RsaPrivateCrtKeyParameters TeamRsaPrivateKey { get; internal set; }
+        /// <summary>
+        /// Team EC private key.
+        /// </summary>
+        public ECPrivateKeyParameters TeamEcPrivateKey { get; internal set; }
     }
-    
+
     /// <summary>
     /// Specifies folder types.
     /// </summary>
@@ -1909,5 +1924,12 @@ namespace KeeperSecurity.Vault
         {
             return FolderTypes[folderType];
         }
+    }
+
+    [DataContract]
+    public class FolderData
+    {
+        [DataMember(Name = "name")]
+        public string name;
     }
 }

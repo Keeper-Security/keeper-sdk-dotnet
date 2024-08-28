@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -357,7 +356,7 @@ namespace Commander
                 null, typeof(EnterprisePublicKeyResponse));
             if (rs.EnterpriseECCPublicKey?.Length == 65)
             {
-                var publicKey = CryptoUtils.LoadPublicEcKey(rs.EnterpriseECCPublicKey.ToByteArray());
+                var publicKey = CryptoUtils.LoadEcPublicKey(rs.EnterpriseECCPublicKey.ToByteArray());
                 var encryptedDataKey = CryptoUtils.EncryptEc(_auth.AuthContext.DataKey, publicKey);
                 var rq = new EnterpriseUserDataKey
                 {
@@ -467,7 +466,7 @@ namespace Commander
                     if ((_accountSummary.Settings.SsoUser || arguments.Link) && !isDecline)
                     {
                         var publicKeyBytes = device.DevicePublicKey.ToByteArray();
-                        var publicKey = CryptoUtils.LoadPublicEcKey(publicKeyBytes);
+                        var publicKey = CryptoUtils.LoadEcPublicKey(publicKeyBytes);
                         var encryptedDataKey = CryptoUtils.EncryptEc(_auth.AuthContext.DataKey, publicKey);
                         deviceApprove.EncryptedDeviceDataKey = ByteString.CopyFrom(encryptedDataKey);
                         deviceApprove.LinkDevice = arguments.Link;

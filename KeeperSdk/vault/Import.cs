@@ -138,7 +138,7 @@ namespace KeeperSecurity
                 }
             }
 
-            static Tuple<string, string> SplitFieldKey(string fieldKey)
+            private static Tuple<string, string> SplitFieldKey(string fieldKey)
             {
                 string fieldType;
                 var fieldLabel = "";

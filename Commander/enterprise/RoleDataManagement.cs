@@ -64,7 +64,7 @@ namespace Commander.Enterprise
 
         public async Task AddUserToAdminRole(long roleId, long userId, byte[] userRsaPublicKey)
         {
-            var publicKey = CryptoUtils.LoadPublicKey(userRsaPublicKey);
+            var publicKey = CryptoUtils.LoadRsaPublicKey(userRsaPublicKey);
             var rq = new RoleUserAddCommand
             {
                 RoleId = roleId,

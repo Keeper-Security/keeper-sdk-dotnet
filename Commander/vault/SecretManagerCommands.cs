@@ -6,7 +6,6 @@ using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Commander
@@ -128,7 +127,7 @@ namespace Commander
                     DumpRowNo = true
                 };
                 tab.AddHeader(new[] { "Application UID", "Title" });
-                foreach (var app in context.Vault.KeeperApplications)
+                foreach (var app in context.Vault.KeeperRecords.OfType<ApplicationRecord>())
                 {
                     tab.AddRow(app.Uid, app.Title);
                 }
@@ -150,7 +149,7 @@ namespace Commander
                 return;
             }
 
-            var application = context.Vault.KeeperApplications.FirstOrDefault(x => x.Uid == arguments.KsmId || string.Equals(x.Title, arguments.KsmId, StringComparison.InvariantCultureIgnoreCase));
+            var application = context.Vault.KeeperRecords.OfType<ApplicationRecord>().FirstOrDefault(x => x.Uid == arguments.KsmId || string.Equals(x.Title, arguments.KsmId, StringComparison.InvariantCultureIgnoreCase));
             if (application == null)
             {
                 Console.Write($"KSM application {arguments.KsmId} not found");

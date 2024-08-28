@@ -10,33 +10,42 @@ namespace KeeperSecurity.Vault
     public enum KeyType
     {
         /// <summary>
-        /// No entity key. Use data key.
+        /// AES GCM encryption with the user's client key.
         /// </summary>
-        NoKey = 0,
+        ClientKey_AES_GCM = 1,
+
+        /*
         /// <summary>
-        /// Key encrypted with the user data kay.
+        /// RSA excryption with the user's RSA key.
         /// </summary>
-        DataKey = 1,
+        UserPrivateKey_RSA = 2,
+        */
+
+        /*
         /// <summary>
-        /// Key is encrypted with the user RSA key.
+        /// RSA excryption with the user's RSA key.
         /// </summary>
-        PrivateKey = 2,
+        UserPrivateKey_EC = 3,
+        */
+
         /// <summary>
-        /// Key is encrypted with shared folder key.
+        /// AES CBC/GCM with shared folder key.
         /// </summary>
-        SharedFolderKey = 3,
+        SharedFolderKey_AES_Any = 4,
         /// <summary>
-        /// Key is encrypted with team key.
+        /// AES encryption with team key.
         /// </summary>
-        TeamKey = 4,
+        TeamKey_AES_GCM = 5,
+        /*
         /// <summary>
         /// Key is encrypted with team RSA key.
         /// </summary>
-        TeamPrivateKey = 5,
+        TeamRsaPrivateKey = 6,
+        */
         /// <summary>
         /// Key is encrypted with record key.
         /// </summary>
-        RecordKey = 6,
+        RecordKey_AES_GCM = 7,
     }
 
     /// <exclude/>
@@ -50,6 +59,42 @@ namespace KeeperSecurity.Vault
     {
         string SubjectUid { get; }
         string ObjectUid { get; }
+    }
+
+    public class EqualityComparerIUidLink : EqualityComparer<IUidLink>
+    {
+        private EqualityComparerIUidLink() { }
+        private static EqualityComparerIUidLink _instance = new EqualityComparerIUidLink();
+
+        public static EqualityComparerIUidLink Instance => _instance;
+
+        public override bool Equals(IUidLink x, IUidLink y)
+        {
+            if (x != null && y != null) 
+            {
+                return string.Equals(x.SubjectUid, y.SubjectUid) && string.Equals(x.ObjectUid, y.ObjectUid);
+            }
+            if (x == null && y == null)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public override int GetHashCode(IUidLink obj)
+        {
+            if (obj != null) 
+            {
+                return Tuple.Create(obj.SubjectUid ?? "", obj.ObjectUid ?? "").GetHashCode();
+            }
+            return 0;
+        }
+    }
+
+    public interface IVaultSettings
+    {
+        long Revision { get; }
+        string SyncDownToken { get; }
     }
 
     /// <summary>
@@ -77,11 +122,23 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Can user re-share record?
         /// </summary>
-        bool CanShare { get; set; }
+        bool CanShare { get; }
         /// <summary>
         /// Can user edit record?
         /// </summary>
-        bool CanEdit { get; set; }
+        bool CanEdit { get; }
+        /// <summary>
+        /// Is record owner?
+        /// </summary>
+        bool Owner { get; }
+        /// <summary>
+        /// Owner Account UID
+        /// </summary>
+        string OwnerAccountUid { get; }
+        /// <summary>
+        /// Share expiration
+        /// </summary>
+        long Expiration { get; }
     }
 
     /// <summary>
@@ -124,11 +181,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Is record shared?
         /// </summary>
-        bool Shared { get; }
-        /// <summary>
-        /// Is user owner of the record?
-        /// </summary>
-        bool Owner { get; set; }
+        bool Shared { get; set;  }
     }
 
     /// <summary>
@@ -179,7 +232,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         string SharedFolderUid { get; }
         /// <summary>
-        /// User email or Team UID.
+        /// User Account UID or Team UID.
         /// </summary>
         string UserId { get; }
         /// <summary>
@@ -195,6 +248,10 @@ namespace KeeperSecurity.Vault
         /// Can manage users?
         /// </summary>
         bool ManageUsers { get; }
+        /// <summary>
+        /// Share expiration
+        /// </summary>
+        long Expiration { get; }
     }
 
     /// <summary>
@@ -213,6 +270,10 @@ namespace KeeperSecurity.Vault
         /// </summary>
         string Name { get; }
         /// <summary>
+        /// Shared folder encrypted data
+        /// </summary>
+        string Data { get; }
+        /// <summary>
         /// Can manage records by default?
         /// </summary>
         bool DefaultManageRecords { get; }
@@ -228,6 +289,10 @@ namespace KeeperSecurity.Vault
         /// Can re-share records by default.
         /// </summary>
         bool DefaultCanShare { get; }
+        /// <summary>
+        /// Owner Account UID
+        /// </summary>
+        string OwnerAccountUid { get; }
     }
 
     /// <summary>
@@ -253,9 +318,13 @@ namespace KeeperSecurity.Vault
         /// <see cref="Vault.KeyType"/>
         int KeyType { get; }
         /// <summary>
-        /// Team private key. Encrypted with the team key.
+        /// Team RSA private key.
         /// </summary>
-        string TeamPrivateKey { get; }
+        string TeamRsaPrivateKey { get; }
+        /// <summary>
+        /// Team ECC private key.
+        /// </summary>
+        string TeamEcPrivateKey { get; }
         /// <summary>
         /// Does team restrict record edit?
         /// </summary>
@@ -306,6 +375,21 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
+    /// Defines properties for user's emails
+    /// </summary>
+    public interface IUserEmail: IUid 
+    {
+        /// <summary>
+        /// User account UID
+        /// </summary>
+        string AccountUid { get; }
+        /// <summary>
+        /// User email
+        /// </summary>
+        string Email { get; }
+    }
+
+    /// <summary>
     /// Defines properties record-folder link.
     /// </summary>
     public interface IFolderRecordLink : IUidLink
@@ -353,7 +437,7 @@ namespace KeeperSecurity.Vault
     /// Defines entity link storage methods.
     /// </summary>
     /// <typeparam name="T">Type of entity link.</typeparam>
-    public interface IPredicateStorage<T> where T : IUidLink
+    public interface ILinkStorage<T> where T : IUidLink
     {
         /// <summary>
         /// Stores entity links
@@ -392,6 +476,8 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <returns>A list of entity links.</returns>
         IEnumerable<T> GetAllLinks();
+
+        T GetLink(IUidLink link);
     }
 
     /// <summary>
@@ -405,9 +491,9 @@ namespace KeeperSecurity.Vault
         string PersonalScopeUid { get; }
 
         /// <summary>
-        /// Gets or sets revision.
+        /// Gets or sets settings.
         /// </summary>
-        long Revision { get; set; }
+        IVaultSettings VaultSettings { get; set; }
 
         /// <summary>
         /// Gets record entity storage.
@@ -434,33 +520,33 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <remarks>
         /// <list type="bullet">
-        /// <item><term>Object UID</term><description>Record UID</description></item>
-        /// <item><term>Subject UID</term><description><c>PersonalScopeUid</c> or Shared Folder UID</description></item>
+        /// <item><term>Subject UID</term><description>Record UID</description></item>
+        /// <item><term>Object UID</term><description><c>PersonalScopeUid</c> or Shared Folder UID</description></item>
         /// </list>
         /// </remarks>
-        IPredicateStorage<IRecordMetadata> RecordKeys { get; } // RecordUid / "" or SharedFolderUid
+        ILinkStorage<IRecordMetadata> RecordKeys { get; } // RecordUid / "" or SharedFolderUid
 
         /// <summary>
         /// Gets shared folder key entity link storage
         /// </summary>
         /// <remarks>
         /// <list type="bullet">
-        /// <item><term>Object UID</term><description>Shared Folder UID</description></item>
-        /// <item><term>Subject UID</term><description><c>PersonalScopeUid</c> or Team UID</description></item>
+        /// <item><term>Subject UID</term><description>Shared Folder UID</description></item>
+        /// <item><term>Object UID</term><description><c>PersonalScopeUid</c> or Team UID</description></item>
         /// </list>
         /// </remarks>
-        IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; }
+        ILinkStorage<ISharedFolderKey> SharedFolderKeys { get; }
 
         /// <summary>
         /// Gets shared folder user permission entity link storage.
         /// </summary>
         /// <remarks>
         /// <list type="bullet">
-        /// <item><term>Object UID</term><description>Shared Folder UID</description></item>
-        /// <item><term>Subject UID</term><description>User Email or Team UID</description></item>
+        /// <item><term>Subject UID</term><description>Shared Folder UID</description></item>
+        /// <item><term>Object UID</term><description>User Email or Team UID</description></item>
         /// </list>
         /// </remarks>
-        IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; }
+        ILinkStorage<ISharedFolderPermission> SharedFolderPermissions { get; }
 
         /// <summary>
         /// Gets folder entity storage.
@@ -472,16 +558,21 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <remarks>
         /// <list type="bullet">
-        /// <item><term>Object UID</term><description>Folder UID</description></item>
-        /// <item><term>Subject UID</term><description>Record UID</description></item>
+        /// <item><term>Subject UID</term><description>Folder UID</description></item>
+        /// <item><term>Object UID</term><description>Record UID</description></item>
         /// </list>
         /// </remarks>
-        IPredicateStorage<IFolderRecordLink> FolderRecords { get; } // FolderUid / RecordUid
+        ILinkStorage<IFolderRecordLink> FolderRecords { get; } // FolderUid / RecordUid
 
         /// <summary>
         /// Gets record type's entity storage
         /// </summary>
         IEntityStorage<IRecordType> RecordTypes { get; }
+
+        /// <summary>
+        /// Gets user email storage
+        /// </summary>
+        IEntityStorage<IUserEmail> UserEmails { get; }
 
         /// <summary>
         /// Clear offline Keeper vault storage.
@@ -566,7 +657,7 @@ namespace KeeperSecurity.Vault
         }
     }
 
-    internal class InMemorySentenceStorage<T> : IPredicateStorage<T> where T : IUidLink
+    internal class InMemoryLinkStorage<T> : ILinkStorage<T> where T : IUidLink
     {
         private readonly Dictionary<string, IDictionary<string, T>> _links =
             new Dictionary<string, IDictionary<string, T>>();
@@ -610,6 +701,16 @@ namespace KeeperSecurity.Vault
                     yield return link;
                 }
             }
+        }
+
+        public T GetLink(IUidLink link) {
+            if (_links.ContainsKey(link.SubjectUid)) {
+                var subjects = _links[link.SubjectUid];
+                if (subjects.ContainsKey(link.ObjectUid)) { 
+                    return subjects[link.ObjectUid];
+                }
+            }
+            return default;
         }
 
         public IEnumerable<T> GetLinksForSubject(string primaryUid)
@@ -678,7 +779,7 @@ namespace KeeperSecurity.Vault
         public string PersonalScopeUid { get; } = "PersonalScopeUid";
 
         /// <inheritdoc/>
-        public long Revision { get; set; }
+        public IVaultSettings VaultSettings { get; set; }
 
         /// <inheritdoc/>
         public IEntityStorage<IStorageRecord> Records { get; private set; }
@@ -693,21 +794,25 @@ namespace KeeperSecurity.Vault
         public IEntityStorage<INonSharedData> NonSharedData { get; private set; }
 
         /// <inheritdoc/>
-        public IPredicateStorage<IRecordMetadata> RecordKeys { get; private set; }
+        public ILinkStorage<IRecordMetadata> RecordKeys { get; private set; }
 
         /// <inheritdoc/>
-        public IPredicateStorage<ISharedFolderKey> SharedFolderKeys { get; private set; }
+        public ILinkStorage<ISharedFolderKey> SharedFolderKeys { get; private set; }
 
         /// <inheritdoc/>
-        public IPredicateStorage<ISharedFolderPermission> SharedFolderPermissions { get; private set; }
+        public ILinkStorage<ISharedFolderPermission> SharedFolderPermissions { get; private set; }
 
         /// <inheritdoc/>
         public IEntityStorage<IFolder> Folders { get; private set; }
 
         /// <inheritdoc/>
-        public IPredicateStorage<IFolderRecordLink> FolderRecords { get; private set; }
+        public ILinkStorage<IFolderRecordLink> FolderRecords { get; private set; }
 
+        /// <inheritdoc/>
         public IEntityStorage<IRecordType> RecordTypes { get; private set; }
+
+        /// <inheritdoc/>
+        public IEntityStorage<IUserEmail> UserEmails { get; private set; }
 
 
         /// <inheritdoc/>
@@ -717,29 +822,42 @@ namespace KeeperSecurity.Vault
             SharedFolders = new InMemoryItemStorage<ISharedFolder>();
             Teams = new InMemoryItemStorage<IEnterpriseTeam>();
             NonSharedData = new InMemoryItemStorage<INonSharedData>();
-            RecordKeys = new InMemorySentenceStorage<IRecordMetadata>();
-            SharedFolderKeys = new InMemorySentenceStorage<ISharedFolderKey>();
-            SharedFolderPermissions = new InMemorySentenceStorage<ISharedFolderPermission>();
+            RecordKeys = new InMemoryLinkStorage<IRecordMetadata>();
+            SharedFolderKeys = new InMemoryLinkStorage<ISharedFolderKey>();
+            SharedFolderPermissions = new InMemoryLinkStorage<ISharedFolderPermission>();
             Folders = new InMemoryItemStorage<IFolder>();
-            FolderRecords = new InMemorySentenceStorage<IFolderRecordLink>();
+            FolderRecords = new InMemoryLinkStorage<IFolderRecordLink>();
             RecordTypes = new InMemoryItemStorage<IRecordType>();
+            UserEmails = new InMemoryItemStorage<IUserEmail>();
 
-            Revision = 0;
+            VaultSettings = null;
         }
     }
 
     internal class UidLink : Tuple<string, string>, IUidLink
     {
-        private UidLink(string objectUid, string subjectUid) : base(objectUid, subjectUid ?? "")
+        private UidLink(string subjectUid, string objectUid) : base(subjectUid, objectUid ?? "")
         {
         }
 
-        public static UidLink Create(string objectUid, string subjectUid)
+        public static IUidLink Create(string subjectUid, string objectUid)
         {
-            return new UidLink(objectUid, subjectUid);
+            return new UidLink(subjectUid, objectUid);
         }
 
         string IUidLink.SubjectUid => Item1;
         string IUidLink.ObjectUid => Item2;
+    }
+
+    internal class VaultSettings : IVaultSettings
+    {
+        public VaultSettings(IVaultSettings other)
+        {
+            Revision = other?.Revision ?? 0;
+            SyncDownToken = other?.SyncDownToken ?? null;
+        }
+        public long Revision { get; set; }
+
+        public string SyncDownToken { get; set; }
     }
 }

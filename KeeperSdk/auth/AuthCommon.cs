@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -247,6 +247,10 @@ namespace KeeperSecurity.Authentication
     public interface IAuthContext
     {
         /// <summary>
+        /// Gets SSO provider information
+        /// </summary>
+        byte[] AccountUid { get; }
+        /// <summary>
         /// User's Data Key.
         /// </summary>
         byte[] DataKey { get; }
@@ -312,6 +316,10 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude/>
         bool CheckPasswordValid(string password);
+
+        /// <exclude />
+        bool ForbidKeyType2 { get; }
+
     }
 
     [Flags]
@@ -341,6 +349,7 @@ namespace KeeperSecurity.Authentication
 
     internal class AuthContext : IAuthContext
     {
+        public byte[] AccountUid { get; internal set; }
         public byte[] DataKey { get; internal set; }
         public byte[] ClientKey { get; internal set; }
         public RsaPrivateCrtKeyParameters PrivateRsaKey { get; internal set; }
@@ -370,6 +379,7 @@ namespace KeeperSecurity.Authentication
             }
         }
         public RsaPrivateCrtKeyParameters PrivateKey => PrivateRsaKey;
+        public bool ForbidKeyType2 { get; internal set; }
     }
 
     /// <summary>
@@ -524,15 +534,9 @@ namespace KeeperSecurity.Authentication
                 await PingKeeperServer(keeperUri, Endpoint.WebProxy);
                 return true;
             }
-            catch (WebException e)
+            catch (ProxyAuthenticationRequired e)
             {
-                var response = (HttpWebResponse) e.Response;
-                if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) throw e;
-
-                authHeader = response.Headers.AllKeys
-                    .Where(x => string.Compare(x, "Proxy-Authenticate", StringComparison.OrdinalIgnoreCase) == 0)
-                    .Select(x => response.Headers[x])
-                    .FirstOrDefault();
+                authHeader = e.ProxyAuthenticate?.FirstOrDefault() ?? "";
             }
             var systemProxy = WebRequest.GetSystemWebProxy();
             var directUri = systemProxy.GetProxy(keeperUri);
@@ -547,10 +551,8 @@ namespace KeeperSecurity.Authentication
                     Endpoint.WebProxy = proxy;
                     return true;
                 }
-                catch (WebException e)
+                catch (ProxyAuthenticationRequired)
                 {
-                    var response = (HttpWebResponse) e.Response;
-                    if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) throw e;
                 }
             }
             onProxyDetected?.Invoke(directUri, proxyAuthenticate);
@@ -559,20 +561,22 @@ namespace KeeperSecurity.Authentication
 
         internal virtual async Task<bool> PingKeeperServer(Uri keeperUri, IWebProxy proxy)
         {
-            var request = (HttpWebRequest) WebRequest.Create(keeperUri);
+            var handler = new HttpClientHandler();
             if (proxy != null)
             {
-                request.Proxy = proxy;
+                handler.Proxy = proxy;
             }
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
-            {
-                if (response.StatusCode != HttpStatusCode.OK) return false;
-                var rs = response.GetResponseStream();
-                if (rs == null) return false;
-                using (var sr = new StreamReader(rs, Encoding.UTF8))
-                {
-                    var status = await sr.ReadLineAsync();
-                    return status == "alive";
+            using (var client = new HttpClient(handler)) {
+                using (var rs = await client.GetAsync(keeperUri)) {
+                    if (rs.IsSuccessStatusCode)
+                    {
+                        var data = await rs.Content.ReadAsStringAsync();
+                        return data == "alive";
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -587,6 +591,8 @@ namespace KeeperSecurity.Authentication
             var license = AccountLicense.LoadFromProtobuf(accountSummaryResponse.License);
             var settings = AccountSettings.LoadFromProtobuf(accountSummaryResponse.Settings);
             var keys = AccountKeys.LoadFromProtobuf(accountSummaryResponse.KeysInfo);
+
+            authContext.AccountUid = accountSummaryResponse.License.AccountUid.ToByteArray();
 
             if (accountSummaryResponse.ClientKey?.Length > 0)
             {
@@ -649,13 +655,13 @@ namespace KeeperSecurity.Authentication
                 var privateKeyData =
                     CryptoUtils.DecryptAesV1(keys.EncryptedPrivateKey.Base64UrlDecode(),
                         authContext.DataKey);
-                authContext.PrivateRsaKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+                authContext.PrivateRsaKey = CryptoUtils.LoadRsaPrivateKey(privateKeyData);
             }
             if (keys.EncryptedEcPrivateKey != null) {
                 var privateKeyData =
                     CryptoUtils.DecryptAesV2(keys.EncryptedEcPrivateKey.Base64UrlDecode(),
                         authContext.DataKey);
-                authContext.PrivateEcKey = CryptoUtils.LoadPrivateEcKey(privateKeyData);
+                authContext.PrivateEcKey = CryptoUtils.LoadEcPrivateKey(privateKeyData);
             }
 
             if (!string.IsNullOrEmpty(clientKey))
@@ -667,6 +673,7 @@ namespace KeeperSecurity.Authentication
             authContext.Settings = settings;
             authContext.Enforcements = enforcements;
             authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
+            authContext.ForbidKeyType2 = accountSummaryResponse.ForbidKeyType2;
 
             if (authContext.SessionTokenRestriction != 0)
             {
@@ -766,7 +773,7 @@ namespace KeeperSecurity.Authentication
                             "enterprise/get_enterprise_public_key", null,
                             typeof(BreachWatch.EnterprisePublicKeyResponse));
                         authContext.EnterprisePublicEcKey =
-                            CryptoUtils.LoadPublicEcKey(rs.EnterpriseECCPublicKey.ToByteArray());
+                            CryptoUtils.LoadEcPublicKey(rs.EnterpriseECCPublicKey.ToByteArray());
                     }
                     catch (Exception e)
                     {

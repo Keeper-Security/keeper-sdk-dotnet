@@ -130,7 +130,7 @@ namespace KeeperSecurity.Authentication
                 {
                     if (!(deviceConf.DeviceKey?.Length > 0)) throw new KeeperInvalidDeviceToken("invalid configuration");
                     auth.DeviceToken = deviceConf.DeviceToken.Base64UrlDecode();
-                    v3.DeviceKey = CryptoUtils.LoadPrivateEcKey(deviceConf.DeviceKey);
+                    v3.DeviceKey = CryptoUtils.LoadEcPrivateKey(deviceConf.DeviceKey);
                 }
                 catch (Exception e)
                 {
@@ -191,8 +191,8 @@ namespace KeeperSecurity.Authentication
 
         private static async Task RegisterDeviceInRegion(this IAuth auth, IDeviceConfiguration device)
         {
-            var privateKey = CryptoUtils.LoadPrivateEcKey(device.DeviceKey);
-            var publicKey = CryptoUtils.GetPublicEcKey(privateKey);
+            var privateKey = CryptoUtils.LoadEcPrivateKey(device.DeviceKey);
+            var publicKey = CryptoUtils.GetEcPublicKey(privateKey);
             var request = new RegisterDeviceInRegionRequest
             {
                 EncryptedDeviceToken = ByteString.CopyFrom(device.DeviceToken.Base64UrlDecode()),
@@ -687,6 +687,10 @@ namespace KeeperSecurity.Authentication
             {
                 case TwoFactorDuration.EveryLogin:
                     return TwoFactorExpiration.TwoFaExpImmediately;
+                case TwoFactorDuration.Every12Hours:
+                    return TwoFactorExpiration.TwoFaExp12Hours;
+                case TwoFactorDuration.Every24Hours:
+                    return TwoFactorExpiration.TwoFaExp24Hours;
                 case TwoFactorDuration.Every30Days:
                     return TwoFactorExpiration.TwoFaExp30Days;
                 case TwoFactorDuration.Forever:
@@ -995,8 +999,9 @@ namespace KeeperSecurity.Authentication
             bool forceLogin)
         {
             var queryString = System.Web.HttpUtility.ParseQueryString("");
-            CryptoUtils.GenerateRsaKey(out var privateKey, out var publicKey);
-            queryString.Add("key", publicKey.Base64UrlEncode());
+            CryptoUtils.GenerateRsaKey(out var rsaPrivateKey, out var rsaPublicKey);
+
+            queryString.Add("key", CryptoUtils.UnloadRsaPublicKey(rsaPublicKey).Base64UrlEncode());
             queryString.Add("embedded", "");
             if (forceLogin)
             {
@@ -1012,20 +1017,19 @@ namespace KeeperSecurity.Authentication
                 InvokeSsoTokenAction = async tokenStr =>
                 {
                     var token = JsonUtils.ParseJson<SsoToken>(Encoding.UTF8.GetBytes(tokenStr));
-                    var pk = CryptoUtils.LoadPrivateKey(privateKey);
 
                     auth.Username = token.Email;
                     await auth.EnsureDeviceTokenIsRegistered(v3, auth.Username);
 
                     if (!string.IsNullOrEmpty(token.Password))
                     {
-                        var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.Password.Base64UrlDecode(), pk));
+                        var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.Password.Base64UrlDecode(), rsaPrivateKey));
                         v3.PasswordQueue.Enqueue(password);
                     }
 
                     if (!string.IsNullOrEmpty(token.NewPassword))
                     {
-                        var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.NewPassword.Base64UrlDecode(), pk));
+                        var password = Encoding.UTF8.GetString(CryptoUtils.DecryptRsa(token.NewPassword.Base64UrlDecode(), rsaPrivateKey));
                         v3.PasswordQueue.Enqueue(password);
                     }
 
@@ -1097,15 +1101,15 @@ namespace KeeperSecurity.Authentication
             var clientKey = CryptoUtils.GenerateEncryptionKey();
             CryptoUtils.GenerateRsaKey(out var rsaPrivate, out var rsaPublic);
             CryptoUtils.GenerateEcKey(out var ecPrivate, out var ecPublic);
-            var devicePublicKey = CryptoUtils.GetPublicEcKey(v3.DeviceKey);
+            var devicePublicKey = CryptoUtils.GetEcPublicKey(v3.DeviceKey);
             var request = new CreateUserRequest
             {
                 ClientVersion = auth.Endpoint.ClientVersion,
                 Username = auth.Username,
                 AuthVerifier = ByteString.CopyFrom(CryptoUtils.CreateAuthVerifier(password, CryptoUtils.GetRandomBytes(16), 100000)),
                 EncryptionParams = ByteString.CopyFrom(CryptoUtils.CreateEncryptionParams(password, CryptoUtils.GetRandomBytes(16), 100000, dataKey)),
-                RsaPublicKey = ByteString.CopyFrom(rsaPublic),
-                RsaEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(rsaPrivate, dataKey)),
+                RsaPublicKey = ByteString.CopyFrom(CryptoUtils.UnloadRsaPublicKey(rsaPublic)),
+                RsaEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(CryptoUtils.UnloadRsaPrivateKey(rsaPrivate), dataKey)),
                 EccPublicKey = ByteString.CopyFrom(CryptoUtils.UnloadEcPublicKey(ecPublic)),
                 EccEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(CryptoUtils.UnloadEcPrivateKey(ecPrivate), dataKey)),
                 EncryptedClientKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(clientKey, dataKey)),
@@ -1128,12 +1132,12 @@ namespace KeeperSecurity.Authentication
             var clientKey = CryptoUtils.GenerateEncryptionKey();
             CryptoUtils.GenerateEcKey(out var ecPrivateKey, out var ecPublicKey);
             CryptoUtils.GenerateRsaKey(out var rsaPrivateKey, out var rsaPublicKey);
-            var devicePublicKey = CryptoUtils.GetPublicEcKey(v3.DeviceKey);
+            var devicePublicKey = CryptoUtils.GetEcPublicKey(v3.DeviceKey);
             var request = new CreateUserRequest
             {
                 Username = auth.Username,
-                RsaPublicKey = ByteString.CopyFrom(rsaPublicKey),
-                RsaEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(rsaPrivateKey, dataKey)),
+                RsaPublicKey = ByteString.CopyFrom(CryptoUtils.UnloadRsaPublicKey(rsaPublicKey)),
+                RsaEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(CryptoUtils.UnloadRsaPrivateKey(rsaPrivateKey), dataKey)),
                 EccPublicKey = ByteString.CopyFrom(CryptoUtils.UnloadEcPublicKey(ecPublicKey)),
                 EccEncryptedPrivateKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(CryptoUtils.UnloadEcPrivateKey(ecPrivateKey), dataKey)),
                 EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),

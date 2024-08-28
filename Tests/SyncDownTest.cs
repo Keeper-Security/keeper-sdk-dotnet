@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using KeeperSecurity.Authentication;
-using KeeperSecurity.Commands;
+using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using Moq;
 using Xunit;
+using VaultProto = Vault;
 
 namespace Tests
 {
@@ -36,15 +38,18 @@ namespace Tests
             var recordUids = vault.KeeperRecords.Where(x => x.Owner && !x.Shared).Select(x => x.Uid).ToArray();
 
             var authMock = Mock.Get(vault.Auth);
-            authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
-                .Returns<SyncDownCommand, Type, bool>((a, c, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
+            authMock.Setup(x => x.ExecuteAuthRest("vault/sync_down", It.IsAny<VaultProto.SyncDownRequest>(), typeof(VaultProto.SyncDownResponse), It.IsAny<int>()))
+                .Returns<string, VaultProto.SyncDownRequest, Type, int>((endpoint, rq, rst, apiVersion) =>
                 {
-                    result = "success",
-                    fullSync = false,
-                    revision = vault.Storage.Revision + 1,
-                    removedRecords = recordUids
-                }));
+                    var rs = new VaultProto.SyncDownResponse 
+                    { 
+                        HasMore = false,
+                        ContinuationToken = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(32)),
+                        CacheStatus = VaultProto.CacheStatus.Keep,
+                    };
+                    rs.RemovedRecords.AddRange(recordUids.Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+                    return Task.FromResult((IMessage) rs);
+                });
 
             await vault.SyncDown();
             Assert.Equal(recordsBefore - recordUids.Length, vault.RecordCount);
@@ -57,15 +62,19 @@ namespace Tests
             var teamUids = vault.Teams.Select(x => x.TeamUid).ToArray();
 
             var authMock = Mock.Get(vault.Auth);
-            authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
-                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse) new SyncDownResponse
+            authMock.Setup(x => x.ExecuteAuthRest("vault/sync_down", It.IsAny<VaultProto.SyncDownRequest>(), typeof(VaultProto.SyncDownResponse), It.IsAny<int>()))
+                .Returns<string, VaultProto.SyncDownRequest, Type, int>((endpoint, rq, rst, apiVersion) =>
                 {
-                    result = "success",
-                    fullSync = false,
-                    revision = vault.Storage.Revision + 1,
-                    removedTeams = teamUids
-                }));
+                    var rs = new VaultProto.SyncDownResponse
+                    {
+                        HasMore = false,
+                        ContinuationToken = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(32)),
+                        CacheStatus = VaultProto.CacheStatus.Keep,
+                    };
+                    rs.RemovedTeams.AddRange(teamUids.Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+                    return Task.FromResult((IMessage) rs);
+                });
+
             await vault.SyncDown();
 
             Assert.Equal(3, vault.RecordCount);
@@ -74,21 +83,25 @@ namespace Tests
         }
 
         [Fact]
-        public async Task TestRemoveSharedFolderThenTeam() {
+        public async Task TestRemoveSharedFolderThenTeam()
+        {
             var vault = await GetVault();
             var authMock = Mock.Get(vault.Auth);
 
             var sfUids = vault.SharedFolders.Where(x => x.Uid == VaultEnvironment.SharedFolder1Uid).Select(x => x.Uid).ToArray();
             Assert.Single(sfUids);
-            authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
-                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
+            authMock.Setup(x => x.ExecuteAuthRest("vault/sync_down", It.IsAny<VaultProto.SyncDownRequest>(), typeof(VaultProto.SyncDownResponse), It.IsAny<int>()))
+                .Returns<string, VaultProto.SyncDownRequest, Type, int>((endpoint, rq, rst, apiVersion) =>
                 {
-                    result = "success",
-                    fullSync = false,
-                    revision = vault.Storage.Revision + 1,
-                    removedSharedFolders = sfUids
-                }));
+                    var rs = new VaultProto.SyncDownResponse
+                    {
+                        HasMore = false,
+                        ContinuationToken = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(32)),
+                        CacheStatus = VaultProto.CacheStatus.Keep,
+                    };
+                    rs.RemovedSharedFolders.AddRange(sfUids.Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+                    return Task.FromResult((IMessage) rs);
+                });
 
             await vault.SyncDown();
             Assert.Equal(4, vault.RecordCount);
@@ -97,15 +110,19 @@ namespace Tests
 
             var teamUids = vault.Teams.Select(x => x.TeamUid).ToArray();
             Assert.Single(teamUids);
-            authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
-                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
+            authMock.Setup(x => x.ExecuteAuthRest("vault/sync_down", It.IsAny<VaultProto.SyncDownRequest>(), typeof(VaultProto.SyncDownResponse), It.IsAny<int>()))
+                .Returns<string, VaultProto.SyncDownRequest, Type, int>((endpoint, rq, rst, apiVersion) =>
                 {
-                    result = "success",
-                    fullSync = false,
-                    revision = vault.Storage.Revision + 1,
-                    removedTeams = teamUids
-                }));
+                    var rs = new VaultProto.SyncDownResponse
+                    {
+                        HasMore = false,
+                        ContinuationToken = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(32)),
+                        CacheStatus = VaultProto.CacheStatus.Keep,
+                    };
+                    rs.RemovedTeams.AddRange(teamUids.Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+                    return Task.FromResult((IMessage) rs);
+                });
+
             await vault.SyncDown();
             Assert.Equal(3, vault.RecordCount);
             Assert.Equal(0, vault.SharedFolderCount);
@@ -113,23 +130,27 @@ namespace Tests
         }
 
         [Fact]
-        public async Task TestRemoveTeamAndSharedFolder() {
+        public async Task TestRemoveTeamAndSharedFolder()
+        {
             var vault = await GetVault();
-            var authMock = Mock.Get(vault.Auth);
 
             var sfUids = vault.SharedFolders.Select(x => x.Uid).ToArray();
             var teamUids = vault.Teams.Select(x => x.TeamUid).ToArray();
 
-            authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
-                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse)new SyncDownResponse
+            var authMock = Mock.Get(vault.Auth);
+            authMock.Setup(x => x.ExecuteAuthRest("vault/sync_down", It.IsAny<VaultProto.SyncDownRequest>(), typeof(VaultProto.SyncDownResponse), It.IsAny<int>()))
+                .Returns<string, VaultProto.SyncDownRequest, Type, int>((endpoint, rq, rst, apiVersion) =>
                 {
-                    result = "success",
-                    fullSync = false,
-                    revision = vault.Storage.Revision + 1,
-                    removedSharedFolders = sfUids,
-                    removedTeams = teamUids
-                }));
+                    var rs = new VaultProto.SyncDownResponse
+                    {
+                        HasMore = false,
+                        ContinuationToken = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(32)),
+                        CacheStatus = VaultProto.CacheStatus.Keep,
+                    };
+                    rs.RemovedSharedFolders.AddRange(sfUids.Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+                    rs.RemovedTeams.AddRange(teamUids.Select(x => ByteString.CopyFrom(x.Base64UrlDecode())));
+                    return Task.FromResult((IMessage) rs);
+                });
 
             await vault.SyncDown();
             Assert.Equal(3, vault.RecordCount);
@@ -144,7 +165,7 @@ namespace Tests
             context.Setup(x => x.ClientKey).Returns(_vaultEnv.ClientKey);
             context.Setup(x => x.DataKey).Returns(_vaultEnv.DataKey);
             context.Setup(x => x.PrivateRsaKey).Returns(_vaultEnv.PrivateRsaKey);
-            context.Setup(x => x.Settings).Returns(new AccountSettings 
+            context.Setup(x => x.Settings).Returns(new AccountSettings
             {
                 RecordTypesEnabled = true,
             });
@@ -157,18 +178,13 @@ namespace Tests
             var auth = new Mock<IAuthentication>();
             auth.Setup(x => x.AuthContext).Returns(context.Object);
             auth.Setup(x => x.Endpoint).Returns(endpoint.Object);
-            auth.Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
-                .Returns<SyncDownCommand, Type, bool>((command, _, __) =>
+
+            auth.Setup(x => x.ExecuteAuthRest("vault/sync_down", It.IsAny<VaultProto.SyncDownRequest>(), typeof(VaultProto.SyncDownRequest), It.IsAny<int>()))
+                .Returns<string, VaultProto.SyncDownRequest, Type, int>((endpoint, rq, _, __) =>
                 {
-                    try
-                    {
-                        return Task.FromResult((KeeperApiResponse) _vaultEnv.GetSyncDownResponse());
-                    }
-                    catch (Exception e)
-                    {
-                        return Task.FromException<KeeperApiResponse>(e);
-                    }
+                    return Task.FromResult((IMessage) _vaultEnv.GetSyncDownResponse());
                 });
+
             return auth.Object;
         }
 
@@ -176,9 +192,13 @@ namespace Tests
         {
             var auth = GetConnectedAuthContext();
             var authMock = Mock.Get(auth);
-            authMock
-                .Setup(x => x.ExecuteAuthCommand(It.IsAny<SyncDownCommand>(), It.IsAny<Type>(), It.IsAny<bool>()))
-                .Returns<SyncDownCommand, Type, bool>((c, t, b) => Task.FromResult((KeeperApiResponse) _vaultEnv.GetSyncDownResponse()));
+
+            authMock.Setup(x => x.ExecuteAuthRest("vault/sync_down", It.IsAny<VaultProto.SyncDownRequest>(), typeof(VaultProto.SyncDownResponse), It.IsAny<int>()))
+                .Returns<string, VaultProto.SyncDownRequest, Type, int>((endpoint, rq, rst, apiVersion) =>
+                {
+                    return Task.FromResult((IMessage) _vaultEnv.GetSyncDownResponse());
+                });
+
             authMock
                 .Setup(x => x.ExecuteAuthRest("vault/get_record_types", It.IsAny<Records.RecordTypesRequest>(), typeof(Records.RecordTypesResponse), It.IsAny<int>()))
                 .Returns<string, Records.RecordTypesRequest, Type, int>((e, rq, rst, apiVersion) =>
@@ -187,11 +207,11 @@ namespace Tests
                     {
                         StandardCounter = 1,
                     };
-                    rs.RecordTypes.Add(new Records.RecordType 
-                    { 
+                    rs.RecordTypes.Add(new Records.RecordType
+                    {
                         Scope = Records.RecordTypeScope.RtStandard,
                         RecordTypeId = 1,
-                        Content = 
+                        Content =
                         @"{
   ""$id"": ""login"",
   ""categories"": [""login""],

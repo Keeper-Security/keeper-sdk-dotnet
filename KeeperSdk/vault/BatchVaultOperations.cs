@@ -190,7 +190,7 @@ namespace KeeperSecurity.Vault
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <exception cref="NoActiveShareWithUserException" />
         /// <seealso cref="SharedFolderUserOptions"/>
-        bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, ISharedFolderUserOptions options = null);
+        bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, IUserShareOptions options = null);
         /// <summary>
         /// Removes user or team from shared folder.
         /// </summary>
@@ -222,7 +222,7 @@ namespace KeeperSecurity.Vault
     {
         public string UserId { get; set; }
         public UserType UserType { get; set; }
-        public ISharedFolderUserOptions Options { get; set; }
+        public IUserShareOptions Options { get; set; }
         public bool IsRemove { get; set; }
     }
 
@@ -703,7 +703,7 @@ namespace KeeperSecurity.Vault
             record = null;
             if (_recordSet.Contains(recordUid))
             {
-                record = (KeeperRecord) _typedRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid)
+                record = (KeeperRecord)_typedRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid)
                          ?? _legacyRecordsToAdd.Select(x => x.Item1).FirstOrDefault(x => x.Uid == recordUid);
             }
             else
@@ -941,50 +941,52 @@ namespace KeeperSecurity.Vault
 
                         switch (folder.FolderType)
                         {
-                        case FolderType.UserFolder:
-                        {
-                            frq.FolderType = Folder.FolderType.UserFolder;
-                            frq.EncryptedFolderKey = ByteString.CopyFrom(
-                                CryptoUtils.EncryptAesV1(folder.FolderKey, _vault.Auth.AuthContext.DataKey));
-                        }
-                        break;
-                        case FolderType.SharedFolder:
-                        {
-                            frq.FolderType = Folder.FolderType.SharedFolder;
-                            frq.EncryptedFolderKey = ByteString.CopyFrom(
-                                CryptoUtils.EncryptAesV1(folder.FolderKey, _vault.Auth.AuthContext.DataKey));
-                            var encName = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(folder.Name),
-                                folder.FolderKey);
-                            frq.SharedFolderFields = new SharedFolderFields
+                            case FolderType.UserFolder:
                             {
-                                EncryptedFolderName = ByteString.CopyFrom(encName),
-                                ManageUsers = (sharedFolderOptions?.ManageUsers ?? false),
-                                ManageRecords = (sharedFolderOptions?.ManageRecords ?? false),
-                                CanEdit = (sharedFolderOptions?.CanEdit ?? false),
-                                CanShare = (sharedFolderOptions?.CanShare ?? false),
-                            };
-
-                        }
-                        break;
-                        case FolderType.SharedFolderFolder:
-                        {
-                            if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out var sharedFolder))
-                            {
-                                var message =
-                                    $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found";
-                                BatchLogger?.Invoke(Severity.Warning, message);
-                                result.FolderFailure[folder.FolderUid] = message;
-                                continue;
+                                frq.FolderType = Folder.FolderType.UserFolder;
+                                frq.EncryptedFolderKey = ByteString.CopyFrom(
+                                    CryptoUtils.EncryptAesV1(folder.FolderKey, _vault.Auth.AuthContext.DataKey));
                             }
-
-                            frq.FolderType = Folder.FolderType.SharedFolderFolder;
-                            frq.EncryptedFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(folder.FolderKey, sharedFolder.FolderKey));
-                            frq.SharedFolderFolderFields = new SharedFolderFolderFields
+                            break;
+                            case FolderType.SharedFolder:
                             {
-                                SharedFolderUid = ByteString.CopyFrom(folder.SharedFolderUid.Base64UrlDecode()),
-                            };
-                        }
-                        break;
+                                frq.FolderType = Folder.FolderType.SharedFolder;
+                                frq.EncryptedFolderKey = ByteString.CopyFrom(
+                                    CryptoUtils.EncryptAesV1(folder.FolderKey, _vault.Auth.AuthContext.DataKey));
+                                var encName = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(folder.Name),
+                                    folder.FolderKey);
+                                frq.SharedFolderFields = new SharedFolderFields
+                                {
+                                    EncryptedFolderName = ByteString.CopyFrom(encName),
+                                    ManageUsers = (sharedFolderOptions?.ManageUsers ?? false),
+                                    ManageRecords = (sharedFolderOptions?.ManageRecords ?? false),
+                                    CanEdit = (sharedFolderOptions?.CanEdit ?? false),
+                                    CanShare = (sharedFolderOptions?.CanShare ?? false),
+                                };
+
+                            }
+                            break;
+                            case FolderType.SharedFolderFolder:
+                            {
+                                if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out var sharedFolder))
+                                {
+                                    var message =
+                                        $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found";
+                                    BatchLogger?.Invoke(Severity.Warning, message);
+                                    result.FolderFailure[folder.FolderUid] = message;
+                                    continue;
+                                }
+
+                                frq.FolderType = Folder.FolderType.SharedFolderFolder;
+                                frq.EncryptedFolderKey =
+                                    ByteString.CopyFrom(CryptoUtils.EncryptAesV1(folder.FolderKey,
+                                        sharedFolder.FolderKey));
+                                frq.SharedFolderFolderFields = new SharedFolderFolderFields
+                                {
+                                    SharedFolderUid = ByteString.CopyFrom(folder.SharedFolderUid.Base64UrlDecode()),
+                                };
+                            }
+                            break;
                         }
 
                         rq.FolderRequest.Add(frq);
@@ -1020,34 +1022,34 @@ namespace KeeperSecurity.Vault
                             FolderNode sharedFolder = null;
                             switch (folder.FolderType)
                             {
-                            case FolderType.UserFolder:
-                                rrq.FolderType = Folder.FolderType.UserFolder;
-                                break;
-                            case FolderType.SharedFolder:
-                            {
-                                rrq.FolderType = Folder.FolderType.SharedFolder;
-                                sharedFolder = folder;
-                            }
-                            break;
-                            case FolderType.SharedFolderFolder:
-                            {
-                                rrq.FolderType = Folder.FolderType.SharedFolderFolder;
-                                if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
+                                case FolderType.UserFolder:
+                                    rrq.FolderType = Folder.FolderType.UserFolder;
+                                    break;
+                                case FolderType.SharedFolder:
                                 {
-                                    var message = $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found";
-                                    BatchLogger?.Invoke(Severity.Warning, message);
-                                    result.FolderFailure[folder.FolderUid] = message;
-                                    continue;
+                                    rrq.FolderType = Folder.FolderType.SharedFolder;
+                                    sharedFolder = folder;
                                 }
-                            }
-                            break;
+                                break;
+                                case FolderType.SharedFolderFolder:
+                                {
+                                    rrq.FolderType = Folder.FolderType.SharedFolderFolder;
+                                    if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
+                                    {
+                                            var message = $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found";
+                                        BatchLogger?.Invoke(Severity.Warning, message);
+                                        result.FolderFailure[folder.FolderUid] = message;
+                                        continue;
+                                    }
+                                }
+                                break;
                             }
 
                             rrq.FolderUid = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode());
 
                             if (sharedFolder != null)
                             {
-                                rrq.EncryptedRecordFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(record.RecordKey, sharedFolder.FolderKey));
+                                    rrq.EncryptedRecordFolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(record.RecordKey, sharedFolder.FolderKey));
                             }
                         }
                         else
@@ -1065,7 +1067,7 @@ namespace KeeperSecurity.Vault
                 }
 
                 BatchLogger?.Invoke(Severity.Information, "Create Folders and Legacy Records");
-                var rs = await _vault.Auth.ExecuteAuthRest<ImportFolderRecordRequest, ImportFolderRecordResponse>("folder/import_folders_and_records", rq);
+                    var rs = await _vault.Auth.ExecuteAuthRest<ImportFolderRecordRequest, ImportFolderRecordResponse>("folder/import_folders_and_records", rq);
                 foreach (var frs in rs.FolderResponse)
                 {
                     if (frs.Status.ToLower() == "success")
@@ -1116,12 +1118,12 @@ namespace KeeperSecurity.Vault
             BatchLogger?.Invoke(Severity.Information, "Create Typed Records");
             while (_typedRecordsToAdd.Count > 0)
             {
-                var left = 999;
+                    var left = 999;
 
                 Tuple<TypedRecord, FolderNode>[] chunk;
-                if (_typedRecordsToAdd.Count > left)
+                    if (_typedRecordsToAdd.Count > left)
                 {
-                    chunk = _typedRecordsToAdd.Take(left).ToArray();
+                        chunk = _typedRecordsToAdd.Take(left).ToArray();
                     _typedRecordsToAdd.RemoveRange(0, chunk.Length);
                 }
                 else
@@ -1152,35 +1154,35 @@ namespace KeeperSecurity.Vault
                         FolderNode sharedFolder = null;
                         switch (folder.FolderType)
                         {
-                        case FolderType.UserFolder:
-                            ra.FolderType = RecordFolderType.UserFolder;
-                            break;
-                        case FolderType.SharedFolder:
-                        {
-                            ra.FolderType = RecordFolderType.SharedFolder;
-                            sharedFolder = folder;
-                        }
-                        break;
-                        case FolderType.SharedFolderFolder:
-                        {
-                            ra.FolderType = RecordFolderType.SharedFolderFolder;
-                            if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
+                            case FolderType.UserFolder:
+                                ra.FolderType = RecordFolderType.UserFolder;
+                                break;
+                            case FolderType.SharedFolder:
                             {
-                                var message =
-                                    $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found";
-                                BatchLogger?.Invoke(Severity.Warning, message);
-                                result.RecordFailure[typed.Uid] = message;
-                                continue;
+                                ra.FolderType = RecordFolderType.SharedFolder;
+                                sharedFolder = folder;
                             }
-                        }
-                        break;
+                            break;
+                            case FolderType.SharedFolderFolder:
+                            {
+                                ra.FolderType = RecordFolderType.SharedFolderFolder;
+                                if (!_folderInfoLookup.TryGetValue(folder.SharedFolderUid, out sharedFolder))
+                                {
+                                    var message =
+                                        $"Prepare Shared Folder Folder {folder.FolderUid}: Parent Shared Folder UID {folder.SharedFolderUid} not found";
+                                    BatchLogger?.Invoke(Severity.Warning, message);
+                                    result.RecordFailure[typed.Uid] = message;
+                                    continue;
+                                }
+                            }
+                            break;
                         }
 
                         ra.FolderUid = ByteString.CopyFrom(folder.FolderUid.Base64UrlDecode());
 
                         if (sharedFolder != null)
                         {
-                            ra.FolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(typed.RecordKey, sharedFolder.FolderKey));
+                                ra.FolderKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(typed.RecordKey, sharedFolder.FolderKey));
                         }
                     }
                     else
@@ -1201,7 +1203,8 @@ namespace KeeperSecurity.Vault
                         ra.Audit = new RecordAudit
                         {
                             Version = 0,
-                            Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(data, _vault.Auth.AuthContext.EnterprisePublicEcKey))
+                            Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(data,
+                                _vault.Auth.AuthContext.EnterprisePublicEcKey))
                         };
                     }
 
@@ -1277,7 +1280,7 @@ namespace KeeperSecurity.Vault
                             FolderUid = folder.FolderUid,
                             FolderType = folder.FolderType.GetFolderTypeText(),
                             ParentUid = string.IsNullOrEmpty(folder.ParentUid) ? null : folder.ParentUid,
-                            SharedFolderUid = string.IsNullOrEmpty(folder.SharedFolderUid) ? null : folder.SharedFolderUid,
+                                SharedFolderUid = string.IsNullOrEmpty(folder.SharedFolderUid) ? null : folder.SharedFolderUid,
                         };
 
                         var newName = _folderNameUpdates[folderUid];
@@ -1287,7 +1290,7 @@ namespace KeeperSecurity.Vault
                             var existingFolder = _vault.Storage.Folders.GetEntity(folderUid);
                             if (folder.FolderKey != null && !string.IsNullOrEmpty(existingFolder?.Data))
                             {
-                                data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
+                                    data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
                             }
                         }
                         catch {/* ignored */}
@@ -1310,14 +1313,14 @@ namespace KeeperSecurity.Vault
                             {
                                 if (perm.UserType == UserType.Team)
                                 {
-                                    request.TeamUid = perm.UserId;
+                                    request.TeamUid = perm.Uid;
                                 }
                             }
                         }
 
                         if (folder.FolderType == FolderType.SharedFolder)
                         {
-                            request.Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(newName), folder.FolderKey).Base64UrlEncode();
+                                request.Name = CryptoUtils.EncryptAesV1(Encoding.UTF8.GetBytes(newName), folder.FolderKey).Base64UrlEncode();
                         }
 
                         folderUpdateRequests.Add(request);
@@ -1370,7 +1373,8 @@ namespace KeeperSecurity.Vault
                         {
                             if (!membership.IsRemove)
                             {
-                                var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.UserId == membership.UserId);
+                                // TODO name
+                                var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.Uid == membership.UserId);
                                 if (existingUser == null)
                                 {
                                     (membership.UserType == UserType.User ? userEmails : teamUids).Add(membership.UserId);
@@ -1405,7 +1409,8 @@ namespace KeeperSecurity.Vault
                     };
                     foreach (var membership in _sharedFolderMembership[sharedFolderUid].Values)
                     {
-                        var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.UserId == membership.UserId);
+                        // TODO name
+                        var existingUser = sharedFolder.UsersPermissions.FirstOrDefault(x => x.UserType == membership.UserType && x.Uid == membership.UserId);
                         if (membership.IsRemove)
                         {
                             if (existingUser == null) continue;
@@ -1441,16 +1446,24 @@ namespace KeeperSecurity.Vault
                                     {
                                         try
                                         {
-                                            if (keys.RsaPublicKey == null)
-                                            {
-                                                throw new Exception($"RSA public key not found");
+                                            if (_vault.Auth.AuthContext.ForbidKeyType2 && keys.EcPublicKey != null) {
+                                                var ecPublicKey = CryptoUtils.LoadEcPublicKey(keys.EcPublicKey);
+                                                sfuu.TypedSharedFolderKey = new EncryptedDataKey {
+                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(sharedFolder.SharedFolderKey, ecPublicKey)),
+                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKeyEcc
+                                                };
                                             }
-                                            var rsaPublicKey = CryptoUtils.LoadPublicKey(keys.RsaPublicKey);
-                                            sfuu.TypedSharedFolderKey = new EncryptedDataKey 
-                                            {
-                                                EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey)),
-                                                EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey,
-                                            };
+                                            else if (!_vault.Auth.AuthContext.ForbidKeyType2 && keys.RsaPublicKey != null) {
+                                                var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
+                                                sfuu.TypedSharedFolderKey = new EncryptedDataKey
+                                                {
+                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey)),
+                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey
+                                                };
+                                            }
+                                            else {
+                                                throw new Exception($"User \"{membership.UserId}\" public key not found");
+                                            }
                                         }
                                         catch (Exception e)
                                         {
@@ -1493,19 +1506,37 @@ namespace KeeperSecurity.Vault
                                         {
                                             if (keys.AesKey != null)
                                             {
-                                                sfut.TypedSharedFolderKey = new EncryptedDataKey 
+                                                if (_vault.Auth.AuthContext.ForbidKeyType2)
                                                 {
-                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, keys.AesKey)),
-                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByDataKey,
-                                                };
+                                                    sfut.TypedSharedFolderKey = new EncryptedDataKey
+                                                    {
+                                                        EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(sharedFolder.SharedFolderKey, keys.AesKey)),
+                                                        EncryptedKeyType = EncryptedKeyType.EncryptedByDataKeyGcm,
+                                                    };
+                                                }
+                                                else {
+                                                    sfut.TypedSharedFolderKey = new EncryptedDataKey
+                                                    {
+                                                        EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, keys.AesKey)),
+                                                        EncryptedKeyType = EncryptedKeyType.EncryptedByDataKey,
+                                                    };
+                                                }
                                             }
-                                            else if (keys.RsaPublicKey != null)
+                                            else if (!_vault.Auth.AuthContext.ForbidKeyType2 && keys.RsaPublicKey != null)
                                             {
-                                                var rsaPublicKey = CryptoUtils.LoadPublicKey(keys.RsaPublicKey);
-                                                sfut.TypedSharedFolderKey = new EncryptedDataKey 
+                                                var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
+                                                sfut.TypedSharedFolderKey = new EncryptedDataKey
                                                 {
                                                     EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey)),
                                                     EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey,
+                                                };
+                                            }
+                                            else if (_vault.Auth.AuthContext.ForbidKeyType2 && keys.EcPublicKey != null) {
+                                                var ecPublicKey = CryptoUtils.LoadEcPublicKey(keys.EcPublicKey);
+                                                sfut.TypedSharedFolderKey = new EncryptedDataKey
+                                                {
+                                                    EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(sharedFolder.SharedFolderKey, ecPublicKey)),
+                                                    EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKeyEcc,
                                                 };
                                             }
                                             else
@@ -1539,8 +1570,8 @@ namespace KeeperSecurity.Vault
                             }
                         }
                     }
-                    if (rq.SharedFolderAddUser.Count > 0 || rq.SharedFolderAddTeam.Count > 0 || rq.SharedFolderUpdateUser.Count > 0 ||
-                        rq.SharedFolderUpdateTeam.Count > 0 || rq.SharedFolderRemoveUser.Count > 0 || rq.SharedFolderRemoveTeam.Count > 0)
+                    if (rq.SharedFolderAddUser.Count > 0 || rq.SharedFolderAddTeam.Count > 0 || rq.SharedFolderUpdateUser.Count > 0 || 
+                        rq.SharedFolderUpdateTeam.Count > 0 || rq.SharedFolderRemoveUser.Count > 0 || rq.SharedFolderRemoveTeam.Count > 0) 
                     {
                         sharedFolderMembershipRequests.Add(rq);
                     }
@@ -1553,16 +1584,16 @@ namespace KeeperSecurity.Vault
                     while (sharedFolderMembershipRequests.Count > 0)
                     {
                         var sfRq = sharedFolderMembershipRequests[0];
-                        rqNo += sfRq.SharedFolderAddUser.Count + sfRq.SharedFolderAddTeam.Count + sfRq.SharedFolderUpdateUser.Count +
+                        rqNo += sfRq.SharedFolderAddUser.Count + sfRq.SharedFolderAddTeam.Count + sfRq.SharedFolderUpdateUser.Count + 
                             sfRq.SharedFolderUpdateTeam.Count + sfRq.SharedFolderRemoveUser.Count + sfRq.SharedFolderRemoveTeam.Count;
                         sharedFolderMembershipRequests.RemoveAt(0);
                         rq.SharedFoldersUpdateV3.Add(sfRq);
-                        if (rqNo >= 900)
+                        if (rqNo >= 900) 
                         {
                             break;
                         }
                     }
-                    try
+                    try 
                     {
                         var rs = await _vault.Auth.ExecuteAuthRest<SharedFolderUpdateV3RequestV2, SharedFolderUpdateV3ResponseV2>(
                             "vault/shared_folder_update_v3", rq, apiVersion: 1);
@@ -1633,7 +1664,7 @@ namespace KeeperSecurity.Vault
 
 
         /// <inheritdoc/>
-        public bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, ISharedFolderUserOptions options = null)
+        public bool PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, IUserShareOptions options = null)
         {
             if (!TryGetFolderByUid(sharedFolderUid, out var f))
             {
@@ -1643,21 +1674,21 @@ namespace KeeperSecurity.Vault
 
             switch (f.FolderType)
             {
-            case FolderType.UserFolder:
-                BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" is not a shared folder");
-                return false;
-            case FolderType.SharedFolderFolder:
-                BatchLogger?.Invoke(Severity.Information, $"Folder UID \"{sharedFolderUid}\" is a shared subfolder folder. Selecting a parent shared folder.");
-                sharedFolderUid = f.SharedFolderUid;
-                if (!TryGetFolderByUid(sharedFolderUid, out f))
-                {
-                    BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" not found");
-                }
-                if (f.FolderType != FolderType.SharedFolder)
-                {
+                case FolderType.UserFolder:
                     BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" is not a shared folder");
-                }
-                break;
+                    return false;
+                case FolderType.SharedFolderFolder:
+                    BatchLogger?.Invoke(Severity.Information, $"Folder UID \"{sharedFolderUid}\" is a shared subfolder folder. Selecting a parent shared folder.");
+                    sharedFolderUid = f.SharedFolderUid;
+                    if (!TryGetFolderByUid(sharedFolderUid, out f))
+                    {
+                        BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" not found");
+                    }
+                    if (f.FolderType != FolderType.SharedFolder)
+                    {
+                        BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" is not a shared folder");
+                    }
+                    break;
             }
 
             SharedFolderMember pendingMembership = null;
@@ -1700,21 +1731,21 @@ namespace KeeperSecurity.Vault
 
             switch (f.FolderType)
             {
-            case FolderType.UserFolder:
-                BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" is not a shared folder");
-                return false;
-            case FolderType.SharedFolderFolder:
-                BatchLogger?.Invoke(Severity.Information, $"Folder UID \"{sharedFolderUid}\" is a shared subfolder folder. Selecting a parent shared folder.");
-                sharedFolderUid = f.SharedFolderUid;
-                if (!TryGetFolderByUid(sharedFolderUid, out f))
-                {
-                    BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" not found");
-                }
-                if (f.FolderType != FolderType.SharedFolder)
-                {
+                case FolderType.UserFolder:
                     BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" is not a shared folder");
-                }
-                break;
+                    return false;
+                case FolderType.SharedFolderFolder:
+                    BatchLogger?.Invoke(Severity.Information, $"Folder UID \"{sharedFolderUid}\" is a shared subfolder folder. Selecting a parent shared folder.");
+                    sharedFolderUid = f.SharedFolderUid;
+                    if (!TryGetFolderByUid(sharedFolderUid, out f))
+                    {
+                        BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" not found");
+                    }
+                    if (f.FolderType != FolderType.SharedFolder)
+                    {
+                        BatchLogger?.Invoke(Severity.Warning, $"Folder UID \"{sharedFolderUid}\" is not a shared folder");
+                    }
+                    break;
             }
 
             SharedFolderMember pendingMembership = null;
@@ -1733,8 +1764,9 @@ namespace KeeperSecurity.Vault
 
             if (_vault.TryGetSharedFolder(sharedFolderUid, out var sharedFolder))
             {
+                // TODO name
                 var existingMembership = sharedFolder.UsersPermissions.FirstOrDefault(
-                    x => x.UserType == userType && string.Equals(x.UserId, userId,
+                    x => x.UserType == userType && string.Equals(x.Uid, userId, 
                     x.UserType == UserType.User ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture));
                 if (existingMembership != null)
                 {
@@ -1786,3 +1818,4 @@ namespace KeeperSecurity.Vault
         public int FoldersToRename => _folderNameUpdates.Count;
     }
 }
+
