@@ -40,7 +40,7 @@ namespace KeeperSecurity.Enterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
 
-        internal readonly ConcurrentDictionary<long, ISet<string>> _entities = new ConcurrentDictionary<long, ISet<string>>();
+        private readonly ConcurrentDictionary<long, ISet<string>> _entities = new ConcurrentDictionary<long, ISet<string>>();
 
         public EnterpriseUserAliasDictionary() : base(EnterpriseDataEntity.UserAliases)
         {

@@ -26,7 +26,7 @@ namespace Commander
         public ConnectedContext(AuthCommon auth)
         {
             _auth = auth;
-            var storage = Program.CommanderStorage.GetKeeperStorage(auth.Username);
+            var storage = Program.CommanderStorage.GetKeeperStorage(auth.AuthContext.AccountUid.Base64UrlEncode());
             var vault = new VaultOnline(_auth, storage)
             {
                 VaultUi = new VaultUi(),

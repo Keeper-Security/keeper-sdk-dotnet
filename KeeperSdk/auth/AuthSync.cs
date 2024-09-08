@@ -8,6 +8,7 @@ using Authentication;
 using Google.Protobuf;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
+using Push;
 
 [assembly: InternalsVisibleTo("Tests")]
 
@@ -18,7 +19,7 @@ namespace KeeperSecurity.Authentication.Sync
     /// </summary>
     /// <seealso cref="ISsoLogoutCallback"/>
     /// <seealso cref="IPostLoginTaskUI"/>
-    public interface IAuthSyncCallback : IAuthCallback
+    public interface IAuthSyncCallback
     {
         void OnNextStep();
     }
@@ -26,7 +27,6 @@ namespace KeeperSecurity.Authentication.Sync
     /// <summary>
     /// Represents Keeper authentication. (sync)
     /// </summary>
-    /// <seealso cref="Async.Auth"/>
     /// <seealso cref="IAuth"/>
     /// <seealso cref="IAuthentication"/>
     public class AuthSync : AuthCommon, IAuth
@@ -37,7 +37,7 @@ namespace KeeperSecurity.Authentication.Sync
         public IAuthSyncCallback UiCallback { get; set; }
 
         /// <exclude/>
-        public override IAuthCallback AuthCallback => UiCallback;
+        public override object AuthCallback => UiCallback;
 
         /// <summary>
         /// Constructor.
@@ -47,7 +47,7 @@ namespace KeeperSecurity.Authentication.Sync
         public AuthSync(IConfigurationStorage storage, IKeeperEndpoint endpoint = null) 
         {
             Storage = storage ?? new InMemoryConfigurationStorage();
-            Endpoint = endpoint ?? new KeeperEndpoint(Storage.LastServer, Storage.Servers);
+            Endpoint = endpoint ?? new KeeperEndpoint(Storage);
 
             Cancel();
         }
@@ -61,14 +61,14 @@ namespace KeeperSecurity.Authentication.Sync
         /// <inheritdoc/>>
         public bool AlternatePassword { get; set; }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc cref="IAuth.Username" />>
         public new string Username
         {
             get => base.Username;
             set => base.Username = value;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc cref="IAuth.DeviceToken" />>
         public new byte[] DeviceToken
         {
             get => base.DeviceToken;
@@ -114,7 +114,7 @@ namespace KeeperSecurity.Authentication.Sync
 
         private LoginContext _loginContext;
 
-        internal async Task DoLogin(string username)
+        private async Task DoLogin(string username)
         {
             Username = username.ToLowerInvariant();
             try
@@ -126,7 +126,7 @@ namespace KeeperSecurity.Authentication.Sync
                 }
                 catch (KeeperRegionRedirect krr)
                 {
-                    await this.RedirectToRegionV3(krr.RegionHost);
+                    this.RedirectToRegionV3(krr.RegionHost);
                     await this.EnsureDeviceTokenIsRegistered(_loginContext, Username);
                     Step = await this.StartLogin(_loginContext, StartLoginSync);
                 }
@@ -298,17 +298,34 @@ namespace KeeperSecurity.Authentication.Sync
             authContext = context;
 
             this.StoreConfigurationIfChangedV3(_loginContext);
+            SetPushNotifications(null);
 
-            if (authContext.SessionTokenRestriction == 0 && PushNotifications is IPushNotificationChannel push)
+            if (authContext.SessionTokenRestriction == 0)
             {
-                try
+                var pushNotifications = new KeeperPushNotifications(Endpoint.WebProxy);
+                var messageSessionUid = _loginContext.MessageSessionUid;
+
+                async Task<Uri> PrepareWssUrl(byte[] transmissionKey)
                 {
-                    await push.SendToWebSocket(authContext.SessionToken, false);
+                    await ExecuteAuthRest("keep_alive", null);
+                    var connectionRequest = new WssConnectionRequest
+                    {
+                        EncryptedDeviceToken = ByteString.CopyFrom(DeviceToken),
+                        MessageSessionUid = ByteString.CopyFrom(messageSessionUid),
+                        DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    };
+                    var apiRequest = Endpoint.PrepareApiRequest(connectionRequest, transmissionKey);
+                    var builder = new UriBuilder
+                    {
+                        Scheme = "wss",
+                        Host = Endpoint.PushServer(),
+                        Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode()
+                    };
+                    return builder.Uri;
                 }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e);
-                }
+
+                pushNotifications.ConnectToPushServer(PrepareWssUrl, context.SessionToken);
+                SetPushNotifications(pushNotifications);
             }
 
             try
@@ -332,6 +349,8 @@ namespace KeeperSecurity.Authentication.Sync
 
         private TwoFactorStep TwoFactorValidate(ByteString loginToken, IEnumerable<TwoFactorChannelInfo> channels)
         {
+            this.EnsurePushNotification(_loginContext);
+            
             var tfaStep = new TwoFactorStep();
             var t = this.TwoFactorValidatePrepare(
                 async (token) =>
@@ -457,8 +476,9 @@ namespace KeeperSecurity.Authentication.Sync
 
         private DeviceApprovalStep ApproveDevice(ByteString loginToken)
         {
+            this.EnsurePushNotification(_loginContext);
+            
             var deviceApprovalStep = new DeviceApprovalStep();
-
             var t = this.ApproveDevicePrepare(
                 _loginContext,
                 async (token) =>
@@ -552,8 +572,8 @@ namespace KeeperSecurity.Authentication.Sync
 
         private SsoDataKeyStep RequestDataKey(ByteString loginToken)
         {
+            this.EnsurePushNotification(_loginContext);
             var dataKeyStep = new SsoDataKeyStep();
-
             var t = this.RequestDataKeyPrepare(
                 _loginContext,
                 (approved) =>

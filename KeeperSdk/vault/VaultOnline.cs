@@ -7,7 +7,6 @@ using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
-using Org.BouncyCastle.Crypto.Parameters;
 using Records;
 using AuthProto = Authentication;
 
@@ -493,8 +492,8 @@ namespace KeeperSecurity.Vault
 
             var pkRss = await Auth.ExecuteAuthRest<AuthProto.GetPublicKeysRequest, AuthProto.GetPublicKeysResponse>("vault/get_public_keys", pkRq);
             var pkRs = pkRss.KeyResponses[0];
-            ECPublicKeyParameters ecPk = null;
-            RsaKeyParameters rsaPk = null;
+            EcPublicKey ecPk = null;
+            RsaPublicKey rsaPk = null;
             if (!pkRs.PublicEccKey.IsEmpty)
             {
                 ecPk = CryptoUtils.LoadEcPublicKey(pkRs.PublicEccKey.ToByteArray());
@@ -540,7 +539,7 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task RevokeShareFromUser(string recordUid, string username)
         {
-            if (!TryGetKeeperRecord(recordUid, out var record))
+            if (!TryGetKeeperRecord(recordUid, out _))
             {
                 throw new KeeperApiException("not_found", "Record not found");
             }
@@ -567,8 +566,10 @@ namespace KeeperSecurity.Vault
             var request = new RecordShareUpdateRequest();
             request.RemoveSharedRecord.Add(sr);
 
-            var response = await Auth.ExecuteAuthRest<RecordShareUpdateRequest, Records.RecordShareUpdateResponse>("vault/records_share_update", request);
-            var status = response.RemoveSharedRecordStatus.FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
+            var response = await Auth.ExecuteAuthRest<RecordShareUpdateRequest, RecordShareUpdateResponse>("vault/records_share_update", request);
+            var status = response.RemoveSharedRecordStatus
+                .FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && 
+                                     string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
             if (status != null && status.Status != "success")
             {
                 throw new KeeperApiException(status.Status, status.Message);
@@ -588,7 +589,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        internal void OnIdle()
+        private void OnIdle()
         {
             string[] recordUids = null;
             lock (_recordsForAudit)
@@ -612,7 +613,7 @@ namespace KeeperSecurity.Vault
                     .Select(x =>
                     {
                         var rad = x.ExtractRecordAuditData();
-                        return new Records.RecordAddAuditData
+                        return new RecordAddAuditData
                         {
                             RecordUid = ByteString.CopyFrom(x.Uid.Base64UrlDecode()),
                             Revision = x.Revision,

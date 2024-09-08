@@ -96,7 +96,7 @@ namespace KeeperSecurity
         /// </summary>
         public static class KeeperImport
         {
-            private const string TWO_FACTOR_CODE = "TFC:Keeper";
+            private const string TwoFactorCode = "TFC:Keeper";
 
             static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
@@ -118,7 +118,7 @@ namespace KeeperSecurity
                         }
                         if (value is string strValue && !string.IsNullOrEmpty(strValue))
                         {
-                            if (name == TWO_FACTOR_CODE)
+                            if (name == TwoFactorCode)
                             {
                                 if (strValue.StartsWith("otpauth://"))
                                 {
@@ -281,10 +281,10 @@ namespace KeeperSecurity
                 if (import.CustomFields != null)
                 {
                     customFields = import.CustomFields.ToDictionary(entry => entry.Key, entry => entry.Value);
-                    if (customFields.TryGetValue(TWO_FACTOR_CODE, out var tfa))
+                    if (customFields.TryGetValue(TwoFactorCode, out var tfa))
                     {
                         customFields["$oneTimeCode"] = tfa;
-                        customFields.Remove(TWO_FACTOR_CODE);
+                        customFields.Remove(TwoFactorCode);
                     }
                 }
 
@@ -380,7 +380,7 @@ namespace KeeperSecurity
 
                         try
                         {
-                            var field = new RecordTypeField(t.Item1, t.Item2).CreateTypedField();
+                            var field = new RecordTypeField(fieldType, fieldLabel).CreateTypedField();
                             field.AssignValueToField(value, logger);
                             typed.Custom.Add(field);
                         }

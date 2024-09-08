@@ -17,8 +17,8 @@ namespace KeeperSecurity.Configuration
     /// <remarks>
     /// Library implements configuration stored in JSON format.
     /// </remarks>
-    /// <seealso cref="IConfigurationStorage"/>
-    /// <seealso cref="JsonConfigurationStorage"/>
+    /// <seealso cref="IKeeperConfiguration"/>
+    /// <seealso cref="JsonKeeperConfiguration"/>
     [System.Runtime.CompilerServices.CompilerGenerated]
     class NamespaceDoc
     {

@@ -370,6 +370,6 @@ namespace KeeperSecurity.Enterprise
             await PostLogin();
         }
 
-        public override IAuthCallback AuthCallback => null;
+        public override object AuthCallback => null;
     }
 }

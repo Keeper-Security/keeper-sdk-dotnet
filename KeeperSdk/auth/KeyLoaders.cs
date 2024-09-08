@@ -60,6 +60,7 @@ namespace KeeperSecurity.Authentication
                                 case 3:
                                     rsa = encryptedKey;
                                     break;
+                                // TODO Client version 17
                                 /*
                                 case 3:
                                     aes = CryptoUtils.DecryptAesV2(encryptedKey, AuthContext.DataKey);

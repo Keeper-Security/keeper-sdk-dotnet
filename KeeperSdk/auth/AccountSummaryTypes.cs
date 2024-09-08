@@ -49,7 +49,7 @@ namespace KeeperSecurity.Authentication
         /// </item>
         /// </list>
         /// </summary>
-        public int ProductTypeId { get; internal set; }
+        public int ProductTypeId { get; private set; }
 
         /// <summary>
         /// Product Type name.
@@ -187,12 +187,6 @@ namespace KeeperSecurity.Authentication
         /// Persistent login.
         /// </summary>
         public bool PersistentLogin { get; internal set; }
-        /// <summary>
-        /// Record types enabled flag.
-        /// </summary>
-
-        public bool RecordTypesEnabled { get; internal set; }
-
         internal string AccountFolderKey { get; set; }
         internal AccountShareTo[] ShareAccountTo { get; set; }
 
@@ -218,7 +212,6 @@ namespace KeeperSecurity.Authentication
                 ShareDataKeyWithDevicePublicKey = settings.ShareDataKeyWithDevicePublicKey,
                 LogoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : (long?) null,
                 PersistentLogin = settings.PersistentLogin,
-                RecordTypesEnabled = settings.RecordTypesEnabled,
             };
         }
     }

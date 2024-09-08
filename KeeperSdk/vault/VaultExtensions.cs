@@ -21,7 +21,7 @@ namespace KeeperSecurity.Vault
                 return null;
             }
 
-            var padBytes = 0;
+            int padBytes;
             if (data.Length < 384)
             {
                 padBytes = 384 - data.Length;
@@ -34,14 +34,16 @@ namespace KeeperSecurity.Vault
                     padBytes = 16 - padBytes;
                 }
             }
+
             if (padBytes > 0)
             {
                 return data.Concat(Enumerable.Repeat((byte) 0x20, padBytes)).ToArray();
             }
+
             return data;
         }
-        
-        public static IRecordMetadata ResolveRecordAccessPath(this IVault vault, IRecordAccessPath path,
+
+        public static IStorageRecordKey ResolveRecordAccessPath(this IVault vault, IRecordAccessPath path,
             bool forEdit = false,
             bool forShare = false, bool forView = false)
         {
@@ -95,7 +97,8 @@ namespace KeeperSecurity.Vault
             if (!vault.TryGetSharedFolder(sharedFolderUid, out var sf)) return null;
 
             var permissions = sf.UsersPermissions
-                .Where(x => x.Uid == username || string.Equals(x.Name, username, StringComparison.InvariantCultureIgnoreCase))
+                .Where(x => x.Uid == username ||
+                            string.Equals(x.Name, username, StringComparison.InvariantCultureIgnoreCase))
                 .Where(x => (!forManageUsers || x.ManageUsers) && (!forManageRecords || x.ManageRecords))
                 .ToArray();
 
@@ -103,7 +106,9 @@ namespace KeeperSecurity.Vault
             return permissions.FirstOrDefault(x => x.UserType == UserType.User) ?? permissions[0];
         }
 
-        internal static Records.RecordUpdate ExtractTypedRecordForUpdate(this VaultOnline vault, TypedRecord typed, IStorageRecord existingRecord) {
+        internal static Records.RecordUpdate ExtractTypedRecordForUpdate(this VaultOnline vault, TypedRecord typed,
+            IStorageRecord existingRecord)
+        {
             vault.AdjustTypedRecord(typed);
             var recordUpdate = new Records.RecordUpdate
             {
@@ -137,14 +142,14 @@ namespace KeeperSecurity.Vault
 
             foreach (var newRef in currentRefs.Except(existingRefs))
             {
-                byte[] refKey = null;
-                if (!typed.LinkedKeys.TryGetValue(newRef, out refKey))
+                if (!typed.LinkedKeys.TryGetValue(newRef, out var refKey))
                 {
                     if (vault.TryGetKeeperRecord(newRef, out var xr))
                     {
                         refKey = xr.RecordKey;
                     }
                 }
+
                 if (refKey != null)
                 {
                     var recordLink = new Records.RecordLink
@@ -154,7 +159,7 @@ namespace KeeperSecurity.Vault
                     };
                     recordUpdate.RecordLinksAdd.Add(recordLink);
                 }
-                else 
+                else
                 {
                     Trace.TraceError($"Lost record reference: record UID: \"{newRef}\"");
                 }
@@ -177,7 +182,8 @@ namespace KeeperSecurity.Vault
             return recordUpdate;
         }
 
-        internal static RecordUpdateRecord ExtractPasswordRecordForUpdate(this IVault vault, PasswordRecord password, IStorageRecord existingRecord)
+        internal static RecordUpdateRecord ExtractPasswordRecordForUpdate(this IVault vault, PasswordRecord password,
+            IStorageRecord existingRecord)
         {
             var pru = new RecordUpdateRecord
             {
@@ -206,6 +212,7 @@ namespace KeeperSecurity.Vault
                         e.Message);
                 }
             }
+
             var extra = password.ExtractRecordExtra(existingExtra);
             var extraBytes = JsonUtils.DumpJson(extra);
             pru.Extra = CryptoUtils.EncryptAesV1(extraBytes, password.RecordKey).Base64UrlEncode();
@@ -237,16 +244,16 @@ namespace KeeperSecurity.Vault
         {
             return new RecordData
             {
-                title = record.Title ?? "",
-                secret1 = record.Login ?? "",
-                secret2 = record.Password ?? "",
-                link = record.Link ?? "",
-                notes = record.Notes ?? "",
-                custom = record.Custom?.Select(x => new RecordDataCustom
+                Title = record.Title ?? "",
+                Secret1 = record.Login ?? "",
+                Secret2 = record.Password ?? "",
+                Link = record.Link ?? "",
+                Notes = record.Notes ?? "",
+                Custom = record.Custom?.Select(x => new RecordDataCustom
                 {
-                    name = x.Name ?? "Custom Field",
-                    value = x.Value,
-                    type = x.Type ?? "text"
+                    Name = x.Name ?? "Custom Field",
+                    Value = x.Value,
+                    Type = x.Type ?? "text"
                 }).ToArray()
             };
         }
@@ -254,31 +261,38 @@ namespace KeeperSecurity.Vault
         internal static RecordExtra ExtractRecordExtra(this PasswordRecord record, RecordExtra existingExtra = null)
         {
             IDictionary<string, RecordExtraFile> extraFiles = null;
-            if (existingExtra?.files != null && existingExtra.files.Length > 0)
+            if (existingExtra?.Files != null && existingExtra.Files.Length > 0)
             {
                 extraFiles = new Dictionary<string, RecordExtraFile>();
-                foreach (var f in existingExtra.files)
+                foreach (var f in existingExtra.Files)
                 {
-                    extraFiles.Add(f.id, f);
+                    extraFiles.Add(f.Id, f);
                 }
             }
 
             List<Dictionary<string, object>> extraFields = new List<Dictionary<string, object>>();
-            if (existingExtra?.fields != null && existingExtra.fields.Length > 0)
+            if (existingExtra?.Fields != null && existingExtra.Fields.Length > 0)
             {
-                extraFields.AddRange(existingExtra.fields);
+                extraFields.AddRange(existingExtra.Fields);
             }
-            Dictionary<string, object> totpField = extraFields.FirstOrDefault(x =>
+
+            Dictionary<string, object> totpField = null;
+            foreach (var objects in extraFields.Where(x =>
+                     {
+                         if (x.TryGetValue("field_type", out var value))
+                         {
+                             if (value is string fieldType)
+                             {
+                                 return string.Equals(fieldType, "totp", StringComparison.InvariantCultureIgnoreCase);
+                             }
+                         }
+
+                         return false;
+                     }))
             {
-                if (x.TryGetValue("field_type", out var value))
-                {
-                    if (value is string field_type)
-                    {
-                        return string.Equals(field_type, "totp", StringComparison.InvariantCultureIgnoreCase);
-                    }
-                }
-                return false;
-            });
+                totpField = objects;
+                break;
+            }
 
             if (string.IsNullOrEmpty(record.Totp))
             {
@@ -304,7 +318,7 @@ namespace KeeperSecurity.Vault
 
             return new RecordExtra
             {
-                files = record.Attachments?.Select(x =>
+                Files = record.Attachments?.Select(x =>
                 {
                     RecordExtraFile extraFile;
                     if (extraFiles != null)
@@ -317,28 +331,28 @@ namespace KeeperSecurity.Vault
 
                     extraFile = new RecordExtraFile
                     {
-                        id = x.Id,
-                        key = x.Key,
-                        name = x.Name,
-                        title = x.Title ?? x.Name,
-                        size = x.Size,
-                        type = x.MimeType
+                        Id = x.Id,
+                        Key = x.Key,
+                        Name = x.Name,
+                        Title = x.Title ?? x.Name,
+                        Size = x.Size,
+                        Type = x.MimeType
                     };
                     if (x.Thumbnails != null && x.Thumbnails.Length > 0)
                     {
-                        extraFile.thumbs = x.Thumbnails.Select(y =>
+                        extraFile.Thumbs = x.Thumbnails.Select(y =>
                                 new RecordExtraFileThumb
                                 {
-                                    id = y.Id,
-                                    size = y.Size,
-                                    type = y.Type
+                                    Id = y.Id,
+                                    Size = y.Size,
+                                    Type = y.Type
                                 })
                             .ToArray();
                     }
 
                     return extraFile;
                 }).ToArray(),
-                fields = extraFields.ToArray(),
+                Fields = extraFields.ToArray(),
                 ExtensionData = existingExtra?.ExtensionData
             };
         }
@@ -438,6 +452,7 @@ namespace KeeperSecurity.Vault
                     record = r.LoadV5(key);
                     break;
             }
+
             return record;
         }
 
@@ -459,20 +474,20 @@ namespace KeeperSecurity.Vault
             using (var ms = new MemoryStream(data))
             {
                 var parsedData = (RecordData) DataSerializer.ReadObject(ms);
-                record.Title = parsedData.title;
-                record.Login = parsedData.secret1;
-                record.Password = parsedData.secret2;
-                record.Link = parsedData.link;
-                record.Notes = parsedData.notes;
-                if (parsedData.custom != null)
+                record.Title = parsedData.Title;
+                record.Login = parsedData.Secret1;
+                record.Password = parsedData.Secret2;
+                record.Link = parsedData.Link;
+                record.Notes = parsedData.Notes;
+                if (parsedData.Custom != null)
                 {
-                    foreach (var cr in parsedData.custom.Where(x => x != null))
+                    foreach (var cr in parsedData.Custom.Where(x => x != null))
                     {
                         record.Custom.Add(new CustomField
                         {
-                            Name = cr.name,
-                            Value = cr.value,
-                            Type = cr.type
+                            Name = cr.Name,
+                            Value = cr.Value,
+                            Type = cr.Type
                         });
                     }
                 }
@@ -484,31 +499,31 @@ namespace KeeperSecurity.Vault
                 using (var ms = new MemoryStream(extra))
                 {
                     var parsedExtra = (RecordExtra) ExtraSerializer.ReadObject(ms);
-                    if (parsedExtra.files != null && parsedExtra.files.Length > 0)
+                    if (parsedExtra.Files != null && parsedExtra.Files.Length > 0)
                     {
-                        foreach (var file in parsedExtra.files.Where(x => x != null))
+                        foreach (var file in parsedExtra.Files.Where(x => x != null))
                         {
                             var atta = new AttachmentFile
                             {
-                                Id = file.id,
-                                Key = file.key,
-                                Name = file.name,
-                                Title = file.title ?? "",
-                                MimeType = file.type ?? "",
-                                Size = file.size ?? 0,
-                                LastModified = file.lastModified != null
-                                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(file.lastModified.Value)
+                                Id = file.Id,
+                                Key = file.Key,
+                                Name = file.Name,
+                                Title = file.Title ?? "",
+                                MimeType = file.Type ?? "",
+                                Size = file.Size ?? 0,
+                                LastModified = file.LastModified != null
+                                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(file.LastModified.Value)
                                     : DateTimeOffset.Now
                             };
-                            if (file.thumbs != null)
+                            if (file.Thumbs != null)
                             {
-                                atta.Thumbnails = file.thumbs
+                                atta.Thumbnails = file.Thumbs
                                     .Where(x => x != null)
                                     .Select(t => new AttachmentFileThumb
                                     {
-                                        Id = t.id,
-                                        Type = t.type,
-                                        Size = t.size ?? 0
+                                        Id = t.Id,
+                                        Type = t.Type,
+                                        Size = t.Size ?? 0
                                     })
                                     .ToArray();
                             }
@@ -517,17 +532,19 @@ namespace KeeperSecurity.Vault
                         }
                     }
 
-                    if (parsedExtra.fields != null)
+                    if (parsedExtra.Fields != null)
                     {
-                        var totpField = parsedExtra.fields.FirstOrDefault(x =>
+                        var totpField = parsedExtra.Fields.FirstOrDefault(x =>
                         {
                             if (x.TryGetValue("field_type", out var value))
                             {
-                                if (value is string field_type)
+                                if (value is string fieldType)
                                 {
-                                    return string.Equals(field_type, "totp", StringComparison.InvariantCultureIgnoreCase);
+                                    return string.Equals(fieldType, "totp",
+                                        StringComparison.InvariantCultureIgnoreCase);
                                 }
                             }
+
                             return false;
                         });
                         if (totpField != null)
@@ -547,7 +564,7 @@ namespace KeeperSecurity.Vault
             return record;
         }
 
-        internal static ITypedField ConvertToTypedField(this RecordTypeDataFieldBase field)
+        private static ITypedField ConvertToTypedField(this RecordTypeDataFieldBase field)
         {
             try
             {
@@ -562,22 +579,21 @@ namespace KeeperSecurity.Vault
                 {
                     dataType = rf.Type.Type;
                 }
-                else 
+                else
                 {
                     dataType = typeof(AnyComplexField);
                 }
-                if (rf != null && RecordTypesConstants.GetJsonParser(rf.Type.Type, out var serializer))
-                { 
+
+                if (rf != null && RecordTypesConstants.GetJsonParser(dataType, out var serializer))
+                {
                     using (var ms = new MemoryStream(xb))
                     {
                         var f = (RecordTypeDataFieldBase) serializer.ReadObject(ms);
                         return f.CreateTypedField();
                     }
                 }
-                else
-                {
-                    Debug.WriteLine($"Unsupported field type: {field.Type}");
-                }
+
+                Debug.WriteLine($"Unsupported field type: {field.Type}");
             }
             catch (Exception e)
             {
@@ -635,7 +651,7 @@ namespace KeeperSecurity.Vault
                 FileSize = rfd.Size ?? 0,
                 MimeType = rfd.Type,
                 LastModified = rfd.LastModified != null
-                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds((long)rfd.LastModified.Value)
+                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds((long) rfd.LastModified.Value)
                     : DateTimeOffset.Now
             };
             if (!string.IsNullOrEmpty(r.Udata))
@@ -648,7 +664,7 @@ namespace KeeperSecurity.Vault
             return fileRecord;
         }
 
-        public static ApplicationRecord LoadV5(this IStorageRecord r, byte[] key) 
+        public static ApplicationRecord LoadV5(this IStorageRecord r, byte[] key)
         {
             var data = CryptoUtils.DecryptAesV2(r.Data.Base64UrlDecode(), key);
             var rad = JsonUtils.ParseJson<RecordApplicationData>(data);
@@ -667,7 +683,7 @@ namespace KeeperSecurity.Vault
             return applicationRecord;
         }
 
-        public static SharedFolder Load(this ISharedFolder sf, IKeeperStorage storage, byte[] sharedFolderKey)
+        public static SharedFolder Load(this IStorageSharedFolder sf, IKeeperStorage storage, byte[] sharedFolderKey)
         {
             var sharedFolder = new SharedFolder
             {
@@ -681,36 +697,34 @@ namespace KeeperSecurity.Vault
             };
 
             var users = storage.SharedFolderPermissions.GetLinksForSubject(sf.SharedFolderUid).ToArray();
-            if (users != null)
+            foreach (var u in users)
             {
-                foreach (var u in users)
+                string name = "";
+                if (u.UserType == (int) UserType.User)
                 {
-                    string name = "";
-                    if (u.UserType == (int) UserType.User)
+                    var e = storage.UserEmails.GetLinksForSubject(u.UserId).FirstOrDefault();
+                    if (e != null)
                     {
-                        var e = storage.UserEmails.GetEntity(u.UserId);
-                        if (e != null)
-                        {
-                            name = e.Email;
-                        }
+                        name = e.Email;
                     }
-                    else
-                    {
-                        var t = storage.Teams.GetEntity(u.UserId);
-                        if (t != null) 
-                        {
-                            name = t.Name;
-                        }
-                    }
-                    sharedFolder.UsersPermissions.Add(new SharedFolderPermission
-                    {
-                        Uid = u.UserId,
-                        Name = name,
-                        UserType = (UserType) u.UserType,
-                        ManageRecords = u.ManageRecords,
-                        ManageUsers = u.ManageUsers
-                    });
                 }
+                else
+                {
+                    var t = storage.Teams.GetEntity(u.UserId);
+                    if (t != null)
+                    {
+                        name = t.Name;
+                    }
+                }
+
+                sharedFolder.UsersPermissions.Add(new SharedFolderPermission
+                {
+                    Uid = u.UserId,
+                    Name = name,
+                    UserType = (UserType) u.UserType,
+                    ManageRecords = u.ManageRecords,
+                    ManageUsers = u.ManageUsers
+                });
             }
 
             foreach (var r in storage.RecordKeys.GetLinksForObject(sf.SharedFolderUid))
@@ -726,7 +740,7 @@ namespace KeeperSecurity.Vault
             return sharedFolder;
         }
 
-        public static Team Load(this IEnterpriseTeam team, byte[] teamKey)
+        public static Team Load(this IStorageTeam team, byte[] teamKey)
         {
             var t = new Team
             {
@@ -750,6 +764,7 @@ namespace KeeperSecurity.Vault
                     Trace.TraceError($"Decrypt team \"{t.TeamUid}\" RSA private key error:  {e.Message}");
                 }
             }
+
             if (!string.IsNullOrEmpty(team.TeamEcPrivateKey))
             {
                 try

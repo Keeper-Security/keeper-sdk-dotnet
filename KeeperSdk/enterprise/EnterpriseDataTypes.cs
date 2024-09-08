@@ -94,7 +94,7 @@ namespace KeeperSecurity.Enterprise
     {
         internal readonly ConcurrentDictionary<TD, TS> _entities = new ConcurrentDictionary<TD, TS>();
 
-        public EnterpriseDataDictionary(EnterpriseDataEntity dataEntity) : base(dataEntity)
+        protected EnterpriseDataDictionary(EnterpriseDataEntity dataEntity) : base(dataEntity)
         {
         }
 
@@ -148,7 +148,7 @@ namespace KeeperSecurity.Enterprise
     where TK : IMessage<TK>
     where TS : class, new()
     {
-        internal readonly List<TS> _entities = new List<TS>();
+        private readonly List<TS> _entities = new List<TS>();
 
         protected abstract bool MatchByKeeperEntity(TS sdkEntity, TK keeperEntity);
         protected abstract TS CreateFromKeeperEntity(TK keeperEntity);
@@ -195,10 +195,9 @@ namespace KeeperSecurity.Enterprise
         where TD1 : IComparable<TD1>
         where TD2 : IComparable<TD2>
     {
+        private readonly List<TS> _links = new List<TS>();
 
-        protected readonly List<TS> _links = new List<TS>();
-
-        public EnterpriseDataLink(EnterpriseDataEntity dataEntity) : base(dataEntity)
+        protected EnterpriseDataLink(EnterpriseDataEntity dataEntity) : base(dataEntity)
         {
         }
 
@@ -208,7 +207,10 @@ namespace KeeperSecurity.Enterprise
 
         public override void Clear()
         {
-            _links.Clear();
+            lock (_links)
+            {
+                _links.Clear();
+            }
         }
 
         public IList<TS> LinksForPrimaryKey(TD1 primaryId)
@@ -260,5 +262,4 @@ namespace KeeperSecurity.Enterprise
             DataStructureChanged();
         }
     }
-
 }

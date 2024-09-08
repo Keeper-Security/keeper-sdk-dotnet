@@ -9,7 +9,7 @@ using KeeperSecurity.Authentication;
 using Folder;
 using KeeperSecurity.Commands;
 using Records;
-using Org.BouncyCastle.Crypto.Digests;
+using System.Security.Cryptography;
 
 namespace KeeperSecurity.Vault
 {
@@ -329,33 +329,29 @@ namespace KeeperSecurity.Vault
             // Load records
             if (RecordMatch != RecordMatch.None)
             {
-                var hash = new Sha256Digest();
+                using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                 foreach (var record in _vault.KeeperRecords)
                 {
                     if (record is PasswordRecord || record is TypedRecord)
                     {
-                        hash.Reset();
                         foreach (var token in TokenizeKeeperRecord(record, RecordMatch.AllFields))
                         {
                             var buffer = Encoding.UTF8.GetBytes(token);
-                            hash.BlockUpdate(buffer, 0, buffer.Length);
+                            hasher.AppendData(buffer, 0, buffer.Length);
                         }
 
-                        var hashValue = new byte[hash.GetDigestSize()];
-                        hash.DoFinal(hashValue, 0);
+                        var hashValue = hasher.GetHashAndReset();
                         _recordFullHashes[hashValue.Base64UrlEncode()] = record.Uid;
 
                         if (RecordMatch == RecordMatch.MainFields)
                         {
-                            hash.Reset();
                             foreach (var token in TokenizeKeeperRecord(record, RecordMatch))
                             {
                                 var buffer = Encoding.UTF8.GetBytes(token);
-                                hash.BlockUpdate(buffer, 0, buffer.Length);
+                                hasher.AppendData(buffer, 0, buffer.Length);
                             }
 
-                            var hashMatchValue = new byte[hash.GetDigestSize()];
-                            hash.DoFinal(hashMatchValue, 0);
+                            var hashMatchValue = hasher.GetHashAndReset();
                             _recordMainHashes[hashMatchValue.Base64UrlEncode()] = record.Uid;
                         }
                     }
@@ -752,15 +748,14 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public bool AddRecord(KeeperRecord record, FolderNode folder)
         {
-            var recordHasher = new Sha256Digest();
+            using var recordHasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
             foreach (var token in TokenizeKeeperRecord(record, RecordMatch.AllFields))
             {
                 var buffer = Encoding.UTF8.GetBytes(token);
-                recordHasher.BlockUpdate(buffer, 0, buffer.Length);
+                recordHasher.AppendData(buffer, 0, buffer.Length);
             }
 
-            var hashValue = new byte[recordHasher.GetDigestSize()];
-            recordHasher.DoFinal(hashValue, 0);
+            var hashValue = recordHasher.GetHashAndReset();
             var recordHashStr = hashValue.Base64UrlEncode();
 
             if (_recordFullHashes.TryGetValue(recordHashStr, out var recordUid))
@@ -792,15 +787,13 @@ namespace KeeperSecurity.Vault
             string mainHashStr = null;
             if (RecordMatch != RecordMatch.MainFields)
             {
-                recordHasher.Reset();
                 foreach (var token in TokenizeKeeperRecord(record, RecordMatch))
                 {
                     var buffer = Encoding.UTF8.GetBytes(token);
-                    recordHasher.BlockUpdate(buffer, 0, buffer.Length);
+                    recordHasher.AppendData(buffer, 0, buffer.Length);
                 }
 
-                hashValue = new byte[recordHasher.GetDigestSize()];
-                recordHasher.DoFinal(hashValue, 0);
+                hashValue = recordHasher.GetHashAndReset();
                 mainHashStr = hashValue.Base64UrlEncode();
                 if (_recordMainHashes.TryGetValue(mainHashStr, out recordUid))
                 {

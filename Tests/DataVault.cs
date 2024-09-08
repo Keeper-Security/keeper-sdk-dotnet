@@ -12,22 +12,15 @@ using KeeperSecurity.Authentication;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.OpenSsl;
-using Org.BouncyCastle.Pkcs;
+using Xunit;
 using VaultProto = Vault;
 using RecordsProto = Records;
+using System.Security.Cryptography;
 
 namespace Tests
 {
-    public class TestWebSocket : FanOut<NotificationEvent>, IPushNotificationChannel
+    public class TestWebSocket : FanOut<NotificationEvent>
     {
-        public Task SendToWebSocket(byte[] payload, bool encrypted)
-        {
-            return Task.CompletedTask;
-        }
     }
 
     public class AuthMockParameters
@@ -101,7 +94,9 @@ namespace Tests
                         lrs.PrimaryUsername = DataVault.UserName;
                         lrs.CloneCode = ByteString.CopyFrom(CryptoUtils.GetRandomBytes(8));
                         lrs.EncryptedSessionToken = ByteString.CopyFrom(DataVault.SessionToken);
-                        var device = auth.Storage.Devices.List.FirstOrDefault();
+                        var configuration = auth.Storage.Get();
+                        var device = configuration.Devices.List.FirstOrDefault();
+                        Assert.NotNull(device);
                         var devicePrivateKey = CryptoUtils.LoadEcPrivateKey(device.DeviceKey);
                         var devicePublicKey = CryptoUtils.GetEcPublicKey(devicePrivateKey);
                         lrs.EncryptedDataKey = ByteString.CopyFrom(CryptoUtils.EncryptEc(DataVault.UserDataKey, devicePublicKey));
@@ -267,12 +262,12 @@ fwIDAQAB
         public static string TwoFactorOneTimeToken = "123456";
         public static string TwoFactorDeviceToken = CryptoUtils.GetRandomBytes(32).Base64UrlEncode();
 
-        public static RsaPrivateCrtKeyParameters ImportedPrivateKey = LoadPrivateKey(UserPrivateKey);
-        public static byte[] DerPrivateKey = ExportPrivateKey(ImportedPrivateKey);
+        public static RsaPrivateKey ImportedPrivateKey = LoadPrivateKey(UserPrivateKey);
+        public static byte[] DerPrivateKey = CryptoUtils.UnloadRsaPrivateKey(ImportedPrivateKey);
         public static byte[] EncryptedPrivateKey = CryptoUtils.EncryptAesV1(DerPrivateKey, UserDataKey);
 
-        public static RsaKeyParameters ImportedPublicKey = LoadPublicKey(UserPublicKey);
-        public static byte[] DerPublicKey = ExportPublicKey(ImportedPublicKey);
+        public static RsaPublicKey ImportedPublicKey = LoadPublicKey(UserPublicKey);
+        public static byte[] DerPublicKey = CryptoUtils.UnloadRsaPublicKey(ImportedPublicKey);
         public static string EncodedPublicKey = DerPublicKey.Base64UrlEncode();
 
         public static byte[] V2DerivedKey = CryptoUtils.DeriveKeyV2("data_key", UserPassword, UserSalt, UserIterations);
@@ -282,20 +277,20 @@ fwIDAQAB
 
         public static long Revision = 100;
 
-        private static RsaKeyParameters LoadPublicKey(string publicKey)
+        private static RsaPublicKey LoadPublicKey(string publicKey)
         {
-            PemReader pemReader = new PemReader(new StringReader(publicKey));
-            RsaKeyParameters key = (RsaKeyParameters) pemReader.ReadObject();
-            return key;
+            var rsa = RSA.Create();
+            rsa.ImportFromPem(publicKey);
+            return rsa;
         }
 
-        private static byte[] ExportPublicKey(RsaKeyParameters publicKey)
+        /*
+        private static byte[] ExportPublicKey(RsaPublicKey publicKey)
         {
             var publicKeyInfo = new RsaPublicKeyStructure(publicKey.Modulus, publicKey.Exponent);
             return publicKeyInfo.GetDerEncoded();
         }
 
-        /*
         public class PasswordFinder : IPasswordFinder
         {
             private readonly char[] _password;
@@ -310,41 +305,43 @@ fwIDAQAB
                 return _password;
             }
         }
-        */
-        private static RsaPrivateCrtKeyParameters LoadPrivateKey(string privateKey)
-        {
-            var pemReader = new PemReader(new StringReader(privateKey));
-            return (RsaPrivateCrtKeyParameters) pemReader.ReadObject();
-        }
-
         private static byte[] ExportPrivateKey(AsymmetricKeyParameter privateKey)
         {
             var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
             return privateKeyInfo.ParsePrivateKey().GetDerEncoded();
         }
 
+        */
+        private static RsaPrivateKey LoadPrivateKey(string privateKey)
+        {
+            var rsa = RSA.Create();
+            rsa.ImportFromPem(privateKey);
+            return rsa;
+        }
+
         public static IConfigurationStorage GetConfigurationStorage()
         {
-            IConfigurationStorage storage = new InMemoryConfigurationStorage();
+            IKeeperConfiguration configuration = new KeeperConfiguration();
             var serverConf = new ServerConfiguration(DefaultEnvironment)
             {
                 ServerKeyId = 2
             };
-            storage.Servers.Put(serverConf);
+            configuration.Servers.Put(serverConf);
 
             var userConf = new UserConfiguration(UserName)
             {
                 Password = UserPassword
             };
-            storage.Users.Put(userConf);
-            storage.LastServer = DefaultEnvironment;
-            storage.LastLogin = UserName;
-            return storage;
+            configuration.Users.Put(userConf);
+            configuration.LastServer = DefaultEnvironment;
+            configuration.LastLogin = UserName;
+            return new InMemoryConfigurationStorage(configuration);
         }
 
         internal static AccountSummaryElements ProcessAccountSummary(this IAuth auth)
         {
-            var device = auth.Storage.Devices.List.FirstOrDefault();
+            var configuration = auth.Storage.Get();
+            var device = configuration.Devices.List.FirstOrDefault();
             return new AccountSummaryElements
             {
                 ClientKey = ByteString.CopyFrom(
@@ -388,14 +385,14 @@ fwIDAQAB
         public int Iterations { get; } = DataVault.UserIterations;
         public byte[] Salt { get; } = DataVault.UserSalt;
         public byte[] DataKey { get; } = DataVault.UserDataKey;
-        public RsaKeyParameters PublicKey { get; } = DataVault.ImportedPublicKey;
+        public RsaPublicKey PublicKey { get; } = DataVault.ImportedPublicKey;
         public string EncodedPublicKey { get; } = DataVault.EncodedPublicKey;
         public byte[] SessionToken { get; } = DataVault.SessionToken;
         public byte[] DeviceId { get; } = DataVault.DeviceId;
         public string OneTimeToken { get; } = DataVault.TwoFactorOneTimeToken;
         public string DeviceToken { get; } = DataVault.TwoFactorDeviceToken;
         public byte[] PrivateKeyData { get; } = DataVault.DerPrivateKey;
-        public RsaPrivateCrtKeyParameters PrivateRsaKey { get; } = DataVault.ImportedPrivateKey;
+        public RsaPrivateKey PrivateRsaKey { get; } = DataVault.ImportedPrivateKey;
         public string EncryptedPrivateKey { get; } = DataVault.EncryptedPrivateKey.Base64UrlEncode();
         public string EncryptedDataKey { get; } = DataVault.EncryptedDataKey;
         public byte[] EncryptionParams { get; } = DataVault.EncryptionParams;

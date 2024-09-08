@@ -17,7 +17,6 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Enterprise.AuditLogCommands;
 using KeeperSecurity.Utils;
-using Org.BouncyCastle.Crypto.Parameters;
 using static KeeperSecurity.Enterprise.AuditLogExtensions;
 using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
 
@@ -36,7 +35,7 @@ namespace Commander
         bool AutoApproveAdminRequests { get; set; }
         Dictionary<long, byte[]> UserDataKeys { get; }
 
-        ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
+        EcPrivateKey EnterprisePrivateKey { get; set; }
 
         IDictionary<string, AuditEventType> AuditEvents { get; set; }
     }
@@ -1880,7 +1879,7 @@ namespace Commander
         }
 
         public bool AutoApproveAdminRequests { get; set; }
-        public ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
+        public EcPrivateKey EnterprisePrivateKey { get; set; }
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
         public IDictionary<string, AuditEventType> AuditEvents { get; set; }
 
@@ -1903,7 +1902,7 @@ namespace Commander
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
 
 
-        public ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
+        public EcPrivateKey EnterprisePrivateKey { get; set; }
         public IDictionary<string, AuditEventType> AuditEvents { get; set; }
 
         private ManagedCompanyData _managedCompanies;

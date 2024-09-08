@@ -85,7 +85,7 @@ namespace Cli
         private string _savedBuffer;
         private TaskCompletionSource<string> _taskSource;
         private const char Mask = '*';
-        private int _cursorPosition = 0;
+        private int _cursorPosition;
         private readonly Queue<string> _yankRing = new Queue<string>();
         private readonly List<string> _history = new List<string>();
 
@@ -258,6 +258,21 @@ namespace Cli
                         }
 
                         Console.SetCursorPosition(left, top);
+                        Console.Write(tail + " ");
+                        Console.SetCursorPosition(left, top);
+                    }
+                    else if (keyInfo.Key == ConsoleKey.Delete && _cursorPosition < _buffer.Length)
+                    {
+                        _buffer.Remove(_cursorPosition, 1);
+
+                        var tail = _buffer.ToString(_cursorPosition, _buffer.Length - _cursorPosition);
+                        if (_isSecured)
+                        {
+                            tail = new string(Mask, tail.Length);
+                        }
+
+                        var left = Console.CursorLeft;
+                        var top = Console.CursorTop;
                         Console.Write(tail + " ");
                         Console.SetCursorPosition(left, top);
                     }

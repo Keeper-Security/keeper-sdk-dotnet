@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using KeeperSecurity.Storage;
 
 namespace KeeperSecurity
 {
@@ -382,13 +383,10 @@ namespace KeeperSecurity
                 [DataMember(Name = "client_modified_time")]
                 internal double _client_modified_time;
                 public long ClientModifiedTime => (long) _client_modified_time;
-
                 [DataMember(Name = "data")]
                 public string Data { get; internal set; }
                 [DataMember(Name = "extra")]
                 public string Extra { get; internal set; }
-
-
                 [DataMember(Name = "udata")]
                 internal SyncDownRecordUData udata;
                 public string Udata => udata != null ? Encoding.UTF8.GetString(JsonUtils.DumpJson(udata)) : null;

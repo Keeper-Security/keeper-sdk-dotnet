@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <RootNamespace>Cli</RootNamespace>
     <Version>1.0.3</Version>
     <PackageId>Keeper.Cli</PackageId>

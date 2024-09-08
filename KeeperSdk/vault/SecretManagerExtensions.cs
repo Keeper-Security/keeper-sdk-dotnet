@@ -1,6 +1,7 @@
 ﻿using Google.Protobuf;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
+#if NET472_OR_GREATER
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
@@ -8,12 +9,13 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+#endif
 using Records;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
@@ -33,7 +35,7 @@ namespace KeeperSecurity.Vault
                 return null;
             }
             var ar = r as ApplicationRecord;
-            if (ar == null) 
+            if (ar == null)
             {
                 return null;
             }
@@ -49,6 +51,10 @@ namespace KeeperSecurity.Vault
 
             var rs = await Auth.ExecuteAuthRest<AuthProto.GetAppInfoRequest, AuthProto.GetAppInfoResponse>("vault/get_app_info", rq);
             var appInfo = rs.AppInfo.FirstOrDefault(x => x.AppRecordUid.SequenceEqual(applicationUid));
+            if (appInfo == null)
+            {
+                return null;
+            }
             var application = new SecretsManagerApplication
             {
                 Uid = ar.Uid,
@@ -96,7 +102,7 @@ namespace KeeperSecurity.Vault
                 }).ToArray()
             };
 
-            keeperRecords.TryAdd(application.Uid, application);
+            _keeperRecords.TryAdd(application.Uid, application);
 
             return application;
         }
@@ -153,7 +159,7 @@ namespace KeeperSecurity.Vault
             }
 
             var isRecord = false;
-            byte[] secretKey = null;
+            byte[] secretKey;
             if (TryGetSharedFolder(sharedFolderOrRecordUid, out var sf))
             {
                 secretKey = sf.SharedFolderKey;
@@ -271,24 +277,24 @@ namespace KeeperSecurity.Vault
             var host = Auth.Endpoint.Server;
             switch (host)
             {
-                case "keepersecurity.com":
-                    host = "US";
-                    break;
-                case "keeperseurity.eu":
-                    host = "EU";
-                    break;
-                case "keepersecurity.com.au":
-                    host = "AU";
-                    break;
-                case "keepersecurity.jp":
-                    host = "JP";
-                    break;
-                case "keepersecurity.ca":
-                    host = "CA";
-                    break;
-                case "govcloud.keepersecurity.us":
-                    host = "GOV";
-                    break;
+            case "keepersecurity.com":
+                host = "US";
+                break;
+            case "keeperseurity.eu":
+                host = "EU";
+                break;
+            case "keepersecurity.com.au":
+                host = "AU";
+                break;
+            case "keepersecurity.jp":
+                host = "JP";
+                break;
+            case "keepersecurity.ca":
+                host = "CA";
+                break;
+            case "govcloud.keepersecurity.us":
+                host = "GOV";
+                break;
             }
             return Tuple.Create(device, $"{host}:{clientKey.Base64UrlEncode()}");
         }
@@ -297,7 +303,7 @@ namespace KeeperSecurity.Vault
         private const string KsmClientVersion = "mn16.6.4";
 
         [DataContract]
-        internal class KsmPayload 
+        internal class KsmPayload
         {
             [DataMember(Name = "clientVersion", EmitDefaultValue = false)]
             public string ClientVersion { get; set; }
@@ -340,7 +346,7 @@ namespace KeeperSecurity.Vault
             [DataMember(Name = "isEditable", EmitDefaultValue = false)]
             public bool IsEditable { get; set; }
             [DataMember(Name = "files", EmitDefaultValue = false)]
-            public KsmResponseFile[] files { get; set; }
+            public KsmResponseFile[] Files { get; set; }
             [DataMember(Name = "innerFolderUid", EmitDefaultValue = false)]
             public string InnerFolderUid { get; set; }
         }
@@ -389,7 +395,8 @@ namespace KeeperSecurity.Vault
         }
 
         [DataContract]
-        public class SecretManagerConfiguration : ISecretManagerConfiguration {
+        public class SecretManagerConfiguration : ISecretManagerConfiguration
+        {
             [DataMember(Name = "hostname", EmitDefaultValue = false)]
             public string Hostname { get; set; }
             [DataMember(Name = "clientId", EmitDefaultValue = false)]
@@ -404,16 +411,23 @@ namespace KeeperSecurity.Vault
             public string AppOwnerPublicKey { get; set; }
         }
 
-        private ECPrivateKeyParameters LoadKsmPrivateKey(byte[] data) 
+        private EcPrivateKey LoadKsmPrivateKey(byte[] data)
         {
+#if NET472_OR_GREATER
             var privateKeyInfo = PrivateKeyInfo.GetInstance(data);
             var privateKeyStructure = ECPrivateKeyStructure.GetInstance(privateKeyInfo.ParsePrivateKey());
             var privateKeyValue = privateKeyStructure.GetKey();
             return new ECPrivateKeyParameters(privateKeyValue, CryptoUtils.EcParameters);
+#else
+            var ecKey = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
+            ecKey.ImportPkcs8PrivateKey(data, out _);
+            return ecKey;
+#endif
         }
 
-        private byte[] UnloadKsmPrivateKey(ECPrivateKeyParameters privateKey)
+        private byte[] UnloadKsmPrivateKey(EcPrivateKey privateKey)
         {
+#if NET472_OR_GREATER
             var publicKey = CryptoUtils.GetEcPublicKey(privateKey);
             var publicKeyDer = new DerBitString(publicKey.Q.GetEncoded(false));
             var dp = privateKey.Parameters;
@@ -423,9 +437,13 @@ namespace KeeperSecurity.Vault
             var algId = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
             var privateKeyInfo = new PrivateKeyInfo(algId, ec);
             return privateKeyInfo.GetDerEncoded();
+#else
+            return privateKey.ExportPkcs8PrivateKey();
+#endif
         }
 
-        private async Task<RS> ExecuteKsm<RQ, RS>(SecretManagerConfiguration configuration, string endpoint, RQ payload)
+        private async Task<TRs> ExecuteKsm<TRq, TRs>(SecretManagerConfiguration configuration, string endpoint, TRq payload)
+            where TRq : class
         {
 
             var payloadBytes = JsonUtils.DumpJson(payload);
@@ -439,14 +457,23 @@ namespace KeeperSecurity.Vault
             var transmissionKey = CryptoUtils.GenerateEncryptionKey();
             var encryptedPayload = CryptoUtils.EncryptAesV2(payloadBytes, transmissionKey);
 
+            var handler = new HttpClientHandler();
+            using var httpClient = new HttpClient(handler, disposeHandler: true);
+            httpClient.Timeout = TimeSpan.FromMinutes(5);
+            if (Auth.Endpoint.WebProxy != null)
+            {
+                handler.Proxy = Auth.Endpoint.WebProxy;
+            }
+
             var attempt = 0;
             var keyId = Auth.Endpoint.ServerKeyId;
-            if (!string.IsNullOrEmpty(configuration.ServerPublicKeyId)) 
+            if (!string.IsNullOrEmpty(configuration.ServerPublicKeyId))
             {
-                if (int.TryParse(configuration.ServerPublicKeyId, out keyId)) {
+                if (int.TryParse(configuration.ServerPublicKeyId, out keyId))
+                {
                 }
             }
-            if (!KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId)) 
+            if (!KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId))
             {
                 keyId = 7;
             }
@@ -456,87 +483,73 @@ namespace KeeperSecurity.Vault
             {
                 attempt++;
                 var encTransmissionKey = Auth.Endpoint.EncryptWithKeeperKey(transmissionKey, keyId);
+                byte[] signature;
+#if NET472_OR_GREATER
                 var signatureBase = encTransmissionKey.Concat(encryptedPayload).ToArray();
                 var signer = SignerUtilities.GetSigner("SHA256withECDSA");
 
                 signer.Init(true, privateKey);
                 signer.BlockUpdate(signatureBase, 0, signatureBase.Length);
-                var signature = signer.GenerateSignature();
-
-                var request = (HttpWebRequest) WebRequest.Create(url);
-                request.Timeout = (int) TimeSpan.FromMinutes(5).TotalMilliseconds;
-                if (Auth.Endpoint.WebProxy != null)
+                signature = signer.GenerateSignature();
+#else
+                byte[] hash;
+                using (var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
                 {
-                    request.Proxy = Auth.Endpoint.WebProxy;
+                    hasher.AppendData(encTransmissionKey);
+                    hasher.AppendData(encryptedPayload);
+                    hash = hasher.GetHashAndReset();
                 }
 
-                request.UserAgent = "KSM.Net/" + KsmClientVersion;
-                request.ContentType = "application/octet-stream";
-                request.Headers["PublicKeyId"] = keyId.ToString();
-                request.Headers["TransmissionKey"] = Convert.ToBase64String(encTransmissionKey);
-                request.Headers["Authorization"] = $"Signature {Convert.ToBase64String(signature)}";
-                request.Method = "POST";
+                var parameters = privateKey.ExportParameters(includePrivateParameters: true);
+                using (var signer = ECDsa.Create(parameters))
+                {
+                    signature = signer.SignHash(hash, DSASignatureFormat.Rfc3279DerSequence);
+                }
+#endif
+                var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
+                request.Headers.Authorization = new AuthenticationHeaderValue("Signature", Convert.ToBase64String(signature));
+                request.Headers.Add("User-Agent", $"KSM.Net/{KsmClientVersion}"); 
+                request.Headers.Add("PublicKeyId", keyId.ToString());
+                request.Headers.Add("Signature", Convert.ToBase64String(signature));
+                request.Headers.Add("TransmissionKey", Convert.ToBase64String(encTransmissionKey));
+                request.Content = new ByteArrayContent(encryptedPayload);
 
-                HttpWebResponse response;
-                try
+                var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+                var contentTypes = Array.Empty<string>();
+                if (response.Content.Headers.TryGetValues("Content-Type", out var values))
                 {
-                    using (var requestStream = request.GetRequestStream())
-                    {
-                        await requestStream.WriteAsync(encryptedPayload, 0, encryptedPayload.Length);
-                    }
-                    response = (HttpWebResponse) request.GetResponse();
+                    contentTypes = values.ToArray();
                 }
-                catch (WebException e)
-                {
-                    response = (HttpWebResponse) e.Response;
-                    if (response == null) throw;
-                }
-                if (response.StatusCode == HttpStatusCode.OK)
+                if (response.IsSuccessStatusCode) 
                 {
                     configuration.ServerPublicKeyId = keyId.ToString();
-                    using (var ms = new MemoryStream())
-                    using (var rss = response.GetResponseStream())
-                    {
-                        await rss.CopyToAsync(ms);
-                        await rss.FlushAsync();
-                        var data = ms.ToArray();
-                        if (data.Length > 0)
-                        {
-                            var decryptedRs = CryptoUtils.DecryptAesV2(data, transmissionKey);
+                    if (contentTypes.Any(x => x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase))) {
+                        var data = await response.Content.ReadAsByteArrayAsync();
+                        var decryptedRs = CryptoUtils.DecryptAesV2(data, transmissionKey);
 #if DEBUG
-                            var rs = Encoding.UTF8.GetString(decryptedRs);
-                            Debug.WriteLine($"[KSM RS]: {endpoint}: {rs}");
+                        var rs = Encoding.UTF8.GetString(decryptedRs);
+                        Debug.WriteLine($"[KSM RS]: {endpoint}: {rs}");
 #endif
-                            return JsonUtils.ParseJson<RS>(decryptedRs);
-                        }
+                        return JsonUtils.ParseJson<TRs>(decryptedRs);
                     }
                     return default;
                 }
-                else
+                if (contentTypes.Any(x => x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    if (response.ContentType == "application/json")
-                    {
-                        using (var ms = new MemoryStream())
-                        using (var rss = response.GetResponseStream())
-                        {
-                            await rss.CopyToAsync(ms);
-                            await ms.FlushAsync();
-                            var data = ms.ToArray();
+                    var data = await response.Content.ReadAsByteArrayAsync();
 #if DEBUG
-                            var rs = Encoding.UTF8.GetString(data);
-                            Debug.WriteLine($"[KSM Error RS]: {endpoint}: {rs}");
+                    var rs = Encoding.UTF8.GetString(data);
+                    Debug.WriteLine($"[KSM Error RS]: {endpoint}: {rs}");
 #endif
-                            var errorRs = JsonUtils.ParseJson<KsmError>(ms.ToArray());
-                            if (errorRs.Error == "key")
-                            {
-                                keyId = errorRs.KeyId;
-                                continue;
-                            }
-                            throw new KeeperApiException("ksm_error", errorRs.Error);
-                        }
+                    var errorRs = JsonUtils.ParseJson<KsmError>(data);
+                    if (errorRs.Error == "key")
+                    {
+                        keyId = errorRs.KeyId;
+                        continue;
                     }
-                    throw new Exception("KSM API Http error: " + response.StatusCode);
+                    throw new KeeperApiException("ksm_error", errorRs.Error);
                 }
+                throw new Exception("KSM API Http error: " + response.StatusCode);
             }
             throw new Exception("KSM API error");
         }
@@ -556,27 +569,27 @@ namespace KeeperSecurity.Vault
             {
                 switch (tokenParts[0].ToUpper())
                 {
-                    case "US":
-                        host = "keepersecurity.com";
-                        break;
-                    case "EU":
-                        host = "keepersecurity.eu";
-                        break;
-                    case "AU":
-                        host = "keepersecurity.com.au";
-                        break;
-                    case "GOV":
-                        host = "govcloud.keepersecurity.us";
-                        break;
-                    case "JP":
-                        host = "keepersecurity.jp";
-                        break;
-                    case "CA":
-                        host = "keepersecurity.ca";
-                        break;
-                    default:
-                        host = Auth.Endpoint.Server;
-                        break;
+                case "US":
+                    host = "keepersecurity.com";
+                    break;
+                case "EU":
+                    host = "keepersecurity.eu";
+                    break;
+                case "AU":
+                    host = "keepersecurity.com.au";
+                    break;
+                case "GOV":
+                    host = "govcloud.keepersecurity.us";
+                    break;
+                case "JP":
+                    host = "keepersecurity.jp";
+                    break;
+                case "CA":
+                    host = "keepersecurity.ca";
+                    break;
+                default:
+                    host = Auth.Endpoint.Server;
+                    break;
                 }
                 clientKey = tokenParts[1];
             }

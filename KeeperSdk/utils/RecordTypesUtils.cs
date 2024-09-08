@@ -255,11 +255,8 @@ namespace KeeperSecurity.Utils
                             if (dv == 0) continue;
                             if (recordField.Type.Name == "date")
                             {
-                                if (dv != 0)
-                                {
-                                    var dt = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(dv);
-                                    yield return dt.ToString("d");
-                                }
+                                var dt = DateTimeOffsetExtensions.FromUnixTimeMilliseconds(dv);
+                                yield return dt.ToString("d");
                             }
                             else
                             {

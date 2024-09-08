@@ -19,7 +19,7 @@ namespace Commander
     {
 
         private static readonly Tuple<string, bool>[] Prefixes = { Tuple.Create("field.", true), Tuple.Create("f.", true), Tuple.Create("custom.", false), Tuple.Create("c.", false) };
-        private const string FieldPattern = "^(\\w+)(\\.[^\\[]+)?(\\[*.\\])?\\s*=\\s*(.*)$";
+        private const string FieldPattern = @"^(\w+)(\.[^\[]+)?(\[*.\])?\s*=\s*(.*)$";
 
         public static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)
         {
@@ -254,7 +254,7 @@ namespace Commander
     {
         public static Task RecordTypeInfoCommand(this VaultContext context, RecordTypeInfoOptions options)
         {
-            Tabulate table = null;
+            Tabulate table;
             if (string.IsNullOrEmpty(options.Name))
             {
                 if (options.ShowFields)
@@ -369,7 +369,7 @@ namespace Commander
                 }
             }
 
-            table?.Dump();
+            table.Dump();
             return Task.FromResult(true);
         }
 
@@ -387,7 +387,7 @@ namespace Commander
             }
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
 
-            KeeperRecord record = null;
+            KeeperRecord record;
             if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) ||
                 string.Equals(options.RecordType, "legacy", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -495,7 +495,7 @@ namespace Commander
             }
             else
             {
-                var dirEntry = System.IO.Directory.CreateDirectory(options.OutputDirectory);
+                var dirEntry = Directory.CreateDirectory(options.OutputDirectory);
                 options.OutputDirectory = dirEntry.FullName;
             }
 
@@ -703,7 +703,6 @@ namespace Commander
 
             if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0) return;
             await context.Vault.CancelSharesWithUser(options.Email);
-            return;
         }
 
         public static async Task ShareRecordRevokeCommand(this VaultContext context, ShareRecordRevokeOptions options)

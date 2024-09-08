@@ -23,14 +23,19 @@ namespace Cli
             string product = null;
             try
             {
-                var ver = FileVersionInfo.GetVersionInfo(Process.GetCurrentProcess().MainModule.FileName);
-                if (ver != null && ver.ProductMajorPart > 0)
+                var fileName = Process.GetCurrentProcess().MainModule?.FileName;
+                if (!string.IsNullOrEmpty(fileName))
                 {
-                    version = $"{ver.ProductMajorPart}.{ver.ProductMinorPart}.{ver.ProductBuildPart}";
-                    product = ver.ProductName;
+                    var ver = FileVersionInfo.GetVersionInfo(fileName);
+                    if (ver.ProductMajorPart > 0)
+                    {
+                        version = $"{ver.ProductMajorPart}.{ver.ProductMinorPart}.{ver.ProductBuildPart}";
+                        product = ver.ProductName;
+                    }
+                    
                 }
             }
-            catch { }
+            catch { /*ignored*/ }
 
             if (string.IsNullOrEmpty(version)) {
                 try
@@ -38,7 +43,7 @@ namespace Cli
                     version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                     product = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyProductAttribute>()?.Product;
                 }
-                catch { }
+                catch { /*ignored*/ }
             }
             if (!string.IsNullOrEmpty(version))
             {
@@ -64,10 +69,11 @@ namespace Cli
         public static async Task LoginToKeeper(AuthSync auth, IInputManager inputManager, string username = null, string[] passwords = null)
         {
             auth.Cancel();
+            var configuration = auth.Storage.Get();
             var email = username;
             if (string.IsNullOrEmpty(username))
             {
-                email = auth.Storage.LastLogin;
+                email = configuration.LastLogin;
                 Console.Write("User name: ");
                 email = await inputManager.ReadLine(new ReadLineParameters
                 {
@@ -90,7 +96,7 @@ namespace Cli
                 passwds.AddRange(passwords);
             }
 
-            var uc = auth.Storage.Users.Get(email);
+            var uc = configuration.Users.Get(email);
             if (!string.IsNullOrEmpty(uc?.Password))
             {
                 if (!passwds.Contains(uc.Password))

@@ -42,10 +42,7 @@ namespace Commander
 
         public void AddVerb<T>(Func<T, Task> action)
         {
-            _verbs.Add(Tuple.Create<Type, Func<object, Task>>(typeof(T), (object o) =>
-            {
-                return action((T) o);
-            }));
+            _verbs.Add(Tuple.Create<Type, Func<object, Task>>(typeof(T), o => action((T) o)));
         }
         public Task ExecuteCommand(string args)
         {

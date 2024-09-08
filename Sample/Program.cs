@@ -33,7 +33,8 @@ namespace Sample
 
             // Keeper SDK needs a storage to save configuration
             // such as: last login name, device token, etc
-            var configuration = new JsonConfigurationStorage("config.json");
+            var configurationStorage = new JsonConfigurationStorage("config.json");
+            var configuration = configurationStorage.Get();
             var prompt = "Enter Email Address: ";
             if (!string.IsNullOrEmpty(configuration.LastLogin))
             {
@@ -57,7 +58,7 @@ namespace Sample
 
             // Login to Keeper
             Console.WriteLine("Logging in...");
-            var authFlow = new AuthSync(configuration);
+            var authFlow = new AuthSync(configurationStorage);
             await Utils.LoginToKeeper(authFlow, inputManager, username);
 
             if (authFlow.Step is ErrorStep es)

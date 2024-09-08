@@ -1,6 +1,5 @@
 ﻿using Cli;
 using CommandLine;
-using Google.Protobuf.WellKnownTypes;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using System;
@@ -298,7 +297,7 @@ namespace Commander
                     var ipLock = device.LockIp ? "Enabled" : "Disabled";
                     Console.WriteLine($"IP Lock: {ipLock}");
                     var firstAccessOn = device.FirstAccessExpireOn.HasValue ? device.FirstAccessExpireOn.Value.ToString("G") : "Taken";
-                    Console.WriteLine($"Token Expires On: {device.FirstAccessExpireOn.Value}");
+                    Console.WriteLine($"Token Expires On: {firstAccessOn}");
                 }
 
                 var accessExpireOn = device.AccessExpireOn.HasValue ? device.AccessExpireOn.Value.ToString("G") : "Never";

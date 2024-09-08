@@ -9,7 +9,6 @@ using Authentication;
 using Google.Protobuf;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
-using Org.BouncyCastle.Crypto.Parameters;
 using Push;
 using SsoCloud;
 
@@ -30,7 +29,7 @@ namespace KeeperSecurity.Authentication
 
         internal string V2TwoFactorToken { get; set; }
 
-        public ECPrivateKeyParameters DeviceKey { get; set; }
+        public EcPrivateKey DeviceKey { get; set; }
 
         public byte[] MessageSessionUid { get; }
         internal Queue<string> PasswordQueue { get; } = new Queue<string>();
@@ -41,31 +40,42 @@ namespace KeeperSecurity.Authentication
     /// <exclude />
     public static class LoginV3Extensions
     {
-        public static Action<IAuth, LoginContext> EnsurePushNotification = (IAuth auth, LoginContext v3) =>
+        internal static void EnsurePushNotification(this IAuth auth, LoginContext v3)
         {
-            if (auth.PushNotifications == null)
+            if (auth.PushNotifications != null) return;
+
+            var pushNotifications = new KeeperPushNotifications(auth.Endpoint.WebProxy);
+            var urlReturned = false;
+            pushNotifications.ConnectToPushServer(PrepareWssUrlOnce);
+            auth.SetPushNotifications(pushNotifications);
+            return;
+
+            Task<Uri> PrepareWssUrlOnce(byte[] transmissionKey)
             {
-                var connectRequest = new WssConnectionRequest
+                if (urlReturned)
+                {
+                    auth.SetPushNotifications(null);
+                    return null;
+                }
+
+                var connectionRequest = new WssConnectionRequest
                 {
                     EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
                     MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
                     DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                 };
-                var ws = new WebSocketChannel();
-                auth.SetPushNotifications(ws);
-                Task.Run(async () =>
+                var apiRequest = auth.Endpoint.PrepareApiRequest(connectionRequest, transmissionKey);
+                var builder = new UriBuilder
                 {
-                    try
-                    {
-                        await ws.ConnectToPushServer(auth.Endpoint, connectRequest);
-                    }
-                    catch
-                    {
-                        auth.SetPushNotifications(null);
-                    }
-                });
+                    Scheme = "wss",
+                    Host = auth.Endpoint.PushServer(),
+                    Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode()
+                };
+                urlReturned = true;
+                return Task.FromResult(builder.Uri);
             }
-        };
+        }
+
         public static async Task EnsureDeviceTokenIsRegistered(this IAuth auth, LoginContext v3, string username)
         {
             if (string.Compare(auth.Username, username, StringComparison.InvariantCultureIgnoreCase) != 0)
@@ -76,11 +86,12 @@ namespace KeeperSecurity.Authentication
                 v3.CloneCode = null;
             }
 
+            var configuration = auth.Storage.Get();
             IDeviceConfiguration deviceConf = null;
             if (auth.DeviceToken != null)
             {
                 var token = auth.DeviceToken.Base64UrlEncode();
-                deviceConf = auth.Storage.Devices.Get(token);
+                deviceConf = configuration.Devices.Get(token);
                 if (deviceConf == null)
                 {
                     auth.DeviceToken = null;
@@ -89,13 +100,13 @@ namespace KeeperSecurity.Authentication
                 }
             }
 
-            var userConf = auth.Storage.Users.Get(auth.Username);
+            var userConf = configuration.Users.Get(auth.Username);
             var lastDevice = userConf?.LastDevice;
             var attempt = 0;
             while (auth.DeviceToken == null || v3.DeviceKey == null)
             {
                 attempt++;
-                if (attempt > 10) throw new KeeperInvalidDeviceToken("too many attempts");
+                if (attempt > 6) throw new KeeperInvalidDeviceToken("too many attempts");
 
                 auth.DeviceToken = null;
                 v3.DeviceKey = null;
@@ -103,7 +114,7 @@ namespace KeeperSecurity.Authentication
 
                 if (lastDevice != null)
                 {
-                    deviceConf = auth.Storage.Devices.Get(lastDevice.DeviceToken);
+                    deviceConf = configuration.Devices.Get(lastDevice.DeviceToken);
                     if (deviceConf != null)
                     {
                         var serverInfo = deviceConf.ServerInfo?.Get(auth.Endpoint.Server);
@@ -118,7 +129,7 @@ namespace KeeperSecurity.Authentication
 
                 if (deviceConf == null)
                 {
-                    deviceConf = auth.Storage.Devices.List.FirstOrDefault();
+                    deviceConf = configuration.Devices.List.FirstOrDefault();
                 }
 
                 if (deviceConf == null)
@@ -135,14 +146,15 @@ namespace KeeperSecurity.Authentication
                 catch (Exception e)
                 {
                     Debug.WriteLine(e.Message);
-                    auth.Storage.Devices.Delete(deviceConf.DeviceToken);
+                    configuration.Devices.Delete(deviceConf.DeviceToken);
+                    auth.Storage.Put(configuration);
                     deviceConf = null;
                 }
             }
 
             {
                 var token = auth.DeviceToken.Base64UrlEncode();
-                deviceConf = auth.Storage.Devices.Get(token);
+                deviceConf = configuration.Devices.Get(token);
                 if (deviceConf == null) throw new KeeperInvalidDeviceToken("invalid configuration");
                 if (deviceConf.ServerInfo?.Get(auth.Endpoint.Server) == null)
                 {
@@ -162,30 +174,16 @@ namespace KeeperSecurity.Authentication
                         Debug.WriteLine(e.Message);
                     }
                 }
-
-                EnsurePushNotification(auth, v3);
             }
         }
 
-        internal static async Task RedirectToRegionV3(this IAuth auth, string newRegion)
+        internal static void RedirectToRegionV3(this IAuth auth, string newRegion)
         {
             auth.SetPushNotifications(null);
             auth.Endpoint.Server = newRegion;
             if (auth.AuthCallback is IAuthInfoUI infoUi)
             {
                 infoUi.RegionChanged(auth.Endpoint.Server);
-            }
-
-            if (auth.DeviceToken != null)
-            {
-                var token = auth.DeviceToken.Base64UrlEncode();
-                var deviceConf = auth.Storage.Devices.Get(token);
-                if (deviceConf == null) throw new KeeperInvalidDeviceToken("invalid configuration");
-
-                if (deviceConf.ServerInfo?.Get(auth.Endpoint.Server) == null)
-                {
-                    await auth.RegisterDeviceInRegion(deviceConf);
-                }
             }
         }
 
@@ -222,10 +220,11 @@ namespace KeeperSecurity.Authentication
                     throw;
                 }
             }
-
+            var configuration = auth.Storage.Get();
             var dc = new DeviceConfiguration(device);
             dc.ServerInfo.Put(new DeviceServerConfiguration(auth.Endpoint.Server));
-            auth.Storage.Devices.Put(dc);
+            configuration.Devices.Put(dc);
+            auth.Storage.Put(configuration);
         }
 
         private static async Task<IDeviceConfiguration> RegisterDevice(this IAuth auth)
@@ -251,8 +250,11 @@ namespace KeeperSecurity.Authentication
                 DeviceKey = CryptoUtils.UnloadEcPrivateKey(privateKey)
             };
             dc.ServerInfo.Put(new DeviceServerConfiguration(auth.Endpoint.Server));
-            auth.Storage.Devices.Put(dc);
-
+            
+            var configuration = auth.Storage.Get();
+            configuration.Devices.Put(dc);
+            auth.Storage.Put(configuration);
+            
             return dc;
         }
 
@@ -368,7 +370,9 @@ namespace KeeperSecurity.Authentication
                     auth.SetPushNotifications(null);
                     if (attempt < 3 && e is KeeperInvalidDeviceToken)
                     {
-                        auth.Storage.Devices.Delete(auth.DeviceToken.Base64UrlEncode());
+                        var configuration = auth.Storage.Get();
+                        configuration.Devices.Delete(auth.DeviceToken.Base64UrlEncode());
+                        auth.Storage.Put(configuration);
                         auth.DeviceToken = null;
                         v3.DeviceKey = null;
                         continue;
@@ -871,11 +875,12 @@ namespace KeeperSecurity.Authentication
                             try
                             {
                                 var rqs = JsonUtils.ParseJson<KeeperWebAuthnRequest>(Encoding.UTF8.GetBytes(ch.Challenge));
+                                var ui = keyUi;
                                 var key2Fa = new TwoFactorSecurityKeyChannel
                                 {
                                     InvokeTwoFactorPushAction = async (action) =>
                                     {
-                                        var signature = await keyUi.AuthenticatePublicKeyRequest(rqs.publicKeyCredentialRequestOptions);
+                                        var signature = await ui.AuthenticatePublicKeyRequest(rqs.publicKeyCredentialRequestOptions);
 
                                         var request = new TwoFactorValidateRequest
                                         {
@@ -941,25 +946,26 @@ namespace KeeperSecurity.Authentication
 
         internal static void StoreConfigurationIfChangedV3(this IAuth auth, LoginContext v3)
         {
-            if (string.CompareOrdinal(auth.Storage.LastLogin ?? "", auth.Username) != 0)
+            var configuration = auth.Storage.Get();
+            if (string.CompareOrdinal(configuration.LastLogin ?? "", auth.Username) != 0)
             {
-                auth.Storage.LastLogin = auth.Username;
+                configuration.LastLogin = auth.Username;
             }
 
-            if (string.CompareOrdinal(auth.Storage.LastServer ?? "", auth.Endpoint.Server) != 0)
+            if (string.CompareOrdinal(configuration.LastServer ?? "", auth.Endpoint.Server) != 0)
             {
-                auth.Storage.LastServer = auth.Endpoint.Server;
+                configuration.LastServer = auth.Endpoint.Server;
             }
 
-            var sc = auth.Storage.Servers.Get(auth.Endpoint.Server);
+            var sc = configuration.Servers.Get(auth.Endpoint.Server);
             if (sc == null || sc.Server != auth.Endpoint.Server || sc.ServerKeyId != auth.Endpoint.ServerKeyId)
             {
                 var serverConf = sc == null ? new ServerConfiguration(auth.Endpoint.Server) : new ServerConfiguration(sc);
                 serverConf.ServerKeyId = auth.Endpoint.ServerKeyId;
-                auth.Storage.Servers.Put(serverConf);
+                configuration.Servers.Put(serverConf);
             }
 
-            var existingUser = auth.Storage.Users.Get(auth.Username);
+            var existingUser = configuration.Users.Get(auth.Username);
             var deviceToken = auth.DeviceToken.Base64UrlEncode();
             if (existingUser?.LastDevice?.DeviceToken != deviceToken ||
                 string.IsNullOrEmpty(existingUser?.Server))
@@ -971,10 +977,10 @@ namespace KeeperSecurity.Authentication
 
                 var lastDevice = new UserDeviceConfiguration(deviceToken);
                 uc.LastDevice = lastDevice;
-                auth.Storage.Users.Put(uc);
+                configuration.Users.Put(uc);
             }
 
-            var deviceConf = auth.Storage.Devices.Get(deviceToken);
+            var deviceConf = configuration.Devices.Get(deviceToken);
             if (deviceConf != null && v3.CloneCode != null)
             {
                 var dc = new DeviceConfiguration(deviceConf);
@@ -982,13 +988,10 @@ namespace KeeperSecurity.Authentication
                 var si = serverInfo != null ? new DeviceServerConfiguration(serverInfo) : new DeviceServerConfiguration(auth.Endpoint.Server);
                 si.CloneCode = v3.CloneCode.Base64UrlEncode();
                 dc.ServerInfo.Put(si);
-                auth.Storage.Devices.Put(dc);
+                configuration.Devices.Put(dc);
             }
-
-            if (auth.Storage is IConfigurationFlush hasFlush)
-            {
-                hasFlush.Flush();
-            }
+            
+            auth.Storage.Put(configuration);
         }
 
         internal static GetSsoTokenActionInfo AuthorizeUsingOnsiteSsoPrepare(
@@ -1258,7 +1261,7 @@ namespace KeeperSecurity.Authentication
             }
             catch (KeeperRegionRedirect krr)
             {
-                await auth.RedirectToRegionV3(krr.RegionHost);
+                auth.RedirectToRegionV3(krr.RegionHost);
                 rsBytes = await auth.Endpoint.ExecuteRest("enterprise/get_sso_service_provider", payload);
             }
 

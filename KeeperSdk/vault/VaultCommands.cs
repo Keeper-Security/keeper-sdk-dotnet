@@ -8,6 +8,63 @@ using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Commands
 {
+    [DataContract]
+    public class RecordDataCustom
+    {
+        [DataMember(Name = "name")] public string Name = "";
+        [DataMember(Name = "value")] public string Value = "";
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string Type;
+    }
+
+    [DataContract]
+    public class RecordData
+    {
+        [DataMember(Name = "title")] public string Title = "";
+        [DataMember(Name = "folder")] public string Folder = "";
+        [DataMember(Name = "secret1")] public string Secret1 = "";
+        [DataMember(Name = "secret2")] public string Secret2 = "";
+        [DataMember(Name = "link")] public string Link = "";
+        [DataMember(Name = "notes")] public string Notes = "";
+        [DataMember(Name = "custom", EmitDefaultValue = false)]
+        public RecordDataCustom[] Custom;
+    }
+
+    [DataContract]
+    public class RecordExtraFileThumb
+    {
+        [DataMember(Name = "id")] public string Id = "";
+        [DataMember(Name = "type")] public string Type = "";
+        [DataMember(Name = "size")] public int? Size;
+    }
+
+    [DataContract]
+    public class RecordExtraFile
+    {
+        [DataMember(Name = "id")] public string Id = "";
+        [DataMember(Name = "name")] public string Name = "";
+        [DataMember(Name = "key")] public string Key;
+        [DataMember(Name = "size", EmitDefaultValue = false)]
+        public long? Size;
+        [DataMember(Name = "title", EmitDefaultValue = false)]
+        public string Title;
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string Type;
+        [DataMember(Name = "lastModified", EmitDefaultValue = false)]
+        public long? LastModified;
+        [DataMember(Name = "thumbs")] public RecordExtraFileThumb[] Thumbs;
+    }
+
+    [DataContract]
+    public class RecordExtra : IExtensibleDataObject
+    {
+        [DataMember(Name = "files", EmitDefaultValue = false)]
+        public RecordExtraFile[] Files;
+        [DataMember(Name = "fields", EmitDefaultValue = false)]
+        public Dictionary<string, object>[] Fields;
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
     /// <exclude/>
     [DataContract]
     public class RecordAccessPath : IRecordAccessPath
@@ -20,6 +77,17 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "team_uid", EmitDefaultValue = false)]
         public string TeamUid { get; set; }
+    }
+
+    [DataContract]
+    public class RecordAuditData
+    {
+        [DataMember(Name = "title", EmitDefaultValue = false)]
+        public string Title { get; set; }
+        [DataMember(Name = "record_type", EmitDefaultValue = false)]
+        public string RecordType { get; set; }
+        [DataMember(Name = "url", EmitDefaultValue = false)]
+        public string Url { get; set; }
     }
 
     /// <exclude/>

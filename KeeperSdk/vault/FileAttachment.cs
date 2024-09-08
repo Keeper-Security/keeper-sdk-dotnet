@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
@@ -223,26 +222,20 @@ namespace KeeperSecurity.Vault
             return deleted;
         }
 
-        internal static async Task DownloadFromUrl(Uri uri, Stream outputStream, IWebProxy proxy)
+        private static async Task DownloadFromUrl(Uri uri, Stream outputStream, IWebProxy proxy)
         {
             var httpMessageHandler = new HttpClientHandler();
             if (proxy != null)
             {
                 httpMessageHandler.Proxy = proxy;
             }
-            using (var httpClient = new HttpClient(httpMessageHandler, true))
-            {
-                using (var rss = await httpClient.GetAsync(uri))
-                {
-                    if (rss.IsSuccessStatusCode)
-                    {
-                        using (var stream = await rss.Content.ReadAsStreamAsync())
-                        {
-                            await stream.CopyToAsync(outputStream);
-                        }
-                    }
-                }
-            }
+
+            using var httpClient = new HttpClient(httpMessageHandler, true);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using var rss = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
+            rss.EnsureSuccessStatusCode();
+            using var stream = await rss.Content.ReadAsStreamAsync();
+            await stream.CopyToAsync(outputStream);
         }
 
         /// <exclude/>
@@ -267,11 +260,10 @@ namespace KeeperSecurity.Vault
                 throw new KeeperApiException(status, fileRecord.Name ?? fileRecord.Title);
             }
 
-            var transform = new DecryptAesV2Transform(fileRecord.RecordKey);
-            using (var decodeStream = new CryptoStream(destination, transform, CryptoStreamMode.Write))
-            {
-                await DownloadFromUrl(new Uri(fileResult.Url), decodeStream, Auth.Endpoint.WebProxy);
-            }
+            using var ms = new MemoryStream();
+            await DownloadFromUrl(new Uri(fileResult.Url), ms, Auth.Endpoint.WebProxy);
+            var plainData = CryptoUtils.DecryptAesV2(ms.ToArray(), fileRecord.RecordKey);
+            destination.Write(plainData, 0, plainData.Length);
         }
 
         /// <exclude />
@@ -283,35 +275,32 @@ namespace KeeperSecurity.Vault
                 FileIDs = new[] { attachment.Id }
             };
             this.ResolveRecordAccessPath(command);
-            var rs = await this.Auth.ExecuteAuthCommand<RequestDownloadCommand, RequestDownloadResponse>(command);
+            var rs = await Auth.ExecuteAuthCommand<RequestDownloadCommand, RequestDownloadResponse>(command);
 
             var download = rs.Downloads[0];
 
-            var transform = new DecryptAesV2Transform(attachment.Key.Base64UrlDecode());
-            using (var decodeStream = new CryptoStream(destination, transform, CryptoStreamMode.Write))
-            {
-                await DownloadFromUrl(new Uri(download.Url), decodeStream, Auth.Endpoint.WebProxy);
-            }
+            using var ms = new MemoryStream();
+            await DownloadFromUrl(new Uri(download.Url), ms, Auth.Endpoint.WebProxy);
+            var plainData = CryptoUtils.DecryptAesV1(ms.ToArray(), attachment.Key.Base64UrlDecode());
+            destination.Write(plainData, 0, plainData.Length);
         }
 
-        internal static async Task UploadSingleFile(UploadParameters upload, Stream inputStream, IWebProxy proxy)
+        private static async Task UploadSingleFile(UploadParameters upload, byte[] data, IWebProxy proxy)
         {
             var content = new MultipartFormDataContent();
             foreach (var pair in upload.Parameters) content.Add(new StringContent(pair.Value), pair.Key);
-            var fileContent = new StreamContent(inputStream);
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            var fileContent = new ByteArrayContent(data);
             content.Add(fileContent, upload.FileParameter);
+            
             var httpMessageHandler = new HttpClientHandler();
             if (proxy != null)
             {
                 httpMessageHandler.Proxy = proxy;
             }
-            using (var httpClient = new HttpClient(httpMessageHandler, true))
-            {
-                var rs = await httpClient.PostAsync(upload.Url, content);
-                if ((int) rs.StatusCode != upload.SuccessStatusCode)
-                    throw new Exception($"File upload HTTP error: {rs.StatusCode}");
-            }
+            using var httpClient = new HttpClient(httpMessageHandler, true);
+            var rs = await httpClient.PostAsync(upload.Url, content);
+            if ((int) rs.StatusCode != upload.SuccessStatusCode)
+                throw new Exception($"File upload HTTP error: {rs.StatusCode}");
         }
 
         private async Task UploadPasswordAttachment(PasswordRecord record, IAttachmentUploadTask uploadTask)
@@ -352,22 +341,22 @@ namespace KeeperSecurity.Vault
                 MimeType = uploadTask.MimeType,
                 LastModified = DateTimeOffset.Now,
             };
-            var transform = new EncryptAesV1Transform(key);
-            using (var cryptoStream = new CryptoStream(fileStream, transform, CryptoStreamMode.Read))
-            {
-                await UploadSingleFile(fileUpload, cryptoStream, Auth.Endpoint.WebProxy);
-                atta.Size = transform.EncryptedBytes;
-            }
+
+            using var ms = new MemoryStream();
+            await fileStream.CopyToAsync(ms);
+            var plainData = ms.ToArray();
+            atta.Size = plainData.Length;
+            var encryptedData = CryptoUtils.EncryptAesV1(plainData, key);
+            await UploadSingleFile(fileUpload, encryptedData, Auth.Endpoint.WebProxy);
 
             if (thumbUpload != null && thumbStream != null)
             {
                 try
                 {
-                    transform = new EncryptAesV1Transform(key);
-                    using (var cryptoStream = new CryptoStream(thumbStream, transform, CryptoStreamMode.Read))
-                    {
-                        await UploadSingleFile(thumbUpload, cryptoStream, Auth.Endpoint.WebProxy);
-                    }
+                    ms.Seek(0, SeekOrigin.Begin);
+                    await thumbStream.CopyToAsync(ms);
+                    encryptedData = CryptoUtils.EncryptAesV1(ms.ToArray(), key);
+                    await UploadSingleFile(thumbUpload, encryptedData, Auth.Endpoint.WebProxy);
 
                     var thumbnail = new AttachmentFileThumb
                     {
@@ -405,39 +394,38 @@ namespace KeeperSecurity.Vault
                 Size = null,
                 ThumbnailSize = null,
                 LastModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-
             };
             var fileKey = CryptoUtils.GenerateEncryptionKey();
+
+            byte[] encryptedData = null;
             byte[] encryptedThumb = null;
+
+            using var ms = new MemoryStream();
+
+            ms.Seek(0, SeekOrigin.Begin);
+            await uploadTask.Stream.CopyToAsync(ms);
+            await ms.FlushAsync();
+            var plainData = ms.ToArray();
+            fileData.Size = plainData.Length;
+            encryptedData = CryptoUtils.EncryptAesV2(plainData, fileKey);
+
             if (uploadTask.Thumbnail != null)
             {
-                using (var ts = new MemoryStream())
-                {
-                    await uploadTask.Stream.CopyToAsync(ts);
-                    await ts.FlushAsync();
-                    var thumbBytes = ts.ToArray();
-                    fileData.ThumbnailSize = thumbBytes.Length;
-                    encryptedThumb = CryptoUtils.EncryptAesV2(thumbBytes, fileKey);
-                }
+                ms.Seek(0, SeekOrigin.Begin);
+                await uploadTask.Stream.CopyToAsync(ms);
+                await ms.FlushAsync();
+                plainData = ms.ToArray();
+                fileData.ThumbnailSize = plainData.Length;
+                encryptedThumb = CryptoUtils.EncryptAesV2(ms.ToArray(), fileKey);
             }
 
-            var tempFile = Path.GetTempFileName();
-            var transform = new EncryptAesV2Transform(fileKey);
-            using (var encryptedFile = File.OpenWrite(tempFile))
-            using (var cryptoStream = new CryptoStream(uploadTask.Stream, transform, CryptoStreamMode.Read))
-            {
-                await cryptoStream.CopyToAsync(encryptedFile);
-                fileData.Size = transform.EncryptedBytes;
-            }
-
-            var fileInfo = new FileInfo(tempFile);
             var fileUid = CryptoUtils.GenerateUid();
             var fileRq = new Records.File
             {
                 RecordUid = ByteString.CopyFrom(fileUid.Base64UrlDecode()),
                 RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(fileKey, Auth.AuthContext.DataKey)),
                 Data = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(JsonUtils.DumpJson(fileData), fileKey)),
-                FileSize = fileInfo.Length + 100,
+                FileSize = encryptedData.Length + 100,
                 ThumbSize = encryptedThumb?.Length ?? 0,
             };
             var rq = new Records.FilesAddRequest
@@ -462,10 +450,7 @@ namespace KeeperSecurity.Vault
 
             try
             {
-                using (var cryptoStream = File.OpenRead(tempFile))
-                {
-                    await UploadSingleFile(fileUpload, cryptoStream, Auth.Endpoint.WebProxy);
-                }
+                await UploadSingleFile(fileUpload, encryptedData, Auth.Endpoint.WebProxy);
             }
             catch (Exception e)
             {
@@ -483,10 +468,7 @@ namespace KeeperSecurity.Vault
                 };
                 try
                 {
-                    using (var cryptoStream = new MemoryStream(encryptedThumb))
-                    {
-                        await UploadSingleFile(thumbUpload, cryptoStream, Auth.Endpoint.WebProxy);
-                    }
+                    await UploadSingleFile(thumbUpload, encryptedThumb, Auth.Endpoint.WebProxy);
                 }
                 catch (Exception e)
                 {

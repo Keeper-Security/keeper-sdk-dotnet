@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using KeeperSecurity.Storage;
 
 namespace KeeperSecurity.Vault
 {
@@ -1405,13 +1406,13 @@ namespace KeeperSecurity.Vault
             return _recordFields.TryGetValue(name ?? "text", out value);
         }
 
-        private static readonly Dictionary<Type, RecordTypeInfo> _recordTypeInfo = new Dictionary<Type, RecordTypeInfo>();
+        private static readonly Dictionary<Type, RecordTypeInfo> RecordTypeInfo = new Dictionary<Type, RecordTypeInfo>();
 
         private static bool GetRecordType(Type dataType, out RecordTypeInfo recordTypeInfo)
         {
-            lock (_recordTypeInfo)
+            lock (RecordTypeInfo)
             {
-                if (_recordTypeInfo.TryGetValue(dataType, out recordTypeInfo))
+                if (RecordTypeInfo.TryGetValue(dataType, out recordTypeInfo))
                 {
                     return true;
                 }
@@ -1423,7 +1424,7 @@ namespace KeeperSecurity.Vault
                     TypedFieldType = genericTypedFieldType.MakeGenericType(dataType),
                 };
                 recordTypeInfo.Serializer = new DataContractJsonSerializer(recordTypeInfo.RecordFieldType, JsonUtils.JsonSettings);
-                _recordTypeInfo.Add(dataType, recordTypeInfo);
+                RecordTypeInfo.Add(dataType, recordTypeInfo);
                 return true;
             }
         }
@@ -1466,7 +1467,7 @@ namespace KeeperSecurity.Vault
             return false;
         }
     }
-
+/*
     internal class ApiRecordType : IRecordType
     {
         private readonly string _uid;
@@ -1498,6 +1499,7 @@ namespace KeeperSecurity.Vault
         public string Content { get; }
         string IUid.Uid => _uid;
     }
+*/
 
     [DataContract]
     internal class PasswordFieldComplexity

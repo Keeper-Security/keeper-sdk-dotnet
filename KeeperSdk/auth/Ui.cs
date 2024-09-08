@@ -420,10 +420,10 @@ namespace KeeperSecurity.Authentication
     /// Defines the method that starts U2F Security Key 2FA. Optional.
     /// </summary>
     /// <remarks>
-    /// Implement this interface along with <see cref="Async.IAuthUI">Auth UI</see>
+    /// Implement this interface along with <see cref="AuthCommon.AuthCallback">Auth UI</see>
     /// if you plan to support Security Key (Yubikey and any other U2F compatible keys).
     /// </remarks>
-    /// <seealso cref="Async.IAuthUI"/>
+    /// <seealso cref="AuthCommon.AuthCallback"/>
     public interface IAuthSecurityKeyUI
     {
         /// <summary>

@@ -22,8 +22,7 @@ namespace KeeperSecurity.Enterprise
             {
                 NodeId = nodeId
             };
-            EnterpriseNode node = null;
-            enterpriseData.TryGetNode(nodeId, out node);
+            enterpriseData.TryGetNode(nodeId, out var node);
             await enterpriseData.Enterprise.Auth.ExecuteAuthRest("enterprise/set_restrict_visibility", rq);
             if (node != null)
             {
@@ -61,7 +60,7 @@ namespace KeeperSecurity.Enterprise
             {
                 Id = nodeId,
                 DisplayName = nodeName,
-                ParentNodeId = parentNode?.Id ?? 0,
+                ParentNodeId = parentNode.Id,
             };
 
             await enterpriseData.Enterprise.Load();

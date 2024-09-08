@@ -1,25 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+#if NET472_OR_GREATER
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Modes;
-using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
+#else
+using System.Formats.Asn1;
+#endif
 
 namespace KeeperSecurity.Utils
 {
@@ -29,18 +32,20 @@ namespace KeeperSecurity.Utils
     public static class CryptoUtils
     {
         private const string CorruptedEncryptionParametersMessage = "Corrupted encryption parameters";
+        const int AES_GCM_NONCE_SIZE = 12;
+        const int AES_GCM_TAG_SIZE = 16;
 
-        private const int AesGcmNonceLength = 12;
-
-        private static readonly SecureRandom RngCsp = new SecureRandom();
-
+#if NET472_OR_GREATER
+        private static readonly SecureRandom SecureRandom = new SecureRandom();
         internal static readonly ECDomainParameters EcParameters;
-
         static CryptoUtils()
         {
             var curve = ECNamedCurveTable.GetByName("secp256r1");
             EcParameters = new ECDomainParameters(curve.Curve, curve.G, curve.N);
         }
+#else
+        private static readonly RandomNumberGenerator SecureRandom = RandomNumberGenerator.Create();
+#endif
 
         /// <summary>
         ///     Generates secure random bytes.
@@ -50,7 +55,11 @@ namespace KeeperSecurity.Utils
         public static byte[] GetRandomBytes(int length)
         {
             var bytes = new byte[length];
-            RngCsp.NextBytes(bytes);
+#if NET472_OR_GREATER
+            SecureRandom.NextBytes(bytes);
+#else
+            SecureRandom.GetBytes(bytes);
+#endif
             return bytes;
         }
 
@@ -72,8 +81,9 @@ namespace KeeperSecurity.Utils
             var uid = GetRandomBytes(16);
             if ((uid[0] & 0xf8) == 0xf8)
             {
-                uid[0] = (byte)(uid[0] & 0x7f);
+                uid[0] = (byte) (uid[0] & 0x7f);
             }
+
             return uid.Base64UrlEncode();
         }
 
@@ -110,19 +120,29 @@ namespace KeeperSecurity.Utils
             catch (Exception e)
             {
                 Debug.WriteLine(e);
-                return new byte[] { };
+                return Array.Empty<byte>();
             }
         }
 
         /// <summary>
         ///     Unloads RSA public key.
         /// </summary>
-        /// <param name="key">RSA public key</param>
+        /// <param name="publicKey">RSA public key</param>
         /// <returns>RSA Public Key DER encoded</returns>
-        public static byte[] UnloadRsaPublicKey(RsaKeyParameters publicKey)
+        public static byte[] UnloadRsaPublicKey(RsaPublicKey publicKey)
         {
+#if NET472_OR_GREATER
             var publicKeyInfo = new RsaPublicKeyStructure(publicKey.Modulus, publicKey.Exponent);
             return publicKeyInfo.GetDerEncoded();
+#else
+            var parameters = publicKey.ExportParameters(false);
+            var writer = new AsnWriter(AsnEncodingRules.DER);
+            writer.PushSequence();
+            writer.WriteInteger(parameters.Modulus);
+            writer.WriteInteger(parameters.Exponent);
+            writer.PopSequence();
+            return writer.Encode();
+#endif 
         }
 
         /// <summary>
@@ -130,24 +150,49 @@ namespace KeeperSecurity.Utils
         /// </summary>
         /// <param name="key">RSA public key DER encoded</param>
         /// <returns>RSA Public Key</returns>
-        public static RsaKeyParameters LoadRsaPublicKey(byte[] key)
+        public static RsaPublicKey LoadRsaPublicKey(byte[] key)
         {
+#if NET472_OR_GREATER
             var algorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
             var publicKeyStructure = RsaPublicKeyStructure.GetInstance(Asn1Sequence.GetInstance(key));
             var publicKeyInfo = new SubjectPublicKeyInfo(algorithm, publicKeyStructure);
 
             return PublicKeyFactory.CreateKey(publicKeyInfo) as RsaKeyParameters;
+#else
+            var reader = new AsnReader(key, AsnEncodingRules.DER);
+            reader = reader.ReadSequence();
+            var modulus = reader.ReadIntegerBytes().ToArray();
+            var exponent = reader.ReadIntegerBytes().ToArray();
+            var rsa = RSA.Create();
+            rsa.ImportParameters(new RSAParameters
+            {
+                Modulus = modulus,
+                Exponent = exponent
+            });
+            return rsa;
+#endif 
         }
-         
+
         /// <summary>
         ///     Unloads RSA private key.
         /// </summary>
-        /// <param name="key">RSA private key</param>
+        /// <param name="privateKey">RSA private key</param>
         /// <returns>RSA Private Key DER encoded</returns>
-        public static byte[] UnloadRsaPrivateKey(RsaPrivateCrtKeyParameters privateKey)
+        public static byte[] UnloadRsaPrivateKey(RsaPrivateKey privateKey)
         {
+#if NET472_OR_GREATER
             var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
             return privateKeyInfo.ParsePrivateKey().GetDerEncoded();
+#else
+            var data = privateKey.ExportPkcs8PrivateKey();
+            var reader = new AsnReader(data, AsnEncodingRules.DER);
+            reader = reader.ReadSequence();
+            _ = reader.ReadInteger();
+            _ = reader.ReadSequence();
+            var pk = reader.ReadOctetString();
+            // var er1 = LoadRsaPrivateKey(pk);
+            return pk;
+#endif
         }
 
         /// <summary>
@@ -155,13 +200,40 @@ namespace KeeperSecurity.Utils
         /// </summary>
         /// <param name="key">RSA private key DER encoded.</param>
         /// <returns>RSA Private Key</returns>
-        public static RsaPrivateCrtKeyParameters LoadRsaPrivateKey(byte[] key)
+        public static RsaPrivateKey LoadRsaPrivateKey(byte[] key)
         {
+#if NET472_OR_GREATER
             var algorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
             var privateKeyStructure = RsaPrivateKeyStructure.GetInstance(Asn1Sequence.GetInstance(key));
             var privateKeyInfo = new PrivateKeyInfo(algorithm, privateKeyStructure);
-
             return PrivateKeyFactory.CreateKey(privateKeyInfo) as RsaPrivateCrtKeyParameters;
+#else
+            var reader = new AsnReader(key, AsnEncodingRules.DER);
+            reader = reader.ReadSequence();
+            _ = reader.ReadInteger();
+            var modulus = reader.ReadIntegerBytes().ToArray();
+            var publicExponent = reader.ReadIntegerBytes().ToArray();
+            var privateExponent = reader.ReadIntegerBytes().ToArray();
+            var prime1 = reader.ReadIntegerBytes().ToArray();
+            var prime2 = reader.ReadIntegerBytes().ToArray();
+            var exponent1 = reader.ReadIntegerBytes().ToArray();
+            var exponent2 = reader.ReadIntegerBytes().ToArray();
+            var coefficient = reader.ReadIntegerBytes().ToArray();
+            
+            var rsa = RSA.Create();
+            rsa.ImportParameters(new RSAParameters
+            {
+                Modulus = modulus,
+                Exponent = publicExponent,
+                D = privateExponent,
+                P = prime1,
+                Q = prime2,
+                DP = exponent1,
+                DQ = exponent2,
+                InverseQ = coefficient,
+            });
+            return rsa;
+#endif 
         }
 
         /// <summary>
@@ -174,17 +246,19 @@ namespace KeeperSecurity.Utils
         /// <remarks>[IV: 16bytes][ENCRYPTED PADDED DATA]</remarks>
         public static byte[] EncryptAesV1(byte[] data, byte[] key, byte[] iv = null)
         {
+            using var aes = Aes.Create();
+
+            aes.BlockSize = 16 * 8;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
             iv = iv ?? GetRandomBytes(16);
-            var parameters = new ParametersWithIV(new KeyParameter(key), iv);
-
-            var cipher = new PaddedBufferedBlockCipher(new CbcBlockCipher(new AesEngine()), new Pkcs7Padding());
-            cipher.Init(true, parameters);
-
-            var cipherText = new byte[cipher.GetOutputSize(data.Length)];
-            var len = cipher.ProcessBytes(data, 0, data.Length, cipherText, 0);
-            len += cipher.DoFinal(cipherText, len);
-
-            return iv.Concat(cipherText.Take(len)).ToArray();
+            using var encryptor = aes.CreateEncryptor(key, iv);
+            using var ms = new MemoryStream();
+            using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+            {
+                cs.Write(data, 0, data.Length);
+            }
+            return iv.Concat(ms.ToArray()).ToArray();
         }
 
         /// <summary>
@@ -195,22 +269,25 @@ namespace KeeperSecurity.Utils
         /// <returns>Plain data.</returns>
         public static byte[] DecryptAesV1(byte[] data, byte[] key)
         {
+            using var aes = Aes.Create();
+            aes.BlockSize = 16 * 8;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
             var iv = data.Take(16).ToArray();
-            var parameters = new ParametersWithIV(new KeyParameter(key), iv);
-
-            var cipher = new PaddedBufferedBlockCipher(new CbcBlockCipher(new AesEngine()), new Pkcs7Padding());
-            cipher.Init(false, parameters);
-
-            var decryptedData = new byte[cipher.GetOutputSize(data.Length - 16)];
-            var len = cipher.ProcessBytes(data, 16, data.Length - 16, decryptedData, 0);
-            len += cipher.DoFinal(decryptedData, len);
-
-            return decryptedData.Take(len).ToArray();
+            using var encryptor = aes.CreateDecryptor(key, iv);
+            using var ms1 = new MemoryStream();
+            using (var ms = new MemoryStream(data, 16, data.Length - 16))
+            using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Read))
+            {
+                cs.CopyTo(ms1);
+            }
+            return ms1.ToArray();
         }
 
         /// <exclude/>
         public static byte[] EncryptAesV2(byte[] data, byte[] key, byte[] nonce)
         {
+#if NET472_OR_GREATER
             var parameters = new AeadParameters(new KeyParameter(key), 16 * 8, nonce);
 
             var cipher = new GcmBlockCipher(new AesEngine());
@@ -221,6 +298,26 @@ namespace KeeperSecurity.Utils
             len += cipher.DoFinal(cipherText, len);
 
             return nonce.Concat(cipherText.Take(len)).ToArray();
+#else
+            using var aes = new AesGcm(key);
+            
+            var encryptedData = new byte[AES_GCM_NONCE_SIZE + data.Length + AES_GCM_TAG_SIZE];
+            var nonceSpan = new Span<byte>(encryptedData, 0, AES_GCM_NONCE_SIZE);
+            if (nonce == null)
+            {
+                SecureRandom.GetBytes(nonceSpan);
+            }
+            else
+            {
+                Array.Copy(nonce, encryptedData, AES_GCM_NONCE_SIZE);
+            }
+            var encrypted = new Span<byte>(encryptedData, AES_GCM_NONCE_SIZE, data.Length);
+            var tag = new Span<byte>(encryptedData, AES_GCM_NONCE_SIZE + data.Length, AES_GCM_TAG_SIZE);
+            var plain = new ReadOnlySpan<byte>(data, 0, data.Length);
+
+            aes.Encrypt(nonceSpan, plain, encrypted, tag);
+            return encryptedData;
+#endif
         }
 
         /// <summary>
@@ -231,7 +328,7 @@ namespace KeeperSecurity.Utils
         /// <param name="nonceLength">Nonce length in bytes. Optional. Default 12</param>
         /// <returns>Encrypted data.</returns>
         /// <remarks>[NONCE: 12bytes][ENCRYPTED DATA][TAG: 16bytes]></remarks>
-        public static byte[] EncryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceLength)
+        public static byte[] EncryptAesV2(byte[] data, byte[] key, int nonceLength = AES_GCM_NONCE_SIZE)
         {
             return EncryptAesV2(data, key, GetRandomBytes(nonceLength));
         }
@@ -244,8 +341,9 @@ namespace KeeperSecurity.Utils
         /// <param name="nonceLength">Nonce length. Optional. Default: 12 bytes.</param>
         /// <returns>Plain data.</returns>
         /// <exception cref="Exception">Cannot be decrypted.</exception>
-        public static byte[] DecryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceLength)
+        public static byte[] DecryptAesV2(byte[] data, byte[] key, int nonceLength = AES_GCM_NONCE_SIZE)
         {
+#if NET472_OR_GREATER
             var nonce = data.Take(nonceLength).ToArray();
             var parameters = new AeadParameters(new KeyParameter(key), 16 * 8, nonce);
 
@@ -257,6 +355,15 @@ namespace KeeperSecurity.Utils
             len += cipher.DoFinal(decryptedData, len);
 
             return decryptedData.Take(len).ToArray();
+#else
+            using var aes = new AesGcm(key);
+            var buffer = new byte[data.Length - (AES_GCM_NONCE_SIZE + AES_GCM_TAG_SIZE)];
+            var nonce = data.Take(AES_GCM_NONCE_SIZE).ToArray();
+            var encrypted = data.Skip(AES_GCM_NONCE_SIZE).Take(buffer.Length).ToArray();
+            var tag = data.Skip(AES_GCM_NONCE_SIZE+buffer.Length).Take(AES_GCM_TAG_SIZE).ToArray();
+            aes.Decrypt(nonce, encrypted, tag, buffer);
+            return buffer;
+#endif
         }
 
         /// <summary>
@@ -266,11 +373,15 @@ namespace KeeperSecurity.Utils
         /// <param name="publicKey">RSA public key.</param>
         /// <returns>Encrypted data.</returns>
         /// <remarks>Uses PKCS1 padding.</remarks>
-        public static byte[] EncryptRsa(byte[] data, RsaKeyParameters publicKey)
+        public static byte[] EncryptRsa(byte[] data, RsaPublicKey publicKey)
         {
+#if NET472_OR_GREATER
             var encryptEngine = new Pkcs1Encoding(new RsaEngine());
             encryptEngine.Init(true, publicKey);
             return encryptEngine.ProcessBlock(data, 0, data.Length);
+#else
+            return publicKey.Encrypt(data, RSAEncryptionPadding.Pkcs1);
+#endif
         }
 
         /// <summary>
@@ -279,11 +390,15 @@ namespace KeeperSecurity.Utils
         /// <param name="data">Encrypted data.</param>
         /// <param name="privateKey">RSA private key.</param>
         /// <returns>Plain data.</returns>
-        public static byte[] DecryptRsa(byte[] data, RsaPrivateCrtKeyParameters privateKey)
+        public static byte[] DecryptRsa(byte[] data, RsaPrivateKey privateKey)
         {
+#if NET472_OR_GREATER
             var encryptEngine = new Pkcs1Encoding(new RsaEngine());
             encryptEngine.Init(false, privateKey);
             return encryptEngine.ProcessBlock(data, 0, data.Length);
+#else
+            return privateKey.Decrypt(data, RSAEncryptionPadding.Pkcs1);
+#endif
         }
 
         /// <summary>
@@ -295,9 +410,8 @@ namespace KeeperSecurity.Utils
         /// <returns>Encryption key.</returns>
         public static byte[] DeriveKeyV1(string password, byte[] salt, int iterations)
         {
-            var pdb = new Pkcs5S2ParametersGenerator(new Sha256Digest());
-            pdb.Init(PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password.ToCharArray()), salt, iterations);
-            return ((KeyParameter) pdb.GenerateDerivedMacParameters(32 * 8)).GetKey();
+            using var pdb = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
+            return pdb.GetBytes(256 / 8);
         }
 
         /// <summary>
@@ -309,11 +423,9 @@ namespace KeeperSecurity.Utils
         /// <returns></returns>
         public static byte[] DeriveV1KeyHash(string password, byte[] salt, int iterations)
         {
-            var pdb = new Pkcs5S2ParametersGenerator(new Sha256Digest());
-            pdb.Init(PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password.ToCharArray()), salt, iterations);
-            var key = ((KeyParameter) pdb.GenerateDerivedMacParameters(32 * 8)).GetKey();
-
-            return SHA256.Create().ComputeHash(key);
+            var key = DeriveKeyV1(password, salt, iterations);
+            using var sha = SHA256.Create();
+            return sha.ComputeHash(key, 0, key.Length);
         }
 
         /// <exclude />
@@ -336,18 +448,18 @@ namespace KeeperSecurity.Utils
 
             var key = DeriveKeyV1(password, salt, iterations);
             var iv = GetRandomBytes(16);
-            var parameters = new ParametersWithIV(new KeyParameter(key), iv);
 
-            var cipher = new CbcBlockCipher(new AesEngine());
-            cipher.Init(true, parameters);
-            var outBuffer = new byte[dataKey.Length * 2];
-            var len = 0;
-            while (len < outBuffer.Length)
-            {
-                var offset = len % dataKey.Length;
-                len += cipher.ProcessBlock(dataKey, offset, outBuffer, len);
-            }
+            using var aes = Aes.Create();
+            aes.BlockSize = 16 * 8;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.None;
+            using var encryptor = aes.CreateEncryptor(key, iv);
+            using var ms = new MemoryStream();
+            using var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
+            cs.Write(dataKey, 0, dataKey.Length);
+            cs.Write(dataKey, 0, dataKey.Length);
 
+            var outBuffer = ms.ToArray();
             return new[] { versionBytes.Take(1), iterationsBytes.Skip(1), salt, iv, outBuffer }.SelectMany(x => x)
                 .ToArray();
         }
@@ -357,7 +469,8 @@ namespace KeeperSecurity.Utils
         {
             if (encryptionParams[0] != 1) throw new Exception(CorruptedEncryptionParametersMessage);
 
-            if (encryptionParams.Length != 1 + 3 + 16 + 16 + 64) throw new Exception(CorruptedEncryptionParametersMessage);
+            if (encryptionParams.Length != 1 + 3 + 16 + 16 + 64)
+                throw new Exception(CorruptedEncryptionParametersMessage);
 
             var iterations = (encryptionParams[1] << 16) + (encryptionParams[2] << 8) + encryptionParams[3];
 
@@ -366,15 +479,22 @@ namespace KeeperSecurity.Utils
             var key = DeriveKeyV1(password, salt, iterations);
 
             Array.Copy(encryptionParams, 20, salt, 0, 16);
-            var parameters = new ParametersWithIV(new KeyParameter(key), salt);
 
-            var cipher = new CbcBlockCipher(new AesEngine());
-            cipher.Init(false, parameters);
-            var len = 0;
-            var outBuffer = new byte[64];
-            while (len < 64) len += cipher.ProcessBlock(encryptionParams, len + 36, outBuffer, len);
+            using var aes = Aes.Create();
+            aes.BlockSize = 16 * 8;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.None;
+            using var decryptor = aes.CreateDecryptor(key, salt);
 
-            if (!outBuffer.Take(32).SequenceEqual(outBuffer.Skip(32))) throw new Exception(CorruptedEncryptionParametersMessage);
+            using var ms1 = new MemoryStream();
+            using (var ms = new MemoryStream(encryptionParams, 36, 64))
+            using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+            {
+                cs.CopyTo(ms1);
+            }
+            var outBuffer = ms1.ToArray();
+            if (!outBuffer.Take(32).SequenceEqual(outBuffer.Skip(32)))
+                throw new Exception(CorruptedEncryptionParametersMessage);
 
             return outBuffer.Take(32).Take(32).ToArray();
         }
@@ -384,14 +504,22 @@ namespace KeeperSecurity.Utils
         /// </summary>
         /// <param name="privateKey"><c>out</c>Rsa Private key.</param>
         /// <param name="publicKey"><c>out</c>Rsa Public Key</param>
-        public static void GenerateRsaKey(out RsaPrivateCrtKeyParameters privateKey, out RsaKeyParameters publicKey)
+        public static void GenerateRsaKey(out RsaPrivateKey privateKey, out RsaPublicKey publicKey)
         {
+#if NET472_OR_GREATER
             var r = new RsaKeyPairGenerator();
-            r.Init(new KeyGenerationParameters(RngCsp, 2048));
+            r.Init(new KeyGenerationParameters(SecureRandom, 2048));
             var keyPair = r.GenerateKeyPair();
 
             privateKey = (RsaPrivateCrtKeyParameters) keyPair.Private;
             publicKey = (RsaKeyParameters) keyPair.Public;
+#else
+            var rsa = RSA.Create();
+            var rsaPublicKey = RSA.Create();
+            rsaPublicKey.ImportParameters(rsa.ExportParameters(false));
+            privateKey = rsa;
+            publicKey = rsaPublicKey;
+#endif
         }
 
         /// <summary>
@@ -404,13 +532,18 @@ namespace KeeperSecurity.Utils
         /// <returns>Encryption key.</returns>
         public static byte[] DeriveKeyV2(string domain, string password, byte[] salt, int iterations)
         {
+            /*
             var passwordBytes = Encoding.UTF8.GetBytes(domain + password);
-
             var pdb = new Pkcs5S2ParametersGenerator(new Sha512Digest());
             pdb.Init(passwordBytes, salt, iterations);
             var key = ((KeyParameter) pdb.GenerateDerivedMacParameters(64 * 8)).GetKey();
-
             var hmac = new HMACSHA256(key);
+            return hmac.ComputeHash(Encoding.UTF8.GetBytes(domain));
+            */
+
+            using var pdb = new Rfc2898DeriveBytes(domain + password, salt, iterations, HashAlgorithmName.SHA512);
+            var key = pdb.GetBytes(512 / 8);
+            using var hmac = new HMACSHA256(key);
             return hmac.ComputeHash(Encoding.UTF8.GetBytes(domain));
         }
 
@@ -430,14 +563,19 @@ namespace KeeperSecurity.Utils
         /// </summary>
         /// <param name="privateKey"><c>out</c> Private Key</param>
         /// <param name="publicKey"><c>out</c> Public Key.</param>
-        public static void GenerateEcKey(out ECPrivateKeyParameters privateKey, out ECPublicKeyParameters publicKey)
+        public static void GenerateEcKey(out EcPrivateKey privateKey, out EcPublicKey publicKey)
         {
-            var keyGeneratorParams = new ECKeyGenerationParameters(EcParameters, RngCsp);
+#if NET472_OR_GREATER
+            var keyGeneratorParams = new ECKeyGenerationParameters(EcParameters, SecureRandom);
             var keyGenerator = new ECKeyPairGenerator("ECDH");
             keyGenerator.Init(keyGeneratorParams);
             var keyPair = keyGenerator.GenerateKeyPair();
             privateKey = keyPair.Private as ECPrivateKeyParameters;
             publicKey = keyPair.Public as ECPublicKeyParameters;
+#else
+            privateKey = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
+            publicKey = privateKey.PublicKey; 
+#endif
         }
 
         /// <summary>
@@ -446,8 +584,9 @@ namespace KeeperSecurity.Utils
         /// <param name="key">Private key</param>
         /// <returns>byte array representing EC private key.</returns>
         /// <remarks>32 bytes</remarks>
-        public static byte[] UnloadEcPrivateKey(ECPrivateKeyParameters key)
+        public static byte[] UnloadEcPrivateKey(EcPrivateKey key)
         {
+#if NET472_OR_GREATER
             var privateKey = key.D.ToByteArrayUnsigned();
             var len = privateKey.Length;
             if (len >= 32) return privateKey;
@@ -455,46 +594,102 @@ namespace KeeperSecurity.Utils
             Array.Clear(pk, 0, pk.Length);
             Array.Copy(privateKey, 0, pk, 32 - len, len);
             return pk;
+#else
+            var parameters = key.ExportParameters(true);
+            return parameters.D;
+#endif
         }
 
         /// <summary>
         ///     Serializes EC public key.
         /// </summary>
-        /// <param name="key">Public key.</param>
+        /// <param name="publicKey">Public key.</param>
         /// <returns>byte array representing EC public key.</returns>
         /// <remarks>Uncompressed. 65 bytes.</remarks>
-        public static byte[] UnloadEcPublicKey(ECPublicKeyParameters key)
+        public static byte[] UnloadEcPublicKey(EcPublicKey publicKey)
         {
-            return key.Q.GetEncoded();
+#if NET472_OR_GREATER
+            return publicKey.Q.GetEncoded();
+#else
+            var key = new byte[65];
+            key[0] = 0x04;
+            var parameters = publicKey.ExportParameters();
+            Array.Copy(parameters.Q.X!, 0, key, 1, 32);
+            Array.Copy(parameters.Q.Y!, 0, key, 33, 32);
+            return key;
+#endif
         }
 
         /// <summary>
         ///     Loads EC private key.
         /// </summary>
-        /// <param name="key">private key bytes</param>
+        /// <param name="privateKey">private key bytes</param>
         /// <returns>EC private key.</returns>
         /// <exception cref="Exception">invalid key bytes</exception>
-        public static ECPrivateKeyParameters LoadEcPrivateKey(byte[] key)
+        public static EcPrivateKey LoadEcPrivateKey(byte[] privateKey)
         {
-            return new ECPrivateKeyParameters(new BigInteger(1, key), EcParameters);
+#if NET472_OR_GREATER
+            return new ECPrivateKeyParameters(new BigInteger(1, privateKey), EcParameters);
+#else
+            if (privateKey.Length < 32)
+            {
+                throw new ArgumentException("Invalid EC private key data");
+            }
+            var ecKey = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
+            ecKey.ImportParameters(new ECParameters
+            {
+                Curve = ECCurve.NamedCurves.nistP256,
+                D = privateKey
+            });
+            return ecKey;
+#endif
         }
 
         /// <summary>
         ///     LoadV2 EC public key.
         /// </summary>
-        /// <param name="key">public key bytes.</param>
+        /// <param name="publicKey">public key bytes.</param>
         /// <returns>EC public key</returns>
         /// <exception cref="Exception">invalid key bytes</exception>
-        public static ECPublicKeyParameters LoadEcPublicKey(byte[] key)
+        public static EcPublicKey LoadEcPublicKey(byte[] publicKey)
         {
-            var point = new X9ECPoint(EcParameters.Curve, new DerOctetString(key)).Point;
+#if NET472_OR_GREATER
+            var point = new X9ECPoint(EcParameters.Curve, new DerOctetString(publicKey)).Point;
             return new ECPublicKeyParameters(point, EcParameters);
+#else
+            if (publicKey.Length < 65)
+            {
+                throw new ArgumentException("Invalid EC public key data");
+            }
+            if (publicKey[0] != 0x04)
+            {
+                throw new ArgumentException("Invalid EC public key data");
+            }
+
+            var x = new ReadOnlySpan<byte>(publicKey, 1, 32);
+            var y = new ReadOnlySpan<byte>(publicKey, 33, 32);
+            var pk = EcPrivateKey.Create(ECCurve.NamedCurves.nistP256);
+            pk.ImportParameters(new ECParameters
+            {
+                Curve = ECCurve.NamedCurves.nistP256,
+                Q = new ECPoint
+                {
+                    X = x.ToArray(),
+                    Y = y.ToArray()
+                }
+            });
+            return pk.PublicKey;
+#endif
         }
 
         /// <exclude />
-        public static ECPublicKeyParameters GetEcPublicKey(ECPrivateKeyParameters privateKey)
+        public static EcPublicKey GetEcPublicKey(EcPrivateKey privateKey)
         {
+#if NET472_OR_GREATER
             return new ECPublicKeyParameters(privateKey.Parameters.G.Multiply(privateKey.D), privateKey.Parameters);
+#else
+            return privateKey.PublicKey;
+#endif
         }
 
         /// <summary>
@@ -504,15 +699,25 @@ namespace KeeperSecurity.Utils
         /// <param name="publicKey">Public key.</param>
         /// <returns>Encrypted data</returns>
         /// <remarks>[EPHEMERAL PUBLIC KEY][AES GCM ENCRYPTED DATA]</remarks>
-        public static byte[] EncryptEc(byte[] data, ECPublicKeyParameters publicKey)
+        public static byte[] EncryptEc(byte[] data, EcPublicKey publicKey)
         {
             GenerateEcKey(out var ePrivateKey, out var ePublicKey);
+#if NET472_OR_GREATER
             var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
             agreement.Init(ePrivateKey);
             var key = agreement.CalculateAgreement(publicKey).ToByteArrayUnsigned();
             key = SHA256.Create().ComputeHash(key);
             var encryptedData = EncryptAesV2(data, key);
             return UnloadEcPublicKey(ePublicKey).Concat(encryptedData).ToArray();
+#else
+            var encryptionKey = ePrivateKey.DeriveKeyMaterial(publicKey);
+            var pk = UnloadEcPublicKey(ePublicKey);
+            var encryptedData = EncryptAesV2(data, encryptionKey);
+            var result = new byte[pk.Length + encryptedData.Length];
+            Array.Copy(pk, result, pk.Length);
+            Array.Copy(encryptedData, 0, result, pk.Length, encryptedData.Length);
+            return result;
+#endif
         }
 
         /// <summary>
@@ -521,14 +726,21 @@ namespace KeeperSecurity.Utils
         /// <param name="data">Encrypted data.</param>
         /// <param name="privateKey">Private key.</param>
         /// <returns>Plain data.</returns>
-        public static byte[] DecryptEc(byte[] data, ECPrivateKeyParameters privateKey)
+        public static byte[] DecryptEc(byte[] data, EcPrivateKey privateKey)
         {
+#if NET472_OR_GREATER
             var ePublicKey = LoadEcPublicKey(data.Take(65).ToArray());
             var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
             agreement.Init(privateKey);
             var key = agreement.CalculateAgreement(ePublicKey).ToByteArrayUnsigned();
             key = SHA256.Create().ComputeHash(key);
             return DecryptAesV2(data.Skip(65).ToArray(), key);
+#else
+            var ePublicKey = LoadEcPublicKey(data);
+            var encryptionKey = privateKey.DeriveKeyMaterial(ePublicKey);
+            var encryptedData = new ReadOnlySpan<byte>(data, 65, data.Length - 65).ToArray();
+            return DecryptAesV2(encryptedData, encryptionKey);
+#endif
         }
 
         internal static byte[] Base32ToBytes(string base32)
@@ -576,18 +788,18 @@ namespace KeeperSecurity.Utils
             foreach (var key in coll.AllKeys)
                 switch (key)
                 {
-                    case "secret":
-                        secret = coll[key];
-                        break;
-                    case "algorithm":
-                        algorithm = coll[key];
-                        break;
-                    case "digits":
-                        int.TryParse(coll[key], out digits);
-                        break;
-                    case "period":
-                        int.TryParse(coll[key], out period);
-                        break;
+                case "secret":
+                    secret = coll[key];
+                    break;
+                case "algorithm":
+                    algorithm = coll[key];
+                    break;
+                case "digits":
+                    int.TryParse(coll[key], out digits);
+                    break;
+                case "period":
+                    int.TryParse(coll[key], out period);
+                    break;
                 }
 
             if (string.IsNullOrEmpty(secret)) return null;
@@ -602,18 +814,18 @@ namespace KeeperSecurity.Utils
             HMAC hmac = null;
             switch (algorithm)
             {
-                case "SHA1":
-                    hmac = new HMACSHA1(secretBytes);
-                    break;
-                case "SHA256":
-                    hmac = new HMACSHA256(secretBytes);
-                    break;
-                case "SHA512":
-                    hmac = new HMACSHA512(secretBytes);
-                    break;
-                case "MD5":
-                    hmac = new HMACMD5(secretBytes);
-                    break;
+            case "SHA1":
+                hmac = new HMACSHA1(secretBytes);
+                break;
+            case "SHA256":
+                hmac = new HMACSHA256(secretBytes);
+                break;
+            case "SHA512":
+                hmac = new HMACSHA512(secretBytes);
+                break;
+            case "MD5":
+                hmac = new HMACMD5(secretBytes);
+                break;
             }
 
             if (hmac == null) return null;
@@ -633,22 +845,20 @@ namespace KeeperSecurity.Utils
             return Tuple.Create(codeStr, (int) (tmBase % period), period);
         }
 
-        internal static void Shuffle<T>(T[] array)
+        private static void Shuffle<T>(T[] array)
         {
-            if (array?.Length >= 2)
+            if (!(array?.Length >= 2)) return;
+            var bigArray = array.Length > byte.MaxValue;
+            var randoms = GetRandomBytes(array.Length * (bigArray ? 4 : 1));
+            for (var i = array.Length - 1; i >= 0; i--)
             {
-                var bigArray = array.Length > byte.MaxValue;
-                var randoms = GetRandomBytes(array.Length * (bigArray ? 4 : 1));
-                for (var i = array.Length - 1; i >= 0; i--)
+                var random = bigArray ? (int) (BitConverter.ToUInt32(randoms, i * 4) & 0x7fffffff) : randoms[i];
+                var j = random % array.Length;
+                if (i != j)
                 {
-                    var random = bigArray ? (int) (BitConverter.ToUInt32(randoms, i * 4) & 0x7fffffff) : randoms[i];
-                    var j = random % array.Length;
-                    if (i != j)
-                    {
-                        var ch = array[i];
-                        array[i] = array[j];
-                        array[j] = ch;
-                    }
+                    var ch = array[i];
+                    array[i] = array[j];
+                    array[j] = ch;
                 }
             }
         }
@@ -656,7 +866,7 @@ namespace KeeperSecurity.Utils
         /// <summary>
         /// Special characters for password generator
         /// </summary>
-        public static readonly string SPECIAL_CHARACTERS = "!@#$%()+;<>=?[]{}^.,";
+        public static readonly string SpecialCharacters = "!@#$%()+;<>=?[]{}^.,";
 
         /// <summary>
         /// Generates random password.
@@ -665,7 +875,7 @@ namespace KeeperSecurity.Utils
         /// <returns>Generated password</returns>
         public static string GeneratePassword(PasswordGenerationOptions options = null)
         {
-            const int LETTER_COUNT = 'z' - 'a' + 1;
+            const int letterCount = 'z' - 'a' + 1;
 
             int length = options?.Length ?? 20;
             int upper = options?.Upper ?? 4;
@@ -677,6 +887,7 @@ namespace KeeperSecurity.Utils
             {
                 length = 20;
             }
+
             if (upper < 0 && lower < 0 && digit < 0 && special < 0)
             {
                 lower = length;
@@ -689,66 +900,73 @@ namespace KeeperSecurity.Utils
                 var left = extra;
                 if (left > 0 && lower > 0)
                 {
-                    var to_substract = (int) Math.Ceiling((float) lower / required * extra);
-                    if (to_substract > 0)
+                    var toSubstract = (int) Math.Ceiling((float) lower / required * extra);
+                    if (toSubstract > 0)
                     {
-                        to_substract = Math.Min(left, to_substract);
-                        lower -= to_substract;
-                        left -= to_substract;
+                        toSubstract = Math.Min(left, toSubstract);
+                        lower -= toSubstract;
+                        left -= toSubstract;
                     }
                 }
+
                 if (left > 0 && upper > 0)
                 {
-                    var to_substract = (int) Math.Ceiling((float) upper / required * extra);
-                    if (to_substract > 0)
+                    var toSubstract = (int) Math.Ceiling((float) upper / required * extra);
+                    if (toSubstract > 0)
                     {
-                        to_substract = Math.Min(left, to_substract);
-                        upper -= to_substract;
-                        left -= to_substract;
+                        toSubstract = Math.Min(left, toSubstract);
+                        upper -= toSubstract;
+                        left -= toSubstract;
                     }
                 }
+
                 if (left > 0 && digit > 0)
                 {
-                    var to_substract = (int) Math.Ceiling((float) digit / required * extra);
-                    if (to_substract > 0)
+                    var toSubstract = (int) Math.Ceiling((float) digit / required * extra);
+                    if (toSubstract > 0)
                     {
-                        to_substract = Math.Min(left, to_substract);
-                        digit -= to_substract;
-                        left -= to_substract;
+                        toSubstract = Math.Min(left, toSubstract);
+                        digit -= toSubstract;
+                        left -= toSubstract;
                     }
                 }
+
                 if (left > 0 && special > 0)
                 {
-                    var to_substract = (int) Math.Ceiling((float) special / required * extra);
-                    if (to_substract > 0)
+                    var toSubstract = (int) Math.Ceiling((float) special / required * extra);
+                    if (toSubstract > 0)
                     {
-                        to_substract = Math.Min(left, to_substract);
-                        special -= to_substract;
-                        left -= to_substract;
+                        toSubstract = Math.Min(left, toSubstract);
+                        special -= toSubstract;
+                        left -= toSubstract;
                     }
                 }
+
                 Debug.Assert(left <= 0);
             }
 
             required = Math.Max(upper, 0) + Math.Max(lower, 0) + Math.Max(digit, 0) + Math.Max(special, 0);
             extra = length - required;
-            while (extra > 0) 
+            while (extra > 0)
             {
                 if (extra > 0 && lower >= 0)
                 {
                     lower++;
                     extra--;
                 }
-                if (extra > 0 && upper >= 0) 
+
+                if (extra > 0 && upper >= 0)
                 {
                     upper++;
                     extra--;
                 }
+
                 if (extra > 0 && digit >= 0)
                 {
                     digit++;
                     extra--;
                 }
+
                 if (extra > 0 && special >= 0)
                 {
                     special++;
@@ -759,22 +977,26 @@ namespace KeeperSecurity.Utils
 
             var buffer = new char[length];
             var indexes = new int[length];
-            for (var i = 0; i < indexes.Length; i++) 
+            for (var i = 0; i < indexes.Length; i++)
             {
                 indexes[i] = i;
             }
+
             Shuffle(indexes);
             var randoms = GetRandomBytes(length);
-            var sprecialCharacters = string.IsNullOrEmpty(options?.SpecialCharacters) ? SPECIAL_CHARACTERS : options.SpecialCharacters;
-            foreach (var pos in indexes) {
+            var specialCharacters = string.IsNullOrEmpty(options?.SpecialCharacters)
+                ? SpecialCharacters
+                : options.SpecialCharacters;
+            foreach (var pos in indexes)
+            {
                 if (upper > 0)
                 {
-                    buffer[pos] = (char) ('A' + (randoms[pos] % LETTER_COUNT));
+                    buffer[pos] = (char) ('A' + (randoms[pos] % letterCount));
                     upper--;
                 }
                 else if (lower > 0)
                 {
-                    buffer[pos] = (char) ('a' + (randoms[pos] % LETTER_COUNT));
+                    buffer[pos] = (char) ('a' + (randoms[pos] % letterCount));
                     lower--;
                 }
                 else if (digit > 0)
@@ -784,18 +1006,19 @@ namespace KeeperSecurity.Utils
                 }
                 else if (special > 0)
                 {
-                    buffer[pos] = sprecialCharacters[randoms[pos] % sprecialCharacters.Length];
+                    buffer[pos] = specialCharacters[randoms[pos] % specialCharacters.Length];
                     special--;
                 }
                 else
                 {
-                    buffer[pos] = (char) ('a' + (randoms[pos] % LETTER_COUNT));
+                    buffer[pos] = (char) ('a' + (randoms[pos] % letterCount));
                 }
             }
 
             Shuffle(buffer);
             return new string(buffer);
         }
+
     }
 
     /// <summary>
@@ -808,216 +1031,34 @@ namespace KeeperSecurity.Utils
         /// </summary>
         /// <remarks>Default: 20</remarks>
         public int Length { get; set; }
+
         /// <summary>
         /// Minimal number of lowercase characters. 
         /// </summary>
         /// <remarks>-1 to exclude lowercase characters</remarks>
         public int Lower { get; set; }
+
         /// <summary>
         /// Minimal number of uppercase characters. 
         /// </summary>
         /// <remarks>-1 to exclude uppercase characters</remarks>
         public int Upper { get; set; }
+
         /// <summary>
         /// Minimal number of digits
         /// </summary>
         /// <remarks>-1 to exclude digits</remarks>
         public int Digit { get; set; }
+
         /// <summary>
         /// Minimal number of special characters
         /// </summary>
         /// <remarks>-1 to exclude special characters</remarks>
         public int Special { get; set; }
+
         /// <summary>
-        /// Special character vocabulary. <see cref="CryptoUtils.SPECIAL_CHARACTERS"/>
+        /// Special character vocabulary. <see cref="CryptoUtils.SpecialCharacters"/>
         /// </summary>
         public string SpecialCharacters { get; set; }
-    }
-
-    /// <exclude />
-    public class EncryptTransform : ICryptoTransform
-    {
-        private readonly IBufferedCipher _cypher;
-        private byte[] _tail;
-
-        public EncryptTransform(IBufferedCipher cypher, byte[] key, int ivSize = 0)
-        {
-            _cypher = cypher;
-
-            var iv = CryptoUtils.GetRandomBytes(ivSize > 0 ? ivSize : _cypher.GetBlockSize());
-            _cypher.Init(true, new ParametersWithIV(new KeyParameter(key), iv));
-            _tail = iv;
-            EncryptedBytes = 0;
-        }
-
-        public long EncryptedBytes { get; private set; }
-        public int InputBlockSize => _cypher.GetBlockSize();
-
-        public int OutputBlockSize => _cypher.GetBlockSize();
-
-        public bool CanTransformMultipleBlocks => true;
-
-        public bool CanReuseTransform => false;
-
-        public void Dispose()
-        {
-        }
-
-        public int TransformBlock(byte[] inputBuffer,
-            int inputOffset,
-            int inputCount,
-            byte[] outputBuffer,
-            int outputOffset)
-        {
-            EncryptedBytes += inputCount;
-            var encrypted = _cypher.ProcessBytes(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
-            if (_tail.Length > 0)
-            {
-                if (_tail.Length <= outputBuffer.Length - (outputOffset + encrypted))
-                {
-                    Array.Copy(outputBuffer, outputOffset, outputBuffer, outputOffset + _tail.Length, encrypted);
-                    Array.Copy(_tail, 0, outputBuffer, outputOffset, _tail.Length);
-                    encrypted += _tail.Length;
-                    _tail = new byte[0];
-                }
-                else
-                {
-                    if (_tail.Length <= encrypted)
-                    {
-                        var newTail = new byte[_tail.Length];
-                        Array.Copy(outputBuffer, outputOffset + encrypted - _tail.Length, newTail, 0, _tail.Length);
-                        Array.Copy(outputBuffer, outputOffset, outputBuffer, outputOffset + _tail.Length, encrypted - newTail.Length);
-                        Array.Copy(_tail, 0, outputBuffer, outputOffset, _tail.Length);
-                        _tail = newTail;
-                    }
-                    else
-                    {
-                        var newTail = new byte[_tail.Length + encrypted];
-                        Array.Copy(_tail, 0, newTail, 0, _tail.Length);
-                        Array.Copy(outputBuffer, outputOffset, newTail, _tail.Length, encrypted);
-                        _tail = newTail;
-                        encrypted = 0;
-                    }
-                }
-            }
-
-            return encrypted;
-        }
-
-        public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
-        {
-            EncryptedBytes += inputCount;
-            var final = _cypher.DoFinal(inputBuffer, inputOffset, inputCount);
-            var result = new byte[_tail.Length + final.Length];
-            Array.Copy(_tail, 0, result, 0, _tail.Length);
-            Array.Copy(final, 0, result, _tail.Length, final.Length);
-            return result;
-        }
-    }
-
-    /// <exclude />
-    public class DecryptTransform : ICryptoTransform
-    {
-        private readonly IBufferedCipher _cypher;
-        public readonly byte[] Key;
-        private bool _initialized;
-
-        public DecryptTransform(IBufferedCipher cypher, byte[] key, int ivSize)
-        {
-            _cypher = cypher;
-            Key = key;
-            _ivSize = ivSize > 0 ? ivSize : _cypher.GetBlockSize();
-            _initialized = false;
-            DecryptedBytes = 0;
-        }
-
-        public long DecryptedBytes { get; private set; }
-        public int InputBlockSize => _cypher.GetBlockSize();
-
-        public int OutputBlockSize => _cypher.GetBlockSize();
-
-        public bool CanTransformMultipleBlocks => true;
-
-        public bool CanReuseTransform => false;
-
-        protected readonly int _ivSize;
-
-        public void Dispose()
-        {
-        }
-
-        private void EnsureInitialized(byte[] inputBuffer, ref int inputOffset, ref int inputCount)
-        {
-            if (!_initialized)
-            {
-                var iv = new byte[_ivSize];
-                Array.Copy(inputBuffer, inputOffset, iv, 0, iv.Length);
-                inputOffset += iv.Length;
-                inputCount -= iv.Length;
-                _cypher.Init(false, new ParametersWithIV(new KeyParameter(Key), iv));
-                _initialized = true;
-            }
-        }
-
-        public int TransformBlock(byte[] inputBuffer,
-            int inputOffset,
-            int inputCount,
-            byte[] outputBuffer,
-            int outputOffset)
-        {
-            EnsureInitialized(inputBuffer, ref inputOffset, ref inputCount);
-
-            var res = _cypher.ProcessBytes(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
-            DecryptedBytes += res;
-            return res;
-        }
-
-        public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
-        {
-            EnsureInitialized(inputBuffer, ref inputOffset, ref inputCount);
-
-            var res = _cypher.DoFinal(inputBuffer, inputOffset, inputCount);
-            DecryptedBytes += res.LongLength;
-            return res;
-        }
-    }
-
-    /// <exclude />
-    public class EncryptAesV1Transform : EncryptTransform
-    {
-        public EncryptAesV1Transform(byte[] key) : base(
-            new PaddedBufferedBlockCipher(new CbcBlockCipher(new AesEngine()), new Pkcs7Padding()),
-            key, 0)
-        {
-        }
-    }
-
-    /// <exclude />
-    public class DecryptAesV1Transform : DecryptTransform
-    {
-        public DecryptAesV1Transform(byte[] key) : base(
-            new PaddedBufferedBlockCipher(new CbcBlockCipher(new AesEngine()), new Pkcs7Padding()),
-            key, 0)
-        {
-        }
-    }
-
-
-    /// <exclude />
-    public class EncryptAesV2Transform : EncryptTransform
-    {
-        public EncryptAesV2Transform(byte[] key) : base(
-            new BufferedAeadBlockCipher(new GcmBlockCipher(new AesEngine())), key, 12)
-        {
-        }
-    }
-
-    /// <exclude />
-    public class DecryptAesV2Transform : DecryptTransform
-    {
-        public DecryptAesV2Transform(byte[] key) : base(
-            new BufferedAeadBlockCipher(new GcmBlockCipher(new AesEngine())), key, 12)
-        {
-        }
     }
 }

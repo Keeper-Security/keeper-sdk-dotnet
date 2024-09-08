@@ -10,11 +10,13 @@ using CommandLine;
 
 namespace Commander
 {
-    internal partial class VaultContext {
+    internal partial class VaultContext
+    {
         internal readonly VaultOnline Vault;
         internal string CurrentFolder;
-        public VaultContext(VaultOnline vault) 
-        { 
+
+        public VaultContext(VaultOnline vault)
+        {
             Vault = vault;
         }
 
@@ -25,14 +27,15 @@ namespace Commander
             indent += isRoot ? " " : (last ? "    " : "|   ");
 
             var subfolders = new List<FolderNode>();
-            for (var i = 0; i < folder.Subfolders.Count; i++)
+            foreach (var t in folder.Subfolders)
             {
-                if (Vault.TryGetFolder(folder.Subfolders[i], out var node))
+                if (Vault.TryGetFolder(t, out var node))
                 {
                     subfolders.Add(node);
                 }
             }
-            subfolders.Sort((x, y) => string.Compare(x.Name, y.Name));
+
+            subfolders.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.CurrentCultureIgnoreCase));
             for (var i = 0; i < subfolders.Count; i++)
             {
                 var node = subfolders[i];
@@ -64,63 +67,62 @@ namespace Commander
                 Vault.TryGetFolder(CurrentFolder, out node);
             }
 
-            if (!string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path)) return true;
+            path = path.Trim();
+            if (string.IsNullOrEmpty(path))
             {
-                path = path.Trim();
-                if (string.IsNullOrEmpty(path))
-                {
-                    return node != null;
-                }
+                return node != null;
+            }
 
-                if (path[0] == '/')
-                {
-                    path = path.Substring(1);
-                    node = Vault.RootFolder;
-                }
+            if (path[0] == '/')
+            {
+                path = path.Substring(1);
+                node = Vault.RootFolder;
+            }
 
-                foreach (var folder in path.TokenizeArguments(Cli.CommandExtensions.IsPathDelimiter))
+            foreach (var folder in path.TokenizeArguments(CommandExtensions.IsPathDelimiter))
+            {
+                if (folder == "..")
                 {
-                    if (folder == "..")
+                    if (!string.IsNullOrEmpty(node.ParentUid))
                     {
-                        if (!string.IsNullOrEmpty(node.ParentUid))
-                        {
-                            if (!Vault.TryGetFolder(node.ParentUid, out node))
-                            {
-                                return false;
-                            }
-                        }
-                        else if (!string.IsNullOrEmpty(node.FolderUid))
-                        {
-                            node = Vault.RootFolder;
-                        }
-                        else
+                        if (!Vault.TryGetFolder(node.ParentUid, out node))
                         {
                             return false;
                         }
                     }
+                    else if (!string.IsNullOrEmpty(node.FolderUid))
+                    {
+                        node = Vault.RootFolder;
+                    }
                     else
                     {
-                        var found = false;
-                        foreach (var subFolder in node.Subfolders)
-                        {
-                            if (!Vault.TryGetFolder(subFolder, out var subNode)) return false;
+                        return false;
+                    }
+                }
+                else
+                {
+                    var found = false;
+                    foreach (var subFolder in node.Subfolders)
+                    {
+                        if (!Vault.TryGetFolder(subFolder, out var subNode)) return false;
 
-                            if (string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0) continue;
+                        if (string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0)
+                            continue;
 
-                            found = true;
-                            node = subNode;
-                            break;
-                        }
+                        found = true;
+                        node = subNode;
+                        break;
+                    }
 
-                        if (found) continue;
-                        if (string.IsNullOrEmpty(text))
-                        {
-                            text = folder;
-                        }
-                        else
-                        {
-                            return false;
-                        }
+                    if (found) continue;
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        text = folder;
+                    }
+                    else
+                    {
+                        return false;
                     }
                 }
             }
@@ -180,19 +182,15 @@ namespace Commander
                     Action = context.RecordHistoryCommand
                 });
 
-            if (context.Vault.Auth.AuthContext.Settings.RecordTypesEnabled)
-            {
-                cli.Commands.Add("record-type-info",
-                    new ParseableCommand<RecordTypeInfoOptions>
-                    {
-                        Order = 20,
-                        Description = "Get record type info",
-                        Action = context.RecordTypeInfoCommand
-                    }
-                );
-                cli.Aliases.Add("rti", "record-type-info");
-
-            }
+            cli.Commands.Add("record-type-info",
+                new ParseableCommand<RecordTypeInfoOptions>
+                {
+                    Order = 20,
+                    Description = "Get record type info",
+                    Action = context.RecordTypeInfoCommand
+                }
+            );
+            cli.Aliases.Add("rti", "record-type-info");
 
             cli.Commands.Add("add-record",
                 new ParseableCommand<AddRecordOptions>
@@ -323,6 +321,7 @@ namespace Commander
                         });
                 }
             }
+
             cli.Commands.Add("one-time-share",
                 new ParseableCommand<OneTimeShareOptions>
                 {
@@ -345,7 +344,8 @@ namespace Commander
                             context.Vault.RecordTypesLoaded = false;
                         }
 
-                        var fullSync = (context.Vault.Storage.VaultSettings?.Revision ?? 0) == 0;
+                        var s = context.Vault.Storage.VaultSettings.Load();
+                        var fullSync = s == null;
                         Console.WriteLine("Syncing...");
                         await context.Vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
                         if (fullSync)
@@ -362,6 +362,7 @@ namespace Commander
             cli.Aliases.Add("edit", "update-record");
 
         }
+
         private static Task SearchCommand(this VaultContext context, SearchCommandOptions options)
         {
             if (options.Limit <= 0)
@@ -377,7 +378,8 @@ namespace Commander
                 ? null
                 : new Regex(options.Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            var matchedRecords = context.Vault.KeeperRecords.Where(x => options.Verbose || x.Version == 2 || x.Version == 3)
+            var matchedRecords = context.Vault.KeeperRecords
+                .Where(x => options.Verbose || x.Version == 2 || x.Version == 3)
                 .Where(record =>
                 {
                     if (pattern == null)
@@ -590,72 +592,85 @@ namespace Commander
 
         private static IEnumerable<string> ToRecordChangeNames(this RecordChange changes)
         {
-            if ((changes & RecordChange.RecordType) != 0) 
-            { 
+            if ((changes & RecordChange.RecordType) != 0)
+            {
                 yield return "Record Type";
             }
+
             if ((changes & RecordChange.Title) != 0)
             {
                 yield return "Title";
             }
+
             if ((changes & RecordChange.Login) != 0)
             {
                 yield return "Login";
             }
+
             if ((changes & RecordChange.Password) != 0)
             {
                 yield return "Password";
             }
+
             if ((changes & RecordChange.Url) != 0)
             {
                 yield return "URL";
             }
+
             if ((changes & RecordChange.Notes) != 0)
             {
                 yield return "Notes";
             }
+
             if ((changes & RecordChange.Totp) != 0)
             {
                 yield return "Totp";
             }
+
             if ((changes & RecordChange.Hostname) != 0)
             {
                 yield return "Hostname";
             }
+
             if ((changes & RecordChange.Address) != 0)
             {
                 yield return "Address";
             }
+
             if ((changes & RecordChange.PaymentCard) != 0)
             {
                 yield return "Payment Card";
             }
+
             if ((changes & RecordChange.CustomField) != 0)
             {
                 yield return "Custom Field";
             }
+
             if ((changes & RecordChange.File) != 0)
             {
                 yield return "File";
             }
         }
 
-        private static async Task RecordHistoryCommand(this VaultContext context, string recordUid) 
+        private static async Task RecordHistoryCommand(this VaultContext context, string recordUid)
         {
-            if (string.IsNullOrEmpty(recordUid)) 
-            { 
+            if (string.IsNullOrEmpty(recordUid))
+            {
                 throw new Exception("\"record-history\" command requires <RECORD UID> parameter");
             }
+
             var tab = new Tabulate(4);
             tab.AddHeader("Version", "Modification Date", "Username", "Changed");
             var history = await context.Vault.GetRecordHistory(recordUid);
-            for (var i = 0; i < history.Length; i++) 
-            { 
+            for (var i = 0; i < history.Length; i++)
+            {
                 var h = history[i];
 
                 var changes = string.Join(", ", h.RecordChange.ToRecordChangeNames());
                 tab.AddRow($"V.{history.Length - i}", h.KeeperRecord.ClientModified.ToString("G"), h.Username, changes);
             }
+
             tab.Dump();
         }
 
@@ -664,7 +679,7 @@ namespace Commander
             var tab = new Tabulate(3);
             if (context.Vault.TryGetKeeperRecord(uid, out var record))
             {
-                List<string> totps = null;
+                var totps = new List<string>();
 
                 tab.AddRow("Record UID:", record.Uid);
                 tab.AddRow("Type:", record.KeeperRecordType());
@@ -677,13 +692,10 @@ namespace Commander
                     tab.AddRow("$url:", legacy.Link);
                     if (!string.IsNullOrEmpty(legacy.Totp))
                     {
-                        if (totps == null)
-                        {
-                            totps = new List<string>();
-                        }
                         totps.Add(legacy.Totp);
                         tab.AddRow("$oneTimeCode:", legacy.Totp);
                     }
+
                     if (legacy.Custom != null && legacy.Custom.Count > 0)
                     {
                         foreach (var c in legacy.Custom)
@@ -699,11 +711,6 @@ namespace Commander
                     {
                         if (f.FieldName == "oneTimeCode")
                         {
-                            if (totps == null)
-                            {
-                                totps = new List<string>();
-                            }
-
                             if (f is TypedField<string> sf && sf.Count > 0)
                             {
                                 totps.AddRange(sf.Values.Where(x => !string.IsNullOrEmpty(x)));
@@ -726,6 +733,7 @@ namespace Commander
                                         {
                                             l = l.Substring(0, 77) + "...";
                                         }
+
                                         tab.AddRow(i == 0 && j == 0 ? $"{label}:" : "", l);
                                     }
                                 }
@@ -741,30 +749,27 @@ namespace Commander
                 {
                     tab.AddRow("Name:", file.Name);
                     tab.AddRow("MIME Type:", file.MimeType ?? "");
-                    tab.AddRow("Size:", file.FileSize.ToString("N"));
+                    tab.AddRow("Size:", file.FileSize.ToString("N0"));
                     if (file.ThumbnailSize > 0)
                     {
-                        tab.AddRow("Thumbnail Size:", file.ThumbnailSize.ToString("N"));
+                        tab.AddRow("Thumbnail Size:", file.ThumbnailSize.ToString("N0"));
                     }
                 }
 
-                if (totps != null)
+                foreach (var url in totps)
                 {
-                    foreach (var url in totps)
+                    tab.AddRow("$oneTimeCode:", url);
+                    try
                     {
-                        tab.AddRow("$oneTimeCode:", url);
-                        try
+                        var tup = CryptoUtils.GetTotpCode(url);
+                        if (tup != null)
                         {
-                            var tup = CryptoUtils.GetTotpCode(url);
-                            if (tup != null)
-                            {
-                                tab.AddRow($"{tup.Item1}:", $"expires in {tup.Item3 - tup.Item2} sec.");
-                            }
+                            tab.AddRow($"{tup.Item1}:", $"expires in {tup.Item3 - tup.Item2} sec.");
                         }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.Message);
-                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
                     }
                 }
 
@@ -773,13 +778,13 @@ namespace Commander
                     .FirstOrDefault(x => x.RecordUid == record.Uid);
                 if (shareInfo != null)
                 {
-                    if (shareInfo?.UserPermissions.Length > 0)
+                    if (shareInfo.UserPermissions.Length > 0)
                     {
                         tab.AddRow("", "");
                         tab.AddRow("User Shares:", "");
                         foreach (var rs in shareInfo.UserPermissions)
                         {
-                            var status = "";
+                            string status;
 
                             if (rs.Owner)
                             {
@@ -811,16 +816,18 @@ namespace Commander
                                     }
                                 }
                             }
+
                             tab.AddRow(rs.Username, status);
                         }
                     }
-                    if (shareInfo?.SharedFolderPermissions != null)
+
+                    if (shareInfo.SharedFolderPermissions != null)
                     {
                         tab.AddRow("", "");
                         tab.AddRow("Shared Folders:", "");
                         foreach (var sfs in shareInfo.SharedFolderPermissions)
                         {
-                            var status = "";
+                            string status;
                             if (!sfs.CanEdit && !sfs.CanShare)
                             {
                                 status = "Read Only";
@@ -837,11 +844,13 @@ namespace Commander
                             {
                                 status = "Can Share";
                             }
+
                             var name = sfs.SharedFolderUid;
                             if (context.Vault.TryGetSharedFolder(sfs.SharedFolderUid, out var sf))
                             {
                                 name = sf.Name;
                             }
+
                             tab.AddRow(name, status);
                         }
                     }
@@ -863,7 +872,7 @@ namespace Commander
                     tab.AddRow("Record Permissions:");
                     foreach (var r in sf.RecordPermissions)
                     {
-                        var permission = "";
+                        string permission;
                         if (r.CanEdit && r.CanShare)
                         {
                             permission = "Can Edit & Share";
@@ -880,11 +889,12 @@ namespace Commander
                         {
                             permission = "View Only";
                         }
+
                         tab.AddRow(r.RecordUid + ":", permission);
                     }
                 }
 
-                string getUsername(string userId, UserType userType)
+                string GetUsername(string userId, UserType userType)
                 {
                     switch (userType)
                     {
@@ -893,16 +903,20 @@ namespace Commander
                             {
                                 return email;
                             }
+
                             break;
                         case UserType.Team:
                             if (context.Vault.TryGetTeam(userId, out var team))
                             {
                                 return team.Name;
                             }
+
                             break;
                     }
+
                     return userId;
                 }
+
                 if (sf.UsersPermissions.Count > 0)
                 {
                     tab.AddRow("");
@@ -913,8 +927,8 @@ namespace Commander
                         var res = x.UserType.CompareTo(y.UserType);
                         if (res == 0)
                         {
-                            var xName = getUsername(x.Uid, x.UserType);
-                            var yName = getUsername(y.Uid, y.UserType);
+                            var xName = GetUsername(x.Uid, x.UserType);
+                            var yName = GetUsername(y.Uid, y.UserType);
                             res = string.Compare(xName, yName, StringComparison.OrdinalIgnoreCase);
                         }
 
@@ -926,13 +940,16 @@ namespace Commander
                         if (u.ManageRecords || u.ManageUsers)
                         {
                             permissions = "Can Manage " +
-                                string.Join(" & ", new string[] { u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }.Where(x => !string.IsNullOrEmpty(x)));
+                                          string.Join(" & ",
+                                              new[]{ u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }
+                                                  .Where(x => !string.IsNullOrEmpty(x)));
                         }
                         else
                         {
                             permissions = "No User Permissions";
                         }
-                        var subjectName = getUsername(u.Uid, u.UserType);
+
+                        var subjectName = GetUsername(u.Uid, u.UserType);
                         tab.AddRow($"{u.UserType} {subjectName}:", permissions);
                     }
                 }

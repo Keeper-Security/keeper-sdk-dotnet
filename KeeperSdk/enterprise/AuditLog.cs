@@ -320,9 +320,7 @@ namespace KeeperSecurity
                 var rs = await auth.ExecuteAuthCommand<GetAuditEventReportsCommand, GetAuditEventReportsResponse>(rq);
                 var response = Tuple.Create<GetAuditEventReportsResponse, long>(rs, -1);
                 if (rs.Events == null || rs.Events.Count == 0) return response;
-
-                if (rq.Limit > 0 && rs.Events?.Count < 0.95 * rq.Limit) return response;
-
+                if (rq.Limit > 0 && rs.Events.Count < 0.95 * rq.Limit) return response;
 
                 var pos = rs.Events.Count - 1;
                 if (!rs.Events[pos].TryGetValue("created", out var lastCreated)) return response;

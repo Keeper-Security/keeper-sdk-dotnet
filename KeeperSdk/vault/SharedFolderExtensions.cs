@@ -59,30 +59,41 @@ namespace KeeperSecurity.Vault
                         ? sharedFolder.DefaultManageRecords ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse
                         : options.ManageRecords.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse;
 
-                    await Auth.LoadUsersKeys(Enumerable.Repeat(userId, 1));
-                    if (Auth.TryGetUserKeys(userId, out var keys))
+                    byte[] encryptedKey = null;
+                    var keyType = EncryptedKeyType.NoKey;
+                    if (string.Equals(userId, Auth.Username, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        byte[] encryptedKey = null;
-                        if (Auth.AuthContext.ForbidKeyType2 && keys.EcPublicKey.Length > 0)
-                        {
-                            var ecPublicKey = CryptoUtils.LoadEcPublicKey(keys.EcPublicKey);
-                            encryptedKey = CryptoUtils.EncryptEc(sharedFolder.SharedFolderKey, ecPublicKey);
-                        }
-                        else if (!Auth.AuthContext.ForbidKeyType2 && keys.RsaPublicKey.Length > 0)
-                        {
-                            var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
-                            encryptedKey = CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey);
-                        }
-                        if (encryptedKey != null)
-                        {
-                            sfuu.TypedSharedFolderKey = new EncryptedDataKey
-                            {
-                                EncryptedKey = ByteString.CopyFrom(encryptedKey),
-                                EncryptedKeyType = Auth.AuthContext.ForbidKeyType2 ? EncryptedKeyType.EncryptedByPublicKeyEcc : EncryptedKeyType.EncryptedByPublicKey,
-                            };
-                        }
-                        request.SharedFolderAddUser.Add(sfuu);
+                        encryptedKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, Auth.AuthContext.DataKey);
+                        keyType = EncryptedKeyType.EncryptedByDataKey;
                     }
+                    else
+                    {
+                        await Auth.LoadUsersKeys(Enumerable.Repeat(userId, 1));
+                        if (Auth.TryGetUserKeys(userId, out var keys))
+                        {
+                            if (Auth.AuthContext.ForbidKeyType2 && keys.EcPublicKey.Length > 0)
+                            {
+                                var ecPublicKey = CryptoUtils.LoadEcPublicKey(keys.EcPublicKey);
+                                encryptedKey = CryptoUtils.EncryptEc(sharedFolder.SharedFolderKey, ecPublicKey);
+                                keyType = EncryptedKeyType.EncryptedByPublicKeyEcc;
+                            }
+                            else if (!Auth.AuthContext.ForbidKeyType2 && keys.RsaPublicKey.Length > 0)
+                            {
+                                var rsaPublicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
+                                encryptedKey = CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, rsaPublicKey);
+                                keyType = EncryptedKeyType.EncryptedByPublicKey;
+                            }
+                        }
+                    }
+                    if (encryptedKey != null)
+                    {
+                        sfuu.TypedSharedFolderKey = new EncryptedDataKey
+                        {
+                            EncryptedKey = ByteString.CopyFrom(encryptedKey),
+                            EncryptedKeyType = keyType
+                        };
+                    }
+                    request.SharedFolderAddUser.Add(sfuu);
                 }
             }
             else
@@ -259,14 +270,14 @@ namespace KeeperSecurity.Vault
                         request.FromTeamUid = ByteString.CopyFrom(perm.Uid.Base64UrlDecode());
                     }
                 }
-                request.SharedFolderUpdateRecord.Add(new Folder.SharedFolderUpdateRecord
+                request.SharedFolderUpdateRecord.Add(new SharedFolderUpdateRecord
                 {
                     RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
-                    CanEdit = options?.CanEdit == null ? SetBooleanValue.BooleanNoChange
+                    CanEdit = options.CanEdit == null ? SetBooleanValue.BooleanNoChange
                     : (options.CanEdit.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse),
-                    CanShare = options?.CanShare == null ? SetBooleanValue.BooleanNoChange
+                    CanShare = options.CanShare == null ? SetBooleanValue.BooleanNoChange
                     : (options.CanShare.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse),
-                    Expiration = options?.Expiration == null ? 0 : options.Expiration.Value.ToUnixTimeMilliseconds(),
+                    Expiration = options.Expiration?.ToUnixTimeMilliseconds() ?? 0,
                 });
 
                 var response = await Auth.ExecuteAuthRest<SharedFolderUpdateV3Request, SharedFolderUpdateV3Response>("vault/shared_folder_update_v3", request);

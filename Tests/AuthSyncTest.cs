@@ -42,17 +42,11 @@ namespace Tests
 
             var mFlow = new Mock<AuthSync>(storage, mEndpoint.Object) { CallBase = true };
             var flow = mFlow.Object;
-            var pushes = new FanOut<NotificationEvent>();
-            LoginV3Extensions.EnsurePushNotification = (auth, lc) =>
-            {
-                auth.SetPushNotifications(pushes);
-            };
-
+            flow.SetPushNotifications(new FanOut<NotificationEvent>());
             mEndpoint.Setup(e => e.ExecuteRest(
                     It.IsAny<string>(),
                     It.IsAny<ApiRequestPayload>()))
                 .Returns((string endpoint, ApiRequestPayload payload) => MockExecuteRest(endpoint, payload, flow));
-
             flow.UiCallback = new AuthSyncCallback();
             return flow;
         }
@@ -134,7 +128,6 @@ namespace Tests
 
             var flow = GetAuthSync();
             flow.Cancel();
-            flow.SetPushNotifications(new FanOut<NotificationEvent>());
 
             Assert.Equal(typeof(ReadyToLoginStep), flow.Step.GetType());
             await flow.Login(DataVault.UserName);

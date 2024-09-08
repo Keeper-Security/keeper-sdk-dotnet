@@ -215,7 +215,6 @@ namespace Commander
 
             if (string.IsNullOrEmpty(options.User))
             {
-                var teams = await context.GetAvailableTeams();
                 var tab = new Tabulate(4)
                 {
                     DumpRowNo = true
@@ -227,10 +226,9 @@ namespace Commander
                     if (p.ManageRecords || p.ManageUsers)
                     {
                         permission = "Can Manage " +
-                            string.Join(" & ", new string[] { p.ManageUsers ? "Users" : "", p.ManageRecords ? "Records" : "" }.Where(x => !string.IsNullOrEmpty(x)));
+                            string.Join(" & ", new[] { p.ManageUsers ? "Users" : "", p.ManageRecords ? "Records" : "" }.Where(x => !string.IsNullOrEmpty(x)));
                     }
-                    tab.AddRow(new[]
-                        {p.UserType.ToString(), p.Uid, p.Name, permission});
+                    tab.AddRow(p.UserType.ToString(), p.Uid, p.Name, permission);
                 }
 
                 tab.Dump();

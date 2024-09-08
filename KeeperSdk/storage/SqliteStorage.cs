@@ -4,18 +4,15 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using KeeperSecurity.Utils;
-using KeeperSecurity.Vault;
 
-namespace KeeperSecurity.OfflineStorage.Sqlite
+namespace KeeperSecurity.Storage
 {
 
     public abstract class SqliteStorage
     {
-        private readonly TableSchema _schema;
-
         protected SqliteStorage(Func<IDbConnection> getConnection, TableSchema schema, object ownerId = null)
         {
-            _schema = schema;
+            Schema = schema;
             GetConnection = getConnection;
             if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
             {
@@ -25,14 +22,14 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         private string _selectStatement;
 
-        public IDbCommand GetSelectStatement(IEnumerable<string> filterColumns = null)
+        protected IDbCommand GetSelectStatement(IEnumerable<string> filterColumns = null)
         {
             lock (this)
             {
                 if (string.IsNullOrEmpty(_selectStatement))
                 {
                     _selectStatement = $"SELECT {string.Join(", ", Schema.Columns)} "
-                        + $"FROM {Schema.TableName}";
+                                       + $"FROM {Schema.TableName}";
                 }
             }
 
@@ -44,7 +41,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 return cmd;
             }
 
-            StringBuilder selectQuery = new StringBuilder(_selectStatement);
+            var selectQuery = new StringBuilder(_selectStatement);
             var whereAdded = false;
             if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
             {
@@ -74,6 +71,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                             selectQuery.Append(" WHERE ");
                             whereAdded = true;
                         }
+
                         selectQuery.Append($"{column} = @{column}");
 
                         var filterParameter = cmd.CreateParameter();
@@ -89,15 +87,16 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                     }
                 }
             }
+
             cmd.CommandText = selectQuery.ToString();
             return cmd;
         }
 
-        public IDbCommand GetDeleteStatement(IEnumerable<string> filterColumns = null)
+        protected IDbCommand GetDeleteStatement(IEnumerable<string> filterColumns = null)
         {
             var cmd = GetConnection().CreateCommand();
 
-            StringBuilder deleteQuery = new StringBuilder($"DELETE FROM {Schema.TableName}");
+            var deleteQuery = new StringBuilder($"DELETE FROM {Schema.TableName}");
 
             var whereAdded = false;
             if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
@@ -129,6 +128,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                             deleteQuery.Append(" WHERE ");
                             whereAdded = true;
                         }
+
                         deleteQuery.Append($"{columnName} = @{columnName}");
 
                         var filterParameter = cmd.CreateParameter();
@@ -140,6 +140,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                     }
                 }
             }
+
             cmd.CommandText = deleteQuery.ToString();
 
             return cmd;
@@ -147,7 +148,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
         private string _putStatement;
 
-        public IDbCommand GetPutStatement()
+        protected IDbCommand GetPutStatement()
         {
             lock (this)
             {
@@ -158,12 +159,14 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                     {
                         stmt.Append($"{Schema.OwnerColumnName}, ");
                     }
+
                     stmt.Append(string.Join(", ", Schema.Columns));
                     stmt.Append(") VALUES (");
                     if (!string.IsNullOrEmpty(Schema.OwnerColumnName))
                     {
                         stmt.Append($"@{Schema.OwnerColumnName}, ");
                     }
+
                     stmt.Append(string.Join(", ", Schema.Columns.Select(x => $"@{x}")));
                     stmt.Append(")");
 
@@ -191,29 +194,38 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 var parameter = cmd.CreateParameter();
                 parameter.ParameterName = $"@{column}";
                 parameter.Direction = ParameterDirection.Input;
-                parameter.DbType =
-                    DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[prop.PropertyType]); ;
+                parameter.DbType = DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[prop.PropertyType]);
                 cmd.Parameters.Add(parameter);
             }
 
             return cmd;
         }
 
-        protected TableSchema Schema => _schema;
+        public void DeleteAll()
+        {
+            var cmd = GetDeleteStatement();
+            using (var txn = GetConnection().BeginTransaction())
+            {
+                cmd.Transaction = txn;
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public TableSchema Schema { get; }
+
         protected object OwnerId { get; }
         protected Func<IDbConnection> GetConnection { get; }
     }
 
-    public class SqliteDataStorage<TD> : SqliteStorage
-        where TD : class, new()
+    public class SqliteDataStorage<T> : SqliteStorage
+        where T : class, new()
     {
-        public SqliteDataStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
-            : base(getConnection, new TableSchema(typeof(TD), owner != null ? owner.Item1 : null),
-                  owner != null ? owner.Item2 : null)
+        protected SqliteDataStorage(Func<IDbConnection> getConnection, string ownerColumnName = null, object ownerValue = null)
+            : base(getConnection, new TableSchema(typeof(T), ownerColumnName), ownerValue)
         {
         }
 
-        public void PopulateCommandParameters(IDbCommand command, TD data)
+        protected void PopulateCommandParameters(IDbCommand command, T data)
         {
             foreach (IDataParameter parameter in command.Parameters)
             {
@@ -231,14 +243,16 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
         }
     }
 
-    public class SqliteRecordStorage<TD> : SqliteDataStorage<TD> where TD : class, new()
+    public sealed class SqliteRecordStorage<T, TD> : SqliteDataStorage<TD>, IRecordStorage<T> 
+        where TD : class, T, IEntityCopy<T>, new()
     {
-        public SqliteRecordStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
-            : base(getConnection, owner)
+        public SqliteRecordStorage(Func<IDbConnection> getConnection, string ownerColumnName = null,
+            object ownerValue = null)
+            : base(getConnection, ownerColumnName, ownerValue)
         {
         }
 
-        public TD Get()
+        public T Load()
         {
             var cmd = GetSelectStatement();
             using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
@@ -247,9 +261,15 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             }
         }
 
-        public void Put(TD data)
+        public void Store(T record)
         {
             var cmd = GetPutStatement();
+            if (!(record is TD data))
+            {
+                data = new TD();
+                data.CopyFields(record);
+            }
+
             using (var txn = GetConnection().BeginTransaction())
             {
                 cmd.Transaction = txn;
@@ -258,18 +278,21 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 txn.Commit();
             }
         }
+
+        public void Delete()
+        {
+            DeleteAll();
+        }
     }
 
-
-    public class SqliteEntityStorage<T, TD> : SqliteDataStorage<TD>, IEntityStorage<T>
+    public sealed class SqliteEntityStorage<T, TD> : SqliteDataStorage<TD>, IEntityStorage<T>
         where T : IUid
-        where TD : class, IEntity, T, IEntityCopy<T>, new()
+        where TD : class, T, IEntityCopy<T>, new()
     {
+        private string EntityColumnName { get; }
 
-        protected string EntityColumnName { get; }
-
-        public SqliteEntityStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
-            : base(getConnection, owner)
+        public SqliteEntityStorage(Func<IDbConnection> getConnection, string ownerColumnName = null, object ownerValue = null)
+            : base(getConnection, ownerColumnName, ownerValue)
         {
             EntityColumnName = Schema.PrimaryKey[0];
         }
@@ -294,8 +317,11 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 cmd.Transaction = txn;
                 foreach (var entity in entities)
                 {
-                    var data = new TD();
-                    data.CopyFields(entity);
+                    if (!(entity is TD data))
+                    {
+                        data = new TD();
+                        data.CopyFields(entity);
+                    }
                     PopulateCommandParameters(cmd, data);
                     cmd.ExecuteNonQuery();
                 }
@@ -331,15 +357,15 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
         }
     }
 
-    public class SqliteLinkStorage<T, TD> : SqliteDataStorage<TD>, ILinkStorage<T>
+    public sealed class SqliteLinkStorage<T, TD> : SqliteDataStorage<TD>, ILinkStorage<T>
         where T : IUidLink
-        where TD : class, IEntityLink, T, IEntityCopy<T>, new()
+        where TD : class, T, IEntityCopy<T>, new()
     {
-        protected string SubjectColumnName { get; }
-        protected string ObjectColumnName { get; }
+        private string SubjectColumnName { get; }
+        private string ObjectColumnName { get; }
 
-        public SqliteLinkStorage(Func<IDbConnection> getConnection, Tuple<string, object> owner = null)
-            : base(getConnection, owner)
+        public SqliteLinkStorage(Func<IDbConnection> getConnection, string ownerColumnName = null, object ownerValue = null)
+            : base(getConnection, ownerColumnName, ownerValue)
         {
             SubjectColumnName = Schema.PrimaryKey[0];
             ObjectColumnName = Schema.PrimaryKey[1];
@@ -353,8 +379,11 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 cmd.Transaction = txn;
                 foreach (var link in links)
                 {
-                    var data = new TD();
-                    data.CopyFields(link);
+                    if (!(link is TD data))
+                    {
+                        data = new TD();
+                        data.CopyFields(link);
+                    }
                     PopulateCommandParameters(cmd, data);
                     cmd.ExecuteNonQuery();
                 }
