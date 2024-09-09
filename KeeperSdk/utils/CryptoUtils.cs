@@ -6,6 +6,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using System.Buffers;
+
 #if NET472_OR_GREATER
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -194,6 +196,25 @@ namespace KeeperSecurity.Utils
 #endif
         }
 
+        private static ReadOnlyMemory<byte> ToUnsignedBigInteger(this ReadOnlyMemory<byte> bigInteger, int expectedLength)
+        {
+            var l = bigInteger.Length;
+
+            if (l == expectedLength) 
+            {
+                return bigInteger;
+            }
+            if (l == expectedLength + 1 && bigInteger.Span[0] == 0) { 
+                return bigInteger.Slice(1, expectedLength);
+            }
+            if (l < expectedLength) 
+            {
+                return Enumerable.Repeat<byte>(0, expectedLength - l).Concat(bigInteger.ToArray()).ToArray();
+            }
+
+            return bigInteger;
+        }
+
         /// <summary>
         ///     Loads RSA private key.
         /// </summary>
@@ -210,14 +231,15 @@ namespace KeeperSecurity.Utils
             var reader = new AsnReader(key, AsnEncodingRules.DER);
             reader = reader.ReadSequence();
             _ = reader.ReadInteger();
-            var modulus = reader.ReadIntegerBytes().ToArray();
+            var modulus = reader.ReadIntegerBytes().ToUnsignedBigInteger(256).ToArray();
             var publicExponent = reader.ReadIntegerBytes().ToArray();
-            var privateExponent = reader.ReadIntegerBytes().ToArray();
-            var prime1 = reader.ReadIntegerBytes().ToArray();
-            var prime2 = reader.ReadIntegerBytes().ToArray();
-            var exponent1 = reader.ReadIntegerBytes().ToArray();
-            var exponent2 = reader.ReadIntegerBytes().ToArray();
-            var coefficient = reader.ReadIntegerBytes().ToArray();
+            var privateExponent = reader.ReadIntegerBytes().ToUnsignedBigInteger(256).ToArray();
+
+            var prime1 = reader.ReadIntegerBytes().ToUnsignedBigInteger(128).ToArray();
+            var prime2 = reader.ReadIntegerBytes().ToUnsignedBigInteger(128).ToArray();
+            var exponent1 = reader.ReadIntegerBytes().ToUnsignedBigInteger(128).ToArray();
+            var exponent2 = reader.ReadIntegerBytes().ToUnsignedBigInteger(128).ToArray();
+            var coefficient = reader.ReadIntegerBytes().ToUnsignedBigInteger(128).ToArray();
             
             var rsa = RSA.Create();
             rsa.ImportParameters(new RSAParameters
