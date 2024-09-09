@@ -114,14 +114,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Commander-win-${{ env.PACKAGE_VERSION }}
-          path: Commander-win-${{ env.PACKAGE_VERSION }}.zip
+          path: Commander/bin/Release/net472/Commander-win-${{ env.PACKAGE_VERSION }}.zip
           retention-days: 1
 
       - name: Store Commander artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Commander-net-${{ env.PACKAGE_VERSION }}
-          path: Commander-net-${{ env.PACKAGE_VERSION }}.zip
+          path: Commander/bin/Release/net6.0/Commander-net-${{ env.PACKAGE_VERSION }}.zip
           retention-days: 1
 
       - name: Store artifacts
