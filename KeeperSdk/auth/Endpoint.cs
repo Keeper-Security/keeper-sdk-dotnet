@@ -175,11 +175,12 @@ namespace KeeperSecurity.Authentication
         private const string DefaultDeviceName = ".NET Keeper API";
         private const string DefaultKeeperServer = "keepersecurity.com";
         private const string DefaultClientVersion = "c16.11.0";
-    
+
         private readonly IConfigurationStorage _storage;
         private readonly HttpClient _httpClient;
         private readonly HttpClientHandler _httpMessageHandler;
         private string _clientVersion;
+
         static KeeperEndpoint()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -202,6 +203,7 @@ namespace KeeperSecurity.Authentication
                 var config = storage.Get();
                 keeperServer = config.LastServer;
             }
+
             Server = keeperServer ?? DefaultKeeperServer;
         }
 
@@ -252,82 +254,87 @@ namespace KeeperSecurity.Authentication
                 var content = new ByteArrayContent(apiRequest.ToByteArray());
                 content.Headers.Add("Content-Type", "application/octet-stream");
                 // TODO timeout + read header 
-                using (var response = await _httpClient.PostAsync(uri, content))
+                using var response = await _httpClient.PostAsync(uri, content);
+                var contentTypes = Array.Empty<string>();
+                if (response.Content.Headers.TryGetValues("Content-Type", out var values))
                 {
-                    var contentTypes = new string[0];
-                    if (response.Content.Headers.TryGetValues("Content-Type", out var values))
-                    {
-                        contentTypes = values.ToArray();
-                    }
-                    if (response.IsSuccessStatusCode)
-                    {
-                        if (contentTypes.Any(x => x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase)))
-                        {
-                            SetConfigurationValid(keyId);
-                            var data = await response.Content.ReadAsByteArrayAsync();
-                            if (data != null && data.Length > 0)
-                            {
-                                return CryptoUtils.DecryptAesV2(data, _transmissionKey);
-                            }
-                        }
-                        return null;
-                    }
-
-                    if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
-                    {
-                        var proxyAuthenticate = new string[0];
-                        if (response.Headers.TryGetValues("Proxy-Authenticate", out var proxyValues))
-                        {
-                            proxyAuthenticate = proxyValues.ToArray();
-                        }
-                        throw new ProxyAuthenticationRequired(proxyAuthenticate);
-                    }
-
-                    if (contentTypes.Any(x => x.StartsWith("application/json", StringComparison.InvariantCultureIgnoreCase)))
-                    {
-                        var jsonData = await response.Content.ReadAsByteArrayAsync();
-#if DEBUG
-                        Debug.WriteLine("Error Response: " + Encoding.UTF8.GetString(jsonData));
-#endif
-                        var keeperRs = JsonUtils.ParseJson<KeeperApiErrorResponse>(jsonData);
-                        lastKeeperError = new KeeperApiException(keeperRs.Error, keeperRs.Message);
-                        switch (keeperRs.Error)
-                        {
-                            case "key":
-                                keyId = keeperRs.KeyId;
-                                continue;
-
-                            case "throttled":
-#if DEBUG
-                                Debug.WriteLine("\"throttled\" sleeping for 10 seconds");
-#endif
-                                await Task.Delay(TimeSpan.FromSeconds(10));
-                                continue;
-
-                            case "region_redirect":
-                                throw new KeeperRegionRedirect(keeperRs.RegionHost);
-
-                            case "device_not_registered":
-                                throw new KeeperInvalidDeviceToken(keeperRs.AdditionalInfo);
-
-                            case "session_token":
-                            case "auth_failed":
-                                throw new KeeperAuthFailed(keeperRs.Message);
-
-                            case "login_token_expired":
-                                throw new KeeperCanceled(keeperRs.Error, keeperRs.Message);
-                        }
-
-                        throw lastKeeperError;
-                    }
-                    else if (contentTypes.Any(x => x.StartsWith("text/", StringComparison.InvariantCultureIgnoreCase)))
-                    {
-                        var message = await response.Content.ReadAsStringAsync();
-                        throw new KeeperApiException(response.StatusCode.ToString(), message);
-                    }
-                    throw new Exception("Keeper Api Http error: " + response.StatusCode);
+                    contentTypes = values.ToArray();
                 }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    if (contentTypes.Any(x =>
+                            x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        SetConfigurationValid(keyId);
+                        var data = await response.Content.ReadAsByteArrayAsync();
+                        if (data != null && data.Length > 0)
+                        {
+                            return CryptoUtils.DecryptAesV2(data, _transmissionKey);
+                        }
+                    }
+
+                    return null;
+                }
+
+                if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
+                {
+                    var proxyAuthenticate = Array.Empty<string>();
+                    if (response.Headers.TryGetValues("Proxy-Authenticate", out var proxyValues))
+                    {
+                        proxyAuthenticate = proxyValues.ToArray();
+                    }
+
+                    throw new ProxyAuthenticationRequired(proxyAuthenticate);
+                }
+
+                if (contentTypes.Any(x =>
+                        x.StartsWith("application/json", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    var jsonData = await response.Content.ReadAsByteArrayAsync();
+#if DEBUG
+                    Debug.WriteLine("Error Response: " + Encoding.UTF8.GetString(jsonData));
+#endif
+                    var keeperRs = JsonUtils.ParseJson<KeeperApiErrorResponse>(jsonData);
+                    lastKeeperError = new KeeperApiException(keeperRs.Error, keeperRs.Message);
+                    switch (keeperRs.Error)
+                    {
+                        case "key":
+                            keyId = keeperRs.KeyId;
+                            continue;
+
+                        case "throttled":
+#if DEBUG
+                            Debug.WriteLine("\"throttled\" sleeping for 10 seconds");
+#endif
+                            await Task.Delay(TimeSpan.FromSeconds(10));
+                            continue;
+
+                        case "region_redirect":
+                            throw new KeeperRegionRedirect(keeperRs.RegionHost);
+
+                        case "device_not_registered":
+                            throw new KeeperInvalidDeviceToken(keeperRs.AdditionalInfo);
+
+                        case "session_token":
+                        case "auth_failed":
+                            throw new KeeperAuthFailed(keeperRs.Message);
+
+                        case "login_token_expired":
+                            throw new KeeperCanceled(keeperRs.Error, keeperRs.Message);
+                    }
+
+                    throw lastKeeperError;
+                }
+                else if (contentTypes.Any(x => x.StartsWith("text/", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    var message = await response.Content.ReadAsStringAsync();
+                    throw new KeeperApiException(response.StatusCode.ToString(), message);
+                }
+
+                throw new Exception("Keeper Api Http error: " + response.StatusCode);
             }
+
             throw lastKeeperError ?? new Exception("Keeper Api error");
         }
 
@@ -370,6 +377,7 @@ namespace KeeperSecurity.Authentication
 
         public int ServerKeyId { get; private set; }
         private const string UserAgentHeader = "User-Agent";
+
         public string ClientVersion
         {
             get => _clientVersion;
@@ -380,6 +388,7 @@ namespace KeeperSecurity.Authentication
                 {
                     _httpClient.DefaultRequestHeaders.Remove(UserAgentHeader);
                 }
+
                 _httpClient.DefaultRequestHeaders.Add(UserAgentHeader, $"KeeperSDK.Net/{_clientVersion}");
             }
         }
@@ -406,21 +415,23 @@ namespace KeeperSecurity.Authentication
                 return locale;
             }
 
-            return KeeperSettings.KeeperLanguages.TryGetValue(culture.TwoLetterISOLanguageName, out locale) ? locale : "en_US";
+            return KeeperSettings.KeeperLanguages.TryGetValue(culture.TwoLetterISOLanguageName, out locale)
+                ? locale
+                : "en_US";
         }
 
         /// <exclude/>
-        public byte[] EncryptWithKeeperKey(byte[] data, int keyId) {
-            if (KeeperSettings.KeeperRsaPublicKeys.ContainsKey(keyId)) 
+        public byte[] EncryptWithKeeperKey(byte[] data, int keyId)
+        {
+            return keyId switch
             {
-                return CryptoUtils.EncryptRsa(data, KeeperSettings.KeeperRsaPublicKeys[keyId]);
-            }
-            if (KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId)) {
-                return CryptoUtils.EncryptEc(data, KeeperSettings.KeeperEcPublicKeys[keyId]);
-            }
-
-            throw new KeeperInvalidParameter("Endpoint.EncryptWithKeeperKey", "keyId", keyId.ToString(), 
-                "Server Key Id is invalid");
+                >= 1 and <= 6 when KeeperSettings.KeeperRsaPublicKeys.TryGetValue(keyId, value: out var key) =>
+                    CryptoUtils.EncryptRsa(data, key),
+                >= 7 and <= 17 when KeeperSettings.KeeperEcPublicKeys.TryGetValue(keyId, out var publicKey) =>
+                    CryptoUtils.EncryptEc(data, publicKey),
+                _ => throw new KeeperInvalidParameter("Endpoint.EncryptWithKeeperKey", "keyId", keyId.ToString(),
+                    "Server Key Id is invalid")
+            };
         }
     }
 

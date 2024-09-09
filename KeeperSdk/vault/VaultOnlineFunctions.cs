@@ -249,7 +249,7 @@ namespace KeeperSecurity.Vault
             {
                 if (!vault.TryGetSharedFolder(destinationFolderScope, out var sf))
                 {
-                    throw new VaultException($"Cannot find destination shared folder");
+                    throw new VaultException("Cannot find destination shared folder");
                 }
 
                 encryptionKey = sf.SharedFolderKey;
@@ -307,7 +307,7 @@ namespace KeeperSecurity.Vault
                     {
                         if (f.FolderUid == sourceFolder.FolderUid)
                         {
-                            throw new VaultException($"Cannot move the folder into its subfolder.");
+                            throw new VaultException("Cannot move the folder into its subfolder.");
                         }
 
                         f = vault.GetFolder(f.ParentUid);
@@ -609,13 +609,18 @@ namespace KeeperSecurity.Vault
 
         public static async Task<FolderNode> AddFolder(this VaultOnline vault, string folderName, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null)
         {
+            if (string.IsNullOrEmpty(folderName))
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
             var parent = vault.GetFolder(parentFolderUid);
             FolderType folderType;
             if (sharedFolderOptions != null)
             {
                 if (parent.FolderType != FolderType.UserFolder)
                 {
-                    throw new VaultException($"Shared folder cannot be created");
+                    throw new VaultException("Shared folder cannot be created");
                 }
 
                 folderType = FolderType.SharedFolder;
@@ -636,7 +641,7 @@ namespace KeeperSecurity.Vault
 
             var data = new FolderData
             {
-                name = folderName ?? "",
+                name = folderName,
             };
             var dataBytes = JsonUtils.DumpJson(data);
 
@@ -711,10 +716,7 @@ namespace KeeperSecurity.Vault
                     data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
                 }
             }
-            catch
-            {
-                // ignored
-            }
+            catch { /* ignored */ }
 
             if (data == null)
             {
@@ -762,20 +764,6 @@ namespace KeeperSecurity.Vault
             foreach (var toDelete in objectsToDelete)
             {
                 var folder = vault.GetFolder(toDelete.FolderUid);
-                string teamUid = null;
-                if (folder.FolderType != FolderType.UserFolder)
-                {
-                    var sharedFolderUid = folder.FolderType == FolderType.SharedFolder ? folder.FolderUid : folder.SharedFolderUid;
-                    var perm = vault.ResolveSharedFolderAccessPath(vault.Auth.Username, sharedFolderUid, false, true);
-                    if (perm != null)
-                    {
-                        if (perm.UserType == UserType.Team)
-                        {
-                            teamUid = perm.Uid;
-                        }
-                    }
-                }
-
                 if (!string.IsNullOrEmpty(toDelete.RecordUid)) // delete record
                 {
                     if (folder.Records.Any(x => x == toDelete.RecordUid))

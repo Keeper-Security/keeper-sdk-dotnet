@@ -44,7 +44,7 @@ namespace KeeperSecurity.Enterprise
             }
             rq.EncryptedData = EnterpriseUtils.EncryptEncryptedData(encrypted, Enterprise.TreeKey);
 
-            var _ = await Enterprise.Auth.ExecuteAuthCommand<EnterpriseUserAddCommand, EnterpriseUserAddResponse>(rq);
+            _ = await Enterprise.Auth.ExecuteAuthCommand<EnterpriseUserAddCommand, EnterpriseUserAddResponse>(rq);
             await Enterprise.Load();
             TryGetUserById(userId, out var user);
             return user;
@@ -141,41 +141,6 @@ namespace KeeperSecurity.Enterprise
             var userRsaKey = userRsaPrivateKey != null ? CryptoUtils.LoadRsaPrivateKey(userRsaPrivateKey) : null;
             var userEcKey = userEcPrivateKey != null ? CryptoUtils.LoadEcPrivateKey(userEcPrivateKey) : null;
 
-            Func<byte[], int, byte[]> convert = (encryptedKey, keyType) =>
-            {
-                byte[] key = null;
-                switch (keyType)
-                {
-                    case (int) EncryptedKeyType.KtEncryptedByDataKey:
-                        key = CryptoUtils.DecryptAesV1(encryptedKey, userDataKey);
-                        break;
-                    case (int) EncryptedKeyType.KtEncryptedByPublicKey:
-                        if (userRsaKey != null)
-                        {
-                            key = CryptoUtils.DecryptRsa(encryptedKey, userRsaKey);
-                        }
-                        break;
-                    case (int) EncryptedKeyType.KtEncryptedByDataKeyGcm:
-                        key = CryptoUtils.DecryptAesV2(encryptedKey, userDataKey);
-                        break;
-                    case (int) EncryptedKeyType.KtEncryptedByPublicKeyEcc:
-                        if (userRsaKey != null)
-                        {
-                            key = CryptoUtils.DecryptEc(encryptedKey, userEcKey);
-                        }
-                        break;
-                }
-                if (key != null)
-                {
-                    if (auth.AuthContext.ForbidKeyType2)
-                    {
-                        return CryptoUtils.EncryptEc(key, ecKey);
-                    }
-                    return CryptoUtils.EncryptRsa(key, rsaKey);
-                }
-                throw new KeeperApiException("wrong_key_type", $"Cannot decrypt key. Wrong key type {keyType}");
-            };
-
             var tdRq = new TransferAndDeleteUserCommand
             {
                 FromUser = fromUser.Email,
@@ -192,7 +157,7 @@ namespace KeeperSecurity.Enterprise
                         transfered.Add(new TransferAndDeleteRecordKey
                         {
                             RecordUid = rk.RecordUid,
-                            RecordKey = convert(rk.RecordKey.Base64UrlDecode(), rk.RecordKeyType).Base64UrlEncode()
+                            RecordKey = DecryptKey(rk.RecordKey.Base64UrlDecode(), rk.RecordKeyType).Base64UrlEncode()
                         });
                     }
                     catch (Exception e)
@@ -215,7 +180,7 @@ namespace KeeperSecurity.Enterprise
                         transfered.Add(new TransferAndDeleteSharedFolderKey
                         {
                             SharedFolderUid = sfk.SharedFolderUid,
-                            SharedFolderKey = convert(sfk.SharedFolderKey.Base64UrlDecode(), sfk.SharedFolderKeyType).Base64UrlEncode()
+                            SharedFolderKey = DecryptKey(sfk.SharedFolderKey.Base64UrlDecode(), sfk.SharedFolderKeyType).Base64UrlEncode()
                         });
                     }
                     catch (Exception e)
@@ -238,7 +203,7 @@ namespace KeeperSecurity.Enterprise
                         transfered.Add(new TransferAndDeleteTeamKey
                         {
                             TeamUid = tk.TeamUid,
-                            TeamKey = convert(tk.TeamKey.Base64UrlDecode(), tk.TeamKeyType).Base64UrlEncode()
+                            TeamKey = DecryptKey(tk.TeamKey.Base64UrlDecode(), tk.TeamKeyType).Base64UrlEncode()
                         });
                     }
                     catch (Exception e)
@@ -252,16 +217,16 @@ namespace KeeperSecurity.Enterprise
             }
             if (preRs.UserFolderKeys != null)
             {
-                var transfered = new List<TransferAndDeleteUserFolderKey>();
+                var transferred = new List<TransferAndDeleteUserFolderKey>();
                 var corrupted = new List<PreAccountTransferUserFolderKey>();
                 foreach (var ufk in preRs.UserFolderKeys)
                 {
                     try
                     {
-                        transfered.Add(new TransferAndDeleteUserFolderKey
+                        transferred.Add(new TransferAndDeleteUserFolderKey
                         {
                             UserFolderUid = ufk.UserFolderUid,
-                            UserFolderKey = convert(ufk.UserFolderKey.Base64UrlDecode(), ufk.UserFolderKeyType).Base64UrlEncode()
+                            UserFolderKey = DecryptKey(ufk.UserFolderKey.Base64UrlDecode(), ufk.UserFolderKeyType).Base64UrlEncode()
                         });
                     }
                     catch (Exception e)
@@ -270,7 +235,7 @@ namespace KeeperSecurity.Enterprise
                         corrupted.Add(ufk);
                     }
                 }
-                tdRq.UserFolderKeys = transfered.ToArray();
+                tdRq.UserFolderKeys = transferred.ToArray();
                 tdRq.CorruptedUserFolderKeys = corrupted.ToArray();
 
                 var targetFolderKey = CryptoUtils.GenerateEncryptionKey();
@@ -303,6 +268,46 @@ namespace KeeperSecurity.Enterprise
                 TeamsCorrupted = tdRq.CorruptedTeamKeys?.Length ?? 0,
                 UserFoldersCorrupted = tdRq.CorruptedUserFolderKeys?.Length ?? 0
             };
+
+            byte[] DecryptKey(byte[] encryptedKey, int keyType)
+            {
+                byte[] key = null;
+                switch (keyType)
+                {
+                    case (int) EncryptedKeyType.KtEncryptedByDataKey:
+                        key = CryptoUtils.DecryptAesV1(encryptedKey, userDataKey);
+                        break;
+                    case (int) EncryptedKeyType.KtEncryptedByPublicKey:
+                        if (userRsaKey != null)
+                        {
+                            key = CryptoUtils.DecryptRsa(encryptedKey, userRsaKey);
+                        }
+
+                        break;
+                    case (int) EncryptedKeyType.KtEncryptedByDataKeyGcm:
+                        key = CryptoUtils.DecryptAesV2(encryptedKey, userDataKey);
+                        break;
+                    case (int) EncryptedKeyType.KtEncryptedByPublicKeyEcc:
+                        if (userRsaKey != null)
+                        {
+                            key = CryptoUtils.DecryptEc(encryptedKey, userEcKey);
+                        }
+
+                        break;
+                }
+
+                if (key != null)
+                {
+                    if (auth.AuthContext.ForbidKeyType2)
+                    {
+                        return CryptoUtils.EncryptEc(key, ecKey);
+                    }
+
+                    return CryptoUtils.EncryptRsa(key, rsaKey);
+                }
+
+                throw new KeeperApiException("wrong_key_type", $"Cannot decrypt key. Wrong key type {keyType}");
+            }
         }
 
 

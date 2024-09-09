@@ -42,15 +42,13 @@ namespace KeeperSecurity.Utils
                 var result = CredRead(target, 1, 0, out var credPointer);
                 if (result)
                 {
-                    using (var credentialHandle = new CriticalCredentialHandle(credPointer))
+                    using var credentialHandle = new CriticalCredentialHandle(credPointer);
+                    var credential = credentialHandle.GetCredential();
+                    username = credential.UserName;
+                    if (credential.CredentialBlobSize > 0)
                     {
-                        var credential = credentialHandle.GetCredential();
-                        username = credential.UserName;
-                        if (credential.CredentialBlobSize > 0)
-                        {
-                            password = Marshal.PtrToStringUni(credential.CredentialBlob, credential.CredentialBlobSize / 2);
-                            return true;
-                        }
+                        password = Marshal.PtrToStringUni(credential.CredentialBlob, credential.CredentialBlobSize / 2);
+                        return true;
                     }
                 }
             }
@@ -104,23 +102,19 @@ namespace KeeperSecurity.Utils
 #if NET452_OR_GREATER
 
         [DllImport("Advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]
-        static extern bool CredRead(string target, int credentialType, int reservedFlag, out IntPtr credentialPtr);
+        private static extern bool CredRead(string target, int credentialType, int reservedFlag, out IntPtr credentialPtr);
 
         [DllImport("Advapi32.dll", EntryPoint = "CredDeleteW", CharSet = CharSet.Unicode, SetLastError = true)]
-        static extern bool CredDelete(string target, int credentialType, int reservedFlag);
+        private static extern bool CredDelete(string target, int credentialType, int reservedFlag);
 
         [DllImport("Advapi32.dll", EntryPoint = "CredWriteW", CharSet = CharSet.Unicode, SetLastError = true)]
-        static extern bool CredWrite([In]
-            ref CREDENTIAL userCredential,
-            [In]
-            uint flags);
-
+        private static extern bool CredWrite([In] ref CREDENTIAL userCredential, [In] uint flags);
+        
         [DllImport("Advapi32.dll", EntryPoint = "CredFree", SetLastError = true)]
-        static extern bool CredFree([In]
-            IntPtr cred);
+        private static extern bool CredFree([In] IntPtr cred);
 
         [StructLayout(LayoutKind.Sequential)]
-        struct CREDENTIAL
+        private struct CREDENTIAL
         {
             public int Flags;
             public int Type;

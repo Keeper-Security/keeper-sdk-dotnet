@@ -526,7 +526,7 @@ namespace KeeperSecurity.Authentication
             PushNotifications = pushNotifications;
         }
 
-        protected IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
+        private static IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
         {
 #if NET452_OR_GREATER
             if (CredentialManager.GetCredentials(proxyUri.DnsSafeHost, out var username, out var password))
@@ -574,7 +574,7 @@ namespace KeeperSecurity.Authentication
             return false;
         }
 
-        internal async Task PingKeeperServer(Uri keeperUri, IWebProxy proxy)
+        private static async Task PingKeeperServer(Uri keeperUri, IWebProxy proxy)
         {
             var handler = new HttpClientHandler();
             if (proxy != null)
@@ -582,15 +582,11 @@ namespace KeeperSecurity.Authentication
                 handler.Proxy = proxy;
             }
 
-            using (var client = new HttpClient(handler))
+            using var client = new HttpClient(handler);
+            using var rs = await client.GetAsync(keeperUri);
+            if (rs.IsSuccessStatusCode)
             {
-                using (var rs = await client.GetAsync(keeperUri))
-                {
-                    if (rs.IsSuccessStatusCode)
-                    {
-                        var data = await rs.Content.ReadAsStringAsync();
-                    }
-                }
+                var data = await rs.Content.ReadAsStringAsync();
             }
         }
 
@@ -798,7 +794,7 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        private readonly List<AuditEventItem> _auditEventQueue = new List<AuditEventItem>();
+        private readonly List<AuditEventItem> _auditEventQueue = new();
 
         /// <exclude/>
         public void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null)
@@ -837,8 +833,7 @@ namespace KeeperSecurity.Authentication
                     {
                         ItemLogs = chunk
                     };
-                    _ = await AuthExtensions.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(
-                        this, rq);
+                    _ = await this.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(rq);
                 }
             }
         }

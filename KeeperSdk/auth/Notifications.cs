@@ -56,8 +56,7 @@ namespace KeeperSecurity.Authentication
     {
         private int _callbackNo;
 
-        private readonly ConcurrentDictionary<int, NotificationCallback<T>> _callbacks =
-            new ConcurrentDictionary<int, NotificationCallback<T>>();
+        private readonly ConcurrentDictionary<int, NotificationCallback<T>> _callbacks = new();
 
         private bool TryGetCallbackId(NotificationCallback<T> callback, out int id)
         {
@@ -89,7 +88,7 @@ namespace KeeperSecurity.Authentication
         public void RemoveCallback(NotificationCallback<T> callback)
         {
             if (IsCompleted) return;
-            if (TryGetCallbackId(callback, out int id))
+            if (TryGetCallbackId(callback, out var id))
             {
                 _callbacks.TryRemove(id, out _);
             }
@@ -116,7 +115,7 @@ namespace KeeperSecurity.Authentication
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool _)
         {
             IsCompleted = true;
             _callbacks.Clear();
@@ -184,7 +183,7 @@ namespace KeeperSecurity.Authentication
                         while (ws.State == WebSocketState.Open)
                         {
                             var rs = await ws.ReceiveAsync(segment, _cancellationTokenSource.Token);
-                            if (!(rs?.Count > 0)) continue;
+                            if (rs.Count <= 0) continue;
 
                             var responseBytes = new byte[rs.Count];
                             Array.Copy(buffer, segment.Offset, responseBytes, 0, responseBytes.Length);
@@ -226,20 +225,14 @@ namespace KeeperSecurity.Authentication
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+            if (_cancellationTokenSource == null) return;
             
-            if (_cancellationTokenSource != null)
+            if (!_cancellationTokenSource.IsCancellationRequested)
             {
-                if (!_cancellationTokenSource.IsCancellationRequested)
-                {
-                    _cancellationTokenSource.Cancel();
-                }
+                _cancellationTokenSource.Cancel();
             }
-
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
-            }
+            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = null;
         }
     }
 }

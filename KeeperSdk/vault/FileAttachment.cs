@@ -10,7 +10,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net;
 
 namespace KeeperSecurity.Vault
@@ -108,12 +107,10 @@ namespace KeeperSecurity.Vault
                     {
                         foreach (var fileUid in fileRef.Values)
                         {
-                            if (TryGetKeeperRecord(fileUid, out var kr))
+                            if (!TryGetKeeperRecord(fileUid, out var kr)) continue;
+                            if (kr is FileRecord fr)
                             {
-                                if (kr is FileRecord fr)
-                                {
-                                    yield return fr;
-                                }
+                                yield return fr;
                             }
                         }
                     }
@@ -138,13 +135,7 @@ namespace KeeperSecurity.Vault
                         return true;
                     }
 
-                    if (attachment == x.Id || attachment == x.Name || attachment == x.Title)
-                    {
-                        return true;
-                    }
-
-                    return false;
-
+                    return attachment == x.Id || attachment == x.Name || attachment == x.Title;
                 })
                 .FirstOrDefault();
 
@@ -194,13 +185,10 @@ namespace KeeperSecurity.Vault
             switch (record)
             {
                 case PasswordRecord password:
-                    if (password.Attachments != null)
+                    var atta = password.Attachments?.FirstOrDefault(x => x.Id == attachmentId);
+                    if (atta != null)
                     {
-                        var atta = password.Attachments.FirstOrDefault(x => x.Id == attachmentId);
-                        if (atta != null)
-                        {
-                            deleted = password.Attachments.Remove(atta);
-                        }
+                        deleted = password.Attachments.Remove(atta);
                     }
                     break;
                 case TypedRecord typed:
@@ -263,7 +251,7 @@ namespace KeeperSecurity.Vault
             using var ms = new MemoryStream();
             await DownloadFromUrl(new Uri(fileResult.Url), ms, Auth.Endpoint.WebProxy);
             var plainData = CryptoUtils.DecryptAesV2(ms.ToArray(), fileRecord.RecordKey);
-            destination.Write(plainData, 0, plainData.Length);
+            await destination.WriteAsync(plainData, 0, plainData.Length);
         }
 
         /// <exclude />
@@ -282,7 +270,7 @@ namespace KeeperSecurity.Vault
             using var ms = new MemoryStream();
             await DownloadFromUrl(new Uri(download.Url), ms, Auth.Endpoint.WebProxy);
             var plainData = CryptoUtils.DecryptAesV1(ms.ToArray(), attachment.Key.Base64UrlDecode());
-            destination.Write(plainData, 0, plainData.Length);
+            await destination.WriteAsync(plainData, 0, plainData.Length);
         }
 
         private static async Task UploadSingleFile(UploadParameters upload, byte[] data, IWebProxy proxy)

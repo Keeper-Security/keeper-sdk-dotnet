@@ -43,7 +43,7 @@ namespace KeeperSecurity.Enterprise
         public byte[] EcPrivateKey { get; set; }
 
         /// <exclude/>
-        public byte[] ContinuationToken { get; set; }
+        private byte[] ContinuationToken { get; set; }
 
         /// <summary>
         /// Initialises EnterpriseLoader instance.
@@ -57,7 +57,7 @@ namespace KeeperSecurity.Enterprise
         public EnterpriseLoader(IAuthentication auth, IEnumerable<EnterpriseDataPlugin> plugins)
         {
             Auth = auth;
-            ContinuationToken = new byte[0];
+            ContinuationToken = Array.Empty<byte>();
 
             foreach (var plugin in plugins)
             {
@@ -106,8 +106,7 @@ namespace KeeperSecurity.Enterprise
             }
         }
 
-        private readonly ConcurrentDictionary<EnterpriseDataEntity, IList<IKeeperEnterpriseEntity>> _entities
-            = new ConcurrentDictionary<EnterpriseDataEntity, IList<IKeeperEnterpriseEntity>>();
+        private readonly ConcurrentDictionary<EnterpriseDataEntity, IList<IKeeperEnterpriseEntity>> _entities = new();
 
         private IEnterpriseLoader GetEnterprise()
         {
@@ -189,7 +188,7 @@ namespace KeeperSecurity.Enterprise
             }
         }
 
-        private readonly ConcurrentBag<long> _availableIds = new ConcurrentBag<long>();
+        private readonly ConcurrentBag<long> _availableIds = new();
 
         /// <summary>
         ///     Returns unique enterprise id.

@@ -108,7 +108,7 @@ namespace KeeperSecurity.Enterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
 
-        private readonly ConcurrentDictionary<string, ISet<long>> _entities = new ConcurrentDictionary<string, ISet<long>>();
+        private readonly ConcurrentDictionary<string, ISet<long>> _entities = new();
 
         public QueuedUserDictionary() : base(EnterpriseDataEntity.QueuedTeamUsers)
         {

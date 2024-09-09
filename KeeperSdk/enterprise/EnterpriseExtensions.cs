@@ -39,7 +39,7 @@ namespace KeeperSecurity.Enterprise
         /// <returns>Awaitable task returning created node</returns>
         public static async Task<EnterpriseNode> CreateNode(this EnterpriseData enterpriseData, string nodeName, EnterpriseNode parentNode = null)
         {
-            parentNode = parentNode ?? enterpriseData.RootNode;
+            parentNode ??= enterpriseData.RootNode;
             var encryptedData = new EncryptedData
             {
                 DisplayName = nodeName
@@ -85,7 +85,7 @@ namespace KeeperSecurity.Enterprise
             var rq = new NodeUpdateCommand
             {
                 NodeId = node.Id,
-                ParentId = newParentNode != null ? newParentNode.Id : node.ParentNodeId,
+                ParentId = newParentNode?.Id ?? node.ParentNodeId,
                 EncryptedData = EnterpriseUtils.EncryptEncryptedData(encryptedData, enterpriseData.Enterprise.TreeKey)
             };
             await enterpriseData.Enterprise.Auth.ExecuteAuthCommand(rq);

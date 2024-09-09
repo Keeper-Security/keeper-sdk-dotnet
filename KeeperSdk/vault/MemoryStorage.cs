@@ -8,41 +8,18 @@ namespace KeeperSecurity.Vault
     /// <seealso cref="IKeeperStorage" />
     public class InMemoryKeeperStorage : IKeeperStorage
     {
-        private readonly InMemoryRecordStorage<IVaultSettings> _vaultSettings =
-            new InMemoryRecordStorage<IVaultSettings>();
-
-        private readonly InMemoryEntityStorage<IStorageRecord> _recordStorage =
-            new InMemoryEntityStorage<IStorageRecord>();
-
-        private readonly InMemoryEntityStorage<IStorageSharedFolder> _sharedFolderStorage =
-            new InMemoryEntityStorage<IStorageSharedFolder>();
-
-        private readonly InMemoryEntityStorage<IStorageTeam> _teamStorage =
-            new InMemoryEntityStorage<IStorageTeam>();
-
-        private readonly InMemoryEntityStorage<IStorageNonSharedData> _nonSharedDataStorage =
-            new InMemoryEntityStorage<IStorageNonSharedData>();
-
-        private readonly InMemoryLinkStorage<IStorageRecordKey> _recordKeyStorage =
-            new InMemoryLinkStorage<IStorageRecordKey>();
-
-        private readonly InMemoryLinkStorage<IStorageSharedFolderKey> _sharedFolderKeyStorage =
-            new InMemoryLinkStorage<IStorageSharedFolderKey>();
-
-        private readonly InMemoryLinkStorage<ISharedFolderPermission> _sharedFolderPermissions =
-            new InMemoryLinkStorage<ISharedFolderPermission>();
-
-        private readonly InMemoryEntityStorage<IStorageFolder> _folderStorage =
-            new InMemoryEntityStorage<IStorageFolder>();
-
-        private readonly InMemoryLinkStorage<IStorageFolderRecord> _folderRecordStorage =
-            new InMemoryLinkStorage<IStorageFolderRecord>();
-
-        private readonly InMemoryEntityStorage<IStorageRecordType> _recordTypeStorage =
-            new InMemoryEntityStorage<IStorageRecordType>();
-
-        private readonly InMemoryLinkStorage<IStorageUserEmail> _userEmailStorage =
-            new InMemoryLinkStorage<IStorageUserEmail>();
+        private readonly InMemoryRecordStorage<IVaultSettings> _vaultSettings = new();
+        private readonly InMemoryEntityStorage<IStorageRecord> _recordStorage = new();
+        private readonly InMemoryEntityStorage<IStorageSharedFolder> _sharedFolderStorage = new();
+        private readonly InMemoryEntityStorage<IStorageTeam> _teamStorage = new();
+        private readonly InMemoryEntityStorage<IStorageNonSharedData> _nonSharedDataStorage = new();
+        private readonly InMemoryLinkStorage<IStorageRecordKey> _recordKeyStorage = new();
+        private readonly InMemoryLinkStorage<IStorageSharedFolderKey> _sharedFolderKeyStorage = new();
+        private readonly InMemoryLinkStorage<ISharedFolderPermission> _sharedFolderPermissions = new();
+        private readonly InMemoryEntityStorage<IStorageFolder> _folderStorage = new();
+        private readonly InMemoryLinkStorage<IStorageFolderRecord> _folderRecordStorage = new();
+        private readonly InMemoryEntityStorage<IStorageRecordType> _recordTypeStorage = new();
+        private readonly InMemoryLinkStorage<IStorageUserEmail> _userEmailStorage = new();
 
         /// <inheritdoc/>
         public string PersonalScopeUid => "PersonalScopeUid";

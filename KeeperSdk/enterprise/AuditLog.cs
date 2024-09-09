@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Enterprise.AuditLogCommands;
-#if NET452_OR_GREATER
-using KeeperSecurity.Utils;
-#endif
 
 namespace KeeperSecurity
 {
@@ -304,8 +301,8 @@ namespace KeeperSecurity
 
                 filter.Created = new CreatedFilter
                 {
-                    Max = recentUnixTime == 0 ? (long?) null : recentUnixTime,
-                    Min = latestUnixTime == 0 ? (long?) null : latestUnixTime
+                    Max = recentUnixTime == 0 ? null : recentUnixTime,
+                    Min = latestUnixTime == 0 ? null : latestUnixTime
                 };
 
                 var rq = new GetAuditEventReportsCommand

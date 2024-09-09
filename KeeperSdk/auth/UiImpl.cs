@@ -31,13 +31,7 @@ namespace KeeperSecurity.Authentication
 
     internal class DeviceApprovalEmailResend : IDeviceApprovalPushInfo, IDeviceApprovalOtpInfo
     {
-        public DeviceApprovalChannel Channel { get; }
-
-        public DeviceApprovalEmailResend()
-        {
-            Channel = DeviceApprovalChannel.Email;
-            Resend = false;
-        }
+        public DeviceApprovalChannel Channel => DeviceApprovalChannel.Email;
 
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
         public DeviceApprovalOtpDelegate InvokeDeviceApprovalOtpAction { get; internal set; }
@@ -46,25 +40,15 @@ namespace KeeperSecurity.Authentication
 
     internal class DeviceApprovalKeeperPushAction : IDeviceApprovalPushInfo
     {
-        public DeviceApprovalChannel Channel { get; }
-
-        public DeviceApprovalKeeperPushAction()
-        {
-            Channel = DeviceApprovalChannel.KeeperPush;
-        }
+        public DeviceApprovalChannel Channel => DeviceApprovalChannel.KeeperPush;
 
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
     }
 
     internal class TwoFactorTwoFactorAuth : IDeviceApprovalPushInfo, IDeviceApprovalOtpInfo, ITwoFactorDurationInfo
     {
-        public DeviceApprovalChannel Channel { get; }
+        public DeviceApprovalChannel Channel => DeviceApprovalChannel.TwoFactorAuth;
         public TwoFactorDuration Duration { get; set; }
-
-        public TwoFactorTwoFactorAuth()
-        {
-            Channel = DeviceApprovalChannel.TwoFactorAuth;
-        }
 
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
         public DeviceApprovalOtpDelegate InvokeDeviceApprovalOtpAction { get; internal set; }
@@ -108,21 +92,13 @@ namespace KeeperSecurity.Authentication
 
     internal class TwoFactorDuoChannel : ITwoFactorAppCodeInfo, ITwoFactorPushInfo
     {
-        public TwoFactorDuoChannel()
-        {
-            Channel = TwoFactorChannel.DuoSecurity;
-            ChannelName = "duo";
-            ApplicationName = "Duo Mobile App";
-            Duration = TwoFactorDuration.EveryLogin;
-        }
-
-        public TwoFactorChannel Channel { get; }
-        public string ChannelName { get; }
-        public string ApplicationName { get; }
+        public TwoFactorChannel Channel => TwoFactorChannel.DuoSecurity;
+        public string ChannelName => "duo";
+        public string ApplicationName => "Duo Mobile App";
         public string PhoneNumber { get; internal set; }
         public TwoFactorPushAction[] SupportedActions { get; set; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
-        public TwoFactorDuration Duration { get; set; }
+        public TwoFactorDuration Duration { get; set; } = TwoFactorDuration.EveryLogin;
         public TwoFactorCodeActionDelegate InvokeTwoFactorCodeAction { get; internal set; }
     }
 
@@ -170,14 +146,8 @@ namespace KeeperSecurity.Authentication
 
     internal class TwoFactorSecurityKeyChannel : ITwoFactorPushInfo
     {
-        public TwoFactorSecurityKeyChannel()
-        {
-            Channel = TwoFactorChannel.SecurityKey;
-            SupportedActions = new[] {TwoFactorPushAction.SecurityKey};
-        }
-
-        public TwoFactorChannel Channel { get; }
-        public TwoFactorPushAction[] SupportedActions { get; }
+        public TwoFactorChannel Channel => TwoFactorChannel.SecurityKey;
+        public TwoFactorPushAction[] SupportedActions { get; } = {TwoFactorPushAction.SecurityKey};
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
     }
 
@@ -243,7 +213,7 @@ namespace KeeperSecurity.Authentication
             return false;
         }
 
-        internal static readonly IDictionary<TwoFactorPushAction, string> PushActions = new Dictionary<TwoFactorPushAction, string>
+        private static readonly IDictionary<TwoFactorPushAction, string> PushActions = new Dictionary<TwoFactorPushAction, string>
         {
             {TwoFactorPushAction.DuoPush, "duo_push"},
             {TwoFactorPushAction.DuoTextMessage, "duo_sms"},

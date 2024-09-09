@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using Google.Protobuf;
 using KeeperSecurity.Commands;
@@ -133,12 +132,12 @@ namespace KeeperSecurity.Vault
                 .Where(x => x.Type.EndsWith("Ref"))
                 .Select(ConvertToTypedField)
                 .OfType<TypedField<string>>()
-                .SelectMany(x => x.Values, (field, s) => s));
+                .SelectMany(x => x.Values, (_, s) => s));
 
             var currentRefs = new HashSet<string>(typed.Fields.Concat(typed.Custom)
                 .Where(x => x.FieldName.EndsWith("Ref"))
                 .OfType<TypedField<string>>()
-                .SelectMany(x => x.Values, (field, s) => s));
+                .SelectMany(x => x.Values, (_, s) => s));
 
             foreach (var newRef in currentRefs.Except(existingRefs))
             {
@@ -253,8 +252,8 @@ namespace KeeperSecurity.Vault
                 {
                     Name = x.Name ?? "Custom Field",
                     Value = x.Value,
-                    Type = x.Type ?? "text"
-                }).ToArray()
+                    Type = x.Type ?? "text",
+                }).ToArray(),
             };
         }
 
@@ -425,12 +424,6 @@ namespace KeeperSecurity.Vault
             };
         }
 
-        private static readonly DataContractJsonSerializer DataSerializer =
-            new DataContractJsonSerializer(typeof(RecordData), JsonUtils.JsonSettings);
-
-        private static readonly DataContractJsonSerializer ExtraSerializer =
-            new DataContractJsonSerializer(typeof(RecordExtra), JsonUtils.JsonSettings);
-
         internal static KeeperRecord Load(this IStorageRecord r, byte[] key)
         {
             KeeperRecord record = null;
@@ -471,94 +464,80 @@ namespace KeeperSecurity.Vault
 
             var data = r.Data.Base64UrlDecode();
             data = CryptoUtils.DecryptAesV1(data, key);
-            using (var ms = new MemoryStream(data))
+            var parsedData = JsonUtils.ParseJson<RecordData>(data);
+            record.Title = parsedData.Title;
+            record.Login = parsedData.Secret1;
+            record.Password = parsedData.Secret2;
+            record.Link = parsedData.Link;
+            record.Notes = parsedData.Notes;
+            if (parsedData.Custom != null)
             {
-                var parsedData = (RecordData) DataSerializer.ReadObject(ms);
-                record.Title = parsedData.Title;
-                record.Login = parsedData.Secret1;
-                record.Password = parsedData.Secret2;
-                record.Link = parsedData.Link;
-                record.Notes = parsedData.Notes;
-                if (parsedData.Custom != null)
+                foreach (var cr in parsedData.Custom.Where(x => x != null))
                 {
-                    foreach (var cr in parsedData.Custom.Where(x => x != null))
+                    record.Custom.Add(new CustomField
                     {
-                        record.Custom.Add(new CustomField
-                        {
-                            Name = cr.Name,
-                            Value = cr.Value,
-                            Type = cr.Type
-                        });
-                    }
+                        Name = cr.Name,
+                        Value = cr.Value,
+                        Type = cr.Type
+                    });
                 }
             }
 
-            if (!string.IsNullOrEmpty(r.Extra))
+            if (string.IsNullOrEmpty(r.Extra)) return record;
+
+            var extra = CryptoUtils.DecryptAesV1(r.Extra.Base64UrlDecode(), key);
+            var parsedExtra = JsonUtils.ParseJson<RecordExtra>(extra);
+            if (parsedExtra.Files != null && parsedExtra.Files.Length > 0)
             {
-                var extra = CryptoUtils.DecryptAesV1(r.Extra.Base64UrlDecode(), key);
-                using (var ms = new MemoryStream(extra))
+                foreach (var file in parsedExtra.Files.Where(x => x != null))
                 {
-                    var parsedExtra = (RecordExtra) ExtraSerializer.ReadObject(ms);
-                    if (parsedExtra.Files != null && parsedExtra.Files.Length > 0)
+                    var atta = new AttachmentFile
                     {
-                        foreach (var file in parsedExtra.Files.Where(x => x != null))
-                        {
-                            var atta = new AttachmentFile
+                        Id = file.Id,
+                        Key = file.Key,
+                        Name = file.Name,
+                        Title = file.Title ?? "",
+                        MimeType = file.Type ?? "",
+                        Size = file.Size ?? 0,
+                        LastModified = file.LastModified != null
+                            ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(file.LastModified.Value)
+                            : DateTimeOffset.Now
+                    };
+                    if (file.Thumbs != null)
+                    {
+                        atta.Thumbnails = file.Thumbs
+                            .Where(x => x != null)
+                            .Select(t => new AttachmentFileThumb
                             {
-                                Id = file.Id,
-                                Key = file.Key,
-                                Name = file.Name,
-                                Title = file.Title ?? "",
-                                MimeType = file.Type ?? "",
-                                Size = file.Size ?? 0,
-                                LastModified = file.LastModified != null
-                                    ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(file.LastModified.Value)
-                                    : DateTimeOffset.Now
-                            };
-                            if (file.Thumbs != null)
-                            {
-                                atta.Thumbnails = file.Thumbs
-                                    .Where(x => x != null)
-                                    .Select(t => new AttachmentFileThumb
-                                    {
-                                        Id = t.Id,
-                                        Type = t.Type,
-                                        Size = t.Size ?? 0
-                                    })
-                                    .ToArray();
-                            }
-
-                            record.Attachments.Add(atta);
-                        }
+                                Id = t.Id,
+                                Type = t.Type,
+                                Size = t.Size ?? 0
+                            })
+                            .ToArray();
                     }
 
-                    if (parsedExtra.Fields != null)
-                    {
-                        var totpField = parsedExtra.Fields.FirstOrDefault(x =>
-                        {
-                            if (x.TryGetValue("field_type", out var value))
-                            {
-                                if (value is string fieldType)
-                                {
-                                    return string.Equals(fieldType, "totp",
-                                        StringComparison.InvariantCultureIgnoreCase);
-                                }
-                            }
-
-                            return false;
-                        });
-                        if (totpField != null)
-                        {
-                            if (totpField.TryGetValue("data", out var value))
-                            {
-                                if (value is string totpUrl)
-                                {
-                                    record.Totp = totpUrl;
-                                }
-                            }
-                        }
-                    }
+                    record.Attachments.Add(atta);
                 }
+            }
+
+            if (parsedExtra.Fields == null) return record;
+
+            var totpField = parsedExtra.Fields.FirstOrDefault(x =>
+            {
+                if (!x.TryGetValue("field_type", out var totp)) return false;
+                if (totp is string fieldType)
+                {
+                    return string.Equals(fieldType, "totp", StringComparison.InvariantCultureIgnoreCase);
+                }
+
+                return false;
+            });
+            if (totpField == null) return record;
+
+            if (!totpField.TryGetValue("data", out var value)) return record;
+            if (value is string totpUrl)
+            {
+                record.Totp = totpUrl;
             }
 
             return record;
@@ -574,23 +553,13 @@ namespace KeeperSecurity.Vault
                 }
 
                 var xb = JsonUtils.DumpJson(field);
-                Type dataType;
-                if (RecordTypesConstants.TryGetRecordField(field.Type, out var rf))
-                {
-                    dataType = rf.Type.Type;
-                }
-                else
-                {
-                    dataType = typeof(AnyComplexField);
-                }
+                var dataType = RecordTypesConstants.TryGetRecordField(field.Type, out var rf) ? rf.Type.Type : typeof(AnyComplexField);
 
                 if (rf != null && RecordTypesConstants.GetJsonParser(dataType, out var serializer))
                 {
-                    using (var ms = new MemoryStream(xb))
-                    {
-                        var f = (RecordTypeDataFieldBase) serializer.ReadObject(ms);
-                        return f.CreateTypedField();
-                    }
+                    using var ms = new MemoryStream(xb);
+                    var f = (RecordTypeDataFieldBase) serializer.ReadObject(ms);
+                    return f.CreateTypedField();
                 }
 
                 Debug.WriteLine($"Unsupported field type: {field.Type}");

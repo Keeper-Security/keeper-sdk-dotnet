@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using KeeperSecurity.Vault;
-#if NET452_OR_GREATER
-using KeeperSecurity.Utils;
-#endif
 
 namespace KeeperSecurity.Commands
 {

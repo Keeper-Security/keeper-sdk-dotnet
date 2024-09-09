@@ -98,7 +98,7 @@ namespace KeeperSecurity.Vault
 
                         var folderUids = new HashSet<string>();
                         folderUids.UnionWith(recordLinks.Select(x => x.SubjectUid));
-                        var userFolderText = VaultTypeExtensions.GetFolderTypeText(FolderType.UserFolder);
+                        var userFolderText = FolderType.UserFolder.GetFolderTypeText();
                         foreach (var folderUid in folderUids.ToArray())
                         {
                             if (!string.Equals(folderUid, storage.PersonalScopeUid))
@@ -584,7 +584,7 @@ namespace KeeperSecurity.Vault
                                     ? uf.ParentUid.ToByteArray().Base64UrlEncode()
                                     : null,
                                 SharedFolderUid = null,
-                                FolderType = VaultTypeExtensions.GetFolderTypeText(FolderType.UserFolder),
+                                FolderType = FolderType.UserFolder.GetFolderTypeText(),
                                 Revision = uf.Revision,
                                 FolderKey = CryptoUtils.EncryptAesV1(folderKey, clientKey).Base64UrlEncode(),
                                 Data = uf.Data.ToByteArray().Base64UrlEncode(),
@@ -757,25 +757,18 @@ namespace KeeperSecurity.Vault
         private static byte[] DecryptKeeperKey(IAuthContext context, byte[] encryptedKey,
             RecordProto.RecordKeyType keyType)
         {
-            switch (keyType)
+            return keyType switch
             {
-                case RecordProto.RecordKeyType.NoKey:
-                    return context.DataKey;
-
-                case RecordProto.RecordKeyType.EncryptedByDataKey:
-                    return CryptoUtils.DecryptAesV1(encryptedKey, context.DataKey);
-
-                case RecordProto.RecordKeyType.EncryptedByPublicKey:
-                    return CryptoUtils.DecryptRsa(encryptedKey, context.PrivateRsaKey);
-
-                case RecordProto.RecordKeyType.EncryptedByDataKeyGcm:
-                    return CryptoUtils.DecryptAesV2(encryptedKey, context.DataKey);
-
-                case RecordProto.RecordKeyType.EncryptedByPublicKeyEcc:
-                    return CryptoUtils.DecryptEc(encryptedKey, context.PrivateEcKey);
-            }
-
-            throw new Exception($"Unsupported key type {keyType}");
+                RecordProto.RecordKeyType.NoKey => context.DataKey,
+                RecordProto.RecordKeyType.EncryptedByDataKey => CryptoUtils.DecryptAesV1(encryptedKey, context.DataKey),
+                RecordProto.RecordKeyType.EncryptedByPublicKey => CryptoUtils.DecryptRsa(encryptedKey,
+                    context.PrivateRsaKey),
+                RecordProto.RecordKeyType.EncryptedByDataKeyGcm => CryptoUtils.DecryptAesV2(encryptedKey,
+                    context.DataKey),
+                RecordProto.RecordKeyType.EncryptedByPublicKeyEcc => CryptoUtils.DecryptEc(encryptedKey,
+                    context.PrivateEcKey),
+                _ => throw new Exception($"Unsupported key type {keyType}"),
+            };
         }
     }
 }

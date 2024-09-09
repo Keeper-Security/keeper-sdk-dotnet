@@ -219,7 +219,7 @@ namespace KeeperSecurity.Enterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
 
-        private readonly ConcurrentDictionary<string, long> _userNames = new ConcurrentDictionary<string, long>(1, 100, StringComparer.InvariantCultureIgnoreCase);
+        private readonly ConcurrentDictionary<string, long> _userNames = new(1, 100, StringComparer.InvariantCultureIgnoreCase);
 
         public UserDictionary() : base(EnterpriseDataEntity.Users)
         {

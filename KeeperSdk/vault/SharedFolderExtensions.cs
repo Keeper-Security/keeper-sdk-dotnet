@@ -38,7 +38,7 @@ namespace KeeperSecurity.Vault
                 var sfuu = new SharedFolderUpdateUser
                 {
                     Username = userId,
-                    Expiration = options?.Expiration == null ? 0 : options.Expiration.Value.ToUnixTimeMilliseconds(),
+                    Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
                 };
                 if (existingPermission != null)
                 {
@@ -101,19 +101,19 @@ namespace KeeperSecurity.Vault
                 var sfut = new SharedFolderUpdateTeam
                 {
                     TeamUid = ByteString.CopyFrom(userId.Base64UrlDecode()),
-                    Expiration = options?.Expiration == null ? 0 : options.Expiration.Value.ToUnixTimeMilliseconds(),
+                    Expiration = options?.Expiration?.ToUnixTimeMilliseconds() ?? 0,
                 };
 
                 if (existingPermission != null)
                 {
-                    sfut.ManageUsers = options?.ManageUsers == null ? existingPermission.ManageUsers : options.ManageUsers.Value;
-                    sfut.ManageRecords = options?.ManageRecords == null ? existingPermission.ManageRecords : options.ManageRecords.Value;
+                    sfut.ManageUsers = options?.ManageUsers ?? existingPermission.ManageUsers;
+                    sfut.ManageRecords = options?.ManageRecords ?? existingPermission.ManageRecords;
                     request.SharedFolderUpdateTeam.Add(sfut);
                 }
                 else
                 {
-                    sfut.ManageUsers = options?.ManageUsers == null ? sharedFolder.DefaultManageUsers : options.ManageUsers.Value;
-                    sfut.ManageRecords = options?.ManageRecords == null ? sharedFolder.DefaultManageRecords : options.ManageRecords.Value;
+                    sfut.ManageUsers = options?.ManageUsers ?? sharedFolder.DefaultManageUsers;
+                    sfut.ManageRecords = options?.ManageRecords ?? sharedFolder.DefaultManageRecords;
 
                     byte[] encryptedSharedFolderKey = null;
                     EncryptedKeyType keyType = EncryptedKeyType.NoKey;
@@ -166,7 +166,7 @@ namespace KeeperSecurity.Vault
                 request.FromTeamUid = ByteString.CopyFrom(perm.Uid.Base64UrlDecode());
             }
             var response = await Auth.ExecuteAuthRest<SharedFolderUpdateV3Request, SharedFolderUpdateV3Response>("vault/shared_folder_update_v3", request);
-            foreach (var arr in (new[] { response.SharedFolderAddUserStatus, response.SharedFolderUpdateUserStatus }))
+            foreach (var arr in new[] { response.SharedFolderAddUserStatus, response.SharedFolderUpdateUserStatus })
             {
                 var failed = arr?.FirstOrDefault(x => x.Status != "success");
                 if (failed != null)
@@ -175,7 +175,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            foreach (var arr in (new[] { response.SharedFolderAddTeamStatus, response.SharedFolderUpdateTeamStatus }))
+            foreach (var arr in new[] { response.SharedFolderAddTeamStatus, response.SharedFolderUpdateTeamStatus })
             {
                 var failed = arr?.FirstOrDefault(x => x.Status != "success");
                 if (failed != null)
@@ -274,21 +274,19 @@ namespace KeeperSecurity.Vault
                 {
                     RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
                     CanEdit = options.CanEdit == null ? SetBooleanValue.BooleanNoChange
-                    : (options.CanEdit.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse),
+                    : options.CanEdit.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
                     CanShare = options.CanShare == null ? SetBooleanValue.BooleanNoChange
-                    : (options.CanShare.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse),
+                    : options.CanShare.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
                     Expiration = options.Expiration?.ToUnixTimeMilliseconds() ?? 0,
                 });
 
                 var response = await Auth.ExecuteAuthRest<SharedFolderUpdateV3Request, SharedFolderUpdateV3Response>("vault/shared_folder_update_v3", request);
-                foreach (var arr in (new[] { response.SharedFolderUpdateRecordStatus }))
+                foreach (var arr in new[] { response.SharedFolderUpdateRecordStatus })
                 {
                     var failed = arr?.FirstOrDefault(x => x.Status != "success");
-                    if (failed != null)
-                    {
-                        var uid = failed.RecordUid.ToArray().Base64UrlEncode();
-                        throw new VaultException($"Put Record UID \"{uid}\" to Shared Folder \"{sharedFolder.Name}\" error: {failed.Status}");
-                    }
+                    if (failed == null) continue;
+                    var uid = failed.RecordUid.ToArray().Base64UrlEncode();
+                    throw new VaultException($"Put Record UID \"{uid}\" to Shared Folder \"{sharedFolder.Name}\" error: {failed.Status}");
                 }
             }
             else

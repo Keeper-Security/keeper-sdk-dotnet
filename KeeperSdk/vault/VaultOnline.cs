@@ -129,9 +129,9 @@ namespace KeeperSecurity.Vault
             await ScheduleSyncDown(TimeSpan.FromMilliseconds(10));
         }
 
-        internal bool OnNotificationReceived(NotificationEvent evt)
+        private bool OnNotificationReceived(NotificationEvent evt)
         {
-            if (evt != null & (evt?.Event == "sync" || evt?.Event == "sharing_notice"))
+            if (evt?.Event is "sync" or "sharing_notice")
             {
                 if (evt.Sync)
                 {
@@ -199,7 +199,7 @@ namespace KeeperSecurity.Vault
             {
                 if (string.IsNullOrEmpty(path.RecordUid))
                 {
-                    throw new VaultException($"Record UID cannot be empty");
+                    throw new VaultException("Record UID cannot be empty");
                 }
 
                 var folder = this.GetFolder(path.FolderUid);
@@ -228,7 +228,7 @@ namespace KeeperSecurity.Vault
                 {
                     throw new VaultException($"Record {path.RecordUid} not found in the folder {srcFolder.Name} ({srcFolder.FolderUid})");
                 }
-                if (recordUids.Contains(path.RecordUid))
+                if (!recordUids.Add(path.RecordUid))
                 {
                     if (!link)
                     {
@@ -237,7 +237,6 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    recordUids.Add(path.RecordUid);
                     toMove.Add(path);
                 }
 
@@ -340,9 +339,9 @@ namespace KeeperSecurity.Vault
             var response = await Auth.ExecuteAuthCommand<GetShareAutoCompleteCommand, GetShareAutoCompleteResponse>(request);
             return new ShareWithUsers
             {
-                SharesWith = response.SharesWithUsers?.Select(x => x.Email).ToArray() ?? new string[0],
-                SharesFrom = response.SharesFromUsers?.Select(x => x.Email).ToArray() ?? new string[0],
-                GroupUsers = response.GroupUsers?.Select(x => x.Email).ToArray() ?? new string[0]
+                SharesWith = response.SharesWithUsers?.Select(x => x.Email).ToArray() ?? Array.Empty<string>(),
+                SharesFrom = response.SharesFromUsers?.Select(x => x.Email).ToArray() ?? Array.Empty<string>(),
+                GroupUsers = response.GroupUsers?.Select(x => x.Email).ToArray() ?? Array.Empty<string>(),
             };
         }
 
@@ -367,14 +366,14 @@ namespace KeeperSecurity.Vault
                     CanEdit = y.Editable,
                     CanShare = y.Sharable,
                     AwaitingApproval = y.AwaitingApproval,
-                    Expiration = y.Expiration > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(y.Expiration) : (DateTimeOffset?) null,
+                    Expiration = y.Expiration > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(y.Expiration) : null,
                 }).ToArray(),
                 SharedFolderPermissions = x.SharedFolderPermission.Select(y => new SharedFolderRecordPermissions
                 {
                     SharedFolderUid = y.SharedFolderUid.ToArray().Base64UrlEncode(),
                     CanEdit = y.Editable,
                     CanShare = y.Resharable,
-                    Expiration = y.Expiration > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(y.Expiration) : (DateTimeOffset?) null,
+                    Expiration = y.Expiration > 0 ? DateTimeOffsetExtensions.FromUnixTimeMilliseconds(y.Expiration) : null,
 
                 }).ToArray()
             });

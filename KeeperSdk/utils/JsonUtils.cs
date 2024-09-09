@@ -12,7 +12,7 @@ namespace KeeperSecurity.Utils
     /// </summary>
     public static class JsonUtils
     {
-        internal static readonly DataContractJsonSerializerSettings JsonSettings = new DataContractJsonSerializerSettings
+        internal static readonly DataContractJsonSerializerSettings JsonSettings = new()
         {
             UseSimpleDictionaryFormat = true,
             EmitTypeInformation = EmitTypeInformation.Never,
@@ -27,10 +27,8 @@ namespace KeeperSecurity.Utils
         public static T ParseJson<T>(byte[] json)
         {
             var serializer = new DataContractJsonSerializer(typeof(T), JsonSettings);
-            using (var ms = new MemoryStream(json))
-            {
-                return (T) serializer.ReadObject(ms);
-            }
+            using var ms = new MemoryStream(json);
+            return (T) serializer.ReadObject(ms);
         }
 
         /// <summary>
@@ -43,15 +41,13 @@ namespace KeeperSecurity.Utils
         public static byte[] DumpJson<T>(T obj, bool indent = true)
         {
             var serializer = new DataContractJsonSerializer(typeof(T), JsonSettings);
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+            using (var writer = JsonReaderWriterFactory.CreateJsonWriter(ms, Encoding.UTF8, false, indent))
             {
-                using (var writer = JsonReaderWriterFactory.CreateJsonWriter(ms, Encoding.UTF8, false, indent))
-                {
-                    serializer.WriteObject(writer, obj);
-                }
-
-                return ms.ToArray();
+                serializer.WriteObject(writer, obj);
             }
+
+            return ms.ToArray();
         }
     }
 

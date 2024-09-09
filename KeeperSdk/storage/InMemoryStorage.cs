@@ -33,7 +33,7 @@ namespace KeeperSecurity.Storage
     public sealed class InMemoryEntityStorage<T> : IEntityStorage<T>
         where T : IUid
     {
-        private readonly Dictionary<string, T> _items = new Dictionary<string, T>();
+        private readonly Dictionary<string, T> _items = new();
 
         public void DeleteUids(IEnumerable<string> uids)
         {
@@ -45,7 +45,7 @@ namespace KeeperSecurity.Storage
 
         public T GetEntity(string uid)
         {
-            return _items.TryGetValue(uid, out T item) ? item : default;
+            return _items.TryGetValue(uid, out var entity) ? entity : default;
         }
 
         public IEnumerable<T> GetAll()
@@ -73,14 +73,13 @@ namespace KeeperSecurity.Storage
     /// <exclude/>
     public sealed class InMemoryLinkStorage<T> : ILinkStorage<T> where T : IUidLink
     {
-        private readonly Dictionary<string, IDictionary<string, T>> _links =
-            new Dictionary<string, IDictionary<string, T>>();
+        private readonly Dictionary<string, IDictionary<string, T>> _links = new();
 
         public void DeleteLinks(IEnumerable<IUidLink> links)
         {
             foreach (var link in links)
             {
-                if (_links.TryGetValue(link.SubjectUid, out IDictionary<string, T> dict))
+                if (_links.TryGetValue(link.SubjectUid, out var dict))
                 {
                     dict.Remove(link.ObjectUid ?? "");
                 }
@@ -119,16 +118,8 @@ namespace KeeperSecurity.Storage
 
         public T GetLink(IUidLink link)
         {
-            if (_links.ContainsKey(link.SubjectUid))
-            {
-                var subjects = _links[link.SubjectUid];
-                if (subjects.TryGetValue(link.ObjectUid, value: out var link1))
-                {
-                    return link1;
-                }
-            }
-
-            return default;
+            if (!_links.TryGetValue(link.SubjectUid, out var subjects)) return default;
+            return subjects.TryGetValue(link.ObjectUid, value: out var link1) ? link1 : default;
         }
 
         public IEnumerable<T> GetLinksForSubject(string primaryUid)
@@ -156,7 +147,7 @@ namespace KeeperSecurity.Storage
                     continue;
                 }
 
-                if (!_links.TryGetValue(link.SubjectUid, out IDictionary<string, T> dict))
+                if (!_links.TryGetValue(link.SubjectUid, out var dict))
                 {
                     dict = new Dictionary<string, T>();
                     _links.Add(link.SubjectUid, dict);

@@ -574,12 +574,12 @@ namespace KeeperSecurity.Vault
         /// <param name="applicationId">Application ID</param>
         /// <param name="unlockIp">Optional. If false the first call from the client locks IP. If true no IP locking</param>
         /// <param name="firstAccessExpireInMinutes">Optional. First access duration in minutes. Default: an hour (60). Maximum: a day (1440) </param>
-        /// <param name="AccessExpiresInMinutes">Optional. Access Expiration duration in minutes.</param>
+        /// <param name="accessExpiresInMinutes">Optional. Access Expiration duration in minutes.</param>
         /// <param name="name">Optional. Client/Device name</param>
         /// <returns>Tuple: Client Device, Client Key</returns>
         Task<Tuple<SecretsManagerDevice, string>> AddSecretManagerClient(
             string applicationId, bool? unlockIp = null, int? firstAccessExpireInMinutes = null,
-            int? AccessExpiresInMinutes = null, string name = null);
+            int? accessExpiresInMinutes = null, string name = null);
 
         /// <summary>
         /// Creates SecretsManager Configuration Storage
@@ -745,15 +745,6 @@ namespace KeeperSecurity.Vault
         public VaultException(string message) : base(message)
         {
         }
-
-        /// <exclude/>
-        public VaultException(string translationKey, string message) : base(message)
-        {
-            TranslationKey = translationKey;
-        }
-
-        /// <exclude />
-        public string TranslationKey { get; }
     }
 
     /// <summary>
@@ -882,12 +873,12 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Record mandatory fields.
         /// </summary>
-        public List<ITypedField> Fields { get; } = new List<ITypedField>();
+        public List<ITypedField> Fields { get; } = new();
 
         /// <summary>
         /// Record custom data.
         /// </summary>
-        public List<ITypedField> Custom { get; } = new List<ITypedField>();
+        public List<ITypedField> Custom { get; } = new();
 
         internal Dictionary<string, byte[]> LinkedKeys;
     }
@@ -1006,7 +997,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Field values.
         /// </summary>
-        public List<T> Values { get; } = new List<T>();
+        public List<T> Values { get; } = new();
 
         /// <inheritdoc />
         public bool Required { get; set; }
@@ -1202,7 +1193,7 @@ namespace KeeperSecurity.Vault
                 {
                     ll.AddRange(text.Split('\n').Select(x => x.Trim()).Select(x =>
                     {
-                        if (x.All(y => char.IsDigit(y)))
+                        if (x.All(char.IsDigit))
                         {
                             return long.Parse(x);
                         }
@@ -1425,7 +1416,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Additional extra field values.
         /// </summary>
-        public Dictionary<string, object> Custom { get; } = new Dictionary<string, object>();
+        public Dictionary<string, object> Custom { get; } = new();
     }
 
     /// <summary>
@@ -1846,12 +1837,12 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// A list of user permissions.
         /// </summary>
-        public List<SharedFolderPermission> UsersPermissions { get; } = new List<SharedFolderPermission>();
+        public List<SharedFolderPermission> UsersPermissions { get; } = new();
 
         /// <summary>
         /// A list of record permissions.
         /// </summary>
-        public List<SharedFolderRecord> RecordPermissions { get; } = new List<SharedFolderRecord>();
+        public List<SharedFolderRecord> RecordPermissions { get; } = new();
 
         /// <summary>
         /// Shared Folder key.

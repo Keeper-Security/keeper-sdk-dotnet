@@ -32,11 +32,10 @@ namespace KeeperSecurity.Utils
     public static class CryptoUtils
     {
         private const string CorruptedEncryptionParametersMessage = "Corrupted encryption parameters";
-        const int AES_GCM_NONCE_SIZE = 12;
-        const int AES_GCM_TAG_SIZE = 16;
-
+        private const int AesGcmNonceSize = 12;
+        private const int AesGcmTagSize = 16;
 #if NET472_OR_GREATER
-        private static readonly SecureRandom SecureRandom = new SecureRandom();
+        private static readonly SecureRandom SecureRandom = new();
         internal static readonly ECDomainParameters EcParameters;
         static CryptoUtils()
         {
@@ -301,18 +300,18 @@ namespace KeeperSecurity.Utils
 #else
             using var aes = new AesGcm(key);
             
-            var encryptedData = new byte[AES_GCM_NONCE_SIZE + data.Length + AES_GCM_TAG_SIZE];
-            var nonceSpan = new Span<byte>(encryptedData, 0, AES_GCM_NONCE_SIZE);
+            var encryptedData = new byte[AesGcmNonceSize + data.Length + AesGcmTagSize];
+            var nonceSpan = new Span<byte>(encryptedData, 0, AesGcmNonceSize);
             if (nonce == null)
             {
                 SecureRandom.GetBytes(nonceSpan);
             }
             else
             {
-                Array.Copy(nonce, encryptedData, AES_GCM_NONCE_SIZE);
+                Array.Copy(nonce, encryptedData, AesGcmNonceSize);
             }
-            var encrypted = new Span<byte>(encryptedData, AES_GCM_NONCE_SIZE, data.Length);
-            var tag = new Span<byte>(encryptedData, AES_GCM_NONCE_SIZE + data.Length, AES_GCM_TAG_SIZE);
+            var encrypted = new Span<byte>(encryptedData, AesGcmNonceSize, data.Length);
+            var tag = new Span<byte>(encryptedData, AesGcmNonceSize + data.Length, AesGcmTagSize);
             var plain = new ReadOnlySpan<byte>(data, 0, data.Length);
 
             aes.Encrypt(nonceSpan, plain, encrypted, tag);
@@ -328,7 +327,7 @@ namespace KeeperSecurity.Utils
         /// <param name="nonceLength">Nonce length in bytes. Optional. Default 12</param>
         /// <returns>Encrypted data.</returns>
         /// <remarks>[NONCE: 12bytes][ENCRYPTED DATA][TAG: 16bytes]></remarks>
-        public static byte[] EncryptAesV2(byte[] data, byte[] key, int nonceLength = AES_GCM_NONCE_SIZE)
+        public static byte[] EncryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceSize)
         {
             return EncryptAesV2(data, key, GetRandomBytes(nonceLength));
         }
@@ -341,7 +340,7 @@ namespace KeeperSecurity.Utils
         /// <param name="nonceLength">Nonce length. Optional. Default: 12 bytes.</param>
         /// <returns>Plain data.</returns>
         /// <exception cref="Exception">Cannot be decrypted.</exception>
-        public static byte[] DecryptAesV2(byte[] data, byte[] key, int nonceLength = AES_GCM_NONCE_SIZE)
+        public static byte[] DecryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceSize)
         {
 #if NET472_OR_GREATER
             var nonce = data.Take(nonceLength).ToArray();
@@ -357,10 +356,10 @@ namespace KeeperSecurity.Utils
             return decryptedData.Take(len).ToArray();
 #else
             using var aes = new AesGcm(key);
-            var buffer = new byte[data.Length - (AES_GCM_NONCE_SIZE + AES_GCM_TAG_SIZE)];
-            var nonce = data.Take(AES_GCM_NONCE_SIZE).ToArray();
-            var encrypted = data.Skip(AES_GCM_NONCE_SIZE).Take(buffer.Length).ToArray();
-            var tag = data.Skip(AES_GCM_NONCE_SIZE+buffer.Length).Take(AES_GCM_TAG_SIZE).ToArray();
+            var buffer = new byte[data.Length - (AesGcmNonceSize + AesGcmTagSize)];
+            var nonce = data.Take(AesGcmNonceSize).ToArray();
+            var encrypted = data.Skip(AesGcmNonceSize).Take(buffer.Length).ToArray();
+            var tag = data.Skip(AesGcmNonceSize+buffer.Length).Take(AesGcmTagSize).ToArray();
             aes.Decrypt(nonce, encrypted, tag, buffer);
             return buffer;
 #endif
@@ -811,22 +810,14 @@ namespace KeeperSecurity.Utils
 
             var secretBytes = Base32ToBytes(secret.ToUpperInvariant());
 
-            HMAC hmac = null;
-            switch (algorithm)
+            HMAC hmac = algorithm switch
             {
-            case "SHA1":
-                hmac = new HMACSHA1(secretBytes);
-                break;
-            case "SHA256":
-                hmac = new HMACSHA256(secretBytes);
-                break;
-            case "SHA512":
-                hmac = new HMACSHA512(secretBytes);
-                break;
-            case "MD5":
-                hmac = new HMACMD5(secretBytes);
-                break;
-            }
+                "SHA1" => new HMACSHA1(secretBytes),
+                "SHA256" => new HMACSHA256(secretBytes),
+                "SHA512" => new HMACSHA512(secretBytes),
+                "MD5" => new HMACMD5(secretBytes),
+                _ => null,
+            };
 
             if (hmac == null) return null;
 
@@ -877,11 +868,11 @@ namespace KeeperSecurity.Utils
         {
             const int letterCount = 'z' - 'a' + 1;
 
-            int length = options?.Length ?? 20;
-            int upper = options?.Upper ?? 4;
-            int lower = options?.Lower ?? 4;
-            int digit = options?.Digit ?? 2;
-            int special = options?.Special ?? -1;
+            var length = options?.Length ?? 20;
+            var upper = options?.Upper ?? 4;
+            var lower = options?.Lower ?? 4;
+            var digit = options?.Digit ?? 2;
+            var special = options?.Special ?? -1;
 
             if (length <= 0)
             {
@@ -898,7 +889,7 @@ namespace KeeperSecurity.Utils
             if (extra > 0)
             {
                 var left = extra;
-                if (left > 0 && lower > 0)
+                if (lower > 0)
                 {
                     var toSubstract = (int) Math.Ceiling((float) lower / required * extra);
                     if (toSubstract > 0)

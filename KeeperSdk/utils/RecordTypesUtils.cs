@@ -14,17 +14,13 @@ namespace KeeperSecurity.Utils
         /// <exclude />
         public static string ToText(this RecordTypeScope scope)
         {
-            switch (scope)
+            return scope switch
             {
-                case RecordTypeScope.Standard:
-                    return "standard";
-                case RecordTypeScope.Enterprise:
-                    return "enterprise";
-                case RecordTypeScope.User:
-                    return "user";
-                default:
-                    return "";
-            }
+                RecordTypeScope.Standard => "standard",
+                RecordTypeScope.Enterprise => "enterprise",
+                RecordTypeScope.User => "user",
+                _ => "",
+            };
         }
 
         /// <summary>
@@ -34,26 +30,14 @@ namespace KeeperSecurity.Utils
         /// <returns></returns>
         public static string KeeperRecordType(this KeeperRecord record)
         {
-            if (record is PasswordRecord)
+            return record switch
             {
-                return "";
-            }
-
-            if (record is TypedRecord tr)
-            {
-                return tr.TypeName ?? "";
-            }
-
-            if (record is FileRecord)
-            {
-                return "file";
-            }
-
-            if (record is ApplicationRecord ar)
-            {
-                return ar.Type;
-            }
-            return "";
+                PasswordRecord => "",
+                TypedRecord tr => tr.TypeName ?? "",
+                FileRecord => "file",
+                ApplicationRecord ar => ar.Type,
+                _ => "",
+            };
         }
 
         /// <summary>
@@ -112,9 +96,9 @@ namespace KeeperSecurity.Utils
 
                     return "";
                 }
-                case FileRecord fr when fr.FileSize == 0:
+                case FileRecord { FileSize: 0 }:
                     return "";
-                case FileRecord fr when fr.FileSize < 2000:
+                case FileRecord { FileSize: < 2000 } fr:
                     return $"{fr.FileSize} bytes";
                 case FileRecord fr:
                 {
@@ -145,7 +129,7 @@ namespace KeeperSecurity.Utils
         /// <returns>Record field full name.</returns>
         public static string GetTypedFieldName(this IRecordTypeField field)
         {
-            string name = field.FieldName ?? "";
+            var name = field.FieldName ?? "";
             if (string.Equals(name, "text"))
             {
                 name = "";
@@ -451,7 +435,7 @@ namespace KeeperSecurity.Utils
             {
                 typed.Custom.AddRange(allFields.Values.Where(x => x.Count > 0));
             }
-            typed.Custom.RemoveAll((rf) => rf.Count == 0);
+            typed.Custom.RemoveAll(rf => rf.Count == 0);
             foreach (var rf in typed.Custom)
             {
                 rf.Required = false;

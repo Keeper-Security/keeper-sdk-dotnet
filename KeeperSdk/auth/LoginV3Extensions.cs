@@ -17,22 +17,14 @@ namespace KeeperSecurity.Authentication
     /// <exclude />
     public class LoginContext
     {
-        public LoginContext()
-        {
-            MessageSessionUid = CryptoUtils.GetRandomBytes(16);
-            AccountAuthType = AccountAuthType.Regular;
-        }
-
-        public AccountAuthType AccountAuthType { get; set; }
+        public AccountAuthType AccountAuthType { get; set; } = AccountAuthType.Regular;
 
         public byte[] CloneCode { get; set; }
 
-        internal string V2TwoFactorToken { get; set; }
-
         public EcPrivateKey DeviceKey { get; set; }
 
-        public byte[] MessageSessionUid { get; }
-        internal Queue<string> PasswordQueue { get; } = new Queue<string>();
+        public byte[] MessageSessionUid { get; } = CryptoUtils.GetRandomBytes(16);
+        internal Queue<string> PasswordQueue { get; } = new();
 
         internal SsoLoginInfo SsoLoginInfo { get; set; }
     }
@@ -62,14 +54,14 @@ namespace KeeperSecurity.Authentication
                 {
                     EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
                     MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
-                    DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    DeviceTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 };
                 var apiRequest = auth.Endpoint.PrepareApiRequest(connectionRequest, transmissionKey);
                 var builder = new UriBuilder
                 {
                     Scheme = "wss",
                     Host = auth.Endpoint.PushServer(),
-                    Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode()
+                    Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode(),
                 };
                 urlReturned = true;
                 return Task.FromResult(builder.Uri);
@@ -115,13 +107,10 @@ namespace KeeperSecurity.Authentication
                 if (lastDevice != null)
                 {
                     deviceConf = configuration.Devices.Get(lastDevice.DeviceToken);
-                    if (deviceConf != null)
+                    var serverInfo = deviceConf?.ServerInfo?.Get(auth.Endpoint.Server);
+                    if (serverInfo != null)
                     {
-                        var serverInfo = deviceConf.ServerInfo?.Get(auth.Endpoint.Server);
-                        if (serverInfo != null)
-                        {
-                            v3.CloneCode = serverInfo.CloneCode.Base64UrlDecode();
-                        }
+                        v3.CloneCode = serverInfo.CloneCode.Base64UrlDecode();
                     }
 
                     lastDevice = null;
@@ -247,7 +236,7 @@ namespace KeeperSecurity.Authentication
             var deviceToken = response.EncryptedDeviceToken.ToByteArray();
             var dc = new DeviceConfiguration(deviceToken.Base64UrlEncode())
             {
-                DeviceKey = CryptoUtils.UnloadEcPrivateKey(privateKey)
+                DeviceKey = CryptoUtils.UnloadEcPrivateKey(privateKey),
             };
             dc.ServerInfo.Put(new DeviceServerConfiguration(auth.Endpoint.Server));
             
@@ -266,7 +255,7 @@ namespace KeeperSecurity.Authentication
                 ClientVersion = auth.Endpoint.ClientVersion,
                 MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
                 EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
-                VerificationChannel = channel
+                VerificationChannel = channel,
             };
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"request_device_verification\": {request}");
@@ -283,7 +272,7 @@ namespace KeeperSecurity.Authentication
                 ClientVersion = auth.Endpoint.ClientVersion,
                 EncryptedDeviceToken = ByteString.CopyFrom(auth.DeviceToken),
                 MessageSessionUid = ByteString.CopyFrom(v3.MessageSessionUid),
-                VerificationCode = code
+                VerificationCode = code,
             };
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"validate_device_verification_code\": {request}");
@@ -336,7 +325,7 @@ namespace KeeperSecurity.Authentication
 
                 if (auth.ResumeSession && v3.CloneCode == null)
                 {
-                    v3.CloneCode = new byte[0];
+                    v3.CloneCode = Array.Empty<byte>();
                 }
 
                 try
@@ -357,10 +346,6 @@ namespace KeeperSecurity.Authentication
                     else
                     {
                         request.Username = auth.Username;
-                        if (!string.IsNullOrEmpty(v3.V2TwoFactorToken))
-                        {
-                            request.V2TwoFactorToken = v3.V2TwoFactorToken;
-                        }
                     }
 
                     return await onComplete(request);
@@ -417,7 +402,7 @@ namespace KeeperSecurity.Authentication
             {
                 PasswordMethod = PasswordMethod.Biometrics,
                 EncryptedLoginToken = loginToken,
-                AuthResponse = ByteString.CopyFrom(CryptoUtils.CreateBioAuthHash(biometricKey))
+                AuthResponse = ByteString.CopyFrom(CryptoUtils.CreateBioAuthHash(biometricKey)),
             };
             var context = await auth.ExecuteValidateAuthHash(v3,
                 request,
@@ -446,7 +431,7 @@ namespace KeeperSecurity.Authentication
             {
                 PasswordMethod = PasswordMethod.Entered,
                 EncryptedLoginToken = loginToken,
-                AuthResponse = ByteString.CopyFrom(CryptoUtils.DeriveV1KeyHash(password, salt.Salt_.ToByteArray(), salt.Iterations))
+                AuthResponse = ByteString.CopyFrom(CryptoUtils.DeriveV1KeyHash(password, salt.Salt_.ToByteArray(), salt.Iterations)),
             };
 
             var context = await auth.ExecuteValidateAuthHash(v3, request,
@@ -543,7 +528,7 @@ namespace KeeperSecurity.Authentication
                 {
                     var context = await auth.ExecuteValidateBiometricKey(v3, loginToken, bioKey);
                     await onAuthHashValidated.Invoke(context);
-                }
+                },
             };
         }
 
@@ -557,7 +542,7 @@ namespace KeeperSecurity.Authentication
             {
                 EncryptedLoginToken = loginToken,
                 PushType = type,
-                ExpireIn = expiration
+                ExpireIn = expiration,
             };
             try
             {
@@ -581,7 +566,7 @@ namespace KeeperSecurity.Authentication
                 EncryptedLoginToken = loginToken,
                 ValueType = type,
                 Value = otp,
-                ExpireIn = expiration
+                ExpireIn = expiration,
             };
             try
             {
@@ -612,7 +597,7 @@ namespace KeeperSecurity.Authentication
                 await auth.RequestDeviceVerification(v3, email.Resend ? "email_resend" : "email");
                 email.Resend = true;
             };
-            email.InvokeDeviceApprovalOtpAction = async (code) =>
+            email.InvokeDeviceApprovalOtpAction = async code =>
             {
                 await auth.ValidateDeviceVerificationCode(v3, code);
                 await onLoginToken(loginToken);
@@ -624,8 +609,19 @@ namespace KeeperSecurity.Authentication
             };
 
             var otp = new TwoFactorTwoFactorAuth();
-            otp.InvokeDeviceApprovalPushAction = async () => { await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken, SdkExpirationToKeeper(otp.Duration)); };
-            otp.InvokeDeviceApprovalOtpAction = async (oneTimePassword) => { await auth.ExecuteDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken, oneTimePassword, SdkExpirationToKeeper(otp.Duration)); };
+            otp.InvokeDeviceApprovalPushAction = async () =>
+            {
+                await auth.ExecuteDeviceApprovePushAction(TwoFactorPushType.TwoFaPushNone, loginToken, SdkExpirationToKeeper(otp.Duration));
+            };
+            otp.InvokeDeviceApprovalOtpAction = async oneTimePassword =>
+            {
+                await auth.ExecuteDeviceApproveOtpAction(TwoFactorValueType.TwoFaCodeNone, loginToken, oneTimePassword, SdkExpirationToKeeper(otp.Duration));
+            };
+
+            auth.PushNotifications?.RegisterCallback(NotificationCallback);
+
+            return Tuple.Create(new IDeviceApprovalChannelInfo[] { email, push, otp },
+                () => { auth.PushNotifications?.RemoveCallback(NotificationCallback); });
 
             bool NotificationCallback(NotificationEvent message)
             {
@@ -649,21 +645,11 @@ namespace KeeperSecurity.Authentication
                         return true;
                     }
                 }
+                if (string.CompareOrdinal(message.Command, "device_verified") != 0) return false;
 
-                if (string.CompareOrdinal(message.Command, "device_verified") == 0)
-                {
-                    onLoginToken(loginToken);
-                    return true;
-                }
-
-                return false;
+                onLoginToken(loginToken);
+                return true;
             }
-
-            auth.PushNotifications?.RegisterCallback(NotificationCallback);
-
-            return Tuple.Create<IDeviceApprovalChannelInfo[], Action>(
-                new IDeviceApprovalChannelInfo[] { email, push, otp },
-                () => { auth.PushNotifications?.RemoveCallback(NotificationCallback); });
         }
 
         private static TwoFactorPushType SdkPushActionToKeeper(TwoFactorPushAction sdkPush)
@@ -739,7 +725,7 @@ namespace KeeperSecurity.Authentication
             var rs = await auth.Endpoint.ExecuteRest("authentication/2fa_validate",
                 new ApiRequestPayload
                 {
-                    Payload = request.ToByteString()
+                    Payload = request.ToByteString(),
                 });
             var response = TwoFactorValidateResponse.Parser.ParseFrom(rs);
 #if DEBUG
@@ -757,42 +743,6 @@ namespace KeeperSecurity.Authentication
             var resumeWithToken = loginToken;
 
             ITwoFactorPushInfo lastUsedChannel = null;
-
-            TwoFactorPushActionDelegate GetActionDelegate(ITwoFactorPushInfo channel, TwoFactorChannelInfo info)
-            {
-                return async action =>
-                {
-                    var duration = channel is ITwoFactorDurationInfo dur ? dur.Duration : TwoFactorDuration.EveryLogin;
-
-                    var rq = new TwoFactorSendPushRequest
-                    {
-                        ChannelUid = info.ChannelUid,
-                        ExpireIn = SdkExpirationToKeeper(duration),
-                        EncryptedLoginToken = loginToken,
-                        PushType = SdkPushActionToKeeper(action)
-                    };
-                    await auth.ExecutePushAction(rq);
-                    lastUsedChannel = channel;
-                };
-            }
-
-            TwoFactorCodeActionDelegate GetCodeDelegate(ITwoFactorAppCodeInfo channel, TwoFactorChannelInfo info)
-            {
-                return async code =>
-                {
-                    var duration = channel is ITwoFactorDurationInfo dur ? dur.Duration : TwoFactorDuration.EveryLogin;
-
-                    var request = new TwoFactorValidateRequest
-                    {
-                        EncryptedLoginToken = loginToken,
-                        ExpireIn = SdkExpirationToKeeper(duration),
-                        ValueType = TwoFactorChannelToValue(info.ChannelType),
-                        Value = code,
-                    };
-                    var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
-                    await onLoginToken(validateRs.EncryptedLoginToken);
-                };
-            }
 
             var availableChannels = new List<ITwoFactorChannelInfo>();
             foreach (var ch in channels)
@@ -849,7 +799,7 @@ namespace KeeperSecurity.Authentication
                                 })
                                 .Where(x => x.HasValue)
                                 .Select(x => x.Value)
-                                .ToArray()
+                                .ToArray(),
                         };
                         duoTfa.InvokeTwoFactorPushAction = GetActionDelegate(duoTfa, ch);
                         duoTfa.InvokeTwoFactorCodeAction = GetCodeDelegate(duoTfa, ch);
@@ -861,7 +811,7 @@ namespace KeeperSecurity.Authentication
                     {
                         var dna2Fa = new TwoFactorKeeperDnaChannel
                         {
-                            PhoneNumber = ch.PhoneNumber
+                            PhoneNumber = ch.PhoneNumber,
                         };
                         dna2Fa.InvokeTwoFactorPushAction = GetActionDelegate(dna2Fa, ch);
                         dna2Fa.InvokeTwoFactorCodeAction = GetCodeDelegate(dna2Fa, ch);
@@ -878,7 +828,7 @@ namespace KeeperSecurity.Authentication
                                 var ui = keyUi;
                                 var key2Fa = new TwoFactorSecurityKeyChannel
                                 {
-                                    InvokeTwoFactorPushAction = async (action) =>
+                                    InvokeTwoFactorPushAction = async (_) =>
                                     {
                                         var signature = await ui.AuthenticatePublicKeyRequest(rqs.publicKeyCredentialRequestOptions);
 
@@ -892,7 +842,7 @@ namespace KeeperSecurity.Authentication
                                         };
                                         var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
                                         await onLoginToken(validateRs.EncryptedLoginToken);
-                                    }
+                                    },
                                 };
                                 availableChannels.Add(key2Fa);
                             }
@@ -940,8 +890,46 @@ namespace KeeperSecurity.Authentication
 
             auth.PushNotifications?.RegisterCallback(NotificationCallback);
 
-            return Tuple.Create<ITwoFactorChannelInfo[], Action>(availableChannels.ToArray(),
-                () => { auth.PushNotifications?.RemoveCallback(NotificationCallback); });
+            return Tuple.Create(availableChannels.ToArray(), () =>
+            {
+                auth.PushNotifications?.RemoveCallback(NotificationCallback);
+            });
+
+            TwoFactorCodeActionDelegate GetCodeDelegate(ITwoFactorAppCodeInfo channel, TwoFactorChannelInfo info)
+            {
+                return async code =>
+                {
+                    var duration = channel is ITwoFactorDurationInfo dur ? dur.Duration : TwoFactorDuration.EveryLogin;
+
+                    var request = new TwoFactorValidateRequest
+                    {
+                        EncryptedLoginToken = loginToken,
+                        ExpireIn = SdkExpirationToKeeper(duration),
+                        ValueType = TwoFactorChannelToValue(info.ChannelType),
+                        Value = code,
+                    };
+                    var validateRs = await auth.ExecuteTwoFactorValidateCode(request);
+                    await onLoginToken(validateRs.EncryptedLoginToken);
+                };
+            }
+
+            TwoFactorPushActionDelegate GetActionDelegate(ITwoFactorPushInfo channel, TwoFactorChannelInfo info)
+            {
+                return async action =>
+                {
+                    var duration = channel is ITwoFactorDurationInfo dur ? dur.Duration : TwoFactorDuration.EveryLogin;
+
+                    var rq = new TwoFactorSendPushRequest
+                    {
+                        ChannelUid = info.ChannelUid,
+                        ExpireIn = SdkExpirationToKeeper(duration),
+                        EncryptedLoginToken = loginToken,
+                        PushType = SdkPushActionToKeeper(action),
+                    };
+                    await auth.ExecutePushAction(rq);
+                    lastUsedChannel = channel;
+                };
+            }
         }
 
         internal static void StoreConfigurationIfChangedV3(this IAuth auth, LoginContext v3)
@@ -1013,7 +1001,7 @@ namespace KeeperSecurity.Authentication
 
             var builder = new UriBuilder(new Uri(ssoBaseUrl))
             {
-                Query = queryString.ToString()
+                Query = queryString.ToString() ?? "",
             };
             var ssoAction = new GetSsoTokenActionInfo(builder.Uri.AbsoluteUri, false)
             {
@@ -1040,7 +1028,7 @@ namespace KeeperSecurity.Authentication
                     {
                         SsoProvider = token.ProviderName,
                         SpBaseUrl = ssoBaseUrl,
-                        IdpSessionId = token.SessionId
+                        IdpSessionId = token.SessionId,
                     };
 
                     onSsoToken();
@@ -1071,12 +1059,12 @@ namespace KeeperSecurity.Authentication
             queryString.Add("payload", apiRequest.ToByteArray().Base64UrlEncode());
             var builder = new UriBuilder(new Uri(ssoBaseUrl))
             {
-                Query = queryString.ToString()
+                Query = queryString.ToString() ?? "", 
             };
 
             var ssoAction = new GetSsoTokenActionInfo(builder.Uri.AbsoluteUri, true)
             {
-                InvokeSsoTokenAction = async (tokenStr) =>
+                InvokeSsoTokenAction = async tokenStr =>
                 {
                     var rsBytes = tokenStr.Base64UrlDecode();
                     rsBytes = CryptoUtils.DecryptAesV2(rsBytes, transmissionKey);
@@ -1089,11 +1077,11 @@ namespace KeeperSecurity.Authentication
                     {
                         SsoProvider = rs.ProviderName,
                         SpBaseUrl = ssoBaseUrl,
-                        IdpSessionId = rs.IdpSessionId
+                        IdpSessionId = rs.IdpSessionId,
                     };
 
                     onSsoLogin(rs.EncryptedLoginToken);
-                }
+                },
             };
             return ssoAction;
         }
@@ -1122,7 +1110,7 @@ namespace KeeperSecurity.Authentication
             };
             var apiRequest = new ApiRequestPayload
             {
-                Payload = request.ToByteString()
+                Payload = request.ToByteString(),
             };
 
             Debug.WriteLine($"REST Request: endpoint \"request_create_user\": {request}");
@@ -1152,7 +1140,7 @@ namespace KeeperSecurity.Authentication
             };
             var apiRequest = new ApiRequestPayload
             {
-                Payload = request.ToByteString()
+                Payload = request.ToByteString(),
             };
 
             Debug.WriteLine($"REST Request: endpoint \"create_user_sso\": {request}");
@@ -1210,8 +1198,14 @@ namespace KeeperSecurity.Authentication
                     {
                         onApproved(true);
                     }
-                }
+                },
             };
+
+            auth.PushNotifications?.RegisterCallback(ProcessDataKeyRequest);
+
+            return Tuple.Create(new IDataKeyChannelInfo[] { pushChannel, adminChannel },
+                () => { auth.PushNotifications?.RemoveCallback(ProcessDataKeyRequest); }
+            );
 
             bool ProcessDataKeyRequest(NotificationEvent message)
             {
@@ -1229,13 +1223,6 @@ namespace KeeperSecurity.Authentication
 
                 return false;
             }
-
-            auth.PushNotifications?.RegisterCallback(ProcessDataKeyRequest);
-
-            return Tuple.Create<IDataKeyChannelInfo[], Action>(
-                new IDataKeyChannelInfo[] { pushChannel, adminChannel },
-                () => { auth.PushNotifications?.RemoveCallback(ProcessDataKeyRequest); }
-            );
         }
 
         internal static async Task<SsoServiceProviderResponse> GetSsoServiceProvider(this IAuth auth, LoginContext v3, string providerName)
@@ -1247,8 +1234,8 @@ namespace KeeperSecurity.Authentication
                 {
                     ClientVersion = auth.Endpoint.ClientVersion,
                     Locale = auth.Endpoint.Locale,
-                    Name = providerName
-                }.ToByteString()
+                    Name = providerName,
+                }.ToByteString(),
             };
 
 #if DEBUG
@@ -1288,7 +1275,7 @@ namespace KeeperSecurity.Authentication
                     ClientVersion = auth.Endpoint.ClientVersion,
                     Embedded = true,
                     IdpSessionId = auth.AuthContext.SsoLoginInfo.IdpSessionId,
-                    Username = auth.Username
+                    Username = auth.Username,
                 };
                 var transmissionKey = CryptoUtils.GenerateEncryptionKey();
                 var apiRequest = auth.Endpoint.PrepareApiRequest(rq, transmissionKey);
@@ -1304,7 +1291,7 @@ namespace KeeperSecurity.Authentication
 
             var builder = new UriBuilder(new Uri(auth.AuthContext.SsoLoginInfo.SpBaseUrl.Replace("/login", "/logout")))
             {
-                Query = queryString.ToString()
+                Query = queryString.ToString() ?? "",
             };
             ssoLogout.SsoLogoutUrl(builder.Uri.AbsoluteUri);
         }

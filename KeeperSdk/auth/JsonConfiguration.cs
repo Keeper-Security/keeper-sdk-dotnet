@@ -192,10 +192,7 @@ namespace KeeperSecurity.Configuration
                     }
                 }
 
-                if (_configuration == null)
-                {
-                    _configuration = new JsonConfiguration();
-                }
+                _configuration ??= new JsonConfiguration();
             }
 
             _configuration.Assign(configuration);
@@ -204,16 +201,6 @@ namespace KeeperSecurity.Configuration
             _configuration = null;
         }
     }
-
-
-
-
-
-
-
-
-
-
 
     internal class ListConfigCollection<T, IT> : IConfigCollection<IT> where T : IT, IEntityCopy<IT>, new()
         where IT : class, IConfigurationId
@@ -402,13 +389,8 @@ namespace KeeperSecurity.Configuration
         {
             get
             {
-                if (_serverInfo == null)
-                {
-                    _serverInfo = new ListConfigCollection<JsonDeviceServerConfiguration, IDeviceServerConfiguration>(
-                        () => serverInfo ?? (serverInfo = new List<JsonDeviceServerConfiguration>()));
-                }
-
-                return _serverInfo;
+                return _serverInfo ??= new ListConfigCollection<JsonDeviceServerConfiguration, IDeviceServerConfiguration>(
+                    () => serverInfo ??= new List<JsonDeviceServerConfiguration>());
             }
         }
 
@@ -468,13 +450,8 @@ namespace KeeperSecurity.Configuration
         {
             get
             {
-                if (_users == null)
-                {
-                    _users = new ListConfigCollection<JsonUserConfiguration, IUserConfiguration>(
-                        () => users ?? (users = new List<JsonUserConfiguration>()));
-                }
-
-                return _users;
+                return _users ??= new ListConfigCollection<JsonUserConfiguration, IUserConfiguration>(
+                    () => users ??= new List<JsonUserConfiguration>());
             }
         }
 
@@ -482,13 +459,8 @@ namespace KeeperSecurity.Configuration
         {
             get
             {
-                if (_servers == null)
-                {
-                    _servers = new ListConfigCollection<JsonServerConfiguration, IServerConfiguration>(
-                        () => servers ?? (servers = new List<JsonServerConfiguration>()));
-                }
-
-                return _servers;
+                return _servers ??= new ListConfigCollection<JsonServerConfiguration, IServerConfiguration>(
+                    () => servers ??= new List<JsonServerConfiguration>());
             }
         }
 
@@ -496,13 +468,8 @@ namespace KeeperSecurity.Configuration
         {
             get
             {
-                if (_devices == null)
-                {
-                    _devices = new ListConfigCollection<JsonDeviceConfiguration, IDeviceConfiguration>(
-                        () => devices ?? (devices = new List<JsonDeviceConfiguration>()));
-                }
-
-                return _devices;
+                return _devices ??= new ListConfigCollection<JsonDeviceConfiguration, IDeviceConfiguration>(
+                    () => devices ??= new List<JsonDeviceConfiguration>());
             }
         }
 

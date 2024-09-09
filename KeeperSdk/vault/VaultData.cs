@@ -78,7 +78,7 @@ namespace KeeperSecurity.Vault
             ClientKey = clientKey;
             Storage = storage;
 
-            _rootFolder = new FolderNode
+            RootFolder = new FolderNode
             {
                 FolderUid = "",
                 Name = "My Vault",
@@ -102,14 +102,11 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public bool TryLoadKeeperRecord(string recordUid, out KeeperRecord record)
         {
-            record = null;
-            if (TryGetKeeperRecord(recordUid, out var r))
+            if (!TryGetKeeperRecord(recordUid, out record)) return false;
+            var storageRecord = Storage.Records.GetEntity(recordUid);
+            if (storageRecord != null)
             {
-                var storageRecord = Storage.Records.GetEntity(recordUid);
-                if (storageRecord != null)
-                {
-                    record = storageRecord.Load(r.RecordKey);
-                }
+                record = storageRecord.Load(record.RecordKey);
             }
 
             return record != null;
@@ -119,7 +116,7 @@ namespace KeeperSecurity.Vault
 
         bool IVaultData.TryGetRecord(string recordUid, out PasswordRecord record)
         {
-            if (_keeperRecords.TryGetValue(recordUid, out KeeperRecord r))
+            if (_keeperRecords.TryGetValue(recordUid, out var r))
             {
                 record = r as PasswordRecord;
                 return record != null;
@@ -174,27 +171,17 @@ namespace KeeperSecurity.Vault
                 byte[] data = null;
                 try
                 {
-                    if (record.Version <= 2)
-                    {
-                        data = CryptoUtils.DecryptAesV1(nsd.Data.Base64UrlDecode(), ClientKey);
-                    }
-                    else
-                    {
-                        data = CryptoUtils.DecryptAesV2(nsd.Data.Base64UrlDecode(), ClientKey);
-                    }
+                    data = record.Version <= 2
+                        ? CryptoUtils.DecryptAesV1(nsd.Data.Base64UrlDecode(), ClientKey)
+                        : CryptoUtils.DecryptAesV2(nsd.Data.Base64UrlDecode(), ClientKey);
                 }
                 catch
                 {
                     try
                     {
-                        if (record.Version > 2)
-                        {
-                            data = CryptoUtils.DecryptAesV1(nsd.Data.Base64UrlDecode(), ClientKey);
-                        }
-                        else
-                        {
-                            data = CryptoUtils.DecryptAesV2(nsd.Data.Base64UrlDecode(), ClientKey);
-                        }
+                        data = record.Version > 2
+                            ? CryptoUtils.DecryptAesV1(nsd.Data.Base64UrlDecode(), ClientKey)
+                            : CryptoUtils.DecryptAesV2(nsd.Data.Base64UrlDecode(), ClientKey);
                     }
                     catch
                     {
@@ -213,8 +200,6 @@ namespace KeeperSecurity.Vault
                         Trace.TraceError($"Record UID \"{recordUid}\": Non-shared data loading error: {e.Message}");
                     }
                 }
-
-                return new T();
             }
             else
             {
@@ -225,21 +210,12 @@ namespace KeeperSecurity.Vault
         }
 
         /// <inheritdoc/>
-        public FolderNode RootFolder => _rootFolder;
+        public FolderNode RootFolder { get; }
 
-        protected readonly ConcurrentDictionary<string, KeeperRecord> _keeperRecords =
-            new ConcurrentDictionary<string, KeeperRecord>();
-
-        private readonly ConcurrentDictionary<string, SharedFolder> _keeperSharedFolders =
-            new ConcurrentDictionary<string, SharedFolder>();
-
-        private readonly ConcurrentDictionary<string, Team> _keeperTeams =
-            new ConcurrentDictionary<string, Team>();
-
-        private readonly ConcurrentDictionary<string, FolderNode> _keeperFolders =
-            new ConcurrentDictionary<string, FolderNode>();
-
-        private readonly FolderNode _rootFolder;
+        protected readonly ConcurrentDictionary<string, KeeperRecord> _keeperRecords = new();
+        private readonly ConcurrentDictionary<string, SharedFolder> _keeperSharedFolders = new();
+        private readonly ConcurrentDictionary<string, Team> _keeperTeams = new();
+        private readonly ConcurrentDictionary<string, FolderNode> _keeperFolders = new();
 
         /// <inheritdoc/>
         public IKeeperStorage Storage { get; }
@@ -271,11 +247,9 @@ namespace KeeperSecurity.Vault
 
             foreach (var rt in _customRecordTypes)
             {
-                if (string.Equals(name, rt.Name, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    recordType = rt;
-                    return true;
-                }
+                if (!string.Equals(name, rt.Name, StringComparison.InvariantCultureIgnoreCase)) continue;
+                recordType = rt;
+                return true;
             }
 
             return false;
@@ -292,11 +266,9 @@ namespace KeeperSecurity.Vault
         {
             foreach (var ae in _keeperUserAccounts)
             {
-                if (string.Equals(ae.Value, username, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    accountUid = ae.Key;
-                    return true;
-                }
+                if (!string.Equals(ae.Value, username, StringComparison.InvariantCultureIgnoreCase)) continue;
+                accountUid = ae.Key;
+                return true;
             }
 
             accountUid = null;
@@ -324,7 +296,7 @@ namespace KeeperSecurity.Vault
                     Fields = content.Fields
                         .Select(x =>
                         {
-                            if (RecordTypesConstants.TryGetRecordField(x.Ref, out RecordField rf))
+                            if (RecordTypesConstants.TryGetRecordField(x.Ref, out var rf))
                             {
                                 RecordTypeField typeField;
                                 if (x.Complexity != null)
@@ -349,11 +321,8 @@ namespace KeeperSecurity.Vault
                                 typeField.Required = x.Required ?? false;
                                 return typeField;
                             }
-                            else
-                            {
-                                Debug.WriteLine($"Load Record Types: Cannot resolve field: {x.Ref}.");
-                            }
 
+                            Debug.WriteLine($"Load Record Types: Cannot resolve field: {x.Ref}.");
                             return null;
                         })
                         .Where(x => x != null)
@@ -428,12 +397,10 @@ namespace KeeperSecurity.Vault
                                 : CryptoUtils.DecryptAesV1(rKey, sf.SharedFolderKey);
                             return true;
                         }
-                        else
-                        {
-                            Trace.TraceError(
-                                $"Record UID \"{rmd.RecordUid}\": Shared Folder \"{rmd.SharedFolderUid}\" not found.");
-                            break;
-                        }
+
+                        Trace.TraceError(
+                            $"Record UID \"{rmd.RecordUid}\": Shared Folder \"{rmd.SharedFolderUid}\" not found.");
+                        break;
 
                     default:
                         Trace.TraceError($"Record UID \"{rmd.RecordUid}\": Unsupported record key type.");
@@ -527,9 +494,8 @@ namespace KeeperSecurity.Vault
                 foreach (var sharedFolder in sharedFoldersToLoad)
                 {
                     if (sharedFolder == null) continue;
-                    if (entityKeys.ContainsKey(sharedFolder.SharedFolderUid))
+                    if (entityKeys.TryGetValue(sharedFolder.SharedFolderUid, value: out var sfKey))
                     {
-                        var sfKey = entityKeys[sharedFolder.SharedFolderUid];
                         var sf = sharedFolder.Load(Storage, sfKey);
                         _keeperSharedFolders.TryAdd(sharedFolder.SharedFolderUid, sf);
                     }
@@ -616,7 +582,7 @@ namespace KeeperSecurity.Vault
 
                             foreach (var rmd in Storage.RecordKeys.GetLinksForSubject(r.RecordUid))
                             {
-                                if (rmd.Owner && !recordOwnership.Contains(rmd.RecordUid))
+                                if (rmd.Owner)
                                 {
                                     recordOwnership.Add(rmd.RecordUid);
                                 }
@@ -750,9 +716,9 @@ namespace KeeperSecurity.Vault
                         break;
                     }
 
-                    if (folderMap.ContainsKey(folder.ParentUid))
+                    if (folderMap.TryGetValue(folder.ParentUid, out var value))
                     {
-                        folder = folderMap[folder.ParentUid];
+                        folder = value;
                     }
                     else
                     {
@@ -773,8 +739,8 @@ namespace KeeperSecurity.Vault
             }
 
             _keeperFolders.Clear();
-            _rootFolder.Records.Clear();
-            _rootFolder.Subfolders.Clear();
+            RootFolder.Records.Clear();
+            RootFolder.Subfolders.Clear();
             foreach (var folder in folderMap.Values)
             {
                 var node = new FolderNode
@@ -824,11 +790,9 @@ namespace KeeperSecurity.Vault
                     {
                         var data = CryptoUtils.DecryptAesV1(folder.Data.Base64UrlDecode(), node.FolderKey);
                         var serializer = new DataContractJsonSerializer(typeof(FolderData));
-                        using (var stream = new MemoryStream(data))
-                        {
-                            var folderData = serializer.ReadObject(stream) as FolderData;
-                            node.Name = folderData?.name;
-                        }
+                        using var stream = new MemoryStream(data);
+                        var folderData = serializer.ReadObject(stream) as FolderData;
+                        node.Name = folderData?.name;
                     }
                 }
                 catch (Exception e)
@@ -846,19 +810,19 @@ namespace KeeperSecurity.Vault
 
             foreach (var folderUid in _keeperFolders.Keys)
             {
-                if (_keeperFolders.TryGetValue(folderUid, out FolderNode node))
+                if (_keeperFolders.TryGetValue(folderUid, out var node))
                 {
                     FolderNode parent;
 
                     if (string.IsNullOrEmpty(node.ParentUid))
                     {
-                        parent = _rootFolder;
+                        parent = RootFolder;
                     }
                     else
                     {
                         if (!_keeperFolders.TryGetValue(node.ParentUid, out parent))
                         {
-                            parent = _rootFolder;
+                            parent = RootFolder;
                         }
                     }
 
@@ -871,13 +835,13 @@ namespace KeeperSecurity.Vault
                 FolderNode node;
                 if (string.IsNullOrEmpty(link.FolderUid))
                 {
-                    node = _rootFolder;
+                    node = RootFolder;
                 }
                 else
                 {
                     if (!_keeperFolders.TryGetValue(link.FolderUid, out node))
                     {
-                        node = _rootFolder;
+                        node = RootFolder;
                     }
                 }
 

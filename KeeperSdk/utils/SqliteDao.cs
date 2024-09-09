@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using KeeperSecurity.Storage;
 
 namespace KeeperSecurity.Utils
 {
@@ -43,16 +42,15 @@ namespace KeeperSecurity.Utils
 
     public class TableSchema
     {
-        public string TableName { get; private set; }
-        public string[] PrimaryKey { get; private set; }
-        public string[] Index1 { get; private set; }
-        public string[] Index2 { get; private set; }
-        public string OwnerColumnName { get; set; }
+        public string TableName { get; }
+        public string[] PrimaryKey { get; }
+        public string[] Index1 { get; }
+        public string[] Index2 { get; }
+        public string OwnerColumnName { get; }
 
-        public readonly List<string> Columns = new List<string>();
+        public readonly List<string> Columns = new();
 
-        public readonly Dictionary<string, PropertyInfo> ColumnMap =
-            new Dictionary<string, PropertyInfo>(StringComparer.InvariantCultureIgnoreCase);
+        public readonly Dictionary<string, PropertyInfo> ColumnMap = new(StringComparer.InvariantCultureIgnoreCase);
 
         public TableSchema(Type tableType, string ownerColumnName = null)
         {
@@ -85,7 +83,7 @@ namespace KeeperSecurity.Utils
 
     public static class DatabaseUtils
     {
-        public static readonly Dictionary<Type, ColumnType> TypeMap = new Dictionary<Type, ColumnType>();
+        public static readonly Dictionary<Type, ColumnType> TypeMap = new();
 
         static DatabaseUtils()
         {
@@ -147,7 +145,7 @@ namespace KeeperSecurity.Utils
             return $"ALTER TABLE {schema.TableName} ADD COLUMN {columnName} {GetSqliteType(colType)} NULL";
         }
 
-        private static IEnumerable<string> GetDDLStatements(TableSchema schema)
+        private static IEnumerable<string> GetDdlStatements(TableSchema schema)
         {
             var keys = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
             if (schema.PrimaryKey != null)
@@ -348,24 +346,20 @@ namespace KeeperSecurity.Utils
             {
                 if (allTables.TryGetValue(schema.TableName, out var columns))
                 {
-                    if (columns.Count > 0)
+                    if (columns.Count <= 0) continue;
+                    foreach (var columnName in schema.Columns)
                     {
-                        foreach (var columnName in schema.Columns)
+                        if (columns.Contains(columnName)) continue;
+                        var stmt = GetAddColumnStatement(schema, columnName);
+                        if (!string.IsNullOrEmpty(stmt))
                         {
-                            if (!columns.Contains(columnName))
-                            {
-                                var stmt = GetAddColumnStatement(schema, columnName);
-                                if (!string.IsNullOrEmpty(stmt))
-                                {
-                                    statements.Add(stmt);
-                                }
-                            }
+                            statements.Add(stmt);
                         }
                     }
                 }
                 else
                 {
-                    statements.AddRange(GetDDLStatements(schema));
+                    statements.AddRange(GetDdlStatements(schema));
                 }
             }
 

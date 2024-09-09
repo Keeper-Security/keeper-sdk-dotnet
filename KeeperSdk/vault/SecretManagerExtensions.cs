@@ -251,9 +251,9 @@ namespace KeeperSecurity.Vault
                 AppRecordUid = ByteString.CopyFrom(application.Uid.Base64UrlDecode()),
                 EncryptedAppKey = ByteString.CopyFrom(encryptedAppKey),
                 ClientId = ByteString.CopyFrom(clientId),
-                LockIp = unlockIp != null ? !unlockIp.Value : true,
+                LockIp = !unlockIp ?? true,
                 FirstAccessExpireOn = DateTimeOffset.UtcNow.AddMinutes(
-                    firstAccessExpireInMinutes != null ? firstAccessExpireInMinutes.Value : 60).ToUnixTimeMilliseconds(),
+                    firstAccessExpireInMinutes ?? 60).ToUnixTimeMilliseconds(),
                 AppClientType = EnterpriseProto.AppClientType.General,
             };
             if (accessExpiresInMinutes.HasValue)
@@ -271,7 +271,7 @@ namespace KeeperSecurity.Vault
             var device = appDetails.Devices.FirstOrDefault(x => x.DeviceId == client);
             if (device == null)
             {
-                throw new Exception($"Client Error");
+                throw new Exception("Client Error");
             }
 
             var host = Auth.Endpoint.Server;

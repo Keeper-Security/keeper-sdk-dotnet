@@ -116,28 +116,25 @@ namespace KeeperSecurity.Storage
             {
                 foreach (var columnName in filterColumns)
                 {
-                    if (Schema.ColumnMap.TryGetValue(columnName, out var prop))
+                    if (!Schema.ColumnMap.TryGetValue(columnName, out var prop)) continue;
+                    if (whereAdded)
                     {
-
-                        if (whereAdded)
-                        {
-                            deleteQuery.Append(" AND ");
-                        }
-                        else
-                        {
-                            deleteQuery.Append(" WHERE ");
-                            whereAdded = true;
-                        }
-
-                        deleteQuery.Append($"{columnName} = @{columnName}");
-
-                        var filterParameter = cmd.CreateParameter();
-                        filterParameter.ParameterName = $"@{columnName}";
-                        filterParameter.DbType =
-                            DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[prop.PropertyType]);
-                        filterParameter.Direction = ParameterDirection.Input;
-                        cmd.Parameters.Add(filterParameter);
+                        deleteQuery.Append(" AND ");
                     }
+                    else
+                    {
+                        deleteQuery.Append(" WHERE ");
+                        whereAdded = true;
+                    }
+
+                    deleteQuery.Append($"{columnName} = @{columnName}");
+
+                    var filterParameter = cmd.CreateParameter();
+                    filterParameter.ParameterName = $"@{columnName}";
+                    filterParameter.DbType =
+                        DatabaseUtils.GetDbType(DatabaseUtils.TypeMap[prop.PropertyType]);
+                    filterParameter.Direction = ParameterDirection.Input;
+                    cmd.Parameters.Add(filterParameter);
                 }
             }
 
@@ -204,11 +201,9 @@ namespace KeeperSecurity.Storage
         public void DeleteAll()
         {
             var cmd = GetDeleteStatement();
-            using (var txn = GetConnection().BeginTransaction())
-            {
-                cmd.Transaction = txn;
-                cmd.ExecuteNonQuery();
-            }
+            using var txn = GetConnection().BeginTransaction();
+            cmd.Transaction = txn;
+            cmd.ExecuteNonQuery();
         }
 
         public TableSchema Schema { get; }
@@ -237,7 +232,10 @@ namespace KeeperSecurity.Storage
                 else
                 {
                     var column = Schema.ColumnMap[parameterName];
-                    parameter.Value = column.GetMethod.Invoke(data, null);
+                    if (column?.GetMethod != null)
+                    {
+                        parameter.Value = column.GetMethod.Invoke(data, null);
+                    }
                 }
             }
         }
@@ -255,28 +253,24 @@ namespace KeeperSecurity.Storage
         public T Load()
         {
             var cmd = GetSelectStatement();
-            using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-            {
-                return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
-            }
+            using var reader = cmd.ExecuteReader(CommandBehavior.SingleRow);
+            return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
         }
 
         public void Store(T record)
         {
             var cmd = GetPutStatement();
-            if (!(record is TD data))
+            if (record is not TD data)
             {
                 data = new TD();
                 data.CopyFields(record);
             }
 
-            using (var txn = GetConnection().BeginTransaction())
-            {
-                cmd.Transaction = txn;
-                PopulateCommandParameters(cmd, data);
-                cmd.ExecuteNonQuery();
-                txn.Commit();
-            }
+            using var txn = GetConnection().BeginTransaction();
+            cmd.Transaction = txn;
+            PopulateCommandParameters(cmd, data);
+            cmd.ExecuteNonQuery();
+            txn.Commit();
         }
 
         public void Delete()
@@ -303,57 +297,49 @@ namespace KeeperSecurity.Storage
             var entityParameter = (IDbDataParameter) cmd.Parameters[$"@{EntityColumnName}"];
             entityParameter.Value = uid;
 
-            using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-            {
-                return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
-            }
+            using var reader = cmd.ExecuteReader(CommandBehavior.SingleRow);
+            return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
         }
 
         public void PutEntities(IEnumerable<T> entities)
         {
             var cmd = GetPutStatement();
-            using (var txn = GetConnection().BeginTransaction())
+            using var txn = GetConnection().BeginTransaction();
+            cmd.Transaction = txn;
+            foreach (var entity in entities)
             {
-                cmd.Transaction = txn;
-                foreach (var entity in entities)
+                if (!(entity is TD data))
                 {
-                    if (!(entity is TD data))
-                    {
-                        data = new TD();
-                        data.CopyFields(entity);
-                    }
-                    PopulateCommandParameters(cmd, data);
-                    cmd.ExecuteNonQuery();
+                    data = new TD();
+                    data.CopyFields(entity);
                 }
-
-                txn.Commit();
+                PopulateCommandParameters(cmd, data);
+                cmd.ExecuteNonQuery();
             }
+
+            txn.Commit();
         }
 
         public void DeleteUids(IEnumerable<string> uids)
         {
             var cmd = GetDeleteStatement(new[] { EntityColumnName });
             var entityParameter = (IDbDataParameter) cmd.Parameters[$"@{EntityColumnName}"];
-            using (var txn = GetConnection().BeginTransaction())
+            using var txn = GetConnection().BeginTransaction();
+            cmd.Transaction = txn;
+            foreach (var uid in uids)
             {
-                cmd.Transaction = txn;
-                foreach (var uid in uids)
-                {
-                    entityParameter.Value = uid;
-                    cmd.ExecuteNonQuery();
-                }
-
-                txn.Commit();
+                entityParameter.Value = uid;
+                cmd.ExecuteNonQuery();
             }
+
+            txn.Commit();
         }
 
         public IEnumerable<T> GetAll()
         {
             var cmd = GetSelectStatement();
-            using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-            {
-                return Schema.PopulateDataObjects<TD>(reader).ToArray();
-            }
+            using var reader = cmd.ExecuteReader(CommandBehavior.Default);
+            return Schema.PopulateDataObjects<TD>(reader).ToArray();
         }
     }
 
@@ -374,22 +360,19 @@ namespace KeeperSecurity.Storage
         public void PutLinks(IEnumerable<T> links)
         {
             var cmd = GetPutStatement();
-            using (var txn = GetConnection().BeginTransaction())
+            using var txn = GetConnection().BeginTransaction();
+            cmd.Transaction = txn;
+            foreach (var link in links)
             {
-                cmd.Transaction = txn;
-                foreach (var link in links)
+                if (!(link is TD data))
                 {
-                    if (!(link is TD data))
-                    {
-                        data = new TD();
-                        data.CopyFields(link);
-                    }
-                    PopulateCommandParameters(cmd, data);
-                    cmd.ExecuteNonQuery();
+                    data = new TD();
+                    data.CopyFields(link);
                 }
-
-                txn.Commit();
+                PopulateCommandParameters(cmd, data);
+                cmd.ExecuteNonQuery();
             }
+            txn.Commit();
         }
 
         public void DeleteLinks(IEnumerable<IUidLink> links)
@@ -398,18 +381,16 @@ namespace KeeperSecurity.Storage
             var subjectParameter = (IDbDataParameter) cmd.Parameters[$"@{SubjectColumnName}"];
             var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
 
-            using (var txn = GetConnection().BeginTransaction())
+            using var txn = GetConnection().BeginTransaction();
+            cmd.Transaction = txn;
+            foreach (var link in links)
             {
-                cmd.Transaction = txn;
-                foreach (var link in links)
-                {
-                    subjectParameter.Value = link.SubjectUid;
-                    objectParameter.Value = link.ObjectUid;
-                    cmd.ExecuteNonQuery();
-                }
-
-                txn.Commit();
+                subjectParameter.Value = link.SubjectUid;
+                objectParameter.Value = link.ObjectUid;
+                cmd.ExecuteNonQuery();
             }
+
+            txn.Commit();
         }
 
         public void DeleteLinksForSubjects(IEnumerable<string> subjectUids)
@@ -417,17 +398,15 @@ namespace KeeperSecurity.Storage
             var cmd = GetDeleteStatement(new[] { SubjectColumnName });
             var subjectParameter = (IDbDataParameter) cmd.Parameters[$"@{SubjectColumnName}"];
 
-            using (var txn = GetConnection().BeginTransaction())
+            using var txn = GetConnection().BeginTransaction();
+            cmd.Transaction = txn;
+            foreach (var subjectUid in subjectUids)
             {
-                cmd.Transaction = txn;
-                foreach (var subjectUid in subjectUids)
-                {
-                    subjectParameter.Value = subjectUid;
-                    cmd.ExecuteNonQuery();
-                }
-
-                txn.Commit();
+                subjectParameter.Value = subjectUid;
+                cmd.ExecuteNonQuery();
             }
+
+            txn.Commit();
         }
 
         public void DeleteLinksForObjects(IEnumerable<string> objectUids)
@@ -435,17 +414,15 @@ namespace KeeperSecurity.Storage
             var cmd = GetDeleteStatement(new[] { ObjectColumnName });
             var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
 
-            using (var txn = GetConnection().BeginTransaction())
+            using var txn = GetConnection().BeginTransaction();
+            cmd.Transaction = txn;
+            foreach (var objectUid in objectUids)
             {
-                cmd.Transaction = txn;
-                foreach (var objectUid in objectUids)
-                {
-                    objectParameter.Value = objectUid;
-                    cmd.ExecuteNonQuery();
-                }
-
-                txn.Commit();
+                objectParameter.Value = objectUid;
+                cmd.ExecuteNonQuery();
             }
+
+            txn.Commit();
         }
 
         public IEnumerable<T> GetLinksForSubject(string subjectUid)
@@ -453,10 +430,8 @@ namespace KeeperSecurity.Storage
             var cmd = GetSelectStatement(new[] { SubjectColumnName });
             var subjectParameter = (IDbDataParameter) cmd.Parameters[$"@{SubjectColumnName}"];
             subjectParameter.Value = subjectUid;
-            using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-            {
-                return Schema.PopulateDataObjects<TD>(reader).ToArray();
-            }
+            using var reader = cmd.ExecuteReader(CommandBehavior.Default);
+            return Schema.PopulateDataObjects<TD>(reader).ToArray();
         }
 
         public IEnumerable<T> GetLinksForObject(string objectUid)
@@ -464,19 +439,15 @@ namespace KeeperSecurity.Storage
             var cmd = GetSelectStatement(new[] { ObjectColumnName });
             var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
             objectParameter.Value = objectUid;
-            using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-            {
-                return Schema.PopulateDataObjects<TD>(reader).ToArray();
-            }
+            using var reader = cmd.ExecuteReader(CommandBehavior.Default);
+            return Schema.PopulateDataObjects<TD>(reader).ToArray();
         }
 
         public IEnumerable<T> GetAllLinks()
         {
             var cmd = GetSelectStatement();
-            using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-            {
-                return Schema.PopulateDataObjects<TD>(reader).ToArray();
-            }
+            using var reader = cmd.ExecuteReader(CommandBehavior.Default);
+            return Schema.PopulateDataObjects<TD>(reader).ToArray();
         }
 
         public T GetLink(IUidLink link)
@@ -486,10 +457,8 @@ namespace KeeperSecurity.Storage
             subjectParameter.Value = link.SubjectUid;
             var objectParameter = (IDbDataParameter) cmd.Parameters[$"@{ObjectColumnName}"];
             objectParameter.Value = link.ObjectUid;
-            using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-            {
-                return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
-            }
+            using var reader = cmd.ExecuteReader(CommandBehavior.Default);
+            return Schema.PopulateDataObjects<TD>(reader).FirstOrDefault();
         }
     }
 }

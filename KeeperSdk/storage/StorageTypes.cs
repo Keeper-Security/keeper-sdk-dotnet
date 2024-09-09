@@ -22,7 +22,7 @@ namespace KeeperSecurity.Storage
         {
         }
 
-        public static EqualityComparerIUidLink Instance { get; } = new EqualityComparerIUidLink();
+        public static EqualityComparerIUidLink Instance { get; } = new();
 
         public override bool Equals(IUidLink x, IUidLink y)
         {

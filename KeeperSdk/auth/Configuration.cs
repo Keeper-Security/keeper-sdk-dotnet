@@ -197,7 +197,7 @@ namespace KeeperSecurity.Configuration
     /// <exclude/>
     public class InMemoryConfigCollection<T> : IConfigCollection<T> where T : class, IConfigurationId
     {
-        private readonly Dictionary<string, T> _collection = new Dictionary<string, T>();
+        private readonly Dictionary<string, T> _collection = new();
         IEnumerable<T> IConfigCollection<T>.List => _collection.Values;
 
         public void Delete(string id)
@@ -412,14 +412,9 @@ namespace KeeperSecurity.Configuration
     /// <exclude/>
     public class KeeperConfiguration : IKeeperConfiguration
     {
-        private readonly InMemoryConfigCollection<IUserConfiguration> _users =
-            new InMemoryConfigCollection<IUserConfiguration>();
-
-        private readonly InMemoryConfigCollection<IServerConfiguration> _servers =
-            new InMemoryConfigCollection<IServerConfiguration>();
-
-        private readonly InMemoryConfigCollection<IDeviceConfiguration> _devices =
-            new InMemoryConfigCollection<IDeviceConfiguration>();
+        private readonly InMemoryConfigCollection<IUserConfiguration> _users = new();
+        private readonly InMemoryConfigCollection<IServerConfiguration> _servers = new();
+        private readonly InMemoryConfigCollection<IDeviceConfiguration> _devices = new();
 
         public KeeperConfiguration() : this(null)
         {
