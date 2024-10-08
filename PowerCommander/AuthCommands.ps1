@@ -477,7 +477,8 @@ function Disconnect-Keeper {
 
     $Script:Context.AvailableTeams = $null
     $Script:Context.AvailableUsers = $null
-
+    
+    $Script:Context.ManagedCompanyId = 0
     $Script:Context.Enterprise = $null
 
     $vault = $Script:Context.Vault
@@ -515,3 +516,120 @@ function Sync-Keeper {
     }
 }
 New-Alias -Name ks -Value Sync-Keeper
+
+function Get-KeeperInformation {
+    <#
+    .Synopsis
+    Prints account license information
+    #>
+
+    $vault = getVault
+    [KeeperSecurity.Authentication.IAuthentication]$auth = $vault.Auth
+
+    [KeeperSecurity.Authentication.AccountLicense]$license = $auth.AuthContext.License
+    switch ($license.AccountType) {
+        0 { $accountType = $license.ProductTypeName }
+        1 { $accountType = 'Family Plan'}
+        2 { $accountType = 'Enterprise' }
+        Default { $accountType = $license.ProductTypeName }
+    }
+    $accountType = 'Enterprise'
+    [PSCustomObject]@{
+        PSTypeName  = "KeeperSecurity.License.Info"
+        User        = $auth.Username
+        Server      = $auth.Endpoint.Server
+        Admin       = $auth.AuthContext.IsEnterpriseAdmin
+        AccountType = $accountType 
+        RenewalDate = $license.ExpirationDate
+        StorageCapacity = [int] [Math]::Truncate($license.BytesTotal / (1024 * 1024 * 1024))
+        StorageUsage = [int] [Math]::Truncate($license.BytesUsed * 100 / $license.BytesTotal)
+        StorageExpires = $license.StorageExpirationDate
+    }
+
+    if ($license.AccountType -eq 2) {
+        $enterprise = getEnterprise
+        if ($enterprise) {
+            $enterpriseLicense = $enterprise.enterpriseData.EnterpriseLicense
+            $productTypeId = $enterpriseLicense.ProductTypeId
+            if ($productTypeId -in @(2, 5)) {
+                $tier = $enterpriseLicense.Tier
+                if ($tier -eq 1) {
+                    $plan = 'Enterprise'
+                } else {
+                    $plan = 'Business'
+                }
+            }
+            elseif ($productTypeId -in @(9, 10)) {
+                $distributor = $enterpriseLicense.Distributor
+                if ($distributor -eq $true) {
+                    $plan = 'Distributor'
+                } else {
+                    $plan = 'Managed MSP'
+                }
+            }
+            elseif ($productTypeId -in @(11, 12)) {
+                $plan = 'Keeper MSP'
+            }
+            elseif ($productTypeId -eq 8) {
+                $tier = $enterpriseLicense.Tier
+                if ($tier -eq 1) {
+                    $plan = 'Enterprise'
+                } else {
+                    $plan = 'Business'
+                }
+                $plan = "MC $plan"
+            } else {
+                $plan = 'Unknown'
+            }
+            if ($productTypeId -in @(5, 10, 12)) {
+                $plan = "$plan Trial"
+            }
+
+            $enterpriseInfo = [PSCustomObject]@{
+                PSTypeName  = "KeeperSecurity.License.EnterpriseInfo"
+                LicenseType = 'Enterprise'
+                EnterpriseName = $enterprise.loader.EnterpriseName
+                BasePlan    = $plan
+            }
+            if ($enterpriseLicense.Paid) {
+                $expiration = $enterpriseLicense.Expiration
+                if ($expiration -gt 0) {
+                    $exp = [KeeperSecurity.Utils.DateTimeOffsetExtensions]::FromUnixTimeMilliseconds($expiration)
+                    $expDate = $exp.ToString('d')
+                    Add-Member -InputObject $enterpriseInfo -MemberType NoteProperty -Name 'Expires' -Value $expDate
+                }
+                
+                switch ($enterpriseLicense.filePlanTypeId) {
+                    -1 { $filePlan = 'No Storage' }
+                    0 { $filePlan = 'Trial' }
+                    1 { $filePlan = '1GB' }
+                    2 { $filePlan = '10GB' }
+                    3 { $filePlan = '50GB' }
+                    4 { $filePlan = '100GB' }
+                    5 { $filePlan = '250GB' }
+                    6 { $filePlan = '500GB' }
+                    7 { $filePlan = '1TB' }
+                    8 { $filePlan = '10TB' }
+                    Default { $filePlan = '???' }
+                }
+                Add-Member -InputObject $enterpriseInfo -MemberType NoteProperty -Name 'StorageCapacity' -Value $filePlan
+
+                $numberOfSeats = $enterpriseLicense.NumberOfSeats
+                if ($numberOfSeats -gt 0) {
+                    Add-Member -InputObject $enterpriseInfo -MemberType NoteProperty -Name 'TotalUsers' -Value $numberOfSeats
+                }
+                $seatsAllocated = $enterpriseLicense.SeatsAllocated
+                if ($seatsAllocated -gt 0) {
+                    Add-Member -InputObject $enterpriseInfo -MemberType NoteProperty -Name 'ActiveUsers' -Value $seatsAllocated
+                }
+                $seatsPending = $enterpriseLicense.SeatsPending
+                if ($seatsAllocated -gt 0) {
+                    Add-Member -InputObject $enterpriseInfo -MemberType NoteProperty -Name 'InvitedUsers' -Value $SeatsPending
+                }
+
+            }
+            $enterpriseInfo
+        }
+    }
+}
+New-Alias -Name kwhoami -Value Get-KeeperInformation

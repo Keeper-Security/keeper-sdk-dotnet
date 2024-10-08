@@ -11,7 +11,7 @@
     RootModule         = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion      = '0.9.12'
+    ModuleVersion      = '0.9.13'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -68,7 +68,7 @@
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
     NestedModules      = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
-        'FolderCommands.ps1', 'Enterprise.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1')
+        'FolderCommands.ps1', 'Enterprise.ps1', 'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 'AttachmentCommands.ps1')
 
     # Functions to export from this module
     FunctionsToExport  = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
@@ -78,7 +78,7 @@
         'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName',
         'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 'Remove-KeeperEnterpriseUser',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
-        'Get-KeeperEnterpriseTeamUser',
+        'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation',
         # 'Test-Keeper',
         'Show-KeeperRecordShare', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess',
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
@@ -95,8 +95,9 @@
 
     # Aliases to export from this module
     AliasesToExport    = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 'krti',
-        'ked', 'keu', 'ken', 'ket', 'ketu', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'lock-user', 'unlock-user', 'transfer-user',
-        'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn',
+        'ked', 'keu', 'ken', 'ket', 'ketu', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'switch-to-mc', 'switch-to-msp',
+        'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 
+        'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami',
         'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda')
 
     # List of all modules packaged with this module
@@ -112,7 +113,7 @@
             LicenseUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri  = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = "Update KeeperSDK library"
+            ReleaseNotes = 'Switch to Managed Company'
         }
     }
 

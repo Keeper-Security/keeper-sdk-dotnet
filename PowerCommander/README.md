@@ -31,6 +31,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Copy-KeeperFileAttachment              | kda         | Download file attachments 
 | Copy-KeeperFileAttachmentToStream      |             | Download file attachement to stream
 | Copy-FileToKeeperRecord                |             | Upload file attachment to a record
+| Get-KeeperInformation                  | kwhoami     | Print account license information
 
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
@@ -59,6 +60,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Move-KeeperEnterpriseUser              |transfer-user| Transfer user account to another user
 | Remove-KeeperEnterpriseUser            | delete-user | Delete Enterprise User
 | Get-KeeperMspLicenses                  | msp-license | Return MSP licenses
+| Switch-KeeperMC                        |switch-to-mc | Switch to Managed Company
+| Switch-KeeperMSP                       |switch-to-msp| Switch back to MSP
 | Get-KeeperManagedCompany               | kmc         | Enumerate all enterprise managed companies
 | New-KeeperManagedCompany               | kamc        | Create Managed Company
 | Remove-KeeperManagedCompany            | krmc        | Remove Managed Company

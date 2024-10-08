@@ -5,6 +5,7 @@ Class Enterprise {
     [KeeperSecurity.Enterprise.EnterpriseData] $enterpriseData
     [KeeperSecurity.Enterprise.RoleData] $roleData
     [KeeperSecurity.Enterprise.ManagedCompanyData] $mspData
+    [hashtable] $ManagedCompanies = $null
 }
 
 class KeeperContext {
@@ -12,14 +13,15 @@ class KeeperContext {
     [KeeperSecurity.Vault.VaultOnline] $Vault = $null
     [string] $CurrentFolder = ''
     [Enterprise] $Enterprise = $null
+    [Int32] $ManagedCompanyId = 0
     $AvailableTeams = $null
     $AvailableUsers = $null
 }
 
 New-Variable -Name Context -Option Constant -Scope 'Script' -Value (New-Object KeeperContext)
 
-Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper
-Export-ModuleMember -Alias kc, ks, kq
+Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation
+Export-ModuleMember -Alias kc, ks, kq, kwhoami
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItem,
 Get-KeeperObject
@@ -43,8 +45,8 @@ Get-KeeperEnterpriseTeamUser
 Export-ModuleMember -Alias ked, keu, ket, ketu, ken, lock-user, unlock-user, transfer-user, delete-user
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
-Edit-KeeperManagedCompany, Get-MspBillingReport
-Export-ModuleMember -Alias kmc, kamc, krmc, kemc
+Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP
+Export-ModuleMember -Alias kmc, kamc, krmc, kemc, switch-to-mc, switch-to-msp
 
 Export-ModuleMember -Function Show-KeeperRecordShare, Grant-KeeperRecordAccess, Revoke-KeeperRecordAccess,
 Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvailableTeam, Move-KeeperRecordOwnership,
