@@ -20,8 +20,9 @@ class KeeperContext {
 
 New-Variable -Name Context -Option Constant -Scope 'Script' -Value (New-Object KeeperContext)
 
-Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation
-Export-ModuleMember -Alias kc, ks, kq, kwhoami
+Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation, 
+Get-KeeperDeviceSettings, Set-KeeperDeviceSettings
+Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItem,
 Get-KeeperObject
@@ -39,10 +40,10 @@ Export-ModuleMember -Function Add-KeeperFolder, Remove-KeeperFolder
 Export-ModuleMember -Alias kmkdir, krmdir
 
 Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, Get-KeeperEnterpriseTeam,
-Get-KeeperEnterpriseNode, Get-KeeperNodeName, Lock-KeeperEnterpriseUser,
+Get-KeeperEnterpriseNode, Get-KeeperNodeName, Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser,
 Unlock-KeeperEnterpriseUser, Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser,
-Get-KeeperEnterpriseTeamUser
-Export-ModuleMember -Alias ked, keu, ket, ketu, ken, lock-user, unlock-user, transfer-user, delete-user
+Get-KeeperEnterpriseTeamUser, New-KeeperEnterpriseNode
+Export-ModuleMember -Alias ked, keu, ket, ketu, ken, kena, invite-user, lock-user, unlock-user, transfer-user, delete-user
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP
@@ -66,7 +67,6 @@ Export-ModuleMember -Alias kda
 #         [Parameter(Mandatory = $true)]$Path
 #     )
 #     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-
 #     [KeeperSecurity.Vault.FolderNode]$folder = $null
 # 	if (!$vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
 # 		$folder = $vault.RootFolder

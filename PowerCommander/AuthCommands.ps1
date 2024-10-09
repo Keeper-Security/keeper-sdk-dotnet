@@ -321,14 +321,23 @@ function Connect-Keeper {
    .Parameter Username
     User email
 
+    .Parameter Password
+    User password
+
     .Parameter NewLogin
     Do not use Last Login information
 
     .Parameter SsoPassword
     Use Master Password for SSO account
 
+    .Parameter SsoProvider
+    Login using SSO provider
+
     .Parameter Server
     Change default keeper server
+
+    .Parameter Config
+    Config file name
 #>
     [CmdletBinding(DefaultParameterSetName = 'regular')]
     Param(
@@ -337,12 +346,16 @@ function Connect-Keeper {
         [Parameter()][switch] $NewLogin,
         [Parameter(ParameterSetName = 'sso_password')][switch] $SsoPassword,
         [Parameter(ParameterSetName = 'sso_provider')][switch] $SsoProvider,
-        [Parameter()][string] $Server
+        [Parameter()][string] $Server,
+        [Parameter()][string] $Config
     )
 
     Disconnect-Keeper -Resume | Out-Null
-
-    $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
+    if ($Config) {
+        $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage $Config
+    } else {
+        $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
+    }
     if (-not $Server) {
         $Server = $storage.LastServer
         if ($Server) {
@@ -633,3 +646,225 @@ function Get-KeeperInformation {
     }
 }
 New-Alias -Name kwhoami -Value Get-KeeperInformation
+
+function compareArrays {
+    param ($array1, $array2)
+
+    if ($array1.Length -eq $array2.Length) {
+        foreach ($i in 0..($array1.Length-1)) {
+            if ($array1[$i] -ne $array2[$i]) {
+                return $false
+            }
+        }
+        return $true
+    }
+    return $false
+}
+
+function formatTimeout {
+    param ($timeout)
+
+    if ($timeout -gt 0) {
+        $dayMillis = [TimeSpan]::FromDays(1).TotalMilliseconds
+        if ($logoutTimer -gt $dayMillis) { 
+            return "$([Math]::Round($logoutTimer / $dayMillis)) day(s)"
+        }
+
+        $hourMillis = [TimeSpan]::FromHours(1).TotalMilliseconds
+        if ($logoutTimer -gt $hourMillis) { 
+            return "$([Math]::Round($logoutTimer / $hourMillis)) hour(s)"
+        }
+
+        $minuteMillis = [TimeSpan]::FromMinutes(1).TotalMilliseconds
+        return "$([Math]::Round($logoutTimer / $minuteMillis)) minute(s)"
+    }
+}
+
+function Get-KeeperDeviceSettings {
+    <#
+    .SYNOPSIS
+    Display settings of the current device
+    #>
+
+    $vault = getVault
+    $auth = $vault.Auth
+
+    $accountSummary = [KeeperSecurity.Authentication.AuthExtensions]::LoadAccountSummary($auth).GetAwaiter().GetResult()
+    $device = $accountSummary.Devices | Where-Object { compareArrays $_.EncryptedDeviceToken $auth.DeviceToken } | Select-Object -First 1
+    if (-not $device) {
+        Write-Error -Message "The current device could not be found" -ErrorAction Stop
+    }
+
+    $logoutTimer = $accountSummary.Settings.LogoutTimer
+    if ($logoutTimer -gt 0) {
+        $logoutTimerText = formatTimeout $logoutTimer
+    } else {
+        $logoutTimerText = '1 hour(s)'
+    }
+
+    $persistentLoginRestricted = $false
+    if ($accountSummary.Enforcements.Booleans) {
+        $plp = $accountSummary.Enforcements.Booleans | Where-Object { $_.Key -eq 'restrict_persistent_login' } | Select-Object -First 1
+        if ($plp) {
+            $persistentLoginRestricted = $plp.Value
+        }
+    }
+    $persistentLoginEnabled = $false
+    if (-not $persistentLoginRestricted) {
+        $persistentLoginEnabled = $accountSummary.Settings.PersistentLogin
+    }
+
+    $settings = [PSCustomObject]@{
+        PSTypeName  = "KeeperSecurity.Authentication.DeviceInfo"
+        DeviceName = $device.DeviceName
+        PersistentLogin = $persistentLoginEnabled
+        DataKeyPresent = $device.EncryptedDataKeyPresent
+        IpAutoApprove = -not $accountSummary.Settings.IpDisableAutoApprove
+        IsSsoUser = $accountSummary.Settings.SsoUser
+        DeviceLogoutTimeout = $logoutTimerText
+    }
+
+    if ($accountSummary.Enforcements.Longs) {
+        $enf = $accountSummary.Enforcements.Longs | Where-Object { $_.Key -eq 'logout_timer_desktop' } | Select-Object -First 1
+        if ($enf.Length -eq 1) {
+            $entLogoutTimer = $enf.Value
+            if ($entLogoutTimer -gt 0) {
+                $entLogoutTimerText = formatTimeout $entLogoutTimer
+                Add-Member -InputObject $settings -MemberType NoteProperty -Name 'EnterpriseLogoutTimeout' -Value $entLogoutTimerText
+            }
+        }
+    }
+    $settings
+}
+
+function Set-KeeperDeviceSettings {
+    <#
+    .SYNOPSIS
+        Modifies the current device settings
+
+    .PARAMETER NewName
+        Modifies device name
+
+    .PARAMETER Timeout
+        Sets inactivity timeout. Format: NUMBER[h|d]
+        default - minutes,  h - hours, d - days
+    
+    .PARAMETER Register
+        Register current device for Persistent Login
+
+    .PARAMETER PersistentLogin
+        Enables or disables Persistent login for account
+        ON | OFF
+
+    .PARAMETER IpAutoApprove
+        Enables or disables Automatic Approval by IP address for account
+        ON | OFF
+
+    .EXAMPLE
+        C:\PS> Set-KeeperDeviceSettings -NewName 'Azure' -Timeout 30d -PersistentLogin ON -Register
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter()][String] $NewName,
+        [Parameter(HelpMessage='NUMBER[h|d]')][String] $Timeout,
+        [Parameter()][Switch] $Register,
+        [Parameter()][ValidateSet('ON', 'OFF')][String] $PersistentLogin,
+        [Parameter()][ValidateSet('ON', 'OFF')][String] $IpAutoApprove
+    )
+
+    $vault = getVault
+    $auth = $vault.Auth
+
+    $accountSummary = [KeeperSecurity.Authentication.AuthExtensions]::LoadAccountSummary($auth).GetAwaiter().GetResult()
+    $device = $accountSummary.Devices | Where-Object { compareArrays $_.EncryptedDeviceToken $auth.DeviceToken } | Select-Object -First 1
+    if (-not $device) {
+        Write-Error -Message "The current device could not be found" -ErrorAction Stop
+    }
+
+    $changed = $false
+
+    if ($NewName) {
+        $request = New-Object Authentication.DeviceUpdateRequest
+        $request.ClientVersion = $auth.Endpoint.ClientVersion
+        $request.DeviceStatus = [Authentication.DeviceStatus]::DeviceOk
+        $request.DeviceName = $NewName
+        $request.EncryptedDeviceToken = $device.EncryptedDeviceToken
+
+        $auth.ExecuteAuthRest("authentication/update_device", $request, $null, 0).GetAwaiter().GetResult() | Out-Null
+        Write-Information "Device name was changed to `"$NewName`""
+        $changed = $true
+    }
+
+    $persistentLoginRestricted = $false
+    if ($accountSummary.Enforcements.Booleans) {
+        $plp = $accountSummary.Enforcements.Booleans | Where-Object { $_.Key -eq 'restrict_persistent_login' } | Select-Object -First 1
+        if ($plp) {
+            $persistentLoginRestricted = $plp.Value
+        }
+    }
+    if ($Register.IsPresent) {
+        if ($persistentLoginRestricted -eq $true) {
+            Write-Error "Persistent Login feature is restricted by Enterprise Administrator" -ErrorAction Stop
+        }
+
+        $registered = [KeeperSecurity.Authentication.AuthExtensions]::RegisterDataKeyForDevice($auth, $device).GetAwaiter().GetResult()
+        if ($registered) {
+            Write-Information "Device is registered for Persistent Login"
+        }
+        $changed = $true
+    }
+
+    if ($PersistentLogin) {
+        if ($persistentLoginRestricted -eq $true) {
+            Write-Error "Persistent Login feature is restricted by Enterprise Administrator" -ErrorAction Stop
+        }
+        $value = '0'
+        if ($PersistentLogin -eq 'ON') {
+            $value = '1'
+        }
+        [KeeperSecurity.Authentication.AuthExtensions]::SetSessionParameter($auth, 'persistent_login', $value).GetAwaiter().GetResult() | Out-Null
+        $changed = $true
+    }
+
+    if ($IpAutoApprove) {
+        $value = '1'
+        if ($IpAutoApprove -eq 'ON') {
+            $value = '0'
+        }
+        [KeeperSecurity.Authentication.AuthExtensions]::SetSessionParameter($auth, 'ip_disable_auto_approve', $value).GetAwaiter().GetResult() | Out-Null
+        $changed = $true
+    }
+
+    if ($Timeout) {
+        $lastLetter = $Timeout[-1]
+        if ($lastLetter -eq 'd') {
+            $timeoutInt = $Timeout.Substring(0, $Timeout.Length - 1)
+        }
+        elseif ($lastLetter -eq 'h') {
+            $timeoutInt = $Timeout.Substring(0, $Timeout.Length - 1)
+        } else {
+            $lastLetter = ''
+            $timeoutInt = $Timeout
+        }
+
+        $minutes = $null
+        $b = [int]::TryParse($timeoutInt, [ref]$minutes)
+        if (-not $b) {
+            Write-Error "Invalid timeout value `"$Timeout`". Format NUMBER[h|d]. d-days, h-hours. default minutes " -ErrorAction Stop
+        }
+        if ($lastLetter -eq 'h') {
+            $minutes = $minutes * 60
+        }
+        elseif ($lastLetter -eq 'd') {
+            $minutes = $minutes * (60 * 24) 
+        }
+        [KeeperSecurity.Authentication.AuthExtensions]::SetSessionInactivityTimeout($auth, $minutes).GetAwaiter().GetResult() | Out-Null
+        $changed = $true
+    }
+
+    if (-not $changed) {
+        Get-KeeperDeviceSettings
+    }
+}
+New-Alias -Name this-device -Value Set-KeeperDeviceSettings

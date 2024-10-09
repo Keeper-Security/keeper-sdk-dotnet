@@ -201,6 +201,89 @@ $Keeper_ActiveUserCompleter = {
     }
 }
 
+function New-KeeperEnterpriseNode {
+    <#
+    .SYNOPSIS
+    Creates Enterprise Node
+
+    .PARAMETER ParentNode
+    Parent Node name or ID
+
+    .PARAMETER NodeName
+    Node name
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter()][string] $ParentNode,        
+        [Parameter(Position = 0, Mandatory = $true)] $NodeName
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+
+    [KeeperSecurity.Enterprise.EnterpriseNode] $parent = $null
+    if ($ParentNode) {
+        $parent = resolveSingleNode $ParentNode
+    }
+
+    $n = [KeeperSecurity.Enterprise.EnterpriseExtensions]::CreateNode($enterprise.enterpriseData, $NodeName, $parent).GetAwaiter().GetResult()
+    Write-Information "Added node `"$($n.DisplayName)`""
+}
+New-Alias -Name kena -Value New-KeeperEnterpriseNode
+
+function Add-KeeperEnterpriseUser {
+    <#
+    .SYNOPSIS
+    Invites Enterprise Users
+
+    .PARAMETER Node
+    Node Name or ID
+
+    .PARAMETER Email
+    Email address to invite
+
+    .PARAMETER Emails
+    Extra email addresses to invite
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter()][string] $FullName,        
+        [Parameter()][string] $Node,        
+        [Parameter(Position = 0, Mandatory = $true)] $Email,
+        [Parameter(ValueFromRemainingArguments = $true)] $Emails
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    [Int64] $nodeId = 0
+    if ($Node) {
+        $n = resolveSingleNode $Node
+        if ($n) {
+            $nodeId = $n.Id
+        }
+    }
+
+    $inviteOptions = New-Object KeeperSecurity.Enterprise.InviteUserOptions
+    if ($nodeId -gt 0) {
+        $inviteOptions.NodeId = $nodeId
+    }
+    if ($FullName) {
+        $inviteOptions.FullName = $FullName
+    }
+
+    $user = $enterprise.enterpriseData.InviteUser($Email, $inviteOptions).GetAwaiter().GetResult()
+    if ($user) {
+        Write-Output "User `"$Email`" is invited"
+    }
+
+    $inviteOptions.FullName = $null
+    foreach ($e in $Emails) {
+        $user = $enterprise.enterpriseData.InviteUser($e, $inviteOptions).GetAwaiter().GetResult()
+        if ($user) {
+            Write-Output "User `"$e`" is invited"
+        }
+    }
+}
+New-Alias -Name invite-user -Value Add-KeeperEnterpriseUser
+
 function Lock-KeeperEnterpriseUser {
     <#
         .Synopsis
@@ -422,6 +505,24 @@ function resolveUser {
         }
     }
     Write-Output "`"${user}`" cannot be resolved as enterprise user"
+}
+
+function resolveSingleNode {
+    Param ($node)
+
+    if ($node) {
+        $nodes = Get-KeeperEnterpriseNode | Where-Object { $_.Id -eq $node }
+        if ($nodes.Length -eq 0) {
+            $nodes = Get-KeeperEnterpriseNode | Where-Object { $_.DisplayName -like $node + '*' }
+        }
+        if ($nodes.Length -eq 0) {
+            Write-Error -Message "Node `"$node`" not found" -ErrorAction Stop
+        }
+        if ($nodes.Length -gt 1) {
+            Write-Error -Message "Node name `"$node`" is not unique. Use Node ID." -ErrorAction Stop
+        }
+        $nodes[0]
+    }
 }
 
 function Get-KeeperEnterpriseNode {

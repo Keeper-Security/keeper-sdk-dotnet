@@ -76,10 +76,12 @@
         'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
         'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Remove-KeeperFolder', 'Get-KeeperRecordType',
         'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName',
-        'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 'Remove-KeeperEnterpriseUser',
+        'Add-KeeperEnterpriseUser', 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 
+        'Remove-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
-        'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation',
-        # 'Test-Keeper',
+        'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
+        'Set-KeeperDeviceSettings',
+        #'Test-Keeper',
         'Show-KeeperRecordShare', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess',
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
         'Add-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess', 'Revoke-KeeperSecretManagerFolderAccess',
@@ -95,9 +97,9 @@
 
     # Aliases to export from this module
     AliasesToExport    = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 'krti',
-        'ked', 'keu', 'ken', 'ket', 'ketu', 'kmc', 'kamc', 'krmc', 'kemc', 'msp-license', 'switch-to-mc', 'switch-to-msp',
-        'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 
-        'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami',
+        'ked', 'keu', 'ken', 'ket', 'ketu', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'msp-license', 'switch-to-mc', 'switch-to-msp',
+        'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 
+        'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
         'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda')
 
     # List of all modules packaged with this module

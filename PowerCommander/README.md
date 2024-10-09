@@ -31,7 +31,10 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Copy-KeeperFileAttachment              | kda         | Download file attachments 
 | Copy-KeeperFileAttachmentToStream      |             | Download file attachement to stream
 | Copy-FileToKeeperRecord                |             | Upload file attachment to a record
-| Get-KeeperInformation                  | kwhoami     | Print account license information
+| Get-KeeperInformation                  | kwhoami     | Print account license information <sup style="color:red">(new)</sup>
+| Get-KeeperDeviceSettings               |             | Print the current device settings <sup style="color:red">(new)</sup>
+| Set-KeeperDeviceSettings               | this-device | Modifies the current device settings <sup style="color:red">(new)</sup>
+
 
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
@@ -55,13 +58,15 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperEnterpriseUser               | keu         | Enumerate all enterprise users
 | Get-KeeperEnterpriseTeam               | ket         | Enumerate all enterprise teams
 | Get-KeeperEnterpriseTeamUser           | ketu        | Get a list of enterprise users for team
+| New-KeeperEnterpriseNode               | kena        | Create Node <sup style="color:red">(new)</sup>
+| Add-KeeperEnterpriseUser               | invite-user | Invite User to Enterprise <sup style="color:red">(new)</sup>
 | Lock-KeeperEnterpriseUser              | lock-user   | Lock Enterprise User
 | Unlock-KeeperEnterpriseUser            | unlock-user | Unlock Enterprise User
 | Move-KeeperEnterpriseUser              |transfer-user| Transfer user account to another user
 | Remove-KeeperEnterpriseUser            | delete-user | Delete Enterprise User
 | Get-KeeperMspLicenses                  | msp-license | Return MSP licenses
-| Switch-KeeperMC                        |switch-to-mc | Switch to Managed Company
-| Switch-KeeperMSP                       |switch-to-msp| Switch back to MSP
+| Switch-KeeperMC                        |switch-to-mc | Switch to Managed Company <sup style="color:red">(new)</sup>
+| Switch-KeeperMSP                       |switch-to-msp| Switch back to MSP <sup style="color:red">(new)</sup>
 | Get-KeeperManagedCompany               | kmc         | Enumerate all enterprise managed companies
 | New-KeeperManagedCompany               | kamc        | Create Managed Company
 | Remove-KeeperManagedCompany            | krmc        | Remove Managed Company
@@ -171,4 +176,9 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 9. Create a new Managed Company
     ```
     PS> New-KeeperManagedCompany -Name "Company Name" -PlanId enterprisePlus -Allocated 5
+    ```
+
+10. Switch to a new Managed Company
+    ```
+    PS> switch-to-mc "Company Name"
     ```
