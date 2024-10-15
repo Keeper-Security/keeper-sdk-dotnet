@@ -38,7 +38,7 @@ function getEnterprise {
                 $enterpriseMc.enterpriseData = New-Object KeeperSecurity.Enterprise.EnterpriseData
                 $enterpriseMc.roleData = New-Object KeeperSecurity.Enterprise.RoleData
         
-                [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterpriseMc.enterpriseData, $enterprise.roleData
+                [KeeperSecurity.Enterprise.EnterpriseDataPlugin[]] $plugins = $enterpriseMc.enterpriseData, $enterpriseMc.roleData
         
                 $enterpriseMc.loader = New-Object KeeperSecurity.Enterprise.EnterpriseLoader($authMc, $plugins)
                 $enterpriseMc.loader.Load().GetAwaiter().GetResult() | Out-Null
@@ -504,7 +504,7 @@ function resolveUser {
             return $u
         }
     }
-    Write-Output "`"${user}`" cannot be resolved as enterprise user"
+    Write-Error "`"${user}`" cannot be resolved as enterprise user" -ErrorAction Stop
 }
 
 function resolveSingleNode {
@@ -537,3 +537,14 @@ function Get-KeeperEnterpriseNode {
 }
 New-Alias -Name ken -Value Get-KeeperEnterpriseNode
 
+function Get-KeeperEnterpriseRole {
+    <#
+        .Synopsis
+    	Get a list of enterprise roles
+    #>
+    [CmdletBinding()]
+
+    [Enterprise]$enterprise = getEnterprise
+    return $enterprise.roleData.Roles
+}
+New-Alias -Name ker -Value Get-KeeperEnterpriseRole

@@ -108,4 +108,16 @@
             </AliasProperty>
         </Members>
     </Type>
+    <Type>
+        <Name>KeeperSecurity.Enterprise.EnterpriseRole</Name>
+        <Members>
+            <ScriptProperty>
+                <Name>ParentNodeName</Name>
+                <GetScriptBlock>
+                    Get-KeeperNodeName $this.ParentNodeId
+                </GetScriptBlock>
+            </ScriptProperty>
+        </Members>
+    </Type>
+
 </Types>

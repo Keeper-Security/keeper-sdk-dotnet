@@ -312,5 +312,69 @@
                 </ListEntries>
             </ListControl>
         </View>
+
+        <View>
+            <Name>KeeperSecurity.Enterprise.EnterpriseRole_TableView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Enterprise.EnterpriseRole</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <Wrap />
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Id</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>DisplayName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>ParentNodeName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>NewUserInherit</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>KeeperSecurity.Enterprise.EnterpriseRole_ListView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Enterprise.EnterpriseRole</TypeName>
+            </ViewSelectedBy>
+            <ListControl>
+                <ListEntries>
+                    <ListEntry>
+                        <ListItems>
+                            <ListItem>
+                                <PropertyName>Id</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>DisplayName</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>ParentNodeId</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>ParentNodeName</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>NewUserInherit</PropertyName>
+                            </ListItem>
+                        </ListItems>
+                    </ListEntry>
+                </ListEntries>
+            </ListControl>
+        </View>
+
     </ViewDefinitions>
 </Configuration>
