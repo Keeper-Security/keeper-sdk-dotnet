@@ -104,7 +104,7 @@
             </AliasProperty>
             <AliasProperty>
                 <Name>Allocated</Name>
-                <ReferencedMemberName> NumberOfSeats</ReferencedMemberName>
+                <ReferencedMemberName>NumberOfSeats</ReferencedMemberName>
             </AliasProperty>
         </Members>
     </Type>
@@ -112,9 +112,65 @@
         <Name>KeeperSecurity.Enterprise.EnterpriseRole</Name>
         <Members>
             <ScriptProperty>
-                <Name>ParentNodeName</Name>
+                <Name>NodeName</Name>
                 <GetScriptBlock>
                     Get-KeeperNodeName $this.ParentNodeId
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>Users</Name>
+                <GetScriptBlock>
+                    (Get-KeeperEnterpriseRoleUsers $this.Id).Count
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>Teams</Name>
+                <GetScriptBlock>
+                    (Get-KeeperEnterpriseRoleTeams $this.Id).Count
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>IsAdminRole</Name>
+                <GetScriptBlock>
+                    (Get-KeeperEnterpriseAdminRole $this.Id).Count -gt 0
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>UserList</Name>
+                <GetScriptBlock>
+                    $users = @()
+                    foreach ($user in Get-KeeperEnterpriseRoleUsers $this.Id) {
+                        $users += $user.Email
+                    }
+                    $users -join "`r`n"
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>TeamList</Name>
+                <GetScriptBlock>
+                    $teams = @()
+                    foreach ($team in Get-KeeperEnterpriseRoleTeams $this.Id) {
+                        $teams += $team.Name
+                    }
+                    $teams -join "`r`n"
+                </GetScriptBlock>
+            </ScriptProperty>
+        </Members>
+    </Type>
+
+    <Type>
+        <Name>KeeperSecurity.Enterprise.RolePermissions</Name>
+        <Members>
+            <ScriptProperty>
+                <Name>NodeName</Name>
+                <GetScriptBlock>
+                    Get-KeeperNodeName $this.NodeId
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>RoleName</Name>
+                <GetScriptBlock>
+                    Get-KeeperRoleName $this.RoleId
                 </GetScriptBlock>
             </ScriptProperty>
         </Members>

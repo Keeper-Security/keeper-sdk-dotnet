@@ -94,21 +94,21 @@ namespace KeeperSecurity.Enterprise
     public interface IEnterpriseDataManagement
     {
         /// <summary>
-        ///     Invides User to Enterprise.
+        ///     Invites a User to Enterprise.
         /// </summary>
         /// <param name="email">User email</param>
         /// <param name="options">Invided user options</param>
         /// <returns>Invited User</returns>
         Task<EnterpriseUser> InviteUser(string email, InviteUserOptions options = null);
         /// <summary>
-        ///     Locks or Unlocks Enterprise User.
+        ///     Locks or Unlocks an Enterprise User.
         /// </summary>
         /// <param name="user">Enterprise User</param>
         /// <param name="locked">Lock flag</param>
         /// <returns>User</returns>
         Task<EnterpriseUser> SetUserLocked(EnterpriseUser user, bool locked);
         /// <summary>
-        ///     Deletes Enterprise User.
+        ///     Deletes an Enterprise User.
         /// </summary>
         /// <param name="user">Enterprise User</param>
         /// <returns>Task</returns>

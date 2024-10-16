@@ -9,6 +9,39 @@ using KeeperSecurity.Authentication;
 
 namespace KeeperSecurity.Enterprise
 {
+    public class RolePermissions
+    {
+        const string MANAGE_NODES = "MANAGE_NODES";
+        const string MANAGE_USERS = "MANAGE_USER";
+        const string MANAGE_ROLES = "MANAGE_ROLES";
+        const string MANAGE_TEAMS = "MANAGE_TEAMS";
+        const string MANAGE_AUDIT_REPORTS = "RUN_REPORTS";
+        const string MANAGE_BRIDGE_SSO = "MANAGE_BRIDGE";
+        const string APPROVE_DEVICE = "APPROVE_DEVICE";
+        const string MANAGE_RECORD_TYPES = "MANAGE_RECORD_TYPES";
+        const string RUN_COMPLIANCE_REPORTS = "RUN_COMPLIANCE_REPORTS";
+        const string MANAGE_COMPANIES = "MANAGE_COMPANIES";
+        const string TRANSFER_ACCOUNT = "TRANSFER_ACCOUNT";
+        const string SHARE_ADMIN = "SHARING_ADMINISTRATOR";
+
+        internal ISet<string> privileges = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+        public long RoleId { get; internal set; }
+        public long NodeId { get; internal set; }
+        public bool Cascade { get; internal set; }
+        public bool ManageNodes => privileges.Contains(MANAGE_NODES);
+        public bool ManageUsers => privileges.Contains(MANAGE_USERS);
+        public bool ManageRoles => privileges.Contains(MANAGE_ROLES);
+        public bool ManageTeams => privileges.Contains(MANAGE_TEAMS);
+        public bool ManageAuditReports => privileges.Contains(MANAGE_AUDIT_REPORTS);
+        public bool ManageBridgeSso => privileges.Contains(MANAGE_BRIDGE_SSO);
+        public bool ApproveDevice => privileges.Contains(APPROVE_DEVICE);
+        public bool ManageRecordTypes => privileges.Contains(MANAGE_RECORD_TYPES);
+        public bool RunComplianceReports => privileges.Contains(RUN_COMPLIANCE_REPORTS);
+        public bool ManageCompanies => privileges.Contains(MANAGE_COMPANIES);
+        public bool TransferAccount => privileges.Contains(TRANSFER_ACCOUNT);
+        public bool ShareAdmin => privileges.Contains(SHARE_ADMIN);
+    }
+
     /// <summary>
     /// Defines Role enterprise data.
     /// </summary>
@@ -61,6 +94,18 @@ namespace KeeperSecurity.Enterprise
         IEnumerable<RoleEnforcement> GetEnforcementsForRole(long roleId);
 
         /// <summary>
+        /// Gets a list of all administrative permissions
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<RolePermissions> GetAdminPermissions();
+        /// <summary>
+        /// Gets a list administrative permissions for a role
+        /// </summary>
+        /// <param name="roleId"></param>
+        /// <returns></returns>
+        IEnumerable<RolePermissions> GetRolePermissions(long roleId);
+
+        /// <summary>
         /// Gets role key.
         /// </summary>
         /// <param name="roleId">Enterprise Role ID.</param>
@@ -71,7 +116,7 @@ namespace KeeperSecurity.Enterprise
     /// <summary>
     /// Represents Role enterprise data.
     /// </summary>
-    public class RoleData : EnterpriseDataPlugin, IRoleData
+    public partial class RoleData : EnterpriseDataPlugin, IRoleData
     {
         private readonly RoleDictionary _roles = new RoleDictionary();
         private readonly RoleUserLink _roleUsers = new RoleUserLink();
@@ -129,6 +174,36 @@ namespace KeeperSecurity.Enterprise
         public IEnumerable<RoleEnforcement> GetEnforcementsForRole(long roleId)
         {
             return _roleEnforcements.LinksForPrimaryKey(roleId);
+        }
+
+        internal RolePermissions GetRolePermission(ManagedNode managedNode) 
+        {
+            var rp = new RolePermissions
+            {
+                RoleId = managedNode.RoleId,
+                NodeId = managedNode.ManagedNodeId,
+                Cascade = managedNode.CascadeNodeManagement
+            };
+
+            foreach (var p in GetPrivilegesForRoleAndNode(rp.RoleId, rp.NodeId)) 
+            {
+                rp.privileges.Add(p.PrivilegeType);
+            }
+            return rp;
+        }
+        public IEnumerable<RolePermissions> GetAdminPermissions() 
+        {
+            foreach (var p in GetManagedNodes()) {
+                yield return GetRolePermission(p);
+            }
+        }
+
+        public IEnumerable<RolePermissions> GetRolePermissions(long roleId) 
+        {
+            foreach (var p in _managedNodes.LinksForPrimaryKey(roleId))
+            {
+                yield return GetRolePermission(p);
+            }
         }
 
         /// <summary>
@@ -266,8 +341,11 @@ namespace KeeperSecurity.Enterprise
             {
                 EnterpriseUtils.DecryptEncryptedData(keeper.EncryptedData, enterprise.TreeKey, sdk);
             }
+            if (string.Equals(sdk.RoleType, "pool_manager", StringComparison.InvariantCultureIgnoreCase))
+            {
+                sdk.DisplayName = "MSP Subscription Manager";
+            }
         }
-
         protected override void SetEntityId(EnterpriseRole entity, long id)
         {
             entity.Id = id;
@@ -336,6 +414,8 @@ namespace KeeperSecurity.Enterprise
             return keeperData.EnforcementType;
         }
     }
+
+    /////////
 
     /// <exclude/>
     public class ManagedNodeLink : EnterpriseDataLink<ManagedNode, ManagedNode, long, long>

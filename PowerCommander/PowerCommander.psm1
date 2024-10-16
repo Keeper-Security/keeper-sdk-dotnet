@@ -39,11 +39,15 @@ Export-ModuleMember -Alias ksf
 Export-ModuleMember -Function Add-KeeperFolder, Remove-KeeperFolder
 Export-ModuleMember -Alias kmkdir, krmdir
 
+Export-ModuleMember -Function Get-KeeperNodeName, Get-KeeperRoleName
+
 Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, Get-KeeperEnterpriseTeam,
-Get-KeeperEnterpriseNode, Get-KeeperNodeName, Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser,
-Unlock-KeeperEnterpriseUser, Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser,
-Get-KeeperEnterpriseTeamUser, New-KeeperEnterpriseNode, Get-KeeperEnterpriseRole
-Export-ModuleMember -Alias ked, keu, ket, ketu, ken, ker, kena, invite-user, lock-user, unlock-user, transfer-user, delete-user
+Get-KeeperEnterpriseNode, Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser,
+Unlock-KeeperEnterpriseUser, Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Get-KeeperEnterpriseRoleTeams,
+Get-KeeperEnterpriseTeamUser, New-KeeperEnterpriseNode, Get-KeeperEnterpriseRole, Get-KeeperEnterpriseRoleUsers,
+Get-KeeperEnterpriseAdminRole
+Export-ModuleMember -Alias ked, keu, ket, ketu, ken, ker, keru, kert, kerap, kena, 
+invite-user, lock-user, unlock-user, transfer-user, delete-user
 
 Export-ModuleMember -Function Get-KeeperManagedCompany, New-KeeperManagedCompany, Remove-KeeperManagedCompany,
 Edit-KeeperManagedCompany, Get-MspBillingReport, Switch-KeeperMC, Switch-KeeperMSP

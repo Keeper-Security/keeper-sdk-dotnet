@@ -367,22 +367,6 @@ function Get-MspBillingReport {
     }
 }
 
-function Script:Get-KeeperNodeName {
-    Param (
-        [long]$nodeId
-    )
-    $enterprise = getEnterprise
-    [KeeperSecurity.Enterprise.EnterpriseNode]$node = $null
-    if ($enterprise.enterpriseData.TryGetNode($nodeId, [ref]$node)) {
-        if ($node.ParentNodeId -gt 0) {
-            return $node.DisplayName
-        }
-        else {
-            return $enterprise.loader.EnterpriseName
-        }
-    }
-}
-
 function findManagedCompany {
     Param (
         [string]$mc
