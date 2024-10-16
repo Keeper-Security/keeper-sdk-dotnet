@@ -92,7 +92,6 @@
     <Compile Include="CommanderStorageProtection.cs" />
     <Compile Include="enterprise\EnterpriseCommands.cs" />
     <Compile Include="enterprise\QueuedTeamManagement.cs" />
-    <Compile Include="enterprise\RoleDataManagement.cs" />
     <Compile Include="StorageUtils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

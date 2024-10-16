@@ -323,7 +323,20 @@
                     <TableColumnHeader />
                     <TableColumnHeader />
                     <TableColumnHeader />
-                    <TableColumnHeader />
+                    <TableColumnHeader>
+                        <Label>NewUserInherit</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>IsAdminRole</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
                 </TableHeaders>
                 <TableRowEntries>
                     <TableRowEntry>
@@ -336,10 +349,23 @@
                                 <PropertyName>DisplayName</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>ParentNodeName</PropertyName>
+                                <PropertyName>NodeName</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>NewUserInherit</PropertyName>
+                                <ScriptBlock>
+                                    if ($_.NewUserInherit -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Users</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Teams</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.IsAdminRole -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>
@@ -365,15 +391,119 @@
                                 <PropertyName>ParentNodeId</PropertyName>
                             </ListItem>
                             <ListItem>
-                                <PropertyName>ParentNodeName</PropertyName>
+                                <PropertyName>NodeName</PropertyName>
                             </ListItem>
                             <ListItem>
                                 <PropertyName>NewUserInherit</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>UserList</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>TeamList</PropertyName>
                             </ListItem>
                         </ListItems>
                     </ListEntry>
                 </ListEntries>
             </ListControl>
+        </View>
+
+        <View>
+            <Name>KeeperSecurity.Enterprise.RolePermissions_TableView</Name>
+            <ViewSelectedBy>
+                <TypeName>KeeperSecurity.Enterprise.RolePermissions</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader />
+                    <TableColumnHeader />
+                    <TableColumnHeader>
+                        <Label>Cascade</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>ManageNodes</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>ManageUsers</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>ManageRoles</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>ManageTeams</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>ManageCompanies</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>ShareAdmin</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>TransferAccount</Label>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <Wrap />
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>RoleName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>NodeName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.Cascade -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.ManageNodes -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.ManageUsers -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.ManageRoles -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.ManageTeams -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.ManageCompanies -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.ShareAdmin -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.TransferAccount -eq $true) {'X'} else {'-'} 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
         </View>
 
     </ViewDefinitions>

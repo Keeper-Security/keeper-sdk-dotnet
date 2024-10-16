@@ -11,7 +11,7 @@
     RootModule         = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion      = '0.9.15'
+    ModuleVersion      = '0.9.16'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -75,9 +75,11 @@
         'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
         'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
         'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Remove-KeeperFolder', 'Get-KeeperRecordType',
-        'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 'Get-KeeperNodeName',
+        'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 
+        'Get-KeeperNodeName', 'Get-KeeperRoleName',
         'Add-KeeperEnterpriseUser', 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 
-        'Remove-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole',
+        'Remove-KeeperEnterpriseUser', 'New-KeeperEnterpriseNode', 'Get-KeeperEnterpriseRole', 'Get-KeeperEnterpriseRoleUsers',
+        'Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
         'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
         'Set-KeeperDeviceSettings',
@@ -97,9 +99,9 @@
 
     # Aliases to export from this module
     AliasesToExport    = @('kc', 'ks', 'kq', 'kpwd', 'kcd', 'kdir', 'ko', 'kr', 'ksf', 'kcc', '2fa', 'kadd', 'kdel', 'kmv', 'kmkdir', 'krmdir', 'krti',
-        'ked', 'keu', 'ken', 'ket', 'ker', 'ketu', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'msp-license', 'switch-to-mc', 'switch-to-msp',
-        'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 
-        'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
+        'ked', 'keu', 'ken', 'ket', 'ker', 'ketu', 'keru', 'kert', 'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'msp-license', 
+        'switch-to-mc', 'switch-to-msp', 'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
+        'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
         'ksm', 'ksm-create', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda')
 
     # List of all modules packaged with this module
@@ -115,7 +117,7 @@
             LicenseUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri  = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'Fix bug in `transfer-user` in MC environment.'
+            ReleaseNotes = 'Display enterprise role information'
         }
     }
 

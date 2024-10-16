@@ -27,7 +27,7 @@ namespace Commander
     {
         EnterpriseLoader Enterprise { get; }
         EnterpriseData EnterpriseData { get; }
-        RoleDataManagement RoleManagement { get; }
+        RoleData RoleManagement { get; }
         QueuedTeamDataManagement QueuedTeamManagement { get; }
         UserAliasData UserAliasData { get; }
 
@@ -761,7 +761,7 @@ namespace Commander
 
         private static string[] _privilegeNames = new string[] { "MANAGE_NODES", "MANAGE_USER", "MANAGE_ROLES", "MANAGE_TEAMS", "RUN_REPORTS", "MANAGE_BRIDGE", "APPROVE_DEVICE", "TRANSFER_ACCOUNT" };
 
-        public static async Task EnterpriseRoleCommand(this RoleDataManagement roleData, EnterpriseData enterpriseData, EnterpriseRoleOptions arguments)
+        public static async Task EnterpriseRoleCommand(this RoleData roleData, EnterpriseData enterpriseData, EnterpriseRoleOptions arguments)
         {
             if (arguments.Force)
             {
@@ -928,7 +928,7 @@ namespace Commander
                     nodeId = enterpriseData.RootNode.Id;
                 }
 
-                await roleData.CreateRole(arguments.Role, nodeId, arguments.VisibleBelow, arguments.NewUser);
+                await roleData.CreateRole(arguments.Role, nodeId, arguments.NewUser);
                 Console.WriteLine($"Role \"{arguments.Role}\" successfully added.");
                 return;
             }
@@ -1028,7 +1028,7 @@ namespace Commander
 
             if (string.CompareOrdinal(arguments.Command, "delete") == 0)
             {
-                await roleData.DeleteRole(role.Id);
+                await roleData.DeleteRole(role);
                 return;
             }
 
@@ -1088,11 +1088,11 @@ namespace Commander
                         Console.Write($"User: \"{user.Email}\" : ");
                         if (isAdd)
                         {
-                            await roleData.AddUserToRole(role.Id, user.Id);
+                            await roleData.AddUserToRole(role, user);
                         }
                         else
                         {
-                            await roleData.RemoveUserFromRole(role.Id, user.Id);
+                            await roleData.RemoveUserFromRole(role, user);
                         }
                         Console.WriteLine("Success");
                     }
@@ -1108,11 +1108,11 @@ namespace Commander
                         Console.Write($"Team: \"{team.Name}\" : ");
                         if (isAdd)
                         {
-                            await roleData.AddTeamToRole(role.Id, team.Uid);
+                            await roleData.AddTeamToRole(role, team);
                         }
                         else
                         {
-                            await roleData.RemoveTeamFromRole(role.Id, team.Uid);
+                            await roleData.RemoveTeamFromRole(role, team);
                         }
                         Console.WriteLine("Success");
                     }
@@ -1850,7 +1850,7 @@ namespace Commander
         public EnterpriseLoader Enterprise { get; }
         public EnterpriseData EnterpriseData { get; }
         public DeviceApprovalData DeviceApproval { get; }
-        public RoleDataManagement RoleManagement { get; }
+        public RoleData RoleManagement { get; }
         public QueuedTeamDataManagement QueuedTeamManagement { get; }
         public UserAliasData UserAliasData { get; }
 
@@ -1859,7 +1859,7 @@ namespace Commander
             if (auth.AuthContext.IsEnterpriseAdmin)
             {
                 DeviceApproval = new DeviceApprovalData();
-                RoleManagement = new RoleDataManagement();
+                RoleManagement = new RoleData();
                 EnterpriseData = new EnterpriseData();
                 QueuedTeamManagement = new QueuedTeamDataManagement();
                 UserAliasData = new UserAliasData();
@@ -1896,7 +1896,7 @@ namespace Commander
     {
         public EnterpriseLoader Enterprise { get; private set; }
         public EnterpriseData EnterpriseData { get; private set; }
-        public RoleDataManagement RoleManagement { get; private set; }
+        public RoleData RoleManagement { get; private set; }
         public QueuedTeamDataManagement QueuedTeamManagement { get; private set; }
         public UserAliasData UserAliasData { get; internal set; }
 
@@ -1915,7 +1915,7 @@ namespace Commander
             if (_auth.AuthContext.IsEnterpriseAdmin)
             {
                 EnterpriseData = new EnterpriseData();
-                RoleManagement = new RoleDataManagement();
+                RoleManagement = new RoleData();
                 DeviceApproval = new DeviceApprovalData();
                 _managedCompanies = new ManagedCompanyData();
                 QueuedTeamManagement = new QueuedTeamDataManagement();
@@ -2307,9 +2307,6 @@ namespace Commander
     {
         [Option("node", Required = false, HelpText = "Node Name or ID. \"add\"")]
         public string Node { get; set; }
-
-        [Option('b', "visible-below", Required = false, Default = true, HelpText = "Visible to all nodes in hierarchy below. \"add\"")]
-        public bool VisibleBelow { get; set; }
 
         [Option('n', "new-user", Required = false, Default = false, HelpText = "New users automatically get this role assigned. \"add\"")]
         public bool NewUser { get; set; }

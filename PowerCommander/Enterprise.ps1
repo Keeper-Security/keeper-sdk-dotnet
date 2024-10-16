@@ -539,8 +539,11 @@ New-Alias -Name ken -Value Get-KeeperEnterpriseNode
 
 function Get-KeeperEnterpriseRole {
     <#
-        .Synopsis
+        .SYNOPSIS
     	Get a list of enterprise roles
+
+        .PARAMETER Role
+        Role Name or ID
     #>
     [CmdletBinding()]
 
@@ -548,3 +551,224 @@ function Get-KeeperEnterpriseRole {
     return $enterprise.roleData.Roles
 }
 New-Alias -Name ker -Value Get-KeeperEnterpriseRole
+
+$Keeper_RoleNameCompleter = {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+    $result = @()
+    [Enterprise]$enterprise = $Script:Context.Enterprise
+    if (-not $enterprise) {
+        return $null
+    }
+    if ($wordToComplete) {
+        $to_complete = $wordToComplete + '*'
+    }
+    else {
+        $to_complete = '*'
+    }
+    foreach ($role in $enterprise.roleData.Roles) {
+        if ($role.DisplayName -like $to_complete) {
+            $roleName = $role.DisplayName
+            if ($roleName -match '[\s'']') {
+                $roleName = $roleName -replace '''', ''''''
+                $roleName = "'${roleName}'"
+            }
+
+            $result += $roleName
+        }
+    }
+    if ($result.Count -gt 0) {
+        return $result
+    }
+    else {
+        return $null
+    }
+}
+
+function Get-KeeperEnterpriseRoleUsers {
+    <#
+        .SYNOPSIS
+    	Get a list of enterprise users for a role
+
+        .PARAMETER Role
+        Role Name or ID
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $enterpriseData = $enterprise.enterpriseData
+    $roleData = $enterprise.roleData
+    $roleId = $null
+
+    if ($Role -is [String]) {
+        $ids = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Role -or $_.DisplayName -ieq $Role } | Select-Object -Property Id
+        if ($ids.Length -gt 1) {
+            Write-Error -Message "Role name `"$Role`" is not unique. Use Role ID" -ErrorAction Stop
+        }
+
+        if ($null -ne $ids.Id) {
+            $roleId = $ids.Id
+        }
+    }
+    elseif ($Role -is [long]) {
+        $ids = Get-KeeperEnterpriseRole | Where-Object { $_.Id -ceq $Role } | Select-Object -First 1
+        if ($ids.Length -eq 1) {
+            $roleId = $ids[0].Id
+        }
+    }
+    elseif ($null -ne $Role.Id) {
+        $roleId = $Role.Id
+    }
+    if ($roleId) {
+        $erole = $null
+        if ($roleData.TryGetRole($roleId, [ref]$erole)) {
+            foreach ($userId in $roleData.GetUsersForRole($erole.Id)) {
+                $user = $null
+                if ($enterpriseData.TryGetUserById($userId, [ref]$user)) {
+                    $user
+                }
+            }
+        }
+        else {
+            Write-Error -Message "Role `"$roleId`" not found" -ErrorAction Stop
+        }
+    }
+    else {
+        Write-Error -Message "Role `"$Role`" not found" -ErrorAction Stop
+    }
+}
+New-Alias -Name keru -Value Get-KeeperEnterpriseRoleUsers
+Register-ArgumentCompleter -CommandName Get-KeeperEnterpriseRoleUsers -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+
+function Get-KeeperEnterpriseRoleTeams {
+    <#
+        .SYNOPSIS
+    	Get a list of enterprise teams for a role
+
+        .PARAMETER Role
+        Role Name or ID
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]$Role
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $enterpriseData = $enterprise.enterpriseData
+    $roleData = $enterprise.roleData
+    $roleId = $null
+
+    if ($Role -is [String]) {
+        $ids = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Role -or $_.DisplayName -ieq $Role } | Select-Object -Property Id
+        if ($ids.Length -gt 1) {
+            Write-Error -Message "Role name `"$Role`" is not unique. Use Role ID" -ErrorAction Stop
+        }
+
+        if ($null -ne $ids.Id) {
+            $roleId = $ids.Id
+        }
+    }
+    elseif ($Role -is [long]) {
+        $ids = Get-KeeperEnterpriseRole | Where-Object { $_.Id -ceq $Role } | Select-Object -First 1
+        if ($ids.Length -eq 1) {
+            $roleId = $ids[0].Id
+        }
+    }
+    elseif ($null -ne $Role.Id) {
+        $roleId = $Role.Id
+    }
+    if ($roleId) {
+        $erole = $null
+        if ($roleData.TryGetRole($roleId, [ref]$erole)) {
+            foreach ($teamUid in $roleData.GetTeamsForRole($erole.Id)) {
+                $team = $null
+                if ($enterpriseData.TryGetTeam($teamUid, [ref]$team)) {
+                    $team
+                }
+            }
+        }
+        else {
+            Write-Error -Message "Role `"$roleId`" not found" -ErrorAction Stop
+        }
+    }
+    else {
+        Write-Error -Message "Role `"$Role`" not found" -ErrorAction Stop
+    }
+}
+New-Alias -Name kert -Value Get-KeeperEnterpriseRoleTeams
+Register-ArgumentCompleter -CommandName Get-KeeperEnterpriseRoleTeams -ParameterName Role -ScriptBlock $Keeper_RoleNameCompleter
+
+function Get-KeeperEnterpriseAdminRole {
+    <#
+        .SYNOPSIS
+    	Get a list of Administrator Permissions
+
+        .PARAMETER Pattern
+        Role search pattern
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $false)]$Pattern
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+    $roleData = $enterprise.roleData
+    $roles = $null
+
+    if ($Pattern -is [String]) {
+        $roles = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Pattern -or $_.DisplayName -match $Pattern } 
+    }
+    elseif ($Pattern -is [long]) {
+        $roles = Get-KeeperEnterpriseRole | Where-Object { $_.Id -eq $Pattern } 
+    }
+    elseif ($null -ne $Pattern.Id) {
+        $roles = $Pattern
+    }
+    else {
+        $roles = Get-KeeperEnterpriseRole
+    }
+    if ($null -ne $roles -and $roles.Length -gt 0 ) {
+        $roles = $roles | Sort-Object -Property DisplayName
+        foreach ($role in $roles) {
+            if ($null -ne $role.Id) {
+                foreach ($rp in $roleData.GetRolePermissions($role.Id)) {
+                    $rp
+                }
+            }
+        }
+    }        
+    else {
+        Write-Error -Message "Role `"$Role`" not found" -ErrorAction Stop
+    }
+}
+New-Alias -Name kerap -Value Get-KeeperEnterpriseAdminRole
+
+function Script:Get-KeeperNodeName {
+    Param (
+        [long]$nodeId
+    )
+    $enterprise = getEnterprise
+    [KeeperSecurity.Enterprise.EnterpriseNode]$node = $null
+    if ($enterprise.enterpriseData.TryGetNode($nodeId, [ref]$node)) {
+        if ($node.ParentNodeId -gt 0) {
+            return $node.DisplayName
+        }
+        else {
+            return $enterprise.loader.EnterpriseName
+        }
+    }
+}
+
+function Script:Get-KeeperRoleName {
+    Param (
+        [long]$roleId
+    )
+    $enterprise = getEnterprise
+    [KeeperSecurity.Enterprise.EnterpriseRole]$role = $null
+    if ($enterprise.roleData.TryGetRole($roleId, [ref]$role)) {
+        return $role.DisplayName
+    }
+}

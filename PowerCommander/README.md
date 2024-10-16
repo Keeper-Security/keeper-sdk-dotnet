@@ -65,6 +65,9 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Move-KeeperEnterpriseUser              |transfer-user| Transfer user account to another user
 | Remove-KeeperEnterpriseUser            | delete-user | Delete Enterprise User
 | Get-KeeperEnterpriseRole               | ker         | Enumerate all enterprise roles <sup style="color:red">(new)</sup>
+| Get-KeeperEnterpriseRoleUsers          | keru        | Get a list of enterprise users for role <sup style="color:red">(new)</sup>
+| Get-KeeperEnterpriseRoleTeams          | kert        | Get a list of enterprise teams for role <sup style="color:red">(new)</sup>
+| Get-KeeperEnterpriseAdminRole          | kerap       | Enumerate all enterprise role admin permissions <sup style="color:red">(new)</sup>
 | Get-KeeperMspLicenses                  | msp-license | Return MSP licenses
 | Switch-KeeperMC                        |switch-to-mc | Switch to Managed Company <sup style="color:red">(new)</sup>
 | Switch-KeeperMSP                       |switch-to-msp| Switch back to MSP <sup style="color:red">(new)</sup>
