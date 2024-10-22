@@ -41,7 +41,7 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Instantiates <see cref="QueuedTeamData"/> instance.
         /// </summary>
-        protected QueuedTeamData()
+        public QueuedTeamData()
         {
             _queuedTeams = new QueuedTeamDictionary();
             _queuedUsers = new QueuedUserDictionary();

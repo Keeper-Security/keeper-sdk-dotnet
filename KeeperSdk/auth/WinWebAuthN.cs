@@ -1,4 +1,4 @@
-﻿#if NET452_OR_GREATER
+﻿#if NET472_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.Linq;

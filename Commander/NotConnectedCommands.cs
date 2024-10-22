@@ -51,7 +51,12 @@ namespace Commander
         public NotConnectedCliContext(bool autologin)
         {
             var loader = Program.CommanderStorage.GetConfigurationLoader();
-            var storage = new JsonConfigurationStorage(loader);
+            var storage = new JsonConfigurationStorage(loader) 
+            {
+                ConfigurationProtection = new CommanderConfigurationProtection(),
+                SecurityAlgorithm = "dpapi",
+            };
+
             _auth = new AuthSync(storage)
             {
                 Endpoint = { DeviceName = "Commander C#", ClientVersion = "c16.11.0" }

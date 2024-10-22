@@ -9,6 +9,7 @@ using System.Web;
 using System.Buffers;
 
 #if NET472_OR_GREATER
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
@@ -431,8 +432,14 @@ namespace KeeperSecurity.Utils
         /// <returns>Encryption key.</returns>
         public static byte[] DeriveKeyV1(string password, byte[] salt, int iterations)
         {
+#if NET472_OR_GREATER
+                var pdb = new Pkcs5S2ParametersGenerator(new Sha256Digest());
+                pdb.Init(PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password.ToCharArray()), salt, iterations);
+                return ((KeyParameter) pdb.GenerateDerivedMacParameters(32 * 8)).GetKey();
+#else
             using var pdb = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
             return pdb.GetBytes(256 / 8);
+#endif
         }
 
         /// <summary>
@@ -553,19 +560,19 @@ namespace KeeperSecurity.Utils
         /// <returns>Encryption key.</returns>
         public static byte[] DeriveKeyV2(string domain, string password, byte[] salt, int iterations)
         {
-            /*
+#if NET472_OR_GREATER
             var passwordBytes = Encoding.UTF8.GetBytes(domain + password);
             var pdb = new Pkcs5S2ParametersGenerator(new Sha512Digest());
             pdb.Init(passwordBytes, salt, iterations);
             var key = ((KeyParameter) pdb.GenerateDerivedMacParameters(64 * 8)).GetKey();
             var hmac = new HMACSHA256(key);
             return hmac.ComputeHash(Encoding.UTF8.GetBytes(domain));
-            */
-
+#else
             using var pdb = new Rfc2898DeriveBytes(domain + password, salt, iterations, HashAlgorithmName.SHA512);
             var key = pdb.GetBytes(512 / 8);
             using var hmac = new HMACSHA256(key);
             return hmac.ComputeHash(Encoding.UTF8.GetBytes(domain));
+#endif
         }
 
         /// <summary>

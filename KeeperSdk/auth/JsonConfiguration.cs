@@ -10,6 +10,40 @@ using KeeperSecurity.Utils;
 namespace KeeperSecurity.Configuration
 {
     /// <summary>
+    /// Defines the methods for protecting sensitive storage information.
+    /// </summary>
+    /// <seealso cref="KeeperEncryptionAesV2Protector"/>
+    public interface IConfigurationProtection
+    {
+        /// <summary>
+        /// Encrypts / Obfuscates text.
+        /// </summary>
+        /// <param name="data">Plain test</param>
+        /// <returns>Encrypted text.</returns>
+        string Obscure(string data);
+
+        /// <summary>
+        /// Decrypts previously encrypted text.
+        /// </summary>
+        /// <param name="data">Encrypted text</param>
+        /// <returns>Plain text.</returns>
+        string Clarify(string data);
+    }
+
+    /// <summary>
+    /// Resolves a <see cref="IConfigurationProtection"/> instance by name.
+    /// </summary>
+    public interface IConfigurationProtectionFactory
+    {
+        /// <summary>
+        /// Finds <c>IConfigurationProtection</c> instance by name.
+        /// </summary>
+        /// <param name="protection">Protection method name.</param>
+        /// <returns>Configuration protection</returns>
+        IConfigurationProtection Resolve(string protection);
+    }
+
+    /// <summary>
     /// Defines JSON serialization methods
     /// </summary>
     /// <remarks>
@@ -161,7 +195,9 @@ namespace KeeperSecurity.Configuration
             {
                 try
                 {
-                    _configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
+                    var configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
+                    DecryptConfiguration(configuration);
+                    _configuration = configuration;
                     _readEpochMillis = nowMillis;
                     return _configuration;
                 }
@@ -172,6 +208,133 @@ namespace KeeperSecurity.Configuration
             }
 
             return new KeeperConfiguration();
+        }
+
+        private void DecryptConfiguration(JsonConfiguration configuration) {
+            var algorithm = configuration.security;
+
+            if (ConfigurationProtection != null && !string.IsNullOrEmpty(algorithm))
+            {
+                var protector = ConfigurationProtection.Resolve(algorithm);
+                if (protector == null)
+                {
+                    Debug.WriteLine($"JSON configuration protector \"{algorithm}\" is not found");
+
+                    protector = new WipeOutProtector();
+                }
+                if (configuration.devices != null)
+                {
+                    foreach (var d in configuration.devices)
+                    {
+                        if (d.secured == true)
+                        {
+                            d.secured = null;
+                            try
+                            {
+                                d.privateKey = protector.Clarify(d.privateKey);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                                d.privateKey = null;
+                            }
+                            if (d.serverInfo != null)
+                            {
+                                foreach (var si in d.serverInfo)
+                                {
+                                    if (!string.IsNullOrEmpty(si.cloneCode))
+                                    {
+                                        try
+                                        {
+                                            si.cloneCode = protector.Clarify(si.cloneCode);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Debug.WriteLine(e);
+                                            si.cloneCode = null;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (configuration.users != null)
+                {
+                    foreach (var u in configuration.users)
+                    {
+                        if (u.secured == true)
+                        {
+                            u.secured = null;
+                            if (!string.IsNullOrEmpty(u.user_password))
+                            {
+                                try
+                                {
+                                    u.user_password = protector.Clarify(u.user_password);
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e);
+                                    u.user_password = null;
+                                }
+                            }
+                        }
+                    }
+                }
+                configuration.security = null;
+            }
+        }
+
+        private void EncryptConfiguration(JsonConfiguration configuration)
+        {
+            if (ConfigurationProtection != null && !string.IsNullOrEmpty(SecurityAlgorithm) && !SkipSecurity)
+            {
+                var protector = ConfigurationProtection.Resolve(SecurityAlgorithm);
+                if (protector != null)
+                {
+                    if (_configuration.devices != null)
+                    {
+                        foreach (var d in _configuration.devices)
+                        {
+                            try
+                            {
+                                d.privateKey = protector.Obscure(d.privateKey);
+                                foreach (var si in d.serverInfo)
+                                {
+                                    if (!string.IsNullOrEmpty(si.cloneCode))
+                                    {
+                                        si.cloneCode = protector.Obscure(si.cloneCode);
+                                    }
+                                }
+                                d.secured = true;
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                            }
+                        }
+                    }
+                    if (_configuration.users != null)
+                    {
+                        foreach (var u in _configuration.users)
+                        {
+                            if (!string.IsNullOrEmpty(u.user_password))
+                            {
+                                try
+                                {
+                                    u.user_password = protector.Obscure(u.user_password);
+                                    u.secured = true;
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e);
+                                }
+                            }
+                        }
+                    }
+                    _configuration.security = SecurityAlgorithm;
+                }
+            }
         }
 
         public void Put(IKeeperConfiguration configuration)
@@ -185,6 +348,7 @@ namespace KeeperSecurity.Configuration
                     try
                     {
                         _configuration = JsonUtils.ParseJson<JsonConfiguration>(data);
+                        DecryptConfiguration(_configuration);
                     }
                     catch (Exception e)
                     {
@@ -196,10 +360,25 @@ namespace KeeperSecurity.Configuration
             }
 
             _configuration.Assign(configuration);
-            data = JsonUtils.DumpJson(configuration);
+            EncryptConfiguration(_configuration);
+            data = JsonUtils.DumpJson(_configuration);
             _loader.StoreJson(data);
             _configuration = null;
         }
+
+        /// <summary>
+        /// Gets / sets configuration protection factory.
+        /// </summary>
+        public IConfigurationProtectionFactory ConfigurationProtection { get; set; }
+        
+        /// <exclude/>
+        public bool SkipSecurity { get; set; }
+
+        /// <summary>
+        /// Gets / sets configuration protection algorithm.
+        /// </summary>
+        /// <seealso cref="IConfigurationProtectionFactory"/>
+        public string SecurityAlgorithm { get; set; }
     }
 
     internal class ListConfigCollection<T, IT> : IConfigCollection<IT> where T : IT, IEntityCopy<IT>, new()
@@ -276,14 +455,14 @@ namespace KeeperSecurity.Configuration
         public string user_password;
         //#pragma warning restore 0649
 
-        [DataMember(Name = "mfa_token", EmitDefaultValue = false)]
-        public string _mfa_token;
-
         [DataMember(Name = "server", EmitDefaultValue = false)]
         public string _server;
 
         [DataMember(Name = "last_device", EmitDefaultValue = false)]
         public JsonUserDeviceConfiguration _last_device;
+
+        [DataMember(Name = "secured", EmitDefaultValue = false)]
+        public bool? secured;
 
         public ExtensionDataObject ExtensionData { get; set; }
 
@@ -301,13 +480,11 @@ namespace KeeperSecurity.Configuration
                 }
                 : _last_device = null;
 
-            _mfa_token = userConf.TwoFactorToken;
             _server = userConf.Server;
         }
 
         string IUserConfiguration.Username => user;
         string IUserConfiguration.Password => user_password;
-        string IUserConfiguration.TwoFactorToken => _mfa_token;
         string IUserConfiguration.Server => _server;
         IUserDeviceConfiguration IUserConfiguration.LastDevice => _last_device;
         string IConfigurationId.Id => user;
@@ -379,6 +556,9 @@ namespace KeeperSecurity.Configuration
         [DataMember(Name = "server_info", EmitDefaultValue = false)]
         public List<JsonDeviceServerConfiguration> serverInfo;
 
+        [DataMember(Name = "secured", EmitDefaultValue = false)]
+        public bool? secured;
+
         string IDeviceConfiguration.DeviceToken => deviceToken;
         byte[] IDeviceConfiguration.DeviceKey => string.IsNullOrEmpty(privateKey) ? null : privateKey.Base64UrlDecode();
         string IConfigurationId.Id => deviceToken;
@@ -445,6 +625,9 @@ namespace KeeperSecurity.Configuration
 
         [DataMember(Name = "devices", EmitDefaultValue = false)]
         internal List<JsonDeviceConfiguration> devices;
+
+        [DataMember(Name = "security", EmitDefaultValue = false)]
+        public string security;
 
         public IConfigCollection<IUserConfiguration> Users
         {

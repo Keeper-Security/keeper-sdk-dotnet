@@ -77,9 +77,6 @@ namespace KeeperSecurity.Configuration
         /// </remarks>
         string Password { get; }
 
-        /// <exclude/>
-        string TwoFactorToken { get; }
-
         /// <summary>
         /// Keeper region where user is hosted.
         /// </summary>
@@ -269,7 +266,6 @@ namespace KeeperSecurity.Configuration
         public UserConfiguration(IUserConfiguration other) : this(other.Username)
         {
             Password = other.Password;
-            TwoFactorToken = other.TwoFactorToken;
             Server = other.Server;
             if (other.LastDevice != null)
             {
@@ -282,9 +278,6 @@ namespace KeeperSecurity.Configuration
 
         /// <inheritdoc/>>
         public string Password { get; set; }
-
-        /// <inheritdoc/>>
-        public string TwoFactorToken { get; set; }
 
         /// <inheritdoc/>>
         public string Server { get; set; }

@@ -528,7 +528,7 @@ namespace KeeperSecurity.Authentication
 
         private static IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
         {
-#if NET452_OR_GREATER
+#if NET472_OR_GREATER
             if (CredentialManager.GetCredentials(proxyUri.DnsSafeHost, out var username, out var password))
             {
                 return AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyAuth, username, password);

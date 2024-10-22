@@ -5,7 +5,7 @@ namespace KeeperSecurity.Utils
     /// <exclude/>
     public static class DateTimeOffsetExtensions
     {
-#if NET452_OR_GREATER
+#if NET472_OR_GREATER
         private static readonly long Epoch = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero).UtcTicks;
              
         public static long ToUnixTimeMilliseconds(this DateTimeOffset date)

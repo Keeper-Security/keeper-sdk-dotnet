@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-#if NET452_OR_GREATER 
+#if NET472_OR_GREATER 
 using KeeperSecurity.Utils;
 #endif
 
