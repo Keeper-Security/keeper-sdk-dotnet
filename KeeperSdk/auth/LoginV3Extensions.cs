@@ -124,6 +124,7 @@ namespace KeeperSecurity.Authentication
                 if (deviceConf == null)
                 {
                     deviceConf = await auth.RegisterDevice();
+                    configuration = auth.Storage.Get();
                 }
 
                 try
