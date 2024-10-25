@@ -232,16 +232,18 @@ namespace KeeperSecurity.Authentication
             }
 
             var keyId = ServerKeyId;
+            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+
             var attempt = 0;
             Exception lastKeeperError = null;
             while (attempt < 3)
             {
                 attempt++;
 
-                var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), _transmissionKey);
+                var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
                 var encKey = keyId <= 6
-                    ? CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperRsaPublicKeys[keyId])
-                    : CryptoUtils.EncryptEc(_transmissionKey, KeeperSettings.KeeperEcPublicKeys[keyId]);
+                    ? CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperRsaPublicKeys[keyId])
+                    : CryptoUtils.EncryptEc(transmissionKey, KeeperSettings.KeeperEcPublicKeys[keyId]);
 
                 var apiRequest = new ApiRequest()
                 {
@@ -270,7 +272,7 @@ namespace KeeperSecurity.Authentication
                         var data = await response.Content.ReadAsByteArrayAsync();
                         if (data != null && data.Length > 0)
                         {
-                            return CryptoUtils.DecryptAesV2(data, _transmissionKey);
+                            return CryptoUtils.DecryptAesV2(data, transmissionKey);
                         }
                     }
 
@@ -337,8 +339,6 @@ namespace KeeperSecurity.Authentication
 
             throw lastKeeperError ?? new Exception("Keeper Api error");
         }
-
-        private readonly byte[] _transmissionKey = CryptoUtils.GetRandomBytes(32);
 
         private void SetConfigurationValid(int keyId)
         {
