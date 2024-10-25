@@ -495,13 +495,13 @@ namespace KeeperSecurity.Configuration
             ids.UnionWith(configuration.Users.List.Select(x => x.Id));
             foreach (var user in other.Users.List)
             {
-                if (ids.Contains(user.Id))
+                configuration.Users.Put(user);
+                ids.Remove(user.Id);
+            }
+            if (ids.Count > 0) {
+                foreach (var id in ids)
                 {
-                    configuration.Users.Put(user);
-                }
-                else
-                {
-                    configuration.Users.Delete(user.Id);
+                    configuration.Users.Delete(id);
                 }
             }
 
@@ -509,13 +509,17 @@ namespace KeeperSecurity.Configuration
             ids.UnionWith(configuration.Servers.List.Select(x => x.Id));
             foreach (var server in other.Servers.List)
             {
+                configuration.Servers.Put(server);
                 if (ids.Contains(server.Id))
                 {
-                    configuration.Servers.Put(server);
+                    ids.Remove(server.Id);
                 }
-                else
+            }
+            if (ids.Count > 0)
+            {
+                foreach (var id in ids)
                 {
-                    configuration.Servers.Delete(server.Id);
+                    configuration.Servers.Delete(id);
                 }
             }
 
