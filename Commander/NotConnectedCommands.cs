@@ -305,13 +305,6 @@ namespace Commander
                     {
                         passwords.Add(options.Password);
                     }
-
-                    var uc = _auth.Storage.Users.Get(username);
-                    if (!string.IsNullOrEmpty(uc?.Password))
-                    {
-                        passwords.Add(uc.Password);
-                    }
-
                     await Utils.LoginToKeeper(_auth, Program.GetInputManager(), username, passwords.ToArray());
                 }
 

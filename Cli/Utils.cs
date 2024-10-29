@@ -90,15 +90,6 @@ namespace Cli
                 passwds.AddRange(passwords);
             }
 
-            var uc = auth.Storage.Users.Get(email);
-            if (!string.IsNullOrEmpty(uc?.Password))
-            {
-                if (!passwds.Contains(uc.Password))
-                {
-                    passwds.Add(uc.Password);
-                }
-            }
-
             await auth.Login(email, passwds.ToArray());
             if (!auth.IsCompleted) 
             {

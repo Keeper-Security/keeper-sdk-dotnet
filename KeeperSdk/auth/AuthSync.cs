@@ -151,6 +151,11 @@ namespace KeeperSecurity.Authentication.Sync
                 if (string.IsNullOrEmpty(password)) continue;
                 _loginContext.PasswordQueue.Enqueue(password);
             }
+            var uc = Storage.Users.Get(username);
+            if (!string.IsNullOrEmpty(uc?.Password))
+            {
+                _loginContext.PasswordQueue.Enqueue(uc.Password);
+            }
 
             await DoLogin(username);
         }
