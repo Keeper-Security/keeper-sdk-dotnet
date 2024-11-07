@@ -82,9 +82,11 @@ namespace KeeperSecurity.Vault
                 else
                 {
                     byte[] encryptedSharedFolderKey;
+                    EncryptedKeyType keyType;
                     if (TryGetTeam(userId, out var team))
                     {
                         encryptedSharedFolderKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, team.TeamKey);
+                        keyType = EncryptedKeyType.EncryptedByDataKey;
                     }
                     else
                     {
@@ -106,6 +108,7 @@ namespace KeeperSecurity.Vault
 
                         var tpk = CryptoUtils.LoadPublicKey(tk.key.Base64UrlDecode());
                         encryptedSharedFolderKey = CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, tpk);
+                        keyType = EncryptedKeyType.EncryptedByPublicKey;
                     }
 
                     request.SharedFolderAddTeam.Add(new Folder.SharedFolderUpdateTeam
@@ -116,7 +119,7 @@ namespace KeeperSecurity.Vault
                         TypedSharedFolderKey = new EncryptedDataKey
                         { 
                             EncryptedKey = ByteString.CopyFrom(encryptedSharedFolderKey),
-                            EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey,
+                            EncryptedKeyType = keyType,
                         }
                     });
                 }
