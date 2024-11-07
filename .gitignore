@@ -50,3 +50,5 @@ nuget.config
 
 Help/
 .vscode/
+
+packages.config

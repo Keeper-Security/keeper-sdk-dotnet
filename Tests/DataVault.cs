@@ -204,7 +204,7 @@ namespace Tests
 
     public static class DataVault
     {
-        internal const string TestClientVersion = "c15.0.0";
+        internal const string TestClientVersion = "c16.0.0";
 
         public const string DefaultEnvironment = "env.company.com";
 
@@ -331,10 +331,7 @@ fwIDAQAB
             };
             storage.Servers.Put(serverConf);
 
-            var userConf = new UserConfiguration(UserName)
-            {
-                Password = UserPassword
-            };
+            var userConf = new UserConfiguration(UserName);
             storage.Users.Put(userConf);
             storage.LastServer = DefaultEnvironment;
             storage.LastLogin = UserName;
