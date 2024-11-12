@@ -419,12 +419,17 @@ function Move-KeeperEnterpriseUser {
         return
     }
     if (-not $Force.IsPresent) {
-        Write-Output "This action cannot be undone.`n"
-        $answer = Read-Host -Prompt "Do you want to proceed with transferring $($fromUserObject.Email) account (Yes/No)? > "
+        if (Test-InteractiveSession) {
+            Write-Output "This action cannot be undone.`n"
+            $answer = Read-Host -Prompt "Do you want to proceed with transferring $($fromUserObject.Email) account (Yes/No)? > "
+        } else {
+            Write-Output('Non-interactive session. Use -Force parameter')
+            $answer = 'no'
+        }
         if ($answer -ne 'yes' -and $answer -ne 'y') {
             return
         }
-    }
+}
     $transferResult = $enterprise.enterpriseData.TransferUserAccount($enterprise.roleData, $fromUserObject, $targetUserObject).GetAwaiter().GetResult()
     if ($transferResult) {
         Write-Information "Successfully Transfered:"

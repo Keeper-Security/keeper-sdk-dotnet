@@ -5,6 +5,10 @@ $expires = @(
     [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days,
     [KeeperSecurity.Authentication.TwoFactorDuration]::Forever)
 
+function Test-InteractiveSession {
+    return $Host.Name -eq 'ConsoleHost' -and $Host.UI.SupportsVirtualTerminal
+}
+
 function twoFactorChannelToText ([KeeperSecurity.Authentication.TwoFactorChannel] $channel) {
     if ($channel -eq [KeeperSecurity.Authentication.TwoFactorChannel]::Authenticator) {
         return 'authenticator'
@@ -356,6 +360,7 @@ function Connect-Keeper {
     } else {
         $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
     }
+
     if (-not $Server) {
         $Server = $storage.LastServer
         if ($Server) {
@@ -389,11 +394,14 @@ function Connect-Keeper {
     if ($Username) {
         Write-Output "$(($namePrompt + ': ').PadLeft(21, ' ')) $Username"
     }
-    else {
+    elseif (Test-InteractiveSession) {
         while (-not $Username) {
             $Username = Read-Host -Prompt $namePrompt.PadLeft(20, ' ')
         }
+    } else {
+        Write-Error "Non-interactive session detected" -ErrorAction Stop 
     }
+
     if ($SsoProvider.IsPresent) {
         $authFlow.LoginSso($Username).GetAwaiter().GetResult() | Out-Null
     }
@@ -419,16 +427,24 @@ function Connect-Keeper {
         $prompt = getStepPrompt $authFlow
 
         if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
-            $securedPassword = Read-Host -Prompt $prompt -AsSecureString
-            if ($securedPassword.Length -gt 0) {
-                $action = [Net.NetworkCredential]::new('', $securedPassword).Password
-            }
-            else {
-                $action = ''
+            if (Test-InteractiveSession) {
+                $securedPassword = Read-Host -Prompt $prompt -AsSecureString
+                if ($securedPassword.Length -gt 0) {
+                    $action = [Net.NetworkCredential]::new('', $securedPassword).Password
+                }
+                else {
+                    $action = ''
+                }
+            } else {
+                Write-Error "Non-interactive session detected" -ErrorAction Stop 
             }
         }
         else {
-            $action = Read-Host -Prompt $prompt
+            if (Test-InteractiveSession) {
+                $action = Read-Host -Prompt $prompt
+            } else {
+                Write-Error "Non-interactive session detected" -ErrorAction Stop 
+            }
         }
 
         if ($action) {
