@@ -121,7 +121,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Commander-net-${{ env.PACKAGE_VERSION }}
-          path: Commander/bin/Release/net6.0/Commander-net-${{ env.PACKAGE_VERSION }}.zip
+          path: Commander/bin/Release/net8.0/Commander-net-${{ env.PACKAGE_VERSION }}.zip
           retention-days: 1
 
       - name: Store artifacts
