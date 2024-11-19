@@ -414,40 +414,6 @@ namespace KeeperSecurity.Commands
 
     /// <exclude/>
     [DataContract]
-    public class GetShareAutoCompleteCommand : AuthenticatedCommand
-    {
-        public GetShareAutoCompleteCommand() : base("get_share_auto_complete")
-        {
-        }
-
-        [DataMember(Name = "starts_with", EmitDefaultValue = false)]
-        public string StartsWith { get; set; }
-    }
-
-    /// <exclude/>
-    [DataContract]
-    public class ShareUserInfo
-    {
-        [DataMember(Name = "email")]
-        public string Email { get; set; }
-    }
-
-    /// <exclude/>
-    [DataContract]
-    public class GetShareAutoCompleteResponse : KeeperApiResponse
-    {
-        [DataMember(Name = "shares_from_users")]
-        public ShareUserInfo[] SharesFromUsers;
-
-        [DataMember(Name = "shares_with_users")]
-        public ShareUserInfo[] SharesWithUsers;
-
-        [DataMember(Name = "group_users	")]
-        public ShareUserInfo[] GroupUsers;
-    }
-
-    /// <exclude/>
-    [DataContract]
     public class PublicKeysCommand : AuthenticatedCommand
     {
         public PublicKeysCommand() : base("public_keys")
