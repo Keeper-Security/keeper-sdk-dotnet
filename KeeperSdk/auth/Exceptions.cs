@@ -4,6 +4,16 @@ using Authentication;
 namespace KeeperSecurity.Authentication
 {
     /// <exclude/>
+    public class ProxyAuthenticationRequired : Exception
+    {
+        public ProxyAuthenticationRequired(string[] proxyAuthenticate)
+        {
+            ProxyAuthenticate = proxyAuthenticate;
+        }
+        public string[] ProxyAuthenticate { get; }
+    }
+
+    /// <exclude/>
     public class KeeperInvalidParameter : Exception
     {
         public KeeperInvalidParameter(string method, string parameter, string value, string message) : base(message)

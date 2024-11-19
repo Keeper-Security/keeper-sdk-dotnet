@@ -117,7 +117,7 @@ namespace KeeperSecurity.Enterprise
             {
                 throw new System.Exception($"User ${user.Email}: public key is not available");
             }
-            var publicKey = CryptoUtils.LoadPublicKey(keys.RsaPublicKey);
+            var publicKey = CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey);
             var rq = new RoleUserAddCommand
             {
                 RoleId = role.Id,

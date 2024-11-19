@@ -69,7 +69,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// </summary>
         public AuthState State { get; }
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool _)
         {
         }
         /// <exclude/>

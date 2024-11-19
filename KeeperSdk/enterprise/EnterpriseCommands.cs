@@ -314,6 +314,9 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "team_key", EmitDefaultValue = false)]
         public string TeamKey { get; set; }
+
+        [DataMember(Name = "team_key_type", EmitDefaultValue = false)]
+        public string TeamKeyType { get; set; }
     }
 
     [DataContract]
@@ -366,12 +369,6 @@ namespace KeeperSecurity.Commands
         {
         }
 
-        [DataMember(Name = "public_key", EmitDefaultValue = false)]
-        public string PublicKey { get; set; }
-
-        [DataMember(Name = "private_key", EmitDefaultValue = false)]
-        public string PrivateKey { get; set; }
-
         [DataMember(Name = "team_key", EmitDefaultValue = false)]
         public string TeamKey { get; set; }
 
@@ -380,6 +377,19 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "encrypted_team_key")]
         public string EncryptedTeamKey { get; set; }
+
+        [DataMember(Name = "public_key", EmitDefaultValue = false)]
+        public string RsaPublicKey { get; set; }
+
+        [DataMember(Name = "private_key", EmitDefaultValue = false)]
+        public string RsaPrivateKey { get; set; }
+
+        [DataMember(Name = "ecc_public_key", EmitDefaultValue = false)]
+        public string EccPublicKey { get; set; }
+
+        [DataMember(Name = "ecc_private_key")]
+        public string EccPrivateKey { get; set; }
+        
     }
 
     [DataContract]

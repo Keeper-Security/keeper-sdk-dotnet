@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
@@ -215,30 +216,21 @@ namespace Commander
 
             if (string.IsNullOrEmpty(options.User))
             {
-                var teams = await context.GetAvailableTeams();
-                var tab = new Tabulate(4)
+                var tab = new Tabulate(5)
                 {
                     DumpRowNo = true
                 };
-                tab.SetColumnRightAlign(2, true);
-                tab.SetColumnRightAlign(3, true);
-                tab.AddHeader(new[] { "User ID", "User Type", "Manage Records", "Manage Users" });
-                foreach (var p in sf.UsersPermissions.OrderBy(x => $"{(int) x.UserType} {x.UserId.ToLowerInvariant()}"))
+                tab.AddHeader("User Type", "User ID", "User Name", "Permissions", "Expiration");
+                foreach (var p in sf.UsersPermissions.OrderBy(x => $"{(int) x.UserType} {x.Name.ToLowerInvariant()}"))
                 {
-                    if (p.UserType == UserType.User)
+                    var permission = "No User Permission";
+                    if (p.ManageRecords || p.ManageUsers)
                     {
-                        tab.AddRow(new[]
-                            {p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-", p.ManageUsers ? "X" : "="});
+                        permission = "Can Manage " +
+                            string.Join(" & ", new[] { p.ManageUsers ? "Users" : "", p.ManageRecords ? "Records" : "" }.Where(x => !string.IsNullOrEmpty(x)));
                     }
-                    else
-                    {
-                        var team = teams.FirstOrDefault(x => x.TeamUid == p.UserId);
-                        tab.AddRow(new[]
-                        {
-                            team?.Name ?? p.UserId, p.UserType.ToString(), p.ManageRecords ? "X" : "-",
-                            p.ManageUsers ? "X" : "-"
-                        });
-                    }
+                    var expireAt = p.Expiration.HasValue ? p.Expiration.Value.LocalDateTime.ToString("g") : "";
+                    tab.AddRow(p.UserType.ToString(), p.Uid, p.Name, permission, expireAt);
                 }
 
                 tab.Dump();
@@ -248,24 +240,25 @@ namespace Commander
                 var userType = UserType.User;
                 string userId = null;
                 var rx = new Regex(EmailPattern);
-                if (rx.IsMatch(options.User))
+                if (rx.IsMatch(options.User)) // check account email
                 {
-                    userId = options.User.ToLowerInvariant();
+                    userId = options.User;
                 }
                 else
                 {
-                    userType = UserType.Team;
-                    if (context.Vault.TryGetTeam(options.User, out var team))
+                    if (context.Vault.TryGetTeam(options.User, out _))
                     {
-                        userId = team.TeamUid;
+                        userId = options.User;
+                        userType = UserType.Team;
                     }
                     else
                     {
-                        team = context.Vault.Teams.FirstOrDefault(x =>
+                        var team = context.Vault.Teams.FirstOrDefault(x =>
                             string.Compare(x.Name, options.User, StringComparison.CurrentCultureIgnoreCase) == 0);
                         if (team != null)
                         {
                             userId = team.TeamUid;
+                            userType = UserType.Team;
                         }
                         else
                         {
@@ -277,19 +270,20 @@ namespace Commander
                             if (teamInfo != null)
                             {
                                 userId = teamInfo.TeamUid;
+                                userType = UserType.Team;
                             }
                         }
                     }
-
-                    if (userId == null)
-                    {
-                        Console.WriteLine($"User {options.User} cannot be resolved as email or team");
-                        return;
-                    }
                 }
 
+                if (string.IsNullOrEmpty(userId))
+                {
+                    Console.WriteLine($"User {options.User} cannot be resolved as email or team");
+                    return;
+                }
                 var userPermission =
-                    sf.UsersPermissions.FirstOrDefault(x => x.UserType == userType && x.UserId == userId);
+                    sf.UsersPermissions.FirstOrDefault(x => 
+                        x.UserType == userType && (x.Uid == userId || string.Equals(x.Name, userId)));
 
                 if (options.Delete)
                 {
@@ -307,11 +301,23 @@ namespace Commander
                 {
                     try
                     {
-                        await context.Vault.PutUserToSharedFolder(sf.Uid, userId, userType, new SharedFolderUserOptions
+                        var shareOptions = new SharedFolderUserOptions
                         {
                             ManageUsers = options.ManageUsers ?? sf.DefaultManageUsers,
                             ManageRecords = options.ManageRecords ?? sf.DefaultManageRecords,
-                        });
+                        };
+
+                        if (!string.IsNullOrEmpty(options.ExpireAt))
+                        {
+                            shareOptions.Expiration = DateTimeOffset.ParseExact(options.ExpireAt, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
+                        }
+                        else if (!string.IsNullOrEmpty(options.ExpireIn))
+                        {
+                            var ts = ParseUtils.ParseTimePeriod(options.ExpireIn);
+                            shareOptions.Expiration = DateTimeOffset.Now + ts;
+                        }
+
+                        await context.Vault.PutUserToSharedFolder(sf.Uid, userId, userType, shareOptions);
                     }
                     catch (NoActiveShareWithUserException e)
                     {
@@ -371,16 +377,17 @@ namespace Commander
 
             if (string.IsNullOrEmpty(options.Record))
             {
-                var tab = new Tabulate(4)
+                var tab = new Tabulate(5)
                 {
                     DumpRowNo = true
                 };
-                tab.AddHeader(new[] { "Record Title", "Record UID", "Can Edit", "Can Share" });
+                tab.AddHeader("Record Title", "Record UID", "Can Edit", "Can Share", "Expiration");
                 foreach (var p in sf.RecordPermissions)
                 {
                     if (context.Vault.TryGetKeeperRecord(p.RecordUid, out var record))
                     {
-                        tab.AddRow(record.Title, p.RecordUid, p.CanEdit ? "X" : "-", p.CanShare ? "X" : "-");
+                        var expireAt = p.Expiration.HasValue ? p.Expiration.Value.LocalDateTime.ToString("g") : "";
+                        tab.AddRow(record.Title, p.RecordUid, p.CanEdit ? "X" : "-", p.CanShare ? "X" : "-", expireAt);
                     }
                 }
 
@@ -417,23 +424,22 @@ namespace Commander
                     return;
                 }
 
-                if (options.CanShare.HasValue || options.CanEdit.HasValue)
+                var shareOptions = new SharedFolderRecordOptions
                 {
-                    await context.Vault.ChangeRecordInSharedFolder(sf.Uid, recordUid, new SharedFolderRecordOptions
-                    {
-                        CanEdit = options.CanEdit ?? recordPermission.CanEdit,
-                        CanShare = options.CanShare ?? recordPermission.CanShare,
-                    });
-                }
-                else
+                    CanEdit = options.CanEdit ?? recordPermission.CanEdit,
+                    CanShare = options.CanShare ?? recordPermission.CanShare,
+                };
+                if (!string.IsNullOrEmpty(options.ExpireAt))
                 {
-                    Console.WriteLine();
-                    Console.WriteLine("{0, 20}: {1}", "Record UID", record.Uid);
-                    Console.WriteLine("{0, 20}: {1}", "Record Title", record.Title);
-                    Console.WriteLine("{0, 20}: {1}", "Can Edit", recordPermission.CanEdit ? "Yes" : "No");
-                    Console.WriteLine("{0, 20}: {1}", "Can Share", recordPermission.CanShare ? "Yes" : "No");
-                    Console.WriteLine();
+                    shareOptions.Expiration = DateTimeOffset.ParseExact(options.ExpireAt, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
                 }
+                else if (!string.IsNullOrEmpty(options.ExpireIn))
+                {
+                    var ts = ParseUtils.ParseTimePeriod(options.ExpireIn);
+                    shareOptions.Expiration = DateTimeOffset.Now + ts;
+                }
+
+                await context.Vault.ChangeRecordInSharedFolder(sf.Uid, recordUid, shareOptions);
             }
         }
 
@@ -447,16 +453,16 @@ namespace Commander
 
     class UpdateFolderOptions : FolderOptions
     {
-        [Option("manage-users", Required = false, Default = null, HelpText = "default manage users")]
+        [Option("manage-users", Required = false, Default = null, HelpText = "default manage users. 'true' or 'false'")]
         public bool? ManageUsers { get; set; }
 
-        [Option("manage-records", Required = false, Default = null, HelpText = "default manage records")]
+        [Option("manage-records", Required = false, Default = null, HelpText = "default manage records.'true' or 'false'")]
         public bool? ManageRecords { get; set; }
 
-        [Option("can-share", Required = false, Default = null, HelpText = "default can share")]
+        [Option("can-share", Required = false, Default = null, HelpText = "default can share. 'true' or 'false'")]
         public bool? CanShare { get; set; }
 
-        [Option("can-edit", Required = false, Default = null, HelpText = "default can edit")]
+        [Option("can-edit", Required = false, Default = null, HelpText = "default can edit. 'true' or 'false'")]
         public bool? CanEdit { get; set; }
 
         [Option("name", Required = false, Default = null, HelpText = "new folder folder")]
@@ -468,16 +474,16 @@ namespace Commander
         [Option('s', "shared", Required = false, Default = false, HelpText = "shared folder")]
         public bool Shared { get; set; }
 
-        [Option("manage-users", Required = false, Default = null, HelpText = "default manage users")]
+        [Option("manage-users", Required = false, Default = null, HelpText = "default manage users. 'true' or 'false'")]
         public bool? ManageUsers { get; set; }
 
-        [Option("manage-records", Required = false, Default = null, HelpText = "default manage records")]
+        [Option("manage-records", Required = false, Default = null, HelpText = "default manage records. 'true' or 'false'")]
         public bool? ManageRecords { get; set; }
 
-        [Option("can-share", Required = false, Default = null, HelpText = "default can share")]
+        [Option("can-share", Required = false, Default = null, HelpText = "default can share. 'true' or 'false'")]
         public bool? CanShare { get; set; }
 
-        [Option("can-edit", Required = false, Default = null, HelpText = "default can edit")]
+        [Option("can-edit", Required = false, Default = null, HelpText = "default can edit. 'true' or 'false'")]
         public bool? CanEdit { get; set; }
     }
     class MoveOptions
@@ -497,27 +503,38 @@ namespace Commander
         [Option('r', "record", Required = false, Default = null, HelpText = "record name or record uid")]
         public string Record { get; set; }
 
-        [Option('s', "can-share", Required = false, Default = null, HelpText = "record permission: can be shared.")]
+        [Option('s', "can-share", Required = false, Default = null, HelpText = "record permission: can be shared. 'true' or 'false'")]
         public bool? CanShare { get; set; }
 
-        [Option('e', "can-edit", Required = false, Default = null, HelpText = "record permission: can be edited.")]
+        [Option('e', "can-edit", Required = false, Default = null, HelpText = "record permission: can be edited. 'true' or 'false'")]
         public bool? CanEdit { get; set; }
+
+        [Option("expire-at", Required = false, Default = null, HelpText = "expire share at ISO time: YYYY-MM-DD HH:mm:SS")]
+        public string ExpireAt { get; set; }
+
+        [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
+        public string ExpireIn { get; set; }
     }
 
     class ShareFolderUserPermissionOptions : FolderOptions
     {
-
         [Option("user", Required = false, Default = null, HelpText = "account email, team name, or team uid")]
         public string User { get; set; }
 
-        [Option("delete", Required = false, Default = false, SetName = "delete", HelpText = "delete user from shared folder")]
+        [Option("delete", Required = false, Default = false, SetName = "delete", HelpText = "remove user or team from shared folder")]
         public bool Delete { get; set; }
 
-        [Option('r', "manage-records", Required = false, Default = null, SetName = "set", HelpText = "account permission: can manage records.")]
+        [Option('r', "manage-records", Required = false, Default = null, SetName = "set", HelpText = "account permission: can manage records. 'true' or 'false'")]
         public bool? ManageRecords { get; set; }
 
-        [Option('u', "manage-users", Required = false, Default = null, SetName = "set", HelpText = "account permission: can manage users.")]
+        [Option('u', "manage-users", Required = false, Default = null, SetName = "set", HelpText = "account permission: can manage users. 'true' or 'false'")]
         public bool? ManageUsers { get; set; }
+
+        [Option("expire-at", Required = false, Default = null, HelpText = "expire share at ISO time: YYYY-MM-DD HH:mm:SS")]
+        public string ExpireAt { get; set; }
+
+        [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
+        public string ExpireIn { get; set; }
     }
 
 }

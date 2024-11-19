@@ -41,7 +41,7 @@ namespace KeeperSecurity.Enterprise
         /// <summary>
         /// Instantiates <see cref="QueuedTeamData"/> instance.
         /// </summary>
-        public QueuedTeamData() : base()
+        public QueuedTeamData()
         {
             _queuedTeams = new QueuedTeamDictionary();
             _queuedUsers = new QueuedUserDictionary();
@@ -108,7 +108,7 @@ namespace KeeperSecurity.Enterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
 
-        internal readonly ConcurrentDictionary<string, ISet<long>> _entities = new ConcurrentDictionary<string, ISet<long>>();
+        private readonly ConcurrentDictionary<string, ISet<long>> _entities = new();
 
         public QueuedUserDictionary() : base(EnterpriseDataEntity.QueuedTeamUsers)
         {

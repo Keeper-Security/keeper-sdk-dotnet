@@ -1,25 +1,13 @@
-﻿//  _  __
-// | |/ /___ ___ _ __  ___ _ _ ®
-// | ' </ -_) -_) '_ \/ -_) '_|
-// |_|\_\___\___| .__/\___|_|
-//              |_|
-//
-// Keeper SDK
-// Copyright 2022 Keeper Security Inc.
-// Contact: ops@keepersecurity.com
-//
-
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Net;
-using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using Cli;
-using System.Collections.Generic;
+using CommandLine;
 
 namespace Commander
 {
-    internal class Program
+    internal static class Program
     {
         private static readonly InputManager InputManager = new InputManager();
         private static readonly MainLoop MainLoop = new MainLoop();
@@ -36,23 +24,33 @@ namespace Commander
 
         public static IExternalLoader CommanderStorage { get; private set; }
 
-        private static void Main()
+        private static void Main(string[] args)
         {
             Console.CancelKeyPress += (s, e) => { e.Cancel = true; };
             Utils.Welcome();
-
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            CommanderStorage = StorageUtils.SetupCommanderStorage();
-            if (!CommanderStorage.VerifyDatabase())
+            
+            var configFile = "";
+            Parser.Default.ParseArguments<CommanderLaunchOptions>(args).WithParsed(x =>
             {
-                throw new Exception("Database is invalid.");
-            }
-
+                if (!string.IsNullOrWhiteSpace(x.Config))
+                {
+                    configFile = x.Config;
+                }
+            });
+                
+            CommanderStorage = StorageUtils.SetupCommanderStorage(configFile);
             MainLoop.StateContext = new NotConnectedCliContext(true);
 
             _ = MainLoop.Run(GetInputManager());
             InputManager.Run();
         }
+    }
+
+    internal class CommanderLaunchOptions
+    {
+        [Option('c', "config", Required = false, HelpText = "config file name")]
+        public string Config { get; set; }
     }
 
     class VaultUi : IVaultUi

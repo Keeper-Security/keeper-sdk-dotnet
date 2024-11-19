@@ -152,10 +152,10 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <exclude/>
-        public static async Task<bool> RegisterDataKeyForDevice(this IAuthentication auth, DeviceInfo device)
+        public static async Task RegisterDataKeyForDevice(this IAuthentication auth, DeviceInfo device)
         {
             var publicKeyBytes = device.DevicePublicKey.ToByteArray();
-            var publicKey = CryptoUtils.LoadPublicEcKey(publicKeyBytes);
+            var publicKey = CryptoUtils.LoadEcPublicKey(publicKeyBytes);
             var encryptedDataKey = CryptoUtils.EncryptEc(auth.AuthContext.DataKey, publicKey);
             var request = new RegisterDeviceDataKeyRequest
             {
@@ -165,11 +165,10 @@ namespace KeeperSecurity.Authentication
             try
             {
                 await auth.ExecuteAuthRest("authentication/register_encrypted_data_key_for_device", request);
-                return true;
             }
             catch (KeeperApiException kae)
             {
-                if (kae.Code == "device_data_key_exists") return false;
+                if (kae.Code == "device_data_key_exists") return;
                 throw;
             }
         }

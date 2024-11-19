@@ -4,16 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CommandLine;
-using CommandLine.Text;
-using KeeperSecurity.Utils;
 
 namespace Cli
 {
-    public class CommandMeta
+    public class CommandError: Exception 
+    { 
+        public CommandError(string message): base(message) { }
+    }
+    
+    public interface ICommandMeta
     {
-        public int Order { get; set; }
-        public string Description { get; set; }
+        int Order { get; }
+        string Description { get; }
     }
 
     public interface ICommand
@@ -21,13 +23,27 @@ namespace Cli
         Task ExecuteCommand(string args);
     }
 
-    public interface ICancellableCommand
+    public interface IGroupCommand
     {
-        Task ExecuteCommand(string args, CancellationToken token);
+        IDictionary<string, ICommandMeta> Commands { get; }
+        IDictionary<string, string> Aliases { get; }
     }
 
-    public class SimpleCommand : CommandMeta, ICommand
+    public sealed class GroupCommand : ICommandMeta, IGroupCommand
     {
+        public int Order { get; set; }
+        public string Description { get; set; }
+
+        public IDictionary<string, ICommandMeta> Commands => new Dictionary<string, ICommandMeta>();
+
+        public IDictionary<string, string> Aliases => new Dictionary<string, string>();
+    }
+
+    public sealed class SimpleCommand : ICommandMeta, ICommand
+    {
+        public int Order { get; set; }
+        public string Description { get; set; }
+
         public Func<string, Task> Action { get; set; }
 
         public async Task ExecuteCommand(string args)
@@ -38,20 +54,6 @@ namespace Cli
             }
         }
     }
-
-    public class SimpleCancellableCommand : CommandMeta, ICancellableCommand
-    {
-        public Func<string, CancellationToken, Task> Action { get; set; }
-
-        public async Task ExecuteCommand(string args, CancellationToken token)
-        {
-            if (Action != null)
-            {
-                await Action(args, token);
-            }
-        }
-    }
-
 
     public static class CommandExtensions
     {
@@ -123,54 +125,12 @@ namespace Cli
                 yield return sb.ToString();
             }
         }
-        public static string GetCommandUsage<T>(int width = 120)
-        {
-            var parser = new Parser(with => with.HelpWriter = null);
-            var result = parser.ParseArguments<T>(new[] { "--help" });
-            return HelpText.AutoBuild(result, h =>
-            {
-                h.AdditionalNewLineAfterOption = false;
-                return h;
-            }, width);
-        }
     }
 
-    public class ParseableCommandMeta<T> : CommandMeta where T : class
+    public class CliCommands: IGroupCommand
     {
-        protected T ParseArguments(string args)
-        {
-            var res = Parser.Default.ParseArguments<T>(args.TokenizeArguments());
-            T options = null;
-            res.WithParsed(o => { options = o; });
-            return options;
-        }
-    }
-
-    public class ParseableCommand<T> : ParseableCommandMeta<T>, ICommand where T : class
-    {
-        public Func<T, Task> Action { get; set; }
-
-        public Task ExecuteCommand(string args)
-        {
-            var options = ParseArguments(args);
-            return options != null ? Action?.Invoke(options) : Task.CompletedTask;
-        }
-    }
-
-    public class ParseableCancellableCommand<T> : ParseableCommandMeta<T>, ICancellableCommand where T : class
-    {
-        public Func<T, CancellationToken, Task> Action { get; set; }
-
-        public Task ExecuteCommand(string args, CancellationToken token)
-        {
-            return Action?.Invoke(ParseArguments(args), token);
-        }
-    }
-
-    public class CliCommands
-    {
-        public IDictionary<string, CommandMeta> Commands { get; } = new Dictionary<string, CommandMeta>();
-        public IDictionary<string, string> CommandAliases { get; } = new Dictionary<string, string>();
+        public IDictionary<string, ICommandMeta> Commands { get; } = new Dictionary<string, ICommandMeta>();
+        public IDictionary<string, string> Aliases { get; } = new Dictionary<string, string>();
 
         public static bool ParseBoolOption(string text, out bool value)
         {
@@ -193,9 +153,9 @@ namespace Cli
 
     public sealed class MainLoop
     {
-        private readonly CommandMeta _exitCommand;
-        private readonly CommandMeta _clearCommand;
-        private readonly CommandMeta _quitCommand;
+        private readonly ICommandMeta _exitCommand;
+        private readonly ICommandMeta _clearCommand;
+        private readonly ICommandMeta _quitCommand;
 
         public MainLoop()
         {
@@ -247,7 +207,7 @@ namespace Cli
 
         public async Task Run(InputManager inputManager)
         {
-            CommandMeta runningCommand = null;
+            ICommandMeta runningCommand = null;
             CancellationTokenSource tokenSource = null;
 
             inputManager.CancelKeyPress += (sender, e) =>
@@ -255,14 +215,7 @@ namespace Cli
                 e.Cancel = false;
                 if (runningCommand != null)
                 {
-                    if (runningCommand is ICancellableCommand && tokenSource != null)
-                    {
-                        tokenSource.Cancel();
-                    }
-                    else
-                    {
-                        e.Cancel = true;
-                    }
+                    e.Cancel = true;
                 }
             };
             while (!Finished)
@@ -314,7 +267,7 @@ namespace Cli
                             IsHistory = true
                         });
                     }
-                    catch (KeyboardInterrupt) 
+                    catch (KeyboardInterrupt)
                     {
                         command = "";
                     }
@@ -323,107 +276,113 @@ namespace Cli
                 if (string.IsNullOrEmpty(command)) continue;
 
                 command = command.Trim();
-                var parameter = "";
-                var pos = command.IndexOf(' ');
-                if (pos > 1)
-                {
-                    parameter = command.Substring(pos + 1).Trim();
-                    command = command.Substring(0, pos).Trim();
-                }
+                IGroupCommand groupCommand = StateContext;
 
-                command = command.ToLowerInvariant();
-                switch (command)
+                while (!string.IsNullOrEmpty(command))
                 {
-                    case "exit":
-                        runningCommand = _exitCommand;
-                        break;
-                    case "clear":
-                    case "c":
-                        runningCommand = _clearCommand;
-                        break;
-                    case "quit":
-                    case "q":
-                        runningCommand = _quitCommand;
-                        break;
-                    default:
-                        if (StateContext.CommandAliases.TryGetValue(command, out var fullCommand))
-                        {
-                            command = fullCommand;
-                        }
-
-                        StateContext.Commands.TryGetValue(command, out runningCommand);
-                        break;
-                }
-
-                if (runningCommand != null)
-                {
-                    try
+                    var parameter = "";
+                    var pos = command.IndexOf(' ');
+                    if (pos > 0)
                     {
-                        if (runningCommand is ICancellableCommand cc)
+                        parameter = command.Substring(pos + 1).Trim();
+                        command = command.Substring(0, pos).Trim();
+                    }
+
+                    command = command.ToLowerInvariant();
+                    switch (command)
+                    {
+                        case "exit":
+                            runningCommand = _exitCommand;
+                            break;
+                        case "clear":
+                        case "c":
+                            runningCommand = _clearCommand;
+                            break;
+                        case "quit":
+                        case "q":
+                            runningCommand = _quitCommand;
+                            break;
+                        default:
+                            if (groupCommand.Aliases.TryGetValue(command, out var fullCommand))
+                            {
+                                command = fullCommand;
+                            }
+
+                            groupCommand.Commands.TryGetValue(command, out runningCommand);
+                            break;
+                    }
+                    if (runningCommand != null)
+                    {
+                        try
                         {
-                            tokenSource = new CancellationTokenSource();
-                            await cc.ExecuteCommand(parameter, tokenSource.Token);
+                            if (runningCommand is ICommand c)
+                            {
+                                await c.ExecuteCommand(parameter);
+                            }
+                            else if (runningCommand is IGroupCommand gc)
+                            {
+                                groupCommand = gc;
+                                continue;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Unsupported command type");
+                            }
                         }
-                        else if (runningCommand is ICommand c)
+                        catch (Exception e)
                         {
-                            await c.ExecuteCommand(parameter);
+                            if (!await StateContext.ProcessException(e))
+                            {
+                                Console.WriteLine("Error: " + e.Message);
+                            }
+                        }
+                        finally
+                        {
+                            runningCommand = null;
+                            tokenSource?.Dispose();
+                            tokenSource = null;
+                        }
+                    }
+                    else
+                    {
+                        if (command != "?")
+                        {
+                            Console.WriteLine($"Invalid command: {command}");
                         }
                         else
                         {
-                            Console.WriteLine("Unsupported command type");
+                            var tab = new Tabulate(3);
+                            tab.AddHeader("Command", "Alias", "Description");
+                            foreach (var c in StateContext.Commands
+                                .OrderBy(x => x.Value.Order))
+                            {
+                                var alias = groupCommand.Aliases
+                                    .Where(x => x.Value == c.Key)
+                                    .Select(x => x.Key)
+                                    .FirstOrDefault();
+                                tab.AddRow(c.Key, alias ?? "", c.Value.Description);
+                            }
+
+                            if (StateContext.BackStateCommands != null)
+                            {
+                                tab.AddRow("exit", "", _exitCommand.Description);
+                            }
+
+                            tab.AddRow("clear", "c", _clearCommand.Description);
+                            tab.AddRow("quit", "q", _quitCommand.Description);
+
+                            tab.DumpRowNo = false;
+                            tab.LeftPadding = 1;
+                            tab.MaxColumnWidth = 60;
+                            tab.Dump();
                         }
                     }
-                    catch (Exception e)
-                    {
-                        if (!await StateContext.ProcessException(e))
-                        {
-                            Console.WriteLine("Error: " + e.Message);
-                        }
-                    }
-                    finally
-                    {
-                        runningCommand = null;
-                        tokenSource?.Dispose();
-                        tokenSource = null;
-                    }
+
+                    Console.WriteLine();
+                    break;
                 }
-                else
-                {
-                    if (command != "?")
-                    {
-                        Console.WriteLine($"Invalid command: {command}");
-                    }
-
-                    var tab = new Tabulate(3);
-                    tab.AddHeader("Command", "Alias", "Description");
-                    foreach (var c in StateContext.Commands
-                        .OrderBy(x => x.Value.Order))
-                    {
-                        var alias = StateContext.CommandAliases
-                            .Where(x => x.Value == c.Key)
-                            .Select(x => x.Key)
-                            .FirstOrDefault();
-                        tab.AddRow(c.Key, alias ?? "", c.Value.Description);
-                    }
-
-                    if (StateContext.BackStateCommands != null)
-                    {
-                        tab.AddRow("exit", "", _exitCommand.Description);
-                    }
-
-                    tab.AddRow("clear", "c", _clearCommand.Description);
-                    tab.AddRow("quit", "q", _quitCommand.Description);
-
-                    tab.DumpRowNo = false;
-                    tab.LeftPadding = 1;
-                    tab.MaxColumnWidth = 60;
-                    tab.Dump();
-                }
-
-                Console.WriteLine();
             }
         }
-
     }
 
     public abstract class StateCommands : CliCommands, IDisposable

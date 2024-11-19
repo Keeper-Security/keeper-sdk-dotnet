@@ -13,36 +13,53 @@ using Records;
 
 namespace KeeperSecurity.Vault
 {
-    /// <inheritdoc/>>
-    public class SharedFolderRecordOptions : ISharedFolderRecordOptions
+    /// <summary>
+    /// Represents shared folder record permissions.
+    /// </summary>
+    public class SharedFolderRecordOptions : IRecordShareOptions
     {
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool? CanEdit { get; set; }
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool? CanShare { get; set; }
+        /// <inheritdoc/>
+        public DateTimeOffset? Expiration { get; set; }
     }
 
-    /// <inheritdoc/>>
-    public class SharedFolderUserOptions : ISharedFolderUserOptions
+    /// <summary>
+    /// Defines shared folder user permissions.
+    /// </summary>
+
+    public class SharedFolderUserOptions : IUserShareOptions
     {
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool? ManageRecords { get; set; }
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public bool? ManageUsers { get; set; }
+        /// <inheritdoc/>
+        public DateTimeOffset? Expiration { get; set; }
     }
 
     /// <summary>
     ///  Defines shared folder user and record permissions.
     /// </summary>
-    public class SharedFolderOptions : ISharedFolderRecordOptions, ISharedFolderUserOptions
+    public class SharedFolderOptions 
     {
-        /// <inheritdoc/>>
+        /// <summary>
+        /// Record can be edited.
+        /// </summary>
         public bool? CanEdit { get; set; }
-        /// <inheritdoc/>>
+        /// <summary>
+        /// Record can be re-shared.
+        /// </summary>
         public bool? CanShare { get; set; }
-        /// <inheritdoc/>>
+        /// <summary>
+        /// User can manage other users.
+        /// </summary>
         public bool? ManageUsers { get; set; }
-        /// <inheritdoc/>>
+        /// <summary>
+        /// User can manage records.
+        /// </summary>
         public bool? ManageRecords { get; set; }
     }
 
@@ -128,18 +145,18 @@ namespace KeeperSecurity.Vault
             }
             else if (record is TypedRecord typed)
             {
-                var ft = Records.RecordFolderType.UserFolder;
+                var ft = RecordFolderType.UserFolder;
                 switch (node?.FolderType)
                 {
                     case FolderType.SharedFolder:
-                        ft = Records.RecordFolderType.SharedFolder;
+                        ft = RecordFolderType.SharedFolder;
                         break;
                     case FolderType.SharedFolderFolder:
-                        ft = Records.RecordFolderType.SharedFolderFolder;
+                        ft = RecordFolderType.SharedFolderFolder;
                         break;
                 }
 
-                var recordAddProto = new Records.RecordAdd
+                var recordAddProto = new RecordAdd
                 {
                     RecordUid = ByteString.CopyFrom(typed.Uid.Base64UrlDecode()),
                     RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(record.RecordKey,
@@ -175,7 +192,7 @@ namespace KeeperSecurity.Vault
 
                 if (refKeys.Count > 0)
                 {
-                    recordAddProto.RecordLinks.AddRange(refKeys.Select(pair => new Records.RecordLink
+                    recordAddProto.RecordLinks.AddRange(refKeys.Select(pair => new RecordLink
                     {
                         RecordUid = ByteString.CopyFrom(pair.Key.Base64UrlDecode()),
                         RecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(pair.Value, record.RecordKey))
@@ -186,7 +203,7 @@ namespace KeeperSecurity.Vault
                 {
                     var auditData = typed.ExtractRecordAuditData();
                     var data = JsonUtils.DumpJson(auditData);
-                    recordAddProto.Audit = new Records.RecordAudit
+                    recordAddProto.Audit = new RecordAudit
                     {
                         Version = 0,
                         Data = ByteString.CopyFrom(CryptoUtils.EncryptEc(data,
@@ -194,15 +211,15 @@ namespace KeeperSecurity.Vault
                     };
                 }
 
-                var rq = new Records.RecordsAddRequest
+                var rq = new RecordsAddRequest
                 {
                     ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 };
                 rq.Records.Add(recordAddProto);
-                var rs = await vault.Auth.ExecuteAuthRest<Records.RecordsAddRequest, Records.RecordsModifyResponse>(
+                var rs = await vault.Auth.ExecuteAuthRest<RecordsAddRequest, RecordsModifyResponse>(
                     "vault/records_add", rq);
                 var modifyResult = rs.Records[0];
-                if (modifyResult.Status != Records.RecordModifyResult.RsSuccess)
+                if (modifyResult.Status != RecordModifyResult.RsSuccess)
                 {
                     var status = modifyResult.Status.ToString().ToSnakeCase();
                     if (status.StartsWith("rs_"))
@@ -234,7 +251,7 @@ namespace KeeperSecurity.Vault
             {
                 if (!vault.TryGetSharedFolder(destinationFolderScope, out var sf))
                 {
-                    throw new VaultException($"Cannot find destination shared folder");
+                    throw new VaultException("Cannot find destination shared folder");
                 }
 
                 encryptionKey = sf.SharedFolderKey;
@@ -292,7 +309,7 @@ namespace KeeperSecurity.Vault
                     {
                         if (f.FolderUid == sourceFolder.FolderUid)
                         {
-                            throw new VaultException($"Cannot move the folder into its subfolder.");
+                            throw new VaultException("Cannot move the folder into its subfolder.");
                         }
 
                         f = vault.GetFolder(f.ParentUid);
@@ -477,7 +494,7 @@ namespace KeeperSecurity.Vault
                     }
                     else
                     {
-                        var status = Enum.GetName(typeof(RecordModifyResult), x.Status);
+                        var status = Enum.GetName(typeof(RecordModifyResult), x.Status) ?? "";
                         if (status.StartsWith("Rs"))
                         {
                             status = status.Substring(2);
@@ -592,16 +609,20 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public static async Task<FolderNode> AddFolder<T>(this VaultOnline vault, string folderName, string parentFolderUid = null, T sharedFolderOptions = null)
-            where T : class, ISharedFolderUserOptions, ISharedFolderRecordOptions
+        public static async Task<FolderNode> AddFolder(this VaultOnline vault, string folderName, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null)
         {
+            if (string.IsNullOrEmpty(folderName))
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
             var parent = vault.GetFolder(parentFolderUid);
             FolderType folderType;
             if (sharedFolderOptions != null)
             {
                 if (parent.FolderType != FolderType.UserFolder)
                 {
-                    throw new VaultException($"Shared folder cannot be created");
+                    throw new VaultException("Shared folder cannot be created");
                 }
 
                 folderType = FolderType.SharedFolder;
@@ -622,7 +643,7 @@ namespace KeeperSecurity.Vault
 
             var data = new FolderData
             {
-                name = folderName ?? "",
+                name = folderName,
             };
             var dataBytes = JsonUtils.DumpJson(data);
 
@@ -697,10 +718,7 @@ namespace KeeperSecurity.Vault
                     data = JsonUtils.ParseJson<FolderData>(CryptoUtils.DecryptAesV1(existingFolder.Data.Base64UrlDecode(), folder.FolderKey));
                 }
             }
-            catch
-            {
-                // ignored
-            }
+            catch { /* ignored */ }
 
             if (data == null)
             {
@@ -718,7 +736,7 @@ namespace KeeperSecurity.Vault
                 {
                     if (perm.UserType == UserType.Team)
                     {
-                        request.TeamUid = perm.UserId;
+                        request.TeamUid = perm.Uid;
                     }
                 }
             }
@@ -748,20 +766,6 @@ namespace KeeperSecurity.Vault
             foreach (var toDelete in objectsToDelete)
             {
                 var folder = vault.GetFolder(toDelete.FolderUid);
-                string teamUid = null;
-                if (folder.FolderType != FolderType.UserFolder)
-                {
-                    var sharedFolderUid = folder.FolderType == FolderType.SharedFolder ? folder.FolderUid : folder.SharedFolderUid;
-                    var perm = vault.ResolveSharedFolderAccessPath(vault.Auth.Username, sharedFolderUid, false, true);
-                    if (perm != null)
-                    {
-                        if (perm.UserType == UserType.Team)
-                        {
-                            teamUid = perm.UserId;
-                        }
-                    }
-                }
-
                 if (!string.IsNullOrEmpty(toDelete.RecordUid)) // delete record
                 {
                     if (folder.Records.Any(x => x == toDelete.RecordUid))

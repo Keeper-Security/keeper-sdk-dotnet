@@ -49,7 +49,7 @@ namespace KeeperSecurity.Authentication
         /// </item>
         /// </list>
         /// </summary>
-        public int ProductTypeId { get; internal set; }
+        public int ProductTypeId { get; private set; }
 
         /// <summary>
         /// Product Type name.
@@ -187,12 +187,6 @@ namespace KeeperSecurity.Authentication
         /// Persistent login.
         /// </summary>
         public bool PersistentLogin { get; internal set; }
-        /// <summary>
-        /// Record types enabled flag.
-        /// </summary>
-
-        public bool RecordTypesEnabled { get; internal set; }
-
         internal string AccountFolderKey { get; set; }
         internal AccountShareTo[] ShareAccountTo { get; set; }
 
@@ -205,20 +199,19 @@ namespace KeeperSecurity.Authentication
                 ChannelValue = settings.ChannelValue,
                 EmailVerified = settings.EmailVerified,
                 AccountFolderKey = settings.AccountFolderKey.ToByteArray().Base64UrlEncode(),
-                MustPerformAccountShareBy = settings.MustPerformAccountShareBy > 0 ? (double?) settings.MustPerformAccountShareBy : null,
+                MustPerformAccountShareBy = settings.MustPerformAccountShareBy > 0 ? settings.MustPerformAccountShareBy : null,
                 ShareAccountTo = settings.ShareAccountTo.Select(x => new AccountShareTo
                 {
                     PublicKey = x.PublicKey.ToByteArray().Base64UrlEncode(),
                     RoleId = x.RoleId
                 }).ToArray(),
-                MasterPasswordLastModified = settings.MasterPasswordLastModified > 1 ? (double?) settings.MasterPasswordLastModified : null,
+                MasterPasswordLastModified = settings.MasterPasswordLastModified > 1 ? settings.MasterPasswordLastModified : null,
                 Theme = settings.Theme,
                 SsoUser = settings.SsoUser,
                 ShareDatakeyWithEnterprise = settings.ShareDataKeyWithEccPublicKey,
                 ShareDataKeyWithDevicePublicKey = settings.ShareDataKeyWithDevicePublicKey,
-                LogoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : (long?) null,
+                LogoutTimerInSec = settings.LogoutTimer > 1000 ? settings.LogoutTimer / 1000 : null,
                 PersistentLogin = settings.PersistentLogin,
-                RecordTypesEnabled = settings.RecordTypesEnabled,
             };
         }
     }

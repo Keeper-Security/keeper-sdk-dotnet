@@ -1,5 +1,4 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +6,7 @@ using System.Threading.Tasks;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
 using System.Collections;
+using System.Runtime.Serialization;
 
 namespace KeeperSecurity.Vault
 {
@@ -43,7 +43,7 @@ namespace KeeperSecurity.Vault
         /// <param name="node">When this method returns <c>true</c>, contains requested folder; otherwise <c>null</c>.</param>
         /// <returns><c>true</c> in the vault contains a folder with specified UID; otherwise, <c>false</c></returns>
         bool TryGetFolder(string folderUid, out FolderNode node);
-        
+
         /// <summary>
         /// Gets the number of all records in the vault.
         /// </summary>
@@ -53,6 +53,7 @@ namespace KeeperSecurity.Vault
         /// Get the list of all records in the vault.
         /// </summary>
         IEnumerable<KeeperRecord> KeeperRecords { get; }
+
         /// <summary>
         /// Gets the Keeper record associated with the specified record UID from a record cache.
         /// </summary>
@@ -77,6 +78,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         [Obsolete("Use KeeperRecords")]
         IEnumerable<PasswordRecord> Records { get; }
+
         /// <summary>
         /// Gets the legacy record associated with the specified record UID.
         /// </summary>
@@ -90,10 +92,12 @@ namespace KeeperSecurity.Vault
         /// Gets  number of all shared folders in the vault.
         /// </summary>
         int SharedFolderCount { get; }
+
         /// <summary>
         /// Get the list of all shared folders in the vault.
         /// </summary>
         IEnumerable<SharedFolder> SharedFolders { get; }
+
         /// <summary>
         /// Gets shared folder associated with a specified record UID.
         /// </summary>
@@ -106,10 +110,12 @@ namespace KeeperSecurity.Vault
         /// Gets the number of all teams user is member of.
         /// </summary>
         int TeamCount { get; }
+
         /// <summary>
         /// Get list of all teams user is member of.
         /// </summary>
         IEnumerable<Team> Teams { get; }
+
         /// <summary>
         /// Gets a team associated with a specified team UID.
         /// </summary>
@@ -130,6 +136,7 @@ namespace KeeperSecurity.Vault
         /// Gets list of all registered record types.
         /// </summary>
         IEnumerable<RecordType> RecordTypes { get; }
+
         /// <summary>
         /// Gets record type meta data associated with the record type name.
         /// </summary>
@@ -139,20 +146,20 @@ namespace KeeperSecurity.Vault
         bool TryGetRecordTypeByName(string name, out RecordType recordType);
 
         /// <summary>
-        /// Gets number of all Keeper Secret Manager Applications.
+        /// Gets user email by user account Uid
         /// </summary>
-        int ApplicationCount { get; }
+        /// <param name="accountUid">User Account Uid</param>
+        /// <param name="username">Username / Email</param>
+        /// <returns><c>true</c> if accountUid exists; otherwise, <c>false</c>.</returns>
+        bool TryGetUsername(string accountUid, out string username);
+
         /// <summary>
-        /// Gets list of all Keeper Secret Manager Applications.
+        /// Gets user email by user account Uid
         /// </summary>
-        IEnumerable<ApplicationRecord> KeeperApplications { get; }
-        /// <summary>
-        /// Gets a KSM application associated with a specified team UID.
-        /// </summary>
-        /// <param name="applicationUid">Team UID.</param>
-        /// <param name="application">When this method returns <c>true</c>, contains requested team; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> in the vault contains a application with specified UID; otherwise, <c>false</c>.</returns>
-        bool TryGetKeeperApplication(string applicationUid, out ApplicationRecord application);
+        /// <param name="username">Username / Email</param>
+        /// <param name="accountUid">User Account Uid</param>
+        /// <returns><c>true</c> if email exists; otherwise, <c>false</c>.</returns>
+        bool TryGetAccountUid(string username, out string accountUid);
     }
 
     /// <summary>
@@ -164,6 +171,7 @@ namespace KeeperSecurity.Vault
         /// Record UID.
         /// </summary>
         public string RecordUid { get; set; }
+
         /// <summary>
         /// Folder UID.
         /// </summary>
@@ -173,31 +181,43 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Defines shared folder record permissions.
     /// </summary>
-    public interface ISharedFolderRecordOptions
+    public interface IRecordShareOptions
     {
         /// <summary>
         /// Record can be edited.
         /// </summary>
         bool? CanEdit { get; }
+
         /// <summary>
         /// Record can be re-shared.
         /// </summary>
         bool? CanShare { get; }
+
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        DateTimeOffset? Expiration { get; }
     }
 
     /// <summary>
     /// Defines shared folder user permissions.
     /// </summary>
-    public interface ISharedFolderUserOptions
+    public interface IUserShareOptions
     {
         /// <summary>
         /// User can manage other users.
         /// </summary>
         bool? ManageUsers { get; }
+
         /// <summary>
         /// User can manage records.
         /// </summary>
         bool? ManageRecords { get; }
+
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        DateTimeOffset? Expiration { get; }
     }
 
     /// <summary>
@@ -233,8 +253,8 @@ namespace KeeperSecurity.Vault
     }
 
     [Flags]
-    public enum RecordChange 
-    { 
+    public enum RecordChange
+    {
         RecordType = 1 << 0,
         Title = 1 << 1,
         Login = 1 << 2,
@@ -258,10 +278,12 @@ namespace KeeperSecurity.Vault
         /// Keeper record
         /// </summary>
         public KeeperRecord KeeperRecord { get; internal set; }
+
         /// <summary>
         /// User modified the record
         /// </summary>
         public string Username { get; internal set; }
+
         /// <summary>
         /// Summary of changes
         /// </summary>
@@ -361,7 +383,9 @@ namespace KeeperSecurity.Vault
         /// <remarks>Pass sharedFolderOptions parameter to create a Shared Folder.</remarks>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <seealso cref="SharedFolderOptions"/>
-        Task<FolderNode> CreateFolder(string name, string parentFolderUid = null, SharedFolderOptions sharedFolderOptions = null);
+        Task<FolderNode> CreateFolder(string name, string parentFolderUid = null,
+            SharedFolderOptions sharedFolderOptions = null);
+
         /// <summary>
         /// Renames a folder.
         /// </summary>
@@ -370,6 +394,7 @@ namespace KeeperSecurity.Vault
         /// <returns>A task returning renamed folder.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task<FolderNode> RenameFolder(string folderUid, string newName);
+
         /// <summary>
         /// Renames a folder.
         /// </summary>
@@ -379,6 +404,7 @@ namespace KeeperSecurity.Vault
         /// <returns>A task returning renamed folder.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task<FolderNode> UpdateFolder(string folderUid, string newName, SharedFolderOptions sharedFolderOptions = null);
+
         /// <summary>
         /// Moves a folder to the another folder.
         /// </summary>
@@ -388,6 +414,7 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable task.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task MoveFolder(string srcFolderUid, string dstFolderUid, bool link = false);
+
         /// <summary>
         /// Delete folder.
         /// </summary>
@@ -407,15 +434,6 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <returns></returns>
         Task<ShareWithUsers> GetUsersForShare();
-
-        /// <summary>
-        /// Gets user public keys.
-        /// </summary>
-        /// <param name="username"></param>
-        /// <exception cref="Authentication.KeeperApiException"></exception>
-        /// <exception cref="NoActiveShareWithUserException"/>
-        /// <returns>Awaitable task returning RSA and ECC public keys</returns>
-        Task<Tuple<byte[], byte[]>> GetUserPublicKeys(string username);
 
         /// <summary>
         /// Sends share invitation request to the user.
@@ -445,11 +463,10 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="recordUid">Record UID.</param>
         /// <param name="username">User account email</param>
-        /// <param name="canReshare">Can record be re-shared</param>
-        /// <param name="canEdit">Can record be modified</param>
+        /// <param name="options">Record share options</param>
         /// <exception cref="NoActiveShareWithUserException"/>
         /// <returns>Awaitable task.</returns>
-        Task ShareRecordWithUser(string recordUid, string username, bool? canReshare, bool? canEdit);
+        Task ShareRecordWithUser(string recordUid, string username, IRecordShareOptions options);
 
         /// <summary>
         /// Transfers a record to user
@@ -479,29 +496,35 @@ namespace KeeperSecurity.Vault
         /// Keeper Hostname
         /// </summary>
         string Hostname { get; }
+
         /// <summary>
         /// Client or Device ID
         /// </summary>
         string ClientId { get; }
+
         /// <summary>
         /// Device Private Key
         /// </summary>
         string PrivateKey { get; }
+
         /// <summary>
         /// Application Key
         /// </summary>
         string AppKey { get; }
+
         /// <exclude />
         string ServerPublicKeyId { get; }
+
         /// <summary>
         /// Public Key for record creation
         /// </summary>
         string AppOwnerPublicKey { get; }
     }
+
     /// <summary>
     /// Define methods for Keeper Secret Maneger (KSM)
     /// </summary>
-    public interface ISecretManager 
+    public interface ISecretManager
     {
         /// <summary>
         /// Gets Keeper Secret Manager Application Details
@@ -533,7 +556,8 @@ namespace KeeperSecurity.Vault
         /// <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
         /// <param name="canEdit">permission to edit</param>
         /// <returns>Secret Manager Application</returns>
-        Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid, bool canEdit);
+        Task<SecretsManagerApplication> ShareToSecretManagerApplication(string applicationId,
+            string sharedFolderOrRecordUid, bool canEdit);
 
         /// <summary>
         /// Revokes Shared Folder or Record access from Secret Manager Application
@@ -541,7 +565,8 @@ namespace KeeperSecurity.Vault
         /// <param name="applicationId">Application ID</param>
         /// <param name="sharedFolderOrRecordUid">Shared Folder or Record UID</param>
         /// <returns>Secret Manager Application</returns>
-        Task<SecretsManagerApplication> UnshareFromSecretManagerApplication(string applicationId, string sharedFolderOrRecordUid);
+        Task<SecretsManagerApplication> UnshareFromSecretManagerApplication(string applicationId,
+            string sharedFolderOrRecordUid);
 
         /// <summary>
         /// Adds a client/device to Secret Manager Application
@@ -549,12 +574,12 @@ namespace KeeperSecurity.Vault
         /// <param name="applicationId">Application ID</param>
         /// <param name="unlockIp">Optional. If false the first call from the client locks IP. If true no IP locking</param>
         /// <param name="firstAccessExpireInMinutes">Optional. First access duration in minutes. Default: an hour (60). Maximum: a day (1440) </param>
-        /// <param name="AccessExpiresInMinutes">Optional. Access Expiration duration in minutes.</param>
+        /// <param name="accessExpiresInMinutes">Optional. Access Expiration duration in minutes.</param>
         /// <param name="name">Optional. Client/Device name</param>
         /// <returns>Tuple: Client Device, Client Key</returns>
         Task<Tuple<SecretsManagerDevice, string>> AddSecretManagerClient(
-            string applicationId, bool? unlockIp=null, int? firstAccessExpireInMinutes=null, 
-            int? AccessExpiresInMinutes=null, string name=null);
+            string applicationId, bool? unlockIp = null, int? firstAccessExpireInMinutes = null,
+            int? accessExpiresInMinutes = null, string name = null);
 
         /// <summary>
         /// Creates SecretsManager Configuration Storage
@@ -562,7 +587,7 @@ namespace KeeperSecurity.Vault
         /// <param name="oneTimeToken">One time token</param>
         /// <returns>Configuration Storage</returns>
         Task<ISecretManagerConfiguration> GetConfiguration(string oneTimeToken);
-        
+
         /// <summary>
         /// Deletes a client/device from Secret Manager Application
         /// </summary>
@@ -593,7 +618,9 @@ namespace KeeperSecurity.Vault
         /// <exception cref="Authentication.KeeperApiException"></exception>
         /// <exception cref="NoActiveShareWithUserException" />
         /// <seealso cref="SharedFolderUserOptions"/>
-        Task PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType, ISharedFolderUserOptions options = null);
+        Task PutUserToSharedFolder(string sharedFolderUid, string userId, UserType userType,
+            IUserShareOptions options = null);
+
         /// <summary>
         /// Removes user or team from shared folder.
         /// </summary>
@@ -603,6 +630,7 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable task.</returns>
         /// <exception cref="Authentication.KeeperApiException"></exception>
         Task RemoveUserFromSharedFolder(string sharedFolderUid, string userId, UserType userType);
+
         /// <summary>
         /// Changes record permissions in shared folder.
         /// </summary>
@@ -615,7 +643,7 @@ namespace KeeperSecurity.Vault
         /// Use <see cref="IVault.CreateRecord"/> or <see cref="IVault.MoveRecords"/>.
         /// </remarks>
         /// <seealso cref="SharedFolderRecordOptions"/>
-        Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, ISharedFolderRecordOptions options);
+        Task ChangeRecordInSharedFolder(string sharedFolderUid, string recordUid, IRecordShareOptions options);
     }
 
     /// <summary>
@@ -627,15 +655,18 @@ namespace KeeperSecurity.Vault
         /// Thumbnail MIME type.
         /// </summary>
         string MimeType { get; }
+
         /// <summary>
         /// Thumbnail size in pixels.
         /// </summary>
         int Size { get; }
+
         /// <summary>
         /// Thumbnail read stream.
         /// </summary>
         Stream Stream { get; }
     }
+
     /// <summary>
     /// Defines properties of file upload task.
     /// </summary>
@@ -645,14 +676,17 @@ namespace KeeperSecurity.Vault
         /// Attachment name.
         /// </summary>
         string Name { get; }
+
         /// <summary>
         /// Attachment title.
         /// </summary>
         string Title { get; }
+
         /// <summary>
         /// Attachment MIME type.
         /// </summary>
         string MimeType { get; }
+
         /// <summary>
         /// Attachment read stream.
         /// </summary>
@@ -711,49 +745,48 @@ namespace KeeperSecurity.Vault
         public VaultException(string message) : base(message)
         {
         }
-        /// <exclude/>
-        public VaultException(string translationKey, string message) : base(message)
-        {
-            TranslationKey = translationKey;
-        }
-
-        /// <exclude />
-        public string TranslationKey { get; }
     }
 
     /// <summary>
     /// Represents generic Keeper Record
     /// </summary>
-    public abstract class KeeperRecord 
+    public abstract class KeeperRecord
     {
         /// <summary>
         /// Record UID.
         /// </summary>
         public string Uid { get; set; }
+
         /// <summary>
         /// Record version
         /// </summary>
         public int Version { get; set; }
+
         /// <summary>
         /// Record revision
         /// </summary>
         public long Revision { get; set; }
+
         /// <summary>
         /// Title.
         /// </summary>
         public string Title { get; set; }
+
         /// <summary>
         /// Last modification time.
         /// </summary>
         public DateTimeOffset ClientModified { get; internal set; }
+
         /// <summary>
         /// Is user Owner?
         /// </summary>
         public bool Owner { get; set; }
+
         /// <summary>
         /// Is record Shared?
         /// </summary>
         public bool Shared { get; set; }
+
         /// <summary>
         /// Record key.
         /// </summary>
@@ -836,14 +869,16 @@ namespace KeeperSecurity.Vault
         {
             TypeName = typeName;
         }
+
         /// <summary>
         /// Record mandatory fields.
         /// </summary>
-        public List<ITypedField> Fields { get; } = new List<ITypedField>();
+        public List<ITypedField> Fields { get; } = new();
+
         /// <summary>
         /// Record custom data.
         /// </summary>
-        public List<ITypedField> Custom { get; } = new List<ITypedField>();
+        public List<ITypedField> Custom { get; } = new();
 
         internal Dictionary<string, byte[]> LinkedKeys;
     }
@@ -857,6 +892,7 @@ namespace KeeperSecurity.Vault
     public class UnsupportedField : ITypedField, IToRecordTypeDataField
     {
         private readonly RecordTypeDataFieldBase _dataField;
+
         internal UnsupportedField(RecordTypeDataFieldBase dataField)
         {
             _dataField = dataField;
@@ -868,7 +904,8 @@ namespace KeeperSecurity.Vault
             return _dataField;
         }
 
-        object ITypedField.ObjectValue { 
+        object ITypedField.ObjectValue
+        {
             get => null;
             set { }
         }
@@ -890,6 +927,7 @@ namespace KeeperSecurity.Vault
         void ITypedField.DeleteValueAt(int index)
         {
         }
+
         int ITypedField.Count => 0;
 
         string IRecordTypeField.FieldName => _dataField.Type;
@@ -908,6 +946,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="text">external field representation</param>
         void ImportTypedField(string text);
+
         /// <summary>
         /// Exports typed field to text
         /// </summary>
@@ -958,7 +997,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Field values.
         /// </summary>
-        public List<T> Values { get; } = new List<T>();
+        public List<T> Values { get; } = new();
 
         /// <inheritdoc />
         public bool Required { get; set; }
@@ -1030,9 +1069,9 @@ namespace KeeperSecurity.Vault
                     }
                     else
                     {
-                        if (o is long lv)
+                        if (o is long)
                         {
-                            if (sv.All(y => char.IsDigit(y)))
+                            if (sv.All(char.IsDigit))
                             {
                                 o = long.Parse(sv);
                             }
@@ -1042,9 +1081,12 @@ namespace KeeperSecurity.Vault
                                 o = dt.ToUnixTimeMilliseconds();
                             }
                         }
-                        else if (o is bool) { 
-                            o = (new string[] { "1", "on", "true" }).Any(y => string.Equals(y, sv, StringComparison.InvariantCultureIgnoreCase));
+                        else if (o is bool)
+                        {
+                            o = new[] { "1", "on", "true" }.Any(y =>
+                                string.Equals(y, sv, StringComparison.InvariantCultureIgnoreCase));
                         }
+
                         TypedValue = (T) o;
                     }
                 }
@@ -1062,6 +1104,7 @@ namespace KeeperSecurity.Vault
                             }
                         }
                     }
+
                     TypedValue = o;
                 }
                 else
@@ -1136,7 +1179,7 @@ namespace KeeperSecurity.Vault
         void ISerializeTypedField.ImportTypedField(string text)
         {
             Values.Clear();
-            if (string.IsNullOrEmpty(text)) 
+            if (string.IsNullOrEmpty(text))
             {
                 return;
             }
@@ -1148,9 +1191,9 @@ namespace KeeperSecurity.Vault
                     break;
                 case List<long> ll:
                 {
-                    ll.AddRange(text.Split('\n').Select(x => x.Trim()).Select(x => 
+                    ll.AddRange(text.Split('\n').Select(x => x.Trim()).Select(x =>
                     {
-                        if (x.All(y => char.IsDigit(y)))
+                        if (x.All(char.IsDigit))
                         {
                             return long.Parse(x);
                         }
@@ -1159,24 +1202,26 @@ namespace KeeperSecurity.Vault
                             var dt = DateTimeOffset.Parse(x);
                             return dt.ToUnixTimeMilliseconds();
                         }
+
                         return 0;
                     }).Where(x => x > 0));
                 }
-                break;
+                    break;
                 case List<bool> lb:
-                    lb.AddRange(text.Split('\n').Select(x => 
+                    lb.AddRange(text.Split('\n').Select(x =>
                     {
-                        return (new string[] { "1", "on", "true"}).Any(y => string.Equals(y, "on", StringComparison.InvariantCultureIgnoreCase));
+                        return (new[] { "1", "on", "true" }).Any(y =>
+                            string.Equals(y, "on", StringComparison.InvariantCultureIgnoreCase));
                     }));
                     break;
 
                 default:
                     if (typeof(IFieldTypeSerialize).IsAssignableFrom(typeof(T)))
                     {
-                        Values.AddRange(text.Split('\n').Select(x => 
+                        Values.AddRange(text.Split('\n').Select(x =>
                         {
                             var v = Activator.CreateInstance<T>();
-                            ((IFieldTypeSerialize)v).SetValueAsString(x);
+                            ((IFieldTypeSerialize) v).SetValueAsString(x);
                             return v;
                         }));
                     }
@@ -1184,19 +1229,23 @@ namespace KeeperSecurity.Vault
                     {
                         throw new Exception($"Field type {typeof(T).Name} does not support serialization.");
                     }
+
                     break;
             }
         }
+
         string ISerializeTypedField.ExportTypedField()
         {
             if (Values.Count == 0)
             {
                 return "";
             }
+
             switch (Values)
             {
                 case List<string> ls:
-                    return string.Join("\n", ls.Where(x => !string.IsNullOrEmpty(x)).Select(x => x.Replace("\n", "\\n")));
+                    return string.Join("\n",
+                        ls.Where(x => !string.IsNullOrEmpty(x)).Select(x => x.Replace("\n", "\\n")));
 
                 case List<long> ll:
                 {
@@ -1219,7 +1268,9 @@ namespace KeeperSecurity.Vault
                 default:
                     if (typeof(IFieldTypeSerialize).IsAssignableFrom(typeof(T)))
                     {
-                        return string.Join("\n", Values.OfType<IFieldTypeSerialize>().Select(x => x.GetValueAsString()).Where(x => !string.IsNullOrEmpty(x)));
+                        return string.Join("\n",
+                            Values.OfType<IFieldTypeSerialize>().Select(x => x.GetValueAsString())
+                                .Where(x => !string.IsNullOrEmpty(x)));
                     }
                     else
                     {
@@ -1294,6 +1345,7 @@ namespace KeeperSecurity.Vault
                     return cf;
                 }
             }
+
             return null;
         }
 
@@ -1329,10 +1381,12 @@ namespace KeeperSecurity.Vault
         /// Custom field name.
         /// </summary>
         public string Name { get; set; }
+
         /// <summary>
         /// Custom field value.
         /// </summary>
         public string Value { get; set; }
+
         /// <summary>
         /// Custom field type.
         /// </summary>
@@ -1348,18 +1402,21 @@ namespace KeeperSecurity.Vault
         /// Extra field ID.
         /// </summary>
         public string Id { get; set; }
+
         /// <summary>
         /// Extra field type.
         /// </summary>
         public string FieldType { get; set; }
+
         /// <summary>
         /// Extra field title.
         /// </summary>
         public string FieldTitle { get; set; }
+
         /// <summary>
         /// Additional extra field values.
         /// </summary>
-        public Dictionary<string, object> Custom { get; } = new Dictionary<string, object>();
+        public Dictionary<string, object> Custom { get; } = new();
     }
 
     /// <summary>
@@ -1372,10 +1429,12 @@ namespace KeeperSecurity.Vault
         /// Thumbnail ID.
         /// </summary>
         public string Id { get; internal set; }
+
         /// <summary>
         /// Thumbnail MIME type.
         /// </summary>
         public string Type { get; internal set; }
+
         /// <summary>
         /// Thumbnail size. pixels.
         /// </summary>
@@ -1391,27 +1450,33 @@ namespace KeeperSecurity.Vault
         /// Attachment ID.
         /// </summary>
         string Id { get; }
+
         /// <summary>
         /// Attachment name.
         /// </summary>
         /// <remarks>Usually it is an original file name.</remarks>
         string Name { get; }
+
         /// <summary>
         /// Attachment title.
         /// </summary>
         string Title { get; }
+
         /// <summary>
         /// Attachment MIME type.
         /// </summary>
         string MimeType { get; }
+
         /// <summary>
         /// Attachment size in bytes.
         /// </summary>
         long Size { get; }
+
         /// <summary>
         /// Last time modified.
         /// </summary>
         DateTimeOffset LastModified { get; }
+
         /// <summary>
         /// Attachment encryption key.
         /// </summary>
@@ -1427,31 +1492,38 @@ namespace KeeperSecurity.Vault
         /// Attachment ID.
         /// </summary>
         public string Id { get; set; }
+
         /// <summary>
         /// Attachment encryption key.
         /// </summary>
         public string Key { get; set; }
+
         /// <summary>
         /// Attachment name.
         /// </summary>
         /// <remarks>Usually it is an original file name.</remarks>
         public string Name { get; set; }
+
         /// <summary>
         /// Attachment title.
         /// </summary>
         public string Title { get; set; }
+
         /// <summary>
         /// Attachment MIME type.
         /// </summary>
         public string MimeType { get; set; }
+
         /// <summary>
         /// Attachment size in bytes.
         /// </summary>
         public long Size { get; set; }
+
         /// <summary>
         /// Last time modified.
         /// </summary>
         public DateTimeOffset LastModified { get; set; }
+
         /// <summary>
         /// A list of thumbnails.
         /// </summary>
@@ -1532,8 +1604,8 @@ namespace KeeperSecurity.Vault
     }
 
     /// <exclude/>
-    public enum SecretManagerSecretType 
-    { 
+    public enum SecretManagerSecretType
+    {
         Record = 0,
         Folder = 1,
     }
@@ -1564,22 +1636,31 @@ namespace KeeperSecurity.Vault
         /// Keeper username.
         /// </summary>
         public string Username { get; internal set; }
+
         /// <summary>
         /// Flag indicating if the user has share permissions.
         /// </summary>
         public bool CanShare { get; internal set; }
+
         /// <summary>
         /// Flag indicating if the user has rights to edit the record
         /// </summary>
         public bool CanEdit { get; internal set; }
+
         /// <summary>
         /// Flag indicating if the user is record owner.
         /// </summary>
         public bool Owner { get; internal set; }
+
         /// <summary>
         /// Flag indicating if the user has pending invitation.
         /// </summary>
         public bool AwaitingApproval { get; internal set; }
+
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        public DateTimeOffset? Expiration { get; internal set; }
     }
 
     /// <summary>
@@ -1591,29 +1672,38 @@ namespace KeeperSecurity.Vault
         /// Shared Folder UID.
         /// </summary>
         public string SharedFolderUid { get; internal set; }
+
         /// <summary>
         /// Flag indicating if the shared folder has share permissions.
         /// </summary>
         public bool CanShare { get; internal set; }
+
         /// <summary>
         /// Flag indicating if the shared folder has rights to edit the record
         /// </summary>
         public bool CanEdit { get; internal set; }
+
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        public DateTimeOffset? Expiration { get; internal set; }
     }
 
     /// <summary>
     /// Represent record sharing information
     /// </summary>
-    public class RecordSharePermissions 
+    public class RecordSharePermissions
     {
         /// <summary>
         /// Record UID
         /// </summary>
         public string RecordUid { get; internal set; }
+
         /// <summary>
         /// List of direct record share permissions
         /// </summary>
         public UserRecordPermissions[] UserPermissions { get; internal set; }
+
         /// <summary>
         /// List of shared folder permissions
         /// </summary>
@@ -1624,20 +1714,23 @@ namespace KeeperSecurity.Vault
     /// Represent user list available for sharing
     /// </summary>
     public class ShareWithUsers
-    { 
+    {
         /// <summary>
         /// Array of users shared from
         /// </summary>
         public string[] SharesFrom { get; internal set; }
+
         /// <summary>
         /// Array of users shared to
         /// </summary>
         public string[] SharesWith { get; internal set; }
+
         /// <summary>
         /// Array of users in the enterprise
         /// </summary>
         public string[] GroupUsers { get; internal set; }
     }
+
     /// <summary>
     /// Specifies shared folder user type.
     /// </summary>
@@ -1647,6 +1740,7 @@ namespace KeeperSecurity.Vault
         /// Regular user.
         /// </summary>
         User = 1,
+
         /// <summary>
         /// Enterprise Team.
         /// </summary>
@@ -1659,21 +1753,34 @@ namespace KeeperSecurity.Vault
     public class SharedFolderPermission
     {
         /// <summary>
-        /// User email or team UID.
+        /// AccountUid or TeamUid.
         /// </summary>
-        public string UserId { get; internal set; }
+        public string Uid { get; internal set; }
+
         /// <summary>
-        /// The type of <see cref="UserId"/> property.
+        /// Email or Team Name.
+        /// </summary>
+        public string Name { get; internal set; }
+
+        /// <summary>
+        /// The type of <see cref="Uid"/> property.
         /// </summary>
         public UserType UserType { get; internal set; }
+
         /// <summary>
         /// Can Manage Records?
         /// </summary>
         public bool ManageRecords { get; internal set; }
+
         /// <summary>
         /// Can Manage Users?
         /// </summary>
         public bool ManageUsers { get; internal set; }
+
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        public DateTimeOffset? Expiration { get; internal set; }
     }
 
     /// <summary>
@@ -1685,14 +1792,21 @@ namespace KeeperSecurity.Vault
         /// Record UID.
         /// </summary>
         public string RecordUid { get; internal set; }
+
         /// <summary>
         /// Can be re-shared?
         /// </summary>
         public bool CanShare { get; internal set; }
+
         /// <summary>
         /// Can be edited?
         /// </summary>
         public bool CanEdit { get; internal set; }
+
+        /// <summary>
+        /// Share expiration time.
+        /// </summary>
+        public DateTimeOffset? Expiration { get; internal set; }
     }
 
     /// <summary>
@@ -1704,6 +1818,7 @@ namespace KeeperSecurity.Vault
         /// Shared folder UID.
         /// </summary>
         public string Uid { get; set; }
+
         /// <summary>
         /// Shared folder name.
         /// </summary>
@@ -1713,14 +1828,17 @@ namespace KeeperSecurity.Vault
         /// Default manage records permission.
         /// </summary>
         public bool DefaultManageRecords { get; set; }
+
         /// <summary>
         /// Default manage users permission.
         /// </summary>
         public bool DefaultManageUsers { get; set; }
+
         /// <summary>
         /// Default record can be re-shared permission.
         /// </summary>
         public bool DefaultCanEdit { get; set; }
+
         /// <summary>
         /// Default record can be edited permission.
         /// </summary>
@@ -1729,11 +1847,12 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// A list of user permissions.
         /// </summary>
-        public List<SharedFolderPermission> UsersPermissions { get; } = new List<SharedFolderPermission>();
+        public List<SharedFolderPermission> UsersPermissions { get; } = new();
+
         /// <summary>
         /// A list of record permissions.
         /// </summary>
-        public List<SharedFolderRecord> RecordPermissions { get; } = new List<SharedFolderRecord>();
+        public List<SharedFolderRecord> RecordPermissions { get; } = new();
 
         /// <summary>
         /// Shared Folder key.
@@ -1750,6 +1869,7 @@ namespace KeeperSecurity.Vault
         /// Team UID.
         /// </summary>
         public string TeamUid { get; set; }
+
         /// <summary>
         /// Team Name.
         /// </summary>
@@ -1759,16 +1879,18 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Represents team properties that user is member of.
     /// </summary>
-    public class Team: TeamInfo
+    public class Team : TeamInfo
     {
         /// <summary>
         /// Team restricts record edit.
         /// </summary>
         public bool RestrictEdit { get; set; }
+
         /// <summary>
         /// Team restricts record re-share.
         /// </summary>
         public bool RestrictShare { get; set; }
+
         /// <summary>
         /// Team restricts record view.
         /// </summary>
@@ -1782,9 +1904,14 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Team RSA private key.
         /// </summary>
-        public RsaPrivateCrtKeyParameters TeamPrivateKey { get; internal set; }
+        public RsaPrivateKey TeamRsaPrivateKey { get; internal set; }
+
+        /// <summary>
+        /// Team EC private key.
+        /// </summary>
+        public EcPrivateKey TeamEcPrivateKey { get; internal set; }
     }
-    
+
     /// <summary>
     /// Specifies folder types.
     /// </summary>
@@ -1794,10 +1921,12 @@ namespace KeeperSecurity.Vault
         /// User folder.
         /// </summary>
         UserFolder,
+
         /// <summary>
         /// Shared folder.
         /// </summary>
         SharedFolder,
+
         /// <summary>
         /// Subfolder of shared folder.
         /// </summary>
@@ -1814,27 +1943,33 @@ namespace KeeperSecurity.Vault
         /// Folder UID.
         /// </summary>
         public string FolderUid { get; internal set; }
+
         /// <summary>
         /// Parent folder UID.
         /// </summary>
         public string ParentUid { get; internal set; }
+
         /// <summary>
         /// Shared Folder UID. 
         /// </summary>
         /// <remarks>Populated for <c>SharedFolderFolder</c> <see cref="FolderType"/></remarks>
         public string SharedFolderUid { get; internal set; }
+
         /// <summary>
         /// Folder type.
         /// </summary>
         public FolderType FolderType { get; internal set; } = FolderType.UserFolder;
+
         /// <summary>
         /// Folder name.
         /// </summary>
         public string Name { get; internal set; }
+
         /// <summary>
         /// A UID list of subfolders
         /// </summary>
         public IList<string> Subfolders { get; } = new List<string>();
+
         /// <summary>
         /// A UID list of records.
         /// </summary>
@@ -1864,10 +1999,12 @@ namespace KeeperSecurity.Vault
         /// Record UID.
         /// </summary>
         string RecordUid { get; }
+
         /// <summary>
         /// Shared Folder UID.
         /// </summary>
         string SharedFolderUid { get; set; }
+
         /// <summary>
         /// Team UID.
         /// </summary>
@@ -1890,6 +2027,7 @@ namespace KeeperSecurity.Vault
         /// Shared Folder UID.
         /// </summary>
         string SharedFolderUid { get; set; }
+
         /// <summary>
         /// Team UID.
         /// </summary>
@@ -1900,14 +2038,20 @@ namespace KeeperSecurity.Vault
     {
         private static readonly IDictionary<FolderType, string> FolderTypes = new Dictionary<FolderType, string>
         {
-            {FolderType.UserFolder, "user_folder"},
-            {FolderType.SharedFolder, "shared_folder"},
-            {FolderType.SharedFolderFolder, "shared_folder_folder"},
+            { FolderType.UserFolder, "user_folder" },
+            { FolderType.SharedFolder, "shared_folder" },
+            { FolderType.SharedFolderFolder, "shared_folder_folder" },
         };
-        
+
         public static string GetFolderTypeText(this FolderType folderType)
         {
             return FolderTypes[folderType];
         }
+    }
+
+    [DataContract]
+    public class FolderData
+    {
+        [DataMember(Name = "name")] public string name;
     }
 }

@@ -28,16 +28,19 @@ namespace KeeperSecurity.Configuration
         /// <param name="id">Entity ID</param>
         /// <returns></returns>
         T Get(string id);
+
         /// <summary>
         /// Store entity to collection.
         /// </summary>
         /// <param name="entity"></param>
         void Put(T entity);
+
         /// <summary>
         /// Delete entity from collection by ID.
         /// </summary>
         /// <param name="id"></param>
         void Delete(string id);
+
         /// <summary>
         /// Return all entities the collection.
         /// </summary>
@@ -58,12 +61,13 @@ namespace KeeperSecurity.Configuration
     /// <summary>
     /// Defines User entity.
     /// </summary>
-    public interface IUserConfiguration: IConfigurationId
+    public interface IUserConfiguration : IConfigurationId
     {
         /// <summary>
         /// User's email address.
         /// </summary>
         string Username { get; }
+
         /// <summary>
         /// User's password. Optional.
         /// </summary>
@@ -72,12 +76,12 @@ namespace KeeperSecurity.Configuration
         /// <see cref="IAuth.Login"/> uses this property if it is set by customer.
         /// </remarks>
         string Password { get; }
-        /// <exclude/>
-        string TwoFactorToken { get; }
+
         /// <summary>
         /// Keeper region where user is hosted.
         /// </summary>
         string Server { get; }
+
         /// <summary>
         /// Last used device.
         /// </summary>
@@ -87,12 +91,13 @@ namespace KeeperSecurity.Configuration
     /// <summary>
     /// Defines Keeper server entity.
     /// </summary>
-    public interface IServerConfiguration: IConfigurationId
+    public interface IServerConfiguration : IConfigurationId
     {
         /// <summary>
         /// Keeper server host.
         /// </summary>
         string Server { get; }
+
         /// <summary>
         /// Server Key ID.
         /// </summary>
@@ -102,12 +107,13 @@ namespace KeeperSecurity.Configuration
     /// <summary>
     /// Defines device's server entity.
     /// </summary>
-    public interface IDeviceServerConfiguration: IConfigurationId
+    public interface IDeviceServerConfiguration : IConfigurationId
     {
         /// <summary>
         /// Keeper server host.
         /// </summary>
         string Server { get; }
+
         /// <summary>
         /// Resumption code.
         /// </summary>
@@ -117,73 +123,93 @@ namespace KeeperSecurity.Configuration
     /// <summary>
     /// Defines device entity.
     /// </summary>
-    public interface IDeviceConfiguration: IConfigurationId
+    public interface IDeviceConfiguration : IConfigurationId
     {
         /// <summary>
         /// Device token.
         /// </summary>
         string DeviceToken { get; }
+
         /// <summary>
         /// Device EC private key.
         /// </summary>
         byte[] DeviceKey { get; }
+
         /// <summary>
         /// Device's server collection.
         /// </summary>
         IConfigCollection<IDeviceServerConfiguration> ServerInfo { get; }
     }
 
-    /// <exclude/>
-    public interface IConfigurationFlush
-    {
-        void Flush();
-    }
-
     /// <summary>
-    /// Defines configuration storage.
+    /// Defines Keeper configuration properties.
     /// </summary>
-    public interface IConfigurationStorage
+    public interface IKeeperConfiguration
     {
         /// <summary>
         /// Gets user collection.
         /// </summary>
         IConfigCollection<IUserConfiguration> Users { get; }
+
         /// <summary>
         /// Gets server collection.
         /// </summary>
         IConfigCollection<IServerConfiguration> Servers { get; }
+
         /// <summary>
         /// Gets device collection.
         /// </summary>
         IConfigCollection<IDeviceConfiguration> Devices { get; }
+
         /// <summary>
         /// Gets last logged in user.
         /// </summary>
         string LastLogin { get; set; }
+
         /// <summary>
         /// Gets last used Keeper server.
         /// </summary>
         string LastServer { get; set; }
+
+    }
+
+    /// <summary>
+    /// Defines Keeper configuration storage
+    /// </summary>
+    public interface IConfigurationStorage
+    {
+        /// <summary>
+        /// Gets configuration from storage
+        /// </summary>
+        /// <returns></returns>
+        IKeeperConfiguration Get();
+
+        /// <summary>
+        /// Stores configuration to storage
+        /// </summary>
+        /// <param name="configuration"></param>
+        void Put(IKeeperConfiguration configuration);
     }
 
     /// <exclude/>
     public class InMemoryConfigCollection<T> : IConfigCollection<T> where T : class, IConfigurationId
     {
-        private readonly Dictionary<string, T> _collection = new Dictionary<string, T>();
+        private readonly Dictionary<string, T> _collection = new();
         IEnumerable<T> IConfigCollection<T>.List => _collection.Values;
-        void IConfigCollection<T>.Delete(string id)
+
+        public void Delete(string id)
         {
             if (string.IsNullOrEmpty(id)) return;
             _collection.Remove(id);
         }
 
-        T IConfigCollection<T>.Get(string id)
+        public T Get(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
             return _collection.TryGetValue(id, out var result) ? result : default;
         }
 
-        void IConfigCollection<T>.Put(T configuration)
+        public void Put(T configuration)
         {
             _collection[configuration.Id] = configuration;
         }
@@ -213,8 +239,10 @@ namespace KeeperSecurity.Configuration
 
         /// <inheritdoc/>>
         public string DeviceToken { get; set; }
+
         /// <exclude/>
-        [Obsolete] public string ResumeCode { get; set; }
+        [Obsolete]
+        public string ResumeCode { get; set; }
     }
 
     /// <summary>
@@ -238,7 +266,6 @@ namespace KeeperSecurity.Configuration
         public UserConfiguration(IUserConfiguration other) : this(other.Username)
         {
             Password = other.Password;
-            TwoFactorToken = other.TwoFactorToken;
             Server = other.Server;
             if (other.LastDevice != null)
             {
@@ -248,14 +275,16 @@ namespace KeeperSecurity.Configuration
 
         /// <inheritdoc/>>
         public string Username { get; }
+
         /// <inheritdoc/>>
         public string Password { get; set; }
-        /// <inheritdoc/>>
-        public string TwoFactorToken { get; set; }
+
         /// <inheritdoc/>>
         public string Server { get; set; }
+
         /// <inheritdoc/>>
-        public IUserDeviceConfiguration LastDevice { get; set; } 
+        public IUserDeviceConfiguration LastDevice { get; set; }
+
         /// <exclude/>
         string IConfigurationId.Id => Username;
     }
@@ -285,6 +314,7 @@ namespace KeeperSecurity.Configuration
 
         /// <inheritdoc/>>
         public string Server { get; }
+
         /// <inheritdoc/>>
         public int ServerKeyId { get; set; } = 1;
 
@@ -310,13 +340,14 @@ namespace KeeperSecurity.Configuration
         /// Creates instance from another user entity.
         /// </summary>
         /// <param name="other">Device server entity.</param>
-        public DeviceServerConfiguration(IDeviceServerConfiguration other): this(other.Server)
+        public DeviceServerConfiguration(IDeviceServerConfiguration other) : this(other.Server)
         {
             CloneCode = other.CloneCode;
         }
 
         /// <inheritdoc/>>
         public string Server { get; }
+
         /// <inheritdoc/>>
         public string CloneCode { get; set; }
 
@@ -359,35 +390,81 @@ namespace KeeperSecurity.Configuration
 
         /// <inheritdoc/>>
         public string DeviceToken { get; }
+
         /// <inheritdoc/>>
         public byte[] DeviceKey { get; set; }
+
         /// <inheritdoc/>>
         public IConfigCollection<IDeviceServerConfiguration> ServerInfo => _serverInfo;
+
         /// <exclude/>
         string IConfigurationId.Id => DeviceToken;
 
     }
 
     /// <exclude/>
-    public class InMemoryConfigurationStorage : IConfigurationStorage
+    public class KeeperConfiguration : IKeeperConfiguration
     {
-        public InMemoryConfigurationStorage()
+        private readonly InMemoryConfigCollection<IUserConfiguration> _users = new();
+        private readonly InMemoryConfigCollection<IServerConfiguration> _servers = new();
+        private readonly InMemoryConfigCollection<IDeviceConfiguration> _devices = new();
+
+        public KeeperConfiguration() : this(null)
         {
-            _users = new InMemoryConfigCollection<IUserConfiguration>();
-            _servers = new InMemoryConfigCollection<IServerConfiguration>();
-            _devices = new InMemoryConfigCollection<IDeviceConfiguration>();
         }
 
-        private readonly InMemoryConfigCollection<IUserConfiguration> _users;
-        private readonly InMemoryConfigCollection<IServerConfiguration> _servers;
-        private readonly InMemoryConfigCollection<IDeviceConfiguration> _devices;
+        public KeeperConfiguration(IKeeperConfiguration other)
+        {
+            if (other == null) return;
+            LastLogin = other.LastLogin;
+            LastServer = other.LastServer;
+            foreach (var uc in other.Users.List)
+            {
+                _users.Put(new UserConfiguration(uc));
+            }
 
-        IConfigCollection<IUserConfiguration> IConfigurationStorage.Users => _users;
-        IConfigCollection<IServerConfiguration> IConfigurationStorage.Servers => _servers;
-        IConfigCollection<IDeviceConfiguration> IConfigurationStorage.Devices => _devices;
+            foreach (var dc in other.Devices.List)
+            {
+                _devices.Put(new DeviceConfiguration(dc));
+            }
+
+            foreach (var sc in other.Servers.List)
+            {
+                _servers.Put(new ServerConfiguration(sc));
+            }
+        }
+
+        IConfigCollection<IUserConfiguration> IKeeperConfiguration.Users => _users;
+        IConfigCollection<IServerConfiguration> IKeeperConfiguration.Servers => _servers;
+        IConfigCollection<IDeviceConfiguration> IKeeperConfiguration.Devices => _devices;
         public string LastLogin { get; set; }
         public string LastServer { get; set; }
 
+    }
+
+    /// <exclude/>
+    public class InMemoryConfigurationStorage : IConfigurationStorage
+    {
+        private IKeeperConfiguration _configuration;
+
+        public InMemoryConfigurationStorage() : this(null)
+        {
+        }
+
+        public InMemoryConfigurationStorage(IKeeperConfiguration configuration)
+        {
+            _configuration = configuration ?? new KeeperConfiguration();
+        }
+
+        public IKeeperConfiguration Get()
+        {
+            return _configuration;
+        }
+
+        public void Put(IKeeperConfiguration configuration)
+        {
+            _configuration = new KeeperConfiguration(configuration);
+        }
     }
 
     internal static class ConfigurationExtension
@@ -406,6 +483,63 @@ namespace KeeperSecurity.Configuration
         public static string AdjustUserName(this string username)
         {
             return username.ToLowerInvariant();
+        }
+
+        public static void Assign(this IKeeperConfiguration configuration, IKeeperConfiguration other)
+        {
+            configuration.LastServer = other.LastServer;
+            configuration.LastLogin = other.LastLogin;
+            var ids = new HashSet<string>();
+
+            ids.Clear();
+            ids.UnionWith(configuration.Users.List.Select(x => x.Id));
+            foreach (var user in other.Users.List)
+            {
+                configuration.Users.Put(user);
+                ids.Remove(user.Id);
+            }
+            if (ids.Count > 0) {
+                foreach (var id in ids)
+                {
+                    configuration.Users.Delete(id);
+                }
+            }
+
+            ids.Clear();
+            ids.UnionWith(configuration.Servers.List.Select(x => x.Id));
+            foreach (var server in other.Servers.List)
+            {
+                configuration.Servers.Put(server);
+                if (ids.Contains(server.Id))
+                {
+                    ids.Remove(server.Id);
+                }
+            }
+            if (ids.Count > 0)
+            {
+                foreach (var id in ids)
+                {
+                    configuration.Servers.Delete(id);
+                }
+            }
+
+            ids.Clear();
+            ids.UnionWith(configuration.Devices.List.Select(x => x.Id));
+            foreach (var device in other.Devices.List)
+            {
+                configuration.Devices.Put(device);
+                if (ids.Contains(device.Id))
+                {
+                    ids.Remove(device.Id);
+                }
+            }
+            if (ids.Count > 0)
+            {
+                foreach (var id in ids)
+                {
+                    configuration.Devices.Delete(id);
+                }
+            }
         }
     }
 }

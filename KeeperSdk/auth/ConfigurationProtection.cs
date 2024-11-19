@@ -76,4 +76,17 @@ namespace KeeperSecurity.Configuration
             return Encoding.UTF8.GetString(decryptedData);
         }
     }
+
+    internal class WipeOutProtector : IConfigurationProtection
+    {
+        public string Clarify(string data)
+        {
+            return null;
+        }
+
+        public string Obscure(string data)
+        {
+            return null;
+        }
+    }
 }

@@ -1,12 +1,10 @@
 ﻿using Cli;
 using CommandLine;
-using Google.Protobuf.WellKnownTypes;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Commander
@@ -128,7 +126,7 @@ namespace Commander
                     DumpRowNo = true
                 };
                 tab.AddHeader(new[] { "Application UID", "Title" });
-                foreach (var app in context.Vault.KeeperApplications)
+                foreach (var app in context.Vault.KeeperRecords.OfType<ApplicationRecord>())
                 {
                     tab.AddRow(app.Uid, app.Title);
                 }
@@ -150,7 +148,7 @@ namespace Commander
                 return;
             }
 
-            var application = context.Vault.KeeperApplications.FirstOrDefault(x => x.Uid == arguments.KsmId || string.Equals(x.Title, arguments.KsmId, StringComparison.InvariantCultureIgnoreCase));
+            var application = context.Vault.KeeperRecords.OfType<ApplicationRecord>().FirstOrDefault(x => x.Uid == arguments.KsmId || string.Equals(x.Title, arguments.KsmId, StringComparison.InvariantCultureIgnoreCase));
             if (application == null)
             {
                 Console.Write($"KSM application {arguments.KsmId} not found");
@@ -299,7 +297,7 @@ namespace Commander
                     var ipLock = device.LockIp ? "Enabled" : "Disabled";
                     Console.WriteLine($"IP Lock: {ipLock}");
                     var firstAccessOn = device.FirstAccessExpireOn.HasValue ? device.FirstAccessExpireOn.Value.ToString("G") : "Taken";
-                    Console.WriteLine($"Token Expires On: {device.FirstAccessExpireOn.Value}");
+                    Console.WriteLine($"Token Expires On: {firstAccessOn}");
                 }
 
                 var accessExpireOn = device.AccessExpireOn.HasValue ? device.AccessExpireOn.Value.ToString("G") : "Never";

@@ -148,6 +148,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public string FieldLabel { get; }
 
+        /// <excluded/>
         public bool Required { get; internal set; }
     }
 
@@ -266,6 +267,28 @@ namespace KeeperSecurity.Vault
         public string[] ResourceRef { get; set; }
     }
 
+    /// <exclude />
+    [DataContract]
+    public class FieldSchedule : FieldTypeBase
+    {
+        [DataMember(Name = "type", EmitDefaultValue = true)]
+        public string Type { get; set; }
+        [DataMember(Name = "time", EmitDefaultValue = true)]
+        public string Time { get; set; }
+        [DataMember(Name = "tz", EmitDefaultValue = true)]
+        public string TimeZone { get; set; }
+        [DataMember(Name = "weekday", EmitDefaultValue = false)]
+        public string Weekday { get; set; }
+        [DataMember(Name = "month", EmitDefaultValue = false)]
+        public string Month { get; set; }
+        [DataMember(Name = "monthDay", EmitDefaultValue = false)]
+        public string MonthDay { get; set; }
+        [DataMember(Name = "cron", EmitDefaultValue = false)]
+        public string Cron { get; set; }
+        [DataMember(Name = "intervalCount", EmitDefaultValue = true)]
+        public string IntervalCount { get; set; }
+    }
+
     /// <summary>
     /// "host" field type
     /// </summary>
@@ -290,7 +313,7 @@ namespace KeeperSecurity.Vault
         public string Port { get; set; }
 
 
-        private static readonly string[] HostElements = new[] { "hostName", "port" };
+        private static readonly string[] HostElements = { "hostName", "port" };
         /// <exclude />
         public IEnumerable<string> Elements => HostElements;
         /// <exclude />
@@ -390,7 +413,7 @@ namespace KeeperSecurity.Vault
         public string Type { get; set; }
 
 
-        private static readonly string[] PhoneElements = new[] { "region", "number", "ext", "type" };
+        private static readonly string[] PhoneElements = { "region", "number", "ext", "type" };
         /// <exclude />
         public IEnumerable<string> Elements => PhoneElements;
 
@@ -507,7 +530,7 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "middle", EmitDefaultValue = true)]
         public string Middle { get; set; }
 
-        private static readonly string[] NameElements = new string[] { "first", "middle", "last" };
+        private static readonly string[] NameElements = { "first", "middle", "last" };
         /// <exclude />
         public IEnumerable<string> Elements => NameElements;
 
@@ -638,7 +661,7 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "country", EmitDefaultValue = true)]
         public string Country { get; set; }
 
-        private static readonly string[] AddressElements = new string[] { "street1", "street2", "city", "state", "zip", "country" };
+        private static readonly string[] AddressElements = { "street1", "street2", "city", "state", "zip", "country" };
         /// <exclude />
         public IEnumerable<string> Elements => AddressElements;
 
@@ -779,7 +802,7 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "answer", EmitDefaultValue = true)]
         public string Answer { get; set; }
 
-        private static readonly string[] QaElements = new[] { "question", "answer" };
+        private static readonly string[] QaElements = { "question", "answer" };
         /// <exclude />
         public IEnumerable<string> Elements => QaElements;
 
@@ -875,7 +898,7 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "accountNumber", EmitDefaultValue = true)]
         public string AccountNumber { get; set; }
 
-        private static readonly string[] AccountElements = new[] { "accountType", "routingNumber", "accountNumber" };
+        private static readonly string[] AccountElements = { "accountType", "routingNumber", "accountNumber" };
         /// <exclude />
         public IEnumerable<string> Elements => AccountElements;
 
@@ -978,7 +1001,7 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "cardSecurityCode", EmitDefaultValue = true)]
         public string CardSecurityCode { get; set; }
 
-        private static readonly string[] CardElements = new[] { "cardNumber", "cardExpirationDate", "cardSecurityCode" };
+        private static readonly string[] CardElements = { "cardNumber", "cardExpirationDate", "cardSecurityCode" };
 
         /// <inheritdoc />
         public IEnumerable<string> Elements => CardElements;
@@ -1065,7 +1088,7 @@ namespace KeeperSecurity.Vault
         [DataMember(Name = "privateKey", EmitDefaultValue = true)]
         public string PrivateKey { get; set; } = "";
 
-        private static readonly string[] KeyPairElements = new[] { "publicKey", "privateKey" };
+        private static readonly string[] KeyPairElements = { "publicKey", "privateKey" };
 
         /// <inheritdoc />
         public IEnumerable<string> Elements => KeyPairElements;
@@ -1141,7 +1164,7 @@ namespace KeeperSecurity.Vault
         public string MacroSequence { get; set; }
 
 
-        private static readonly string[] KeyPairElements = new[] { "applicationTitle", "contentFilter", "macroSequence" };
+        private static readonly string[] KeyPairElements = { "applicationTitle", "contentFilter", "macroSequence" };
         IEnumerable<string> IFieldTypeSerialize.Elements => KeyPairElements;
 
         IEnumerable<string> IFieldTypeSerialize.ElementValues
@@ -1292,8 +1315,8 @@ namespace KeeperSecurity.Vault
     /// </summary>
     public static class RecordTypesConstants
     {
-        private static readonly Dictionary<string, FieldType> _fieldTypes = new Dictionary<string, FieldType>(StringComparer.InvariantCultureIgnoreCase);
-        private static readonly Dictionary<string, RecordField> _recordFields = new Dictionary<string, RecordField>(StringComparer.InvariantCultureIgnoreCase);
+        private static readonly Dictionary<string, FieldType> _fieldTypes = new(StringComparer.InvariantCultureIgnoreCase);
+        private static readonly Dictionary<string, RecordField> _recordFields = new(StringComparer.InvariantCultureIgnoreCase);
 
         static RecordTypesConstants()
         {
@@ -1325,6 +1348,7 @@ namespace KeeperSecurity.Vault
                 new FieldType("appFiller", typeof(FieldTypeAppFiller), "{'macroSequence': '', 'applicationTitle': '', 'contentFilter': ''}", "native application filler"),
                 new FieldType("script", typeof(FieldScript), "{'fileRef': '', 'command': '', 'recordRef': []}", "Post rotation script"),
                 new FieldType("pamResources", typeof(FieldPamResources), "{'controllerUid': '', 'folderUid': '', 'resourceRef': []}", "PAM resources"),
+                new FieldType("schedule", typeof(FieldSchedule), "{'type': '', 'time': '', 'cron', 'month': '', 'weekday': '', 'monthDay': ''}", "schedule information"),
             };
 
             foreach (var t in types)
@@ -1381,13 +1405,13 @@ namespace KeeperSecurity.Vault
             return _recordFields.TryGetValue(name ?? "text", out value);
         }
 
-        private static readonly Dictionary<Type, RecordTypeInfo> _recordTypeInfo = new Dictionary<Type, RecordTypeInfo>();
+        private static readonly Dictionary<Type, RecordTypeInfo> RecordTypeInfo = new();
 
         private static bool GetRecordType(Type dataType, out RecordTypeInfo recordTypeInfo)
         {
-            lock (_recordTypeInfo)
+            lock (RecordTypeInfo)
             {
-                if (_recordTypeInfo.TryGetValue(dataType, out recordTypeInfo))
+                if (RecordTypeInfo.TryGetValue(dataType, out recordTypeInfo))
                 {
                     return true;
                 }
@@ -1399,7 +1423,7 @@ namespace KeeperSecurity.Vault
                     TypedFieldType = genericTypedFieldType.MakeGenericType(dataType),
                 };
                 recordTypeInfo.Serializer = new DataContractJsonSerializer(recordTypeInfo.RecordFieldType, JsonUtils.JsonSettings);
-                _recordTypeInfo.Add(dataType, recordTypeInfo);
+                RecordTypeInfo.Add(dataType, recordTypeInfo);
                 return true;
             }
         }
@@ -1442,7 +1466,7 @@ namespace KeeperSecurity.Vault
             return false;
         }
     }
-
+/*
     internal class ApiRecordType : IRecordType
     {
         private readonly string _uid;
@@ -1474,6 +1498,7 @@ namespace KeeperSecurity.Vault
         public string Content { get; }
         string IUid.Uid => _uid;
     }
+*/
 
     [DataContract]
     internal class PasswordFieldComplexity
@@ -1531,7 +1556,7 @@ namespace KeeperSecurity.Vault
         public override ITypedField CreateTypedField()
         {
             return new TypedField<T>(this)
-            {
+            { 
                 Required = Required
             };
         }
@@ -1555,7 +1580,6 @@ namespace KeeperSecurity.Vault
         public string Label { get; set; }
         [DataMember(Name = "required", Order = 3, EmitDefaultValue = false)]
         public bool Required { get; set; }
-
         public ExtensionDataObject ExtensionData { get; set; }
 
         public virtual ITypedField CreateTypedField()

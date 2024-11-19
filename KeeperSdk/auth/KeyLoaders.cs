@@ -60,6 +60,7 @@ namespace KeeperSecurity.Authentication
                                 case 3:
                                     rsa = encryptedKey;
                                     break;
+                                // TODO Client version 17
                                 /*
                                 case 3:
                                     aes = CryptoUtils.DecryptAesV2(encryptedKey, AuthContext.DataKey);
@@ -94,7 +95,7 @@ namespace KeeperSecurity.Authentication
         {
             List<string> skipped = null;
             var newEmails = usernames.Where(x => !_keyCache.ContainsKey(x)).ToArray();
-            var chunkSize = 1000;
+            const int chunkSize = 1000;
             var pos = 0;
             while (pos < newEmails.Length)
             {
@@ -107,8 +108,8 @@ namespace KeeperSecurity.Authentication
                 {
                     if (string.IsNullOrEmpty(rs.ErrorCode) || string.Equals(rs.ErrorCode, "success", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        byte[] rsa = rs.PublicKey.Length > 0 ? rs.PublicKey.ToByteArray() : null;
-                        byte[] ec = rs.PublicEccKey.Length > 0 ? rs.PublicEccKey.ToByteArray() : null;
+                        var rsa = rs.PublicKey.Length > 0 ? rs.PublicKey.ToByteArray() : null;
+                        var ec = rs.PublicEccKey.Length > 0 ? rs.PublicEccKey.ToByteArray() : null;
                         _keyCache[rs.Username] = new UserKeys(rsa: rsa, ec: ec);
                     }
                     else

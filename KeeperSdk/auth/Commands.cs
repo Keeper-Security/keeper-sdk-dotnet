@@ -21,10 +21,6 @@ namespace KeeperSecurity.Commands
         public string clientVersion;
     }
 
-    public interface IBatchCommand
-    {
-    }
-
     [DataContract]
     public class KeeperApiResponse
     {

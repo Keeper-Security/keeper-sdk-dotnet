@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -16,7 +16,6 @@ using Google.Protobuf;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
-using Org.BouncyCastle.Crypto.Parameters;
 using PasswordRule = KeeperSecurity.Commands.PasswordRule;
 
 namespace KeeperSecurity.Authentication
@@ -30,23 +29,21 @@ namespace KeeperSecurity.Authentication
         /// Regular account
         /// </summary>
         Regular = 1,
+
         /// <summary>
         /// Cloud SSO account
         /// </summary>
         CloudSso = 2,
+
         /// <summary>
         /// On-Premises SSO account
         /// </summary>
         OnsiteSso = 3,
+
         /// <summary>
         /// MSP logged in to MC
         /// </summary>
         ManagedCompany = 4
-    }
-
-    /// <exclude/>
-    public interface IAuthCallback
-    {
     }
 
     /// <summary>
@@ -55,12 +52,13 @@ namespace KeeperSecurity.Authentication
     public interface IAuthEndpoint
     {
         /// <exclude/>
-        IAuthCallback AuthCallback { get; }
+        object AuthCallback { get; }
 
         /// <summary>
         /// Gets a keeper server endpoint
         /// </summary>
         IKeeperEndpoint Endpoint { get; }
+
         /// <exclude/>
         IFanOut<NotificationEvent> PushNotifications { get; }
 
@@ -90,14 +88,17 @@ namespace KeeperSecurity.Authentication
             RsaPublicKey = rsa;
             EcPublicKey = ec;
         }
+
         /// <summary>
         /// AES key
         /// </summary>
         public byte[] AesKey { get; }
+
         /// <summary>
         /// RSA public key
         /// </summary>
         public byte[] RsaPublicKey { get; }
+
         /// <summary>
         /// ECC public key
         /// </summary>
@@ -141,7 +142,7 @@ namespace KeeperSecurity.Authentication
     /// <summary>
     /// Defines the properties and methods of not connected Keeper authentication object.
     /// </summary>
-    public interface IAuth: IAuthEndpoint
+    public interface IAuth : IAuthEndpoint
     {
         /// <summary>
         /// Gets or sets username.
@@ -224,8 +225,8 @@ namespace KeeperSecurity.Authentication
         /// <param name="responseType">Expected response type</param>
         /// <param name="apiVersion">Request version</param>
         /// <returns>Task returning Protobuf response.</returns>
-        /// <seealso cref="AuthExtensions.ExecuteAuthRest"/>
-        Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null, int apiVersion=0);
+        /// <seealso cref="AuthExtensions.ExecuteAuthRest{TC,TR}"/>
+        Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null, int apiVersion = 0);
 
         /// <summary>
         /// Logout from Keeper server.
@@ -235,8 +236,10 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude/>
         Task AuditEventLogging(string eventType, AuditEventInput input = null);
+
         /// <exclude/>
         void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null);
+
         /// <exclude/>
         Task FlushAuditEvents();
     }
@@ -246,6 +249,11 @@ namespace KeeperSecurity.Authentication
     /// </summary>
     public interface IAuthContext
     {
+        /// <summary>
+        /// Gets SSO provider information
+        /// </summary>
+        byte[] AccountUid { get; }
+
         /// <summary>
         /// User's Data Key.
         /// </summary>
@@ -264,21 +272,17 @@ namespace KeeperSecurity.Authentication
         /// <summary>
         /// User's RSA Private Key.
         /// </summary>
-        RsaPrivateCrtKeyParameters PrivateRsaKey { get; }
+        RsaPrivateKey PrivateRsaKey { get; }
 
         /// <summary>
         /// User's EC Private key
         /// </summary>
-        ECPrivateKeyParameters PrivateEcKey { get; }
+        EcPrivateKey PrivateEcKey { get; }
 
         /// <summary>
         /// Enterprise EC Public key
         /// </summary>
-        ECPublicKeyParameters EnterprisePublicEcKey { get; }
-
-        /// <exclude/>
-        [Obsolete("Use PrivateRsaKey")]
-        RsaPrivateCrtKeyParameters PrivateKey { get; }
+        EcPublicKey EnterprisePublicEcKey { get; }
 
         /// <summary>
         /// Gets user's account license.
@@ -312,6 +316,10 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude/>
         bool CheckPasswordValid(string password);
+
+        /// <exclude />
+        bool ForbidKeyType2 { get; }
+
     }
 
     [Flags]
@@ -332,20 +340,23 @@ namespace KeeperSecurity.Authentication
         /// Gets SSO Provider name
         /// </summary>
         public string SsoProvider { get; internal set; }
+
         /// <summary>
         /// Gets SSO Provider base URL
         /// </summary>
         public string SpBaseUrl { get; internal set; }
+
         internal string IdpSessionId { get; set; }
     }
 
     internal class AuthContext : IAuthContext
     {
+        public byte[] AccountUid { get; internal set; }
         public byte[] DataKey { get; internal set; }
         public byte[] ClientKey { get; internal set; }
-        public RsaPrivateCrtKeyParameters PrivateRsaKey { get; internal set; }
-        public ECPrivateKeyParameters PrivateEcKey { get; internal set; }
-        public ECPublicKeyParameters EnterprisePublicEcKey { get; internal set; }
+        public RsaPrivateKey PrivateRsaKey { get; internal set; }
+        public EcPrivateKey PrivateEcKey { get; internal set; }
+        public EcPublicKey EnterprisePublicEcKey { get; internal set; }
         public byte[] SessionToken { get; internal set; }
         public SessionTokenRestriction SessionTokenRestriction { get; set; }
         public AccountLicense License { get; internal set; }
@@ -356,6 +367,7 @@ namespace KeeperSecurity.Authentication
         public AccountAuthType AccountAuthType { get; set; }
         public SsoLoginInfo SsoLoginInfo { get; internal set; }
         internal byte[] PasswordValidator { get; set; }
+
         public bool CheckPasswordValid(string password)
         {
             if (PasswordValidator == null) return false;
@@ -369,7 +381,8 @@ namespace KeeperSecurity.Authentication
                 return false;
             }
         }
-        public RsaPrivateCrtKeyParameters PrivateKey => PrivateRsaKey;
+
+        public bool ForbidKeyType2 { get; internal set; }
     }
 
     /// <summary>
@@ -394,12 +407,12 @@ namespace KeeperSecurity.Authentication
         public IAuthContext AuthContext => authContext;
 
         /// <exclude/>
-        public IFanOut<NotificationEvent> PushNotifications { get; internal set; }
+        public IFanOut<NotificationEvent> PushNotifications { get; private set; }
 
         /// <exclude/>
-        public abstract IAuthCallback AuthCallback { get; }
+        public abstract object AuthCallback { get; }
 
-        internal void ResetKeepAliveTimer()
+        private void ResetKeepAliveTimer()
         {
             _lastRequestTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
         }
@@ -407,7 +420,7 @@ namespace KeeperSecurity.Authentication
         private Timer _timer;
         private long _lastRequestTime;
 
-        internal void SetKeepAliveTimer(int timeoutInMinutes, IAuthentication auth)
+        private void SetKeepAliveTimer(int timeoutInMinutes, IAuthentication auth)
         {
             _timer?.Dispose();
             _timer = null;
@@ -415,30 +428,38 @@ namespace KeeperSecurity.Authentication
 
             ResetKeepAliveTimer();
             var timeout = TimeSpan.FromMinutes(timeoutInMinutes - (timeoutInMinutes > 1 ? 1 : 0));
-            _timer = new Timer(async (_) =>
-                {
-                    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
-                    if (_lastRequestTime + timeout.TotalSeconds / 2 > now) return;
-                    try
-                    {
-                        await auth.ExecuteAuthRest("keep_alive", null);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e.Message);
-                        _timer.Dispose();
-                        _timer = null;
-                    }
 
-                    _lastRequestTime = now;
-                },
+            _timer = new Timer(Callback,
                 null,
                 (long) timeout.TotalMilliseconds / 2,
                 (long) timeout.TotalMilliseconds / 2);
+            return;
+
+            async void Callback(object _)
+            {
+                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
+                if (_lastRequestTime + timeout.TotalSeconds / 2 > now) return;
+                try
+                {
+                    await auth.ExecuteAuthRest("keep_alive", null);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                    if (_timer != null)
+                    {
+                        _timer.Dispose();
+                        _timer = null;
+                    }
+                }
+
+                _lastRequestTime = now;
+            }
         }
 
         /// <inheritdoc/>
-        public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType, bool throwOnError)
+        public async Task<KeeperApiResponse> ExecuteAuthCommand(AuthenticatedCommand command, Type responseType,
+            bool throwOnError)
         {
             command.username = Username;
             command.sessionToken = authContext.SessionToken.Base64UrlEncode();
@@ -463,7 +484,8 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <inheritdoc/>
-        public async Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null, int apiVersion=0)
+        public async Task<IMessage> ExecuteAuthRest(string endpoint, IMessage request, Type responseType = null,
+            int apiVersion = 0)
         {
 #if DEBUG
             Debug.WriteLine($"REST Request: endpoint \"{endpoint}\": {request}");
@@ -483,7 +505,9 @@ namespace KeeperSecurity.Authentication
             if (responseType == null) return null;
 
             var responseParser = responseType.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public);
-            if (responseParser == null) throw new KeeperInvalidParameter("ExecuteAuthRest", "responseType", responseType.Name, "Google Protobuf class expected");
+            if (responseParser == null)
+                throw new KeeperInvalidParameter("ExecuteAuthRest", "responseType", responseType.Name,
+                    "Google Protobuf class expected");
             var mp = (MessageParser) (responseParser.GetMethod.Invoke(null, null));
 
             var response = mp.ParseFrom(rsBytes);
@@ -496,16 +520,15 @@ namespace KeeperSecurity.Authentication
         /// <exclude/>
         public void SetPushNotifications(IFanOut<NotificationEvent> pushNotifications)
         {
-            if (!ReferenceEquals(PushNotifications, pushNotifications))
-            {
-                PushNotifications?.Dispose();
-                PushNotifications = pushNotifications;
-            }
+            if (ReferenceEquals(PushNotifications, pushNotifications)) return;
+            
+            PushNotifications?.Dispose();
+            PushNotifications = pushNotifications;
         }
 
-        protected virtual IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
+        private static IWebProxy GetStoredProxy(Uri proxyUri, string[] proxyAuth)
         {
-#if NET452_OR_GREATER
+#if NET472_OR_GREATER
             if (CredentialManager.GetCredentials(proxyUri.DnsSafeHost, out var username, out var password))
             {
                 return AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyAuth, username, password);
@@ -518,22 +541,17 @@ namespace KeeperSecurity.Authentication
         public async Task<bool> DetectProxy(Action<Uri, string[]> onProxyDetected)
         {
             var keeperUri = new Uri($"https://{Endpoint.Server}/api/rest/ping");
-            string authHeader = "";
+            string authHeader;
             try
             {
                 await PingKeeperServer(keeperUri, Endpoint.WebProxy);
                 return true;
             }
-            catch (WebException e)
+            catch (ProxyAuthenticationRequired e)
             {
-                var response = (HttpWebResponse) e.Response;
-                if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) throw e;
-
-                authHeader = response.Headers.AllKeys
-                    .Where(x => string.Compare(x, "Proxy-Authenticate", StringComparison.OrdinalIgnoreCase) == 0)
-                    .Select(x => response.Headers[x])
-                    .FirstOrDefault();
+                authHeader = e.ProxyAuthenticate?.FirstOrDefault() ?? "";
             }
+
             var systemProxy = WebRequest.GetSystemWebProxy();
             var directUri = systemProxy.GetProxy(keeperUri);
             var proxyAuthenticate = KeeperSettings.ParseProxyAuthentication(authHeader).ToArray();
@@ -547,33 +565,28 @@ namespace KeeperSecurity.Authentication
                     Endpoint.WebProxy = proxy;
                     return true;
                 }
-                catch (WebException e)
+                catch (ProxyAuthenticationRequired)
                 {
-                    var response = (HttpWebResponse) e.Response;
-                    if (response?.StatusCode != HttpStatusCode.ProxyAuthenticationRequired) throw e;
                 }
             }
+
             onProxyDetected?.Invoke(directUri, proxyAuthenticate);
             return false;
         }
 
-        internal virtual async Task<bool> PingKeeperServer(Uri keeperUri, IWebProxy proxy)
+        private static async Task PingKeeperServer(Uri keeperUri, IWebProxy proxy)
         {
-            var request = (HttpWebRequest) WebRequest.Create(keeperUri);
+            var handler = new HttpClientHandler();
             if (proxy != null)
             {
-                request.Proxy = proxy;
+                handler.Proxy = proxy;
             }
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
+
+            using var client = new HttpClient(handler);
+            using var rs = await client.GetAsync(keeperUri);
+            if (rs.IsSuccessStatusCode)
             {
-                if (response.StatusCode != HttpStatusCode.OK) return false;
-                var rs = response.GetResponseStream();
-                if (rs == null) return false;
-                using (var sr = new StreamReader(rs, Encoding.UTF8))
-                {
-                    var status = await sr.ReadLineAsync();
-                    return status == "alive";
-                }
+                var data = await rs.Content.ReadAsStringAsync();
             }
         }
 
@@ -587,6 +600,8 @@ namespace KeeperSecurity.Authentication
             var license = AccountLicense.LoadFromProtobuf(accountSummaryResponse.License);
             var settings = AccountSettings.LoadFromProtobuf(accountSummaryResponse.Settings);
             var keys = AccountKeys.LoadFromProtobuf(accountSummaryResponse.KeysInfo);
+
+            authContext.AccountUid = accountSummaryResponse.License.AccountUid.ToByteArray();
 
             if (accountSummaryResponse.ClientKey?.Length > 0)
             {
@@ -649,13 +664,15 @@ namespace KeeperSecurity.Authentication
                 var privateKeyData =
                     CryptoUtils.DecryptAesV1(keys.EncryptedPrivateKey.Base64UrlDecode(),
                         authContext.DataKey);
-                authContext.PrivateRsaKey = CryptoUtils.LoadPrivateKey(privateKeyData);
+                authContext.PrivateRsaKey = CryptoUtils.LoadRsaPrivateKey(privateKeyData);
             }
-            if (keys.EncryptedEcPrivateKey != null) {
+
+            if (keys.EncryptedEcPrivateKey != null)
+            {
                 var privateKeyData =
                     CryptoUtils.DecryptAesV2(keys.EncryptedEcPrivateKey.Base64UrlDecode(),
                         authContext.DataKey);
-                authContext.PrivateEcKey = CryptoUtils.LoadPrivateEcKey(privateKeyData);
+                authContext.PrivateEcKey = CryptoUtils.LoadEcPrivateKey(privateKeyData);
             }
 
             if (!string.IsNullOrEmpty(clientKey))
@@ -667,6 +684,7 @@ namespace KeeperSecurity.Authentication
             authContext.Settings = settings;
             authContext.Enforcements = enforcements;
             authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
+            authContext.ForbidKeyType2 = accountSummaryResponse.ForbidKeyType2;
 
             if (authContext.SessionTokenRestriction != 0)
             {
@@ -766,7 +784,7 @@ namespace KeeperSecurity.Authentication
                             "enterprise/get_enterprise_public_key", null,
                             typeof(BreachWatch.EnterprisePublicKeyResponse));
                         authContext.EnterprisePublicEcKey =
-                            CryptoUtils.LoadPublicEcKey(rs.EnterpriseECCPublicKey.ToByteArray());
+                            CryptoUtils.LoadEcPublicKey(rs.EnterpriseECCPublicKey.ToByteArray());
                     }
                     catch (Exception e)
                     {
@@ -776,18 +794,21 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        private readonly List<AuditEventItem> _auditEventQueue = new List<AuditEventItem>();
+        private readonly List<AuditEventItem> _auditEventQueue = new();
 
         /// <exclude/>
         public void ScheduleAuditEventLogging(string eventType, AuditEventInput input = null)
         {
             if (AuthContext.EnterprisePublicEcKey != null)
             {
-                _auditEventQueue.Add(new AuditEventItem
+                lock (_auditEventQueue)
                 {
-                    AuditEventType = eventType,
-                    Inputs = input
-                });
+                    _auditEventQueue.Add(new AuditEventItem
+                    {
+                        AuditEventType = eventType,
+                        Inputs = input
+                    });
+                }
             }
         }
 
@@ -796,12 +817,13 @@ namespace KeeperSecurity.Authentication
         {
             if (AuthContext.EnterprisePublicEcKey != null)
             {
-                List<AuditEventItem> events = null;
+                List<AuditEventItem> events;
                 lock (_auditEventQueue)
                 {
                     events = new List<AuditEventItem>(_auditEventQueue);
                     _auditEventQueue.Clear();
                 }
+
                 while (events.Count > 0)
                 {
                     var chunk = events.Take(99).ToArray();
@@ -811,7 +833,7 @@ namespace KeeperSecurity.Authentication
                     {
                         ItemLogs = chunk
                     };
-                    _ = await AuthExtensions.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(this, rq);
+                    _ = await this.ExecuteAuthCommand<AuditEventLoggingCommand, AuditEventLoggingResponse>(rq);
                 }
             }
         }
@@ -863,8 +885,7 @@ namespace KeeperSecurity.Authentication
     [DataContract]
     public class NotificationEvent
     {
-        [DataMember(Name = "command")]
-        public string Command { get; set; }
+        [DataMember(Name = "command")] public string Command { get; set; }
 
         [DataMember(Name = "event")]
         public string Event
@@ -880,8 +901,7 @@ namespace KeeperSecurity.Authentication
             set => Command = value;
         }
 
-        [DataMember(Name = "email")]
-        public string Email { get; set; }
+        [DataMember(Name = "email")] public string Email { get; set; }
 
         [DataMember(Name = "username")]
         public string Username
@@ -890,8 +910,7 @@ namespace KeeperSecurity.Authentication
             set => Email = value;
         }
 
-        [DataMember(Name = "approved")]
-        public bool Approved { get; set; }
+        [DataMember(Name = "approved")] public bool Approved { get; set; }
 
         [DataMember(Name = "sync")]
         public bool Sync
@@ -900,8 +919,7 @@ namespace KeeperSecurity.Authentication
             set => Approved = value;
         }
 
-        [DataMember(Name = "passcode")]
-        public string Passcode { get; set; }
+        [DataMember(Name = "passcode")] public string Passcode { get; set; }
 
         [DataMember(Name = "deviceName")]
         public string DeviceName
@@ -920,8 +938,7 @@ namespace KeeperSecurity.Authentication
             set => EncryptedLoginToken = value;
         }
 
-        [DataMember(Name = "ipAddress")]
-        public string IPAddress { get; set; }
+        [DataMember(Name = "ipAddress")] public string IPAddress { get; set; }
 
     }
 #pragma warning restore 0649
@@ -930,11 +947,9 @@ namespace KeeperSecurity.Authentication
     [DataContract]
     public class MasterPasswordReentry
     {
-        [DataMember(Name = "operations")]
-        public string[] operations;
+        [DataMember(Name = "operations")] public string[] Operations;
 
-        [DataMember(Name = "timeout")]
-        internal string _timeout;
+        [DataMember(Name = "timeout")] internal string _timeout;
 
         public int Timeout
         {
@@ -952,5 +967,4 @@ namespace KeeperSecurity.Authentication
             }
         }
     }
-
 }

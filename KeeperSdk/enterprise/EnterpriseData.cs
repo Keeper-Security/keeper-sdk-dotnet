@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Enterprise;
-using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Enterprise
@@ -29,15 +28,6 @@ namespace KeeperSecurity.Enterprise
 
             Entities = new IKeeperEnterpriseEntity[] { _nodes, _users, _teams, _teamUsers, _license };
         }
-
-        /// <exclude/>
-        [Obsolete]
-        public EnterpriseData(IAuthentication Auth) : this()
-        {
-            new EnterpriseLoader(Auth, new[] { this });
-        }
-
-        internal readonly Dictionary<string, byte[]> UserPublicKeyCache = new Dictionary<string, byte[]>(StringComparer.InvariantCultureIgnoreCase);
 
         private readonly NodeDictionary _nodes;
         private readonly UserDictionary _users;
@@ -213,13 +203,13 @@ namespace KeeperSecurity.Enterprise
                 }
             }
 
-            if (string.IsNullOrEmpty(RootNode?.DisplayName))
+            if (RootNode == null) return;
+            if (!string.IsNullOrEmpty(RootNode.DisplayName)) return;
+            
+            var enterprise = GetEnterprise?.Invoke();
+            if (enterprise != null)
             {
-                var enterprise = GetEnterprise?.Invoke();
-                if (enterprise != null)
-                {
-                    RootNode.DisplayName = enterprise.EnterpriseName;
-                }
+                RootNode.DisplayName = enterprise.EnterpriseName;
             }
         }
     }
@@ -229,7 +219,7 @@ namespace KeeperSecurity.Enterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
 
-        private readonly ConcurrentDictionary<string, long> _userNames = new ConcurrentDictionary<string, long>(1, 100, StringComparer.InvariantCultureIgnoreCase);
+        private readonly ConcurrentDictionary<string, long> _userNames = new(1, 100, StringComparer.InvariantCultureIgnoreCase);
 
         public UserDictionary() : base(EnterpriseDataEntity.Users)
         {

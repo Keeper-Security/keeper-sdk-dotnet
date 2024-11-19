@@ -15,10 +15,11 @@ using System.Text;
 
 namespace Commander
 {
-    internal partial class VaultContext {
+    internal partial class VaultContext
+    {
 
         private static readonly Tuple<string, bool>[] Prefixes = { Tuple.Create("field.", true), Tuple.Create("f.", true), Tuple.Create("custom.", false), Tuple.Create("c.", false) };
-        private const string FieldPattern = "^(\\w+)(\\.[^\\[]+)?(\\[*.\\])?\\s*=\\s*(.*)$";
+        private const string FieldPattern = @"^(\w+)(\.[^\[]+)?(\[*.\])?\s*=\s*(.*)$";
 
         public static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)
         {
@@ -253,7 +254,7 @@ namespace Commander
     {
         public static Task RecordTypeInfoCommand(this VaultContext context, RecordTypeInfoOptions options)
         {
-            Tabulate table = null;
+            Tabulate table;
             if (string.IsNullOrEmpty(options.Name))
             {
                 if (options.ShowFields)
@@ -368,7 +369,7 @@ namespace Commander
                 }
             }
 
-            table?.Dump();
+            table.Dump();
             return Task.FromResult(true);
         }
 
@@ -386,7 +387,7 @@ namespace Commander
             }
             var fields = VaultContext.ParseRecordFields(options.Fields).ToArray();
 
-            KeeperRecord record = null;
+            KeeperRecord record;
             if (string.Equals(options.RecordType, "general", StringComparison.InvariantCultureIgnoreCase) ||
                 string.Equals(options.RecordType, "legacy", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -410,6 +411,7 @@ namespace Commander
             context.AssignRecordFields(record, fields);
             await context.Vault.CreateRecord(record, node.FolderUid);
         }
+
 
         public static async Task UpdateRecordCommand(this VaultContext context, UpdateRecordOptions options)
         {
@@ -448,7 +450,7 @@ namespace Commander
                     return;
                 }
             }
-
+            
             if (!string.IsNullOrEmpty(options.Title))
             {
                 record.Title = options.Title;
@@ -493,7 +495,7 @@ namespace Commander
             }
             else
             {
-                var dirEntry = System.IO.Directory.CreateDirectory(options.OutputDirectory);
+                var dirEntry = Directory.CreateDirectory(options.OutputDirectory);
                 options.OutputDirectory = dirEntry.FullName;
             }
 
@@ -649,34 +651,82 @@ namespace Commander
                 await context.Vault.DeleteRecords(records.ToArray());
             }
         }
-        public static async Task ShareRecordCommand(this VaultContext context, ShareRecordOptions options)
-        {
 
-            if (string.Equals("cancel", options.Action, StringComparison.InvariantCultureIgnoreCase))
+        public static async Task ShareRecordShareCommand(this VaultContext context, ShareRecordShareOptions options)
+        {
+            var record = ResolveKeeperRecord(context, options.RecordName);
+            try
             {
+                var shareOptions = new SharedFolderRecordOptions
+                {
+                    CanEdit = options.CanEdit,
+                    CanShare = options.CanShare,
+                };
+                if (!string.IsNullOrEmpty(options.ExpireAt))
+                {
+                    shareOptions.Expiration = DateTimeOffset.ParseExact(options.ExpireAt, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
+                }
+                else if (!string.IsNullOrEmpty(options.ExpireIn))
+                {
+                    var ts = ParseUtils.ParseTimePeriod(options.ExpireIn);
+                    shareOptions.Expiration = DateTimeOffset.Now + ts;
+                }
+                await context.Vault.ShareRecordWithUser(record.Uid, options.Email, shareOptions);
+            }
+            catch (NoActiveShareWithUserException e)
+            {
+                Console.WriteLine(e.Message);
                 Console.Write(
-                    $"Do you want to cancel all shares with user \"{options.Email}\"? (Yes/No) : ");
+                    $"Do you want to send share invitation request to \"{e.Username}\"? (Yes/No) : ");
                 var answer = await Program.GetInputManager().ReadLine();
-                if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
+                if (string.Equals("y", answer, StringComparison.InvariantCultureIgnoreCase))
                 {
                     answer = "yes";
                 }
-
-                if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0) return;
-                await context.Vault.CancelSharesWithUser(options.Email);
-                return;
+                if (string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    await context.Vault.SendShareInvitationRequest(e.Username);
+                    Console.WriteLine($"Invitation has been sent to {e.Username}\nPlease repeat this command when your invitation is accepted.");
+                }
             }
+        }
 
-            if (string.IsNullOrEmpty(options.RecordName))
+        public static async Task ShareRecordCancelCommand(this VaultContext context, ShareRecordCancelOptions options)
+        {
+            Console.Write(
+                $"Do you want to cancel all shares with user \"{options.Email}\"? (Yes/No) : ");
+            var answer = await Program.GetInputManager().ReadLine();
+            if (string.Compare("y", answer, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
-                Console.WriteLine("Record parameter cannot be empty");
-                return;
+                answer = "yes";
             }
 
-            if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
+            if (string.Compare(answer, "yes", StringComparison.InvariantCultureIgnoreCase) != 0) return;
+            await context.Vault.CancelSharesWithUser(options.Email);
+        }
+
+        public static async Task ShareRecordRevokeCommand(this VaultContext context, ShareRecordRevokeOptions options)
+        {
+            var record = ResolveKeeperRecord(context, options.RecordName);
+            await context.Vault.RevokeShareFromUser(record.Uid, options.Email);
+        }
+        public static async Task ShareRecordTransferCommand(this VaultContext context, ShareRecordTransferOptions options)
+        {
+            var record = ResolveKeeperRecord(context, options.RecordName);
+            await context.Vault.TransferRecordToUser(record.Uid, options.Email);
+        }
+
+        private static KeeperRecord ResolveKeeperRecord(VaultContext context, string recordName)
+        {
+            if (string.IsNullOrEmpty(recordName))
+            {
+                throw new CommandError("Record parameter cannot be empty");
+            }
+
+            if (context.Vault.TryGetKeeperRecord(recordName, out var record))
             {
             }
-            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            else if (context.TryResolvePath(recordName, out var node, out var title))
             {
                 foreach (var uid in node.Records)
                 {
@@ -690,47 +740,10 @@ namespace Commander
 
             if (record == null)
             {
-                Console.WriteLine($"Cannot resolve record \"{options.RecordName}\"");
-                return;
+                throw new CommandError($"Cannot resolve record \"{recordName}\"");
             }
-
-            if (string.Equals("share", options.Action, StringComparison.InvariantCultureIgnoreCase))
-            {
-                try
-                {
-                    await context.Vault.ShareRecordWithUser(record.Uid, options.Email, options.CanShare, options.CanEdit);
-                }
-                catch (NoActiveShareWithUserException e)
-                {
-                    Console.WriteLine(e.Message);
-                    Console.Write(
-                        $"Do you want to send share invitation request to \"{e.Username}\"? (Yes/No) : ");
-                    var answer = await Program.GetInputManager().ReadLine();
-                    if (string.Equals("y", answer, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        answer = "yes";
-                    }
-                    if (string.Equals(answer, "yes", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        await context.Vault.SendShareInvitationRequest(e.Username);
-                        Console.WriteLine($"Invitation has been sent to {e.Username}\nPlease repeat this command when your invitation is accepted.");
-                    }
-                }
-            }
-            else if (string.Equals("revoke", options.Action, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await context.Vault.RevokeShareFromUser(record.Uid, options.Email);
-            }
-            else if (string.Equals("transfer", options.Action, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await context.Vault.TransferRecordToUser(record.Uid, options.Email);
-            }
-            else
-            {
-                throw new Exception($"Invalid record share action: {options.Action}");
-            }
+            return record;
         }
-
     }
 
     class RecordTypeInfoOptions
@@ -807,6 +820,57 @@ namespace Commander
         public string RecordName { get; set; }
     }
 
+    [Verb("cancel", HelpText = "Cancels all shares with a user")]
+    class ShareRecordCancelOptions
+    {
+        [Value(0, Required = true, MetaName = "email", HelpText = "peer account email")]
+        public string Email { get; set; }
+    }
+
+    [Verb("revoke", HelpText = "Revokes a record share")]
+    class ShareRecordRevokeOptions
+    {
+        [Option('e', "email", Required = true, HelpText = "peer account email")]
+        public string Email { get; set; }
+
+        [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
+        public string RecordName { get; set; }
+    }
+
+    [Verb("transfer", HelpText = "Transfer a record / change record ownership")]
+    class ShareRecordTransferOptions
+    {
+        [Option('e', "email", Required = true, HelpText = "peer account email")]
+        public string Email { get; set; }
+
+        [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
+        public string RecordName { get; set; }
+    }
+
+
+    [Verb("share", HelpText = "Share a record with a user")]
+    class ShareRecordShareOptions
+    {
+        [Option('s', "share", Required = false, Default = null, HelpText = "can re-share record")]
+        public bool? CanShare { get; set; }
+
+        [Option('w', "write", Required = false, Default = null, HelpText = "can modify record")]
+        public bool? CanEdit { get; set; }
+
+        [Option("expire-at", Required = false, Default = null, HelpText = "expire share at ISO time: YYYY-MM-DD HH:mm:SS")]
+        public string ExpireAt { get; set; }
+
+        [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period: [N]mi|h|d|mo|y")]
+        public string ExpireIn { get; set; }
+
+        [Option('e', "email", Required = true, HelpText = "peer account email")]
+        public string Email { get; set; }
+
+        [Value(0, Required = true, MetaName = "record", HelpText = "record path or UID")]
+        public string RecordName { get; set; }
+    }
+
+
     class ShareRecordOptions
     {
         [Option('a', "action", Required = false, Default = "share", HelpText = "user share action: \'share\' (default), \'revoke\', \'transfer\', \'cancel\'")]
@@ -817,6 +881,12 @@ namespace Commander
 
         [Option('w', "write", Required = false, Default = null, HelpText = "can modify record")]
         public bool? CanEdit { get; set; }
+
+        [Option("expire-at", Required = false, Default = null, HelpText = "expire share at time")]
+        public string ExpireAt { get; set; }
+
+        [Option("expire-in", Required = false, Default = null, HelpText = "expire share in period")]
+        public string ExpireIn { get; set; }
 
         [Option('e', "email", Required = true, HelpText = "peer account email")]
         public string Email { get; set; }

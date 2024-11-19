@@ -17,7 +17,7 @@ namespace KeeperSecurity.Enterprise
     /// <exclude />
     public class UserAliasData : EnterpriseDataPlugin, IUserAliasData
     {
-        private readonly EnterpriseUserAliasDictionary _aliases = new EnterpriseUserAliasDictionary();
+        private readonly EnterpriseUserAliasDictionary _aliases = new();
 
         public UserAliasData()
         {
@@ -25,11 +25,7 @@ namespace KeeperSecurity.Enterprise
         }
         public IEnumerable<string> GetAliasesForUser(long userId)
         {
-            if (_aliases.TryGetEntity(userId, out var entity))
-            {
-                return entity;
-            }
-            return Enumerable.Empty<string>();
+            return _aliases.TryGetEntity(userId, out var entity) ? entity : Enumerable.Empty<string>();
         }
 
         public override IEnumerable<IKeeperEnterpriseEntity> Entities { get; }
@@ -40,7 +36,7 @@ namespace KeeperSecurity.Enterprise
     {
         public Func<IEnterpriseLoader> GetEnterprise { get; set; }
 
-        internal readonly ConcurrentDictionary<long, ISet<string>> _entities = new ConcurrentDictionary<long, ISet<string>>();
+        private readonly ConcurrentDictionary<long, ISet<string>> _entities = new();
 
         public EnterpriseUserAliasDictionary() : base(EnterpriseDataEntity.UserAliases)
         {

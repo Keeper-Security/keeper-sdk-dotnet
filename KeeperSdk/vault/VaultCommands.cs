@@ -2,12 +2,66 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using KeeperSecurity.Vault;
-#if NET452_OR_GREATER
-using KeeperSecurity.Utils;
-#endif
 
 namespace KeeperSecurity.Commands
 {
+    [DataContract]
+    public class RecordDataCustom
+    {
+        [DataMember(Name = "name")] public string Name = "";
+        [DataMember(Name = "value")] public string Value = "";
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string Type;
+    }
+
+    [DataContract]
+    public class RecordData
+    {
+        [DataMember(Name = "title")] public string Title = "";
+        [DataMember(Name = "folder")] public string Folder = "";
+        [DataMember(Name = "secret1")] public string Secret1 = "";
+        [DataMember(Name = "secret2")] public string Secret2 = "";
+        [DataMember(Name = "link")] public string Link = "";
+        [DataMember(Name = "notes")] public string Notes = "";
+        [DataMember(Name = "custom", EmitDefaultValue = false)]
+        public RecordDataCustom[] Custom;
+    }
+
+    [DataContract]
+    public class RecordExtraFileThumb
+    {
+        [DataMember(Name = "id")] public string Id = "";
+        [DataMember(Name = "type")] public string Type = "";
+        [DataMember(Name = "size")] public int? Size;
+    }
+
+    [DataContract]
+    public class RecordExtraFile
+    {
+        [DataMember(Name = "id")] public string Id = "";
+        [DataMember(Name = "name")] public string Name = "";
+        [DataMember(Name = "key")] public string Key;
+        [DataMember(Name = "size", EmitDefaultValue = false)]
+        public long? Size;
+        [DataMember(Name = "title", EmitDefaultValue = false)]
+        public string Title;
+        [DataMember(Name = "type", EmitDefaultValue = false)]
+        public string Type;
+        [DataMember(Name = "lastModified", EmitDefaultValue = false)]
+        public long? LastModified;
+        [DataMember(Name = "thumbs")] public RecordExtraFileThumb[] Thumbs;
+    }
+
+    [DataContract]
+    public class RecordExtra : IExtensibleDataObject
+    {
+        [DataMember(Name = "files", EmitDefaultValue = false)]
+        public RecordExtraFile[] Files;
+        [DataMember(Name = "fields", EmitDefaultValue = false)]
+        public Dictionary<string, object>[] Fields;
+        public ExtensionDataObject ExtensionData { get; set; }
+    }
+
     /// <exclude/>
     [DataContract]
     public class RecordAccessPath : IRecordAccessPath
@@ -20,6 +74,17 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "team_uid", EmitDefaultValue = false)]
         public string TeamUid { get; set; }
+    }
+
+    [DataContract]
+    public class RecordAuditData
+    {
+        [DataMember(Name = "title", EmitDefaultValue = false)]
+        public string Title { get; set; }
+        [DataMember(Name = "record_type", EmitDefaultValue = false)]
+        public string RecordType { get; set; }
+        [DataMember(Name = "url", EmitDefaultValue = false)]
+        public string Url { get; set; }
     }
 
     /// <exclude/>
@@ -516,6 +581,7 @@ namespace KeeperSecurity.Commands
         public TeamKeyObject[] keys;
     }
 
+
     [DataContract]
     internal class RequestDownloadCommand : AuthenticatedCommand, IRecordAccessPath
     {
@@ -570,7 +636,7 @@ namespace KeeperSecurity.Commands
     }
 
     [DataContract]
-    internal class UploadParameters
+    public class UploadParameters
     {
         [DataMember(Name = "url")]
         public string Url;
@@ -616,96 +682,4 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "to_email")]
         public string ToEmail;
     }
-
-    [DataContract]
-    internal class GetRecordsCommand : AuthenticatedCommand
-    {
-        public GetRecordsCommand() : base("get_records")
-        {
-        }
-
-        [DataMember(Name = "include", EmitDefaultValue = false)]
-        public string[] Include;
-
-        [DataMember(Name = "client_time")]
-        public long ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-        [DataMember(Name = "records", EmitDefaultValue = false)]
-        public RecordAccessPath[] Records;
-    }
-
-
-    [DataContract]
-    internal class RecordUserPermission
-    {
-        [DataMember(Name = "username")]
-        public string Username;
-
-        [DataMember(Name = "owner")]
-        public bool Owner { get; set; }
-
-        [DataMember(Name = "sharable")]
-        public bool Sharable { get; set; }
-
-        [DataMember(Name = "editable")]
-        public bool Editable { get; set; }
-
-        [DataMember(Name = "awaiting_approval")]
-        public bool AwaitingApproval { get; set; }
-    }
-
-    [DataContract]
-    internal class RecordSharedFolderPermission
-    {
-        [DataMember(Name = "shared_folder_uid")]
-        public string SharedFolderUid;
-
-        [DataMember(Name = "revision")]
-        public long Revision;
-
-        [DataMember(Name = "reshareable")]
-        public bool Reshareable { get; set; }
-
-        [DataMember(Name = "editable")]
-        public bool Editable { get; set; }
-    }
-
-    [DataContract]
-    internal class RecordDetail
-    {
-        [DataMember(Name = "record_uid")]
-        public string RecordUid;
-
-        [DataMember(Name = "revision")]
-        public long Revision;
-
-        [DataMember(Name = "version")]
-        public int Version;
-
-        [DataMember(Name = "shared")]
-        public bool Shared;
-
-        [DataMember(Name = "data")]
-        public string Data;
-
-        [DataMember(Name = "extra")]
-        public string Extra;
-
-        [DataMember(Name = "non_shared_data")]
-        public string NonSharedData;
-
-        [DataMember(Name = "user_permissions")]
-        public RecordUserPermission[] UserPermissions;
-
-        [DataMember(Name = "shared_folder_permissions")]
-        public RecordSharedFolderPermission[] SharedFolderPermissions;
-    }
-
-    [DataContract]
-    internal class GetRecordsResponse : KeeperApiResponse
-    {
-        [DataMember(Name = "records", EmitDefaultValue = false)]
-        public RecordDetail[] Records;
-    }
-
 }

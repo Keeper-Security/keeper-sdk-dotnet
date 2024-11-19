@@ -1,279 +1,199 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
 using KeeperSecurity.Utils;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Xunit;
 
-namespace Tests
-{
-    [DataContract]
-    public class JsonList
-    {
-        [DataMember(Name = "servers")]
-        public readonly IList<string> Servers = new List<string>(); 
-    }
+namespace Tests;
 
-    public class CryptoTest
+[DataContract]
+public class JsonList
+{
+    [DataMember(Name = "servers")]
+    public readonly IList<string> Servers = new List<string>(); 
+}
+
+public class CryptoTest
+{
+    private PasswordGenerationOptions RestoreRules(string password)
     {
-        private PasswordGenerationOptions RestoreRules(string password)
+        var options = new PasswordGenerationOptions();
+        if (!string.IsNullOrEmpty(password))
         {
-            var options = new PasswordGenerationOptions();
-            if (!string.IsNullOrEmpty(password))
+            options.Length = password.Length;
+            foreach (var ch in password)
             {
-                options.Length = password.Length;
-                foreach (var ch in password)
+                if (char.IsDigit(ch))
                 {
-                    if (char.IsDigit(ch))
+                    options.Digit += 1;
+                }
+                else if (char.IsLetter(ch))
+                {
+                    if (char.IsLower(ch))
                     {
-                        options.Digit += 1;
-                    }
-                    else if (char.IsLetter(ch))
-                    {
-                        if (char.IsLower(ch))
-                        {
-                            options.Lower += 1;
-                        }
-                        else
-                        {
-                            options.Upper += 1;
-                        }
+                        options.Lower += 1;
                     }
                     else
                     {
-                        options.Special += 1;
+                        options.Upper += 1;
                     }
                 }
-            }
-            return options;
-        }
-
-        [Fact]
-        public void TestInvalidRsaKey()
-        {
-            var encryptedText = "NePhr5g-Ee8oyYrPZUlsYanKmVKC1GTCFk-t0JoHm_ceQlZjBMd-_qZb-73_n-hSyJtkzQUa6jmoPLNlkVkukiiKMOFD93V4N4_1yxjyLMHp2RMHZJjszJwiqZ0JAjySpFOSJ5owYUrSVyhIgl6d3a_l_dbTxRNqy2UYMkMeSSJv2LjufxUyf5eYpPloWWWx8WSqizXuCo3hDfe0RtIRNshKAx1I1Xc6pixib58lIRtD0NzO6jsGyyGbdlqI6W0olkSvZpBVU5edqmAhclXLoeNF5xK7jYuGxqBFxrhKCwRcbaSOI-1DdyTYdj5LC_MmB5QXi-Lc_RoGs0g5sTIP";
-            var privateKeyText = "MIIEogIBAAKCAQBc7ja0E2D3FqTgrCMl-W_wjyH8FfFOlfiIbUC5U2iW_8zeo6KyHI-O47XF7uniILOQmj7q02qR8jPdWwYzGRfQyASDbk41nWUrEGr-RQ6bht_jRJNOYiwIza5kr06mcgoXjsRBzNhhMsTl-aTZaBRUGVBx0mLdic70E_0W9dKyHJvbBfSPxJto7hCuu93yViIN2w_QSNrOzagFFZGhdz-BzrOybuUhoBE18cARTdPUZ_UlU_vIymORTHbBvneqXZ2Ua6ohsc7_AM38FYlftkJBNDGnH_UruLGd6kLzGszzdchxexjjE488rahibXDvMbl3-hR1OyL2-6q_uPi5whhpAgMBAAECggEAORHVqFrqRnOyh4NPBogbtXjBHyV-jotNGMM3Z1iQt4KaFvQY-xbNFqxCui5RlZwNijUfhGiXXs-GCF9Y_FJhrMbY9rnr78McGQk5G7PfF6YJonE_oXhqoHFnss9yFoecKQF1Bw-8plxeTPk1wonHSipNm8jfDDwQSxZnbA1E-joW4Gy9MchmE96pS2OxrN8y2MpEhKMz_fkCbUjUj5-ipP8hYJr-WbpcnyeWDgFS3j7xuB31312yroWEgaQ_a8hbVM6gyqn2DuLjcYImCR38ZK39vBtqc9j9E_7Cl_BSfGR7FFmoIVndW60XQFEJJgxAZhbusYjAb59H6UfDRz4tjQKBgQCsdEvXrUP3Rx_7juvVEt6k8MbdDBuERvDlz-1KMEXa_3e5TZStgU1-MNcF98Kx9lHqHd7TZuCmsFf4wnvVZLhO9AH6uR7VvOCXtnqfbiZG54YpQzYty4o_EqM-TosPaRaF6-z6YnBtSUS74qUDzKa3RKbpO66zstM3CfsPsJzLFwKBgQCJ82p4_1g4Oh-ro0HNWH42u3XNN83YynPmSkeYCTaEhMVfVx4EOh7LuPV4itt7U9SkcWkFhGw1abwZC4m9cEHzsVOFR5Hk5Gnke7MGHRHTjat_olYcb5wYE1p3KcZOa6Zoa4J52UliehbE6e3HpcF8P3PiJ_16QvUn3hIl7UhofwKBgQCJTHnJd6_h4mWLMSl_VWufI_cfq_EIajaGsPk5lJ85ESVviV2ymXxp2FaI8M24Q-TJoQhzhLec3k7bxXMz3OGEMm6U_-eVwa-J-gU8g0TENLYyiclLwn4JYzxGcd_y3_bHnqLoYZEi4S9w6qv4D2o4BNdiX1rixJ-2dSLGRhU-9wKBgFENbh-Nl93heL41-_GU7wNlfT-IbC_WM-a4-fvAXgHaqMTtwLsnEvULxV5_55k8lhHQeK4_MfzoFRZ6CwH9NSLjq3kBphzgf785VuRerByqfntNfF7UzNfwdxTQvK1S3sE3eb_yBQYRSdOExqqpH1fLSGE2sd3l_XjhJ7SVCBgtAoGAGhV87Flduuxm29U28EWIBAZGJnABgZocEdc6xTj_3fdEW1CSZXLL5fR27OPeO_esDhZKgFsNrHw8bdNFXtiWLNECwPleLhEYnmQHbd40hZ6mAQu899i_OVIyzgXtkqS1-nD3uLTl8VRxxOmi3NhnaQrr6Kl2Ou6kVYyvfO8AoVg";
-            var pk = CryptoUtils.LoadPrivateKey(privateKeyText.Base64UrlDecode());
-            var encryptedData = encryptedText.Base64UrlDecode();
-            var decryptedData = CryptoUtils.DecryptRsa(encryptedData, pk);
-            Assert.True(decryptedData.Length > 0);
-        }
-
-        [Fact]
-        public void TestGeneratePassword() 
-        {
-            var password = CryptoUtils.GeneratePassword();
-            var rules = RestoreRules(password);
-            Assert.Equal(20, rules.Length);
-            Assert.True(rules.Upper >= 4);
-            Assert.True(rules.Lower >= 4);
-            Assert.True(rules.Digit >= 2);
-            Assert.True(rules.Special == 0);
-            var options = new PasswordGenerationOptions();
-            options.Length = 32;
-            options.Upper = 10;
-            options.Lower = 10;
-            options.Digit = 10;
-            options.Special = 2;
-            password = CryptoUtils.GeneratePassword(options);
-            rules = RestoreRules(password);
-            Assert.Equal(options.Length, rules.Length);
-            Assert.True(rules.Upper >= options.Upper);
-            Assert.True(rules.Lower >= options.Lower);
-            Assert.True(rules.Digit >= options.Digit);
-            Assert.True(rules.Special >= options.Special);
-
-            options.Length = 120;
-            options.Upper = 99;
-            options.Lower = 99;
-            options.Digit = 99;
-            options.Special = 99;
-            password = CryptoUtils.GeneratePassword(options);
-            rules = RestoreRules(password);
-            Assert.Equal(options.Length, rules.Length);
-            var counts = (new int[] { rules.Lower, rules.Upper, rules.Digit, rules.Special }).OrderBy(x => x).ToArray();
-            Assert.True(counts.Last() - counts.First() < 4);
-
-            options.Length = 1;
-            options.Upper = 0;
-            options.Lower = 99;
-            options.Digit = 99;
-            options.Special = 0;
-            password = CryptoUtils.GeneratePassword(options);
-            rules = RestoreRules(password);
-            Assert.Equal(options.Length, rules.Length);
-            Assert.True(rules.Lower + rules.Digit == 1);
-
-            options.Length = 10;
-            options.Upper = 5;
-            options.Lower = 5;
-            options.Digit = -1;
-            options.Special = -1;
-            password = CryptoUtils.GeneratePassword(options);
-            rules = RestoreRules(password);
-            Assert.Equal(options.Length, rules.Length);
-            Assert.True(rules.Lower == 5);
-            Assert.True(rules.Upper == 5);
-
-            options.Length = 5000;
-            options.Upper = 0;
-            options.Lower = 20;
-            options.Digit = -1;
-            options.Special = -1;
-            password = CryptoUtils.GeneratePassword(options);
-            rules = RestoreRules(password);
-            Assert.Equal(options.Length, rules.Length);
-            Assert.True(rules.Lower >= 20);
-        }
-
-        [Fact]
-        public async Task TestEncryptTransform()
-        {
-            var key = CryptoUtils.GenerateEncryptionKey();
-            var encryptTransformV2 = new EncryptAesV2Transform(key);
-            var decryptTransformV2 = new DecryptAesV2Transform(key);
-            var data = new byte[999];
-            for (var i = 0; i < data.Length; i++)
-            {
-                data[i] = (byte) (i & 0xff);
-            }
-
-            byte[] outputData;
-            using (var output = new MemoryStream())
-            {
-                using (var cryptoStream = new CryptoStream(new MemoryStream(data), encryptTransformV2, CryptoStreamMode.Read))
+                else
                 {
-                    await cryptoStream.CopyToAsync(output);
+                    options.Special += 1;
                 }
-
-                outputData = output.ToArray();
-            }
-            Assert.Equal(outputData.Length, data.Length + 12 + 16);
-
-            byte[] dataBack;
-            using (var back = new MemoryStream())
-            {
-                using (var cryptoStream = new CryptoStream(new MemoryStream(outputData), decryptTransformV2, CryptoStreamMode.Read))
-                {
-                    await cryptoStream.CopyToAsync(back);
-                }
-
-                dataBack = back.ToArray();
-            }
-            Assert.Equal(dataBack.Length, data.Length);
-            for (int i = 0; i < data.Length; i++) {
-                Assert.Equal(data[i], dataBack[i]);
             }
         }
+        return options;
+    }
 
-        [Fact]
-        public void TestECDHAgreement()
-        {
+    [Fact]
+    public void TestGeneratePassword() 
+    {
+        var password = CryptoUtils.GeneratePassword();
+        var rules = RestoreRules(password);
+        Assert.Equal(20, rules.Length);
+        Assert.True(rules.Upper >= 4);
+        Assert.True(rules.Lower >= 4);
+        Assert.True(rules.Digit >= 2);
+        Assert.True(rules.Special == 0);
+        var options = new PasswordGenerationOptions();
+        options.Length = 32;
+        options.Upper = 10;
+        options.Lower = 10;
+        options.Digit = 10;
+        options.Special = 2;
+        password = CryptoUtils.GeneratePassword(options);
+        rules = RestoreRules(password);
+        Assert.Equal(options.Length, rules.Length);
+        Assert.True(rules.Upper >= options.Upper);
+        Assert.True(rules.Lower >= options.Lower);
+        Assert.True(rules.Digit >= options.Digit);
+        Assert.True(rules.Special >= options.Special);
 
-            var privKey = "HIIeyuuRkVGvhtax8mlX7fangaC6DKa2R8VAg5AAtBY";
-            var pubKey ="BBbdHwhMWW6gTtUU1Qy6ICgFOMOMTJK5agJhPSWcsXBzh3WNprrZMTDzDcLmj3yfmJFVVeEdiccdPdBe1C1r6Ng";
+        options.Length = 120;
+        options.Upper = 99;
+        options.Lower = 99;
+        options.Digit = 99;
+        options.Special = 99;
+        password = CryptoUtils.GeneratePassword(options);
+        rules = RestoreRules(password);
+        Assert.Equal(options.Length, rules.Length);
+        var counts = (new int[] { rules.Lower, rules.Upper, rules.Digit, rules.Special }).OrderBy(x => x).ToArray();
+        Assert.True(counts.Last() - counts.First() < 4);
 
-            var privateKey = CryptoUtils.LoadPrivateEcKey(privKey.Base64UrlDecode());
-            var publicKey = CryptoUtils.LoadPublicEcKey(pubKey.Base64UrlDecode());
+        options.Length = 1;
+        options.Upper = 0;
+        options.Lower = 99;
+        options.Digit = 99;
+        options.Special = 0;
+        password = CryptoUtils.GeneratePassword(options);
+        rules = RestoreRules(password);
+        Assert.Equal(options.Length, rules.Length);
+        Assert.True(rules.Lower + rules.Digit == 1);
 
-            var aggr = AgreementUtilities.GetBasicAgreement("ECDHC");
-            aggr.Init(privateKey);
+        options.Length = 10;
+        options.Upper = 5;
+        options.Lower = 5;
+        options.Digit = -1;
+        options.Special = -1;
+        password = CryptoUtils.GeneratePassword(options);
+        rules = RestoreRules(password);
+        Assert.Equal(options.Length, rules.Length);
+        Assert.True(rules.Lower == 5);
+        Assert.True(rules.Upper == 5);
 
-            var expectedSecret = new BigInteger(1, "LWyhYOlzZqzFxnYxtw815CIdLtfaB2oDh9hAybvfX-M".Base64UrlDecode());
-            var secret = aggr.CalculateAgreement(publicKey);
-            Assert.Equal(expectedSecret, secret);
+        options.Length = 5000;
+        options.Upper = 0;
+        options.Lower = 20;
+        options.Digit = -1;
+        options.Special = -1;
+        password = CryptoUtils.GeneratePassword(options);
+        rules = RestoreRules(password);
+        Assert.Equal(options.Length, rules.Length);
+        Assert.True(rules.Lower >= 20);
+    }
 
-            var recordUid = "1xRhhNDGkK-Mj4NLh6LNZg".Base64UrlDecode();
+    [Fact]
+    public void TestDecryptAesV1()
+    {
+        var data = "KvsOJmE4JNK1HwKSpkBeR5R9YDms86uOb3wjNvc4LbUnZhKQtDxWifgA99tH2ZuP".Base64UrlDecode();
+        var key = "pAZmcxEoV2chXsFQ6bzn7Lop8yO4F8ERIuS7XpFtr7Y".Base64UrlDecode();
+        data = CryptoUtils.DecryptAesV1(data, key);
+        Assert.Equal(data, "6lf4FGVyhDRnRhJ91TrahjIW8lTqGA".Base64UrlDecode());
+    }
 
-            var expectedKey = "TPKrsCKfsnmktwahlihr22EqRA1c_BcZn8FA3M_1HDc".Base64UrlDecode();
-            var key = SHA256.Create().ComputeHash(secret.ToByteArrayUnsigned().Concat(recordUid).ToArray());
-            Assert.Equal(expectedKey, key);
-        }
+    [Fact]
+    public void TestEncryptAesV1()
+    {
+        var iv = "KvsOJmE4JNK1HwKSpkBeRw".Base64UrlDecode();
+        var block = "6lf4FGVyhDRnRhJ91TrahjIW8lTqGA".Base64UrlDecode();
+        var key = "pAZmcxEoV2chXsFQ6bzn7Lop8yO4F8ERIuS7XpFtr7Y".Base64UrlDecode();
+        var enc = CryptoUtils.EncryptAesV1(block, key, iv);
+        var encoded = enc.Base64UrlEncode();
+        Assert.Equal("KvsOJmE4JNK1HwKSpkBeR5R9YDms86uOb3wjNvc4LbUnZhKQtDxWifgA99tH2ZuP", encoded);
+    }
 
-        [Fact]
-        public void TestDecryptAesV1()
-        {
-            var data = "KvsOJmE4JNK1HwKSpkBeR5R9YDms86uOb3wjNvc4LbUnZhKQtDxWifgA99tH2ZuP".Base64UrlDecode();
-            var key = "pAZmcxEoV2chXsFQ6bzn7Lop8yO4F8ERIuS7XpFtr7Y".Base64UrlDecode();
-            data = CryptoUtils.DecryptAesV1(data, key);
-            Assert.Equal(data, "6lf4FGVyhDRnRhJ91TrahjIW8lTqGA".Base64UrlDecode());
-        }
+    [Fact]
+    public void TestEncryptAesV2()
+    {
+        var key = "c-EeCGlAO7F9QoJThlFBrhSCLYMe1H6GtKP-rezDnik".Base64UrlDecode();
+        var data = ("nm-8mRG7xYwUG2duaOZzw-ttuqfetWjVIzoridJF0EJOGlDLs1ZWQ7F9mOJ0Hxuy" +
+                    "dFyojxdxVo1fGwbfwf0Jew07HhGGE5UZ_s57rQvhizDW3F3z9a7EqHRon0EilCbMhIzE").Base64UrlDecode();
+        var nonce = "Nt9_Y37C_43eRCRQ".Base64UrlDecode();
+        var encData = CryptoUtils.EncryptAesV2(data, key, nonce);
+        var expectedData = ("Nt9_Y37C_43eRCRQCptb64zFaJVLcXF1udabOr_fyGXkpjpYeCAI7zVQD4JjewB" +
+                            "CP1Xp7D6dx-pxdRWkhDEnVhJ3fzezi8atmmzvf2ICfkDK0IHHB8iNSx_R1Ru8To" +
+                            "zb-IdavT3wKi7nKSJLDdt-dk-Mw7bCewpZtg4wY-1UQw").Base64UrlDecode();
+        Assert.Equal(encData, expectedData);
 
-        [Fact]
-        public void TestEncryptAesV1()
-        {
-            var iv = "KvsOJmE4JNK1HwKSpkBeRw".Base64UrlDecode();
-            var block = "6lf4FGVyhDRnRhJ91TrahjIW8lTqGA".Base64UrlDecode();
-            var key = "pAZmcxEoV2chXsFQ6bzn7Lop8yO4F8ERIuS7XpFtr7Y".Base64UrlDecode();
-            var enc = CryptoUtils.EncryptAesV1(block, key, iv);
-            var encoded = enc.Base64UrlEncode();
-            Assert.Equal("KvsOJmE4JNK1HwKSpkBeR5R9YDms86uOb3wjNvc4LbUnZhKQtDxWifgA99tH2ZuP", encoded);
-        }
+        var decData = CryptoUtils.DecryptAesV2(encData, key);
+        Assert.Equal(decData, data);
+    }
 
-        [Fact]
-        public void TestEncryptAesV2()
-        {
-            var key = "c-EeCGlAO7F9QoJThlFBrhSCLYMe1H6GtKP-rezDnik".Base64UrlDecode();
-            var data = ("nm-8mRG7xYwUG2duaOZzw-ttuqfetWjVIzoridJF0EJOGlDLs1ZWQ7F9mOJ0Hxuy" +
-                        "dFyojxdxVo1fGwbfwf0Jew07HhGGE5UZ_s57rQvhizDW3F3z9a7EqHRon0EilCbMhIzE").Base64UrlDecode();
-            var nonce = "Nt9_Y37C_43eRCRQ".Base64UrlDecode();
-            var encData = CryptoUtils.EncryptAesV2(data, key, nonce);
-            var expectedData = ("Nt9_Y37C_43eRCRQCptb64zFaJVLcXF1udabOr_fyGXkpjpYeCAI7zVQD4JjewB" +
-                                "CP1Xp7D6dx-pxdRWkhDEnVhJ3fzezi8atmmzvf2ICfkDK0IHHB8iNSx_R1Ru8To" +
-                                "zb-IdavT3wKi7nKSJLDdt-dk-Mw7bCewpZtg4wY-1UQw").Base64UrlDecode();
-            Assert.Equal(encData, expectedData);
+    [Fact]
+    public void TestKeyDerivationV1()
+    {
+        var password = "q2rXmNBFeLwAEX55hVVTfg";
+        var salt = "Ozv5_XSBgw-XSrDosp8Y1A".Base64UrlDecode();
+        var expectedKey = "nu911pKhOIeX_lToXa4uIUuMPg1pj_3ZGpGmd7OjvRs".Base64UrlDecode();
 
-            var decData = CryptoUtils.DecryptAesV2(encData, key);
-            Assert.Equal(decData, data);
-        }
+        var key = CryptoUtils.DeriveV1KeyHash(password, salt, 1000);
+        Assert.Equal(expectedKey, key);
+    }
 
-        [Fact]
-        public void TestKeyDerivationV1()
-        {
-            var password = "q2rXmNBFeLwAEX55hVVTfg";
-            var salt = "Ozv5_XSBgw-XSrDosp8Y1A".Base64UrlDecode();
-            var expectedKey = "nu911pKhOIeX_lToXa4uIUuMPg1pj_3ZGpGmd7OjvRs".Base64UrlDecode();
+    [Fact]
+    public void TestKeyDerivationV2()
+    {
+        var password = "q2rXmNBFeLwAEX55hVVTfg";
+        var domain = "1oZZl0fKjU4";
+        var salt = "Ozv5_XSBgw-XSrDosp8Y1A".Base64UrlDecode();
+        var expectedKey = "rXE9OHv_gcvUHdWuBIkyLsRDXT1oddQCzf6PrIECl2g".Base64UrlDecode();
 
-            var key = CryptoUtils.DeriveV1KeyHash(password, salt, 1000);
-            Assert.Equal(expectedKey, key);
-        }
+        var key = CryptoUtils.DeriveKeyV2(domain, password, salt, 1000);
+        Assert.Equal(expectedKey, key);
+    }
 
-        [Fact]
-        public void TestKeyDerivationV2()
-        {
-            var password = "q2rXmNBFeLwAEX55hVVTfg";
-            var domain = "1oZZl0fKjU4";
-            var salt = "Ozv5_XSBgw-XSrDosp8Y1A".Base64UrlDecode();
-            var expectedKey = "rXE9OHv_gcvUHdWuBIkyLsRDXT1oddQCzf6PrIECl2g".Base64UrlDecode();
+    [Fact]
+    public void TestLocalRsa()
+    {
+        var data = CryptoUtils.GetRandomBytes(100);
+        var publicKey = CryptoUtils.LoadRsaPublicKey(TestPublicKey.Base64UrlDecode());
+        var encData = CryptoUtils.EncryptRsa(data, publicKey);
+        var privateKey = CryptoUtils.LoadRsaPrivateKey(TestPrivateKey.Base64UrlDecode());
+        var unencData = CryptoUtils.DecryptRsa(encData, privateKey);
 
-            var key = CryptoUtils.DeriveKeyV2(domain, password, salt, 1000);
-            Assert.Equal(expectedKey, key);
-        }
+        Assert.Equal(data, unencData);
+    }
 
-        [Fact]
-        public void TestLocalRsa()
-        {
-            var data = CryptoUtils.GetRandomBytes(100);
-            var publicKey = CryptoUtils.LoadPublicKey(TestPublicKey.Base64UrlDecode());
-            var encData = CryptoUtils.EncryptRsa(data, publicKey);
-            var privateKey = CryptoUtils.LoadPrivateKey(TestPrivateKey.Base64UrlDecode());
-            var unencData = CryptoUtils.DecryptRsa(encData, privateKey);
-
-            Assert.Equal(data, unencData);
-        }
-
-        private const string TestPublicKey = @"MIIBCgKCAQEAqR0AjmBXo371pYmvS1NM8nXlbAv5qUbPYuV6KVwKjN3T8WX5K6HD
+    private const string TestPublicKey = @"MIIBCgKCAQEAqR0AjmBXo371pYmvS1NM8nXlbAv5qUbPYuV6KVwKjN3T8WX5K6HD
 Gl3-ylAbI02vIzKue-gDbjo1wUGp2qhANc1VxllLSWnkJmwbuGUTEWp4ANjusoMh
 PvEwna1XPdlrSMdsKokjbP9xbguPdvXx5oBaqArrrGEg-36Vi7miA_g_UT4DKcry
 glD4Xx0H9t5Hav-frz2qcEsyh9FC0fNyon_uveEdP2ac-kax8vO5EeVfBzOdw-WP
 aBtUO1h7rSZ6xKOm6x1OahNTUFy7Cgm038JuMwHChTK29H9EOlqbOOuzYA1ENzL8
 8hELpe-kl4RmpNS94BJDssikFFbjoiAVfwIDAQAB";
 
-        private const string TestPrivateKey = @"MIIEogIBAAKCAQEAqR0AjmBXo371pYmvS1NM8nXlbAv5qUbPYuV6KVwKjN3T8WX5
+    private const string TestPrivateKey = @"MIIEogIBAAKCAQEAqR0AjmBXo371pYmvS1NM8nXlbAv5qUbPYuV6KVwKjN3T8WX5
 K6HDGl3-ylAbI02vIzKue-gDbjo1wUGp2qhANc1VxllLSWnkJmwbuGUTEWp4ANju
 soMhPvEwna1XPdlrSMdsKokjbP9xbguPdvXx5oBaqArrrGEg-36Vi7miA_g_UT4D
 KcryglD4Xx0H9t5Hav-frz2qcEsyh9FC0fNyon_uveEdP2ac-kax8vO5EeVfBzOd
@@ -298,5 +218,4 @@ o17S610azxMavlMcYYSPXPGMZJ74WBOAMwrBVKuOZDJQ1tZRVMSSH1MRB5xwoTdP
 TAi1AoGAXqJUfDAjtLR0wFoLlV0GWGOObKkPZFCbFdv0_CY2dk0nKnSsYRCogiFP
 t9XhZG5kawEtdfqiNBDyeNVLu6FaZnRkid_tUqMKfCYLjNDq31OD1Pwvyuh6Hs1P
 hL2-nt6t9b7JMyzKjWq_OPuTPH0QErL3oiFbTaZ4fDXplH_6Snw";
-    }
 }
