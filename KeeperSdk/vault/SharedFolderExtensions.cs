@@ -48,8 +48,20 @@ namespace KeeperSecurity.Vault
                 }
                 else
                 {
-                    var keyTuple = await GetUserPublicKeys(userId);
-                    var publicKey = CryptoUtils.LoadPublicKey(keyTuple.Item1);
+                    byte[] encryptedKey;
+                    EncryptedKeyType encryptedKeyType;
+                    if (string.Equals(userId, Auth.Username, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        encryptedKey = CryptoUtils.EncryptAesV1(sharedFolder.SharedFolderKey, Auth.AuthContext.DataKey);
+                        encryptedKeyType = EncryptedKeyType.EncryptedByDataKey;
+                    }
+                    else
+                    {
+                        var keyTuple = await GetUserPublicKeys(userId);
+                        var publicKey = CryptoUtils.LoadPublicKey(keyTuple.Item1);
+                        encryptedKey = CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, publicKey);
+                        encryptedKeyType = EncryptedKeyType.EncryptedByPublicKey;
+                    }
                     request.SharedFolderAddUser.Add(new Folder.SharedFolderUpdateUser
                     {
                         Username = userId,
@@ -61,8 +73,8 @@ namespace KeeperSecurity.Vault
                         : options.ManageRecords.Value ? SetBooleanValue.BooleanTrue : SetBooleanValue.BooleanFalse,
                         TypedSharedFolderKey = new EncryptedDataKey
                         {
-                            EncryptedKey = ByteString.CopyFrom(CryptoUtils.EncryptRsa(sharedFolder.SharedFolderKey, publicKey)),
-                            EncryptedKeyType = EncryptedKeyType.EncryptedByPublicKey
+                            EncryptedKey = ByteString.CopyFrom(encryptedKey),
+                            EncryptedKeyType = encryptedKeyType,
                         },
                     });
                 }
