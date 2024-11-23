@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
-using KeeperSecurity.Utils;
 
 namespace Cli
 {
