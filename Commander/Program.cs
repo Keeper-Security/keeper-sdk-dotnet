@@ -15,7 +15,6 @@ using System.Net;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using Cli;
-using System.Collections.Generic;
 
 namespace Commander
 {
@@ -43,6 +42,7 @@ namespace Commander
 
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             CommanderStorage = StorageUtils.SetupCommanderStorage();
+
             if (!CommanderStorage.VerifyDatabase())
             {
                 throw new Exception("Database is invalid.");
