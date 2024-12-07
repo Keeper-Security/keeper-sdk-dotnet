@@ -46,7 +46,7 @@ function Add-KeeperFolder {
         Write-Error -Message "Folder `"$Name`" already exists" -ErrorAction Stop
     }
 
-    $parentUid = $Script:CurrentFolder
+    $parentUid = $Script:Context.CurrentFolder
     if ($ParentFolderUid) {
         [KeeperSecurity.Vault.FolderNode]$folder = $null
         if (-not $vault.TryGetFolder($ParentFolderUid, [ref]$folder)) {
