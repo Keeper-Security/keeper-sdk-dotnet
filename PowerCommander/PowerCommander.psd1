@@ -11,7 +11,7 @@
     RootModule         = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion      = '0.9.19'
+    ModuleVersion      = '0.9.20'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -26,7 +26,7 @@
     CompanyName        = 'Keeper Security Inc.'
 
     # Copyright statement for this module
-    Copyright          = '(c) 2024 Keeper Security Inc. All rights reserved.'
+    Copyright          = '(c) 2025 Keeper Security Inc. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = 'PowerShell Commander'
@@ -74,7 +74,7 @@
     FunctionsToExport  = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
         'Get-KeeperChildItem',	'Get-KeeperObject', 'Get-KeeperRecord', 'Copy-KeeperToClipboard', 'Show-TwoFactorCode',
         'Add-KeeperRecord', 'Remove-KeeperRecord', 'Move-RecordToFolder', 'Get-KeeperPasswordVisible', 'Set-KeeperPasswordVisible',
-        'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Remove-KeeperFolder', 'Get-KeeperRecordType',
+        'Get-KeeperSharedFolder', 'Add-KeeperFolder', 'Edit-KeeperFolder',  'Remove-KeeperFolder', 'Get-KeeperRecordType',
         'Get-KeeperEnterpriseUser', 'Get-KeeperEnterpriseTeam', 'Sync-KeeperEnterprise', 'Get-KeeperEnterpriseNode', 
         'Get-KeeperNodeName', 'Get-KeeperRoleName',
         'Add-KeeperEnterpriseUser', 'Lock-KeeperEnterpriseUser', 'Unlock-KeeperEnterpriseUser', 'Move-KeeperEnterpriseUser', 
@@ -117,7 +117,7 @@
             LicenseUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri  = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'Handle non-interactive Powershell environments'
+            ReleaseNotes = 'Edit-KeeperFolder cmdlet'
         }
     }
 
