@@ -436,7 +436,6 @@ namespace KeeperSecurity.Enterprise
 
 
             await Enterprise.Auth.LoadUsersKeys(userEmails);
-            await Enterprise.Auth.LoadTeamKeys(teamUids);
 
             var commands = new List<KeeperApiCommand>();
             foreach (var email in emails)
@@ -451,9 +450,11 @@ namespace KeeperSecurity.Enterprise
 
                         foreach (var teamUid in teams)
                         {
-                            if (!Enterprise.Auth.TryGetTeamKeys(teamUid, out var teamKeys)) continue;
-                            if (teamKeys.AesKey == null) continue;
-                            if (!TryGetTeam(teamUid, out var team)) continue;
+                            if (!TryGetTeam(teamUid, out var team))
+                            {
+                                warnings?.Invoke($"Team \"{teamUid}\" is not found. Skipped");
+                                continue;
+                            }
 
                             var users = GetUsersForTeam(team.Uid);
                             if (users != null && users.Contains(user.Id))
@@ -470,12 +471,12 @@ namespace KeeperSecurity.Enterprise
                             };
                             if (Enterprise.Auth.AuthContext.ForbidKeyType2)
                             {
-                                cmd.TeamKey = CryptoUtils.EncryptEc(teamKeys.AesKey, ecKey).Base64UrlEncode();
+                                cmd.TeamKey = CryptoUtils.EncryptEc(team.TeamKey, ecKey).Base64UrlEncode();
                                 cmd.TeamKeyType = "encrypted_by_public_key_ecc";
                             }
                             else
                             {
-                                cmd.TeamKey = CryptoUtils.EncryptRsa(teamKeys.AesKey, rsaKey).Base64UrlEncode();
+                                cmd.TeamKey = CryptoUtils.EncryptRsa(team.TeamKey, rsaKey).Base64UrlEncode();
                                 cmd.TeamKeyType = "encrypted_by_public_key";
                             }
                             commands.Add(cmd);
