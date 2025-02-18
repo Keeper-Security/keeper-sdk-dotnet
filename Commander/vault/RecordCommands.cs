@@ -18,8 +18,7 @@ namespace Commander
     internal partial class VaultContext
     {
 
-        private static readonly Tuple<string, bool>[] Prefixes = { Tuple.Create("field.", true), Tuple.Create("f.", true), Tuple.Create("custom.", false), Tuple.Create("c.", false) };
-        private const string FieldPattern = @"^(\w+)(\.[^\[]+)?(\[*.\])?\s*=\s*(.*)$";
+        private const string FieldPattern = @"^([^\[\.]+)(\.[^\[]+)?(\[.*\])?\s*=\s*(.*)$";
 
         public static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)
         {
