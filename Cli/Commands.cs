@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Cli
 {
-    public class CommandError: Exception 
-    { 
+    public class CommandError: Exception
+    {
         public CommandError(string message): base(message) { }
     }
-    
+
     public interface ICommandMeta
     {
         int Order { get; }

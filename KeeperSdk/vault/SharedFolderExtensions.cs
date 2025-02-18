@@ -118,11 +118,11 @@ namespace KeeperSecurity.Vault
                     EncryptedKeyType keyType = EncryptedKeyType.NoKey;
 
                     await Auth.LoadTeamKeys(Enumerable.Repeat(userId, 1));
-                    if (Auth.TryGetTeamKeys(userId, out var keys)) 
+                    if (Auth.TryGetTeamKeys(userId, out var keys))
                     {
                         if (keys.AesKey != null)
                         {
-                            if (Auth.AuthContext.ForbidKeyType2) 
+                            if (Auth.AuthContext.ForbidKeyType2)
                             {
                                 encryptedSharedFolderKey = CryptoUtils.EncryptAesV2(sharedFolder.SharedFolderKey, keys.AesKey);
                                 keyType = EncryptedKeyType.EncryptedByDataKeyGcm;
@@ -133,8 +133,8 @@ namespace KeeperSecurity.Vault
                                 keyType = EncryptedKeyType.EncryptedByDataKey;
                             }
                         }
-                        else if (Auth.AuthContext.ForbidKeyType2 && keys.EcPublicKey != null) 
-                        { 
+                        else if (Auth.AuthContext.ForbidKeyType2 && keys.EcPublicKey != null)
+                        {
                             var publicKey = CryptoUtils.LoadEcPublicKey(keys.EcPublicKey);
                             encryptedSharedFolderKey = CryptoUtils.EncryptEc(sharedFolder.SharedFolderKey, publicKey);
                             keyType = EncryptedKeyType.EncryptedByPublicKeyEcc;
@@ -146,7 +146,7 @@ namespace KeeperSecurity.Vault
                             keyType = EncryptedKeyType.EncryptedByPublicKey;
                         }
                     }
-                    if (encryptedSharedFolderKey != null) 
+                    if (encryptedSharedFolderKey != null)
                     {
                         sfut.TypedSharedFolderKey = new EncryptedDataKey
                         { 

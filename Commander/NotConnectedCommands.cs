@@ -16,6 +16,12 @@ namespace Commander
     {
         private readonly AuthSync _auth;
 
+        private class AppLoadOptions
+        {
+            [Option("config", Required = false, HelpText = "configuration file name")]
+            public string Config { get; set; }
+        }
+
         private class CreateOptions
         {
             [Value(0, Required = true, MetaName = "email", HelpText = "account email")]
@@ -55,7 +61,7 @@ namespace Commander
 
             _auth = new AuthSync(storage)
             {
-                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c16.11.0" }
+                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c17.0.0" }
             };
 
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>

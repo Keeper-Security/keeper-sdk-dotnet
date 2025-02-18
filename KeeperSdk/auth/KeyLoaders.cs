@@ -60,21 +60,15 @@ namespace KeeperSecurity.Authentication
                                 case 3:
                                     rsa = encryptedKey;
                                     break;
-                                // TODO Client version 17
-                                /*
-                                case 3:
+                                case -3:
                                     aes = CryptoUtils.DecryptAesV2(encryptedKey, AuthContext.DataKey);
                                     break;
                                 case 4:
                                     aes = CryptoUtils.DecryptEc(encryptedKey, AuthContext.PrivateEcKey);
                                     break;
-                                case -1:
+                                case -4:
                                     ec = encryptedKey;
                                     break;
-                                case -3:
-                                    rsa = encryptedKey;
-                                    break;
-                                */
                                 default:
                                     throw new Exception($"Team key type {key.keyType} is not supported");
                             }
