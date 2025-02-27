@@ -48,7 +48,7 @@ jobs:
           Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
         shell: powershell      
 
-#      - name: Publish to PowerShell Gallery
-#        run: |
-#          Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
-#        shell: powershell      
+      - name: Publish to PowerShell Gallery
+        run: |
+          Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
+        shell: powershell      
