@@ -1,16 +1,8 @@
 name: Build Keeper SDK for .NET
 
 on: 
-#  push:
-#    branches: 
-#      - 'release_*'
   workflow_dispatch:
     inputs:
-      sqlite_storage:
-        description: Build SQLite Vault storage
-        type: boolean
-        required: false
-        default: false
       cli:
         description: Build CLI package
         type: boolean
@@ -43,19 +35,38 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
          dotnet-version: '8.0.x'
-      - uses: microsoft/setup-msbuild@v2
-      
-      - uses: nuget/setup-nuget@v2
-      - run: nuget restore KeeperSdk.sln
 
-
-      - name: Load signing certificate
+      - name: Set up certificate
         run: |
-          if (Test-Path -Path certificate.txt) { Remove-Item certificate.txt }
-          if (Test-Path -Path certificate.pfx) { Remove-Item certificate.pfx }
-          Set-Content -Path certificate.txt -Value '${{ secrets.PFX_CERT }}'
-          certutil -decode certificate.txt certificate.pfx
-          Remove-Item certificate.txt
+          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
+        shell: bash
+
+      - name: Set variables
+        id: variables
+        run: |
+           echo "::set-output name=version::${GITHUB_REF#refs/tags/v}" 
+           echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV" 
+           echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV" 
+           echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV" 
+           echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV" 
+           echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH 
+           echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH 
+           echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Setup SSM KSP on windows latest
+        run: |
+           curl -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/smtools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o smtools-windows-x64.msi 
+           msiexec /i smtools-windows-x64.msi /quiet /qn 
+           smksp_registrar.exe list 
+           smctl.exe keypair ls 
+           C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user 
+           smksp_cert_sync.exe
+        shell: cmd
+
+      - name: Restore solution
+        run: |
+          dotnet restore KeeperSdk.sln
         shell: powershell
 
       - name: Build Keeper SDK Nuget package
@@ -63,27 +74,18 @@ jobs:
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           dotnet build /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\KeeperSdk.dll"
           dotnet pack --no-build --no-restore --no-dependencies /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell      
-
-      - name: Build SQLite Vault Storage
-        working-directory: ./OfflineStorageSqlite
-        run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          dotnet build --configuration=Release --no-dependencies
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK Offline SQLite Storage" "bin\Release\\netstandard2.0\OfflineStorageSqlite.dll"
-          dotnet pack --no-build --no-restore --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
-        shell: powershell
 
       - name: Build CLI library
         working-directory: ./Cli
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           dotnet build --configuration=Release --no-dependencies
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net472\Cli.dll"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\Cli.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\Cli.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\netstandard2.0\Cli.dll"
           dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
@@ -91,17 +93,29 @@ jobs:
         working-directory: ./Commander
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          msbuild /T:Restore /P:Configuration=Release
-          msbuild /T:Build /P:Configuration=Release /p:BuildProjectReferences=false
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
+          dotnet build --configuration=Release --no-dependencies
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\Commander.exe"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\Commander.dll"
         shell: powershell      
 
-      - name: Zip Commander
+      - name: Zip .Net Framework Commander
+        working-directory: "./Commander/bin/Release/net472"
         run: |
           $params = @{
-            Path = "Commander/bin/Release/*.exe", "Commander/bin/Release/Commander.exe.config", "Commander/bin/Release/*.dll", "OfflineStorageSqlite/bin/Release/netstandard2.0/OfflineStorageSqlite.dll"
+            Path = "*.exe", "Commander.exe.config", "*.dll", "x64/", "x86/"
             CompressionLevel = "Fastest"
-            DestinationPath = "Commander-${Env:PACKAGE_VERSION}.zip"
+            DestinationPath = "Commander-win-${Env:PACKAGE_VERSION}.zip"
+          }
+          Compress-Archive @params
+        shell: powershell
+
+      - name: Zip .Net 8.0 Commander
+        working-directory: "./Commander/bin/Release/net8.0"
+        run: |
+          $params = @{
+            Path = "*.dll", "Commander.dll.config", "Commander.deps.json", "runtimes/", "Commander.runtimeconfig.json"
+            CompressionLevel = "Fastest"
+            DestinationPath = "Commander-net-${Env:PACKAGE_VERSION}.zip"
           }
           Compress-Archive @params
         shell: powershell
@@ -118,18 +132,15 @@ jobs:
       - name: Store Commander artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Commander-${{ env.PACKAGE_VERSION }}
-          path: Commander-${{ env.PACKAGE_VERSION }}.zip
+          name: Commander-win-${{ env.PACKAGE_VERSION }}
+          path: Commander/bin/Release/net472/Commander-win-${{ env.PACKAGE_VERSION }}.zip
           retention-days: 1
 
-      - name: Store SQLite Offline Storage artifacts
-        if: ${{ inputs.sqlite_storage }}
+      - name: Store Commander artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: OfflineStorageSqlite
-          path: |
-            OfflineStorageSqlite/bin/Release/Keeper.Storage.Sqlite.*.nupkg
-            OfflineStorageSqlite/bin/Release/Keeper.Storage.Sqlite.*.snupkg
+          name: Commander-net-${{ env.PACKAGE_VERSION }}
+          path: Commander/bin/Release/net8.0/Commander-net-${{ env.PACKAGE_VERSION }}.zip
           retention-days: 1
 
       - name: Store artifacts

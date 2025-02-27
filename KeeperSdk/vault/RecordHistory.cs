@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using KeeperSecurity.Storage;
 
 namespace KeeperSecurity
 {
@@ -112,20 +113,14 @@ namespace KeeperSecurity
 
             private static string ExtractType(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is PasswordRecord)
+                return record switch
                 {
-                    return "legacy";
-                }
-                else if (record is TypedRecord tr)
-                {
-                    return tr.TypeName;
-                }
-                else if (record is ApplicationRecord)
-                {
-                    return "app";
-                }
-                return "";
+                    null => null,
+                    PasswordRecord => "legacy",
+                    TypedRecord tr => tr.TypeName,
+                    ApplicationRecord => "app",
+                    _ => "",
+                };
             }
             private static string ExtractTitle(this KeeperRecord record)
             {
@@ -133,82 +128,66 @@ namespace KeeperSecurity
             }
             private static string ExtractLogin(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is PasswordRecord pr)
+                return record switch
                 {
-                    return pr.Login;
-                }
-                else if (record is TypedRecord tr)
-                {
-                    if (tr.FindTypedField("login", null, out var rf))
-                    {
-                        return rf.GetExternalValue();
-                    }
-                }
-                return "";
+                    null => null,
+                    PasswordRecord pr => pr.Login,
+                    TypedRecord tr when tr.FindTypedField("login", null, out var rf) => rf.GetExternalValue(),
+                    _ => "",
+                };
             }
             private static string ExtractPassword(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is PasswordRecord pr)
+                return record switch
                 {
-                    return pr.Password;
-                }
-                else if (record is TypedRecord tr)
-                {
-                    if (tr.FindTypedField("password", null, out var rf))
-                    {
-                        return rf.GetExternalValue();
-                    }
-                }
-                return "";
+                    null => null,
+                    PasswordRecord pr => pr.Password,
+                    TypedRecord tr when tr.FindTypedField("password", null, out var rf) => rf.GetExternalValue(),
+                    _ => "",
+                };
             }
             private static string ExtractUrl(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is PasswordRecord pr)
+                return record switch
                 {
-                    return pr.Link;
-                }
-                else if (record is TypedRecord tr)
-                {
-                    if (tr.FindTypedField("url", null, out var rf))
-                    {
-                        return rf.GetExternalValue();
-                    }
-                }
-                return "";
+                    null => null,
+                    PasswordRecord pr => pr.Link,
+                    TypedRecord tr when tr.FindTypedField("url", null, out var rf) => rf.GetExternalValue(),
+                    _ => "",
+                };
             }
 
             private static string ExtractNotes(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is PasswordRecord pr)
+                switch (record)
                 {
-                    return pr.Notes;
-                }
-                else if (record is TypedRecord tr)
-                {
-                    var notes = tr.Notes ?? "";
-                    if (tr.FindTypedField("note", null, out var rf))
+                    case null:
+                        return null;
+                    case PasswordRecord pr:
+                        return pr.Notes;
+                    case TypedRecord tr:
                     {
-                        notes += rf.GetExternalValue();
+                        var notes = tr.Notes ?? "";
+                        if (tr.FindTypedField("note", null, out var rf))
+                        {
+                            notes += rf.GetExternalValue();
+                        }
+                        return notes;
                     }
-                    return notes;
+                    default:
+                        return "";
                 }
-                return "";
             }
 
             private static string ExtractTotp(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is PasswordRecord pr)
+                switch (record)
                 {
-                    return pr.Totp;
-                }
-                else if (record is TypedRecord tr)
-                {
-                    if (tr.FindTypedField("oneTimeCode", null, out var rf))
+                    case null:
+                        return null;
+                    case PasswordRecord pr:
+                        return pr.Totp;
+                    case TypedRecord tr when tr.FindTypedField("oneTimeCode", null, out var rf):
                     {
                         var totp = rf.GetExternalValue();
                         if (!string.IsNullOrEmpty(totp)) {
@@ -216,16 +195,18 @@ namespace KeeperSecurity
                         }
                         return totp;
                     }
+                    default:
+                        return "";
                 }
-                return "";
             }
 
             private static string ExtractHost(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is TypedRecord tr)
+                switch (record)
                 {
-                    if (tr.FindTypedField("host", null, out var rf))
+                    case null:
+                        return null;
+                    case TypedRecord tr when tr.FindTypedField("host", null, out var rf):
                     {
                         var totp = rf.GetExternalValue();
                         if (!string.IsNullOrEmpty(totp))
@@ -234,16 +215,18 @@ namespace KeeperSecurity
                         }
                         return totp;
                     }
+                    default:
+                        return "";
                 }
-                return "";
             }
 
             private static string ExtractAddress(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is TypedRecord tr)
+                switch (record)
                 {
-                    if (tr.FindTypedField("address", null, out var rf))
+                    case null:
+                        return null;
+                    case TypedRecord tr when tr.FindTypedField("address", null, out var rf):
                     {
                         var totp = rf.GetExternalValue();
                         if (!string.IsNullOrEmpty(totp))
@@ -252,16 +235,18 @@ namespace KeeperSecurity
                         }
                         return totp;
                     }
+                    default:
+                        return "";
                 }
-                return "";
             }
 
             private static string ExtractCard(this KeeperRecord record)
             {
-                if (record == null) return null;
-                if (record is TypedRecord tr)
+                switch (record)
                 {
-                    if (tr.FindTypedField("paymentCard", null, out var rf))
+                    case null:
+                        return null;
+                    case TypedRecord tr when tr.FindTypedField("paymentCard", null, out var rf):
                     {
                         var totp = rf.GetExternalValue();
                         if (!string.IsNullOrEmpty(totp))
@@ -270,8 +255,9 @@ namespace KeeperSecurity
                         }
                         return totp;
                     }
+                    default:
+                        return "";
                 }
-                return "";
             }
 
             private static string ExtractCustomFields(this KeeperRecord record)
@@ -279,33 +265,39 @@ namespace KeeperSecurity
                 if (record == null) return null;
                 List<string> values = null;
 
-                if (record is PasswordRecord pr)
+                switch (record)
                 {
-                    if ((pr.Custom?.Count ?? 0) > 0)
+                    case PasswordRecord pr:
                     {
-                        values = new List<string>();
-                        foreach (var cf in pr.Custom)
+                        if ((pr.Custom?.Count ?? 0) > 0)
                         {
-                            values.Add($"$text.{cf.Name}:{cf.Value}");
+                            values = new List<string>();
+                            foreach (var cf in pr.Custom)
+                            {
+                                values.Add($"$text.{cf.Name}:{cf.Value}");
+                            }
                         }
+
+                        break;
+                    }
+                    case TypedRecord tr:
+                    {
+                        if ((tr.Custom?.Count ?? 0) > 0) {
+                            values = new List<string>();
+                            foreach (var cf in tr.Custom)
+                            {
+                                values.Add($"${cf.FieldName}.{cf.FieldLabel ?? string.Empty}:{cf.GetExternalValue()}");
+                            }
+                        }
+
+                        break;
                     }
                 }
-                else if (record is TypedRecord tr)
-                {
-                    if ((tr.Custom?.Count ?? 0) > 0) {
-                        values = new List<string>();
-                        foreach (var cf in tr.Custom)
-                        {
-                            values.Add($"${cf.FieldName}.{cf.FieldLabel ?? string.Empty}:{cf.GetExternalValue()}");
-                        }
-                    }
-                }
-                if (values != null && values.Count > 0)
-                {
-                    values.Sort();
-                    return string.Join("\n", values);
-                }
-                return "";
+
+                if (values == null || values.Count <= 0) return "";
+
+                values.Sort();
+                return string.Join("\n", values);
             }
 
             private static string ExtractAttachments(this KeeperRecord record)
@@ -313,38 +305,42 @@ namespace KeeperSecurity
                 if (record == null) return null;
                 List<string> values = null;
 
-                if (record is PasswordRecord pr)
+                switch (record)
                 {
-                    if ((pr.Attachments?.Count ?? 0) > 0)
+                    case PasswordRecord pr:
                     {
-                        values = new List<string>();
-                        foreach (var atta in pr.Attachments)
+                        if ((pr.Attachments?.Count ?? 0) > 0)
                         {
-                            values.Add(atta.Id);
-                        }
-                    }
-                }
-                else if (record is TypedRecord tr)
-                {
-                    if (tr.FindTypedField("fileRef", null, out var rf))
-                    {
-                        values = new List<string>();
-                        for (int i = 0; i < rf.Count; i++) 
-                        {
-                            var v = rf.GetValueAt(i);
-                            if (v is string s) { 
-                                values.Add(s);
+                            values = new List<string>();
+                            foreach (var atta in pr.Attachments)
+                            {
+                                values.Add(atta.Id);
                             }
                         }
-                    }
 
+                        break;
+                    }
+                    case TypedRecord tr:
+                    {
+                        if (tr.FindTypedField("fileRef", null, out var rf))
+                        {
+                            values = new List<string>();
+                            for (int i = 0; i < rf.Count; i++) 
+                            {
+                                var v = rf.GetValueAt(i);
+                                if (v is string s) { 
+                                    values.Add(s);
+                                }
+                            }
+                        }
+
+                        break;
+                    }
                 }
-                if (values != null && values.Count > 0)
-                {
-                    values.Sort();
-                    return string.Join("\n", values);
-                }
-                return "";
+
+                if (values == null || values.Count <= 0) return "";
+                values.Sort();
+                return string.Join("\n", values);
             }
         }
 
@@ -365,7 +361,7 @@ namespace KeeperSecurity
             }
 
             [DataContract]
-            internal class RecordHistoryStorage : IStorageRecord
+            public class RecordHistoryStorage : IStorageRecord
             {
                 [DataMember(Name = "record_uid")]
                 public string RecordUid { get; internal set; }
@@ -378,17 +374,14 @@ namespace KeeperSecurity
                 [DataMember(Name = "revision")]
                 public long Revision { get; internal set; }
                 [DataMember(Name = "shared")]
-                public bool Shared { get; internal set; }
+                public bool Shared { get; set; }
                 [DataMember(Name = "client_modified_time")]
                 internal double _client_modified_time;
                 public long ClientModifiedTime => (long) _client_modified_time;
-
                 [DataMember(Name = "data")]
                 public string Data { get; internal set; }
                 [DataMember(Name = "extra")]
                 public string Extra { get; internal set; }
-
-
                 [DataMember(Name = "udata")]
                 internal SyncDownRecordUData udata;
                 public string Udata => udata != null ? Encoding.UTF8.GetString(JsonUtils.DumpJson(udata)) : null;

@@ -150,7 +150,7 @@ namespace KeeperSecurity.Enterprise
                 }).ToArray();
             }
 
-            var rs = await Enterprise.Auth.ExecuteAuthCommand<EnterpriseUpdateByMspCommand, EnterpriseManagedCompanyByMspResponse>(rq);
+            await Enterprise.Auth.ExecuteAuthCommand<EnterpriseUpdateByMspCommand, EnterpriseManagedCompanyByMspResponse>(rq);
             await Enterprise.Load();
 
             return ManagedCompanies.FirstOrDefault(x => x.EnterpriseId == companyId);

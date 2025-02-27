@@ -118,12 +118,12 @@ namespace KeeperSecurity.Enterprise
     /// </summary>
     public partial class RoleData : EnterpriseDataPlugin, IRoleData
     {
-        private readonly RoleDictionary _roles = new RoleDictionary();
-        private readonly RoleUserLink _roleUsers = new RoleUserLink();
-        private readonly RoleTeamLink _roleTeams = new RoleTeamLink();
-        private readonly RoleEnforcementLink _roleEnforcements = new RoleEnforcementLink();
-        private readonly ManagedNodeLink _managedNodes = new ManagedNodeLink();
-        private readonly RolePrivilegesList _rolePrivileges = new RolePrivilegesList();
+        private readonly RoleDictionary _roles = new();
+        private readonly RoleUserLink _roleUsers = new();
+        private readonly RoleTeamLink _roleTeams = new();
+        private readonly RoleEnforcementLink _roleEnforcements = new();
+        private readonly ManagedNodeLink _managedNodes = new();
+        private readonly RolePrivilegesList _rolePrivileges = new();
 
         public RoleData()
         {
@@ -225,7 +225,7 @@ namespace KeeperSecurity.Enterprise
             return _managedNodes.GetAllLinks();
         }
 
-        private Dictionary<long, byte[]> _adminRoleKeys = new Dictionary<long, byte[]>();
+        private readonly Dictionary<long, byte[]> _adminRoleKeys = new();
 
         /// <inheritdoc/>
         public async Task<byte[]> GetRoleKey(long roleId)

@@ -236,14 +236,10 @@ namespace KeeperSecurity.Enterprise
             }).ToArray();
         }
 
-        internal readonly Dictionary<string, MspPrice> _prices = new Dictionary<string, MspPrice>();
+        private readonly Dictionary<string, MspPrice> _prices = new();
 
         protected override void DataStructureChanged()
         {
-            if (_prices.Count > 0)
-            {
-                return;
-            }
             lock (this)
             {
                 if (_prices.Count > 0)
@@ -256,15 +252,16 @@ namespace KeeperSecurity.Enterprise
                     return;
                 }
 
-                var names = new Dictionary<int, string>();
-                names[1] = ManagedCompanyConstants.BusinessLicense;
-                names[2] = ManagedCompanyConstants.BusinessPlusLicense;
-                names[10] = ManagedCompanyConstants.EnterpriseLicense;
-                names[11] = ManagedCompanyConstants.EnterprisePlusLicense;
-
-                names[400] = ManagedCompanyConstants.StoragePlan100GB;
-                names[700] = ManagedCompanyConstants.StoragePlan1TB;
-                names[800] = ManagedCompanyConstants.StoragePlan10TB;
+                var names = new Dictionary<int, string>
+                {
+                    [1] = ManagedCompanyConstants.BusinessLicense,
+                    [2] = ManagedCompanyConstants.BusinessPlusLicense,
+                    [10] = ManagedCompanyConstants.EnterpriseLicense,
+                    [11] = ManagedCompanyConstants.EnterprisePlusLicense,
+                    [400] = ManagedCompanyConstants.StoragePlan100GB,
+                    [700] = ManagedCompanyConstants.StoragePlan1TB,
+                    [800] = ManagedCompanyConstants.StoragePlan10TB,
+                };
 
                 Task.Run(async () =>
                 {
@@ -370,6 +367,6 @@ namespace KeeperSecurity.Enterprise
             await PostLogin();
         }
 
-        public override IAuthCallback AuthCallback => null;
+        public override object AuthCallback => null;
     }
 }

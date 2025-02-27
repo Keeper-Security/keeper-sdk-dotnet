@@ -4354,16 +4354,6 @@
             <exception cref="T:KeeperSecurity.Vault.NoActiveShareWithUserException" />
             <seealso cref="T:KeeperSecurity.Vault.SharedFolderUserOptions"/>
         </member>
-        <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.RemoveUserFromSharedFolder(System.String,System.String,KeeperSecurity.Vault.UserType)">
-            <summary>
-            Removes user or team from shared folder.
-            </summary>
-            <param name="sharedFolderUid">Shared Folder UID.</param>
-            <param name="userId">User email or Team UID.</param>
-            <param name="userType">Type of userId parameter.</param>
-            <returns>true if parameters are accepted</returns>
-            <exception cref="T:KeeperSecurity.Authentication.KeeperApiException"></exception>
-        </member>
         <member name="M:KeeperSecurity.Vault.IBatchVaultOperations.ApplyChanges">
             <summary>
             Applies pending changes
@@ -4384,7 +4374,6 @@
             <summary>
             Represents Batch Vault Updater
             </summary>
-            <seealso cref="T:KeeperSecurity.Vault.IBatchVaultOperations"/>
         </member>
         <member name="M:KeeperSecurity.Vault.BatchVaultOperations.#ctor(KeeperSecurity.Vault.VaultOnline,KeeperSecurity.Vault.RecordMatch)">
             <summary>
@@ -4477,9 +4466,9 @@
             Gets number of typed records to be updated
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.BatchVaultOperations.FoldersToRename">
+        <member name="M:KeeperSecurity.Vault.BatchVaultOperations.FoldersToRename">
             <summary>
-            Gets the number of folder to be renamed
+            Gets the number od folder to be renamed
             </summary>
             <returns></returns>
         </member>
@@ -7002,11 +6991,6 @@
             Gets the number of values
             </summary>
         </member>
-        <member name="P:KeeperSecurity.Vault.ITypedField.Required">
-            <summary>
-            Gets required flag
-            </summary>
-        </member>
         <member name="T:KeeperSecurity.Vault.TypedRecord">
             <summary>
             Represents a Typed Record 
@@ -7082,9 +7066,6 @@
             <summary>
             Field values.
             </summary>
-        </member>
-        <member name="P:KeeperSecurity.Vault.TypedField`1.Required">
-            <inheritdoc />
         </member>
         <member name="P:KeeperSecurity.Vault.TypedField`1.TypedValue">
             <summary>
@@ -7828,17 +7809,6 @@
         <member name="F:AccountSummary.AccountSummaryElements.MinMasterPasswordLengthNoPromptFieldNumber">
             <summary>Field number for the "minMasterPasswordLengthNoPrompt" field.</summary>
         </member>
-        <member name="F:AccountSummary.AccountSummaryElements.ForbidKeyType2FieldNumber">
-            <summary>Field number for the "forbidKeyType2" field.</summary>
-        </member>
-        <member name="P:AccountSummary.AccountSummaryElements.ForbidKeyType2">
-            <summary>
-             If true, we will not accept RSA-encryped data from clients, although we
-             may continue to send previously-RSA-encrypted data to them.  If false,
-             clients must continue to send RSA-encrypted keys in all the places where
-             we used to assume RSA.
-            </summary>
-        </member>
         <member name="F:AccountSummary.DeviceInfo.EncryptedDeviceTokenFieldNumber">
             <summary>Field number for the "encryptedDeviceToken" field.</summary>
         </member>
@@ -7992,10 +7962,7 @@
         <member name="F:AccountSummary.License.ErrorFieldNumber">
             <summary>Field number for the "error" field.</summary>
         </member>
-        <member name="F:AccountSummary.License.PendingEnterpriseFieldNumber">
-            <summary>Field number for the "pendingEnterprise" field.</summary>
-        </member>
-        <member name="P:AccountSummary.License.PendingEnterprise">
+        <member name="P:AccountSummary.License.Error">
              <summary>
             repeated AddOn addOns = 28;
              </summary>
@@ -8069,11 +8036,7 @@
         <member name="F:AccountSummary.Settings.KeyValuesFieldNumber">
             <summary>Field number for the "keyValues" field.</summary>
         </member>
-        <member name="P:AccountSummary.Settings.KeyValues">
-             <summary>
-            &#x2F;/// ?????
-             </summary>
-        </member>
+        <!-- Badly formed XML comment ignored for member "P:AccountSummary.Settings.KeyValues" -->
         <member name="F:AccountSummary.Settings.SsoUserFieldNumber">
             <summary>Field number for the "ssoUser" field.</summary>
         </member>
@@ -8154,9 +8117,6 @@
         </member>
         <member name="F:AccountSummary.Settings.SecurityKeysNoUserVerifyFieldNumber">
             <summary>Field number for the "securityKeysNoUserVerify" field.</summary>
-        </member>
-        <member name="F:AccountSummary.Settings.ChannelsFieldNumber">
-            <summary>Field number for the "channels" field.</summary>
         </member>
         <member name="F:AccountSummary.KeyValue.KeyFieldNumber">
             <summary>Field number for the "key" field.</summary>
@@ -8355,16 +8315,6 @@
             for webapp
             </summary>
         </member>
-        <member name="F:Authentication.SessionTokenType.AcceptFamilyInvite">
-            <summary>
-            can only accept the family invite
-            </summary>
-        </member>
-        <member name="F:Authentication.SessionTokenType.EnterpriseCreationPurchased">
-            <summary>
-            user has purchased enterprise license but no enterprise created yet
-            </summary>
-        </member>
         <member name="F:Authentication.Version.InvalidVersion">
              <summary>
             protobuf enum has to start with 0.
@@ -8465,53 +8415,6 @@
             Google authenticator etc.
             </summary>
         </member>
-        <member name="T:Authentication.EncryptedObjectType">
-            <summary>
-             See get_change_key_types and change_key_types.  Replaces ObjectType.
-            </summary>
-        </member>
-        <member name="F:Authentication.EncryptedObjectType.EotRecordKey">
-            <summary>
-             Keys in record_ref and record_owner_key_history.  uid is record UID.
-            </summary>
-        </member>
-        <member name="F:Authentication.EncryptedObjectType.EotSharedFolderUserKey">
-            <summary>
-             Keys in shared_folder_user.  uid is shared folder UID.
-            </summary>
-        </member>
-        <member name="F:Authentication.EncryptedObjectType.EotSharedFolderTeamKey">
-            <summary>
-             Keys in shared_folder_team.  uid is shared folder UID; secondaryUid is
-             team UID.
-            </summary>
-        </member>
-        <member name="F:Authentication.EncryptedObjectType.EotTeamUserKey">
-            <summary>
-             Keys in team_user.  uid is team UID.
-            </summary>
-        </member>
-        <member name="F:Authentication.EncryptedObjectType.EotUserFolderKey">
-            <summary>
-             Keys in user_folder.  uid is the folder UID.
-            </summary>
-        </member>
-        <member name="F:Authentication.EncryptedObjectType.EotSecurityData">
-            <summary>
-             Data in security_data.  uid is the record UID.
-            </summary>
-        </member>
-        <member name="F:Authentication.EncryptedObjectType.EotSecurityDataMasterPassword">
-            <summary>
-             Ignored/broken.
-            </summary>
-        </member>
-        <member name="F:Authentication.EncryptedObjectType.EotV2RecordKey">
-            <summary>
-             Keys in record_ref and record_owner_key_history for v2 records.  uid is
-             record UID.
-            </summary>
-        </member>
         <member name="T:Authentication.Region">
              <summary>
             *
@@ -8542,16 +8445,6 @@
             <summary>
             Australia
             </summary>
-        </member>
-        <member name="F:Authentication.Region.Jp">
-             <summary>
-            Japan
-             </summary>
-        </member>
-        <member name="F:Authentication.Region.Ca">
-             <summary>
-            Canada
-             </summary>
         </member>
         <member name="F:Authentication.ApiRequest.EncryptedTransmissionKeyFieldNumber">
             <summary>Field number for the "encryptedTransmissionKey" field.</summary>
@@ -8623,12 +8516,6 @@
         </member>
         <member name="F:Authentication.NewUserMinimumParams.IsEnterpriseDomainFieldNumber">
             <summary>Field number for the "isEnterpriseDomain" field.</summary>
-        </member>
-        <member name="F:Authentication.NewUserMinimumParams.EnterpriseEccPublicKeyFieldNumber">
-            <summary>Field number for the "enterpriseEccPublicKey" field.</summary>
-        </member>
-        <member name="F:Authentication.NewUserMinimumParams.ForbidKeyType2FieldNumber">
-            <summary>Field number for the "forbidKeyType2" field.</summary>
         </member>
         <member name="F:Authentication.PreLoginRequest.AuthRequestFieldNumber">
             <summary>Field number for the "authRequest" field.</summary>
@@ -8892,14 +8779,6 @@
         </member>
         <member name="F:Authentication.TwoFactorChannelInfo.CreatedOnFieldNumber">
             <summary>Field number for the "createdOn" field.</summary>
-        </member>
-        <member name="F:Authentication.TwoFactorChannelInfo.LastFrequencyFieldNumber">
-            <summary>Field number for the "lastFrequency" field.</summary>
-        </member>
-        <member name="P:Authentication.TwoFactorChannelInfo.LastFrequency">
-            <summary>
-            for login and 2fa list response
-            </summary>
         </member>
         <member name="F:Authentication.TwoFactorDuoStatus.CapabilitiesFieldNumber">
             <summary>Field number for the "capabilities" field.</summary>
@@ -9185,7 +9064,7 @@
         </member>
         <member name="T:Authentication.SecurityData">
             <summary>
-            used in SecurityDataRequest
+            used in SecurityDataReqeust
             </summary>
         </member>
         <member name="F:Authentication.SecurityData.UidFieldNumber">
@@ -9204,9 +9083,6 @@
         </member>
         <member name="F:Authentication.SecurityDataRequest.MasterPasswordSecurityDataFieldNumber">
             <summary>Field number for the "masterPasswordSecurityData" field.</summary>
-        </member>
-        <member name="F:Authentication.SecurityDataRequest.EncryptionTypeFieldNumber">
-            <summary>Field number for the "encryptionType" field.</summary>
         </member>
         <member name="T:Authentication.SecurityReportIncrementalData">
             <summary>
@@ -9227,12 +9103,6 @@
         </member>
         <member name="F:Authentication.SecurityReportIncrementalData.OldSecurityDataRevisionFieldNumber">
             <summary>Field number for the "oldSecurityDataRevision" field.</summary>
-        </member>
-        <member name="F:Authentication.SecurityReportIncrementalData.CurrentDataEncryptionTypeFieldNumber">
-            <summary>Field number for the "currentDataEncryptionType" field.</summary>
-        </member>
-        <member name="F:Authentication.SecurityReportIncrementalData.OldDataEncryptionTypeFieldNumber">
-            <summary>Field number for the "oldDataEncryptionType" field.</summary>
         </member>
         <member name="T:Authentication.SecurityReport">
             <summary>
@@ -9278,14 +9148,6 @@
         <member name="F:Authentication.SecurityReport.UserIdFieldNumber">
             <summary>Field number for the "userId" field.</summary>
         </member>
-        <member name="F:Authentication.SecurityReport.HasOldEncryptionFieldNumber">
-            <summary>Field number for the "hasOldEncryption" field.</summary>
-        </member>
-        <member name="P:Authentication.SecurityReport.HasOldEncryption">
-            <summary>
-            specifically, RSA encrypted keys
-            </summary>
-        </member>
         <member name="F:Authentication.SecurityReportSaveRequest.SecurityReportFieldNumber">
             <summary>Field number for the "securityReport" field.</summary>
         </member>
@@ -9314,9 +9176,6 @@
         </member>
         <member name="F:Authentication.SecurityReportResponse.CompleteFieldNumber">
             <summary>Field number for the "complete" field.</summary>
-        </member>
-        <member name="F:Authentication.SecurityReportResponse.EnterpriseEccPrivateKeyFieldNumber">
-            <summary>Field number for the "enterpriseEccPrivateKey" field.</summary>
         </member>
         <member name="F:Authentication.ReusedPasswordsRequest.CountFieldNumber">
             <summary>Field number for the "count" field.</summary>
@@ -9356,86 +9215,6 @@
         </member>
         <member name="F:Authentication.ChangeToKeyTypeOneResponse.ChangeToKeyTypeOneStatusFieldNumber">
             <summary>Field number for the "changeToKeyTypeOneStatus" field.</summary>
-        </member>
-        <member name="T:Authentication.GetChangeKeyTypesRequest">
-            <summary>
-             See get_change_key_types
-            </summary>
-        </member>
-        <member name="F:Authentication.GetChangeKeyTypesRequest.OnlyTheseObjectsFieldNumber">
-            <summary>Field number for the "onlyTheseObjects" field.</summary>
-        </member>
-        <member name="F:Authentication.GetChangeKeyTypesRequest.LimitFieldNumber">
-            <summary>Field number for the "limit" field.</summary>
-        </member>
-        <member name="F:Authentication.GetChangeKeyTypesRequest.IncludeRecommendedFieldNumber">
-            <summary>Field number for the "includeRecommended" field.</summary>
-        </member>
-        <member name="F:Authentication.GetChangeKeyTypesRequest.IncludeKeysFieldNumber">
-            <summary>Field number for the "includeKeys" field.</summary>
-        </member>
-        <member name="F:Authentication.GetChangeKeyTypesRequest.IncludeAllowedKeyTypesFieldNumber">
-            <summary>Field number for the "includeAllowedKeyTypes" field.</summary>
-        </member>
-        <member name="T:Authentication.GetChangeKeyTypesResponse">
-            <summary>
-             See get_change_key_types
-            </summary>
-        </member>
-        <member name="F:Authentication.GetChangeKeyTypesResponse.KeysFieldNumber">
-            <summary>Field number for the "keys" field.</summary>
-        </member>
-        <member name="F:Authentication.GetChangeKeyTypesResponse.AllowedKeyTypesFieldNumber">
-            <summary>Field number for the "allowedKeyTypes" field.</summary>
-        </member>
-        <member name="F:Authentication.AllowedKeyTypes.ObjectTypeFieldNumber">
-            <summary>Field number for the "objectType" field.</summary>
-        </member>
-        <member name="F:Authentication.AllowedKeyTypes.AllowedKeyTypes_FieldNumber">
-            <summary>Field number for the "allowedKeyTypes" field.</summary>
-        </member>
-        <member name="T:Authentication.ChangeKeyTypes">
-            <summary>
-             This is the request and response for change_key_types; replaces
-             ChangeToKeyTypeOneRequest and ChangeToKeyTypeOneResponse.
-            </summary>
-        </member>
-        <member name="F:Authentication.ChangeKeyTypes.KeysFieldNumber">
-            <summary>Field number for the "keys" field.</summary>
-        </member>
-        <member name="T:Authentication.ChangeKeyType">
-            <summary>
-             See get_change_key_types and change_key_types.  Replaces ChangeToKeyTypeOne
-             and ChangeToKeyTypeOneStatus.
-            </summary>
-        </member>
-        <member name="F:Authentication.ChangeKeyType.ObjectTypeFieldNumber">
-            <summary>Field number for the "objectType" field.</summary>
-        </member>
-        <member name="F:Authentication.ChangeKeyType.UidFieldNumber">
-            <summary>Field number for the "uid" field.</summary>
-        </member>
-        <member name="P:Authentication.ChangeKeyType.Uid">
-            <summary>
-             see EncryptedObjectType comments for what this is
-            </summary>
-        </member>
-        <member name="F:Authentication.ChangeKeyType.SecondaryUidFieldNumber">
-            <summary>Field number for the "secondaryUid" field.</summary>
-        </member>
-        <member name="F:Authentication.ChangeKeyType.KeyFieldNumber">
-            <summary>Field number for the "key" field.</summary>
-        </member>
-        <member name="F:Authentication.ChangeKeyType.KeyTypeFieldNumber">
-            <summary>Field number for the "keyType" field.</summary>
-        </member>
-        <member name="F:Authentication.ChangeKeyType.StatusFieldNumber">
-            <summary>Field number for the "status" field.</summary>
-        </member>
-        <member name="P:Authentication.ChangeKeyType.Status">
-            <summary>
-             ignored in requests
-            </summary>
         </member>
         <member name="T:Authentication.SetKey">
             <summary>
@@ -9638,14 +9417,6 @@
         <member name="F:Authentication.CreateUserRequest.EncryptedVerificationTokenFieldNumber">
             <summary>Field number for the "encryptedVerificationToken" field.</summary>
         </member>
-        <member name="F:Authentication.CreateUserRequest.EnterpriseUsersDataKeyFieldNumber">
-            <summary>Field number for the "enterpriseUsersDataKey" field.</summary>
-        </member>
-        <member name="P:Authentication.CreateUserRequest.EnterpriseUsersDataKey">
-            <summary>
-            user's data key encrypted with enterprise ecc public key
-            </summary>
-        </member>
         <member name="F:Authentication.NodeEnforcementAddOrUpdateRequest.NodeIdFieldNumber">
             <summary>Field number for the "nodeId" field.</summary>
         </member>
@@ -9708,9 +9479,6 @@
         </member>
         <member name="F:Authentication.MasterPasswordReentryRequest.ActionFieldNumber">
             <summary>Field number for the "action" field.</summary>
-        </member>
-        <member name="F:Authentication.MasterPasswordReentryResponse.StatusFieldNumber">
-            <summary>Field number for the "status" field.</summary>
         </member>
         <member name="F:Authentication.DeviceRegistrationRequest.ClientVersionFieldNumber">
             <summary>Field number for the "clientVersion" field.</summary>
@@ -10024,9 +9792,6 @@
         <member name="F:Authentication.EnterpriseUserIdDataKeyPair.EncryptedDataKeyFieldNumber">
             <summary>Field number for the "encryptedDataKey" field.</summary>
         </member>
-        <member name="F:Authentication.EnterpriseUserIdDataKeyPair.KeyTypeFieldNumber">
-            <summary>Field number for the "keyType" field.</summary>
-        </member>
         <member name="F:Authentication.UserDataKey.RoleIdFieldNumber">
             <summary>Field number for the "roleId" field.</summary>
         </member>
@@ -10128,14 +9893,6 @@
             when EnforcementType.MINIMUM_PBKDF2_ITERATIONS exists
              </summary>
         </member>
-        <member name="F:Authentication.GetDataKeyBackupV3Response.KeyTypeFieldNumber">
-            <summary>Field number for the "keyType" field.</summary>
-        </member>
-        <member name="P:Authentication.GetDataKeyBackupV3Response.KeyType">
-            <summary>
-            describes publicKey/encryptedPrivateKey pair
-            </summary>
-        </member>
         <member name="F:Authentication.GetPublicKeysRequest.UsernamesFieldNumber">
             <summary>Field number for the "usernames" field.</summary>
         </member>
@@ -10162,60 +9919,6 @@
         </member>
         <member name="F:Authentication.SetEccKeyPairRequest.EncryptedPrivateKeyFieldNumber">
             <summary>Field number for the "encryptedPrivateKey" field.</summary>
-        </member>
-        <member name="T:Authentication.SetEccKeyPairsRequest">
-            <summary>
-             used for teams &amp; roles
-            </summary>
-        </member>
-        <member name="F:Authentication.SetEccKeyPairsRequest.TeamKeysFieldNumber">
-            <summary>Field number for the "teamKeys" field.</summary>
-        </member>
-        <member name="P:Authentication.SetEccKeyPairsRequest.TeamKeys">
-             <summary>
-            repeated RoleEccKeyPair roleKeys = 2;
-             </summary>
-        </member>
-        <member name="F:Authentication.SetEccKeyPairsResponse.TeamKeysFieldNumber">
-            <summary>Field number for the "teamKeys" field.</summary>
-        </member>
-        <member name="P:Authentication.SetEccKeyPairsResponse.TeamKeys">
-             <summary>
-            repeated RoleEccKeyPairResponse roleKeys = 2;
-             </summary>
-        </member>
-        <member name="F:Authentication.TeamEccKeyPair.TeamUidFieldNumber">
-            <summary>Field number for the "teamUid" field.</summary>
-        </member>
-        <member name="F:Authentication.TeamEccKeyPair.PublicKeyFieldNumber">
-            <summary>Field number for the "publicKey" field.</summary>
-        </member>
-        <member name="F:Authentication.TeamEccKeyPair.EncryptedPrivateKeyFieldNumber">
-            <summary>Field number for the "encryptedPrivateKey" field.</summary>
-        </member>
-        <member name="F:Authentication.TeamEccKeyPairResponse.TeamUidFieldNumber">
-            <summary>Field number for the "teamUid" field.</summary>
-        </member>
-        <member name="F:Authentication.TeamEccKeyPairResponse.StatusFieldNumber">
-            <summary>Field number for the "status" field.</summary>
-        </member>
-        <member name="F:Authentication.GetKsmPublicKeysRequest.ClientIdsFieldNumber">
-            <summary>Field number for the "clientIds" field.</summary>
-        </member>
-        <member name="F:Authentication.GetKsmPublicKeysRequest.ControllerUidsFieldNumber">
-            <summary>Field number for the "controllerUids" field.</summary>
-        </member>
-        <member name="F:Authentication.DevicePublicKeyResponse.ClientIdFieldNumber">
-            <summary>Field number for the "clientId" field.</summary>
-        </member>
-        <member name="F:Authentication.DevicePublicKeyResponse.PublicKeyFieldNumber">
-            <summary>Field number for the "publicKey" field.</summary>
-        </member>
-        <member name="F:Authentication.DevicePublicKeyResponse.ControllerUidFieldNumber">
-            <summary>Field number for the "controllerUid" field.</summary>
-        </member>
-        <member name="F:Authentication.GetKsmPublicKeysResponse.KeyResponsesFieldNumber">
-            <summary>Field number for the "keyResponses" field.</summary>
         </member>
         <member name="F:Authentication.AddAppSharesRequest.AppRecordUidFieldNumber">
             <summary>Field number for the "appRecordUid" field.</summary>
@@ -10307,9 +10010,6 @@
             <summary>
             optional, defaults to obfuscated device id
             </summary>
-        </member>
-        <member name="F:Authentication.AddExternalShareRequest.IsSelfDestructFieldNumber">
-            <summary>Field number for the "isSelfDestruct" field.</summary>
         </member>
         <member name="F:Authentication.AppClient.IdFieldNumber">
             <summary>Field number for the "id" field.</summary>
@@ -10425,6 +10125,87 @@
         <member name="F:Authentication.SendShareInviteRequest.EmailFieldNumber">
             <summary>Field number for the "email" field.</summary>
         </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.AccountUidFieldNumber">
+            <summary>Field number for the "accountUid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.AccountUid">
+             <summary>
+            list of users that have access to a record or shared folder
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.TeamUidFieldNumber">
+            <summary>Field number for the "teamUid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.TeamUid">
+             <summary>
+            list of teams that have access to a shared folder
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.RecordUid">
+             <summary>
+            list of records that have access to a shared folder (aka that are shared via a shared folder)
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.SharedObjectUidFieldNumber">
+            <summary>Field number for the "sharedObjectUid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.SharedObjectUid">
+             <summary>
+            recordUid or sharedFolderUid of which the timer will be set or deleted
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.TimeLimitedAccessTypeFieldNumber">
+            <summary>Field number for the "timeLimitedAccessType" field.</summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessRequest.ExpirationFieldNumber">
+            <summary>Field number for the "expiration" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessRequest.Expiration">
+             <summary>
+            delete timer when expiration==0
+             </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessStatus.UidFieldNumber">
+            <summary>Field number for the "uid" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessStatus.Uid">
+            <summary>
+            accountUid or teamUid or recordUid
+            </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessStatus.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessResponse.RevisionFieldNumber">
+            <summary>Field number for the "revision" field.</summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessResponse.UserAccessStatusFieldNumber">
+            <summary>Field number for the "userAccessStatus" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessResponse.UserAccessStatus">
+            <summary>
+            uid is accountUid
+            </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessResponse.TeamAccessStatusFieldNumber">
+            <summary>Field number for the "teamAccessStatus" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessResponse.TeamAccessStatus">
+            <summary>
+            uid is teamUid
+            </summary>
+        </member>
+        <member name="F:Authentication.TimeLimitedAccessResponse.RecordAccessStatusFieldNumber">
+            <summary>Field number for the "recordAccessStatus" field.</summary>
+        </member>
+        <member name="P:Authentication.TimeLimitedAccessResponse.RecordAccessStatus">
+            <summary>
+            uid is recordUid
+            </summary>
+        </member>
         <member name="F:Authentication.RequestDownloadRequest.FileNamesFieldNumber">
             <summary>Field number for the "fileNames" field.</summary>
         </member>
@@ -10489,82 +10270,6 @@
         </member>
         <member name="F:Authentication.AccountRecoveryVerifyCodeResponse.IterationsFieldNumber">
             <summary>Field number for the "iterations" field.</summary>
-        </member>
-        <member name="F:Authentication.EmergencyAccessLoginRequest.OwnerFieldNumber">
-            <summary>Field number for the "owner" field.</summary>
-        </member>
-        <member name="F:Authentication.EmergencyAccessLoginResponse.SessionTokenFieldNumber">
-            <summary>Field number for the "sessionToken" field.</summary>
-        </member>
-        <member name="F:Authentication.EmergencyAccessLoginResponse.DataKeyFieldNumber">
-            <summary>Field number for the "dataKey" field.</summary>
-        </member>
-        <member name="F:Authentication.EmergencyAccessLoginResponse.RsaPrivateKeyFieldNumber">
-            <summary>Field number for the "rsaPrivateKey" field.</summary>
-        </member>
-        <member name="P:Authentication.EmergencyAccessLoginResponse.RsaPrivateKey">
-            <summary>
-             may be empty
-            </summary>
-        </member>
-        <member name="F:Authentication.EmergencyAccessLoginResponse.EccPrivateKeyFieldNumber">
-            <summary>Field number for the "eccPrivateKey" field.</summary>
-        </member>
-        <member name="P:Authentication.EmergencyAccessLoginResponse.EccPrivateKey">
-            <summary>
-             may be empty
-            </summary>
-        </member>
-        <member name="F:Authentication.UserTeamKey.TeamUidFieldNumber">
-            <summary>Field number for the "teamUid" field.</summary>
-        </member>
-        <member name="F:Authentication.UserTeamKey.UsernameFieldNumber">
-            <summary>Field number for the "username" field.</summary>
-        </member>
-        <member name="P:Authentication.UserTeamKey.Username">
-            <summary>
-            this is if the client has a username not an enterpriseUserId
-            </summary>
-        </member>
-        <member name="F:Authentication.UserTeamKey.EnterpriseUserIdFieldNumber">
-            <summary>Field number for the "enterpriseUserId" field.</summary>
-        </member>
-        <member name="P:Authentication.UserTeamKey.EnterpriseUserId">
-            <summary>
-            note: this is because new sync down is sending enterpriseUserIds not usernames for queued team members
-            </summary>
-        </member>
-        <member name="F:Authentication.UserTeamKey.EncryptedTeamKeyRSAFieldNumber">
-            <summary>Field number for the "encryptedTeamKeyRSA" field.</summary>
-        </member>
-        <member name="P:Authentication.UserTeamKey.EncryptedTeamKeyRSA">
-            <summary>
-            team key shared to the user via user's RSA public key
-            </summary>
-        </member>
-        <member name="F:Authentication.UserTeamKey.EncryptedTeamKeyECFieldNumber">
-            <summary>Field number for the "encryptedTeamKeyEC" field.</summary>
-        </member>
-        <member name="P:Authentication.UserTeamKey.EncryptedTeamKeyEC">
-            <summary>
-            team key shared to the user via user's EC public key
-            </summary>
-        </member>
-        <member name="F:Authentication.UserTeamKey.StatusFieldNumber">
-            <summary>Field number for the "status" field.</summary>
-        </member>
-        <member name="P:Authentication.UserTeamKey.Status">
-            <summary>
-            used in the response to state success or failure, blank means success
-            </summary>
-        </member>
-        <member name="F:Authentication.GenericRequestResponse.RequestFieldNumber">
-            <summary>Field number for the "request" field.</summary>
-        </member>
-        <member name="P:Authentication.GenericRequestResponse.Request">
-            <summary>
-            this is just a repeated list of whatever request message the api called for as a bytestring
-            </summary>
         </member>
         <member name="T:BI.BIReflection">
             <summary>Holder for reflection information generated from BI.proto</summary>
@@ -11220,26 +10925,6 @@
         <member name="P:Enterprise.EnterpriseReflection.Descriptor">
             <summary>File descriptor for enterprise.proto</summary>
         </member>
-        <member name="F:Enterprise.RoleUserModifyStatus.RoleExists">
-            <summary>
-            the supplied role_id already exists
-            </summary>
-        </member>
-        <member name="F:Enterprise.RoleUserModifyStatus.InvalidEnterpriseUserId">
-            <summary>
-            the supplied enterprise_user_id does not belong to the same enterprise as the calling user
-            </summary>
-        </member>
-        <member name="F:Enterprise.RoleUserModifyStatus.PendingEnterpriseUser">
-            <summary>
-            cannot add a pending enterprise user to a role
-            </summary>
-        </member>
-        <member name="F:Enterprise.RoleUserModifyStatus.InvalidNodeId">
-            <summary>
-            the supplied node_id is not valid 
-            </summary>
-        </member>
         <member name="F:Enterprise.UserUpdateStatus.UserUpdateOk">
             <summary>
              can't use OK because it's already defined in AuditUserStatus
@@ -11303,9 +10988,6 @@
         </member>
         <member name="F:Enterprise.EnterpriseUser.IsShareAdminFieldNumber">
             <summary>Field number for the "isShareAdmin" field.</summary>
-        </member>
-        <member name="F:Enterprise.EnterpriseUser.UsernameFieldNumber">
-            <summary>Field number for the "username" field.</summary>
         </member>
         <member name="F:Enterprise.GetTeamMemberResponse.EnterpriseUserFieldNumber">
             <summary>Field number for the "enterpriseUser" field.</summary>
@@ -11381,88 +11063,6 @@
             <summary>
             100 max
             </summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAddKeys.EnterpriseUserIdFieldNumber">
-            <summary>Field number for the "enterpriseUserId" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAddKeys.TreeKeyFieldNumber">
-            <summary>Field number for the "treeKey" field.</summary>
-        </member>
-        <member name="P:Enterprise.RoleUserAddKeys.TreeKey">
-             <summary>
-            TODO: is this necessary? we only use it for validation. URLSafe base 64 key encrypted with the user's public key if this role is a role with managed nodes
-             </summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAddKeys.RoleAdminKeyFieldNumber">
-            <summary>Field number for the "roleAdminKey" field.</summary>
-        </member>
-        <member name="P:Enterprise.RoleUserAddKeys.RoleAdminKey">
-             <summary>
-            TODO: is this necessary? we only use it for validation. URLSafe base 64 role_key encrypted with the user's public key. cannot add a user to a role that has a key and you are not a member of.
-             </summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAdd.RoleIdFieldNumber">
-            <summary>Field number for the "role_id" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAdd.RoleUserAddKeysFieldNumber">
-            <summary>Field number for the "roleUserAddKeys" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUsersAddRequest.RoleUserAddsFieldNumber">
-            <summary>Field number for the "roleUserAdds" field.</summary>
-        </member>
-        <member name="P:Enterprise.RoleUsersAddRequest.RoleUserAdds">
-            <summary>
-            1000 max
-            </summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAddResult.RoleIdFieldNumber">
-            <summary>Field number for the "roleId" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAddResult.EnterpriseUserIdFieldNumber">
-            <summary>Field number for the "enterpriseUserId" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAddResult.StatusFieldNumber">
-            <summary>Field number for the "status" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserAddResult.MessageFieldNumber">
-            <summary>Field number for the "message" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUsersAddResponse.ResultsFieldNumber">
-            <summary>Field number for the "results" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserRemove.RoleIdFieldNumber">
-            <summary>Field number for the "role_id" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserRemove.EnterpriseUserIdsFieldNumber">
-            <summary>Field number for the "enterpriseUserIds" field.</summary>
-        </member>
-        <member name="P:Enterprise.RoleUserRemove.EnterpriseUserIds">
-            <summary>
-            1000 max
-            </summary>
-        </member>
-        <member name="F:Enterprise.RoleUsersRemoveRequest.RoleUserRemovesFieldNumber">
-            <summary>Field number for the "roleUserRemoves" field.</summary>
-        </member>
-        <member name="P:Enterprise.RoleUsersRemoveRequest.RoleUserRemoves">
-            <summary>
-            100 max
-            </summary>
-        </member>
-        <member name="F:Enterprise.RoleUserRemoveResult.RoleIdFieldNumber">
-            <summary>Field number for the "roleId" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserRemoveResult.EnterpriseUserIdFieldNumber">
-            <summary>Field number for the "enterpriseUserId" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserRemoveResult.StatusFieldNumber">
-            <summary>Field number for the "status" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUserRemoveResult.MessageFieldNumber">
-            <summary>Field number for the "message" field.</summary>
-        </member>
-        <member name="F:Enterprise.RoleUsersRemoveResponse.ResultsFieldNumber">
-            <summary>Field number for the "results" field.</summary>
         </member>
         <member name="F:Enterprise.EnterpriseRegistration.EncryptedTreeKeyFieldNumber">
             <summary>Field number for the "encryptedTreeKey" field.</summary>
@@ -11543,24 +11143,8 @@
         <member name="F:Enterprise.EnterpriseRegistration.EccKeyPairFieldNumber">
             <summary>Field number for the "eccKeyPair" field.</summary>
         </member>
-        <member name="F:Enterprise.EnterpriseRegistration.AllUsersRoleDataFieldNumber">
-            <summary>Field number for the "allUsersRoleData" field.</summary>
-        </member>
-        <member name="P:Enterprise.EnterpriseRegistration.AllUsersRoleData">
-            <summary>
-            encrypted role data for all_users role
-            </summary>
-        </member>
         <member name="F:Enterprise.DomainPasswordRulesRequest.UsernameFieldNumber">
             <summary>Field number for the "username" field.</summary>
-        </member>
-        <member name="F:Enterprise.DomainPasswordRulesRequest.VerificationCodeFieldNumber">
-            <summary>Field number for the "verificationCode" field.</summary>
-        </member>
-        <member name="P:Enterprise.DomainPasswordRulesRequest.VerificationCode">
-             <summary>
-            If supplied and is valid, will use the password rules for the given user's account
-             </summary>
         </member>
         <member name="F:Enterprise.DomainPasswordRulesFields.TypeFieldNumber">
             <summary>Field number for the "type" field.</summary>
@@ -11680,17 +11264,6 @@
         </member>
         <member name="F:Enterprise.GeneralDataEntity.DistributorFieldNumber">
             <summary>Field number for the "distributor" field.</summary>
-        </member>
-        <member name="F:Enterprise.GeneralDataEntity.ForbidAccountTransferFieldNumber">
-            <summary>Field number for the "forbidAccountTransfer" field.</summary>
-        </member>
-        <member name="P:Enterprise.GeneralDataEntity.ForbidAccountTransfer">
-            <summary>
-             If true:
-             - role_enforcement_add won't let you add the REQUIRE_ACCOUNT_SHARE enforcement
-             - account_summary won't ask clients to share their data key for account share
-             - share_account, pre_account_transfer, &amp; transfer_and_delete_user will abort
-            </summary>
         </member>
         <member name="F:Enterprise.Node.NodeIdFieldNumber">
             <summary>Field number for the "nodeId" field.</summary>
@@ -11995,9 +11568,6 @@
             Allows MSP allocate Infinity as number of licenses to its MCs.
              </summary>
         </member>
-        <member name="F:Enterprise.MspInfo.AddOnsFieldNumber">
-            <summary>Field number for the "addOns" field.</summary>
-        </member>
         <member name="F:Enterprise.ManagedCompany.McEnterpriseIdFieldNumber">
             <summary>Field number for the "mcEnterpriseId" field.</summary>
         </member>
@@ -12077,9 +11647,6 @@
         </member>
         <member name="F:Enterprise.LicenseAddOn.IncludedInProductFieldNumber">
             <summary>Field number for the "includedInProduct" field.</summary>
-        </member>
-        <member name="F:Enterprise.LicenseAddOn.ApiCallCountFieldNumber">
-            <summary>Field number for the "apiCallCount" field.</summary>
         </member>
         <member name="F:Enterprise.MCDefault.McProductFieldNumber">
             <summary>Field number for the "mcProduct" field.</summary>
@@ -12257,63 +11824,6 @@
         </member>
         <member name="F:Enterprise.QueuedTeamUser.UsersFieldNumber">
             <summary>Field number for the "users" field.</summary>
-        </member>
-        <member name="T:Enterprise.TeamsAddResult">
-             <summary>
-            *
-             This is not used in an API yet.
-             It can be used in a new teams_add API if we do one.
-             It is currently used internally when creating teams.
-            
-             The command is successful if at least one of the teams was added successfully.
-             The top-level errorMessage field is used only when the top-level result is "error".
-             </summary>
-        </member>
-        <member name="F:Enterprise.TeamsAddResult.SuccessfulTeamAddFieldNumber">
-            <summary>Field number for the "successfulTeamAdd" field.</summary>
-        </member>
-        <member name="F:Enterprise.TeamsAddResult.UnsuccessfulTeamAddFieldNumber">
-            <summary>Field number for the "unsuccessfulTeamAdd" field.</summary>
-        </member>
-        <member name="F:Enterprise.TeamsAddResult.ResultFieldNumber">
-            <summary>Field number for the "result" field.</summary>
-        </member>
-        <member name="P:Enterprise.TeamsAddResult.Result">
-            <summary>
-            "success" or "fail"
-            </summary>
-        </member>
-        <member name="F:Enterprise.TeamsAddResult.ErrorMessageFieldNumber">
-            <summary>Field number for the "errorMessage" field.</summary>
-        </member>
-        <member name="P:Enterprise.TeamsAddResult.ErrorMessage">
-            <summary>
-            only used if result == "fail"
-            </summary>
-        </member>
-        <member name="F:Enterprise.TeamAddResult.TeamFieldNumber">
-            <summary>Field number for the "team" field.</summary>
-        </member>
-        <member name="P:Enterprise.TeamAddResult.Team">
-            <summary>
-            team info.  May not be completely filled out
-            </summary>
-        </member>
-        <member name="F:Enterprise.TeamAddResult.ResultFieldNumber">
-            <summary>Field number for the "result" field.</summary>
-        </member>
-        <member name="P:Enterprise.TeamAddResult.Result">
-            <summary>
-            "success" or "fail"
-            </summary>
-        </member>
-        <member name="F:Enterprise.TeamAddResult.ErrorMessageFieldNumber">
-            <summary>Field number for the "errorMessage" field.</summary>
-        </member>
-        <member name="P:Enterprise.TeamAddResult.ErrorMessage">
-            <summary>
-            only used if result == "fail"
-            </summary>
         </member>
         <member name="F:Enterprise.SsoService.SsoServiceProviderIdFieldNumber">
             <summary>Field number for the "ssoServiceProviderId" field.</summary>
@@ -13221,22 +12731,8 @@
         </member>
         <member name="P:Enterprise.TeamsEnterpriseUsersAddUserRequest.TeamKey">
             <summary>
-            encrypted with the user's public key - KT_ENCRYPTED_BY_PUBLIC_KEY aka RSA
+            encrypted with the user's public key
             </summary>
-        </member>
-        <member name="F:Enterprise.TeamsEnterpriseUsersAddUserRequest.TypedTeamKeyFieldNumber">
-            <summary>Field number for the "typedTeamKey" field.</summary>
-        </member>
-        <member name="P:Enterprise.TeamsEnterpriseUsersAddUserRequest.TypedTeamKey">
-            <summary>
-            the substitute for teamKey, explicitly specifies key type (primarily will be KT_ENCRYPTED_BY_PUBLIC_KEY_ECC in this case)
-            </summary>
-        </member>
-        <member name="F:Enterprise.TypedKey.KeyFieldNumber">
-            <summary>Field number for the "key" field.</summary>
-        </member>
-        <member name="F:Enterprise.TypedKey.KeyTypeFieldNumber">
-            <summary>Field number for the "keyType" field.</summary>
         </member>
         <member name="F:Enterprise.TeamsEnterpriseUsersAddResponse.TeamsFieldNumber">
             <summary>Field number for the "teams" field.</summary>
@@ -13698,9 +13194,6 @@
         <member name="F:Folder.SharedFolderUpdateRecord.ExpirationFieldNumber">
             <summary>Field number for the "expiration" field.</summary>
         </member>
-        <member name="F:Folder.SharedFolderUpdateRecord.TimerNotificationTypeFieldNumber">
-            <summary>Field number for the "timerNotificationType" field.</summary>
-        </member>
         <member name="F:Folder.SharedFolderUpdateUser.UsernameFieldNumber">
             <summary>Field number for the "username" field.</summary>
         </member>
@@ -13715,17 +13208,11 @@
         </member>
         <member name="P:Folder.SharedFolderUpdateUser.SharedFolderKey">
             <summary>
-            shared folder AES key encrypted with user's "key" (for the caller, the user's data key, for a different user, the user's public key) - use typedSharedFolderKey instead
+            shared folder AES key encrypted with user's "key" (for the caller, the user's data key, for a different user, the user's public key)
             </summary>
         </member>
         <member name="F:Folder.SharedFolderUpdateUser.ExpirationFieldNumber">
             <summary>Field number for the "expiration" field.</summary>
-        </member>
-        <member name="F:Folder.SharedFolderUpdateUser.TimerNotificationTypeFieldNumber">
-            <summary>Field number for the "timerNotificationType" field.</summary>
-        </member>
-        <member name="F:Folder.SharedFolderUpdateUser.TypedSharedFolderKeyFieldNumber">
-            <summary>Field number for the "typedSharedFolderKey" field.</summary>
         </member>
         <member name="F:Folder.SharedFolderUpdateTeam.TeamUidFieldNumber">
             <summary>Field number for the "teamUid" field.</summary>
@@ -13741,17 +13228,11 @@
         </member>
         <member name="P:Folder.SharedFolderUpdateTeam.SharedFolderKey">
             <summary>
-            shared folder AES key encrypted with the team key retrieved from team_get_keys, for team member, which is team key; for a non member, the team's public key - use typedSharedFolderKey instead
+            shared folder AES key encrypted with the team key retrieved from team_get_keys, for team member, which is team key; for a non member, the team's public key
             </summary>
         </member>
         <member name="F:Folder.SharedFolderUpdateTeam.ExpirationFieldNumber">
             <summary>Field number for the "expiration" field.</summary>
-        </member>
-        <member name="F:Folder.SharedFolderUpdateTeam.TimerNotificationTypeFieldNumber">
-            <summary>Field number for the "timerNotificationType" field.</summary>
-        </member>
-        <member name="F:Folder.SharedFolderUpdateTeam.TypedSharedFolderKeyFieldNumber">
-            <summary>Field number for the "typedSharedFolderKey" field.</summary>
         </member>
         <member name="F:Folder.SharedFolderUpdateV3Request.SharedFolderUpdateOperationDontUseFieldNumber">
             <summary>Field number for the "sharedFolderUpdateOperation_dont_use" field.</summary>
@@ -13974,9 +13455,6 @@
         <member name="F:Folder.DeletedRecordData.DataFieldNumber">
             <summary>Field number for the "data" field.</summary>
         </member>
-        <member name="F:Folder.DeletedRecordData.VersionFieldNumber">
-            <summary>Field number for the "version" field.</summary>
-        </member>
         <member name="F:Folder.Username.AccountUidFieldNumber">
             <summary>Field number for the "accountUid" field.</summary>
         </member>
@@ -13992,8 +13470,8 @@
         <member name="F:Folder.RestoreSharedObject.FolderUidFieldNumber">
             <summary>Field number for the "folderUid" field.</summary>
         </member>
-        <member name="F:Folder.RestoreSharedObject.RecordUidsFieldNumber">
-            <summary>Field number for the "recordUids" field.</summary>
+        <member name="F:Folder.RestoreSharedObject.RecordUidFieldNumber">
+            <summary>Field number for the "recordUid" field.</summary>
         </member>
         <member name="T:Push.PushReflection">
             <summary>Holder for reflection information generated from push.proto</summary>
@@ -14141,16 +13619,6 @@
         </member>
         <member name="P:Records.RecordReflection.Descriptor">
             <summary>File descriptor for record.proto</summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessType.UserAccessToSharedfolder">
-            <summary>
-            used for scheduler callback
-            </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessType.TeamAccessToSharedfolder">
-            <summary>
-            used for scheduler callback
-            </summary>
         </member>
         <member name="F:Records.RecordType.RecordTypeIdFieldNumber">
             <summary>Field number for the "recordTypeId" field.</summary>
@@ -14618,9 +14086,6 @@
         <member name="F:Records.UserPermission.AccountUidFieldNumber">
             <summary>Field number for the "accountUid" field.</summary>
         </member>
-        <member name="F:Records.UserPermission.TimerNotificationTypeFieldNumber">
-            <summary>Field number for the "timerNotificationType" field.</summary>
-        </member>
         <member name="F:Records.SharedFolderPermission.SharedFolderUidFieldNumber">
             <summary>Field number for the "sharedFolderUid" field.</summary>
         </member>
@@ -14640,9 +14105,6 @@
              <summary>
             time limit for the record in a shared folder
              </summary>
-        </member>
-        <member name="F:Records.SharedFolderPermission.TimerNotificationTypeFieldNumber">
-            <summary>Field number for the "timerNotificationType" field.</summary>
         </member>
         <member name="F:Records.RecordData.RevisionFieldNumber">
             <summary>Field number for the "revision" field.</summary>
@@ -14795,9 +14257,6 @@
         </member>
         <member name="F:Records.SharedRecord.ExpirationFieldNumber">
             <summary>Field number for the "expiration" field.</summary>
-        </member>
-        <member name="F:Records.SharedRecord.TimerNotificationTypeFieldNumber">
-            <summary>Field number for the "timerNotificationType" field.</summary>
         </member>
         <member name="F:Records.RecordShareUpdateResponse.AddSharedRecordStatusFieldNumber">
             <summary>Field number for the "addSharedRecordStatus" field.</summary>
@@ -15050,93 +14509,6 @@
         </member>
         <member name="F:Records.RecordsUnshareUserStatus.AccountUidFieldNumber">
             <summary>Field number for the "accountUid" field.</summary>
-        </member>
-        <member name="F:Records.TimedAccessCallbackPayload.TimeLimitedAccessTypeFieldNumber">
-            <summary>Field number for the "timeLimitedAccessType" field.</summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessRequest.AccountUidFieldNumber">
-            <summary>Field number for the "accountUid" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessRequest.AccountUid">
-             <summary>
-            list of users that have access to a record or shared folder
-             </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessRequest.TeamUidFieldNumber">
-            <summary>Field number for the "teamUid" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessRequest.TeamUid">
-             <summary>
-            list of teams that have access to a shared folder
-             </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessRequest.RecordUidFieldNumber">
-            <summary>Field number for the "recordUid" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessRequest.RecordUid">
-             <summary>
-            list of records that have access to a shared folder (aka that are shared via a shared folder)
-             </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessRequest.SharedObjectUidFieldNumber">
-            <summary>Field number for the "sharedObjectUid" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessRequest.SharedObjectUid">
-             <summary>
-            recordUid or sharedFolderUid of which the timer will be set or deleted
-             </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessRequest.TimeLimitedAccessTypeFieldNumber">
-            <summary>Field number for the "timeLimitedAccessType" field.</summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessRequest.ExpirationFieldNumber">
-            <summary>Field number for the "expiration" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessRequest.Expiration">
-             <summary>
-            delete timer when expiration==0
-             </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessRequest.TimerNotificationTypeFieldNumber">
-            <summary>Field number for the "timerNotificationType" field.</summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessStatus.UidFieldNumber">
-            <summary>Field number for the "uid" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessStatus.Uid">
-            <summary>
-            accountUid or teamUid or recordUid
-            </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessStatus.MessageFieldNumber">
-            <summary>Field number for the "message" field.</summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessResponse.RevisionFieldNumber">
-            <summary>Field number for the "revision" field.</summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessResponse.UserAccessStatusFieldNumber">
-            <summary>Field number for the "userAccessStatus" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessResponse.UserAccessStatus">
-            <summary>
-            uid is accountUid
-            </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessResponse.TeamAccessStatusFieldNumber">
-            <summary>Field number for the "teamAccessStatus" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessResponse.TeamAccessStatus">
-            <summary>
-            uid is teamUid
-            </summary>
-        </member>
-        <member name="F:Records.TimeLimitedAccessResponse.RecordAccessStatusFieldNumber">
-            <summary>Field number for the "recordAccessStatus" field.</summary>
-        </member>
-        <member name="P:Records.TimeLimitedAccessResponse.RecordAccessStatus">
-            <summary>
-            uid is recordUid
-            </summary>
         </member>
         <member name="T:SsoCloud.SsocloudReflection">
             <summary>Holder for reflection information generated from ssocloud.proto</summary>
@@ -15526,33 +14898,6 @@
             <summary>Field number for the "content" field.</summary>
         </member>
         <member name="P:SsoCloud.SsoCloudIdpMetadataRequest.Content">
-            <summary>
-            UTF-8 bytes of the file content
-            </summary>
-        </member>
-        <member name="T:SsoCloud.SsoCloudIdpMetadataSupportRequest">
-             <summary>
-            *
-             This request is by the API Test Tool to upload the IdP metadata file as its UTF-8 byte content.
-             The response is an SsoCloudConfigurationValidationResponse.
-             </summary>
-        </member>
-        <member name="F:SsoCloud.SsoCloudIdpMetadataSupportRequest.SsoServiceProviderIdFieldNumber">
-            <summary>Field number for the "ssoServiceProviderId" field.</summary>
-        </member>
-        <member name="F:SsoCloud.SsoCloudIdpMetadataSupportRequest.SsoSpConfigurationIdFieldNumber">
-            <summary>Field number for the "ssoSpConfigurationId" field.</summary>
-        </member>
-        <member name="F:SsoCloud.SsoCloudIdpMetadataSupportRequest.SsoEnterpriseIdFieldNumber">
-            <summary>Field number for the "ssoEnterpriseId" field.</summary>
-        </member>
-        <member name="F:SsoCloud.SsoCloudIdpMetadataSupportRequest.FilenameFieldNumber">
-            <summary>Field number for the "filename" field.</summary>
-        </member>
-        <member name="F:SsoCloud.SsoCloudIdpMetadataSupportRequest.ContentFieldNumber">
-            <summary>Field number for the "content" field.</summary>
-        </member>
-        <member name="P:SsoCloud.SsoCloudIdpMetadataSupportRequest.Content">
             <summary>
             UTF-8 bytes of the file content
             </summary>

@@ -5,9 +5,9 @@ using Authentication;
 using Cli;
 using CommandLine;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Authentication.Sync;
+using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 
 namespace Commander
@@ -15,12 +15,6 @@ namespace Commander
     public class NotConnectedCliContext : StateCommands
     {
         private readonly AuthSync _auth;
-
-        private class AppLoadOptions
-        {
-            [Option("config", Required = false, HelpText = "configuration file name")]
-            public string Config { get; set; }
-        }
 
         private class CreateOptions
         {
@@ -56,18 +50,16 @@ namespace Commander
 
         public NotConnectedCliContext(bool autologin)
         {
-            string configFileName = null;
-            var res = Parser.Default.ParseArguments<AppLoadOptions>(Environment.GetCommandLineArgs());
-            res.WithParsed(o => { configFileName = o.Config; });
+            var loader = Program.CommanderStorage.GetConfigurationLoader();
+            var storage = new JsonConfigurationStorage(loader);
 
-            var storage = Program.CommanderStorage.GetConfigurationStorage(configFileName, new CommanderConfigurationProtection());
             _auth = new AuthSync(storage)
             {
-                Endpoint = {DeviceName = "Commander C#", ClientVersion = "c16.5.0"}
+                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c16.11.0" }
             };
 
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>
-            { 
+            {
                 Order = 9,
                 Description = "Detect and setup proxy",
                 Action = DoProxy
@@ -87,7 +79,7 @@ namespace Commander
                 Action = DoCreateAccount
             });
 
-            Commands.Add("server", new Cli.SimpleCommand
+            Commands.Add("server", new SimpleCommand
             {
                 Order = 20,
                 Description = "Display or change Keeper Server",
@@ -103,7 +95,7 @@ namespace Commander
                 }
             });
 
-            Commands.Add("version", new Cli.SimpleCommand
+            Commands.Add("version", new SimpleCommand
             {
                 Order = 21,
                 Action = args =>
@@ -120,7 +112,8 @@ namespace Commander
 
             if (autologin)
             {
-                if (string.IsNullOrEmpty(storage.LastServer))
+                var configuration = storage.Get();
+                if (string.IsNullOrEmpty(configuration.LastServer))
                 {
                     Console.WriteLine($"You are connected to the default Keeper server \"{_auth.Endpoint.Server}\".");
                     Console.WriteLine($"Please use \"server <keeper host name for your region>\" command to choose a different region.");
@@ -131,7 +124,7 @@ namespace Commander
                 }
                 Console.WriteLine();
 
-                var lastLogin = storage.LastLogin;
+                var lastLogin = configuration.LastLogin;
                 if (!string.IsNullOrEmpty(lastLogin))
                 {
                     Program.GetMainLoop().CommandQueue.Enqueue($"login --resume {lastLogin}");
@@ -150,7 +143,7 @@ namespace Commander
             while (true)
             {
                 Console.Write("\nEnter Master Password: ");
-                password = await Program.GetInputManager().ReadLine(new ReadLineParameters {IsSecured = true});
+                password = await Program.GetInputManager().ReadLine(new ReadLineParameters { IsSecured = true });
                 var failedRules = matcher.MatchFailedRules(password);
                 if (failedRules == null) break;
                 if (failedRules.Length == 0) break;
@@ -233,44 +226,44 @@ namespace Commander
             });
         }
 
-        private async Task DoProxy(ProxyOptions options) 
+        private async Task DoProxy(ProxyOptions options)
         {
             Uri proxyUri = null;
             string[] proxyMethods = null;
-            var hasProxy = await _auth.DetectProxy((uri, methods) => 
+            var hasProxy = await _auth.DetectProxy((uri, methods) =>
             {
                 proxyUri = uri;
                 proxyMethods = methods;
             });
-            if (proxyUri == null || proxyMethods == null) 
+            if (proxyUri == null || proxyMethods == null)
             {
                 return;
             }
-            var proxy_user = options.User;
-            if (string.IsNullOrEmpty(proxy_user)) 
+            var proxyUser = options.User;
+            if (string.IsNullOrEmpty(proxyUser))
             {
                 Console.Write("Enter Proxy username: ");
-                proxy_user = await Program.GetInputManager().ReadLine();
+                proxyUser = await Program.GetInputManager().ReadLine();
             }
-            if (string.IsNullOrEmpty(proxy_user))
+            if (string.IsNullOrEmpty(proxyUser))
             {
                 return;
             }
-            var proxy_password = options.Password;
-            if (string.IsNullOrEmpty(proxy_password))
+            var proxyPassword = options.Password;
+            if (string.IsNullOrEmpty(proxyPassword))
             {
                 Console.Write("Enter Proxy password: ");
-                proxy_password = await Program.GetInputManager().ReadLine(new ReadLineParameters 
-                { 
+                proxyPassword = await Program.GetInputManager().ReadLine(new ReadLineParameters
+                {
                     IsSecured = true,
                 });
             }
-            if (string.IsNullOrEmpty(proxy_password))
+            if (string.IsNullOrEmpty(proxyPassword))
             {
                 return;
             }
 
-            _auth.Endpoint.WebProxy = AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyMethods, proxy_user, proxy_password);
+            _auth.Endpoint.WebProxy = AuthUIExtensions.GetWebProxyForCredentials(proxyUri, proxyMethods, proxyUser, proxyPassword);
         }
 
         private async Task DoLogin(LoginOptions options)
@@ -315,6 +308,14 @@ namespace Commander
                     {
                         passwords.Add(options.Password);
                     }
+
+                    var configuration = _auth.Storage.Get();
+                    var uc = configuration.Users.Get(username);
+                    if (!string.IsNullOrEmpty(uc?.Password))
+                    {
+                        passwords.Add(uc.Password);
+                    }
+
                     await Utils.LoginToKeeper(_auth, Program.GetInputManager(), username, passwords.ToArray());
                 }
 
@@ -328,7 +329,7 @@ namespace Commander
             {
             }
             catch (KeyboardInterrupt)
-            { 
+            {
             }
         }
 

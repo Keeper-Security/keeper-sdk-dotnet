@@ -7,6 +7,7 @@ using Enterprise;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
+using KeeperSecurity.Vault;
 
 namespace KeeperSecurity.Enterprise
 {
@@ -43,7 +44,7 @@ namespace KeeperSecurity.Enterprise
             }
             rq.EncryptedData = EnterpriseUtils.EncryptEncryptedData(encrypted, Enterprise.TreeKey);
 
-            var _ = await Enterprise.Auth.ExecuteAuthCommand<EnterpriseUserAddCommand, EnterpriseUserAddResponse>(rq);
+            _ = await Enterprise.Auth.ExecuteAuthCommand<EnterpriseUserAddCommand, EnterpriseUserAddResponse>(rq);
             await Enterprise.Load();
             TryGetUserById(userId, out var user);
             return user;
@@ -80,6 +81,7 @@ namespace KeeperSecurity.Enterprise
         /// <inheritdoc/>
         public async Task<AccountTransferResult> TransferUserAccount(IRoleData roleData, EnterpriseUser fromUser, EnterpriseUser targetUser)
         {
+            var auth = Enterprise.Auth;
             if (fromUser.UserStatus == UserStatus.Inactive)
             {
                 throw new KeeperApiException("user_not_active", "Cannot transfer inactive user");
@@ -92,35 +94,28 @@ namespace KeeperSecurity.Enterprise
                     EnterpriseUserId = fromUser.Id,
                     Lock = "locked"
                 };
-                await Enterprise.Auth.ExecuteAuthCommand(rq);
+                await auth.ExecuteAuthCommand(rq);
             }
 
-            var keys = new Dictionary<string, byte[]>
-            {
-                [targetUser.Email] = null
-            };
-
-            await this.PopulateUserPublicKeys(keys, (error) =>
-            {
-                throw new KeeperApiException("public_key_error", error);
-            });
-            var targetPublicKey = keys[targetUser.Email];
-            if (targetPublicKey == null)
+            await auth.LoadUsersKeys(Enumerable.Repeat(targetUser.Email, 1));
+            if (!auth.TryGetUserKeys(targetUser.Email, out var keys)) 
             {
                 throw new KeeperApiException("public_key_error", $"Cannot get user {targetUser.Email} public key");
             }
-            var targetKey = CryptoUtils.LoadPublicKey(targetPublicKey);
+
+            var rsaKey = keys.RsaPublicKey != null ? CryptoUtils.LoadRsaPublicKey(keys.RsaPublicKey) : null;
+            var ecKey = keys.EcPublicKey != null ? CryptoUtils.LoadEcPublicKey(keys.EcPublicKey) : null;
 
             var preRq = new PreAccountTransferCommand
             {
                 TargetUsername = fromUser.Email
             };
-            var preRs = await Enterprise.Auth.ExecuteAuthCommand<PreAccountTransferCommand, PreAccountTransferResponse>(preRq);
-            var treeKey = Enterprise.TreeKey;
+            var preRs = await auth.ExecuteAuthCommand<PreAccountTransferCommand, PreAccountTransferResponse>(preRq);
+
             byte[] roleKey = null;
             if (!string.IsNullOrEmpty(preRs.RoleKey))
             {
-                roleKey = CryptoUtils.DecryptRsa(preRs.RoleKey.Base64UrlDecode(), Enterprise.Auth.AuthContext.PrivateRsaKey);
+                roleKey = CryptoUtils.DecryptRsa(preRs.RoleKey.Base64UrlDecode(), auth.AuthContext.PrivateRsaKey);
             }
             else if (preRs.RoleKeyId > 0)
             {
@@ -131,7 +126,7 @@ namespace KeeperSecurity.Enterprise
                 throw new KeeperApiException("transfer_key_error", $"Cannot resolve Account Transfer role key for user {targetUser.Email}");
             }
             var pk = CryptoUtils.DecryptAesV1(preRs.RolePrivateKey.Base64UrlDecode(), roleKey);
-            var rolePrivateKey = CryptoUtils.LoadPrivateKey(pk);
+            var rolePrivateKey = CryptoUtils.LoadRsaPrivateKey(pk);
             var userDataKey = CryptoUtils.DecryptRsa(preRs.TransferKey.Base64UrlDecode(), rolePrivateKey);
             byte[] userRsaPrivateKey = null;
             byte[] userEcPrivateKey = null;
@@ -143,39 +138,8 @@ namespace KeeperSecurity.Enterprise
             {
                 userEcPrivateKey = CryptoUtils.DecryptAesV2(preRs.UserEccPrivateKey.Base64UrlDecode(), userDataKey);
             }
-            var userRsaKey = userRsaPrivateKey != null ? CryptoUtils.LoadPrivateKey(userRsaPrivateKey) : null;
-            var userEcKey = userEcPrivateKey != null ? CryptoUtils.LoadPrivateEcKey(userEcPrivateKey) : null;
-
-            Func<byte[], int, byte[]> convert = (encryptedKey, keyType) =>
-            {
-                byte[] key = null;
-                switch (keyType)
-                {
-                    case (int) EncryptedKeyType.KtEncryptedByDataKey:
-                        key = CryptoUtils.DecryptAesV1(encryptedKey, userDataKey);
-                        break;
-                    case (int) EncryptedKeyType.KtEncryptedByPublicKey:
-                        if (userRsaKey != null)
-                        {
-                            key = CryptoUtils.DecryptRsa(encryptedKey, userRsaKey);
-                        }
-                        break;
-                    case (int) EncryptedKeyType.KtEncryptedByDataKeyGcm:
-                        key = CryptoUtils.DecryptAesV2(encryptedKey, userDataKey);
-                        break;
-                    case (int) EncryptedKeyType.KtEncryptedByPublicKeyEcc:
-                        if (userRsaKey != null)
-                        {
-                            key = CryptoUtils.DecryptEc(encryptedKey, userEcKey);
-                        }
-                        break;
-                }
-                if (key != null)
-                {
-                    return CryptoUtils.EncryptRsa(key, targetKey);
-                }
-                throw new KeeperApiException("wrong_key_type", $"Cannot decrypt key. Wrong key type {keyType}");
-            };
+            var userRsaKey = userRsaPrivateKey != null ? CryptoUtils.LoadRsaPrivateKey(userRsaPrivateKey) : null;
+            var userEcKey = userEcPrivateKey != null ? CryptoUtils.LoadEcPrivateKey(userEcPrivateKey) : null;
 
             var tdRq = new TransferAndDeleteUserCommand
             {
@@ -193,7 +157,7 @@ namespace KeeperSecurity.Enterprise
                         transfered.Add(new TransferAndDeleteRecordKey
                         {
                             RecordUid = rk.RecordUid,
-                            RecordKey = convert(rk.RecordKey.Base64UrlDecode(), rk.RecordKeyType).Base64UrlEncode()
+                            RecordKey = DecryptKey(rk.RecordKey.Base64UrlDecode(), rk.RecordKeyType).Base64UrlEncode()
                         });
                     }
                     catch (Exception e)
@@ -216,7 +180,7 @@ namespace KeeperSecurity.Enterprise
                         transfered.Add(new TransferAndDeleteSharedFolderKey
                         {
                             SharedFolderUid = sfk.SharedFolderUid,
-                            SharedFolderKey = convert(sfk.SharedFolderKey.Base64UrlDecode(), sfk.SharedFolderKeyType).Base64UrlEncode()
+                            SharedFolderKey = DecryptKey(sfk.SharedFolderKey.Base64UrlDecode(), sfk.SharedFolderKeyType).Base64UrlEncode()
                         });
                     }
                     catch (Exception e)
@@ -239,7 +203,7 @@ namespace KeeperSecurity.Enterprise
                         transfered.Add(new TransferAndDeleteTeamKey
                         {
                             TeamUid = tk.TeamUid,
-                            TeamKey = convert(tk.TeamKey.Base64UrlDecode(), tk.TeamKeyType).Base64UrlEncode()
+                            TeamKey = DecryptKey(tk.TeamKey.Base64UrlDecode(), tk.TeamKeyType).Base64UrlEncode()
                         });
                     }
                     catch (Exception e)
@@ -253,16 +217,16 @@ namespace KeeperSecurity.Enterprise
             }
             if (preRs.UserFolderKeys != null)
             {
-                var transfered = new List<TransferAndDeleteUserFolderKey>();
+                var transferred = new List<TransferAndDeleteUserFolderKey>();
                 var corrupted = new List<PreAccountTransferUserFolderKey>();
                 foreach (var ufk in preRs.UserFolderKeys)
                 {
                     try
                     {
-                        transfered.Add(new TransferAndDeleteUserFolderKey
+                        transferred.Add(new TransferAndDeleteUserFolderKey
                         {
                             UserFolderUid = ufk.UserFolderUid,
-                            UserFolderKey = convert(ufk.UserFolderKey.Base64UrlDecode(), ufk.UserFolderKeyType).Base64UrlEncode()
+                            UserFolderKey = DecryptKey(ufk.UserFolderKey.Base64UrlDecode(), ufk.UserFolderKeyType).Base64UrlEncode()
                         });
                     }
                     catch (Exception e)
@@ -271,7 +235,7 @@ namespace KeeperSecurity.Enterprise
                         corrupted.Add(ufk);
                     }
                 }
-                tdRq.UserFolderKeys = transfered.ToArray();
+                tdRq.UserFolderKeys = transferred.ToArray();
                 tdRq.CorruptedUserFolderKeys = corrupted.ToArray();
 
                 var targetFolderKey = CryptoUtils.GenerateEncryptionKey();
@@ -283,12 +247,14 @@ namespace KeeperSecurity.Enterprise
                 tdRq.UserFolderTransfer = new TransferAndDeleteUserFolderTransfer
                 {
                     TransferFolderUid = CryptoUtils.GenerateUid(),
-                    TransferFolderKey = CryptoUtils.EncryptRsa(targetFolderKey, targetKey).Base64UrlEncode(),
+                    TransferFolderKey = auth.AuthContext.ForbidKeyType2
+                    ? CryptoUtils.EncryptEc(targetFolderKey, ecKey).Base64UrlEncode()
+                    : CryptoUtils.EncryptRsa(targetFolderKey, rsaKey).Base64UrlEncode(),
                     TransferFolderData = CryptoUtils.EncryptAesV1(dataBytes, targetFolderKey).Base64UrlEncode()
                 };
             }
 
-            await Enterprise.Auth.ExecuteAuthCommand(tdRq);
+            await auth.ExecuteAuthCommand(tdRq);
             await Enterprise.Load();
 
             return new AccountTransferResult
@@ -302,6 +268,46 @@ namespace KeeperSecurity.Enterprise
                 TeamsCorrupted = tdRq.CorruptedTeamKeys?.Length ?? 0,
                 UserFoldersCorrupted = tdRq.CorruptedUserFolderKeys?.Length ?? 0
             };
+
+            byte[] DecryptKey(byte[] encryptedKey, int keyType)
+            {
+                byte[] key = null;
+                switch (keyType)
+                {
+                    case (int) EncryptedKeyType.KtEncryptedByDataKey:
+                        key = CryptoUtils.DecryptAesV1(encryptedKey, userDataKey);
+                        break;
+                    case (int) EncryptedKeyType.KtEncryptedByPublicKey:
+                        if (userRsaKey != null)
+                        {
+                            key = CryptoUtils.DecryptRsa(encryptedKey, userRsaKey);
+                        }
+
+                        break;
+                    case (int) EncryptedKeyType.KtEncryptedByDataKeyGcm:
+                        key = CryptoUtils.DecryptAesV2(encryptedKey, userDataKey);
+                        break;
+                    case (int) EncryptedKeyType.KtEncryptedByPublicKeyEcc:
+                        if (userRsaKey != null)
+                        {
+                            key = CryptoUtils.DecryptEc(encryptedKey, userEcKey);
+                        }
+
+                        break;
+                }
+
+                if (key != null)
+                {
+                    if (auth.AuthContext.ForbidKeyType2)
+                    {
+                        return CryptoUtils.EncryptEc(key, ecKey);
+                    }
+
+                    return CryptoUtils.EncryptRsa(key, rsaKey);
+                }
+
+                throw new KeeperApiException("wrong_key_type", $"Cannot decrypt key. Wrong key type {keyType}");
+            }
         }
 
 
@@ -309,8 +315,9 @@ namespace KeeperSecurity.Enterprise
         public async Task<EnterpriseTeam> CreateTeam(EnterpriseTeam team)
         {
             var teamKey = CryptoUtils.GenerateEncryptionKey();
-            CryptoUtils.GenerateRsaKey(out var privateKey, out var publicKey);
-            var encryptedPrivateKey = CryptoUtils.EncryptAesV1(privateKey, teamKey);
+
+            CryptoUtils.GenerateEcKey(out var ecPrivateKey, out var ecPublicKey);
+            var encryptedEcPrivateKey = CryptoUtils.EncryptAesV2(CryptoUtils.UnloadEcPrivateKey(ecPrivateKey), teamKey);
             var teamUid = CryptoUtils.GenerateUid();
             var rq = new TeamAddCommand
             {
@@ -319,12 +326,19 @@ namespace KeeperSecurity.Enterprise
                 RestrictEdit = team.RestrictEdit,
                 RestrictShare = team.RestrictSharing,
                 RestrictView = team.RestrictView,
-                PublicKey = publicKey.Base64UrlEncode(),
-                PrivateKey = encryptedPrivateKey.Base64UrlEncode(),
                 NodeId = team.ParentNodeId == 0 ? RootNode.Id : team.ParentNodeId,
                 ManageOnly = true,
-                EncryptedTeamKey = CryptoUtils.EncryptAesV2(teamKey, Enterprise.TreeKey).Base64UrlEncode()
+                EncryptedTeamKey = CryptoUtils.EncryptAesV2(teamKey, Enterprise.TreeKey).Base64UrlEncode(),
+                EccPublicKey = CryptoUtils.UnloadEcPublicKey(ecPublicKey).Base64UrlEncode(),
+                EccPrivateKey = encryptedEcPrivateKey.Base64UrlEncode(),
             };
+            if (!Enterprise.Auth.AuthContext.ForbidKeyType2)
+            {
+                CryptoUtils.GenerateRsaKey(out var rsaPrivateKey, out var rsaPublicKey);
+                var encryptedRsaPrivateKey = CryptoUtils.EncryptAesV1(CryptoUtils.UnloadRsaPrivateKey(rsaPrivateKey), teamKey);
+                rq.RsaPrivateKey = encryptedRsaPrivateKey.Base64UrlEncode();
+                rq.RsaPublicKey = CryptoUtils.UnloadRsaPublicKey(rsaPublicKey).Base64UrlEncode();
+            }
             await Enterprise.Auth.ExecuteAuthCommand(rq);
             await Enterprise.Load();
             TryGetTeam(teamUid, out team);
@@ -365,9 +379,9 @@ namespace KeeperSecurity.Enterprise
         }
 
         /// <inheritdoc/>
-        public async Task AddUsersToTeams(string[] emails, string[] teamUids, Action<string> warnings = null)
+        public async Task AddUsersToTeams(string[] emails, string[] teams, Action<string> warnings = null)
         {
-            var userPublicKeys = new Dictionary<string, byte[]>(StringComparer.InvariantCultureIgnoreCase);
+            var userEmails = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
             foreach (var email in emails)
                 if (!TryGetUserByEmail(email, out var user))
                 {
@@ -389,21 +403,21 @@ namespace KeeperSecurity.Enterprise
                     }
                     else
                     {
-                        userPublicKeys[user.Email] = null;
+                        userEmails.Add(user.Email);
                     }
                 }
 
-            if (userPublicKeys.Count == 0)
+            if (userEmails.Count == 0)
             {
                 warnings?.Invoke("No users to add");
                 return;
             }
 
-            var teamKeys = new Dictionary<string, byte[]>();
-            foreach (var teamUid in teamUids)
+            var teamUids = new HashSet<string>();
+            foreach (var teamUid in teams)
                 if (TryGetTeam(teamUid, out var _))
                 {
-                    teamKeys[teamUid] = null;
+                    teamUids.Add(teamUid);
                 }
                 else
                 {
@@ -414,45 +428,65 @@ namespace KeeperSecurity.Enterprise
                         throw new EnterpriseException(message);
                 }
 
-            if (teamKeys.Count == 0)
+            if (teamUids.Count == 0)
             {
                 warnings?.Invoke("No teams to add");
                 return;
             }
 
-            await this.PopulateUserPublicKeys(userPublicKeys, warnings);
-            await this.PopulateTeamKeys(teamKeys, warnings);
+
+            await Enterprise.Auth.LoadUsersKeys(userEmails);
 
             var commands = new List<KeeperApiCommand>();
-            foreach (var userPair in userPublicKeys.Where(x => x.Value != null))
+            foreach (var email in emails)
             {
-                if (userPair.Value == null) continue;
-                if (!TryGetUserByEmail(userPair.Key, out var user)) continue;
-                try
+                if (Enterprise.Auth.TryGetUserKeys(email, out var userKeys))
                 {
-                    var publicKey = CryptoUtils.LoadPublicKey(userPair.Value);
-                    foreach (var teamPair in teamKeys.Where(x => x.Value != null))
+                    if (!TryGetUserByEmail(email, out var user)) continue;
+                    try
                     {
-                        if (!TryGetTeam(teamPair.Key, out var team)) continue;
-                        var users = GetUsersForTeam(team.Uid);
-                        if (users != null && users.Contains(user.Id)) {
-                            warnings?.Invoke($"User \"{user.Email}\" is already member of \"{team.Name}\" team. Skipped");
-                            continue;
-                        }
-                        var teamKey = teamPair.Value;
-                        commands.Add(new TeamEnterpriseUserAddCommand
+                        var rsaKey = userKeys.RsaPublicKey != null ? CryptoUtils.LoadRsaPublicKey(userKeys.RsaPublicKey) : null;
+                        var ecKey = userKeys.EcPublicKey != null ? CryptoUtils.LoadEcPublicKey(userKeys.EcPublicKey) : null;
+
+                        foreach (var teamUid in teams)
                         {
-                            TeamUid = team.Uid,
-                            EnterpriseUserId = user.Id,
-                            TeamKey = CryptoUtils.EncryptRsa(teamKey, publicKey).Base64UrlEncode(),
-                            UserType = 0
-                        });
+                            if (!TryGetTeam(teamUid, out var team))
+                            {
+                                warnings?.Invoke($"Team \"{teamUid}\" is not found. Skipped");
+                                continue;
+                            }
+
+                            var users = GetUsersForTeam(team.Uid);
+                            if (users != null && users.Contains(user.Id))
+                            {
+                                warnings?.Invoke($"User \"{user.Email}\" is already member of \"{team.Name}\" team. Skipped");
+                                continue;
+                            }
+
+                            var cmd = new TeamEnterpriseUserAddCommand
+                            {
+                                TeamUid = team.Uid,
+                                EnterpriseUserId = user.Id,
+                                UserType = 0
+                            };
+                            if (Enterprise.Auth.AuthContext.ForbidKeyType2)
+                            {
+                                cmd.TeamKey = CryptoUtils.EncryptEc(team.TeamKey, ecKey).Base64UrlEncode();
+                                cmd.TeamKeyType = "encrypted_by_public_key_ecc";
+                            }
+                            else
+                            {
+                                cmd.TeamKey = CryptoUtils.EncryptRsa(team.TeamKey, rsaKey).Base64UrlEncode();
+                                cmd.TeamKeyType = "encrypted_by_public_key";
+                            }
+                            commands.Add(cmd);
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    warnings?.Invoke(e.Message);
-                    Debug.WriteLine(e);
+                    catch (Exception e)
+                    {
+                        warnings?.Invoke(e.Message);
+                        Debug.WriteLine(e);
+                    }
                 }
             }
 

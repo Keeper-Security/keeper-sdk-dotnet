@@ -1,4 +1,4 @@
-﻿#if NET452_OR_GREATER
+﻿#if NET472_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -131,7 +131,7 @@ namespace WinWebAuthn
                            }
                            else
                            {
-                               credentialId = new byte[0];
+                               credentialId = Array.Empty<byte>();
                            }
 
                            byte[] authenticatorData;
@@ -145,7 +145,7 @@ namespace WinWebAuthn
                            }
                            else
                            {
-                               authenticatorData = new byte[0];
+                               authenticatorData = Array.Empty<byte>();
                            }
 
                            byte[] signatureData;
@@ -159,7 +159,7 @@ namespace WinWebAuthn
                            }
                            else
                            {
-                               signatureData = new byte[0];
+                               signatureData = Array.Empty<byte>();
                            }
 
                            NativeWebAuthn.WebAuthNFreeAssertion(assertionPtr);

@@ -1,117 +1,98 @@
-﻿using System;
-using System.Configuration;
+﻿using System.Configuration;
+using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
 namespace Commander
 {
-    internal class StorageUtils
+    public interface IExternalLoader
     {
-        private static Assembly LoadAssembly(string assemblyName)
-        {
-            try
-            {
-                // load from file
-                return Assembly.LoadFrom(assemblyName);
-            }
-            catch (FileNotFoundException)
-            {
-                // load from GAC
-                return Assembly.Load(assemblyName);
-            }
-        }
+        IJsonConfigurationLoader GetConfigurationLoader();
+        IKeeperStorage GetKeeperStorage(string username);
+    }
 
-        public static IExternalLoader SetupCommanderStorage()
+    internal static class StorageUtils
+    {
+        public static IExternalLoader SetupCommanderStorage(string configFile)
         {
+            if (string.IsNullOrEmpty(configFile))
+            {
+                configFile = "config.json";
+            }
+
             var configValue = ConfigurationManager.AppSettings["useOfflineStorage"];
             if (!bool.TryParse(configValue, out var useOfflineStorage) || !useOfflineStorage)
             {
-                return new InMemoryCommanderStorage();
+                return new InMemoryCommanderStorage(configFile);
             }
 
-            configValue = ConfigurationManager.AppSettings["storageAssembly"];
-            if (string.IsNullOrEmpty(configValue))
-            {
-                throw new Exception("Offline storage: \"storageAssembly\" is not set.");
-            }
-
-            var storageAssembly = LoadAssembly(configValue);
-            var connectionString = ConfigurationManager.AppSettings["connectionString"];
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                connectionString = null;
-            }
-
-            Type driverClass = null;
-            configValue = ConfigurationManager.AppSettings["driverAssembly"];
-            if (!string.IsNullOrEmpty(configValue))
-            {
-                var driverAssembly = LoadAssembly(configValue);
-                configValue = ConfigurationManager.AppSettings["driverClass"];
-                if (!string.IsNullOrEmpty(configValue))
-                {
-                    driverClass = driverAssembly.GetType(configValue);
-                    if (driverClass == null)
-                    {
-                        throw new Exception($"\"{driverAssembly.FullName}\" does not contain class with full name \"{configValue}\"");
-                    }
-                }
-            }
-
-            var loaderType = storageAssembly
-                .GetExportedTypes()
-                .Where(x => x.IsClass)
-                .FirstOrDefault(x => x.Name == "DatabaseLoader");
-            if (loaderType == null)
-            {
-                throw new Exception($"\"{storageAssembly.FullName}\" does not contain class with name \"DatabaseLoader\"");
-            }
-
-            if (driverClass == null)
-            {
-                return (IExternalLoader) Activator.CreateInstance(loaderType, connectionString);
-            }
-
-            return (IExternalLoader) Activator.CreateInstance(loaderType, driverClass, connectionString);
+            return new SqliteCommanderStorage(configFile);
         }
     }
 
-    internal class InMemoryCommanderStorage : IExternalLoader
+    internal abstract class ExternalLoader: IExternalLoader
     {
-        /// <summary>
-        /// JSON configuration storage. "config.json"
-        /// </summary>
-        /// <returns></returns>
-        public IConfigurationStorage GetConfigurationStorage(string name, IConfigurationProtectionFactory protection)
+        protected readonly JsonConfigurationFileLoader Loader;
+        protected ExternalLoader(string configFile)
         {
-            var loader = string.IsNullOrEmpty(name)
-                ? new JsonConfigurationFileLoader()
-                : new JsonConfigurationFileLoader(name);
-            var cache = new JsonConfigurationCache(loader)
-            {
-                ReadTimeout = 2000,
-                WriteTimeout = 2000,
-                ConfigurationProtection = protection,
-            };
-            return new JsonConfigurationStorage(cache);
+            Loader = new JsonConfigurationFileLoader(configFile);
         }
 
-        /// <summary>
-        /// In memory vault storage
-        /// </summary>
-        /// <returns></returns>
-        public IKeeperStorage GetKeeperStorage(string username)
+        public IJsonConfigurationLoader GetConfigurationLoader()
+        {
+            return Loader;
+        }
+        
+        public abstract IKeeperStorage GetKeeperStorage(string ownerUid);
+    }
+
+    internal class SqliteCommanderStorage : ExternalLoader
+    {
+        private readonly string _databaseName;
+
+        public SqliteCommanderStorage(string configFile): base(configFile)
+        {
+            var path = Path.GetDirectoryName(Loader.FilePath);
+            Debug.Assert(path != null);
+            _databaseName = Path.Combine(path, "keeper_db.sqlite");
+        }
+
+        private SQLiteConnection _connection;
+
+        private SQLiteConnection GetSqliteConnection()
+        {
+            if (_connection == null)
+            {
+                _connection = new SQLiteConnection($"Data Source={_databaseName};");
+                _connection.Open();
+            }
+
+            return _connection;
+        }
+
+        public override IKeeperStorage GetKeeperStorage(string ownerUid)
+        {
+            var connection = GetSqliteConnection();
+            var vaultStorage = new SqliteKeeperStorage(GetSqliteConnection, ownerUid);
+            var failedStmts = DatabaseUtils.VerifyDatabase(connection,
+                vaultStorage.GetStorages().Select(x => x.Schema).ToArray());
+            return vaultStorage;
+        }
+    }
+
+    internal class InMemoryCommanderStorage : ExternalLoader
+    {
+        public InMemoryCommanderStorage(string configFile) : base(configFile)
+        {
+        }
+
+        public override IKeeperStorage GetKeeperStorage(string username)
         {
             return new InMemoryKeeperStorage();
-        }
-
-        public bool VerifyDatabase()
-        {
-            return true;
         }
     }
 }

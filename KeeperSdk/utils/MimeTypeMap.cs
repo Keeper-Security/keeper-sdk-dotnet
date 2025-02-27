@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
+//https://github.com/samuelneff/MimeTypeMap
 namespace MimeTypes
 {
     public static class MimeTypeMap
     {
-        private static readonly Lazy<IDictionary<string, string>> _mappings = new Lazy<IDictionary<string, string>>(BuildMappings);
+        private static readonly Lazy<IDictionary<string, string>> Mappings = new Lazy<IDictionary<string, string>>(BuildMappings);
 
         private static IDictionary<string, string> BuildMappings()
         {
@@ -714,7 +715,7 @@ namespace MimeTypes
         {
             if (extension == null)
             {
-                throw new ArgumentNullException("extension");
+                throw new ArgumentNullException(nameof(extension));
             }
 
             if (!extension.StartsWith("."))
@@ -722,42 +723,7 @@ namespace MimeTypes
                 extension = "." + extension;
             }
 
-            string mime;
-
-            return _mappings.Value.TryGetValue(extension, out mime) ? mime : "application/octet-stream";
-        }
-
-        public static string GetExtension(string mimeType)
-        {
-            return GetExtension(mimeType, true);
-        }
-
-        public static string GetExtension(string mimeType, bool throwErrorIfNotFound)
-        {
-            if (mimeType == null)
-            {
-                throw new ArgumentNullException("mimeType");
-            }
-
-            if (mimeType.StartsWith("."))
-            {
-                throw new ArgumentException("Requested mime type is not valid: " + mimeType);
-            }
-
-            string extension;
-
-            if (_mappings.Value.TryGetValue(mimeType, out extension))
-            {
-                return extension;
-            }
-            if (throwErrorIfNotFound)
-            {
-                throw new ArgumentException("Requested mime type is not registered: " + mimeType);
-            }
-            else
-            {
-                return string.Empty;
-            }
+            return Mappings.Value.TryGetValue(extension, out var mime) ? mime : "application/octet-stream";
         }
     }
 }

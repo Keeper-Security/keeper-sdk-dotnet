@@ -16,10 +16,13 @@ namespace KeeperSecurity
         {
             [DataMember(Name = "folder", EmitDefaultValue = false)]
             public string FolderName { get; set; }
+
             [DataMember(Name = "shared_folder", EmitDefaultValue = false)]
             public string SharedFolderName { get; set; }
+
             [DataMember(Name = "can_edit", EmitDefaultValue = false)]
             public bool? CanEdit { get; set; }
+
             [DataMember(Name = "can_share", EmitDefaultValue = false)]
             public bool? CanShare { get; set; }
         }
@@ -30,20 +33,28 @@ namespace KeeperSecurity
         {
             [DataMember(Name = "uid", EmitDefaultValue = false)]
             public string Uid { get; set; }
+
             [DataMember(Name = "title", EmitDefaultValue = false)]
             public string Title { get; set; }
+
             [DataMember(Name = "$type", EmitDefaultValue = false)]
             public string RecordType { get; set; }
+
             [DataMember(Name = "login", EmitDefaultValue = false)]
             public string Login { get; set; }
+
             [DataMember(Name = "password", EmitDefaultValue = false)]
             public string Password { get; set; }
+
             [DataMember(Name = "login_url", EmitDefaultValue = false)]
             public string LoginUrl { get; set; }
+
             [DataMember(Name = "notes", EmitDefaultValue = false)]
             public string Notes { get; set; }
+
             [DataMember(Name = "custom_fields", EmitDefaultValue = false)]
             public IDictionary<string, object> CustomFields { get; set; }
+
             [DataMember(Name = "folders", EmitDefaultValue = false)]
             public ImportRecordFolder[] Folders { get; set; }
         }
@@ -53,10 +64,12 @@ namespace KeeperSecurity
         {
             [DataMember(Name = "uid", EmitDefaultValue = false)]
             public string Uid { get; set; }
-            [DataMember(Name = "name")]
-            public string Name { get; set; }
+
+            [DataMember(Name = "name")] public string Name { get; set; }
+
             [DataMember(Name = "manage_users", EmitDefaultValue = false)]
             public bool? ManageUsers { get; set; }
+
             [DataMember(Name = "manage_records", EmitDefaultValue = false)]
             public bool? ManageRecords { get; set; }
         }
@@ -66,26 +79,20 @@ namespace KeeperSecurity
         {
             [DataMember(Name = "path", EmitDefaultValue = false)]
             public string Path { get; set; }
-            [DataMember(Name = "can_edit")]
-            public bool CanEdit { get; set; }
-            [DataMember(Name = "can_share")]
-            public bool CanShare { get; set; }
-            [DataMember(Name = "manage_users")]
-            public bool ManageUsers { get; set; }
-            [DataMember(Name = "manage_records")]
-            public bool ManageRecords { get; set; }
 
-            [DataMember(Name = "permissions")]
-            public ImportSharedFolderPermissions[] Permissions { get; set; }
+            [DataMember(Name = "can_edit")] public bool CanEdit { get; set; }
+            [DataMember(Name = "can_share")] public bool CanShare { get; set; }
+            [DataMember(Name = "manage_users")] public bool ManageUsers { get; set; }
+            [DataMember(Name = "manage_records")] public bool ManageRecords { get; set; }
+
+            [DataMember(Name = "permissions")] public ImportSharedFolderPermissions[] Permissions { get; set; }
         }
 
         [DataContract]
         public class ImportFile
         {
-            [DataMember(Name = "records")]
-            public ImportRecord[] Records { get; set; }
-            [DataMember(Name = "shared_folders")]
-            public ImportSharedFolder[] SharedFolders { get; set; }
+            [DataMember(Name = "records")] public ImportRecord[] Records { get; set; }
+            [DataMember(Name = "shared_folders")] public ImportSharedFolder[] SharedFolders { get; set; }
         }
     }
 
@@ -96,9 +103,9 @@ namespace KeeperSecurity
         /// </summary>
         public static class KeeperImport
         {
-            private const string TWO_FACTOR_CODE = "TFC:Keeper";
+            private const string TwoFactorCode = "TFC:Keeper";
 
-            static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
+            private static void PopulatePasswordRecord(this ImportRecord import, PasswordRecord password)
             {
                 password.Uid = import.Uid;
                 password.Title = import.Title;
@@ -112,22 +119,15 @@ namespace KeeperSecurity
                     {
                         var name = pair.Key;
                         var value = pair.Value;
-                        if (value == null)
-                        {
-                            continue;
-                        }
+                        if (value == null) continue;
+
                         if (value is string strValue && !string.IsNullOrEmpty(strValue))
                         {
-                            if (name == TWO_FACTOR_CODE)
+                            if (name == TwoFactorCode)
                             {
-                                if (strValue.StartsWith("otpauth://"))
-                                {
-                                    password.Totp = strValue;
-                                }
-                                else
-                                {
-                                    password.Totp = $"otpauth://totp/?secret={strValue}";
-                                }
+                                password.Totp = strValue.StartsWith("otpauth://")
+                                    ? strValue
+                                    : $"otpauth://totp/?secret={strValue}";
                             }
                             else
                             {
@@ -138,7 +138,7 @@ namespace KeeperSecurity
                 }
             }
 
-            static Tuple<string, string> SplitFieldKey(string fieldKey)
+            private static Tuple<string, string> SplitFieldKey(string fieldKey)
             {
                 string fieldType;
                 var fieldLabel = "";
@@ -167,13 +167,14 @@ namespace KeeperSecurity
                     var indexPos = fieldLabel.LastIndexOf(separator);
                     if (indexPos == fieldLabel.Length - 2)
                     {
-                        char lastCh = fieldLabel[fieldLabel.Length - 1];
+                        var lastCh = fieldLabel[fieldLabel.Length - 1];
                         if (char.IsDigit(lastCh))
                         {
                             fieldLabel = fieldLabel.Substring(0, indexPos);
                         }
                     }
                 }
+
                 if (!string.IsNullOrEmpty(fieldType))
                 {
                     if (!RecordTypesConstants.TryGetRecordField(fieldType, out _))
@@ -182,9 +183,11 @@ namespace KeeperSecurity
                         {
                             fieldLabel = fieldType;
                         }
+
                         fieldType = "text";
                     }
                 }
+
                 return Tuple.Create(fieldType, fieldLabel);
             }
 
@@ -217,61 +220,73 @@ namespace KeeperSecurity
                             }
                         }
                     }
+
                     foreach (var v in Values())
                     {
-                        if (v is string sv && field is TypedField<string> ls)
+                        switch (v)
                         {
-                            if (!string.IsNullOrEmpty(sv))
+                            case string sv when field is TypedField<string> ls:
                             {
-                                ls.Values.Add(sv);
-                            }
-                        }
-                        else if (v is bool bv && field is TypedField<bool> lb)
-                        {
-                            lb.Values.Add(bv);
-                        }
-                        else if (v is IConvertible conv && field is TypedField<long> lf)
-                        {
-                            var lv = conv.ToInt64(CultureInfo.InvariantCulture);
-                            if (lv > 0)
-                            {
-                                lf.Values.Add(lv);
-                            }
-                        }
-                        else if (v is IDictionary dict)
-                        {
-                            var obj = field.AppendValue();
-                            if (obj is IFieldTypeSerialize fts)
-                            {
-                                foreach (var key in dict.Keys)
+                                if (!string.IsNullOrEmpty(sv))
                                 {
-                                    var val = dict[key];
-                                    if (key is string element && val is string elementValue)
+                                    ls.Values.Add(sv);
+                                }
+
+                                break;
+                            }
+                            case bool bv when field is TypedField<bool> lb:
+                                lb.Values.Add(bv);
+                                break;
+                            case IConvertible conv when field is TypedField<long> lf:
+                            {
+                                var lv = conv.ToInt64(CultureInfo.InvariantCulture);
+                                if (lv > 0)
+                                {
+                                    lf.Values.Add(lv);
+                                }
+
+                                break;
+                            }
+                            case IDictionary dict:
+                            {
+                                var obj = field.AppendValue();
+                                if (obj is IFieldTypeSerialize fts)
+                                {
+                                    foreach (var key in dict.Keys)
                                     {
-                                        if (!fts.SetElementValue(element, elementValue))
+                                        var val = dict[key];
+                                        if (key is string element && val is string elementValue)
                                         {
-                                            if (!string.IsNullOrEmpty(elementValue)) 
+                                            if (!fts.SetElementValue(element, elementValue))
                                             {
-                                                logger?.Invoke(Severity.Warning, $"Field \"${field.FieldName}.{field.FieldLabel}\": Unsupported element \"{element}\"");
+                                                if (!string.IsNullOrEmpty(elementValue))
+                                                {
+                                                    logger?.Invoke(Severity.Warning,
+                                                        $"Field \"${field.FieldName}.{field.FieldLabel}\": Unsupported element \"{element}\"");
+                                                }
                                             }
                                         }
                                     }
                                 }
+                                else
+                                {
+                                    logger?.Invoke(Severity.Warning,
+                                        $"Field \"${field.FieldName}.{field.FieldLabel}\": IFieldTypeSerialize interface is not supported");
+                                }
+
+                                break;
                             }
-                            else
-                            {
-                                logger?.Invoke(Severity.Warning, $"Field \"${field.FieldName}.{field.FieldLabel}\": IFieldTypeSerialize interface is not supported");
-                            }
-                        }
-                        else
-                        {
-                            logger?.Invoke(Severity.Warning, $"Field \"${field.FieldName}.{field.FieldLabel}\": Provided value is not supported");
+                            default:
+                                logger?.Invoke(Severity.Warning,
+                                    $"Field \"${field.FieldName}.{field.FieldLabel}\": Provided value is not supported");
+                                break;
                         }
                     }
                 }
             }
 
-            static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields, Action<Severity, string> logger)
+            static void PopulateTypedRecord(this ImportRecord import, TypedRecord typed, RecordTypeField[] schemaFields,
+                Action<Severity, string> logger)
             {
                 typed.Uid = import.Uid;
                 typed.Title = import.Title;
@@ -281,10 +296,10 @@ namespace KeeperSecurity
                 if (import.CustomFields != null)
                 {
                     customFields = import.CustomFields.ToDictionary(entry => entry.Key, entry => entry.Value);
-                    if (customFields.TryGetValue(TWO_FACTOR_CODE, out var tfa))
+                    if (customFields.TryGetValue(TwoFactorCode, out var tfa))
                     {
                         customFields["$oneTimeCode"] = tfa;
-                        customFields.Remove(TWO_FACTOR_CODE);
+                        customFields.Remove(TwoFactorCode);
                     }
                 }
 
@@ -314,32 +329,32 @@ namespace KeeperSecurity
                     }
                     else if (customFields != null)
                     {
-                        string key = "";
-                        var ignoreLabel = schemaField.RecordField != null && schemaField.RecordField.Multiple != RecordFieldMultiple.Optional;
+                        var key = "";
+                        var ignoreLabel = schemaField.RecordField != null &&
+                                          schemaField.RecordField.Multiple != RecordFieldMultiple.Optional;
                         foreach (var fk in customFields.Keys)
                         {
                             var t = SplitFieldKey(fk);
-                            if (t.Item1 == schemaField.FieldName || (string.IsNullOrEmpty(t.Item1) && schemaField.FieldName == "text"))
+                            if (t.Item1 == schemaField.FieldName ||
+                                (string.IsNullOrEmpty(t.Item1) && schemaField.FieldName == "text"))
                             {
-                                if (ignoreLabel || string.Equals(t.Item2, schemaField.FieldLabel, StringComparison.CurrentCultureIgnoreCase))
+                                if (ignoreLabel || string.Equals(t.Item2, schemaField.FieldLabel,
+                                        StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     key = fk;
                                     break;
                                 }
                             }
                         }
-                        if (!string.IsNullOrEmpty(key))
-                        {
-                            if (customFields.TryGetValue(key, out var value))
-                            {
-                                if (value != null)
-                                {
-                                    field.AssignValueToField(value, logger);
-                                }
-                                customFields.Remove(key);
-                            }
 
+                        if (string.IsNullOrEmpty(key)) continue;
+                        if (!customFields.TryGetValue(key, out var value)) continue;
+                        if (value != null)
+                        {
+                            field.AssignValueToField(value, logger);
                         }
+
+                        customFields.Remove(key);
                     }
                 }
 
@@ -350,12 +365,14 @@ namespace KeeperSecurity
                     tf.ObjectValue = import.Login;
                     typed.Custom.Add(tf);
                 }
+
                 if (!string.IsNullOrEmpty(import.Password))
                 {
                     var tf = new RecordTypeField("password").CreateTypedField();
                     tf.ObjectValue = import.Password;
                     typed.Custom.Add(tf);
                 }
+
                 if (!string.IsNullOrEmpty(import.LoginUrl))
                 {
                     var tf = new RecordTypeField("url").CreateTypedField();
@@ -380,7 +397,7 @@ namespace KeeperSecurity
 
                         try
                         {
-                            var field = new RecordTypeField(t.Item1, t.Item2).CreateTypedField();
+                            var field = new RecordTypeField(fieldType, fieldLabel).CreateTypedField();
                             field.AssignValueToField(value, logger);
                             typed.Custom.Add(field);
                         }
@@ -392,20 +409,19 @@ namespace KeeperSecurity
                 }
             }
 
-            static FolderNode CreateFolderPath(this BatchVaultOperations bvo, string folderPath, SharedFolderOptions options = null)
+            private static FolderNode CreateFolderPath(this BatchVaultOperations bvo, string folderPath,
+                SharedFolderOptions options = null)
             {
                 FolderNode lastFolder = null;
                 var path = BatchVaultOperations.ParseFolderPath(folderPath).ToArray();
                 for (var i = 0; i < path.Length; i++)
                 {
                     var currentPath = BatchVaultOperations.CreateFolderPath(path.Take(i + 1));
-                    var folder = bvo.GetFolderByPath(currentPath);
-                    if (folder == null)
-                    {
-                        folder = bvo.AddFolder(path[i], lastFolder?.FolderUid, i == path.Length - 1 ? options : null);
-                    }
+                    var folder = bvo.GetFolderByPath(currentPath) ??
+                                 bvo.AddFolder(path[i], lastFolder?.FolderUid, i == path.Length - 1 ? options : null);
                     lastFolder = folder;
                 }
+
                 return lastFolder;
             }
 
@@ -431,13 +447,27 @@ namespace KeeperSecurity
                                 {
                                     switch (pair.Key)
                                     {
-                                        case "title": rec.Title = pair.Value as string; break;
-                                        case "uid": rec.Uid = pair.Value as string; break;
-                                        case "$type": rec.RecordType = pair.Value as string; break;
-                                        case "login": rec.Login = pair.Value as string; break;
-                                        case "password": rec.Password = pair.Value as string; break;
-                                        case "login_url": rec.LoginUrl = pair.Value as string; break;
-                                        case "notes": rec.Notes = pair.Value as string; break;
+                                        case "title":
+                                            rec.Title = pair.Value as string;
+                                            break;
+                                        case "uid":
+                                            rec.Uid = pair.Value as string;
+                                            break;
+                                        case "$type":
+                                            rec.RecordType = pair.Value as string;
+                                            break;
+                                        case "login":
+                                            rec.Login = pair.Value as string;
+                                            break;
+                                        case "password":
+                                            rec.Password = pair.Value as string;
+                                            break;
+                                        case "login_url":
+                                            rec.LoginUrl = pair.Value as string;
+                                            break;
+                                        case "notes":
+                                            rec.Notes = pair.Value as string;
+                                            break;
                                         case "folders":
                                         {
                                             if (pair.Value is Array folderArray)
@@ -452,28 +482,43 @@ namespace KeeperSecurity
                                                         {
                                                             switch (fp.Key)
                                                             {
-                                                                case "folder": irf.FolderName = fp.Value as string; break;
-                                                                case "shared_folder": irf.SharedFolderName = fp.Value as string; break;
-                                                                case "can_edit": irf.CanEdit = fp.Value as bool?; break;
-                                                                case "can_share": irf.CanShare = fp.Value as bool?; break;
+                                                                case "folder":
+                                                                    irf.FolderName = fp.Value as string;
+                                                                    break;
+                                                                case "shared_folder":
+                                                                    irf.SharedFolderName = fp.Value as string;
+                                                                    break;
+                                                                case "can_edit":
+                                                                    irf.CanEdit = fp.Value as bool?;
+                                                                    break;
+                                                                case "can_share":
+                                                                    irf.CanShare = fp.Value as bool?;
+                                                                    break;
                                                             }
                                                         }
+
                                                         fl.Add(irf);
                                                     }
                                                 }
+
                                                 rec.Folders = fl.ToArray();
                                             }
                                         }
-                                        break;
-                                        case "custom_fields": rec.CustomFields = pair.Value as IDictionary<string, object>; break;
+                                            break;
+                                        case "custom_fields":
+                                            rec.CustomFields = pair.Value as IDictionary<string, object>;
+                                            break;
                                     }
                                 }
+
                                 recordList.Add(rec);
                             }
                         }
                     }
+
                     import.Records = recordList.ToArray();
                 }
+
                 if (importFile.TryGetValue("shared_folders", out var sfs))
                 {
                     var sharedFolderList = new List<ImportSharedFolder>();
@@ -489,11 +534,31 @@ namespace KeeperSecurity
 
                                     switch (pair.Key)
                                     {
-                                        case "path": { sf.Path = pair.Value as string; } break;
-                                        case "can_edit": { sf.CanEdit = (pair.Value is bool b ? b : false); } break;
-                                        case "can_share": { sf.CanShare = (pair.Value is bool b ? b : false); } break;
-                                        case "manage_records": { sf.ManageRecords = (pair.Value is bool b ? b : false); } break;
-                                        case "manage_users": { sf.ManageUsers = (pair.Value is bool b ? b : false); } break;
+                                        case "path":
+                                        {
+                                            sf.Path = pair.Value as string;
+                                        }
+                                            break;
+                                        case "can_edit":
+                                        {
+                                            sf.CanEdit = pair.Value is true;
+                                        }
+                                            break;
+                                        case "can_share":
+                                        {
+                                            sf.CanShare = pair.Value is true;
+                                        }
+                                            break;
+                                        case "manage_records":
+                                        {
+                                            sf.ManageRecords = pair.Value is true;
+                                        }
+                                            break;
+                                        case "manage_users":
+                                        {
+                                            sf.ManageUsers = pair.Value is true;
+                                        }
+                                            break;
                                         case "permissions":
                                         {
                                             var permissions = new List<ImportSharedFolderPermissions>();
@@ -501,34 +566,54 @@ namespace KeeperSecurity
                                             {
                                                 foreach (var sfp in ar)
                                                 {
-                                                    if (sfp is IDictionary<string, object> permission)
+                                                    if (sfp is not IDictionary<string, object> permission) continue;
+
+                                                    var perm = new ImportSharedFolderPermissions();
+                                                    foreach (var ppair in permission)
                                                     {
-                                                        var perm = new ImportSharedFolderPermissions();
-                                                        foreach (var ppair in permission)
+                                                        switch (ppair.Key)
                                                         {
-                                                            switch (ppair.Key)
+                                                            case "uid":
                                                             {
-                                                                case "uid": { perm.Uid = (ppair.Value ?? "").ToString(); } break;
-                                                                case "name": { perm.Name = (ppair.Value ?? "").ToString(); } break;
-                                                                case "manage_records": { perm.ManageRecords = (ppair.Value is bool b ? b : false); } break;
-                                                                case "manage_users": { perm.ManageUsers = (ppair.Value is bool b ? b : false); } break;
+                                                                perm.Uid = (ppair.Value ?? "").ToString();
                                                             }
+                                                                break;
+                                                            case "name":
+                                                            {
+                                                                perm.Name = (ppair.Value ?? "").ToString();
+                                                            }
+                                                                break;
+                                                            case "manage_records":
+                                                            {
+                                                                perm.ManageRecords = ppair.Value is true;
+                                                            }
+                                                                break;
+                                                            case "manage_users":
+                                                            {
+                                                                perm.ManageUsers = ppair.Value is true;
+                                                            }
+                                                                break;
                                                         }
-                                                        permissions.Add(perm);
                                                     }
+
+                                                    permissions.Add(perm);
                                                 }
+
                                                 sf.Permissions = permissions.ToArray();
                                             }
                                         }
-                                        break;
+                                            break;
                                     }
                                 }
+
                                 sharedFolderList.Add(sf);
                             }
                         }
+
                         import.SharedFolders = sharedFolderList.ToArray();
                     }
                 }
+
                 return import;
             }
 
@@ -539,7 +624,8 @@ namespace KeeperSecurity
             /// <param name="import">Import object</param>
             /// <param name="logger">Logger</param>
             /// <returns></returns>
-            public static async Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import, Action<Severity, string> logger)
+            public static async Task<BatchResult> ImportJson(this VaultOnline vault, ImportFile import,
+                Action<Severity, string> logger)
             {
                 var bo = new BatchVaultOperations(vault)
                 {
@@ -579,35 +665,40 @@ namespace KeeperSecurity
                                     string userId = null;
                                     UserType userType = UserType.Team;
 
-                                    if (!string.IsNullOrEmpty(permission.Uid) && teamLookup.ContainsKey(permission.Uid))
+                                    if (!string.IsNullOrEmpty(permission.Uid) && teamLookup.TryGetValue(permission.Uid, out var value1))
                                     {
-                                        userId = teamLookup[permission.Uid];
+                                        userId = value1;
                                     }
                                     else if (!string.IsNullOrEmpty(permission.Name))
                                     {
                                         var name = permission.Name.ToLower();
-                                        if (teamLookup.ContainsKey(name))
+                                        if (teamLookup.TryGetValue(name, out var value))
                                         {
-                                            userId = teamLookup[name];
+                                            userId = value;
                                         }
                                         else
                                         {
                                             try
                                             {
-                                                var addr = new System.Net.Mail.MailAddress(name);
+                                                _ = new System.Net.Mail.MailAddress(name);
                                                 userId = name;
                                                 userType = UserType.User;
                                             }
-                                            catch { /*ignored*/}
+                                            catch
+                                            {
+                                                /*ignored*/
+                                            }
                                         }
                                     }
+
                                     if (!string.IsNullOrEmpty(userId))
                                     {
-                                        bo.PutUserToSharedFolder(folderNode.FolderUid, userId, userType, new SharedFolderUserOptions
-                                        {
-                                            ManageRecords = permission.ManageRecords,
-                                            ManageUsers = permission.ManageUsers,
-                                        });
+                                        bo.PutUserToSharedFolder(folderNode.FolderUid, userId, userType,
+                                            new SharedFolderUserOptions
+                                            {
+                                                ManageRecords = permission.ManageRecords,
+                                                ManageUsers = permission.ManageUsers,
+                                            });
                                     }
                                 }
                             }
@@ -619,25 +710,21 @@ namespace KeeperSecurity
                 {
                     foreach (var record in import.Records)
                     {
-                        if (record.Folders?.Length > 0)
+                        if (!(record.Folders?.Length > 0)) continue;
+                        foreach (var f in record.Folders)
                         {
-                            foreach (var f in record.Folders)
+                            if (string.IsNullOrEmpty(f.SharedFolderName)) continue;
+                            var folderNode = bo.GetFolderByPath(f.SharedFolderName);
+                            if (folderNode == null)
                             {
-                                if (!string.IsNullOrEmpty(f.SharedFolderName))
+                                var options = new SharedFolderOptions
                                 {
-                                    var folderNode = bo.GetFolderByPath(f.SharedFolderName);
-                                    if (folderNode == null)
-                                    {
-                                        SharedFolderOptions options = new SharedFolderOptions
-                                        {
-                                            ManageRecords = false,
-                                            ManageUsers = false,
-                                            CanEdit = false,
-                                            CanShare = false,
-                                        };
-                                        bo.CreateFolderPath(f.SharedFolderName, options);
-                                    }
-                                }
+                                    ManageRecords = false,
+                                    ManageUsers = false,
+                                    CanEdit = false,
+                                    CanShare = false,
+                                };
+                                bo.CreateFolderPath(f.SharedFolderName, options);
                             }
                         }
                     }
@@ -661,6 +748,7 @@ namespace KeeperSecurity
                                 record.RecordType = "login";
                                 vault.TryGetRecordTypeByName(record.RecordType, out recordType);
                             }
+
                             var typedRecord = new TypedRecord(record.RecordType);
                             record.PopulateTypedRecord(typedRecord, recordType.Fields, logger);
                             keeperRecord = typedRecord;
@@ -677,20 +765,20 @@ namespace KeeperSecurity
                                 {
                                     if (!string.IsNullOrEmpty(path))
                                     {
-                                        if (f.SharedFolderName.EndsWith(BatchVaultOperations.PathDelimiter.ToString())) 
+                                        if (f.SharedFolderName.EndsWith(BatchVaultOperations.PathDelimiter.ToString()))
                                         {
-                                            f.SharedFolderName = f.SharedFolderName.Substring(0, f.SharedFolderName.Length - 1); 
+                                            f.SharedFolderName =
+                                                f.SharedFolderName.Substring(0, f.SharedFolderName.Length - 1);
                                         }
+
                                         path = f.SharedFolderName + BatchVaultOperations.PathDelimiter + path;
                                     }
                                 }
-                                folder = bo.GetFolderByPath(path);
-                                if (folder == null)
-                                {
-                                    folder = bo.CreateFolderPath(path);
-                                }
+
+                                folder = bo.GetFolderByPath(path) ?? bo.CreateFolderPath(path);
                             }
                         }
+
                         bo.AddRecord(keeperRecord, folder);
                     }
                 }

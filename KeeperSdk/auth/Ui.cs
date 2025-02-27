@@ -67,15 +67,23 @@ namespace KeeperSecurity.Authentication
         /// <summary>
         /// Requires 2FA every login
         /// </summary>
-        EveryLogin = 0,
+        EveryLogin,
+        /// <summary>
+        /// Requires 2FA every 12 hours
+        /// </summary>
+        Every12Hours,
+        /// <summary>
+        /// Requires 2FA every 24 hours
+        /// </summary>
+        Every24Hours,
         /// <summary>
         /// Requires 2FA every 30 days
         /// </summary>
-        Every30Days = 30,
+        Every30Days,
         /// <summary>
         /// Stores 2FA forever.
         /// </summary>
-        Forever = 9999,
+        Forever,
     }
 
     /// <summary>
@@ -412,10 +420,10 @@ namespace KeeperSecurity.Authentication
     /// Defines the method that starts U2F Security Key 2FA. Optional.
     /// </summary>
     /// <remarks>
-    /// Implement this interface along with <see cref="Async.IAuthUI">Auth UI</see>
+    /// Implement this interface along with <see cref="AuthCommon.AuthCallback">Auth UI</see>
     /// if you plan to support Security Key (Yubikey and any other U2F compatible keys).
     /// </remarks>
-    /// <seealso cref="Async.IAuthUI"/>
+    /// <seealso cref="AuthCommon.AuthCallback"/>
     public interface IAuthSecurityKeyUI
     {
         /// <summary>

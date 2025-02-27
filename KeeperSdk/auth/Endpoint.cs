@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Org.BouncyCastle.Crypto.Parameters;
 using System.Collections.Concurrent;
 using System.Net;
 using System.IO;
@@ -11,12 +10,10 @@ using System.Runtime.Serialization.Json;
 using System.Diagnostics;
 using System.Text;
 using System.Linq;
-using System.Net.WebSockets;
-using System.Threading;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
-using Push;
+using System.Net.Http;
 
 namespace KeeperSecurity.Authentication
 {
@@ -62,149 +59,10 @@ namespace KeeperSecurity.Authentication
         Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload);
 
         /// <exclude/>
-        ApiRequest PrepareApiRequest(IMessage request, byte[] transmissionKey, byte[] sessionToken = null);
-
-        /// <exclude/>
         string PushServer();
 
         /// <exclude/>
         byte[] EncryptWithKeeperKey(byte[] data, int keyId);
-    }
-
-    internal interface IPushNotificationChannel : IFanOut<NotificationEvent>
-    {
-        Task SendToWebSocket(byte[] payload, bool encrypted);
-    }
-
-    /// <exclude/>
-    public class WebSocketChannel : FanOut<NotificationEvent>, IPushNotificationChannel
-    {
-        private ClientWebSocket _webSocket;
-        private readonly byte[] _transmissionKey = CryptoUtils.GenerateEncryptionKey();
-        private CancellationTokenSource _cancellationTokenSource;
-
-        public async Task ConnectToPushServer(IKeeperEndpoint endpoint, WssConnectionRequest connectionRequest)
-        {
-            if (_cancellationTokenSource != null)
-            {
-                if (!_cancellationTokenSource.IsCancellationRequested)
-                {
-                    _cancellationTokenSource.Cancel();
-                }
-                _cancellationTokenSource.Dispose();
-            }
-            _cancellationTokenSource = new CancellationTokenSource();
-
-            var apiRequest = endpoint.PrepareApiRequest(connectionRequest, _transmissionKey);
-            var builder = new UriBuilder
-            {
-                Scheme = "wss",
-                Host = endpoint.PushServer(),
-                Path = "wss_open_connection/" + apiRequest.ToByteArray().Base64UrlEncode()
-            };
-            {
-                var ws = new ClientWebSocket();
-                var delay = Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
-                if (endpoint.WebProxy != null)
-                {
-                    ws.Options.Proxy = endpoint.WebProxy;
-                }
-                await ws.ConnectAsync(builder.Uri, _cancellationTokenSource.Token);
-                if (ws.State == WebSocketState.Open)
-                {
-                    _webSocket = ws;
-                }
-                else 
-                {
-                    ws.Dispose();
-                }
-            }
-            if (_webSocket == null)
-            {
-                return;
-            }
-
-            // TODO reconnect
-            try
-            {
-                var buffer = new byte[1024];
-                var segment = new ArraySegment<byte>(buffer);
-                while (_webSocket.State == WebSocketState.Open)
-                {
-                    var rs = await _webSocket.ReceiveAsync(segment, _cancellationTokenSource.Token);
-                    if (rs?.Count > 0)
-                    {
-                        var responseBytes = new byte[rs.Count];
-                        Array.Copy(buffer, segment.Offset, responseBytes, 0, responseBytes.Length);
-                        responseBytes = CryptoUtils.DecryptAesV2(responseBytes, _transmissionKey);
-                        var wssRs = WssClientResponse.Parser.ParseFrom(responseBytes);
-#if DEBUG
-                        Debug.WriteLine($"REST push notification: {wssRs}");
-#endif
-                        try
-                        {
-                            var notification = JsonUtils.ParseJson<NotificationEvent>(Encoding.UTF8.GetBytes(wssRs.Message));
-                            Push(notification);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine(e.Message);
-                        }
-                    }
-                }
-
-                if (_webSocket.State == WebSocketState.Open)
-                {
-                    await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", _cancellationTokenSource.Token);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-            }
-            Debug.WriteLine($"Websocket: Exited");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (_webSocket != null)
-            {
-                if (_webSocket.State == WebSocketState.Open)
-                {
-                    _webSocket.Abort();
-                }
-                _webSocket.Dispose();
-                _webSocket = null;
-            }
-
-            if (_cancellationTokenSource != null)
-            {
-                if (!_cancellationTokenSource.IsCancellationRequested)
-                {
-                    _cancellationTokenSource.Cancel();
-                }
-            }
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
-            }
-        }
-
-        public async Task SendToWebSocket(byte[] payload, bool encrypted)
-        {
-            if (_webSocket == null) return;
-            if (_webSocket.State == WebSocketState.Open)
-            {
-                var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(payload.Base64UrlEncode()));
-                await _webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
-            }
-        }
     }
 
     /// <summary>
@@ -279,6 +137,35 @@ namespace KeeperSecurity.Authentication
                 return (KeeperApiResponse) rsSerializer.ReadObject(ms);
             }
         }
+        public static ApiRequest PrepareApiRequest(this IKeeperEndpoint endpoint, IMessage request, byte[] transmissionKey, byte[] sessionToken = null, 
+            int? payloadVersion = null)
+        {
+            var payload = new ApiRequestPayload
+            {
+                Payload = request.ToByteString()
+            };
+            if (payloadVersion.HasValue)
+            {
+                payload.ApiVersion = payloadVersion.Value;
+            }
+
+            if (sessionToken != null)
+            {
+                payload.EncryptedSessionToken = ByteString.CopyFrom(sessionToken);
+            }
+
+            var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
+            var encKey = endpoint.ServerKeyId <= 6
+                ? CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperRsaPublicKeys[endpoint.ServerKeyId])
+                : CryptoUtils.EncryptEc(transmissionKey, KeeperSettings.KeeperEcPublicKeys[endpoint.ServerKeyId]);
+            return new ApiRequest()
+            {
+                EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
+                PublicKeyId = endpoint.ServerKeyId,
+                Locale = endpoint.Locale,
+                EncryptedPayload = ByteString.CopyFrom(encPayload)
+            };
+        }
 
     }
 
@@ -286,8 +173,13 @@ namespace KeeperSecurity.Authentication
     public class KeeperEndpoint : IKeeperEndpoint
     {
         private const string DefaultDeviceName = ".NET Keeper API";
-        public static string DefaultKeeperServer = "keepersecurity.com";
-        private const string DefaultClientVersion = "c16.8.0";
+        private const string DefaultKeeperServer = "keepersecurity.com";
+        private const string DefaultClientVersion = "c16.11.0";
+
+        private readonly IConfigurationStorage _storage;
+        private readonly HttpClient _httpClient;
+        private readonly HttpClientHandler _httpMessageHandler;
+        private string _clientVersion;
 
         static KeeperEndpoint()
         {
@@ -295,49 +187,29 @@ namespace KeeperSecurity.Authentication
 //            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
         }
 
-        public KeeperEndpoint(string server, IConfigCollection<IServerConfiguration> storage)
+        public KeeperEndpoint(IConfigurationStorage storage, string keeperServer = null)
         {
-            _storage = storage;
+            _httpMessageHandler = new HttpClientHandler();
+            _httpClient = new HttpClient(_httpMessageHandler, disposeHandler: true);
+            _httpClient.Timeout = TimeSpan.FromMinutes(5);
             ClientVersion = DefaultClientVersion;
             DeviceName = DefaultDeviceName;
             Locale = DefaultLocale();
-            Server = server;
+            ServerKeyId = 7;
+
+            _storage = storage;
+            if (string.IsNullOrEmpty(keeperServer))
+            {
+                var config = storage.Get();
+                keeperServer = config.LastServer;
+            }
+
+            Server = keeperServer ?? DefaultKeeperServer;
         }
 
         public string PushServer()
         {
             return $"push.services.{Server}";
-        }
-
-
-        public ApiRequest PrepareApiRequest(IMessage request, byte[] transmissionKey, byte[] sessionToken = null)
-        {
-            if (transmissionKey == null)
-            {
-                transmissionKey = _transmissionKey;
-            }
-
-            var payload = new ApiRequestPayload
-            {
-                ApiVersion = 3,
-                Payload = request.ToByteString()
-            };
-            if (sessionToken != null)
-            {
-                payload.EncryptedSessionToken = ByteString.CopyFrom(sessionToken);
-            }
-
-            var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
-            var encKey = ServerKeyId <= 6
-                ? CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperRsaPublicKeys[ServerKeyId])
-                : CryptoUtils.EncryptEc(transmissionKey, KeeperSettings.KeeperEcPublicKeys[ServerKeyId]);
-            return new ApiRequest()
-            {
-                EncryptedTransmissionKey = ByteString.CopyFrom(encKey),
-                PublicKeyId = ServerKeyId,
-                Locale = Locale,
-                EncryptedPayload = ByteString.CopyFrom(encPayload)
-            };
         }
 
         public async Task<byte[]> ExecuteRest(string endpoint, ApiRequestPayload payload)
@@ -360,29 +232,18 @@ namespace KeeperSecurity.Authentication
             }
 
             var keyId = ServerKeyId;
+            var transmissionKey = CryptoUtils.GenerateEncryptionKey();
+
             var attempt = 0;
             Exception lastKeeperError = null;
             while (attempt < 3)
             {
                 attempt++;
 
-                var request = (HttpWebRequest) WebRequest.Create(uri);
-                request.Timeout = (int) TimeSpan.FromMinutes(5).TotalMilliseconds;
-                if (WebProxy != null)
-                {
-                    request.Proxy = WebProxy;
-                }
-
-                request.UserAgent = "KeeperSDK.Net/" + ClientVersion;
-                request.ContentType = "application/octet-stream";
-                request.Method = "POST";
-
-
-                var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), _transmissionKey);
+                var encPayload = CryptoUtils.EncryptAesV2(payload.ToByteArray(), transmissionKey);
                 var encKey = keyId <= 6
-                    ? CryptoUtils.EncryptRsa(_transmissionKey, KeeperSettings.KeeperRsaPublicKeys[keyId])
-                    : CryptoUtils.EncryptEc(_transmissionKey, KeeperSettings.KeeperEcPublicKeys[keyId]);
-
+                    ? CryptoUtils.EncryptRsa(transmissionKey, KeeperSettings.KeeperRsaPublicKeys[keyId])
+                    : CryptoUtils.EncryptEc(transmissionKey, KeeperSettings.KeeperEcPublicKeys[keyId]);
 
                 var apiRequest = new ApiRequest()
                 {
@@ -392,119 +253,103 @@ namespace KeeperSecurity.Authentication
                     EncryptedPayload = ByteString.CopyFrom(encPayload)
                 };
 
-                HttpWebResponse response;
-                try
+                var content = new ByteArrayContent(apiRequest.ToByteArray());
+                content.Headers.Add("Content-Type", "application/octet-stream");
+                // TODO timeout + read header 
+                using var response = await _httpClient.PostAsync(uri, content);
+                var contentTypes = Array.Empty<string>();
+                if (response.Content.Headers.TryGetValues("Content-Type", out var values))
                 {
-                    using (var requestStream = request.GetRequestStream())
-                    {
-                        var p = apiRequest.ToByteArray();
-                        await requestStream.WriteAsync(p, 0, p.Length);
-                    }
-                    response = (HttpWebResponse) request.GetResponse();
+                    contentTypes = values.ToArray();
                 }
 
-                catch (WebException e)
+                if (response.IsSuccessStatusCode)
                 {
-                    response = (HttpWebResponse) e.Response;
-                    if (response == null) throw;
-
-                    if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
+                    if (contentTypes.Any(x =>
+                            x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase)))
                     {
-                        throw;
-                    }
-                }
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    SetConfigurationValid(keyId);
-                    if (response.ContentType == "application/octet-stream")
-                    {
-                        using (var ms = new MemoryStream())
-                        using (var rss = response.GetResponseStream())
+                        SetConfigurationValid(keyId);
+                        var data = await response.Content.ReadAsByteArrayAsync();
+                        if (data != null && data.Length > 0)
                         {
-                            await rss.CopyToAsync(ms);
-                            var bytes = ms.ToArray();
-                            if (bytes.Length > 0)
-                            {
-                                bytes = CryptoUtils.DecryptAesV2(bytes, _transmissionKey);
-                            }
-
-                            return bytes;
+                            return CryptoUtils.DecryptAesV2(data, transmissionKey);
                         }
                     }
 
                     return null;
                 }
 
-                if (response.ContentType == "application/json")
+                if (response.StatusCode == HttpStatusCode.ProxyAuthenticationRequired)
                 {
-                    using (var ms = new MemoryStream())
-                    using (var rss = response.GetResponseStream())
+                    var proxyAuthenticate = Array.Empty<string>();
+                    if (response.Headers.TryGetValues("Proxy-Authenticate", out var proxyValues))
                     {
-                        await rss.CopyToAsync(ms);
-                        await ms.FlushAsync();
-#if DEBUG
-                        var jsonData = ms.ToArray();
-                        Debug.WriteLine("Error Response: " + Encoding.UTF8.GetString(jsonData));
-#endif
-                        ms.Seek(0, SeekOrigin.Begin);
-
-                        var serializer = new DataContractJsonSerializer(typeof(KeeperApiErrorResponse));
-                        var keeperRs = serializer.ReadObject(ms) as KeeperApiErrorResponse;
-                        lastKeeperError = new KeeperApiException(keeperRs.Error, keeperRs.Message);
-                        switch (keeperRs.Error)
-                        {
-                            case "key":
-                                keyId = keeperRs.KeyId;
-                                continue;
-
-                            case "throttled":
-#if DEBUG
-                                Debug.WriteLine("\"throttled\" sleeping for 10 seconds");
-#endif
-                                await Task.Delay(TimeSpan.FromSeconds(10));
-                                continue;
-
-                            case "region_redirect":
-                                throw new KeeperRegionRedirect(keeperRs.RegionHost);
-
-                            case "device_not_registered":
-                                throw new KeeperInvalidDeviceToken(keeperRs.AdditionalInfo);
-
-                            case "session_token":
-                            case "auth_failed":
-                                throw new KeeperAuthFailed(keeperRs.Message);
-
-                            case "login_token_expired":
-                                throw new KeeperCanceled(keeperRs.Error, keeperRs.Message);
-                        }
-
-                        throw lastKeeperError;
+                        proxyAuthenticate = proxyValues.ToArray();
                     }
+
+                    throw new ProxyAuthenticationRequired(proxyAuthenticate);
+                }
+
+                if (contentTypes.Any(x =>
+                        x.StartsWith("application/json", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    var jsonData = await response.Content.ReadAsByteArrayAsync();
+#if DEBUG
+                    Debug.WriteLine("Error Response: " + Encoding.UTF8.GetString(jsonData));
+#endif
+                    var keeperRs = JsonUtils.ParseJson<KeeperApiErrorResponse>(jsonData);
+                    lastKeeperError = new KeeperApiException(keeperRs.Error, keeperRs.Message);
+                    switch (keeperRs.Error)
+                    {
+                        case "key":
+                            keyId = keeperRs.KeyId;
+                            continue;
+
+                        case "throttled":
+#if DEBUG
+                            Debug.WriteLine("\"throttled\" sleeping for 10 seconds");
+#endif
+                            await Task.Delay(TimeSpan.FromSeconds(10));
+                            continue;
+
+                        case "region_redirect":
+                            throw new KeeperRegionRedirect(keeperRs.RegionHost);
+
+                        case "device_not_registered":
+                            throw new KeeperInvalidDeviceToken(keeperRs.AdditionalInfo);
+
+                        case "session_token":
+                        case "auth_failed":
+                            throw new KeeperAuthFailed(keeperRs.Message);
+
+                        case "login_token_expired":
+                            throw new KeeperCanceled(keeperRs.Error, keeperRs.Message);
+                    }
+
+                    throw lastKeeperError;
+                }
+                else if (contentTypes.Any(x => x.StartsWith("text/", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    var message = await response.Content.ReadAsStringAsync();
+                    throw new KeeperApiException(response.StatusCode.ToString(), message);
                 }
 
                 throw new Exception("Keeper Api Http error: " + response.StatusCode);
             }
+
             throw lastKeeperError ?? new Exception("Keeper Api error");
         }
 
-        private readonly byte[] _transmissionKey = CryptoUtils.GetRandomBytes(32);
-
-        private readonly IConfigCollection<IServerConfiguration> _storage;
-
         private void SetConfigurationValid(int keyId)
         {
-            if (keyId != ServerKeyId)
-            {
-                ServerKeyId = keyId;
-                if (_storage != null)
-                {
-                    var sc = _storage.Get(Server);
-                    var configuration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(Server);
-                    configuration.ServerKeyId = ServerKeyId;
-                    _storage.Put(configuration);
-                }
-            }
+            if (keyId == ServerKeyId) return;
+            var config = _storage.Get();
+            ServerKeyId = keyId;
+            var sc = config.Servers.Get(Server);
+            var serverConfiguration = sc != null ? new ServerConfiguration(sc) : new ServerConfiguration(Server);
+            serverConfiguration.ServerKeyId = ServerKeyId;
+            config.Servers.Put(serverConfiguration);
+            _storage.Put(config);
         }
 
         private string _server;
@@ -515,27 +360,47 @@ namespace KeeperSecurity.Authentication
             set
             {
                 _server = string.IsNullOrEmpty(value) ? DefaultKeeperServer : value;
-                if (!KeeperSettings.KeeperRsaPublicKeys.ContainsKey(ServerKeyId) && !KeeperSettings.KeeperEcPublicKeys.ContainsKey(ServerKeyId))
+                var configuration = _storage.Get();
+                var sc = configuration.Servers.Get(_server);
+                if (sc == null) return;
+                if (KeeperSettings.KeeperRsaPublicKeys.ContainsKey(sc.ServerKeyId) ||
+                    KeeperSettings.KeeperEcPublicKeys.ContainsKey(sc.ServerKeyId))
                 {
-                    ServerKeyId = 1;
+                    ServerKeyId = sc.ServerKeyId;
                 }
-
-                var configuration = _storage?.Get(_server);
-                if (configuration == null) return;
-                if (KeeperSettings.KeeperRsaPublicKeys.ContainsKey(configuration.ServerKeyId) || KeeperSettings.KeeperEcPublicKeys.ContainsKey(configuration.ServerKeyId))
+                else
                 {
-                    ServerKeyId = configuration.ServerKeyId;
+                    ServerKeyId = 7;
                 }
             }
         }
 
         public int ServerKeyId { get; private set; }
+        private const string UserAgentHeader = "User-Agent";
 
-        public string ClientVersion { get; set; }
+        public string ClientVersion
+        {
+            get => _clientVersion;
+            set
+            {
+                _clientVersion = value;
+                if (_httpClient.DefaultRequestHeaders.Contains(UserAgentHeader))
+                {
+                    _httpClient.DefaultRequestHeaders.Remove(UserAgentHeader);
+                }
+
+                _httpClient.DefaultRequestHeaders.Add(UserAgentHeader, $"KeeperSDK.Net/{_clientVersion}");
+            }
+        }
+
         public string DeviceName { get; set; }
         public string Locale { get; set; }
 
-        public IWebProxy WebProxy { get; set; }
+        public IWebProxy WebProxy
+        {
+            get => _httpMessageHandler?.Proxy;
+            set => _httpMessageHandler.Proxy = value;
+        }
 
         /// <summary>
         /// Returns language supported by Keeper.
@@ -550,21 +415,23 @@ namespace KeeperSecurity.Authentication
                 return locale;
             }
 
-            return KeeperSettings.KeeperLanguages.TryGetValue(culture.TwoLetterISOLanguageName, out locale) ? locale : "en_US";
+            return KeeperSettings.KeeperLanguages.TryGetValue(culture.TwoLetterISOLanguageName, out locale)
+                ? locale
+                : "en_US";
         }
 
         /// <exclude/>
-        public byte[] EncryptWithKeeperKey(byte[] data, int keyId) {
-            if (KeeperSettings.KeeperRsaPublicKeys.ContainsKey(keyId)) 
+        public byte[] EncryptWithKeeperKey(byte[] data, int keyId)
+        {
+            return keyId switch
             {
-                return CryptoUtils.EncryptRsa(data, KeeperSettings.KeeperRsaPublicKeys[keyId]);
-            }
-            if (KeeperSettings.KeeperEcPublicKeys.ContainsKey(keyId)) {
-                return CryptoUtils.EncryptEc(data, KeeperSettings.KeeperEcPublicKeys[keyId]);
-            }
-
-            throw new KeeperInvalidParameter("Endpoint.EncryptWithKeeperKey", "keyId", keyId.ToString(), 
-                "Server Key Id is invalid");
+                >= 1 and <= 6 when KeeperSettings.KeeperRsaPublicKeys.TryGetValue(keyId, value: out var key) =>
+                    CryptoUtils.EncryptRsa(data, key),
+                >= 7 and <= 17 when KeeperSettings.KeeperEcPublicKeys.TryGetValue(keyId, out var publicKey) =>
+                    CryptoUtils.EncryptEc(data, publicKey),
+                _ => throw new KeeperInvalidParameter("Endpoint.EncryptWithKeeperKey", "keyId", keyId.ToString(),
+                    "Server Key Id is invalid")
+            };
         }
     }
 
@@ -589,37 +456,37 @@ namespace KeeperSecurity.Authentication
         }
 
 
-        internal static readonly IDictionary<int, RsaKeyParameters> KeeperRsaPublicKeys;
-        internal static readonly IDictionary<int, ECPublicKeyParameters> KeeperEcPublicKeys;
+        internal static readonly IDictionary<int, RsaPublicKey> KeeperRsaPublicKeys;
+        internal static readonly IDictionary<int, EcPublicKey> KeeperEcPublicKeys;
 
         static KeeperSettings()
         {
             var rsaList = new[]
             {
-                new KeyValuePair<int, RsaKeyParameters>(1, CryptoUtils.LoadPublicKey(KeeperKey1.Base64UrlDecode())),
-                new KeyValuePair<int, RsaKeyParameters>(2, CryptoUtils.LoadPublicKey(KeeperKey2.Base64UrlDecode())),
-                new KeyValuePair<int, RsaKeyParameters>(3, CryptoUtils.LoadPublicKey(KeeperKey3.Base64UrlDecode())),
-                new KeyValuePair<int, RsaKeyParameters>(4, CryptoUtils.LoadPublicKey(KeeperKey4.Base64UrlDecode())),
-                new KeyValuePair<int, RsaKeyParameters>(5, CryptoUtils.LoadPublicKey(KeeperKey5.Base64UrlDecode())),
-                new KeyValuePair<int, RsaKeyParameters>(6, CryptoUtils.LoadPublicKey(KeeperKey6.Base64UrlDecode()))
+                new KeyValuePair<int, RsaPublicKey>(1, CryptoUtils.LoadRsaPublicKey(KeeperKey1.Base64UrlDecode())),
+                new KeyValuePair<int, RsaPublicKey>(2, CryptoUtils.LoadRsaPublicKey(KeeperKey2.Base64UrlDecode())),
+                new KeyValuePair<int, RsaPublicKey>(3, CryptoUtils.LoadRsaPublicKey(KeeperKey3.Base64UrlDecode())),
+                new KeyValuePair<int, RsaPublicKey>(4, CryptoUtils.LoadRsaPublicKey(KeeperKey4.Base64UrlDecode())),
+                new KeyValuePair<int, RsaPublicKey>(5, CryptoUtils.LoadRsaPublicKey(KeeperKey5.Base64UrlDecode())),
+                new KeyValuePair<int, RsaPublicKey>(6, CryptoUtils.LoadRsaPublicKey(KeeperKey6.Base64UrlDecode()))
             };
-            KeeperRsaPublicKeys = new ConcurrentDictionary<int, RsaKeyParameters>(rsaList);
+            KeeperRsaPublicKeys = new ConcurrentDictionary<int, RsaPublicKey>(rsaList);
 
             var ecList = new[] 
             {
-                new KeyValuePair<int, ECPublicKeyParameters>(7, CryptoUtils.LoadPublicEcKey(KeeperKey7.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(8, CryptoUtils.LoadPublicEcKey(KeeperKey8.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(9, CryptoUtils.LoadPublicEcKey(KeeperKey9.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(10, CryptoUtils.LoadPublicEcKey(KeeperKey10.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(11, CryptoUtils.LoadPublicEcKey(KeeperKey11.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(12, CryptoUtils.LoadPublicEcKey(KeeperKey12.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(13, CryptoUtils.LoadPublicEcKey(KeeperKey13.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(14, CryptoUtils.LoadPublicEcKey(KeeperKey14.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(15, CryptoUtils.LoadPublicEcKey(KeeperKey15.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(16, CryptoUtils.LoadPublicEcKey(KeeperKey16.Base64UrlDecode())),
-                new KeyValuePair<int, ECPublicKeyParameters>(17, CryptoUtils.LoadPublicEcKey(KeeperKey17.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(7, CryptoUtils.LoadEcPublicKey(KeeperKey7.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(8, CryptoUtils.LoadEcPublicKey(KeeperKey8.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(9, CryptoUtils.LoadEcPublicKey(KeeperKey9.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(10, CryptoUtils.LoadEcPublicKey(KeeperKey10.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(11, CryptoUtils.LoadEcPublicKey(KeeperKey11.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(12, CryptoUtils.LoadEcPublicKey(KeeperKey12.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(13, CryptoUtils.LoadEcPublicKey(KeeperKey13.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(14, CryptoUtils.LoadEcPublicKey(KeeperKey14.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(15, CryptoUtils.LoadEcPublicKey(KeeperKey15.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(16, CryptoUtils.LoadEcPublicKey(KeeperKey16.Base64UrlDecode())),
+                new KeyValuePair<int, EcPublicKey>(17, CryptoUtils.LoadEcPublicKey(KeeperKey17.Base64UrlDecode())),
             };
-            KeeperEcPublicKeys = new ConcurrentDictionary<int, ECPublicKeyParameters>(ecList);
+            KeeperEcPublicKeys = new ConcurrentDictionary<int, EcPublicKey>(ecList);
         }
 
         internal static readonly IDictionary<string, string> KeeperLanguages = new Dictionary<string, string>()

@@ -101,12 +101,15 @@ namespace KeeperSecurity
                 if (shareAccountTo != null)
                     foreach (var shareTo in shareAccountTo)
                     {
-                        var key = CryptoUtils.LoadPublicKey(shareTo.PublicKey.Base64UrlDecode());
                         var command = new ShareAccountCommand
                         {
                             ToRoleId = shareTo.RoleId,
-                            TransferKey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode()
                         };
+                        if (!auth.AuthContext.ForbidKeyType2)
+                        {
+                            var key = CryptoUtils.LoadRsaPublicKey(shareTo.PublicKey.Base64UrlDecode());
+                            command.TransferKey = CryptoUtils.EncryptRsa(auth.AuthContext.DataKey, key).Base64UrlEncode();
+                        }
                         await auth.ExecuteAuthCommand(command);
                     }
             }
@@ -147,7 +150,7 @@ namespace KeeperSecurity
                     var failedRules = ruleMatcher.MatchFailedRules(newPassword);
                     if (failedRules.Length != 0) throw new KeeperApiException("password_rule_failed", failedRules[0]);
 
-                    var iterations = 100000;
+                    const int iterations = 1_000_000;
                     var authSalt = CryptoUtils.GetRandomBytes(16);
                     var authVerifier = CryptoUtils.CreateAuthVerifier(newPassword, authSalt, iterations);
                     var keySalt = CryptoUtils.GetRandomBytes(16);

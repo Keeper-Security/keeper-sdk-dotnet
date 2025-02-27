@@ -6,7 +6,7 @@
     /// <seealso cref="CryptoUtils"/>
     /// <seealso cref="JsonUtils"/>
     [System.Runtime.CompilerServices.CompilerGenerated]
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

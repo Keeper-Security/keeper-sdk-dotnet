@@ -6,22 +6,51 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using KeeperSecurity.Utils;
 
-namespace KeeperSecurity.OfflineStorage.Sqlite
+namespace KeeperSecurity.Utils
 {
+    /// <exclude/>
+    public enum ColumnType
+    {
+        Integer,
+        Long,
+        Boolean,
+        String,
+        Decimal,
+        Binary,
+    }
+
+    /// <exclude/>
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public sealed class SqlTableAttribute : Attribute
+    {
+        public string Name { get; set; }
+        public string[] PrimaryKey { get; set; }
+        public string[] Index1 { get; set; }
+        public string[] Index2 { get; set; }
+    }
+
+    /// <exclude/>
+    [AttributeUsage(AttributeTargets.Property)]
+    public sealed class SqlColumnAttribute : Attribute
+    {
+        public string Name { get; set; }
+        public int Length { get; set; }
+        public bool CanBeNull { get; set; } = true;
+    }
+
+
     public class TableSchema
     {
-        public string TableName { get; private set; }
-        public string[] PrimaryKey { get; private set; }
-        public string[] Index1 { get; private set; }
-        public string[] Index2 { get; private set; }
-        public string OwnerColumnName { get; set; }
+        public string TableName { get; }
+        public string[] PrimaryKey { get; }
+        public string[] Index1 { get; }
+        public string[] Index2 { get; }
+        public string OwnerColumnName { get; }
 
-        public readonly List<string> Columns = new List<string>();
+        public readonly List<string> Columns = new();
 
-        public readonly Dictionary<string, PropertyInfo> ColumnMap =
-            new Dictionary<string, PropertyInfo>(StringComparer.InvariantCultureIgnoreCase);
+        public readonly Dictionary<string, PropertyInfo> ColumnMap = new(StringComparer.InvariantCultureIgnoreCase);
 
         public TableSchema(Type tableType, string ownerColumnName = null)
         {
@@ -54,7 +83,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
 
     public static class DatabaseUtils
     {
-        public static readonly Dictionary<Type, ColumnType> TypeMap = new Dictionary<Type, ColumnType>();
+        public static readonly Dictionary<Type, ColumnType> TypeMap = new();
 
         static DatabaseUtils()
         {
@@ -71,6 +100,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             TypeMap[typeof(decimal)] = ColumnType.Decimal;
             TypeMap[typeof(bool)] = ColumnType.Boolean;
             TypeMap[typeof(string)] = ColumnType.String;
+            TypeMap[typeof(byte[])] = ColumnType.Binary;
         }
 
         public static DbType GetDbType(ColumnType columnType)
@@ -87,18 +117,21 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                     return DbType.Decimal;
                 case ColumnType.String:
                     return DbType.String;
+                case ColumnType.Binary:
+                    return DbType.Binary;
                 default:
                     return DbType.String;
             }
         }
 
-        public static string GetAddColumnStatement(TableSchema schema, string columnName)
+        private static string GetAddColumnStatement(TableSchema schema, string columnName)
         {
             var columnInfo = schema.ColumnMap
                 .Where(x => x.Key.Equals(columnName, StringComparison.InvariantCultureIgnoreCase))
                 .Select(x => x.Value)
                 .FirstOrDefault();
-            if (columnInfo == null) {
+            if (columnInfo == null)
+            {
                 return null;
             }
 
@@ -112,7 +145,7 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             return $"ALTER TABLE {schema.TableName} ADD COLUMN {columnName} {GetSqliteType(colType)} NULL";
         }
 
-        public static IEnumerable<string> GetDDLStatements(TableSchema schema)
+        private static IEnumerable<string> GetDdlStatements(TableSchema schema)
         {
             var keys = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
             if (schema.PrimaryKey != null)
@@ -120,14 +153,10 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 keys.UnionWith(schema.PrimaryKey);
             }
 
-            if (schema.Index1 != null)
+            foreach (var index in new[] {schema.Index1, schema.Index2})
             {
-                keys.UnionWith(schema.Index1);
-            }
-
-            if (schema.Index2 != null)
-            {
-                keys.UnionWith(schema.Index2);
+                if (index == null) continue;
+                keys.UnionWith(index);
             }
 
             var sb = new StringBuilder();
@@ -169,11 +198,11 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
             yield return sb.ToString();
 
             var indexNo = 0;
-            foreach (var index in new[] { schema.Index1, schema.Index2 })
+            foreach (var index in new [] { schema.Index1, schema.Index2 })
             {
                 if (index == null) continue;
-
                 indexNo++;
+
                 sb.Length = 0;
                 idx.Clear();
                 if (!string.IsNullOrEmpty(schema.OwnerColumnName))
@@ -182,7 +211,8 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 }
 
                 idx.AddRange(index);
-                yield return $"CREATE INDEX {schema.TableName}_Index_{indexNo} ON {schema.TableName} ({string.Join(", ", idx)})";
+                yield return
+                    $"CREATE INDEX {schema.TableName}_Index_{indexNo} ON {schema.TableName} ({string.Join(", ", idx)})";
             }
         }
 
@@ -198,6 +228,8 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                     return "REAL";
                 case ColumnType.String:
                     return "TEXT";
+                case ColumnType.Binary:
+                    return "BLOB";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(columnType), columnType, null);
             }
@@ -266,14 +298,24 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                     {
                         column.SetMethod.Invoke(data, new object[] { reader.GetDecimal(i) });
                     }
+                    else if (column.PropertyType == typeof(byte[]))
+                    {
+                        var v = reader.GetValue(i);
+                        if (v is byte[])
+                        {
+                            column.SetMethod.Invoke(data, new[] { v });
+                        }
+                    }
                 }
 
                 yield return data;
             }
         }
 
-        public static bool VerifyDatabase(bool tryCreateMissingTables, DbConnection connection, IEnumerable<TableSchema> schemas, List<string> ddlStatements)
+        public static List<string> VerifyDatabase(DbConnection connection, params TableSchema[] schemas)
         {
+            var ddlStatements = new List<string>();
+            
             var allTables = new Dictionary<string, ISet<string>>(StringComparer.InvariantCultureIgnoreCase);
 
             var dbTables = connection.GetSchema("Tables");
@@ -299,55 +341,50 @@ namespace KeeperSecurity.OfflineStorage.Sqlite
                 }
             }
 
-            var result = true;
             var statements = new List<string>();
             foreach (var schema in schemas)
             {
-                if (allTables.ContainsKey(schema.TableName))
+                if (allTables.TryGetValue(schema.TableName, out var columns))
                 {
-                    var columns = allTables[schema.TableName];
-                    if (columns.Count > 0)
+                    if (columns.Count <= 0) continue;
+                    foreach (var columnName in schema.Columns)
                     {
-                        foreach (var columnName in schema.Columns)
+                        if (columns.Contains(columnName)) continue;
+                        var stmt = GetAddColumnStatement(schema, columnName);
+                        if (!string.IsNullOrEmpty(stmt))
                         {
-                            if (!columns.Contains(columnName))
-                            {
-                                var stmt = GetAddColumnStatement(schema, columnName);
-                                if (!string.IsNullOrEmpty(stmt))
-                                {
-                                    statements.Add(stmt);
-                                }
-                            }
+                            statements.Add(stmt);
                         }
                     }
                 }
                 else
                 {
-                    statements.AddRange(GetDDLStatements(schema));
+                    statements.AddRange(GetDdlStatements(schema));
                 }
             }
 
-            if (statements.Count > 0) {
+            if (statements.Count > 0)
+            {
                 using (var cmd = connection.CreateCommand())
                 {
                     foreach (var stmt in statements)
                     {
                         try
                         {
+                            Debug.WriteLine($"[DDL STMT]: {stmt}");
                             cmd.CommandText = stmt;
                             cmd.ExecuteNonQuery();
                         }
                         catch (Exception e)
                         {
                             Debug.WriteLine(e.Message);
-                            result = false;
-                            ddlStatements?.Add(stmt);
+                            ddlStatements.Add(stmt);
                         }
                     }
                 }
             }
 
-            return result;
+            return ddlStatements;
         }
     }
 }

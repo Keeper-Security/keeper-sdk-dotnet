@@ -303,25 +303,26 @@ namespace WPFSample
             {
                 if (!(StepData is UsernameLoginStep))
                 {
+                    var configuration = _auth.Storage.Get();
                     var uls = new UsernameLoginStep
                     {
-                        Username = _auth.Storage.LastLogin
+                        Username = configuration.LastLogin
                     };
-                    if (!string.IsNullOrEmpty(_auth.Storage.LastServer))
+                    if (!string.IsNullOrEmpty(configuration.LastServer))
                     {
-                        if (_auth.Storage.LastServer.EndsWith("keepersecurity.com"))
+                        if (configuration.LastServer.EndsWith("keepersecurity.com"))
                         {
                             uls.DataCenter = "US";
                         }
-                        else if (_auth.Storage.LastServer.EndsWith("keepersecurity.eu"))
+                        else if (configuration.LastServer.EndsWith("keepersecurity.eu"))
                         {
                             uls.DataCenter = "EU";
                         }
-                        else if (_auth.Storage.LastServer.EndsWith("keepersecurity.ca"))
+                        else if (configuration.LastServer.EndsWith("keepersecurity.ca"))
                         {
                             uls.DataCenter = "CA";
                         }
-                        else if (_auth.Storage.LastServer.EndsWith("keepersecurity.com.au"))
+                        else if (configuration.LastServer.EndsWith("keepersecurity.com.au"))
                         {
                             uls.DataCenter = "AU";
                         }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 
 namespace KeeperSecurity.Authentication
@@ -32,13 +31,7 @@ namespace KeeperSecurity.Authentication
 
     internal class DeviceApprovalEmailResend : IDeviceApprovalPushInfo, IDeviceApprovalOtpInfo
     {
-        public DeviceApprovalChannel Channel { get; }
-
-        public DeviceApprovalEmailResend()
-        {
-            Channel = DeviceApprovalChannel.Email;
-            Resend = false;
-        }
+        public DeviceApprovalChannel Channel => DeviceApprovalChannel.Email;
 
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
         public DeviceApprovalOtpDelegate InvokeDeviceApprovalOtpAction { get; internal set; }
@@ -47,25 +40,15 @@ namespace KeeperSecurity.Authentication
 
     internal class DeviceApprovalKeeperPushAction : IDeviceApprovalPushInfo
     {
-        public DeviceApprovalChannel Channel { get; }
-
-        public DeviceApprovalKeeperPushAction()
-        {
-            Channel = DeviceApprovalChannel.KeeperPush;
-        }
+        public DeviceApprovalChannel Channel => DeviceApprovalChannel.KeeperPush;
 
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
     }
 
     internal class TwoFactorTwoFactorAuth : IDeviceApprovalPushInfo, IDeviceApprovalOtpInfo, ITwoFactorDurationInfo
     {
-        public DeviceApprovalChannel Channel { get; }
+        public DeviceApprovalChannel Channel => DeviceApprovalChannel.TwoFactorAuth;
         public TwoFactorDuration Duration { get; set; }
-
-        public TwoFactorTwoFactorAuth()
-        {
-            Channel = DeviceApprovalChannel.TwoFactorAuth;
-        }
 
         public DeviceApprovalPushActionDelegate InvokeDeviceApprovalPushAction { get; internal set; }
         public DeviceApprovalOtpDelegate InvokeDeviceApprovalOtpAction { get; internal set; }
@@ -109,21 +92,13 @@ namespace KeeperSecurity.Authentication
 
     internal class TwoFactorDuoChannel : ITwoFactorAppCodeInfo, ITwoFactorPushInfo
     {
-        public TwoFactorDuoChannel()
-        {
-            Channel = TwoFactorChannel.DuoSecurity;
-            ChannelName = "duo";
-            ApplicationName = "Duo Mobile App";
-            Duration = TwoFactorDuration.EveryLogin;
-        }
-
-        public TwoFactorChannel Channel { get; }
-        public string ChannelName { get; }
-        public string ApplicationName { get; }
+        public TwoFactorChannel Channel => TwoFactorChannel.DuoSecurity;
+        public string ChannelName => "duo";
+        public string ApplicationName => "Duo Mobile App";
         public string PhoneNumber { get; internal set; }
         public TwoFactorPushAction[] SupportedActions { get; set; }
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
-        public TwoFactorDuration Duration { get; set; }
+        public TwoFactorDuration Duration { get; set; } = TwoFactorDuration.EveryLogin;
         public TwoFactorCodeActionDelegate InvokeTwoFactorCodeAction { get; internal set; }
     }
 
@@ -171,14 +146,8 @@ namespace KeeperSecurity.Authentication
 
     internal class TwoFactorSecurityKeyChannel : ITwoFactorPushInfo
     {
-        public TwoFactorSecurityKeyChannel()
-        {
-            Channel = TwoFactorChannel.SecurityKey;
-            SupportedActions = new[] {TwoFactorPushAction.SecurityKey};
-        }
-
-        public TwoFactorChannel Channel { get; }
-        public TwoFactorPushAction[] SupportedActions { get; }
+        public TwoFactorChannel Channel => TwoFactorChannel.SecurityKey;
+        public TwoFactorPushAction[] SupportedActions { get; } = {TwoFactorPushAction.SecurityKey};
         public TwoFactorPushActionDelegate InvokeTwoFactorPushAction { get; internal set; }
     }
 
@@ -244,7 +213,7 @@ namespace KeeperSecurity.Authentication
             return false;
         }
 
-        internal static readonly IDictionary<TwoFactorPushAction, string> PushActions = new Dictionary<TwoFactorPushAction, string>
+        private static readonly IDictionary<TwoFactorPushAction, string> PushActions = new Dictionary<TwoFactorPushAction, string>
         {
             {TwoFactorPushAction.DuoPush, "duo_push"},
             {TwoFactorPushAction.DuoTextMessage, "duo_sms"},
@@ -345,56 +314,34 @@ namespace KeeperSecurity.Authentication
             {DataKeyShareChannel.AdminApproval, "request_admin"},
         };
 
+        private static readonly IDictionary<TwoFactorDuration, string> Durations = new Dictionary<TwoFactorDuration, string>
+        {
+            {TwoFactorDuration.EveryLogin, "never"},
+            {TwoFactorDuration.Forever, "forever"},
+            {TwoFactorDuration.Every12Hours, "12 hours"},
+            {TwoFactorDuration.Every24Hours, "24 hours"},
+            {TwoFactorDuration.Every30Days, "30 days"},
+        };
+
         public static string DurationToText(TwoFactorDuration duration)
         {
-            switch (duration)
+            if (Durations.TryGetValue(duration, out var text))
             {
-                case TwoFactorDuration.EveryLogin:
-                    return "never";
-                case TwoFactorDuration.Forever:
-                    return "forever";
-                default:
-                    return $"{(int) duration} days";
+                return text;
             }
+            return "";
         }
 
         public static bool TryParseTextToDuration(string text, out TwoFactorDuration duration)
         {
-            text = text.Trim().ToLowerInvariant();
-            switch (text)
-            {
-                case "never":
-                    duration = TwoFactorDuration.EveryLogin;
+            foreach (var pair in Durations) {
+                if (string.Equals(pair.Value, text, StringComparison.InvariantCultureIgnoreCase)) { 
+                    duration = pair.Key;
                     return true;
-                case "forever":
-                    duration = TwoFactorDuration.Forever;
-                    return true;
-                default:
-                    var idx = text.IndexOf(' ');
-                    if (idx > 0)
-                    {
-                        text = text.Substring(0, idx);
-                    }
-
-                    if (int.TryParse(text, out var days))
-                    {
-                        foreach (var d in Enum.GetValues(typeof(TwoFactorDuration)).OfType<TwoFactorDuration>())
-                        {
-                            if ((int) d == days)
-                            {
-                                duration = d;
-                                return true;
-                            }
-                        }
-                    }
-
-                    break;
+                }
             }
-
             duration = TwoFactorDuration.EveryLogin;
             return false;
         }
-
-
     }
 }

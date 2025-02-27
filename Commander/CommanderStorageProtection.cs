@@ -1,11 +1,11 @@
 ﻿using System.Text;
-using System.Security.Cryptography;
 using KeeperSecurity.Configuration;
 using KeeperSecurity.Utils;
+using System.Security.Cryptography;
 
 namespace Commander
 {
-    public class CommanderConfigurationProtection: IConfigurationProtectionFactory
+    public class CommanderConfigurationProtection : IConfigurationProtectionFactory
     {
         public IConfigurationProtection Resolve(string protection)
         {
@@ -19,15 +19,20 @@ namespace Commander
                 parameters = protection.Substring(index + 1);
             }
 
+#if NET472_OR_GREATER
             switch (method.ToLowerInvariant())
             {
+
                 case "dpapi":
                     return new DpApiConfigurationProtection(Encoding.UTF8.GetBytes(parameters));
             }
+#endif
 
             return null;
         }
     }
+
+#if NET472_OR_GREATER
 
     internal class DpApiConfigurationProtection : IConfigurationProtection
     {
@@ -43,7 +48,7 @@ namespace Commander
         public string Obscure(string data)
         {
             if (string.IsNullOrEmpty(data)) return null;
-            var secured = ProtectedData.Protect(Encoding.UTF8.GetBytes(data), _entropy, _scope);
+            var secured = ProtectedData.Protect (Encoding.UTF8.GetBytes(data), _entropy, _scope);
             return secured.Base64UrlEncode();
         }
 
@@ -54,4 +59,5 @@ namespace Commander
             return Encoding.UTF8.GetString(cleared);
         }
     }
+#endif
 }

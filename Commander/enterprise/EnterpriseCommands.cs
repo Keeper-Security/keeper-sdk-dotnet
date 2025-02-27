@@ -17,7 +17,6 @@ using KeeperSecurity.Commands;
 using KeeperSecurity.Enterprise;
 using KeeperSecurity.Enterprise.AuditLogCommands;
 using KeeperSecurity.Utils;
-using Org.BouncyCastle.Crypto.Parameters;
 using static KeeperSecurity.Enterprise.AuditLogExtensions;
 using EnterpriseData = KeeperSecurity.Enterprise.EnterpriseData;
 
@@ -36,7 +35,7 @@ namespace Commander
         bool AutoApproveAdminRequests { get; set; }
         Dictionary<long, byte[]> UserDataKeys { get; }
 
-        ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
+        EcPrivateKey EnterprisePrivateKey { get; set; }
 
         IDictionary<string, AuditEventType> AuditEvents { get; set; }
     }
@@ -116,12 +115,12 @@ namespace Commander
                 });
 
 
-            cli.CommandAliases["eget"] = "enterprise-get-data";
-            cli.CommandAliases["en"] = "enterprise-node";
-            cli.CommandAliases["eu"] = "enterprise-user";
-            cli.CommandAliases["et"] = "enterprise-team";
-            cli.CommandAliases["er"] = "enterprise-role";
-            cli.CommandAliases["ed"] = "enterprise-device";
+            cli.Aliases["eget"] = "enterprise-get-data";
+            cli.Aliases["en"] = "enterprise-node";
+            cli.Aliases["eu"] = "enterprise-user";
+            cli.Aliases["et"] = "enterprise-team";
+            cli.Aliases["er"] = "enterprise-role";
+            cli.Aliases["ed"] = "enterprise-device";
 
 
             if (context.Enterprise.EcPrivateKey == null)
@@ -136,7 +135,7 @@ namespace Commander
             }
             else
             {
-                context.EnterprisePrivateKey = CryptoUtils.LoadPrivateEcKey(context.Enterprise.EcPrivateKey);
+                context.EnterprisePrivateKey = CryptoUtils.LoadEcPrivateKey(context.Enterprise.EcPrivateKey);
             }
         }
 
@@ -212,12 +211,11 @@ namespace Commander
                 parentNode = enterpriseData.ResolveNodeName(arguments.Parent);
             }
 
-            if (string.Equals(arguments.Command, "add", StringComparison.OrdinalIgnoreCase))  // node in the name of new node
+            if (string.Equals(arguments.Command, "add", StringComparison.OrdinalIgnoreCase)) 
             {
                 if (string.IsNullOrEmpty(arguments.Node))
                 {
-                    var usage = CommandExtensions.GetCommandUsage<EnterpriseNodeOptions>(Console.WindowWidth);
-                    Console.WriteLine(usage);
+                    Console.WriteLine($"\"node\" parameter is missing");
                 }
                 else
                 {
@@ -229,7 +227,7 @@ namespace Commander
                     }
                 }
             }
-            else  // node is the name of the existing node
+            else
             {
                 EnterpriseNode node;
                 if (string.IsNullOrEmpty(arguments.Node))
@@ -240,8 +238,7 @@ namespace Commander
                     }
                     else
                     {
-                        var usage = CommandExtensions.GetCommandUsage<EnterpriseNodeOptions>(Console.WindowWidth);
-                        Console.WriteLine(usage);
+                        Console.WriteLine($"\"node\" parameter is missing");
                         return;
                     }
                 }
@@ -1500,7 +1497,7 @@ namespace Commander
             {
                 if (!dataKeys.TryGetValue(device.EnterpriseUserId, out var dk)) continue;
                 if (device.DevicePublicKey.IsEmpty) continue;
-                var devicePublicKey = CryptoUtils.LoadPublicEcKey(device.DevicePublicKey.ToByteArray());
+                var devicePublicKey = CryptoUtils.LoadEcPublicKey(device.DevicePublicKey.ToByteArray());
 
                 try
                 {
@@ -1882,7 +1879,7 @@ namespace Commander
         }
 
         public bool AutoApproveAdminRequests { get; set; }
-        public ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
+        public EcPrivateKey EnterprisePrivateKey { get; set; }
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
         public IDictionary<string, AuditEventType> AuditEvents { get; set; }
 
@@ -1905,7 +1902,7 @@ namespace Commander
         public Dictionary<long, byte[]> UserDataKeys { get; } = new Dictionary<long, byte[]>();
 
 
-        public ECPrivateKeyParameters EnterprisePrivateKey { get; set; }
+        public EcPrivateKey EnterprisePrivateKey { get; set; }
         public IDictionary<string, AuditEventType> AuditEvents { get; set; }
 
         private ManagedCompanyData _managedCompanies;

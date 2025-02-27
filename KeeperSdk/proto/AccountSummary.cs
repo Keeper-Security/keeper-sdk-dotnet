@@ -56,7 +56,7 @@ namespace AccountSummary {
             "ZXkYByABKAwigQEKB1N5bmNMb2cSEwoLY291bnRyeU5hbWUYASABKAkSEgoK",
             "c2Vjb25kc0FnbxgCIAEoAxISCgpkZXZpY2VOYW1lGAMgASgJEhMKC2NvdW50",
             "cnlDb2RlGAQgASgJEhEKCWRldmljZVVJRBgFIAEoDBIRCglpcEFkZHJlc3MY",
-            "BiABKAki/QUKB0xpY2Vuc2USGAoQc3Vic2NyaXB0aW9uQ29kZRgBIAEoCRIV",
+            "BiABKAki0QYKB0xpY2Vuc2USGAoQc3Vic2NyaXB0aW9uQ29kZRgBIAEoCRIV",
             "Cg1wcm9kdWN0VHlwZUlkGAIgASgFEhcKD3Byb2R1Y3RUeXBlTmFtZRgDIAEo",
             "CRIWCg5leHBpcmF0aW9uRGF0ZRgEIAEoCRIeChZzZWNvbmRzVW50aWxFeHBp",
             "cmF0aW9uGAUgASgDEhIKCm1heERldmljZXMYBiABKAUSFAoMZmlsZVBsYW5U",
@@ -72,65 +72,66 @@ namespace AccountSummary {
             "ASgJEhoKEmJyZWFjaFdhdGNoRW5hYmxlZBgXIAEoCBIaChJicmVhY2hXYXRj",
             "aFNjYW5uZWQYGCABKAgSHQoVYnJlYWNoV2F0Y2hFeHBpcmF0aW9uGBkgASgD",
             "Eh4KFmJyZWFjaFdhdGNoRGF0ZUNyZWF0ZWQYGiABKAMSJQoFZXJyb3IYGyAB",
-            "KAsyFi5BY2NvdW50U3VtbWFyeS5SZXN1bHQSGQoRcGVuZGluZ0VudGVycHJp",
-            "c2UYISABKAgiowEKBUFkZE9uEhQKDGxpY2Vuc2VLZXlJZBgBIAEoBRIMCgRu",
-            "YW1lGAIgASgJEhYKDmV4cGlyYXRpb25EYXRlGAMgASgDEhMKC2NyZWF0ZWRE",
-            "YXRlGAQgASgDEg8KB2lzVHJpYWwYBSABKAgSDwoHZW5hYmxlZBgGIAEoCBIP",
-            "CgdzY2FubmVkGAcgASgIEhYKDmZlYXR1cmVEaXNhYmxlGAggASgIIqIJCghT",
-            "ZXR0aW5ncxINCgVhdWRpdBgBIAEoCBIhChltdXN0UGVyZm9ybUFjY291bnRT",
-            "aGFyZUJ5GAIgASgDEj4KDnNoYXJlQWNjb3VudFRvGAMgAygLMiYuQWNjb3Vu",
-            "dFN1bW1hcnkuTWlzc2luZ0FjY291bnRTaGFyZUtleRIrCgVydWxlcxgEIAMo",
-            "CzIcLkFjY291bnRTdW1tYXJ5LlBhc3N3b3JkUnVsZRIaChJwYXNzd29yZFJ1",
-            "bGVzSW50cm8YBSABKAkSFgoOYXV0b0JhY2t1cERheXMYBiABKAUSDQoFdGhl",
-            "bWUYByABKAkSDwoHY2hhbm5lbBgIIAEoCRIUCgxjaGFubmVsVmFsdWUYCSAB",
-            "KAkSFQoNcnNhQ29uZmlndXJlZBgKIAEoCBIVCg1lbWFpbFZlcmlmaWVkGAsg",
-            "ASgIEiIKGm1hc3RlclBhc3N3b3JkTGFzdE1vZGlmaWVkGAwgASgBEhgKEGFj",
-            "Y291bnRGb2xkZXJLZXkYDSABKAwSMQoMc2VjdXJpdHlLZXlzGA4gAygLMhsu",
-            "QWNjb3VudFN1bW1hcnkuU2VjdXJpdHlLZXkSKwoJa2V5VmFsdWVzGA8gAygL",
-            "MhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUSDwoHc3NvVXNlchgQIAEoCBIY",
-            "ChBvbmxpbmVBY2Nlc3NPbmx5GBEgASgIEhwKFG1hc3RlclBhc3N3b3JkRXhw",
-            "aXJ5GBIgASgFEhkKEXR3b0ZhY3RvclJlcXVpcmVkGBMgASgIEhYKDmRpc2Fs",
-            "bG93RXhwb3J0GBQgASgIEhUKDXJlc3RyaWN0RmlsZXMYFSABKAgSGgoScmVz",
-            "dHJpY3RBbGxTaGFyaW5nGBYgASgIEhcKD3Jlc3RyaWN0U2hhcmluZxgXIAEo",
-            "CBIiChpyZXN0cmljdFNoYXJpbmdJbmNvbWluZ0FsbBgYIAEoCBIpCiFyZXN0",
-            "cmljdFNoYXJpbmdJbmNvbWluZ0VudGVycHJpc2UYGSABKAgSEwoLbG9nb3V0",
-            "VGltZXIYGiABKAMSFwoPcGVyc2lzdGVudExvZ2luGBsgASgIEhwKFGlwRGlz",
-            "YWJsZUF1dG9BcHByb3ZlGBwgASgIEiQKHHNoYXJlRGF0YUtleVdpdGhFY2NQ",
-            "dWJsaWNLZXkYHSABKAgSJwofc2hhcmVEYXRhS2V5V2l0aERldmljZVB1Ymxp",
-            "Y0tleRgeIAEoCBIaChJSZWNvcmRUeXBlc0NvdW50ZXIYHyABKAUSJAocUmVj",
-            "b3JkVHlwZXNFbnRlcnByaXNlQ291bnRlchggIAEoBRIaChJyZWNvcmRUeXBl",
-            "c0VuYWJsZWQYISABKAgSHAoUY2FuTWFuYWdlUmVjb3JkVHlwZXMYIiABKAgS",
-            "HQoVcmVjb3JkVHlwZXNQQU1Db3VudGVyGCMgASgFEhoKEmxvZ291dFRpbWVy",
-            "TWludXRlcxgkIAEoBRIgChhzZWN1cml0eUtleXNOb1VzZXJWZXJpZnkYJSAB",
-            "KAgSNgoIY2hhbm5lbHMYJiADKA4yJC5BdXRoZW50aWNhdGlvbi5Ud29GYWN0",
-            "b3JDaGFubmVsVHlwZSImCghLZXlWYWx1ZRILCgNrZXkYASABKAkSDQoFdmFs",
-            "dWUYAiABKAkiLQoPS2V5VmFsdWVCb29sZWFuEgsKA2tleRgBIAEoCRINCgV2",
-            "YWx1ZRgCIAEoCCIqCgxLZXlWYWx1ZUxvbmcSCwoDa2V5GAEgASgJEg0KBXZh",
-            "bHVlGAIgASgDIj0KBlJlc3VsdBISCgpyZXN1bHRDb2RlGAEgASgJEg8KB21l",
-            "c3NhZ2UYAiABKAkSDgoGcmVzdWx0GAMgASgJIsIBCgxFbmZvcmNlbWVudHMS",
-            "KQoHc3RyaW5ncxgBIAMoCzIYLkFjY291bnRTdW1tYXJ5LktleVZhbHVlEjEK",
-            "CGJvb2xlYW5zGAIgAygLMh8uQWNjb3VudFN1bW1hcnkuS2V5VmFsdWVCb29s",
-            "ZWFuEisKBWxvbmdzGAMgAygLMhwuQWNjb3VudFN1bW1hcnkuS2V5VmFsdWVM",
-            "b25nEicKBWpzb25zGAQgAygLMhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUi",
-            "PAoWTWlzc2luZ0FjY291bnRTaGFyZUtleRIPCgdyb2xlX2lkGAEgASgDEhEK",
-            "CXB1YmxpY0tleRgCIAEoDCJ1CgxQYXNzd29yZFJ1bGUSEAoIcnVsZVR5cGUY",
-            "ASABKAkSDwoHcGF0dGVybhgCIAEoCRINCgVtYXRjaBgDIAEoCBIPCgdtaW5p",
-            "bXVtGAQgASgFEhMKC2Rlc2NyaXB0aW9uGAUgASgJEg0KBXZhbHVlGAYgASgJ",
-            "IpcBCgtTZWN1cml0eUtleRIQCghkZXZpY2VJZBgBIAEoAxISCgpkZXZpY2VO",
-            "YW1lGAIgASgJEhEKCWRhdGVBZGRlZBgDIAEoAxIPCgdpc1ZhbGlkGAQgASgI",
-            "Ej4KEmRldmljZVJlZ2lzdHJhdGlvbhgFIAEoCzIiLkFjY291bnRTdW1tYXJ5",
-            "LkRldmljZVJlZ2lzdHJhdGlvbiJ5ChJEZXZpY2VSZWdpc3RyYXRpb24SEQoJ",
-            "a2V5SGFuZGxlGAEgASgJEhEKCXB1YmxpY0tleRgCIAEoDBIXCg9hdHRlc3Rh",
-            "dGlvbkNlcnQYAyABKAkSDwoHY291bnRlchgEIAEoAxITCgtjb21wcm9taXNl",
-            "ZBgFIAEoCCJrCgVHcm91cBINCgVhZG1pbhgBIAEoCBIdChVncm91cFZlcmlm",
-            "aWNhdGlvbkNvZGUYAiABKAkSNAoNYWRtaW5pc3RyYXRvchgEIAEoCzIdLkFj",
-            "Y291bnRTdW1tYXJ5LkFkbWluaXN0cmF0b3IiwAEKDUFkbWluaXN0cmF0b3IS",
-            "EQoJZmlyc3ROYW1lGAEgASgJEhAKCGxhc3ROYW1lGAIgASgJEg0KBWVtYWls",
-            "GAMgASgJEhwKFGN1cnJlbnROdW1iZXJPZlVzZXJzGAQgASgFEhUKDW51bWJl",
-            "ck9mVXNlcnMYBSABKAUSGAoQc3Vic2NyaXB0aW9uQ29kZRgHIAEoCRIWCg5l",
-            "eHBpcmF0aW9uRGF0ZRgIIAEoCRIUCgxwdXJjaGFzZURhdGUYCSABKAlCKgoY",
-            "Y29tLmtlZXBlcnNlY3VyaXR5LnByb3RvQg5BY2NvdW50U3VtbWFyeWIGcHJv",
-            "dG8z"));
+            "KAsyFi5BY2NvdW50U3VtbWFyeS5SZXN1bHQSEgoKZXhwaXJhdGlvbhgdIAEo",
+            "AxIZChFzdG9yYWdlRXhwaXJhdGlvbhgeIAEoAxIUCgx1cGxvYWRzQ291bnQY",
+            "HyABKAUSDQoFdW5pdHMYICABKAUSGQoRcGVuZGluZ0VudGVycHJpc2UYISAB",
+            "KAgiowEKBUFkZE9uEhQKDGxpY2Vuc2VLZXlJZBgBIAEoBRIMCgRuYW1lGAIg",
+            "ASgJEhYKDmV4cGlyYXRpb25EYXRlGAMgASgDEhMKC2NyZWF0ZWREYXRlGAQg",
+            "ASgDEg8KB2lzVHJpYWwYBSABKAgSDwoHZW5hYmxlZBgGIAEoCBIPCgdzY2Fu",
+            "bmVkGAcgASgIEhYKDmZlYXR1cmVEaXNhYmxlGAggASgIIqIJCghTZXR0aW5n",
+            "cxINCgVhdWRpdBgBIAEoCBIhChltdXN0UGVyZm9ybUFjY291bnRTaGFyZUJ5",
+            "GAIgASgDEj4KDnNoYXJlQWNjb3VudFRvGAMgAygLMiYuQWNjb3VudFN1bW1h",
+            "cnkuTWlzc2luZ0FjY291bnRTaGFyZUtleRIrCgVydWxlcxgEIAMoCzIcLkFj",
+            "Y291bnRTdW1tYXJ5LlBhc3N3b3JkUnVsZRIaChJwYXNzd29yZFJ1bGVzSW50",
+            "cm8YBSABKAkSFgoOYXV0b0JhY2t1cERheXMYBiABKAUSDQoFdGhlbWUYByAB",
+            "KAkSDwoHY2hhbm5lbBgIIAEoCRIUCgxjaGFubmVsVmFsdWUYCSABKAkSFQoN",
+            "cnNhQ29uZmlndXJlZBgKIAEoCBIVCg1lbWFpbFZlcmlmaWVkGAsgASgIEiIK",
+            "Gm1hc3RlclBhc3N3b3JkTGFzdE1vZGlmaWVkGAwgASgBEhgKEGFjY291bnRG",
+            "b2xkZXJLZXkYDSABKAwSMQoMc2VjdXJpdHlLZXlzGA4gAygLMhsuQWNjb3Vu",
+            "dFN1bW1hcnkuU2VjdXJpdHlLZXkSKwoJa2V5VmFsdWVzGA8gAygLMhguQWNj",
+            "b3VudFN1bW1hcnkuS2V5VmFsdWUSDwoHc3NvVXNlchgQIAEoCBIYChBvbmxp",
+            "bmVBY2Nlc3NPbmx5GBEgASgIEhwKFG1hc3RlclBhc3N3b3JkRXhwaXJ5GBIg",
+            "ASgFEhkKEXR3b0ZhY3RvclJlcXVpcmVkGBMgASgIEhYKDmRpc2FsbG93RXhw",
+            "b3J0GBQgASgIEhUKDXJlc3RyaWN0RmlsZXMYFSABKAgSGgoScmVzdHJpY3RB",
+            "bGxTaGFyaW5nGBYgASgIEhcKD3Jlc3RyaWN0U2hhcmluZxgXIAEoCBIiChpy",
+            "ZXN0cmljdFNoYXJpbmdJbmNvbWluZ0FsbBgYIAEoCBIpCiFyZXN0cmljdFNo",
+            "YXJpbmdJbmNvbWluZ0VudGVycHJpc2UYGSABKAgSEwoLbG9nb3V0VGltZXIY",
+            "GiABKAMSFwoPcGVyc2lzdGVudExvZ2luGBsgASgIEhwKFGlwRGlzYWJsZUF1",
+            "dG9BcHByb3ZlGBwgASgIEiQKHHNoYXJlRGF0YUtleVdpdGhFY2NQdWJsaWNL",
+            "ZXkYHSABKAgSJwofc2hhcmVEYXRhS2V5V2l0aERldmljZVB1YmxpY0tleRge",
+            "IAEoCBIaChJSZWNvcmRUeXBlc0NvdW50ZXIYHyABKAUSJAocUmVjb3JkVHlw",
+            "ZXNFbnRlcnByaXNlQ291bnRlchggIAEoBRIaChJyZWNvcmRUeXBlc0VuYWJs",
+            "ZWQYISABKAgSHAoUY2FuTWFuYWdlUmVjb3JkVHlwZXMYIiABKAgSHQoVcmVj",
+            "b3JkVHlwZXNQQU1Db3VudGVyGCMgASgFEhoKEmxvZ291dFRpbWVyTWludXRl",
+            "cxgkIAEoBRIgChhzZWN1cml0eUtleXNOb1VzZXJWZXJpZnkYJSABKAgSNgoI",
+            "Y2hhbm5lbHMYJiADKA4yJC5BdXRoZW50aWNhdGlvbi5Ud29GYWN0b3JDaGFu",
+            "bmVsVHlwZSImCghLZXlWYWx1ZRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiAB",
+            "KAkiLQoPS2V5VmFsdWVCb29sZWFuEgsKA2tleRgBIAEoCRINCgV2YWx1ZRgC",
+            "IAEoCCIqCgxLZXlWYWx1ZUxvbmcSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIg",
+            "ASgDIj0KBlJlc3VsdBISCgpyZXN1bHRDb2RlGAEgASgJEg8KB21lc3NhZ2UY",
+            "AiABKAkSDgoGcmVzdWx0GAMgASgJIsIBCgxFbmZvcmNlbWVudHMSKQoHc3Ry",
+            "aW5ncxgBIAMoCzIYLkFjY291bnRTdW1tYXJ5LktleVZhbHVlEjEKCGJvb2xl",
+            "YW5zGAIgAygLMh8uQWNjb3VudFN1bW1hcnkuS2V5VmFsdWVCb29sZWFuEisK",
+            "BWxvbmdzGAMgAygLMhwuQWNjb3VudFN1bW1hcnkuS2V5VmFsdWVMb25nEicK",
+            "BWpzb25zGAQgAygLMhguQWNjb3VudFN1bW1hcnkuS2V5VmFsdWUiPAoWTWlz",
+            "c2luZ0FjY291bnRTaGFyZUtleRIPCgdyb2xlX2lkGAEgASgDEhEKCXB1Ymxp",
+            "Y0tleRgCIAEoDCJ1CgxQYXNzd29yZFJ1bGUSEAoIcnVsZVR5cGUYASABKAkS",
+            "DwoHcGF0dGVybhgCIAEoCRINCgVtYXRjaBgDIAEoCBIPCgdtaW5pbXVtGAQg",
+            "ASgFEhMKC2Rlc2NyaXB0aW9uGAUgASgJEg0KBXZhbHVlGAYgASgJIpcBCgtT",
+            "ZWN1cml0eUtleRIQCghkZXZpY2VJZBgBIAEoAxISCgpkZXZpY2VOYW1lGAIg",
+            "ASgJEhEKCWRhdGVBZGRlZBgDIAEoAxIPCgdpc1ZhbGlkGAQgASgIEj4KEmRl",
+            "dmljZVJlZ2lzdHJhdGlvbhgFIAEoCzIiLkFjY291bnRTdW1tYXJ5LkRldmlj",
+            "ZVJlZ2lzdHJhdGlvbiJ5ChJEZXZpY2VSZWdpc3RyYXRpb24SEQoJa2V5SGFu",
+            "ZGxlGAEgASgJEhEKCXB1YmxpY0tleRgCIAEoDBIXCg9hdHRlc3RhdGlvbkNl",
+            "cnQYAyABKAkSDwoHY291bnRlchgEIAEoAxITCgtjb21wcm9taXNlZBgFIAEo",
+            "CCJrCgVHcm91cBINCgVhZG1pbhgBIAEoCBIdChVncm91cFZlcmlmaWNhdGlv",
+            "bkNvZGUYAiABKAkSNAoNYWRtaW5pc3RyYXRvchgEIAEoCzIdLkFjY291bnRT",
+            "dW1tYXJ5LkFkbWluaXN0cmF0b3IiwAEKDUFkbWluaXN0cmF0b3ISEQoJZmly",
+            "c3ROYW1lGAEgASgJEhAKCGxhc3ROYW1lGAIgASgJEg0KBWVtYWlsGAMgASgJ",
+            "EhwKFGN1cnJlbnROdW1iZXJPZlVzZXJzGAQgASgFEhUKDW51bWJlck9mVXNl",
+            "cnMYBSABKAUSGAoQc3Vic2NyaXB0aW9uQ29kZRgHIAEoCRIWCg5leHBpcmF0",
+            "aW9uRGF0ZRgIIAEoCRIUCgxwdXJjaGFzZURhdGUYCSABKAlCKgoYY29tLmtl",
+            "ZXBlcnNlY3VyaXR5LnByb3RvQg5BY2NvdW50U3VtbWFyeWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Authentication.APIRequestReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -139,7 +140,7 @@ namespace AccountSummary {
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.DeviceInfo), global::AccountSummary.DeviceInfo.Parser, new[]{ "EncryptedDeviceToken", "DeviceName", "DeviceStatus", "DevicePublicKey", "EncryptedDataKeyDoNotUse", "ClientVersion", "Username", "IpAddress", "ApproveRequestTime", "EncryptedDataKeyPresent", "GroupId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeysInfo), global::AccountSummary.KeysInfo.Parser, new[]{ "EncryptionParams", "EncryptedDataKey", "DataKeyBackupDate", "UserAuthUid", "EncryptedPrivateKey", "EncryptedEccPrivateKey", "EccPublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.SyncLog), global::AccountSummary.SyncLog.Parser, new[]{ "CountryName", "SecondsAgo", "DeviceName", "CountryCode", "DeviceUID", "IpAddress" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.License), global::AccountSummary.License.Parser, new[]{ "SubscriptionCode", "ProductTypeId", "ProductTypeName", "ExpirationDate", "SecondsUntilExpiration", "MaxDevices", "FilePlanType", "BytesUsed", "BytesTotal", "SecondsUntilStorageExpiration", "StorageExpirationDate", "HasAutoRenewableAppstoreSubscription", "AccountType", "UploadsRemaining", "EnterpriseId", "ChatEnabled", "AuditAndReportingEnabled", "BreachWatchFeatureDisable", "AccountUid", "AllowPersonalLicense", "LicensedBy", "Email", "BreachWatchEnabled", "BreachWatchScanned", "BreachWatchExpiration", "BreachWatchDateCreated", "Error", "PendingEnterprise" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.License), global::AccountSummary.License.Parser, new[]{ "SubscriptionCode", "ProductTypeId", "ProductTypeName", "ExpirationDate", "SecondsUntilExpiration", "MaxDevices", "FilePlanType", "BytesUsed", "BytesTotal", "SecondsUntilStorageExpiration", "StorageExpirationDate", "HasAutoRenewableAppstoreSubscription", "AccountType", "UploadsRemaining", "EnterpriseId", "ChatEnabled", "AuditAndReportingEnabled", "BreachWatchFeatureDisable", "AccountUid", "AllowPersonalLicense", "LicensedBy", "Email", "BreachWatchEnabled", "BreachWatchScanned", "BreachWatchExpiration", "BreachWatchDateCreated", "Error", "Expiration", "StorageExpiration", "UploadsCount", "Units", "PendingEnterprise" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.AddOn), global::AccountSummary.AddOn.Parser, new[]{ "LicenseKeyId", "Name", "ExpirationDate", "CreatedDate", "IsTrial", "Enabled", "Scanned", "FeatureDisable" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.Settings), global::AccountSummary.Settings.Parser, new[]{ "Audit", "MustPerformAccountShareBy", "ShareAccountTo", "Rules", "PasswordRulesIntro", "AutoBackupDays", "Theme", "Channel", "ChannelValue", "RsaConfigured", "EmailVerified", "MasterPasswordLastModified", "AccountFolderKey", "SecurityKeys", "KeyValues", "SsoUser", "OnlineAccessOnly", "MasterPasswordExpiry", "TwoFactorRequired", "DisallowExport", "RestrictFiles", "RestrictAllSharing", "RestrictSharing", "RestrictSharingIncomingAll", "RestrictSharingIncomingEnterprise", "LogoutTimer", "PersistentLogin", "IpDisableAutoApprove", "ShareDataKeyWithEccPublicKey", "ShareDataKeyWithDevicePublicKey", "RecordTypesCounter", "RecordTypesEnterpriseCounter", "RecordTypesEnabled", "CanManageRecordTypes", "RecordTypesPAMCounter", "LogoutTimerMinutes", "SecurityKeysNoUserVerify", "Channels" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AccountSummary.KeyValue), global::AccountSummary.KeyValue.Parser, new[]{ "Key", "Value" }, null, null, null, null),
@@ -2670,6 +2671,10 @@ namespace AccountSummary {
       breachWatchExpiration_ = other.breachWatchExpiration_;
       breachWatchDateCreated_ = other.breachWatchDateCreated_;
       error_ = other.error_ != null ? other.error_.Clone() : null;
+      expiration_ = other.expiration_;
+      storageExpiration_ = other.storageExpiration_;
+      uploadsCount_ = other.uploadsCount_;
+      units_ = other.units_;
       pendingEnterprise_ = other.pendingEnterprise_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -2719,6 +2724,9 @@ namespace AccountSummary {
     /// <summary>Field number for the "expirationDate" field.</summary>
     public const int ExpirationDateFieldNumber = 4;
     private string expirationDate_ = "";
+    /// <summary>
+    ///  see also expiration below
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string ExpirationDate {
@@ -2803,6 +2811,9 @@ namespace AccountSummary {
     /// <summary>Field number for the "storageExpirationDate" field.</summary>
     public const int StorageExpirationDateFieldNumber = 11;
     private string storageExpirationDate_ = "";
+    /// <summary>
+    ///  see also storageExpiration below
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string StorageExpirationDate {
@@ -3004,11 +3015,68 @@ namespace AccountSummary {
       }
     }
 
+    /// <summary>Field number for the "expiration" field.</summary>
+    public const int ExpirationFieldNumber = 29;
+    private long expiration_;
+    /// <summary>
+    ///repeated AddOn addOns = 28;
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long Expiration {
+      get { return expiration_; }
+      set {
+        expiration_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "storageExpiration" field.</summary>
+    public const int StorageExpirationFieldNumber = 30;
+    private long storageExpiration_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long StorageExpiration {
+      get { return storageExpiration_; }
+      set {
+        storageExpiration_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "uploadsCount" field.</summary>
+    public const int UploadsCountFieldNumber = 31;
+    private int uploadsCount_;
+    /// <summary>
+    ///ka-5890
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int UploadsCount {
+      get { return uploadsCount_; }
+      set {
+        uploadsCount_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "units" field.</summary>
+    public const int UnitsFieldNumber = 32;
+    private int units_;
+    /// <summary>
+    ///ka-6130
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Units {
+      get { return units_; }
+      set {
+        units_ = value;
+      }
+    }
+
     /// <summary>Field number for the "pendingEnterprise" field.</summary>
     public const int PendingEnterpriseFieldNumber = 33;
     private bool pendingEnterprise_;
     /// <summary>
-    ///repeated AddOn addOns = 28;
+    /// user has purchased enterprise license but no enterprise created yet
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -3061,6 +3129,10 @@ namespace AccountSummary {
       if (BreachWatchExpiration != other.BreachWatchExpiration) return false;
       if (BreachWatchDateCreated != other.BreachWatchDateCreated) return false;
       if (!object.Equals(Error, other.Error)) return false;
+      if (Expiration != other.Expiration) return false;
+      if (StorageExpiration != other.StorageExpiration) return false;
+      if (UploadsCount != other.UploadsCount) return false;
+      if (Units != other.Units) return false;
       if (PendingEnterprise != other.PendingEnterprise) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -3096,6 +3168,10 @@ namespace AccountSummary {
       if (BreachWatchExpiration != 0L) hash ^= BreachWatchExpiration.GetHashCode();
       if (BreachWatchDateCreated != 0L) hash ^= BreachWatchDateCreated.GetHashCode();
       if (error_ != null) hash ^= Error.GetHashCode();
+      if (Expiration != 0L) hash ^= Expiration.GetHashCode();
+      if (StorageExpiration != 0L) hash ^= StorageExpiration.GetHashCode();
+      if (UploadsCount != 0) hash ^= UploadsCount.GetHashCode();
+      if (Units != 0) hash ^= Units.GetHashCode();
       if (PendingEnterprise != false) hash ^= PendingEnterprise.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -3223,6 +3299,22 @@ namespace AccountSummary {
         output.WriteRawTag(218, 1);
         output.WriteMessage(Error);
       }
+      if (Expiration != 0L) {
+        output.WriteRawTag(232, 1);
+        output.WriteInt64(Expiration);
+      }
+      if (StorageExpiration != 0L) {
+        output.WriteRawTag(240, 1);
+        output.WriteInt64(StorageExpiration);
+      }
+      if (UploadsCount != 0) {
+        output.WriteRawTag(248, 1);
+        output.WriteInt32(UploadsCount);
+      }
+      if (Units != 0) {
+        output.WriteRawTag(128, 2);
+        output.WriteInt32(Units);
+      }
       if (PendingEnterprise != false) {
         output.WriteRawTag(136, 2);
         output.WriteBool(PendingEnterprise);
@@ -3345,6 +3437,22 @@ namespace AccountSummary {
         output.WriteRawTag(218, 1);
         output.WriteMessage(Error);
       }
+      if (Expiration != 0L) {
+        output.WriteRawTag(232, 1);
+        output.WriteInt64(Expiration);
+      }
+      if (StorageExpiration != 0L) {
+        output.WriteRawTag(240, 1);
+        output.WriteInt64(StorageExpiration);
+      }
+      if (UploadsCount != 0) {
+        output.WriteRawTag(248, 1);
+        output.WriteInt32(UploadsCount);
+      }
+      if (Units != 0) {
+        output.WriteRawTag(128, 2);
+        output.WriteInt32(Units);
+      }
       if (PendingEnterprise != false) {
         output.WriteRawTag(136, 2);
         output.WriteBool(PendingEnterprise);
@@ -3439,6 +3547,18 @@ namespace AccountSummary {
       }
       if (error_ != null) {
         size += 2 + pb::CodedOutputStream.ComputeMessageSize(Error);
+      }
+      if (Expiration != 0L) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(Expiration);
+      }
+      if (StorageExpiration != 0L) {
+        size += 2 + pb::CodedOutputStream.ComputeInt64Size(StorageExpiration);
+      }
+      if (UploadsCount != 0) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(UploadsCount);
+      }
+      if (Units != 0) {
+        size += 2 + pb::CodedOutputStream.ComputeInt32Size(Units);
       }
       if (PendingEnterprise != false) {
         size += 2 + 1;
@@ -3538,6 +3658,18 @@ namespace AccountSummary {
           Error = new global::AccountSummary.Result();
         }
         Error.MergeFrom(other.Error);
+      }
+      if (other.Expiration != 0L) {
+        Expiration = other.Expiration;
+      }
+      if (other.StorageExpiration != 0L) {
+        StorageExpiration = other.StorageExpiration;
+      }
+      if (other.UploadsCount != 0) {
+        UploadsCount = other.UploadsCount;
+      }
+      if (other.Units != 0) {
+        Units = other.Units;
       }
       if (other.PendingEnterprise != false) {
         PendingEnterprise = other.PendingEnterprise;
@@ -3672,6 +3804,22 @@ namespace AccountSummary {
             input.ReadMessage(Error);
             break;
           }
+          case 232: {
+            Expiration = input.ReadInt64();
+            break;
+          }
+          case 240: {
+            StorageExpiration = input.ReadInt64();
+            break;
+          }
+          case 248: {
+            UploadsCount = input.ReadInt32();
+            break;
+          }
+          case 256: {
+            Units = input.ReadInt32();
+            break;
+          }
           case 264: {
             PendingEnterprise = input.ReadBool();
             break;
@@ -3804,6 +3952,22 @@ namespace AccountSummary {
               Error = new global::AccountSummary.Result();
             }
             input.ReadMessage(Error);
+            break;
+          }
+          case 232: {
+            Expiration = input.ReadInt64();
+            break;
+          }
+          case 240: {
+            StorageExpiration = input.ReadInt64();
+            break;
+          }
+          case 248: {
+            UploadsCount = input.ReadInt32();
+            break;
+          }
+          case 256: {
+            Units = input.ReadInt32();
             break;
           }
           case 264: {

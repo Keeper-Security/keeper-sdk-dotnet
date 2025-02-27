@@ -25,7 +25,7 @@ namespace KeeperSecurity.Enterprise
 
         public EnterpriseDataEntity DataEntity { get; }
 
-        public KeeperEnterpriseDataEntity(EnterpriseDataEntity dataEntity)
+        protected KeeperEnterpriseDataEntity(EnterpriseDataEntity dataEntity)
         {
             DataEntity = dataEntity;
 
@@ -57,11 +57,11 @@ namespace KeeperSecurity.Enterprise
         where TK : IMessage<TK>
         where TS : class
     {
-        public EnterpriseSingleData(EnterpriseDataEntity dataEntity) : base(dataEntity)
+        protected EnterpriseSingleData(EnterpriseDataEntity dataEntity) : base(dataEntity)
         {
         }
 
-        public TS Entity { get; protected set; }
+        public TS Entity { get; private set; }
 
         protected abstract TS GetSdkFromKeeper(TK keeper);
 
@@ -92,9 +92,9 @@ namespace KeeperSecurity.Enterprise
         where TK : IMessage<TK>
         where TS : class, new()
     {
-        internal readonly ConcurrentDictionary<TD, TS> _entities = new ConcurrentDictionary<TD, TS>();
+        internal readonly ConcurrentDictionary<TD, TS> _entities = new();
 
-        public EnterpriseDataDictionary(EnterpriseDataEntity dataEntity) : base(dataEntity)
+        protected EnterpriseDataDictionary(EnterpriseDataEntity dataEntity) : base(dataEntity)
         {
         }
 
@@ -148,12 +148,12 @@ namespace KeeperSecurity.Enterprise
     where TK : IMessage<TK>
     where TS : class, new()
     {
-        internal readonly List<TS> _entities = new List<TS>();
+        private readonly List<TS> _entities = new();
 
         protected abstract bool MatchByKeeperEntity(TS sdkEntity, TK keeperEntity);
         protected abstract TS CreateFromKeeperEntity(TK keeperEntity);
 
-        public EnterpriseDataList(EnterpriseDataEntity dataEntity) : base(dataEntity)
+        protected EnterpriseDataList(EnterpriseDataEntity dataEntity) : base(dataEntity)
         {
         }
 
@@ -195,10 +195,9 @@ namespace KeeperSecurity.Enterprise
         where TD1 : IComparable<TD1>
         where TD2 : IComparable<TD2>
     {
+        private readonly List<TS> _links = new();
 
-        protected readonly List<TS> _links = new List<TS>();
-
-        public EnterpriseDataLink(EnterpriseDataEntity dataEntity) : base(dataEntity)
+        protected EnterpriseDataLink(EnterpriseDataEntity dataEntity) : base(dataEntity)
         {
         }
 
@@ -208,7 +207,10 @@ namespace KeeperSecurity.Enterprise
 
         public override void Clear()
         {
-            _links.Clear();
+            lock (_links)
+            {
+                _links.Clear();
+            }
         }
 
         public IList<TS> LinksForPrimaryKey(TD1 primaryId)
@@ -260,5 +262,4 @@ namespace KeeperSecurity.Enterprise
             DataStructureChanged();
         }
     }
-
 }

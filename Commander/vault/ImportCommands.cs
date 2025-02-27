@@ -29,12 +29,12 @@ namespace Commander
                 throw new Exception($"File \"{options.FileName}\" does not exist");
             }
             var json = File.ReadAllText(options.FileName);
-            var j_options = new ZeroDep.JsonOptions
+            var jOptions = new ZeroDep.JsonOptions
             {
                 DateTimeStyles = DateTimeStyles.None,
             };
-            j_options.SerializationOptions &= ~ZeroDep.JsonSerializationOptions.AutoParseDateTime;
-            var j = ZeroDep.Json.Deserialize<Dictionary<string, object>>(json, j_options);
+            jOptions.SerializationOptions &= ~ZeroDep.JsonSerializationOptions.AutoParseDateTime;
+            var j = ZeroDep.Json.Deserialize<Dictionary<string, object>>(json, jOptions);
             var import = KeeperImport.LoadJsonDictionary(j);
             var result = await context.Vault.ImportJson(import, Logger);
             var table = new Tabulate(2)
