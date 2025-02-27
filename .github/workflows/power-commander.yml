@@ -10,28 +10,45 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Load signing certificate
+      - name: Set up certificate
         run: |
-          if (Test-Path -Path certificate.txt) { Remove-Item certificate.txt }
-          if (Test-Path -Path certificate.pfx) { Remove-Item certificate.pfx }
-          Set-Content -Path certificate.txt -Value '${{ secrets.PFX_CERT }}'
-          certutil -decode certificate.txt certificate.pfx
-          Remove-Item certificate.txt
-        shell: powershell
+          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
+        shell: bash
+
+      - name: Set variables
+        id: variables
+        run: |
+           echo "::set-output name=version::${GITHUB_REF#refs/tags/v}" 
+           echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV" 
+           echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV" 
+           echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV" 
+           echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV" 
+           echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH 
+           echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH 
+           echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Setup SSM KSP on windows latest
+        run: |
+           curl -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/smtools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o smtools-windows-x64.msi 
+           msiexec /i smtools-windows-x64.msi /quiet /qn 
+           smksp_registrar.exe list 
+           smctl.exe keypair ls 
+           C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user 
+           smksp_cert_sync.exe
+        shell: cmd
 
       - name: Sign PowerShell scripts
         working-directory: ./PowerCommander
         run: |
-          $certPassword = ConvertTo-SecureString -String "${{ secrets.PFX_PASS }}" -AsPlainText -Force
-          $certData = Get-PfxData -FilePath "..\certificate.pfx" -Password $certPassword
-          $cert = $certData.EndEntityCertificates[0]
-          Set-AuthenticodeSignature -FilePath *.ps1 -Certificate $cert
-          Set-AuthenticodeSignature -FilePath *.ps1xml -Certificate $cert
-          Set-AuthenticodeSignature -FilePath PowerCommander.psd1 -Certificate $cert
-          Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert
+          $cert = Get-ChildItem -Path Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} -CodeSigningCert
+          Set-AuthenticodeSignature -FilePath *.ps1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          Set-AuthenticodeSignature -FilePath *.ps1xml -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          Set-AuthenticodeSignature -FilePath PowerCommander.psd1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
         shell: powershell      
 
-      - name: Publish to PowerShell Gallery
-        run: |
-          Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
-        shell: powershell      
+#      - name: Publish to PowerShell Gallery
+#        run: |
+#          Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
+#        shell: powershell      
