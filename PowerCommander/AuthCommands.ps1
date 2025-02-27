@@ -6,7 +6,16 @@ $expires = @(
     [KeeperSecurity.Authentication.TwoFactorDuration]::Forever)
 
 function Test-InteractiveSession {
-    return $Host.Name -eq 'ConsoleHost' -and $Host.UI.SupportsVirtualTerminal
+    if ($psISE) {
+        return $true
+    }
+    if ($PSIsInteractive) {
+        return $true
+    }
+    if ($PSPrivateMetadata.JobId) {
+        return $false
+    }
+    return $Host.UI.SupportsVirtualTerminal
 }
 
 function twoFactorChannelToText ([KeeperSecurity.Authentication.TwoFactorChannel] $channel) {

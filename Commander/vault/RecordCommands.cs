@@ -18,8 +18,7 @@ namespace Commander
     internal partial class VaultContext
     {
 
-        private static readonly Tuple<string, bool>[] Prefixes = { Tuple.Create("field.", true), Tuple.Create("f.", true), Tuple.Create("custom.", false), Tuple.Create("c.", false) };
-        private const string FieldPattern = @"^(\w+)(\.[^\[]+)?(\[*.\])?\s*=\s*(.*)$";
+        private const string FieldPattern = @"^([^\[\.]+)(\.[^\[]+)?(\[.*\])?\s*=\s*(.*)$";
 
         public static IEnumerable<CmdLineRecordField> ParseRecordFields(IEnumerable<string> inputs)
         {
@@ -28,17 +27,6 @@ namespace Commander
             {
                 var field = f;
                 var crf = new CmdLineRecordField();
-                foreach (var pair in Prefixes)
-                {
-                    var prefix = pair.Item1;
-                    var isField = pair.Item2;
-                    if (field.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        crf.IsRecordField = isField;
-                        field = field.Substring(prefix.Length);
-                        break;
-                    }
-                }
                 var match = rx.Match(field);
                 if (!match.Success || match.Groups.Count < 5)
                 {
@@ -83,6 +71,11 @@ namespace Commander
             }
             else if (record is TypedRecord typed)
             {
+                if (Vault.TryGetRecordTypeByName(typed.TypeName, out var recordType))
+                {
+                    VerifyTypedFields(fields, recordType);
+                }
+
                 var indexes = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
                 foreach (var f in typed.Fields.Concat(typed.Custom))
                 {
@@ -92,11 +85,6 @@ namespace Commander
                     {
                         indexes.Add($"{fullName}[{i}]", i);
                     }
-                }
-
-                if (Vault.TryGetRecordTypeByName(typed.TypeName, out var recordType))
-                {
-                    VerifyTypedFields(fields, recordType);
                 }
 
                 var fieldSet = fields.Where(x => !string.IsNullOrEmpty(x.Value)).ToArray();
@@ -117,20 +105,22 @@ namespace Commander
                     }
                     else
                     {
-                        var fieldSource = field.IsRecordField == true ? typed.Fields : typed.Custom;
-                        if (!fieldSource.FindTypedField(field, out var typedField))
+                        if (!typed.FindTypedField(field, out var typedField))
                         {
                             if (string.IsNullOrEmpty(field.Value)) continue;
-
                             typedField = field.CreateTypedField();
-                            fieldSource.Add(typedField);
+                            typed.Custom.Add(typedField);
                         }
+
 
                         if (string.IsNullOrEmpty(field.Value))
                         {
                             if (string.IsNullOrEmpty(field.FieldIndex))
                             {
-                                fieldSource.Remove(typedField);
+                                while (typedField.Count > 0)
+                                {
+                                    typedField.DeleteValueAt(0);
+                                }
                             }
                             else
                             {
@@ -204,11 +194,6 @@ namespace Commander
 
         private void VerifyTypedFields(CmdLineRecordField[] fields, RecordType recordType)
         {
-            var recordFields = new Dictionary<string, RecordTypeField>(StringComparer.InvariantCultureIgnoreCase);
-            foreach (var f in recordType.Fields)
-            {
-                recordFields[f.FieldName] = f;
-            }
             foreach (var field in fields)
             {
                 if (string.Equals(field.FieldName, "notes", StringComparison.InvariantCultureIgnoreCase))
@@ -216,28 +201,19 @@ namespace Commander
                     continue;
                 }
 
-                if (!field.IsRecordField.HasValue)
-                {
-                    if (recordFields.TryGetValue(field.FieldName, out var rtf))
-                    {
-                        field.FieldLabel = rtf.FieldLabel;
-                        field.IsRecordField = true;
-                        if (rtf.RecordField.Multiple == RecordFieldMultiple.Always)
-                        {
-                            recordFields.Remove(field.FieldName);
-                        }
-                    }
-                    else
-                    {
-                        field.IsRecordField = false;
-                    }
-                }
-
                 if (string.IsNullOrEmpty(field.Value)) continue;
 
                 if (!RecordTypesConstants.TryGetRecordField(field.FieldName, out var recordField))
                 {
-                    throw new Exception($"Record field \"{field.FieldName}\" is not supported.");
+                    if (string.IsNullOrEmpty(field.FieldLabel))
+                    {
+                        field.FieldLabel = field.FieldName;
+                        field.FieldName = "text";
+                    }
+                    else
+                    {
+                        throw new Exception($"Record field \"{field.FieldName}\" is not supported.");
+                    }
                 }
 
                 if (string.IsNullOrEmpty(field.FieldIndex)) continue;
@@ -398,10 +374,25 @@ namespace Commander
             }
             else
             {
-                record = new TypedRecord(options.RecordType)
+                var typedRecord = new TypedRecord(options.RecordType)
                 {
                     Title = options.Title
                 };
+
+                if (context.Vault.TryGetRecordTypeByName(options.RecordType, out var rt))
+                {
+                    foreach (var rtf in rt.Fields)
+                    {
+                        try
+                        {
+                            var field = rtf.CreateTypedField();
+                            typedRecord.Fields.Add(field);
+                        }
+                        catch { /* ignored */ }
+                    }
+                }
+
+                record = typedRecord;
             }
             if (options.Generate)
             {
@@ -778,7 +769,7 @@ namespace Commander
         [Option("title", Required = false, HelpText = "title")]
         public string Title { get; set; }
 
-        [Option('t', "type", Required = true, HelpText = "record type. typed records only.")]
+        [Option('t', "type", Required = false, HelpText = "record type. typed records only.")]
         public string RecordType { get; set; }
 
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
@@ -896,7 +887,6 @@ namespace Commander
 
     class CmdLineRecordField : IRecordTypeField
     {
-        public bool? IsRecordField { get; set; }
         public string FieldName { get; set; }
         public string FieldLabel { get; set; }
         public string FieldIndex { get; set; }

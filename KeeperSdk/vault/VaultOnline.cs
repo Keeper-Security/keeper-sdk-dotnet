@@ -335,14 +335,30 @@ namespace KeeperSecurity.Vault
         /// <inheritdoc/>
         public async Task<ShareWithUsers> GetUsersForShare()
         {
-            var request = new GetShareAutoCompleteCommand();
-            var response = await Auth.ExecuteAuthCommand<GetShareAutoCompleteCommand, GetShareAutoCompleteResponse>(request);
-            return new ShareWithUsers
-            {
-                SharesWith = response.SharesWithUsers?.Select(x => x.Email).ToArray() ?? Array.Empty<string>(),
-                SharesFrom = response.SharesFromUsers?.Select(x => x.Email).ToArray() ?? Array.Empty<string>(),
-                GroupUsers = response.GroupUsers?.Select(x => x.Email).ToArray() ?? Array.Empty<string>(),
-            };
+            var rs = await Auth.ExecuteAuthRest<GetShareObjectsRequest, GetShareObjectsResponse>("vault/get_share_objects", new GetShareObjectsRequest());
+
+            var response = new ShareWithUsers();
+            var directUsers = new HashSet<string>();
+            directUsers.UnionWith(rs.ShareRelationships.Where(x => x.Status == ShareStatus.Active).Select(x => x.Username));
+            response.SharesWith = directUsers.ToArray();
+
+            var familyUsers = new HashSet<string>();
+            familyUsers.UnionWith(rs.ShareFamilyUsers.Where(x => x.Status == ShareStatus.Active).Select(x => x.Username));
+            familyUsers.ExceptWith(directUsers);
+            familyUsers.Remove(Auth.Username);
+            response.SharesFrom = familyUsers.ToArray();
+
+            var uniqueUsers = new HashSet<string>();
+            uniqueUsers.UnionWith(rs.ShareEnterpriseUsers.Where(x => x.Status == ShareStatus.Active).Select(x => x.Username));
+            uniqueUsers.ExceptWith(directUsers);
+            uniqueUsers.ExceptWith(familyUsers);
+            uniqueUsers.Remove(Auth.Username);
+            response.GroupUsers = uniqueUsers.ToArray();
+
+            uniqueUsers.Clear();
+            uniqueUsers.UnionWith(rs.ShareRelationships.Where(x => x.Status == ShareStatus.Active).Select(x => x.Username));
+
+            return response;
         }
 
         /// <inheritdoc/>
