@@ -381,9 +381,9 @@ function Connect-Keeper {
     }
 
 
-    $endpoint = New-Object KeeperSecurity.Authentication.KeeperEndpoint($Server, $storage.Servers)
+    $endpoint = New-Object KeeperSecurity.Authentication.KeeperEndpoint($storage, $Server)
     $endpoint.DeviceName = 'PowerShell Commander'
-    $endpoint.ClientVersion = 'c16.1.0'
+    $endpoint.ClientVersion = 'c16.11.0'
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
 
     $authFlow.ResumeSession = $true
