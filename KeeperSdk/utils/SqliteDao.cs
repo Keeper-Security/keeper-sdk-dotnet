@@ -312,13 +312,75 @@ namespace KeeperSecurity.Utils
             }
         }
 
+        private static DataTable GetTables(this DbConnection connection)
+        {
+            var schema = new DataTable();
+            schema.Columns.Add("TABLE_CATALOG", typeof(string));
+            schema.Columns.Add("TABLE_SCHEMA", typeof(string));
+            schema.Columns.Add("TABLE_NAME", typeof(string));
+            schema.Columns.Add("TABLE_TYPE", typeof(string));
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var row = schema.NewRow();
+                row["TABLE_CATALOG"] = connection.DataSource;
+                row["TABLE_SCHEMA"] = DBNull.Value; // SQLite doesn't have schemas
+                row["TABLE_NAME"] = reader.GetString(0);
+                row["TABLE_TYPE"] = "TABLE";
+                schema.Rows.Add(row);
+            }
+            return schema;
+        }
+
+        public static DataTable GetColumns(this DbConnection connection, IEnumerable<string> tableNames)
+        {
+            // Create a DataTable that matches the schema of GetSchema("Columns")
+            var schema = new DataTable();
+            schema.Columns.Add("TABLE_CATALOG", typeof(string));
+            schema.Columns.Add("TABLE_SCHEMA", typeof(string));
+            schema.Columns.Add("TABLE_NAME", typeof(string));
+            schema.Columns.Add("COLUMN_NAME", typeof(string));
+            schema.Columns.Add("DATA_TYPE", typeof(string));
+            schema.Columns.Add("COLUMN_DEFAULT", typeof(string));
+            schema.Columns.Add("IS_NULLABLE", typeof(bool));
+            schema.Columns.Add("ORDINAL_POSITION", typeof(int));
+
+
+            // Then get column info for each table
+            foreach (var tableName in tableNames)
+            {
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = $"PRAGMA table_info('{tableName}')";
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var row = schema.NewRow();
+                    row["TABLE_CATALOG"] = connection.DataSource;
+                    row["TABLE_SCHEMA"] = DBNull.Value; // SQLite doesn't have schemas
+                    row["TABLE_NAME"] = tableName;
+                    row["COLUMN_NAME"] = reader["name"];
+                    row["DATA_TYPE"] = reader["type"];
+                    row["COLUMN_DEFAULT"] = reader["dflt_value"] == DBNull.Value ? DBNull.Value : reader["dflt_value"];
+                    row["IS_NULLABLE"] = Convert.ToInt32(reader["notnull"]) == 0;
+                    row["ORDINAL_POSITION"] = Convert.ToInt32(reader["cid"]);
+                    schema.Rows.Add(row);
+                }
+            }
+            return schema;
+        }
+
         public static List<string> VerifyDatabase(DbConnection connection, params TableSchema[] schemas)
         {
             var ddlStatements = new List<string>();
             
             var allTables = new Dictionary<string, ISet<string>>(StringComparer.InvariantCultureIgnoreCase);
 
-            var dbTables = connection.GetSchema("Tables");
+            var dbTables = connection.GetTables();
             if (dbTables.Columns.Contains("TABLE_NAME"))
             {
                 foreach (DataRow row in dbTables.Rows)
@@ -328,7 +390,7 @@ namespace KeeperSecurity.Utils
                 }
             }
 
-            var dbColumns = connection.GetSchema("Columns");
+            var dbColumns = connection.GetColumns(allTables.Keys);
             if (dbColumns.Columns.Contains("TABLE_NAME") && dbColumns.Columns.Contains("COLUMN_NAME"))
             {
                 foreach (DataRow row in dbColumns.Rows)

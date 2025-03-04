@@ -441,7 +441,7 @@ namespace Commander
                     return;
                 }
             }
-            
+
             if (!string.IsNullOrEmpty(options.Title))
             {
                 record.Title = options.Title;

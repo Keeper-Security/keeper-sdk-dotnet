@@ -29,7 +29,7 @@ namespace Commander
             Console.CancelKeyPress += (s, e) => { e.Cancel = true; };
             Utils.Welcome();
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            
+
             var configFile = "";
             Parser.Default.ParseArguments<CommanderLaunchOptions>(args).WithParsed(x =>
             {
@@ -38,7 +38,7 @@ namespace Commander
                     configFile = x.Config;
                 }
             });
-                
+
             CommanderStorage = StorageUtils.SetupCommanderStorage(configFile);
             MainLoop.StateContext = new NotConnectedCliContext(true);
 

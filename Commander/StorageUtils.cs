@@ -1,5 +1,5 @@
 ﻿using System.Configuration;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -61,13 +61,13 @@ namespace Commander
             _databaseName = Path.Combine(path, "keeper_db.sqlite");
         }
 
-        private SQLiteConnection _connection;
+        private SqliteConnection _connection;
 
-        private SQLiteConnection GetSqliteConnection()
+        private SqliteConnection GetSqliteConnection()
         {
             if (_connection == null)
             {
-                _connection = new SQLiteConnection($"Data Source={_databaseName};");
+                _connection = new SqliteConnection($"Data Source={_databaseName};");
                 _connection.Open();
             }
 

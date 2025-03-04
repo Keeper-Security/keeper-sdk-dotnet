@@ -79,6 +79,15 @@ jobs:
           dotnet pack --no-build --no-restore --no-dependencies /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell      
 
+      - name: Store SDK Nuget artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeeperSdk-${{ env.PACKAGE_VERSION }}-Nuget-Package
+          path: |
+            KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg
+            KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.snupkg
+          retention-days: 1
+
       - name: Build CLI library
         working-directory: ./Cli
         run: |
@@ -102,7 +111,7 @@ jobs:
         working-directory: "./Commander/bin/Release/net472"
         run: |
           $params = @{
-            Path = "*.exe", "Commander.exe.config", "*.dll", "x64/", "x86/"
+            Path = "*.exe", "*.dll", "Commander.exe.config"
             CompressionLevel = "Fastest"
             DestinationPath = "Commander-win-${Env:PACKAGE_VERSION}.zip"
           }
@@ -119,15 +128,6 @@ jobs:
           }
           Compress-Archive @params
         shell: powershell
-
-      - name: Store SDK Nuget artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: KeeperSdk-${{ env.PACKAGE_VERSION }}-Nuget-Package
-          path: |
-            KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg
-            KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.snupkg
-          retention-days: 1
 
       - name: Store Commander artifacts
         uses: actions/upload-artifact@v4
