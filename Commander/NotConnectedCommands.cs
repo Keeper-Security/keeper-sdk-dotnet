@@ -55,7 +55,7 @@ namespace Commander
 
             _auth = new AuthSync(storage)
             {
-                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c16.11.0" }
+                Endpoint = { DeviceName = "Commander C#", ClientVersion = "c17.0.0" }
             };
 
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>

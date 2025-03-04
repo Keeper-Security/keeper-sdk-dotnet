@@ -391,8 +391,7 @@ namespace KeeperSecurity.Vault
                         Message = $"Record \"{record.Uid}\" not found.",
                     });
                 }
-
-                if (record is PasswordRecord password)
+                else if (record is PasswordRecord password)
                 {
                     if (!v2Records.ContainsKey(password.Uid))
                     {

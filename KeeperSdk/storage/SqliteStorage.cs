@@ -165,7 +165,7 @@ namespace KeeperSecurity.Storage
                     }
 
                     stmt.Append(string.Join(", ", Schema.Columns.Select(x => $"@{x}")));
-                    stmt.Append(")");
+                    stmt.Append(')');
 
                     _putStatement = stmt.ToString();
                 }
@@ -234,7 +234,7 @@ namespace KeeperSecurity.Storage
                     var column = Schema.ColumnMap[parameterName];
                     if (column?.GetMethod != null)
                     {
-                        parameter.Value = column.GetMethod.Invoke(data, null);
+                        parameter.Value = column.GetMethod.Invoke(data, null) ?? DBNull.Value;
                     }
                 }
             }

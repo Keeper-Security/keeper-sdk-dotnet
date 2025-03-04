@@ -583,7 +583,7 @@ namespace KeeperSecurity.Vault
 
             var response = await Auth.ExecuteAuthRest<RecordShareUpdateRequest, RecordShareUpdateResponse>("vault/records_share_update", request);
             var status = response.RemoveSharedRecordStatus
-                .FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) && 
+                .FirstOrDefault(x => x.RecordUid.SequenceEqual(recordUid.Base64UrlDecode()) &&
                                      string.Equals(x.Username, username, StringComparison.InvariantCultureIgnoreCase));
             if (status != null && status.Status != "success")
             {
