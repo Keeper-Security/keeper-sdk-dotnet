@@ -42,7 +42,7 @@ namespace Commander
 
     internal static class EnterpriseExtensions
     {
-        internal static void AppendEnterpriseCommands(this IEnterpriseContext context, Cli.CliCommands cli)
+        internal static void AppendEnterpriseCommands(this IEnterpriseContext context, CliCommands cli)
         {
             cli.Commands.Add("enterprise-get-data",
                 new Cli.SimpleCommand

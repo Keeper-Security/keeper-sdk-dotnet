@@ -1,11 +1,10 @@
-﻿using Cli;
-using CommandLine;
+﻿using CommandLine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Commander
+namespace Cli
 {
     public class ParseableCommandMeta<T> : ICommandMeta where T : class
     {
