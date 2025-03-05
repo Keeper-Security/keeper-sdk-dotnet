@@ -3,10 +3,10 @@
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
     <RootNamespace>Cli</RootNamespace>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <PackageId>Keeper.Cli</PackageId>
-    <AssemblyVersion>1.0.3.4</AssemblyVersion>
-    <FileVersion>1.0.3.4</FileVersion>
+    <AssemblyVersion>1.0.4.6</AssemblyVersion>
+    <FileVersion>1.0.4.6</FileVersion>
     <RepositoryUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet/Cli</PackageProjectUrl>
     <Authors>Keeper Security Inc.</Authors>
@@ -18,6 +18,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\KeeperSdk\KeeperSdk.csproj" />

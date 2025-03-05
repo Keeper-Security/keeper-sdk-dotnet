@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.IO;
+
 
 #if NET472_OR_GREATER
 using System.Text;
@@ -26,13 +28,15 @@ namespace Cli
                 var fileName = Process.GetCurrentProcess().MainModule?.FileName;
                 if (!string.IsNullOrEmpty(fileName))
                 {
-                    var ver = FileVersionInfo.GetVersionInfo(fileName);
-                    if (ver.ProductMajorPart > 0)
-                    {
-                        version = $"{ver.ProductMajorPart}.{ver.ProductMinorPart}.{ver.ProductBuildPart}";
-                        product = ver.ProductName;
+                    var executable = Path.GetFileNameWithoutExtension(fileName);
+                    if (!string.Equals(executable, "dotnet")) {
+                        var ver = FileVersionInfo.GetVersionInfo(fileName);
+                        if (ver.ProductMajorPart > 0)
+                        {
+                            version = $"{ver.ProductMajorPart}.{ver.ProductMinorPart}.{ver.ProductBuildPart}";
+                            product = ver.ProductName;
+                        }
                     }
-                    
                 }
             }
             catch { /*ignored*/ }
