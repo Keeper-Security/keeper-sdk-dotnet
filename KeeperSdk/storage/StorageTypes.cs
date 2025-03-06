@@ -16,6 +16,7 @@ namespace KeeperSecurity.Storage
         string ObjectUid { get; }
     }
 
+    /// <exclude/>
     public class EqualityComparerIUidLink : EqualityComparer<IUidLink>
     {
         private EqualityComparerIUidLink()
@@ -39,8 +40,9 @@ namespace KeeperSecurity.Storage
             return Tuple.Create(obj.SubjectUid ?? "", obj.ObjectUid ?? "").GetHashCode();
         }
     }
-    
-    
+
+
+    /// <exclude/>
     internal class UidLink : Tuple<string, string>, IUidLink
     {
         private UidLink(string subjectUid, string objectUid) : base(subjectUid, objectUid ?? "")

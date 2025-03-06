@@ -8,6 +8,7 @@ using KeeperSecurity.Utils;
 namespace KeeperSecurity.Storage
 {
 
+    /// <exclude/>
     public abstract class SqliteStorage
     {
         protected SqliteStorage(Func<IDbConnection> getConnection, TableSchema schema, object ownerId = null)
@@ -212,6 +213,7 @@ namespace KeeperSecurity.Storage
         protected Func<IDbConnection> GetConnection { get; }
     }
 
+    /// <exclude/>
     public class SqliteDataStorage<T> : SqliteStorage
         where T : class, new()
     {
@@ -241,6 +243,7 @@ namespace KeeperSecurity.Storage
         }
     }
 
+    /// <exclude/>
     public sealed class SqliteRecordStorage<T, TD> : SqliteDataStorage<TD>, IRecordStorage<T> 
         where TD : class, T, IEntityCopy<T>, new()
     {
@@ -279,6 +282,7 @@ namespace KeeperSecurity.Storage
         }
     }
 
+    /// <exclude/>
     public sealed class SqliteEntityStorage<T, TD> : SqliteDataStorage<TD>, IEntityStorage<T>
         where T : IUid
         where TD : class, T, IEntityCopy<T>, new()
@@ -343,6 +347,7 @@ namespace KeeperSecurity.Storage
         }
     }
 
+    /// <exclude/>
     public sealed class SqliteLinkStorage<T, TD> : SqliteDataStorage<TD>, ILinkStorage<T>
         where T : IUidLink
         where TD : class, T, IEntityCopy<T>, new()

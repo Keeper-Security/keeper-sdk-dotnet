@@ -105,6 +105,9 @@ namespace KeeperSecurity.Authentication
         public byte[] EcPublicKey { get; }
     }
 
+    /// <summary>
+    /// Defines methods for loading public keys
+    /// </summary>
     public interface IKeyLoader
     {
         /// <summary>

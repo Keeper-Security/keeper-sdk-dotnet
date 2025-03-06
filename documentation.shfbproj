@@ -1,11 +1,11 @@
-﻿<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Import the common properties to support NuGet restore -->
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup>
     <!-- A framework version is required for NuGet restore.  This can be any valid version -->
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <!-- The configuration and platform will be used to determine which assemblies to include from solution and
-				 project documentation sources -->
+         project documentation sources -->
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
@@ -16,13 +16,13 @@
     <RootNamespace>Documentation</RootNamespace>
     <Name>Documentation</Name>
     <!-- SHFB properties -->
-    <FrameworkVersion>.NET Framework 4.7.2</FrameworkVersion>
+    <FrameworkVersion>.NET Framework 4.8</FrameworkVersion>
     <OutputPath>.\Help\</OutputPath>
     <HtmlHelpName>Documentation</HtmlHelpName>
     <Language>en-US</Language>
     <HelpFileFormat>Website</HelpFileFormat>
     <SyntaxFilters>C#</SyntaxFilters>
-    <PresentationStyle>VS2013</PresentationStyle>
+    <PresentationStyle>Default2022</PresentationStyle>
     <CleanIntermediates>True</CleanIntermediates>
     <KeepLogFile>False</KeepLogFile>
     <DisableCodeBlockComponent>False</DisableCodeBlockComponent>
@@ -36,35 +36,51 @@
     <VisibleItems>ProtectedInternalAsProtected</VisibleItems>
     <NamespaceSummaries>
       <NamespaceSummaryItem name="AccountSummary" isDocumented="False" />
-      <NamespaceSummaryItem name="Authentication" isDocumented="False" />
-      <NamespaceSummaryItem name="BreachWatch" isDocumented="False" />
-      <NamespaceSummaryItem name="Enterprise" isDocumented="False" />
-      <NamespaceSummaryItem name="KeeperSecurity.Sdk" isDocumented="False" />
-      <NamespaceSummaryItem name="MimeTypes" isDocumented="False" />
-      <NamespaceSummaryItem name="Push" isDocumented="False" />
-      <NamespaceSummaryItem name="SsoCloud" isDocumented="False" />
-      <NamespaceSummaryItem name="KeeperSecurity.Sdk.Commands" isDocumented="False" />
-      <NamespaceSummaryItem name="KeeperSecurity" isDocumented="True" />
-      <NamespaceSummaryItem name="KeeperSecurity.Commands" isDocumented="False" />
-      <NamespaceSummaryItem name="(global)" isDocumented="False" />
-      <NamespaceSummaryItem name="KeeperSecurity.Configuration" isDocumented="True" />
-      <NamespaceSummaryItem name="KeeperSecurity.Enterprise" isDocumented="True" />
-      <NamespaceSummaryItem name="KeeperSecurity.Utils" isDocumented="True" />
-      <NamespaceSummaryItem name="KeeperSecurity.Vault" isDocumented="True" />
-      <NamespaceSummaryItem name="Folder" isDocumented="False" />
-      <NamespaceSummaryItem name="Records" isDocumented="False" />
-      <NamespaceSummaryItem name="Tokens" isDocumented="False" />
-      <NamespaceSummaryItem name="BI" isDocumented="False" />
-    </NamespaceSummaries>
+<NamespaceSummaryItem name="Authentication" isDocumented="False" />
+<NamespaceSummaryItem name="BreachWatch" isDocumented="False" />
+<NamespaceSummaryItem name="Enterprise" isDocumented="False" />
+<NamespaceSummaryItem name="KeeperSecurity.Sdk" isDocumented="False" />
+<NamespaceSummaryItem name="MimeTypes" isDocumented="False" />
+<NamespaceSummaryItem name="Push" isDocumented="False" />
+<NamespaceSummaryItem name="SsoCloud" isDocumented="False" />
+<NamespaceSummaryItem name="KeeperSecurity.Sdk.Commands" isDocumented="False" />
+<NamespaceSummaryItem name="KeeperSecurity" isDocumented="True" />
+<NamespaceSummaryItem name="KeeperSecurity.Commands" isDocumented="False" />
+<NamespaceSummaryItem name="(global)" isDocumented="False" />
+<NamespaceSummaryItem name="KeeperSecurity.Configuration" isDocumented="True" />
+<NamespaceSummaryItem name="KeeperSecurity.Enterprise" isDocumented="True" />
+<NamespaceSummaryItem name="KeeperSecurity.Utils" isDocumented="True" />
+<NamespaceSummaryItem name="KeeperSecurity.Vault" isDocumented="True" />
+<NamespaceSummaryItem name="Folder" isDocumented="False" />
+<NamespaceSummaryItem name="Records" isDocumented="False" />
+<NamespaceSummaryItem name="Tokens" isDocumented="False" />
+<NamespaceSummaryItem name="BI" isDocumented="False" />
+<NamespaceSummaryItem name="Vault" isDocumented="False" />
+<NamespaceSummaryItem name="KeeperSecurity.Vault.Commands" isDocumented="False" /></NamespaceSummaries>
     <ComponentConfigurations>
-      <ComponentConfig id="Syntax Component" enabled="True" xmlns="">
+      <ComponentConfig id="Syntax Component" enabled="True">
         <component id="Syntax Component">
-          <syntax input="/document/reference" output="/document/syntax" renderReferenceLinks="false" />
-          <generators>
-    {@SyntaxFilters}
-</generators>
-          <containerElement name="codeSnippetGroup" addNoExampleTabs="true" includeOnSingleSnippets="false" groupingEnabled="{@CodeSnippetGrouping}" />
-        </component>
+  <syntax input="/document/reference" output="/document/syntax" renderReferenceLinks="true" />
+  <generators>{@SyntaxFilters}</generators>
+  <containerElement addNoExampleTabs="true" groupingEnabled="{@CodeSnippetGrouping}" includeOnSingleSnippets="false" name="codeSnippetGroup" />
+  <configurations>
+    <generator id="C#" />
+    <generator id="Visual Basic">
+      <includeLineContinuation value="false" />
+    </generator>
+    <generator id="Visual Basic Usage">
+      <includeLineContinuation value="false" />
+    </generator>
+    <generator id="Managed C++" />
+    <generator id="F#" />
+    <generator id="J#" />
+    <generator id="JScript" />
+    <generator id="JavaScript" />
+    <generator id="XAML Usage" />
+    <generator id="ASP.NET" />
+    <generator id="X#" />
+  </configurations>
+</component>
       </ComponentConfig>
     </ComponentConfigurations>
     <HelpTitle>Keeper SDK Class Library</HelpTitle>
@@ -76,45 +92,30 @@
     <MaximumGroupParts>2</MaximumGroupParts>
     <Preliminary>False</Preliminary>
     <SdkLinkTarget>Blank</SdkLinkTarget>
-    <ProjectSummary>
-    </ProjectSummary>
+    <ProjectSummary />
   </PropertyGroup>
   <!-- There are no properties for these groups.  AnyCPU needs to appear in order for Visual Studio to perform
-			 the build.  The others are optional common platform types that may appear. -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Win32' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Win32' ">
-  </PropertyGroup>
+       the build.  The others are optional common platform types that may appear. -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Win32' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Win32' " />
   <!-- Uncomment this to use the NuGet packages when SHFB is not installed locally, e.g. in the CI build pipeline.
-			Update the package versions to the latest releases.
-	<ItemGroup>
-		<PackageReference Include="EWSoftware.SHFB" Version="2019.9.15" />
-		<PackageReference Include="EWSoftware.SHFB.NETFramework" Version="4.8.0" />
-	</ItemGroup>
-	-->
+      Update the package versions to the latest releases.
+  <ItemGroup><PackageReference Include="EWSoftware.SHFB" Version="2019.9.15" /><PackageReference Include="EWSoftware.SHFB.NETFramework" Version="4.8.0" /></ItemGroup>-->
   <!-- Import the common build targets during NuGet restore because before the packages are being installed, $(SHFBROOT) is not set yet -->
-  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="'$(MSBuildRestoreSessionId)' != ''" />
+  <Import Condition="'$(MSBuildRestoreSessionId)' != ''" Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <!-- Import the SHFB build targets during build -->
-  <Import Project="$(SHFBROOT)\SandcastleHelpFileBuilder.targets" Condition="'$(MSBuildRestoreSessionId)' == ''" />
+  <Import Condition="'$(MSBuildRestoreSessionId)' == ''" Project="$(SHFBROOT)\SandcastleHelpFileBuilder.targets" />
   <!-- The pre-build and post-build event properties must appear *after* the targets file import in order to be
-			 evaluated correctly. -->
+       evaluated correctly. -->
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PreBuildEvent />
+    <PostBuildEvent />
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 </Project>
