@@ -58,16 +58,16 @@ namespace KeeperSecurity.Authentication
                                     aes = CryptoUtils.DecryptRsa(encryptedKey, AuthContext.PrivateRsaKey);
                                     break;
                                 case 3:
-                                    rsa = encryptedKey;
-                                    break;
-                                case -3:
                                     aes = CryptoUtils.DecryptAesV2(encryptedKey, AuthContext.DataKey);
                                     break;
                                 case 4:
                                     aes = CryptoUtils.DecryptEc(encryptedKey, AuthContext.PrivateEcKey);
                                     break;
-                                case -4:
+                                case -1:
                                     ec = encryptedKey;
+                                    break;
+                                case -3:
+                                    rsa = encryptedKey;
                                     break;
                                 default:
                                     throw new Exception($"Team key type {key.keyType} is not supported");
