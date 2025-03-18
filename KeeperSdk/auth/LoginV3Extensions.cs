@@ -986,7 +986,7 @@ namespace KeeperSecurity.Authentication
         internal static GetSsoTokenActionInfo AuthorizeUsingOnsiteSsoPrepare(
             this IAuth auth,
             LoginContext v3,
-            Action onSsoToken,
+            Func<Task> onSsoToken,
             string ssoBaseUrl,
             bool forceLogin)
         {
@@ -1032,7 +1032,7 @@ namespace KeeperSecurity.Authentication
                         IdpSessionId = token.SessionId,
                     };
 
-                    onSsoToken();
+                    await onSsoToken();
                 }
             };
 
@@ -1042,7 +1042,7 @@ namespace KeeperSecurity.Authentication
         internal static GetSsoTokenActionInfo AuthorizeUsingCloudSsoPrepare(
             this IAuth auth,
             LoginContext v3,
-            Action<ByteString> onSsoLogin,
+            Func<ByteString, Task> onSsoLogin,
             string ssoBaseUrl,
             bool forceLogin)
         {
@@ -1081,7 +1081,7 @@ namespace KeeperSecurity.Authentication
                         IdpSessionId = rs.IdpSessionId,
                     };
 
-                    onSsoLogin(rs.EncryptedLoginToken);
+                    await onSsoLogin(rs.EncryptedLoginToken);
                 },
             };
             return ssoAction;

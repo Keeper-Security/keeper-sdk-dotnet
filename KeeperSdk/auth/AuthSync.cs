@@ -541,22 +541,16 @@ namespace KeeperSecurity.Authentication.Sync
 
             var ssoAction = isCloudSso
                 ? this.AuthorizeUsingCloudSsoPrepare(_loginContext,
-                    (token) => 
+                    async (token) => 
                     {
-                        Task.Run(async () =>
-                        {
-                            Step = await ResumeAfterSso(token);
-                        });
+                        Step = await ResumeAfterSso(token);
                     },
                     ssoBaseUrl,
                     forceLogin)
                 : this.AuthorizeUsingOnsiteSsoPrepare(_loginContext,
-                    () =>
+                    async () =>
                     {
-                        Task.Run(async () =>
-                        {
-                            Step = await ResumeAfterSso(loginToken);
-                        });
+                        Step = await ResumeAfterSso(loginToken);
                     },
                     ssoBaseUrl,
                     forceLogin);
