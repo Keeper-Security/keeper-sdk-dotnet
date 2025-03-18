@@ -595,11 +595,17 @@ namespace KeeperSecurity.Authentication.Async
             var tokenSource = new TaskCompletionSource<ByteString>();
             var ssoAction = isCloudSso
                 ? this.AuthorizeUsingCloudSsoPrepare(v3,
-                    (token) => { tokenSource.SetResult(token); },
+                    (token) => { 
+                        tokenSource.SetResult(token);
+                        return Task.FromResult(true);
+                    },
                     ssoBaseUrl,
                     forceLogin)
                 : this.AuthorizeUsingOnsiteSsoPrepare(v3,
-                    () => { tokenSource.SetResult(loginToken); },
+                    () => { 
+                        tokenSource.SetResult(loginToken);
+                        return Task.FromResult(true);
+                    },
                     ssoBaseUrl,
                     forceLogin);
 
