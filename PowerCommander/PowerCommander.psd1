@@ -117,8 +117,7 @@
             LicenseUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri  = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            Prerelease = "beta"
-            ReleaseNotes = 'RSA deprecation'
+            ReleaseNotes = 'SSO login bug fix'
         }
     }
 

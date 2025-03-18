@@ -370,20 +370,12 @@ function Connect-Keeper {
         $storage = New-Object KeeperSecurity.Configuration.JsonConfigurationStorage
     }
 
-    if (-not $Server) {
-        $Server = $storage.LastServer
-        if ($Server) {
-            Write-Information -MessageData "`nUsing Keeper Server: $Server`n"
-        }
-        else {
-            Write-Information -MessageData "`nUsing Default Keeper Server: $([KeeperSecurity.Authentication.KeeperEndpoint]::DefaultKeeperServer)`n"
-        }
-    }
-
-
     $endpoint = New-Object KeeperSecurity.Authentication.KeeperEndpoint($storage, $Server)
     $endpoint.DeviceName = 'PowerShell Commander'
-    $endpoint.ClientVersion = 'c16.11.0'
+    $endpoint.ClientVersion = 'c17.0.0'
+
+    Write-Information -MessageData "`nUsing Keeper Server: $($endpoint.Server)`n"
+
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
 
     $authFlow.ResumeSession = $true
@@ -391,7 +383,10 @@ function Connect-Keeper {
 
     if (-not $NewLogin.IsPresent -and -not $SsoProvider.IsPresent) {
         if (-not $Username) {
-            $Username = $storage.LastLogin
+            $conf = $storage.Get()
+            if ($conf.LastServer -eq $endpoint.Server) {
+                $Username = $conf.LastLogin
+            }
         }
     }
 
