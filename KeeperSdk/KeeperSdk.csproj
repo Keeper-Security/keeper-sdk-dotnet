@@ -23,6 +23,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <SignAssembly>False</SignAssembly>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,5 +36,7 @@
       <Link>GlobalUsings.cs</Link>
     </Compile>
   </ItemGroup>
- 
+    <ItemGroup>
+        <None Include="README.md" Pack="True" PackagePath="\" />
+    </ItemGroup> 
 </Project>

@@ -1,15 +1,12 @@
-<img src="https://github.com/Keeper-Security/Commander/blob/master/images/commander-black.png" alt="Keeper Commander" height="167"/>
+### .Net SDK for Keeper Password Manager
 
-### .Net and PowerShell SDK for Keeper Password Manager
-
-The Keeper .Net and PowerShell module ("PowerCommander") provides vault and administrative level automation. The current features of the .Net and PowerShell library include the following:
+The Keeper .Net SDK provides vault and administrative level automation. The current features of the .Net library include the following:
 
 * Authenticate to Keeper
 * Access the Keeper vault (records, folders, shared folders)
 * Manage records (CRUD operations for Records, Attachments, Folders, Shared Folders)
 * Administrative functions (Team Management)
 * Customize integration into your backend systems
-* Update/Rotate passwords in the vault
 
 Additional development tools in Python and other languages is available at our [Secrets Manager](https://docs.keeper.io/secrets-manager/) portal.
 
@@ -21,17 +18,14 @@ For source integration into your .Net code, please utilize the [KeeperSDK Librar
 [API documentation](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
 
 ### Sample App
-For help with implementation of SDK features, please see the 
+For help with implementation of SDK features, please see the
 * [Sample App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Sample). Sample application.
 * [Commander CLI App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Commander).  This application contains several basic operations such as logging in, authentication with two-factor, loading and decrypting the vault and updating passwords.
 
 ### Developer Requirements for KeeperSDK Library
 
-* .Net Core 8.0
-* .Net Standard 2.0
-
-### PowerShell Module
-To use the PowerShell modules, see the [PowerCommander library](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/PowerCommander).
+* .NET 8
+* .NET Standard 2.0
 
 ### About Keeper Security
 Keeper is the leading cybersecurity platform for preventing password-related data breaches and cyberthreats.
@@ -41,4 +35,3 @@ Learn More at:
 
 ### Contact Us
 If you need any assistance or require specific functionality not supported in Commander yet, please contact us at commander@keepersecurity.com.
-
