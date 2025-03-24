@@ -57,7 +57,10 @@ function twoFactorDurationToExpire ([KeeperSecurity.Authentication.TwoFactorDura
     if ($duration -eq [KeeperSecurity.Authentication.TwoFactorDuration]::Forever) {
         return 'never'
     }
-    return "$([int]$duration)_days"
+    if ($duration -eq [KeeperSecurity.Authentication.TwoFactorDuration]::Every30Days) {
+        return '30_days'
+    }
+    return "---"
 }
 
 
