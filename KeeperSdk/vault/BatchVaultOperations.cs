@@ -147,6 +147,18 @@ public interface IBatchVaultOperations
     bool IsFolderPending(string folderUid);
 
     /// <summary>
+    /// Gets a list of folders that will be added
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<FolderNode> GetPendingFolders();
+
+    /// <summary>
+    /// Gets a list of records that will be added
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<KeeperRecord> GetPendingRecords();
+
+    /// <summary>
     /// Checks if the record has to be created
     /// </summary>
     /// <param name="recordUid"></param>
@@ -837,6 +849,20 @@ public class BatchVaultOperations : IBatchVaultOperations
     public bool IsRecordPending(string recordUid)
     {
         return _recordSet.Contains(recordUid);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<FolderNode> GetPendingFolders()
+    {
+        return _foldersToAdd.Select(x => x.Item1);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<KeeperRecord> GetPendingRecords()
+    {
+        return _typedRecordsToAdd
+            .Select(x => (KeeperRecord) x.Item1)
+            .Concat(_legacyRecordsToAdd.Select(x => (KeeperRecord) x.Item1));
     }
 
     /// <inheritdoc/>
