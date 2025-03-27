@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
     <LangVersion>10</LangVersion>
-    <Version>1.1.1-beta04</Version>
+    <Version>1.1.1-beta05</Version>
     <Authors>Keeper Security Inc.</Authors>
     <Product>.NET Keeper Sdk</Product>
     <PackageTags>keeper password manager</PackageTags>
@@ -13,8 +13,8 @@
     <RepositoryType>Github</RepositoryType>
     <PackageProjectUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</PackageProjectUrl>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <AssemblyVersion>1.1.1.53</AssemblyVersion>
-    <FileVersion>1.1.1.53</FileVersion>
+    <AssemblyVersion>1.1.1.55</AssemblyVersion>
+    <FileVersion>1.1.1.55</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <IncludeSymbols>true</IncludeSymbols>
