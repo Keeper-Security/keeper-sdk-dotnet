@@ -79,7 +79,8 @@ namespace KeeperSecurity.Enterprise
         }
 
         /// <inheritdoc/>
-        public async Task<AccountTransferResult> TransferUserAccount(IRoleData roleData, EnterpriseUser fromUser, EnterpriseUser targetUser)
+        public async Task<AccountTransferResult> TransferUserAccount(IRoleData roleData, EnterpriseUser fromUser,
+            EnterpriseUser targetUser)
         {
             var auth = Enterprise.Auth;
             if (fromUser.UserStatus == UserStatus.Inactive)
@@ -98,7 +99,7 @@ namespace KeeperSecurity.Enterprise
             }
 
             await auth.LoadUsersKeys(Enumerable.Repeat(targetUser.Email, 1));
-            if (!auth.TryGetUserKeys(targetUser.Email, out var keys)) 
+            if (!auth.TryGetUserKeys(targetUser.Email, out var keys))
             {
                 throw new KeeperApiException("public_key_error", $"Cannot get user {targetUser.Email} public key");
             }
@@ -121,10 +122,13 @@ namespace KeeperSecurity.Enterprise
             {
                 roleKey = await roleData.GetRoleKey(preRs.RoleKeyId.Value);
             }
+
             if (roleKey == null)
             {
-                throw new KeeperApiException("transfer_key_error", $"Cannot resolve Account Transfer role key for user {targetUser.Email}");
+                throw new KeeperApiException("transfer_key_error",
+                    $"Cannot resolve Account Transfer role key for user {targetUser.Email}");
             }
+
             var pk = CryptoUtils.DecryptAesV1(preRs.RolePrivateKey.Base64UrlDecode(), roleKey);
             var rolePrivateKey = CryptoUtils.LoadRsaPrivateKey(pk);
             var userDataKey = CryptoUtils.DecryptRsa(preRs.TransferKey.Base64UrlDecode(), rolePrivateKey);
@@ -134,10 +138,12 @@ namespace KeeperSecurity.Enterprise
             {
                 userRsaPrivateKey = CryptoUtils.DecryptAesV1(preRs.UserPrivateKey.Base64UrlDecode(), userDataKey);
             }
+
             if (!string.IsNullOrEmpty(preRs.UserEccPrivateKey))
             {
                 userEcPrivateKey = CryptoUtils.DecryptAesV2(preRs.UserEccPrivateKey.Base64UrlDecode(), userDataKey);
             }
+
             var userRsaKey = userRsaPrivateKey != null ? CryptoUtils.LoadRsaPrivateKey(userRsaPrivateKey) : null;
             var userEcKey = userEcPrivateKey != null ? CryptoUtils.LoadEcPrivateKey(userEcPrivateKey) : null;
 
@@ -154,10 +160,12 @@ namespace KeeperSecurity.Enterprise
                 {
                     try
                     {
+                        var kt = DecryptKey(rk.RecordKey.Base64UrlDecode(), rk.RecordKeyType);
                         transfered.Add(new TransferAndDeleteRecordKey
                         {
                             RecordUid = rk.RecordUid,
-                            RecordKey = DecryptKey(rk.RecordKey.Base64UrlDecode(), rk.RecordKeyType).Base64UrlEncode()
+                            RecordKey = kt.Item1.Base64UrlEncode(),
+                            RecordKeyType = kt.Item2
                         });
                     }
                     catch (Exception e)
@@ -166,9 +174,11 @@ namespace KeeperSecurity.Enterprise
                         corrupted.Add(rk);
                     }
                 }
+
                 tdRq.RecordKeys = transfered.ToArray();
                 tdRq.CorruptedRecordKeys = corrupted.ToArray();
             }
+
             if (preRs.SharedFolderKeys != null)
             {
                 var transfered = new List<TransferAndDeleteSharedFolderKey>();
@@ -177,10 +187,12 @@ namespace KeeperSecurity.Enterprise
                 {
                     try
                     {
+                        var kt = DecryptKey(sfk.SharedFolderKey.Base64UrlDecode(), sfk.SharedFolderKeyType);
                         transfered.Add(new TransferAndDeleteSharedFolderKey
                         {
                             SharedFolderUid = sfk.SharedFolderUid,
-                            SharedFolderKey = DecryptKey(sfk.SharedFolderKey.Base64UrlDecode(), sfk.SharedFolderKeyType).Base64UrlEncode()
+                            SharedFolderKey = kt.Item1.Base64UrlEncode(),
+                            SharedFolderKeyType = kt.Item2
                         });
                     }
                     catch (Exception e)
@@ -189,9 +201,11 @@ namespace KeeperSecurity.Enterprise
                         corrupted.Add(sfk);
                     }
                 }
+
                 tdRq.SharedFolderKeys = transfered.ToArray();
                 tdRq.CorruptedSharedFolderKeys = corrupted.ToArray();
             }
+
             if (preRs.TeamKeys != null)
             {
                 var transfered = new List<TransferAndDeleteTeamKey>();
@@ -200,10 +214,12 @@ namespace KeeperSecurity.Enterprise
                 {
                     try
                     {
+                        var kt = DecryptKey(tk.TeamKey.Base64UrlDecode(), tk.TeamKeyType);
                         transfered.Add(new TransferAndDeleteTeamKey
                         {
                             TeamUid = tk.TeamUid,
-                            TeamKey = DecryptKey(tk.TeamKey.Base64UrlDecode(), tk.TeamKeyType).Base64UrlEncode()
+                            TeamKey = kt.Item1.Base64UrlEncode(),
+                            TeamKeyType = kt.Item2
                         });
                     }
                     catch (Exception e)
@@ -212,9 +228,11 @@ namespace KeeperSecurity.Enterprise
                         corrupted.Add(tk);
                     }
                 }
+
                 tdRq.TeamKeys = transfered.ToArray();
                 tdRq.CorruptedTeamKeys = corrupted.ToArray();
             }
+
             if (preRs.UserFolderKeys != null)
             {
                 var transferred = new List<TransferAndDeleteUserFolderKey>();
@@ -223,10 +241,12 @@ namespace KeeperSecurity.Enterprise
                 {
                     try
                     {
+                        var kt = DecryptKey(ufk.UserFolderKey.Base64UrlDecode(), ufk.UserFolderKeyType);
                         transferred.Add(new TransferAndDeleteUserFolderKey
                         {
                             UserFolderUid = ufk.UserFolderUid,
-                            UserFolderKey = DecryptKey(ufk.UserFolderKey.Base64UrlDecode(), ufk.UserFolderKeyType).Base64UrlEncode()
+                            UserFolderKey = kt.Item1.Base64UrlEncode(),
+                            UserFolderKeyType = kt.Item2
                         });
                     }
                     catch (Exception e)
@@ -235,22 +255,35 @@ namespace KeeperSecurity.Enterprise
                         corrupted.Add(ufk);
                     }
                 }
+
                 tdRq.UserFolderKeys = transferred.ToArray();
                 tdRq.CorruptedUserFolderKeys = corrupted.ToArray();
 
-                var targetFolderKey = CryptoUtils.GenerateEncryptionKey();
                 var data = new FolderData
                 {
                     name = $"Transfer from {fromUser.Email}",
                 };
                 var dataBytes = JsonUtils.DumpJson(data);
+                var transferFolderKey = CryptoUtils.GenerateEncryptionKey();
+                byte[] encryptedTransferFolder;
+                string transferFolderKeyType;
+                if (auth.AuthContext.ForbidKeyType2)
+                {
+                    encryptedTransferFolder = CryptoUtils.EncryptEc(transferFolderKey, ecKey);
+                    transferFolderKeyType = "encrypted_by_public_key_ecc";
+                }
+                else
+                {
+                    encryptedTransferFolder = CryptoUtils.EncryptRsa(transferFolderKey, rsaKey);
+                    transferFolderKeyType = "encrypted_by_public_key";
+                }
+
                 tdRq.UserFolderTransfer = new TransferAndDeleteUserFolderTransfer
                 {
                     TransferFolderUid = CryptoUtils.GenerateUid(),
-                    TransferFolderKey = auth.AuthContext.ForbidKeyType2
-                    ? CryptoUtils.EncryptEc(targetFolderKey, ecKey).Base64UrlEncode()
-                    : CryptoUtils.EncryptRsa(targetFolderKey, rsaKey).Base64UrlEncode(),
-                    TransferFolderData = CryptoUtils.EncryptAesV1(dataBytes, targetFolderKey).Base64UrlEncode()
+                    TransferFolderKey = encryptedTransferFolder.Base64UrlEncode(),
+                    TransferFolderKeyType = transferFolderKeyType,
+                    TransferFolderData = CryptoUtils.EncryptAesV1(dataBytes, transferFolderKey).Base64UrlEncode()
                 };
             }
 
@@ -269,7 +302,7 @@ namespace KeeperSecurity.Enterprise
                 UserFoldersCorrupted = tdRq.CorruptedUserFolderKeys?.Length ?? 0
             };
 
-            byte[] DecryptKey(byte[] encryptedKey, int keyType)
+            Tuple<byte[], string> DecryptKey(byte[] encryptedKey, int keyType)
             {
                 byte[] key = null;
                 switch (keyType)
@@ -296,17 +329,20 @@ namespace KeeperSecurity.Enterprise
                         break;
                 }
 
-                if (key != null)
+                if (key == null)
                 {
-                    if (auth.AuthContext.ForbidKeyType2)
-                    {
-                        return CryptoUtils.EncryptEc(key, ecKey);
-                    }
-
-                    return CryptoUtils.EncryptRsa(key, rsaKey);
+                    throw new KeeperApiException("wrong_key_type", $"Cannot decrypt key. Wrong key type {keyType}");
                 }
 
-                throw new KeeperApiException("wrong_key_type", $"Cannot decrypt key. Wrong key type {keyType}");
+                if (auth.AuthContext.ForbidKeyType2 && ecKey != null)
+                {
+                    return Tuple.Create(CryptoUtils.EncryptEc(key, ecKey), "encrypted_by_public_key_ecc");
+                }
+                if (!auth.AuthContext.ForbidKeyType2 && rsaKey != null)
+                {
+                    return Tuple.Create(CryptoUtils.EncryptRsa(key, rsaKey), "encrypted_by_public_key");
+                }
+                throw new KeeperApiException("wrong_key_type", $"Cannot re-encrypt key. Missing key pair");
             }
         }
 

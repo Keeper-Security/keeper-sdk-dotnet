@@ -128,6 +128,9 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "record_key", EmitDefaultValue = false)]
         public string RecordKey { get; set; }
+
+        [DataMember(Name = "record_key_type", EmitDefaultValue = false)]
+        public string RecordKeyType { get; set; }
     }
 
     [DataContract]
@@ -138,6 +141,9 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "shared_folder_key", EmitDefaultValue = false)]
         public string SharedFolderKey { get; set; }
+
+        [DataMember(Name = "shared_folder_key_type", EmitDefaultValue = false)]
+        public string SharedFolderKeyType { get; set; }
     }
 
     [DataContract]
@@ -148,6 +154,9 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "team_key", EmitDefaultValue = false)]
         public string TeamKey { get; set; }
+
+        [DataMember(Name = "team_key_type", EmitDefaultValue = false)]
+        public string TeamKeyType { get; set; }
     }
 
     [DataContract]
@@ -158,6 +167,9 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "user_folder_key", EmitDefaultValue = false)]
         public string UserFolderKey { get; set; }
+
+        [DataMember(Name = "user_folder_key_type", EmitDefaultValue = false)]
+        public string UserFolderKeyType { get; set; }
     }
 
     [DataContract]
@@ -174,6 +186,9 @@ namespace KeeperSecurity.Commands
 
         [DataMember(Name = "transfer_folder_key", EmitDefaultValue = false)]
         public string TransferFolderKey { get; set; }
+
+        [DataMember(Name = "transfer_folder_key_type", EmitDefaultValue = false)]
+        public string TransferFolderKeyType { get; set; }
     }
 
     [DataContract]
