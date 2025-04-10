@@ -31,9 +31,9 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Copy-KeeperFileAttachment              | kda         | Download file attachments 
 | Copy-KeeperFileAttachmentToStream      |             | Download file attachement to stream
 | Copy-FileToKeeperRecord                |             | Upload file attachment to a record
-| Get-KeeperInformation                  | kwhoami     | Print account license information <sup style="color:red">(new)</sup>
-| Get-KeeperDeviceSettings               |             | Print the current device settings <sup style="color:red">(new)</sup>
-| Set-KeeperDeviceSettings               | this-device | Modifies the current device settings <sup style="color:red">(new)</sup>
+| Get-KeeperInformation                  | kwhoami     | Print account license information
+| Get-KeeperDeviceSettings               |             | Print the current device settings
+| Set-KeeperDeviceSettings               | this-device | Modifies the current device settings=
 
 
 ### Sharing Cmdlets
@@ -58,19 +58,20 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperEnterpriseUser               | keu         | Enumerate all enterprise users
 | Get-KeeperEnterpriseTeam               | ket         | Enumerate all enterprise teams
 | Get-KeeperEnterpriseTeamUser           | ketu        | Get a list of enterprise users for team
-| New-KeeperEnterpriseNode               | kena        | Create Node <sup style="color:red">(new)</sup>
-| Add-KeeperEnterpriseUser               | invite-user | Invite User to Enterprise <sup style="color:red">(new)</sup>
+| New-KeeperEnterpriseNode               | kena        | Create Node
+| Add-KeeperEnterpriseUser               | invite-user | Invite User to Enterprise
+| New-KeeperEnterpriseTeam               | keta        | Create Team <sup style="color:red">(new)</sup>
 | Lock-KeeperEnterpriseUser              | lock-user   | Lock Enterprise User
 | Unlock-KeeperEnterpriseUser            | unlock-user | Unlock Enterprise User
 | Move-KeeperEnterpriseUser              |transfer-user| Transfer user account to another user
 | Remove-KeeperEnterpriseUser            | delete-user | Delete Enterprise User
-| Get-KeeperEnterpriseRole               | ker         | Enumerate all enterprise roles <sup style="color:red">(new)</sup>
-| Get-KeeperEnterpriseRoleUsers          | keru        | Get a list of enterprise users for role <sup style="color:red">(new)</sup>
-| Get-KeeperEnterpriseRoleTeams          | kert        | Get a list of enterprise teams for role <sup style="color:red">(new)</sup>
-| Get-KeeperEnterpriseAdminRole          | kerap       | Enumerate all enterprise role admin permissions <sup style="color:red">(new)</sup>
+| Get-KeeperEnterpriseRole               | ker         | Enumerate all enterprise roles
+| Get-KeeperEnterpriseRoleUsers          | keru        | Get a list of enterprise users for role
+| Get-KeeperEnterpriseRoleTeams          | kert        | Get a list of enterprise teams for role 
+| Get-KeeperEnterpriseAdminRole          | kerap       | Enumerate all enterprise role admin permissions
 | Get-KeeperMspLicenses                  | msp-license | Return MSP licenses
-| Switch-KeeperMC                        |switch-to-mc | Switch to Managed Company <sup style="color:red">(new)</sup>
-| Switch-KeeperMSP                       |switch-to-msp| Switch back to MSP <sup style="color:red">(new)</sup>
+| Switch-KeeperMC                        |switch-to-mc | Switch to Managed Company 
+| Switch-KeeperMSP                       |switch-to-msp| Switch back to MSP
 | Get-KeeperManagedCompany               | kmc         | Enumerate all enterprise managed companies
 | New-KeeperManagedCompany               | kamc        | Create Managed Company
 | Remove-KeeperManagedCompany            | krmc        | Remove Managed Company

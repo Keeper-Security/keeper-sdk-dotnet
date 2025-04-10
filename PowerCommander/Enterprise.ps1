@@ -124,6 +124,51 @@ $Keeper_TeamNameCompleter = {
     }
 }
 
+function  New-KeeperEnterpriseTeam {
+    <#
+        .Synopsis
+        Create an enterprise team
+
+    .PARAMETER ParentNode
+    Parent Node name or ID
+
+    .PARAMETER Team
+        Team name
+
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)][string]$TeamName,
+        [Parameter()][string] $ParentNode,  
+        [Parameter()][Switch] $RestrictView,
+        [Parameter()][Switch] $RestrictEdit,
+        [Parameter()][Switch] $RestrictShare
+    )
+
+    [Enterprise]$enterprise = getEnterprise
+
+    $team = New-Object Keepersecurity.Enterprise.EnterpriseTeam
+    $team.Name = $TeamName
+    [KeeperSecurity.Enterprise.EnterpriseNode] $parent = $null
+    if ($ParentNode) {
+        $parent = resolveSingleNode $ParentNode
+        $team.ParentNodeId = $parent.Id
+    }
+    if ($RestrictView.IsPresent) {
+        $team.RestrictView = $true
+    }
+    if ($RestrictEdit.IsPresent) {
+        $team.RestrictEdit = $true
+    }
+    if ($RestrictShare.IsPresent) {
+        $team.RestrictSharing = $true
+    }
+
+    $t = $enterprise.enterpriseData.CreateTeam($team).GetAwaiter().GetResult()
+    $t
+}
+New-Alias -Name keta -Value New-KeeperEnterpriseTeam
+
 function Get-KeeperEnterpriseTeamUser {
     <#
         .Synopsis
