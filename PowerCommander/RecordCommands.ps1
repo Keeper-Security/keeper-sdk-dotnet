@@ -208,7 +208,7 @@ function Show-TwoFactorCode {
                         $recordTypeField = New-Object KeeperSecurity.Vault.RecordTypeField 'oneTimeCode', $null
                         [KeeperSecurity.Vault.ITypedField]$recordField = $null
                         if ([KeeperSecurity.Vault.VaultDataExtensions]::FindTypedField($rec, $recordTypeField, [ref]$recordField)) {
-                            $data = $recordField.Value
+                            $data = $recordField.TypedValue
                             if ($data) {
                                 $totps += [PSCustomObject]@{
                                     RecordUid = $rec.Uid
