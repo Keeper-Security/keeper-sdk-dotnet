@@ -43,7 +43,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     ///  Defines shared folder user and record permissions.
     /// </summary>
-    public class SharedFolderOptions 
+    public class SharedFolderOptions
     {
         /// <summary>
         /// Record can be edited.
@@ -514,7 +514,8 @@ namespace KeeperSecurity.Vault
 
             if (vault.Auth.AuthContext.EnterprisePublicEcKey != null)
             {
-                if (passwordChanged.Count > 0) {
+                if (passwordChanged.Count > 0)
+                {
                     foreach (var status in results)
                     {
                         if (passwordChanged.Contains(status.RecordUid) && status.Status == "success")
@@ -760,7 +761,7 @@ namespace KeeperSecurity.Vault
 
         public static async Task DeleteVaultObjects(this VaultOnline vault, IEnumerable<RecordPath> objectsToDelete, bool forceDelete = false)
         {
-            var preDeleteObjects = new Dictionary<string, PreDeleteObject>();
+            var preDeleteObjects = new List<PreDeleteObject>();
 
             foreach (var toDelete in objectsToDelete)
             {
@@ -769,20 +770,38 @@ namespace KeeperSecurity.Vault
                 {
                     if (folder.Records.Any(x => x == toDelete.RecordUid))
                     {
-                        preDeleteObjects[folder.FolderUid] = new PreDeleteObject
+                        preDeleteObjects.Add(new PreDeleteObject
                         {
                             fromUid = string.IsNullOrEmpty(folder.FolderUid) ? null : folder.FolderUid,
                             fromType = folder.FolderType == FolderType.UserFolder
-                                ? FolderType.UserFolder.GetFolderTypeText()
-                                : FolderType.SharedFolderFolder.GetFolderTypeText(),
+                                    ? FolderType.UserFolder.GetFolderTypeText()
+                                    : FolderType.SharedFolderFolder.GetFolderTypeText(),
                             objectUid = toDelete.RecordUid,
                             objectType = "record",
                             deleteResolution = "unlink",
-                        };
+                        }
+                        );
                     }
                     else
                     {
-                        throw new VaultException($"Record UID ({toDelete.RecordUid}) does not exist in folder \"{folder.Name}\"");
+                        KeeperRecord record;
+                        if (vault.TryGetKeeperRecord(toDelete.RecordUid, out record))
+                        {
+                            preDeleteObjects.Add(new PreDeleteObject
+                            {
+                                fromUid = null,
+                                fromType = FolderType.UserFolder.GetFolderTypeText(),
+                                objectUid = toDelete.RecordUid,
+                                objectType = "record",
+                                deleteResolution = "unlink",
+                            }
+                            );
+                        }
+                        else
+                        {
+                            throw new VaultException($"Record UID ({toDelete.RecordUid}) does not exist in folder \"{folder.Name}\"");
+                        }
+
                     }
                 }
                 else
@@ -793,7 +812,7 @@ namespace KeeperSecurity.Vault
                     }
 
                     var parent = vault.GetFolder(folder.ParentUid);
-                    preDeleteObjects[folder.FolderUid] = new PreDeleteObject
+                    preDeleteObjects.Add(new PreDeleteObject
                     {
                         fromUid = string.IsNullOrEmpty(parent.FolderUid) ? null : parent.FolderUid,
                         fromType = parent.FolderType == FolderType.UserFolder
@@ -802,7 +821,7 @@ namespace KeeperSecurity.Vault
                         objectUid = folder.FolderUid,
                         objectType = folder.FolderType.GetFolderTypeText(),
                         deleteResolution = "unlink",
-                    };
+                    });
                 }
             }
 
@@ -810,7 +829,7 @@ namespace KeeperSecurity.Vault
             {
                 var preRequest = new PreDeleteCommand
                 {
-                    objects = preDeleteObjects.Values.ToArray(),
+                    objects = preDeleteObjects.ToArray(),
                 };
 
                 var preResponse = await vault.Auth.ExecuteAuthCommand<PreDeleteCommand, PreDeleteResponse>(preRequest);
