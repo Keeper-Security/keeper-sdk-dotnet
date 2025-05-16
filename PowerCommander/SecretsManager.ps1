@@ -66,30 +66,38 @@ function Get-KeeperSecretManagerApp {
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Uid) {
         [KeeperSecurity.Vault.ApplicationRecord] $application = $null
-        if ($vault.TryGetKeeperApplication($uid, [ref]$application)) {
+        if ($vault.TryGetKeeperRecord($Uid, [ref]$application)) {
+            if (-not $application.Type -eq 'app') {
+                throw "No application found with UID '$Uid'."
+            }
             if ($Detail.IsPresent) {
-                $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
+                return $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
+            } else {
+                return $application
             }
-            else {
-                $application
-            }
+        } else {
+            throw "No application found with UID '$Uid'."
         }
     }
     else {
-        foreach ($application in $vault.KeeperApplications) {
+        $applications = $vault.KeeperRecords | Where-Object { $_.Type -eq 'app' }
+        $results = @()
+
+        foreach ($application in $applications) {
             if ($Filter) {
-                $match = $($application.Uid, $application.Title) | Select-String $Filter | Select-Object -First 1
+                $match = @($application.Uid, $application.Title) | Select-String $Filter | Select-Object -First 1
                 if (-not $match) {
                     continue
                 }
             }
             if ($Detail.IsPresent) {
-                $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
+                $results += $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
             }
             else {
-                $application
+                $results += $application
             }
         }
+        return $results
     }
 }
 New-Alias -Name ksm -Value Get-KeeperSecretManagerApp
