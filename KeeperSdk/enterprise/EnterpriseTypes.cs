@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using KeeperSecurity.Authentication;
 using KeeperSecurity.Commands;
+using Records;
 
 namespace KeeperSecurity.Enterprise
 {
     /// <exclude/>
-    public interface IEnterpriseLoader 
+    public interface IEnterpriseLoader
     {
         IAuthentication Auth { get; }
         string EnterpriseName { get; }
@@ -36,8 +37,8 @@ namespace KeeperSecurity.Enterprise
     /// <summary>
     /// Defines optional Invite User properties 
     /// </summary>
-    public class InviteUserOptions 
-    { 
+    public class InviteUserOptions
+    {
         /// <summary>
         /// User Full Name
         /// </summary>
@@ -474,4 +475,19 @@ namespace KeeperSecurity.Enterprise
         {
         }
     }
+
+
+    /// <summary>
+    ///     Represents Enterprise Managed Record Types.
+    /// </summary>
+    public interface IRecordTypeManagement
+    {
+        /// <summary>
+        ///     Adds Record type to available record types across the enterprise.
+        /// </summary>
+        /// <param name="recordData">Emails</param>
+        /// <returns>Task</returns>
+        Task<RecordType> AddRecordType(string recordData);
+    }
+
 }
