@@ -522,6 +522,19 @@ namespace KeeperSecurity.Vault
     }
 
     /// <summary>
+    ///     Represents Enterprise Managed Record Types.
+    /// </summary>
+    public interface IRecordTypeManagement
+    {
+        /// <summary>
+        ///     Adds Record type to available record types across the enterprise.
+        /// </summary>
+        /// <param name="recordData">Emails</param>
+        /// <returns>Task</returns>
+        Task<string> AddRecordType(string recordData);
+    }
+
+    /// <summary>
     /// Define methods for Keeper Secret Maneger (KSM)
     /// </summary>
     public interface ISecretManager

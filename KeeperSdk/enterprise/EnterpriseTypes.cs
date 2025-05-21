@@ -476,18 +476,4 @@ namespace KeeperSecurity.Enterprise
         }
     }
 
-
-    /// <summary>
-    ///     Represents Enterprise Managed Record Types.
-    /// </summary>
-    public interface IRecordTypeManagement
-    {
-        /// <summary>
-        ///     Adds Record type to available record types across the enterprise.
-        /// </summary>
-        /// <param name="recordData">Emails</param>
-        /// <returns>Task</returns>
-        Task<RecordType> AddRecordType(string recordData);
-    }
-
 }

@@ -1,30 +1,32 @@
 using System;
 using System.Collections.Generic;
-using KeeperSecurity.Enterprise;
-using KeeperSecurity.Vault;
 using System.Threading.Tasks;
-using System.Runtime.Serialization.Json;
 using System.Linq;
 using System.Runtime.Serialization;
+using KeeperSecurity.Utils;
+using System.Text;
+using Records;
+using System.Reflection;
 
-namespace KeeperSdk.Enterprise
+namespace KeeperSecurity.Vault
 {
-    public partial class Enterprise : IRecordTypeManagement
+    public partial class VaultOnline : IRecordTypeManagement
     {
-        private readonly EnterpriseData _enterpriseData;
-        public Enterprise(EnterpriseData enterpriseData)
-        {
-            _enterpriseData = enterpriseData ?? throw new ArgumentNullException(nameof(enterpriseData));
-        }
-        public async Task<Records.RecordType> AddRecordType(string recordData)
+        public async Task<string> AddRecordType(string recordData)
         {
             if (string.IsNullOrWhiteSpace(recordData))
             {
                 throw new ArgumentException("recordData cannot be null or empty");
             }
 
-            // Deserialize incoming JSON to CustomRecordType
-            var recordTypeObj = DeserializeJson<CustomRecordType>(recordData);
+            var enterprise_admin_status = this.Auth.AuthContext.IsEnterpriseAdmin;
+
+            if (!enterprise_admin_status)
+            {
+                throw new VaultException("User doesn't have permissions to create a new record type");
+            }
+
+            var recordTypeObj = JsonUtils.ParseJson<CustomRecordType>(Encoding.UTF8.GetBytes(recordData));
 
             if (recordTypeObj == null)
                 throw new ArgumentException("Invalid recordData JSON");
@@ -35,34 +37,33 @@ namespace KeeperSdk.Enterprise
             if (recordTypeObj.Fields == null || recordTypeObj.Fields.Length == 0)
                 throw new ArgumentException("Record type must have at least one field");
 
-            // Convert Fields to List<Dictionary<string, string>>
             var fieldsList = recordTypeObj.Fields
                 .Select(f => new Dictionary<string, string> { ["$ref"] = f.Ref })
                 .ToList();
 
-            // Instantiate your RecordTypeService with _enterpriseData
-            var recordTypeService = new RecordTypeService(_enterpriseData);
+            var recordTypeService = new RecordTypeService();
 
-            // Call async CreateCustomRecordType and await result
-            var result = await recordTypeService.CreateCustomRecordType(
+            Records.RecordType record = await recordTypeService.CreateCustomRecordType(
                 recordTypeObj.Id,
                 fieldsList,
                 recordTypeObj.Description ?? string.Empty,
-                "enterprise" // or you can pass this from recordTypeObj if present
+                "enterprise"
             );
 
-            return result;
+            try
+            {
+                var response = await this.Auth.ExecuteAuthRest("vault/record_type_add", record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                return response.RecordTypeId.ToString();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"An error occured while creating a new custom record type. Code: {ex.GetType().GetProperty("Code", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(ex)}, Message: {ex.Message.ToString()}");
+                throw;
+            }
         }
 
         internal class RecordTypeService
         {
-            private readonly EnterpriseData _enterpriseData;
-
-            public RecordTypeService(EnterpriseData enterpriseData)
-            {
-                _enterpriseData = enterpriseData;
-            }
-
             public Task<Records.RecordType> CreateCustomRecordType(string title, List<Dictionary<string, string>> fields, string description = "", string scope = "enterprise")
             {
                 if (scope != "enterprise")
@@ -71,7 +72,6 @@ namespace KeeperSdk.Enterprise
                 if (fields == null || fields.Count == 0)
                     throw new ArgumentException("At least one field must be specified.");
 
-                // Validate and clean field references
                 var cleanedFields = new List<Dictionary<string, string>>();
                 foreach (var field in fields)
                 {
@@ -94,7 +94,7 @@ namespace KeeperSdk.Enterprise
 
                 var recordTypeProto = new Records.RecordType
                 {
-                    Content = recordTypeData.ToString(),
+                    Content = Encoding.UTF8.GetString(JsonUtils.DumpJson(recordTypeData)),
                     Scope = Records.RecordTypeScope.RtEnterprise,
 
                 };
@@ -102,37 +102,29 @@ namespace KeeperSdk.Enterprise
                 return Task.FromResult(recordTypeProto);
             }
         }
-    public static T DeserializeJson<T>(string json)
+
+        [DataContract]
+        internal class RecordTypeField
         {
-            using (var ms = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(json)))
-            {
-                var ser = new DataContractJsonSerializer(typeof(T));
-                return (T) ser.ReadObject(ms);
-            }
+            [DataMember(Name = "$ref", EmitDefaultValue = false)]
+            public string Ref { get; set; }
+        }
+
+        [DataContract]
+        internal class CustomRecordType
+        {
+            [DataMember(Name = "$id", EmitDefaultValue = false)]
+            public string Id { get; set; }
+
+            [DataMember(Name = "description", EmitDefaultValue = false)]
+            public string Description { get; set; }
+
+            [DataMember(Name = "categories", EmitDefaultValue = false)]
+            public string[] Categories { get; set; }
+
+            [DataMember(Name = "fields", EmitDefaultValue = false)]
+            public RecordTypeField[] Fields { get; set; }
         }
     }
 }
 
-
-
-[DataContract]
-public class RecordTypeField
-{
-    [DataMember(Name = "$ref")]
-    public string Ref { get; set; }
-}
-
-public class CustomRecordType
-{
-    [DataMember(Name = "$id")]
-    public string Id { get; set; }
-
-    [DataMember(Name = "description")]
-    public string Description { get; set; }
-
-    [DataMember(Name = "categories")]
-    public string[] Categories { get; set; }
-
-    [DataMember(Name = "fields")]
-    public RecordTypeField[] Fields { get; set; }
-}
