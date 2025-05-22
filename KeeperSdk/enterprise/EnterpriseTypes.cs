@@ -7,7 +7,7 @@ using KeeperSecurity.Commands;
 namespace KeeperSecurity.Enterprise
 {
     /// <exclude/>
-    public interface IEnterpriseLoader 
+    public interface IEnterpriseLoader
     {
         IAuthentication Auth { get; }
         string EnterpriseName { get; }
@@ -36,8 +36,8 @@ namespace KeeperSecurity.Enterprise
     /// <summary>
     /// Defines optional Invite User properties 
     /// </summary>
-    public class InviteUserOptions 
-    { 
+    public class InviteUserOptions
+    {
         /// <summary>
         /// User Full Name
         /// </summary>
@@ -474,4 +474,5 @@ namespace KeeperSecurity.Enterprise
         {
         }
     }
+
 }

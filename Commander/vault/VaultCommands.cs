@@ -354,7 +354,13 @@ namespace Commander
                         }
                     }
                 });
-
+            cli.Commands.Add("record-type-add",
+                new ParseableCommand<RecordTypeAddOptions>
+                {
+                    Order = 81,
+                    Description = "Add a new Record Type",
+                    Action = context.RecordTypeAddCommand
+                });
 
             cli.Aliases.Add("list", "search");
             cli.Aliases.Add("d", "sync-down");
@@ -946,7 +952,7 @@ namespace Commander
                         {
                             permissions = "Can Manage " +
                                           string.Join(" & ",
-                                              new[]{ u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }
+                                              new[] { u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }
                                                   .Where(x => !string.IsNullOrEmpty(x)));
                         }
                         else
@@ -1011,4 +1017,5 @@ namespace Commander
         [Option("reset", Required = false, Default = false, HelpText = "resets on-disk storage")]
         public bool Reset { get; set; }
     }
+
 }
