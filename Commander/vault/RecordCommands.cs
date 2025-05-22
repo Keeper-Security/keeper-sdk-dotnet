@@ -908,7 +908,7 @@ namespace Commander
     
     class RecordTypeAddOptions
     { 
-        [Value(0, Required = true, Default = false,HelpText ="addds a new record type with given data")]
+        [Value(0, Required = true, Default = false,HelpText ="Adds a new record type with given data. Needs a Serialized JSON string. example- record-type-add {\"$id\":\"myCustomType_dotnet_test6\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]} ")]
         public string data { get; set; }
     }
 }
