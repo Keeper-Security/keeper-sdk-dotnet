@@ -707,6 +707,18 @@ namespace Commander
             await context.Vault.TransferRecordToUser(record.Uid, options.Email);
         }
 
+        public static async Task RecordTypeAddCommand(this VaultContext context, RecordTypeAddOptions recordTypeData)
+        {
+            var data = recordTypeData.data;
+            if (string.IsNullOrEmpty(data))
+            {
+                throw new Exception("\"record-type-add\" command requires data parameter");
+            }
+
+            var createdRecordTypeID = await context.Vault.AddRecordType(data);
+            Console.WriteLine($"Created Record Type ID: {createdRecordTypeID}");
+        }
+
         private static KeeperRecord ResolveKeeperRecord(VaultContext context, string recordName)
         {
             if (string.IsNullOrEmpty(recordName))
@@ -891,5 +903,11 @@ namespace Commander
         public string FieldLabel { get; set; }
         public string FieldIndex { get; set; }
         public string Value { get; set; }
+    }
+    
+    class RecordTypeAddOptions
+    { 
+        [Value(0, Required = true, Default = false,HelpText ="Adds a new record type with given data. Needs a Serialized JSON string. example- record-type-add {\"$id\":\"myCustomType_dotnet_test6\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]} ")]
+        public string data { get; set; }
     }
 }
