@@ -709,7 +709,6 @@ namespace Commander
 
         public static async Task RecordTypeAddCommand(this VaultContext context, RecordTypeAddOptions recordTypeData)
         {
-            Console.WriteLine("entering record-type-add");
             var data = recordTypeData.data;
             if (string.IsNullOrEmpty(data))
             {

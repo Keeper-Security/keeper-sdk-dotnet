@@ -12,11 +12,11 @@ namespace KeeperSecurity.Vault
 {
     public partial class VaultOnline : IRecordTypeManagement
     {
-        public async Task<string> AddRecordType(string recordData)
+        public async Task<string> AddRecordType(string recordTypeData)
         {
-            if (string.IsNullOrWhiteSpace(recordData))
+            if (string.IsNullOrWhiteSpace(recordTypeData))
             {
-                throw new ArgumentException("recordData cannot be null or empty");
+                throw new ArgumentException("recordTypeData cannot be null or empty");
             }
 
             var enterprise_admin_status = this.Auth.AuthContext.IsEnterpriseAdmin;
@@ -26,16 +26,13 @@ namespace KeeperSecurity.Vault
                 throw new VaultException("User doesn't have permissions to create a new record type");
             }
 
-            var recordTypeObj = JsonUtils.ParseJson<CustomRecordType>(Encoding.UTF8.GetBytes(recordData));
+            var recordTypeObj = JsonUtils.ParseJson<CustomRecordType>(Encoding.UTF8.GetBytes(recordTypeData));
 
             if (recordTypeObj == null)
-                throw new ArgumentException("Invalid recordData JSON");
+                throw new ArgumentException("Invalid recordTypeData JSON");
 
             if (string.IsNullOrWhiteSpace(recordTypeObj.Id))
-                throw new ArgumentException("Record type must have an '$id'");
-
-            if (recordTypeObj.Fields == null || recordTypeObj.Fields.Length == 0)
-                throw new ArgumentException("Record type must have at least one field");
+                throw new ArgumentException("Record type must have a title or name");
 
             var fieldsList = recordTypeObj.Fields
                 .Select(f => new Dictionary<string, string> { ["$ref"] = f.Ref })
