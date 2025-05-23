@@ -112,23 +112,47 @@ function Move-KeeperRecordOwnership {
     }
 }
 New-Alias -Name ktr -Value Move-KeeperRecordOwnership
-
 function Grant-KeeperRecordAccess {
     <#
-        .Synopsis
-        Shares a record with user
+    .SYNOPSIS
+        Shares a Keeper record with a specified user.
 
-    	.Parameter Record
-	    Record UID or any object containing property Uid
+    .DESCRIPTION
+        Grants access to a Keeper record to another user. 
+        You can specify edit and share permissions and optionally set an expiration using either a time offset (in seconds) or an ISO 8601-formatted expiration datetime.
 
-        .Parameter User
-	    User email
+    .PARAMETER Record
+        The UID of the Keeper record to share, or an object containing a 'Uid' property.
 
-        .Parameter CanEdit
-        Grant edit permission
+    .PARAMETER User
+        The email address of the user to share the record with.
 
-        .Parameter CanShare
-        Grant re-share permission
+    .PARAMETER CanEdit
+        Optional switch to grant edit permissions on the record.
+
+    .PARAMETER CanShare
+        Optional switch to grant re-share permissions on the record.
+
+    .PARAMETER TimeOffset
+        Optional. Expiration time offset in seconds from now. Mutually exclusive with ExpirationDateTimeISO.
+
+    .PARAMETER ExpirationDateTimeISO
+        Optional. An absolute expiration time in ISO 8601 or RFC 1123 format (e.g., "2025-05-23T08:59:11Z" or "Fri, 23 May 2025 08:59:11 GMT").
+
+    .EXAMPLE
+        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "jane.doe@example.com" -CanEdit -CanShare
+
+        Shares the record with full permissions (edit and re-share) with Jane Doe.
+
+    .EXAMPLE
+        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "john.doe@example.com" -TimeOffset 3600
+
+        Shares the record with John Doe for 1 hour from now.
+
+    .EXAMPLE
+        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "alice@example.com" -ExpirationDateTimeISO "2025-05-23T08:59:11Z"
+
+        Shares the record with Alice until the specified UTC datetime.
 
     #>
 
@@ -137,10 +161,12 @@ function Grant-KeeperRecordAccess {
         [Parameter(Mandatory = $true)]$Record,
         [Parameter(Mandatory = $true)]$User,
         [Parameter()][switch]$CanEdit,
-        [Parameter()][switch]$CanShare
+        [Parameter()][switch]$CanShare,
+        [Parameter()][System.Nullable[int]]$TimeOffset,
+        [Parameter()][string]$ExpirationDateTimeISO
     )
 
-	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Record -is [Array]) {
         if ($Record.Count -ne 1) {
             Write-Error -Message 'Only one record is expected' -ErrorAction Stop
@@ -155,6 +181,14 @@ function Grant-KeeperRecordAccess {
         $uid = $Record.Uid
     }
 
+    try{
+
+        $expirationDateTimeOffset = Get-ExpirationDateTimeOffset -TimeOffset $TimeOffset -ExpirationDateTime $ExpirationDateTimeISO
+        $options = [KeeperSecurity.Vault.RecordShareOptions]::new($CanEdit.IsPresent, $CanShare.IsPresent, $expirationDateTimeOffset)
+    }catch  {
+        Write-Error -Message "Invalid ExpirationDateTimeISO format: $ExpirationDateTimeISO" -ErrorAction Stop
+    }
+
     if ($uid) {
         [KeeperSecurity.Vault.KeeperRecord] $rec = $null
         if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
@@ -165,25 +199,47 @@ function Grant-KeeperRecordAccess {
         }
         if ($rec) {
             try {
-                $vault.ShareRecordWithUser($rec.Uid, $User, $CanShare.IsPresent, $CanEdit.IsPresent).GetAwaiter().GetResult() | Out-Null
+                $vault.ShareRecordWithUser($rec.Uid, $User, $options).GetAwaiter().GetResult() | Out-Null
                 Write-Output "Record `"$($rec.Title)`" was shared with $($User)"
             }
             catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
                 Write-Output $_
-                $prompt =  "Do you want to send share invitation request to `"$($User)`"? (Yes/No)"
+                $prompt = "Do you want to send share invitation request to `"$($User)`"? (Yes/No)"
                 $answer = Read-Host -Prompt $prompt
                 if ($answer -in 'yes', 'y') {
                     $vault.SendShareInvitationRequest($User).GetAwaiter().GetResult() | Out-Null
                     Write-Output("Invitation has been sent to $($User)`nPlease repeat this command when your invitation is accepted.");
                 }
             }
-        } else {
+        }
+        else {
             Write-Error -Message "Cannot find a Keeper record: $Record"
         }
     }
 }
 New-Alias -Name kshr -Value Grant-KeeperRecordAccess
 
+function Get-ExpirationDateTimeOffset {
+    param(
+        [System.Nullable[int]]$TimeOffset,
+        [string]$ExpirationDateTime
+    )
+        
+    if ($TimeOffset) {
+        return [System.DateTimeOffset]::UtcNow.AddSeconds($TimeOffset)
+    }
+    elseif ($ExpirationDateTime) {
+        $expirationDateTimeOffset = if ($ExpirationDateTime) {
+            [DateTimeOffset]::Parse($ExpirationDateTime)
+        } else {
+            $null
+        }
+        return $expirationDateTimeOffset
+    }
+    else {
+        return $null  # No expiration
+    }
+}
 function Revoke-KeeperRecordAccess {
     <#
         .Synopsis
