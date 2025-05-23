@@ -1206,7 +1206,7 @@ namespace KeeperSecurity.Vault
                         return 0;
                     }).Where(x => x > 0));
                 }
-                    break;
+                break;
                 case List<bool> lb:
                     lb.AddRange(text.Split('\n').Select(x =>
                     {
@@ -2053,5 +2053,25 @@ namespace KeeperSecurity.Vault
     public class FolderData
     {
         [DataMember(Name = "name")] public string name;
+    }
+    
+    public class RecordShareOptions : IRecordShareOptions
+    {
+        public bool CanEdit { get; set; }
+        public bool CanShare { get; set; }
+        public DateTimeOffset? Expiration { get; set; }
+
+        bool? IRecordShareOptions.CanEdit => CanEdit;
+
+        bool? IRecordShareOptions.CanShare => CanShare;
+
+        DateTimeOffset? IRecordShareOptions.Expiration => Expiration;
+
+        public RecordShareOptions(bool canEdit, bool canShare, DateTimeOffset? expiration)
+        {
+            CanEdit = canEdit;
+            CanShare = canShare;
+            Expiration = expiration;
+        }
     }
 }
