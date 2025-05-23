@@ -714,6 +714,26 @@ namespace Commander
             {
                 throw new Exception("\"record-type-add\" command requires data parameter");
             }
+            if (data.StartsWith("@"))
+            {
+                var path = data.Substring(1).Trim('"');
+
+                try
+                {
+                    path = Path.GetFullPath(path);
+                }
+                catch (Exception error) 
+                {
+                    Console.Error.WriteLine($"Error reading the file at path: {error}");
+                }
+
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException($"File not found: {path}");
+                }
+
+                data = File.ReadAllText(path);
+            }
 
             var createdRecordTypeID = await context.Vault.AddRecordType(data);
             Console.WriteLine($"Created Record Type ID: {createdRecordTypeID}");
