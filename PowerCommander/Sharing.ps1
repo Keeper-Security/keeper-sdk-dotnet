@@ -112,49 +112,57 @@ function Move-KeeperRecordOwnership {
     }
 }
 New-Alias -Name ktr -Value Move-KeeperRecordOwnership
+
 function Grant-KeeperRecordAccess {
     <#
-    .SYNOPSIS
-        Shares a Keeper record with a specified user.
+        .SYNOPSIS
+            Shares a Keeper record with a specified user, with optional edit/share permissions and flexible expiration input.
 
-    .DESCRIPTION
-        Grants access to a Keeper record to another user. 
-        You can specify edit and share permissions and optionally set an expiration using either a time offset (in seconds) or an ISO 8601-formatted expiration datetime.
+        .DESCRIPTION
+            Grants access to a Keeper record to another user. 
+            You can specify edit and share permissions and optionally set an expiration using a time offset 
+            (as a TimeSpan object, minutes as an integer or string, or a TimeSpan-formatted string) 
+            or an ISO 8601-formatted absolute expiration datetime.
 
-    .PARAMETER Record
-        The UID of the Keeper record to share, or an object containing a 'Uid' property.
+        .PARAMETER Record
+            The UID of the Keeper record to share, or an object containing a 'Uid' property.
 
-    .PARAMETER User
-        The email address of the user to share the record with.
+        .PARAMETER User
+            The email address of the user to share the record with.
 
-    .PARAMETER CanEdit
-        Optional switch to grant edit permissions on the record.
+        .PARAMETER CanEdit
+            Optional switch to grant edit permissions on the record.
 
-    .PARAMETER CanShare
-        Optional switch to grant re-share permissions on the record.
+        .PARAMETER CanShare
+            Optional switch to grant re-share permissions on the record.
 
-    .PARAMETER ExpireIn
-        Optional. Expiration time offset in seconds from now. Mutually exclusive with ExpireAt.
+        .PARAMETER ExpireIn
+            Optional. Expiration time offset from now. Can be a TimeSpan object, integer (minutes), or a string representing minutes or a TimeSpan.
 
-    .PARAMETER ExpireAt
-        Optional. An absolute expiration time in ISO 8601 or RFC 1123 format (e.g., "2025-05-23T08:59:11Z" or "Fri, 23 May 2025 08:59:11 GMT").
+        .PARAMETER ExpireAt
+            Optional. An absolute expiration time in ISO 8601 or RFC 1123 format (e.g., "2025-05-23T08:59:11Z" or "Fri, 23 May 2025 08:59:11 GMT").
 
-    .EXAMPLE
-        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "jane.doe@example.com" -CanEdit -CanShare
+        .EXAMPLE
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "jane.doe@example.com" -CanEdit -CanShare
 
-        Shares the record with full permissions (edit and re-share) with Jane Doe.
+            Shares the record with full permissions (edit and re-share) with Jane Doe.
 
-    .EXAMPLE
-        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "john.doe@example.com" -ExpireIn 3600
+        .EXAMPLE
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "john.doe@example.com" -ExpireIn 60
 
-        Shares the record with John Doe for 1 hour from now.
+            Shares the record with John Doe for 1 hour from now.
 
-    .EXAMPLE
-        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "alice@example.com" -ExpireAt "2025-05-23T08:59:11Z"
+        .EXAMPLE
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "alice@example.com" -ExpireIn "00:30:00"
 
-        Shares the record with Alice until the specified UTC datetime.
+            Shares the record with Alice for 30 minutes.
 
+        .EXAMPLE
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "bob@example.com" -ExpireAt "2025-05-23T08:59:11Z"
+
+            Shares the record with Bob until the specified UTC datetime.
     #>
+
 
     [CmdletBinding()]
     Param (
@@ -162,7 +170,7 @@ function Grant-KeeperRecordAccess {
         [Parameter(Mandatory = $true)]$User,
         [Parameter()][switch]$CanEdit,
         [Parameter()][switch]$CanShare,
-        [Parameter()][System.Nullable[int]]$ExpireIn,
+        [Parameter()][System.Object]$ExpireIn,
         [Parameter()][string]$ExpireAt
     )
 
@@ -183,7 +191,7 @@ function Grant-KeeperRecordAccess {
 
     $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
     try{
-        $expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpirationDateTime $ExpireAt
+        $expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
         $options.CanEdit = $CanEdit.IsPresent
         $options.CanShare = $CanShare.IsPresent
         $options.Expiration = $expiration
@@ -224,25 +232,52 @@ New-Alias -Name kshr -Value Grant-KeeperRecordAccess
 
 function Get-ExpirationDate {
     param(
-        [System.Nullable[int]]$ExpireIn,
-        [string]$ExpireAt
+        [object]$ExpireIn,
+        [string]$ExpirationDateTime
     )
-        
+
+    $expireOffset = $null
+
     if ($ExpireIn) {
-        return [System.DateTimeOffset]::UtcNow.AddSeconds($ExpireIn)
-    }
-    elseif ($ExpireAt) {
-        $expiration = if ($ExpireAt) {
-            [DateTimeOffset]::Parse($ExpireAt)
-        } else {
-            $null
+        if ($ExpireIn -is [TimeSpan]) {
+            $expireOffset = $ExpireIn
         }
-        return $expiration
+        elseif ($ExpireIn -is [int]) {
+            $expireOffset = [TimeSpan]::FromMinutes($ExpireIn)
+        }
+        elseif ($ExpireIn -is [string]) {
+            $parsedMinutes = $null
+            if ([int]::TryParse($ExpireIn, [ref]$parsedMinutes)) {
+                $expireOffset = [TimeSpan]::FromMinutes($parsedMinutes)
+            }
+            else {
+                try {
+                    $expireOffset = [TimeSpan]::Parse($ExpireIn)
+                }
+                catch {
+                    throw "Cannot parse ExpireIn string value '$ExpireIn' — not a number or valid TimeSpan string."
+                }
+            }
+        }
+        else {
+            throw "Unsupported type for ExpireIn: $($ExpireIn.GetType().FullName)"
+        }
+
+        return [DateTimeOffset]::UtcNow.Add($expireOffset)
+    }
+    elseif ($ExpirationDateTime) {
+        try {
+            return [DateTimeOffset]::Parse($ExpirationDateTime)
+        }
+        catch {
+            throw "Cannot parse ExpireAt: '$ExpirationDateTime'. Must be a valid ISO 8601 or RFC 1123 string."
+        }
     }
     else {
         return $null  # No expiration
     }
 }
+
 function Revoke-KeeperRecordAccess {
     <#
         .Synopsis
