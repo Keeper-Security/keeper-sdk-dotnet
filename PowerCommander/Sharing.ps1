@@ -181,12 +181,15 @@ function Grant-KeeperRecordAccess {
         $uid = $Record.Uid
     }
 
+    $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
     try{
-
         $expirationDateTimeOffset = Get-ExpirationDateTimeOffset -TimeOffset $TimeOffset -ExpirationDateTime $ExpirationDateTimeISO
-        $options = [KeeperSecurity.Vault.RecordShareOptions]::new($CanEdit.IsPresent, $CanShare.IsPresent, $expirationDateTimeOffset)
+        $options.CanEdit = $CanEdit.IsPresent
+        $options.CanShare = $CanShare.IsPresent
+        $options.Expiration = $expirationDateTimeOffset
     }catch  {
-        Write-Error -Message "Invalid ExpirationDateTimeISO format: $ExpirationDateTimeISO" -ErrorAction Stop
+        Write-Error "Error: $($_.Exception.Message)" -ErrorAction Stop
+        throw
     }
 
     if ($uid) {
