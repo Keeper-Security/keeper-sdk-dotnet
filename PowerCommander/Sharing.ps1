@@ -133,10 +133,10 @@ function Grant-KeeperRecordAccess {
     .PARAMETER CanShare
         Optional switch to grant re-share permissions on the record.
 
-    .PARAMETER TimeOffset
-        Optional. Expiration time offset in seconds from now. Mutually exclusive with ExpirationDateTimeISO.
+    .PARAMETER ExpireIn
+        Optional. Expiration time offset in seconds from now. Mutually exclusive with ExpireAt.
 
-    .PARAMETER ExpirationDateTimeISO
+    .PARAMETER ExpireAt
         Optional. An absolute expiration time in ISO 8601 or RFC 1123 format (e.g., "2025-05-23T08:59:11Z" or "Fri, 23 May 2025 08:59:11 GMT").
 
     .EXAMPLE
@@ -145,12 +145,12 @@ function Grant-KeeperRecordAccess {
         Shares the record with full permissions (edit and re-share) with Jane Doe.
 
     .EXAMPLE
-        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "john.doe@example.com" -TimeOffset 3600
+        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "john.doe@example.com" -ExpireIn 3600
 
         Shares the record with John Doe for 1 hour from now.
 
     .EXAMPLE
-        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "alice@example.com" -ExpirationDateTimeISO "2025-05-23T08:59:11Z"
+        Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "alice@example.com" -ExpireAt "2025-05-23T08:59:11Z"
 
         Shares the record with Alice until the specified UTC datetime.
 
@@ -162,8 +162,8 @@ function Grant-KeeperRecordAccess {
         [Parameter(Mandatory = $true)]$User,
         [Parameter()][switch]$CanEdit,
         [Parameter()][switch]$CanShare,
-        [Parameter()][System.Nullable[int]]$TimeOffset,
-        [Parameter()][string]$ExpirationDateTimeISO
+        [Parameter()][System.Nullable[int]]$ExpireIn,
+        [Parameter()][string]$ExpireAt
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -183,10 +183,10 @@ function Grant-KeeperRecordAccess {
 
     $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
     try{
-        $expirationDateTimeOffset = Get-ExpirationDateTimeOffset -TimeOffset $TimeOffset -ExpirationDateTime $ExpirationDateTimeISO
+        $expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpirationDateTime $ExpireAt
         $options.CanEdit = $CanEdit.IsPresent
         $options.CanShare = $CanShare.IsPresent
-        $options.Expiration = $expirationDateTimeOffset
+        $options.Expiration = $expiration
     }catch  {
         Write-Error "Error: $($_.Exception.Message)" -ErrorAction Stop
         throw
@@ -222,22 +222,22 @@ function Grant-KeeperRecordAccess {
 }
 New-Alias -Name kshr -Value Grant-KeeperRecordAccess
 
-function Get-ExpirationDateTimeOffset {
+function Get-ExpirationDate {
     param(
-        [System.Nullable[int]]$TimeOffset,
-        [string]$ExpirationDateTime
+        [System.Nullable[int]]$ExpireIn,
+        [string]$ExpireAt
     )
         
-    if ($TimeOffset) {
-        return [System.DateTimeOffset]::UtcNow.AddSeconds($TimeOffset)
+    if ($ExpireIn) {
+        return [System.DateTimeOffset]::UtcNow.AddSeconds($ExpireIn)
     }
-    elseif ($ExpirationDateTime) {
-        $expirationDateTimeOffset = if ($ExpirationDateTime) {
-            [DateTimeOffset]::Parse($ExpirationDateTime)
+    elseif ($ExpireAt) {
+        $expiration = if ($ExpireAt) {
+            [DateTimeOffset]::Parse($ExpireAt)
         } else {
             $null
         }
-        return $expirationDateTimeOffset
+        return $expiration
     }
     else {
         return $null  # No expiration
