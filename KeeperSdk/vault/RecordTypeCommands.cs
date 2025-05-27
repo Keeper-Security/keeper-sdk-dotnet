@@ -75,7 +75,7 @@ namespace KeeperSecurity.Vault
                     if (!field.TryGetValue("$ref", out var fieldName) || string.IsNullOrWhiteSpace(fieldName))
                         throw new ArgumentException("Each field must contain a '$ref' key.");
 
-                    if (!RecordTypesConstants.FieldTypes.Any(f => f.Name == fieldName))
+                    if (!(RecordTypesConstants.RecordFields.Any(f => f.Name == fieldName) || RecordTypesConstants.FieldTypes.Any(f => f.Name == fieldName)))
                         throw new ArgumentException($"Field '{fieldName}' is not a valid RecordField.");
 
                     cleanedFields.Add(new Dictionary<string, string> { { "$ref", fieldName } });

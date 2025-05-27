@@ -716,7 +716,7 @@ namespace Commander
             }
             if (data.StartsWith("@"))
             {
-                var path = data.Substring(1).Trim('"');
+                var path = data.Substring(1).Trim('"', '(', ')');
 
                 try
                 {
