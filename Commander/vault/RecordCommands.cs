@@ -716,7 +716,16 @@ namespace Commander
             }
             if (data.StartsWith("@"))
             {
-                var path = data.Substring(1).Trim('"', '(', ')');
+                data = ExtractDataFromFile(data);
+            }
+
+            var createdRecordTypeID = await context.Vault.AddRecordType(data);
+            Console.WriteLine($"Created Record Type ID: {createdRecordTypeID}");
+        }
+
+        private static string ExtractDataFromFile(string filePath)
+        {
+            var path = filePath.Substring(1).Trim('"', '(', ')','\'');
 
                 try
                 {
@@ -732,11 +741,7 @@ namespace Commander
                     throw new FileNotFoundException($"File not found: {path}");
                 }
 
-                data = File.ReadAllText(path);
-            }
-
-            var createdRecordTypeID = await context.Vault.AddRecordType(data);
-            Console.WriteLine($"Created Record Type ID: {createdRecordTypeID}");
+                return File.ReadAllText(path);
         }
 
         private static KeeperRecord ResolveKeeperRecord(VaultContext context, string recordName)
