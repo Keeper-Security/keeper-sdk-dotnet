@@ -719,7 +719,7 @@ namespace Commander
                 data = ExtractDataFromFile(data);
             }
             var parsedCategories = recordTypeData.categories.Split(',').ToList();
-            var createdRecordTypeID = await context.Vault.AddRecordType(data,parsedCategories);
+            var createdRecordTypeID = await context.Vault.AddRecordType(data, parsedCategories);
             Console.WriteLine($"Created Record Type ID: {createdRecordTypeID}");
         }
 
@@ -740,8 +740,20 @@ namespace Commander
             }
             var parsedCategories = recordTypeData.categories.Split(',').ToList();
             var updatedRecordTypeID = await context.Vault.UpdateRecordTypeAsync(recordTypeData.recordTypeId, data, parsedCategories);
-            Console.WriteLine($"Created Record Type ID: {updatedRecordTypeID}");
+            Console.WriteLine($"Updated Record Type ID: {updatedRecordTypeID}");
         }
+
+        public static async Task RecordTypeDeleteCommand(this VaultContext context, RecordTypeDeleteOptions recordTypeData)
+        {
+            if (string.IsNullOrEmpty(recordTypeData.recordTypeId))
+            {
+                throw new Exception("\"record-type-delete\" command requires recordTypeId parameter");
+            }
+
+            var deletedRecordTypeID = await context.Vault.DeleteRecordTypeAsync(recordTypeData.recordTypeId);
+            Console.WriteLine($"Deleted Record Type ID: {deletedRecordTypeID}");
+        }
+
 
         private static string ExtractDataFromFile(string filePath)
         {
@@ -962,9 +974,15 @@ namespace Commander
     {
         [Value(0, Required = true, Default = false, HelpText = "RecordTypeID of record type whose type has to be updated ")]
         public string recordTypeId { get; set; }
-        [Value(1, Required = true, Default = false, HelpText = "update a new record type with given data. Needs a Serialized JSON string. example- record-type-add {\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"}]} ")]
+        [Value(1, Required = true, Default = false, HelpText = "update a new record type with given data. Needs a Serialized JSON string. example- record-type-update <record_type_id> {\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"}]} ")]
         public string data { get; set; }
         [Value(2, Required = false, Default = null, HelpText = "Comma seperated categories as a string")]
         public string categories { get; set; }
+    }
+
+    class RecordTypeDeleteOptions
+    {
+        [Value(0, Required = true, Default = false, HelpText = "RecordTypeID of record type whose type has to be deleted ")]
+        public string recordTypeId { get; set; }
     }
 }

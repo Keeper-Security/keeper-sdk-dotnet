@@ -13,7 +13,10 @@ namespace KeeperSecurity.Vault
 {
     public partial class VaultOnline : IRecordTypeManagement
     {
-        public async Task<string> AddRecordType(string recordTypeData, List<string> categories=null)
+        internal readonly string RECORD_TYPE_ADD_URL = "vault/record_type_add";
+        internal readonly string RECORD_TYPE_DELETE_URL = "vault/record_type_delete";
+        internal readonly string RECORD_TYPE_UPDATE_URL = "vault/record_type_update";
+        public async Task<string> AddRecordType(string recordTypeData, List<string> categories = null)
         {
             var recordTypeService = new RecordTypeService(Auth.AuthContext);
 
@@ -27,7 +30,7 @@ namespace KeeperSecurity.Vault
 
             try
             {
-                var response = await Auth.ExecuteAuthRest("vault/record_type_add", record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                var response = await Auth.ExecuteAuthRest(RECORD_TYPE_ADD_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
                 return response.RecordTypeId.ToString();
             }
             catch (Exception ex)
@@ -37,12 +40,16 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public async Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData, List<string> categories=null)
+        public async Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData, List<string> categories = null)
         {
             var recordTypeService = new RecordTypeService(this.Auth.AuthContext);
 
             recordTypeService.validateParameterExistence(new List<string> { recordTypeId, recordTypeData });
-            recordTypeService.CheckEnterpriseRecordTypeStatus(recordTypeId);
+            bool enterpriseStatus = recordTypeService.CheckEnterpriseRecordTypeStatus(recordTypeId);
+            if (!enterpriseStatus)
+            {
+                Console.WriteLine($"the given id is {recordTypeId}, Assuming its an enterprise record and updating this record");
+            }
             recordTypeService.checkAdminAccess();
 
             var recordTypeObj = JsonUtils.ParseJson<CustomRecordType>(Encoding.UTF8.GetBytes(recordTypeData));
@@ -54,7 +61,36 @@ namespace KeeperSecurity.Vault
             {
                 int.TryParse(recordTypeId, out int parsedRecordTypeId);
                 record.RecordTypeId = parsedRecordTypeId;
-                var response = await this.Auth.ExecuteAuthRest("vault/record_type_update", record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                var response = await this.Auth.ExecuteAuthRest(RECORD_TYPE_UPDATE_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                return response.RecordTypeId.ToString();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"An error occured while updating the custom record type with id {recordTypeId}. Code: {ex.GetType().GetProperty("Code", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(ex)}, Message: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<string> DeleteRecordTypeAsync(string recordTypeId)
+        {
+            var recordTypeService = new RecordTypeService(this.Auth.AuthContext);
+
+            recordTypeService.validateParameterExistence(new List<string> { recordTypeId });
+            recordTypeService.checkAdminAccess();
+            bool enterpriseStatus = recordTypeService.CheckEnterpriseRecordTypeStatus(recordTypeId);
+            if (!enterpriseStatus)
+            {
+                Console.WriteLine($"the given id is {recordTypeId}, Assuming its an enterprise record and deleting this record");
+            }
+
+            Records.RecordType record = new Records.RecordType();
+
+            try
+            {
+                int.TryParse(recordTypeId, out int parsedRecordTypeId);
+                record.RecordTypeId = parsedRecordTypeId;
+                record.Scope = Records.RecordTypeScope.RtEnterprise;
+                var response = await this.Auth.ExecuteAuthRest(RECORD_TYPE_DELETE_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
                 return response.RecordTypeId.ToString();
             }
             catch (Exception ex)
@@ -82,7 +118,7 @@ namespace KeeperSecurity.Vault
                 var description = customRecordObject.Description ?? string.Empty;
                 string[] parsedCategroies = (categories != null && categories.Count > 0) ? categories.ToArray() : new string[] { "note" };
 
-                var cleanedFields = validateRecordTypeData(scope,fields);                
+                var cleanedFields = validateRecordTypeData(scope, fields);
 
                 var recordTypeData = new CustomRecordType
                 {

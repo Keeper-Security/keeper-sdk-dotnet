@@ -532,7 +532,7 @@ namespace KeeperSecurity.Vault
         /// <param name="recordTypeData">Record type data to be given as stringified json</param>
         /// <param name="categories">categories to be given as list of strings</param>
         /// <returns>Task</returns>
-        Task<string> AddRecordType(string recordTypeData,List<string> categories);
+        Task<string> AddRecordType(string recordTypeData, List<string> categories);
 
         /// <summary>
         ///     Updates Record type to given record type across the enterprise.
@@ -541,14 +541,14 @@ namespace KeeperSecurity.Vault
         /// <param name="recordTypeData">Record type data to be given as stringified json</param>
         /// <param name="categories">categories to be given as list of strings</param>
         /// <returns>Task</returns>
-        Task<string> UpdateRecordTypeAsync(string recordTypeId,string recordTypeData, List<string> categories);
+        Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData, List<string> categories);
 
-        // /// <summary>
-        // ///     Deletes Record type from record types across the enterprise.
-        // /// </summary>
-        // /// <param name="recordTypeId">Record type ID to be given as string</param>
-        // /// <returns>Task</returns>
-        // Task<string> DeleteRecordTypeAsync(string recordTypeId);
+        /// <summary>
+        ///     Deletes Record type from record types across the enterprise.
+        /// </summary>
+        /// <param name="recordTypeId">Record type ID to be given as string</param>
+        /// <returns>Task</returns>
+        Task<string> DeleteRecordTypeAsync(string recordTypeId);
     }
 
     /// <summary>
@@ -1236,7 +1236,7 @@ namespace KeeperSecurity.Vault
                         return 0;
                     }).Where(x => x > 0));
                 }
-                    break;
+                break;
                 case List<bool> lb:
                     lb.AddRange(text.Split('\n').Select(x =>
                     {
