@@ -361,6 +361,13 @@ namespace Commander
                     Description = "Add a new Record Type",
                     Action = context.RecordTypeAddCommand
                 });
+            cli.Commands.Add("record-type-update",
+                new ParseableCommand<RecordTypeUpdateOptions>
+                {
+                    Order = 81,
+                    Description = "updates a Record Type of given ID",
+                    Action = context.RecordTypeUpdateCommand
+                });
 
             cli.Aliases.Add("list", "search");
             cli.Aliases.Add("d", "sync-down");
