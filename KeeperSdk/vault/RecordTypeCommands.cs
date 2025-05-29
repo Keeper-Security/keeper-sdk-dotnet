@@ -26,7 +26,7 @@ namespace KeeperSecurity.Vault
             var recordTypeObj = JsonUtils.ParseJson<CustomRecordType>(Encoding.UTF8.GetBytes(recordTypeData));
             recordTypeService.validateRecordTypeData(recordTypeObj);
 
-            Records.RecordType record = recordTypeService.CreateCustomRecordType(recordTypeObj);
+            Records.RecordType record = recordTypeService.CreateRecordTypeObject(recordTypeObj);
 
             try
             {
@@ -55,7 +55,7 @@ namespace KeeperSecurity.Vault
             var recordTypeObj = JsonUtils.ParseJson<CustomRecordType>(Encoding.UTF8.GetBytes(recordTypeData));
             recordTypeService.validateRecordTypeData(recordTypeObj);
 
-            Records.RecordType record = recordTypeService.CreateCustomRecordType(recordTypeObj);
+            Records.RecordType record = recordTypeService.CreateRecordTypeObject(recordTypeObj);
 
             try
             {
@@ -109,7 +109,7 @@ namespace KeeperSecurity.Vault
                 this.auth = auth;
             }
 
-            public Records.RecordType CreateCustomRecordType(CustomRecordType customRecordObject = null, string scope = "enterprise", List<string> categories = null)
+            public Records.RecordType CreateRecordTypeObject(CustomRecordType customRecordObject = null, string scope = "enterprise", List<string> categories = null)
             {
                 var title = customRecordObject.Id;
                 var fields = customRecordObject.Fields
