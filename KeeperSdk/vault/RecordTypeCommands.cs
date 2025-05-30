@@ -7,64 +7,141 @@ using KeeperSecurity.Utils;
 using System.Text;
 using Records;
 using System.Reflection;
+using KeeperSecurity.Authentication;
 
 namespace KeeperSecurity.Vault
 {
     public partial class VaultOnline : IRecordTypeManagement
     {
+        internal readonly string RECORD_TYPE_ADD_URL = "vault/record_type_add";
+        internal readonly string RECORD_TYPE_DELETE_URL = "vault/record_type_delete";
+        internal readonly string RECORD_TYPE_UPDATE_URL = "vault/record_type_update";
         public async Task<string> AddRecordType(string recordTypeData)
         {
-            if (string.IsNullOrWhiteSpace(recordTypeData))
-            {
-                throw new ArgumentException("recordTypeData cannot be null or empty");
-            }
+            var recordTypeService = new RecordTypeService(Auth.AuthContext);
 
-            var enterprise_admin_status = this.Auth.AuthContext.IsEnterpriseAdmin;
-
-            if (!enterprise_admin_status)
-            {
-                throw new VaultException("User doesn't have permissions to create a new record type");
-            }
+            recordTypeService.validateParameterExistence(new List<string> { recordTypeData });
+            recordTypeService.checkAdminAccess();
 
             var recordTypeObj = JsonUtils.ParseJson<CustomRecordType>(Encoding.UTF8.GetBytes(recordTypeData));
+            recordTypeService.validateRecordTypeData(recordTypeObj);
 
-            if (recordTypeObj == null)
-                throw new ArgumentException("Invalid recordTypeData JSON");
-
-            if (string.IsNullOrWhiteSpace(recordTypeObj.Id))
-                throw new ArgumentException("Record type must have a title or name");
-
-            var fieldsList = recordTypeObj.Fields
-                .Select(f => new Dictionary<string, string> { ["$ref"] = f.Ref })
-                .ToList();
-
-            var recordTypeService = new RecordTypeService();
-
-            Records.RecordType record = await recordTypeService.CreateCustomRecordType(
-                recordTypeObj.Id,
-                fieldsList,
-                recordTypeObj.Description ?? string.Empty,
-                "enterprise"
-            );
+            Records.RecordType record = recordTypeService.CreateRecordTypeObject(recordTypeObj);
 
             try
             {
-                var response = await this.Auth.ExecuteAuthRest("vault/record_type_add", record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                var response = await Auth.ExecuteAuthRest(RECORD_TYPE_ADD_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
                 return response.RecordTypeId.ToString();
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"An error occured while creating a new custom record type. Code: {ex.GetType().GetProperty("Code", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(ex)}, Message: {ex.Message.ToString()}");
+                Console.Error.WriteLine($"An error occured while creating a new custom record type. Code: {ex.GetType().GetProperty("Code", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(ex)}, Message: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData)
+        {
+            var recordTypeService = new RecordTypeService(Auth.AuthContext);
+
+            recordTypeService.validateParameterExistence(new List<string> { recordTypeId, recordTypeData });
+            bool enterpriseStatus = recordTypeService.CheckEnterpriseRecordTypeStatus(recordTypeId);
+            if (!enterpriseStatus)
+            {
+                Console.WriteLine($"the given id is {recordTypeId}, Assuming its an enterprise record and updating this record");
+            }
+            recordTypeService.checkAdminAccess();
+
+            var recordTypeObj = JsonUtils.ParseJson<CustomRecordType>(Encoding.UTF8.GetBytes(recordTypeData));
+            recordTypeService.validateRecordTypeData(recordTypeObj);
+
+            Records.RecordType record = recordTypeService.CreateRecordTypeObject(recordTypeObj);
+
+            try
+            {
+                int.TryParse(recordTypeId, out int parsedRecordTypeId);
+                record.RecordTypeId = parsedRecordTypeId;
+                var response = await Auth.ExecuteAuthRest(RECORD_TYPE_UPDATE_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                return response.RecordTypeId.ToString();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"An error occured while updating the custom record type with id {recordTypeId}. Code: {ex.GetType().GetProperty("Code", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(ex)}, Message: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<string> DeleteRecordTypeAsync(string recordTypeId)
+        {
+            var recordTypeService = new RecordTypeService(Auth.AuthContext);
+
+            recordTypeService.validateParameterExistence(new List<string> { recordTypeId });
+            recordTypeService.checkAdminAccess();
+            bool enterpriseStatus = recordTypeService.CheckEnterpriseRecordTypeStatus(recordTypeId);
+            if (!enterpriseStatus)
+            {
+                Console.WriteLine($"the given id is {recordTypeId}, Assuming its an enterprise record and deleting this record");
+            }
+
+            Records.RecordType record = new Records.RecordType();
+
+            try
+            {
+                int.TryParse(recordTypeId, out int parsedRecordTypeId);
+                record.RecordTypeId = parsedRecordTypeId;
+                record.Scope = Records.RecordTypeScope.RtEnterprise;
+                var response = await Auth.ExecuteAuthRest(RECORD_TYPE_DELETE_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                return response.RecordTypeId.ToString();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"An error occured while deleting the custom record type with id {recordTypeId}. Code: {ex.GetType().GetProperty("Code", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(ex)}, Message: {ex.Message}");
                 throw;
             }
         }
 
         internal class RecordTypeService
         {
-            public Task<Records.RecordType> CreateCustomRecordType(string title, List<Dictionary<string, string>> fields, string description = "", string scope = "enterprise")
+            private readonly IAuthContext auth;
+
+            public RecordTypeService(IAuthContext auth)
+            {
+                this.auth = auth;
+            }
+
+            public Records.RecordType CreateRecordTypeObject(CustomRecordType customRecordObject = null, string scope = "enterprise")
+            {
+                var title = customRecordObject.Id;
+                var fields = customRecordObject.Fields
+                            .Select(f => new Dictionary<string, string> { ["$ref"] = f.Ref })
+                            .ToList();
+                var description = customRecordObject.Description ?? string.Empty;
+                var categories= customRecordObject.Categories;
+                string[] parsedCategroies = categories != null ? categories.ToArray() : new string[] {};
+
+                var cleanedFields = validateRecordTypeData(scope, fields);
+
+                var recordTypeData = new CustomRecordType
+                {
+                    Id = title,
+                    Description = description,
+                    Categories = parsedCategroies,
+                    Fields = cleanedFields.Select(f => new RecordTypeField { Ref = f["$ref"] }).ToArray()
+                };
+
+                var recordTypeProto = new Records.RecordType
+                {
+                    Content = Encoding.UTF8.GetString(JsonUtils.DumpJson(recordTypeData)),
+                    Scope = Records.RecordTypeScope.RtEnterprise,
+
+                };
+                return recordTypeProto;
+            }
+
+            private List<Dictionary<string, string>> validateRecordTypeData(string scope, List<Dictionary<string, string>> fields)
             {
                 if (scope != "enterprise")
-                    throw new ArgumentException("This command is restricted to Keeper Enterprise administrators.");
+                    throw new ArgumentException("This command is restricted to record types with scope of enterprise");
 
                 if (fields == null || fields.Count == 0)
                     throw new ArgumentException("At least one field must be specified.");
@@ -80,23 +157,53 @@ namespace KeeperSecurity.Vault
 
                     cleanedFields.Add(new Dictionary<string, string> { { "$ref", fieldName } });
                 }
+                return cleanedFields;
+            }
 
-                var recordTypeData = new CustomRecordType
+            public bool CheckEnterpriseRecordTypeStatus(string recordTypeID)
+            {
+                int parsedRecordTypeId;
+                if (!int.TryParse(recordTypeID, out parsedRecordTypeId))
                 {
-                    Id = title,
-                    Description = description,
-                    Categories = new string[] { "note" },
-                    Fields = fields.Select(f => new RecordTypeField { Ref = f["$ref"] }).ToArray()
-                };
+                    throw new ArgumentException($"Record type ID is supposed to be an integrer but {recordTypeID} is provided");
+                }
 
-                var recordTypeProto = new Records.RecordType
+                var recordTypesPerScope = 1_000_000;
+                var enterpriseScope = Records.RecordTypeScope.RtEnterprise;
+                var minimumId = recordTypesPerScope * (int) enterpriseScope;
+                var maximumId = recordTypesPerScope + minimumId;
+                bool isEnterpriseRecordType = (minimumId < parsedRecordTypeId) && (maximumId > parsedRecordTypeId);
+                return isEnterpriseRecordType;
+            }
+
+            public void validateRecordTypeData(CustomRecordType recordTypeObj)
+            {
+                if (recordTypeObj == null)
+                    throw new ArgumentException("Invalid recordTypeData JSON");
+
+                if (string.IsNullOrWhiteSpace(recordTypeObj.Id))
+                    throw new ArgumentException("Record type must have a title or name");
+            }
+
+            public void validateParameterExistence(List<string> objects)
+            {
+                objects.ForEach(o =>
                 {
-                    Content = Encoding.UTF8.GetString(JsonUtils.DumpJson(recordTypeData)),
-                    Scope = Records.RecordTypeScope.RtEnterprise,
+                    if (String.IsNullOrWhiteSpace(o))
+                    {
+                        throw new ArgumentException($"{o} cannot be null or empty");
+                    }
+                });
+            }
 
-                };
+            public void checkAdminAccess()
+            {
+                var enterprise_admin_status = auth.IsEnterpriseAdmin;
 
-                return Task.FromResult(recordTypeProto);
+                if (!enterprise_admin_status)
+                {
+                    throw new VaultException("Enterprise admin access is required for this command");
+                }
             }
         }
 
