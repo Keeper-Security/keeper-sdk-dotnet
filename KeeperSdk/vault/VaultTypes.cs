@@ -529,9 +529,24 @@ namespace KeeperSecurity.Vault
         /// <summary>
         ///     Adds Record type to available record types across the enterprise.
         /// </summary>
-        /// <param name="recordData">Emails</param>
+        /// <param name="recordTypeData">Record type data to be given as stringified json</param>
         /// <returns>Task</returns>
-        Task<string> AddRecordType(string recordData);
+        Task<string> AddRecordType(string recordTypeData);
+
+        /// <summary>
+        ///     Updates Record type to given record type across the enterprise.
+        /// </summary>
+        /// <param name="recordTypeId">Record type ID to be given as string</param>
+        /// <param name="recordTypeData">Record type data to be given as stringified json</param>
+        /// <returns>Task</returns>
+        Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData);
+
+        /// <summary>
+        ///     Deletes Record type from record types across the enterprise.
+        /// </summary>
+        /// <param name="recordTypeId">Record type ID to be given as string</param>
+        /// <returns>Task</returns>
+        Task<string> DeleteRecordTypeAsync(string recordTypeId);
     }
 
     /// <summary>
@@ -1219,7 +1234,7 @@ namespace KeeperSecurity.Vault
                         return 0;
                     }).Where(x => x > 0));
                 }
-                    break;
+                break;
                 case List<bool> lb:
                     lb.AddRange(text.Split('\n').Select(x =>
                     {
