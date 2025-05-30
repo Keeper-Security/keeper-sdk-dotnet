@@ -788,10 +788,10 @@ function Edit-KeeperRecordType {
         Required. Record type definition as a JSON string or file reference (prefix with '@' for file path).
 
     .EXAMPLE
-        Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -Data '@("C:\record_type_update.json")'
+        Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -RecordTypeId '22500' -Data '@("C:\record_type_update.json")'
 
     .EXAMPLE
-        Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -Data '{\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]}'
+        Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -RecordTypeId '22500' -Data '{\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]}'
     #>
 
     [CmdletBinding()]
