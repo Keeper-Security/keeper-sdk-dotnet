@@ -972,7 +972,7 @@ namespace Commander
 
     class RecordTypeUpdateOptions
     {
-        [Value(0, Required = true, Default = false, HelpText = "RecordTypeID of record type whose type has to be updated ")]
+        [Value(0, Required = true, Default = false, HelpText = "RecordTypeId of record type to be updated")]
         public string recordTypeId { get; set; }
         [Value(1, Required = true, Default = false, HelpText = "update a new record type with given data. Needs a Serialized JSON string. example- record-type-update <record_type_id> {\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"}]} ")]
         public string data { get; set; }
