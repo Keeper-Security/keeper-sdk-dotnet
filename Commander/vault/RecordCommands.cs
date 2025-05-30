@@ -718,8 +718,7 @@ namespace Commander
             {
                 data = ExtractDataFromFile(data);
             }
-            var parsedCategories = recordTypeData.categories.Split(',').ToList();
-            var createdRecordTypeID = await context.Vault.AddRecordType(data, parsedCategories);
+            var createdRecordTypeID = await context.Vault.AddRecordType(data);
             Console.WriteLine($"Created Record Type ID: {createdRecordTypeID}");
         }
 
@@ -738,8 +737,7 @@ namespace Commander
             {
                 data = ExtractDataFromFile(data);
             }
-            var parsedCategories = recordTypeData.categories.Split(',').ToList();
-            var updatedRecordTypeID = await context.Vault.UpdateRecordTypeAsync(recordTypeData.recordTypeId, data, parsedCategories);
+            var updatedRecordTypeID = await context.Vault.UpdateRecordTypeAsync(recordTypeData.recordTypeId, data);
             Console.WriteLine($"Updated Record Type ID: {updatedRecordTypeID}");
         }
 
@@ -966,8 +964,6 @@ namespace Commander
     {
         [Value(0, Required = true, Default = false, HelpText = "Adds a new record type with given data. Needs a Serialized JSON string. example- record-type-add {\"$id\":\"myCustomType_dotnet_test6\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]} ")]
         public string data { get; set; }
-        [Value(1, Required = false, Default = null, HelpText = "Comma seperated categories as a string")]
-        public string categories { get; set; }
     }
 
     class RecordTypeUpdateOptions
@@ -976,8 +972,6 @@ namespace Commander
         public string recordTypeId { get; set; }
         [Value(1, Required = true, Default = false, HelpText = "update a new record type with given data. Needs a Serialized JSON string. example- record-type-update <record_type_id> {\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"}]} ")]
         public string data { get; set; }
-        [Value(2, Required = false, Default = null, HelpText = "Comma seperated categories as a string")]
-        public string categories { get; set; }
     }
 
     class RecordTypeDeleteOptions

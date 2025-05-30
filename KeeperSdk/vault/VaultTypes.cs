@@ -530,18 +530,16 @@ namespace KeeperSecurity.Vault
         ///     Adds Record type to available record types across the enterprise.
         /// </summary>
         /// <param name="recordTypeData">Record type data to be given as stringified json</param>
-        /// <param name="categories">categories to be given as list of strings</param>
         /// <returns>Task</returns>
-        Task<string> AddRecordType(string recordTypeData, List<string> categories);
+        Task<string> AddRecordType(string recordTypeData);
 
         /// <summary>
         ///     Updates Record type to given record type across the enterprise.
         /// </summary>
         /// <param name="recordTypeId">Record type ID to be given as string</param>
         /// <param name="recordTypeData">Record type data to be given as stringified json</param>
-        /// <param name="categories">categories to be given as list of strings</param>
         /// <returns>Task</returns>
-        Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData, List<string> categories);
+        Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData);
 
         /// <summary>
         ///     Deletes Record type from record types across the enterprise.

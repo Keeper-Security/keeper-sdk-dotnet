@@ -16,7 +16,7 @@ namespace KeeperSecurity.Vault
         internal readonly string RECORD_TYPE_ADD_URL = "vault/record_type_add";
         internal readonly string RECORD_TYPE_DELETE_URL = "vault/record_type_delete";
         internal readonly string RECORD_TYPE_UPDATE_URL = "vault/record_type_update";
-        public async Task<string> AddRecordType(string recordTypeData, List<string> categories = null)
+        public async Task<string> AddRecordType(string recordTypeData)
         {
             var recordTypeService = new RecordTypeService(Auth.AuthContext);
 
@@ -40,7 +40,7 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        public async Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData, List<string> categories = null)
+        public async Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData)
         {
             var recordTypeService = new RecordTypeService(Auth.AuthContext);
 
@@ -109,14 +109,15 @@ namespace KeeperSecurity.Vault
                 this.auth = auth;
             }
 
-            public Records.RecordType CreateRecordTypeObject(CustomRecordType customRecordObject = null, string scope = "enterprise", List<string> categories = null)
+            public Records.RecordType CreateRecordTypeObject(CustomRecordType customRecordObject = null, string scope = "enterprise")
             {
                 var title = customRecordObject.Id;
                 var fields = customRecordObject.Fields
                             .Select(f => new Dictionary<string, string> { ["$ref"] = f.Ref })
                             .ToList();
                 var description = customRecordObject.Description ?? string.Empty;
-                string[] parsedCategroies = (categories != null && categories.Count > 0) ? categories.ToArray() : new string[] {};
+                var categories= customRecordObject.Categories;
+                string[] parsedCategroies = categories != null ? categories.ToArray() : new string[] {};
 
                 var cleanedFields = validateRecordTypeData(scope, fields);
 
