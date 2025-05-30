@@ -982,7 +982,7 @@ namespace Commander
 
     class RecordTypeDeleteOptions
     {
-        [Value(0, Required = true, Default = false, HelpText = "RecordTypeID of record type whose type has to be deleted ")]
+        [Value(0, Required = true, Default = false, HelpText = "RecordTypeId of record type to be deleted")]
         public string recordTypeId { get; set; }
     }
 }

@@ -42,7 +42,7 @@ namespace KeeperSecurity.Vault
 
         public async Task<string> UpdateRecordTypeAsync(string recordTypeId, string recordTypeData, List<string> categories = null)
         {
-            var recordTypeService = new RecordTypeService(this.Auth.AuthContext);
+            var recordTypeService = new RecordTypeService(Auth.AuthContext);
 
             recordTypeService.validateParameterExistence(new List<string> { recordTypeId, recordTypeData });
             bool enterpriseStatus = recordTypeService.CheckEnterpriseRecordTypeStatus(recordTypeId);
@@ -61,7 +61,7 @@ namespace KeeperSecurity.Vault
             {
                 int.TryParse(recordTypeId, out int parsedRecordTypeId);
                 record.RecordTypeId = parsedRecordTypeId;
-                var response = await this.Auth.ExecuteAuthRest(RECORD_TYPE_UPDATE_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                var response = await Auth.ExecuteAuthRest(RECORD_TYPE_UPDATE_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
                 return response.RecordTypeId.ToString();
             }
             catch (Exception ex)
@@ -73,7 +73,7 @@ namespace KeeperSecurity.Vault
 
         public async Task<string> DeleteRecordTypeAsync(string recordTypeId)
         {
-            var recordTypeService = new RecordTypeService(this.Auth.AuthContext);
+            var recordTypeService = new RecordTypeService(Auth.AuthContext);
 
             recordTypeService.validateParameterExistence(new List<string> { recordTypeId });
             recordTypeService.checkAdminAccess();
@@ -90,12 +90,12 @@ namespace KeeperSecurity.Vault
                 int.TryParse(recordTypeId, out int parsedRecordTypeId);
                 record.RecordTypeId = parsedRecordTypeId;
                 record.Scope = Records.RecordTypeScope.RtEnterprise;
-                var response = await this.Auth.ExecuteAuthRest(RECORD_TYPE_DELETE_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
+                var response = await Auth.ExecuteAuthRest(RECORD_TYPE_DELETE_URL, record, typeof(RecordTypeModifyResponse)) as RecordTypeModifyResponse;
                 return response.RecordTypeId.ToString();
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"An error occured while updating the custom record type with id {recordTypeId}. Code: {ex.GetType().GetProperty("Code", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(ex)}, Message: {ex.Message}");
+                Console.Error.WriteLine($"An error occured while deleting the custom record type with id {recordTypeId}. Code: {ex.GetType().GetProperty("Code", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(ex)}, Message: {ex.Message}");
                 throw;
             }
         }
@@ -116,7 +116,7 @@ namespace KeeperSecurity.Vault
                             .Select(f => new Dictionary<string, string> { ["$ref"] = f.Ref })
                             .ToList();
                 var description = customRecordObject.Description ?? string.Empty;
-                string[] parsedCategroies = (categories != null && categories.Count > 0) ? categories.ToArray() : new string[] { "note" };
+                string[] parsedCategroies = (categories != null && categories.Count > 0) ? categories.ToArray() : new string[] {};
 
                 var cleanedFields = validateRecordTypeData(scope, fields);
 
@@ -140,7 +140,7 @@ namespace KeeperSecurity.Vault
             private List<Dictionary<string, string>> validateRecordTypeData(string scope, List<Dictionary<string, string>> fields)
             {
                 if (scope != "enterprise")
-                    throw new ArgumentException("This command is restricted to Keeper Enterprise administrators.");
+                    throw new ArgumentException("This command is restricted to record types with scope of enterprise");
 
                 if (fields == null || fields.Count == 0)
                     throw new ArgumentException("At least one field must be specified.");
@@ -201,7 +201,7 @@ namespace KeeperSecurity.Vault
 
                 if (!enterprise_admin_status)
                 {
-                    throw new VaultException("User doesn't have permissions to create a new record type");
+                    throw new VaultException("Enterprise admin access is required for this command");
                 }
             }
         }
