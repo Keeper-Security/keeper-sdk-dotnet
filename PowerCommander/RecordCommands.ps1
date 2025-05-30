@@ -733,11 +733,8 @@ function New-KeeperRecordType {
     .PARAMETER Data
         Required. Record type definition as a JSON string or file reference (prefix with '@' for file path).
 
-    .PARAMETER Categories
-        Optional. Comma-separated string of category names to assign to the record type.
-
     .EXAMPLE
-        New-KeeperRecordType -Data '@("C:\record_type.json")' -Categories "login,note"
+        New-KeeperRecordType -Data '@("C:\record_type.json")'
 
     .EXAMPLE
         New-KeeperRecordType -Data '{\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]}'
@@ -746,8 +743,7 @@ function New-KeeperRecordType {
 
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true)][string] $Data,
-        [Parameter(Mandatory = $false)][string] $Categories
+        [Parameter(Mandatory = $true)][string] $Data
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -768,15 +764,8 @@ function New-KeeperRecordType {
         $Data = Get-Content $fullPath -Raw
     }
 
-    if ($Categories) {
-        $categoriesList = $Categories -split "," | ForEach-Object { $_.Trim() }
-    }
-    else {
-        $categoriesList = @()
-    }
-
     try {
-        $recordTypeId = $vault.AddRecordType($Data, $categoriesList).GetAwaiter().GetResult()
+        $recordTypeId = $vault.AddRecordType($Data).GetAwaiter().GetResult()
         Write-Host "Created Record Type ID: $recordTypeId"
     }
     catch {
@@ -798,11 +787,8 @@ function Edit-KeeperRecordType {
     .PARAMETER Data
         Required. Record type definition as a JSON string or file reference (prefix with '@' for file path).
 
-    .PARAMETER Categories
-        Optional. Comma-separated string of category names to assign to the record type.
-
     .EXAMPLE
-        Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -Data '@("C:\record_type_update.json")' -Categories "login,note"
+        Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -Data '@("C:\record_type_update.json")'
 
     .EXAMPLE
         Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -Data '{\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]}'
@@ -811,8 +797,7 @@ function Edit-KeeperRecordType {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)][string] $RecordTypeId,
-        [Parameter(Mandatory = $true)][string] $Data,
-        [Parameter(Mandatory = $false)][string] $Categories
+        [Parameter(Mandatory = $true)][string] $Data
     )
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
@@ -835,7 +820,7 @@ function Edit-KeeperRecordType {
 
     try {
        
-        $result = $vault.UpdateRecordTypeAsync($RecordTypeId,$Data,$Categories).GetAwaiter().GetResult()
+        $result = $vault.UpdateRecordTypeAsync($RecordTypeId,$Data).GetAwaiter().GetResult()
         Write-Host "Updated Record Type ID: $result"
     }
     catch {
