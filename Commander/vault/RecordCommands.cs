@@ -718,30 +718,62 @@ namespace Commander
             {
                 data = ExtractDataFromFile(data);
             }
-
-            var createdRecordTypeID = await context.Vault.AddRecordType(data);
+            var parsedCategories = recordTypeData.categories.Split(',').ToList();
+            var createdRecordTypeID = await context.Vault.AddRecordType(data, parsedCategories);
             Console.WriteLine($"Created Record Type ID: {createdRecordTypeID}");
         }
 
+        public static async Task RecordTypeUpdateCommand(this VaultContext context, RecordTypeUpdateOptions recordTypeData)
+        {
+            if (string.IsNullOrEmpty(recordTypeData.recordTypeId))
+            {
+                throw new Exception("\"record-type-update\" command requires recordTypeId parameter");
+            }
+            var data = recordTypeData.data;
+            if (string.IsNullOrEmpty(data))
+            {
+                throw new Exception("\"record-type-update\" command requires data parameter");
+            }
+            if (data.StartsWith("@"))
+            {
+                data = ExtractDataFromFile(data);
+            }
+            var parsedCategories = recordTypeData.categories.Split(',').ToList();
+            var updatedRecordTypeID = await context.Vault.UpdateRecordTypeAsync(recordTypeData.recordTypeId, data, parsedCategories);
+            Console.WriteLine($"Updated Record Type ID: {updatedRecordTypeID}");
+        }
+
+        public static async Task RecordTypeDeleteCommand(this VaultContext context, RecordTypeDeleteOptions recordTypeData)
+        {
+            if (string.IsNullOrEmpty(recordTypeData.recordTypeId))
+            {
+                throw new Exception("\"record-type-delete\" command requires recordTypeId parameter");
+            }
+
+            var deletedRecordTypeID = await context.Vault.DeleteRecordTypeAsync(recordTypeData.recordTypeId);
+            Console.WriteLine($"Deleted Record Type ID: {deletedRecordTypeID}");
+        }
+
+
         private static string ExtractDataFromFile(string filePath)
         {
-            var path = filePath.Substring(1).Trim('"', '(', ')','\'');
+            var path = filePath.Substring(1).Trim('"', '(', ')', '\'');
 
-                try
-                {
-                    path = Path.GetFullPath(path);
-                }
-                catch (Exception error) 
-                {
-                    Console.Error.WriteLine($"Error reading the file at path: {error}");
-                }
+            try
+            {
+                path = Path.GetFullPath(path);
+            }
+            catch (Exception error)
+            {
+                Console.Error.WriteLine($"Error reading the file at path: {error}");
+            }
 
-                if (!File.Exists(path))
-                {
-                    throw new FileNotFoundException($"File not found: {path}");
-                }
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException($"File not found: {path}");
+            }
 
-                return File.ReadAllText(path);
+            return File.ReadAllText(path);
         }
 
         private static KeeperRecord ResolveKeeperRecord(VaultContext context, string recordName)
@@ -929,10 +961,28 @@ namespace Commander
         public string FieldIndex { get; set; }
         public string Value { get; set; }
     }
-    
+
     class RecordTypeAddOptions
-    { 
-        [Value(0, Required = true, Default = false,HelpText ="Adds a new record type with given data. Needs a Serialized JSON string. example- record-type-add {\"$id\":\"myCustomType_dotnet_test6\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]} ")]
+    {
+        [Value(0, Required = true, Default = false, HelpText = "Adds a new record type with given data. Needs a Serialized JSON string. example- record-type-add {\"$id\":\"myCustomType_dotnet_test6\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]} ")]
         public string data { get; set; }
+        [Value(1, Required = false, Default = null, HelpText = "Comma seperated categories as a string")]
+        public string categories { get; set; }
+    }
+
+    class RecordTypeUpdateOptions
+    {
+        [Value(0, Required = true, Default = false, HelpText = "RecordTypeId of record type to be updated")]
+        public string recordTypeId { get; set; }
+        [Value(1, Required = true, Default = false, HelpText = "update a new record type with given data. Needs a Serialized JSON string. example- record-type-update <record_type_id> {\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"categories\":[\"note\"],\"fields\":[{\"$ref\":\"login\"}]} ")]
+        public string data { get; set; }
+        [Value(2, Required = false, Default = null, HelpText = "Comma seperated categories as a string")]
+        public string categories { get; set; }
+    }
+
+    class RecordTypeDeleteOptions
+    {
+        [Value(0, Required = true, Default = false, HelpText = "RecordTypeId of record type to be deleted")]
+        public string recordTypeId { get; set; }
     }
 }
