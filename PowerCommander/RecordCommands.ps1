@@ -721,3 +721,157 @@ function resolveFolderNode {
 
     $folder
 }
+
+function New-KeeperRecordType {
+    <#
+    .SYNOPSIS
+        Add a new custom Keeper Record Type.
+
+    .DESCRIPTION
+        Adds a custom record type to the Vault. Record type definition can be passed as a JSON string or a file reference prefixed with '@'.
+
+    .PARAMETER Data
+        Required. Record type definition as a JSON string or file reference (prefix with '@' for file path).
+
+    .PARAMETER Categories
+        Optional. Comma-separated string of category names to assign to the record type.
+
+    .EXAMPLE
+        New-KeeperRecordType -Data '@("C:\record_type.json")' -Categories "login,note"
+
+    .EXAMPLE
+        New-KeeperRecordType -Data '{\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]}'
+
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string] $Data,
+        [Parameter(Mandatory = $false)][string] $Categories
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    if ($Data.StartsWith("@")) {
+        $path = $Data.TrimStart("@").Trim('"')
+        try {
+            $fullPath = [System.IO.Path]::GetFullPath($path)
+        }
+        catch {
+            Write-Error "Invalid file path: $path" -ErrorAction Stop
+        }
+
+        if (-not (Test-Path $fullPath)) {
+            Write-Error "File not found: $fullPath" -ErrorAction Stop
+        }
+
+        $Data = Get-Content $fullPath -Raw
+    }
+
+    if ($Categories) {
+        $categoriesList = $Categories -split "," | ForEach-Object { $_.Trim() }
+    }
+    else {
+        $categoriesList = @()
+    }
+
+    try {
+        $recordTypeId = $vault.AddRecordType($Data, $categoriesList).GetAwaiter().GetResult()
+        Write-Host "Created Record Type ID: $recordTypeId"
+    }
+    catch {
+        Write-Error "Error adding record type: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+
+function Edit-KeeperRecordType {
+    <#
+    .SYNOPSIS
+        Update an existing custom Keeper Record Type.
+
+    .DESCRIPTION
+        Updates a custom record type in the Vault. The updated record type definition is passed as a JSON string or file reference prefixed with '@'. The record type ID to update must be provided separately.
+
+    .PARAMETER RecordTypeId 
+        Required. The UID of the record type to update.
+
+    .PARAMETER Data
+        Required. Record type definition as a JSON string or file reference (prefix with '@' for file path).
+
+    .PARAMETER Categories
+        Optional. Comma-separated string of category names to assign to the record type.
+
+    .EXAMPLE
+        Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -Data '@("C:\record_type_update.json")' -Categories "login,note"
+
+    .EXAMPLE
+        Edit-KeeperRecordType -RecordTypeId "myCustomType_dotnet_test6" -Data '{\"$id\":\"myCustomType_dotnet_test\",\"description\":\"My custom record\",\"fields\":[{\"$ref\":\"login\"},{\"$ref\":\"password\"}]}'
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string] $RecordTypeId,
+        [Parameter(Mandatory = $true)][string] $Data,
+        [Parameter(Mandatory = $false)][string] $Categories
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    if ($Data.StartsWith("@")) {
+        $path = $Data.TrimStart("@").Trim('"')
+        try {
+            $fullPath = [System.IO.Path]::GetFullPath($path)
+        }
+        catch {
+            Write-Error "Invalid file path: $path" -ErrorAction Stop
+        }
+
+        if (-not (Test-Path $fullPath)) {
+            Write-Error "File not found: $fullPath" -ErrorAction Stop
+        }
+
+        $Data = Get-Content $fullPath -Raw
+    }
+
+    try {
+       
+        $result = $vault.UpdateRecordTypeAsync($RecordTypeId,$Data,$Categories).GetAwaiter().GetResult()
+        Write-Host "Updated Record Type ID: $result"
+    }
+    catch {
+        Write-Error "Error updating record type: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+
+function Remove-KeeperRecordType {
+    <#
+    .SYNOPSIS
+        Delete a custom Keeper Record Type by its ID.
+
+    .DESCRIPTION
+        Removes a custom record type from the Vault. Only the Record Type ID is required.
+
+    .PARAMETER RecordTypeId
+        Required. The UID of the record type to delete.
+
+    .EXAMPLE
+        Remove-KeeperRecordType -RecordTypeId <recordTypeId>
+    #>
+
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
+    Param (
+        [Parameter(Mandatory = $true)][string] $RecordTypeId
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    try {
+        if ($PSCmdlet.ShouldProcess("RecordTypeId '$RecordTypeId'", "Delete record type")) {
+            $result = $vault.DeleteRecordTypeAsync($RecordTypeId).GetAwaiter().GetResult()
+            Write-Host "Deleted Record Type ID: $result"
+        }
+    }
+    catch {
+        Write-Error "Error deleting record type: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
