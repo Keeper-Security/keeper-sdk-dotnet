@@ -364,16 +364,23 @@ namespace Commander
             cli.Commands.Add("record-type-update",
                 new ParseableCommand<RecordTypeUpdateOptions>
                 {
-                    Order = 81,
+                    Order = 82,
                     Description = "updates a Record Type of given ID",
                     Action = context.RecordTypeUpdateCommand
                 });
             cli.Commands.Add("record-type-delete",
                 new ParseableCommand<RecordTypeDeleteOptions>
                 {
-                    Order = 81,
+                    Order = 83,
                     Description = "deletes a Record Type of given ID",
                     Action = context.RecordTypeDeleteCommand
+                });
+            cli.Commands.Add("load-record-types",
+                new ParseableCommand<RecordTypeLoadOptions>
+                {
+                    Order = 84,
+                    Description = "loads Record Types to keeper from given file",
+                    Action = context.RecordTypeLoadCommand
                 });
 
             cli.Aliases.Add("list", "search");

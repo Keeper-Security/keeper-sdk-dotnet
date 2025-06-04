@@ -8,6 +8,7 @@ using System.Text;
 using Records;
 using System.Reflection;
 using KeeperSecurity.Authentication;
+using System.IO;
 
 namespace KeeperSecurity.Vault
 {
@@ -100,6 +101,43 @@ namespace KeeperSecurity.Vault
             }
         }
 
+        public async Task<List<string>> LoadRecordTypesAsync(string filePath)
+        {
+            var uploadCount = 0;
+            var uploadedRecordTypeIds = new List<string>();
+
+            var recordTypeService = new RecordTypeService(Auth.AuthContext);
+            var newRecordTypes = recordTypeService.ValidateRecordTypeFile(filePath);
+            var existingRecordTypes = recordTypeService.MapExistingRecordTypesToDictionary(RecordTypes.ToList());
+            if (existingRecordTypes != null)
+            {
+                foreach (var recordType in newRecordTypes)
+                {
+                    if (existingRecordTypes.ContainsKey(recordType.RecordTypeName))
+                    {
+                        Console.WriteLine($"Record type '{recordType.RecordTypeName}' already exists. Skipping upload.");
+                        continue;
+                    }
+
+                    try
+                    {
+                        var parsedRecord = recordTypeService.CreateRecordTypeObject(recordType);
+                        await AddRecordType(Encoding.UTF8.GetString(JsonUtils.DumpJson(parsedRecord)));
+                        uploadCount++;
+                        uploadedRecordTypeIds.Add(recordType.RecordTypeName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Error.WriteLine($"Error creating record type object for '{recordType.RecordTypeName}': {ex.Message}");
+                        continue; 
+                    }
+                }
+            }
+            Console.WriteLine($"Successfully uploaded {uploadCount} record types from the file '{filePath}'.");
+            return uploadedRecordTypeIds; 
+        }
+
+
         internal class RecordTypeService
         {
             private readonly IAuthContext auth;
@@ -116,8 +154,8 @@ namespace KeeperSecurity.Vault
                             .Select(f => new Dictionary<string, string> { ["$ref"] = f.Ref })
                             .ToList();
                 var description = customRecordObject.Description ?? string.Empty;
-                var categories= customRecordObject.Categories;
-                string[] parsedCategroies = categories != null ? categories.ToArray() : new string[] {};
+                var categories = customRecordObject.Categories;
+                string[] parsedCategroies = categories != null ? categories.ToArray() : new string[] { };
 
                 var cleanedFields = validateRecordTypeData(scope, fields);
 
@@ -205,6 +243,79 @@ namespace KeeperSecurity.Vault
                     throw new VaultException("Enterprise admin access is required for this command");
                 }
             }
+
+            public List<InputRecordType> ValidateRecordTypeFile(string filePath)
+            {
+                if (string.IsNullOrWhiteSpace(filePath))
+                    throw new ArgumentException("File path is required.");
+
+                if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Record type file must be a JSON file.");
+
+                string content;
+                try
+                {
+                    content = System.IO.File.ReadAllText(filePath);
+                }
+                catch (FileNotFoundException)
+                {
+                    throw new ArgumentException($"Record type file not found: {filePath}");
+                }
+
+                Dictionary<string, List<InputRecordType>> root = JsonUtils.ParseJson<Dictionary<string, List<InputRecordType>>>(Encoding.UTF8.GetBytes(content));
+
+                List<InputRecordType> recordTypes;
+                if (!root.TryGetValue("record_types", out recordTypes))
+                {
+                    throw new ArgumentException("Missing 'record_types' array in the file.");
+                }
+
+                return recordTypes;
+            }
+
+            public Dictionary<string, RecordType> MapExistingRecordTypesToDictionary(List<RecordType> recordTypes)
+            {
+                {
+                    if (recordTypes == null || recordTypes.Count == 0)
+                        return new Dictionary<string, RecordType>();
+
+                    return recordTypes.ToDictionary(rt => rt.Name.ToString(), rt => rt);
+                }
+            }
+
+            public CustomRecordType CreateRecordTypeObject(InputRecordType inputRecordType)
+            {
+                if (inputRecordType == null)
+                    throw new ArgumentException("Input record type cannot be null.");
+
+                var fields = inputRecordType.Fields.Select(f => new Dictionary<string, string>
+                {
+                    { "$type", f.Type },
+                    { "label", f.Label ?? string.Empty },
+                    { "required", f.Required?.ToString() ?? "false" }
+                }).ToList();
+
+                var add_fields = new List<RecordTypeField>();
+                foreach (var field in fields)
+                {
+                    var fieldObject = new RecordTypeField { Ref = field.ContainsKey("$type") ? field["$type"] : null };
+                    if (field.TryGetValue("required", out var requiredValue) && bool.TryParse(requiredValue, out var isRequired) && isRequired)
+                    {
+                        fieldObject.Required = isRequired;
+                    }
+                    add_fields.Add(fieldObject);
+                }
+
+                return new CustomRecordType
+                {
+                    Id = inputRecordType.RecordTypeName,
+                    Description = inputRecordType.Description,
+                    Categories = inputRecordType.Categories,
+                    Fields = add_fields.ToArray()
+                };
+            }
+
+
         }
 
         [DataContract]
@@ -212,6 +323,12 @@ namespace KeeperSecurity.Vault
         {
             [DataMember(Name = "$ref", EmitDefaultValue = false)]
             public string Ref { get; set; }
+            
+            [DataMember(Name = "label", EmitDefaultValue = false)]
+            public string Label { get; set; }
+
+            [DataMember(Name = "required", EmitDefaultValue = false)]
+            public bool? Required { get; set; }
         }
 
         [DataContract]
@@ -229,6 +346,34 @@ namespace KeeperSecurity.Vault
             [DataMember(Name = "fields", EmitDefaultValue = false)]
             public RecordTypeField[] Fields { get; set; }
         }
+
+        [DataContract]
+        internal class InputRecordType
+        {
+            [DataMember(Name = "record_type_name", EmitDefaultValue = false)]
+            internal string RecordTypeName { get; set; }
+
+            [DataMember(Name = "description", EmitDefaultValue = false)]
+            public string Description { get; set; }
+
+            [DataMember(Name = "categories", EmitDefaultValue = false)]
+            public string[] Categories { get; set; }
+
+            [DataMember(Name = "fields", EmitDefaultValue = false)]
+            public List<InputRecordTypeField> Fields { get; set; }
+        }
+
+        [DataContract]
+        public class InputRecordTypeField
+        {
+            [DataMember(Name = "$type", IsRequired = true)]
+            public string Type { get; set; }
+
+            [DataMember(Name = "label", EmitDefaultValue = false)]
+            public string Label { get; set; }
+
+            [DataMember(Name = "required", EmitDefaultValue = false)]
+            public bool? Required { get; set; }
+        }
     }
 }
-
