@@ -890,7 +890,7 @@ function Add-KeeperRecordTypes {
 
     # Normalize path
     if ($Path.StartsWith("@")) {
-        $Path = $Path.TrimStart("@").Trim('"').Trim("'")
+        $Path = $Path.TrimStart("@").Trim('"').Trim("'").Trim("(").Trim(")")
     }
 
     try {
