@@ -752,6 +752,11 @@ namespace Commander
             Console.WriteLine($"Deleted Record Type ID: {deletedRecordTypeID}");
         }
 
+        public static async Task RecordTypeLoadCommand(this VaultContext context, RecordTypeLoadOptions recordTypeData)
+        {          
+            var createdRecordTypeIDs = await context.Vault.LoadRecordTypesAsync(recordTypeData.filePath);
+            Console.WriteLine($"Created Record Type IDs: {string.Join(", ",createdRecordTypeIDs)}");
+        }
 
         private static string ExtractDataFromFile(string filePath)
         {
@@ -978,5 +983,11 @@ namespace Commander
     {
         [Value(0, Required = true, Default = false, HelpText = "RecordTypeId of record type to be deleted")]
         public string recordTypeId { get; set; }
+    }
+
+    class RecordTypeLoadOptions
+    {
+        [Value(0, Required = true, Default = false, HelpText = "File path to load record type from")]
+        public string filePath { get; set; }
     }
 }
