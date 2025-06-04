@@ -872,7 +872,6 @@ function Add-KeeperRecordTypes {
 
     .PARAMETER Path
         Required. The path to the JSON file that contains an array of record types.
-        Can be prefixed with '@', but it's not required.
 
     .EXAMPLE
         Load-KeeperRecordTypes -Path '@("C:\record_types.json")'
