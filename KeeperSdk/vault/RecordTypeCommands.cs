@@ -122,9 +122,9 @@ namespace KeeperSecurity.Vault
                     try
                     {
                         var parsedRecord = recordTypeService.CreateRecordTypeObject(recordType);
-                        await AddRecordType(Encoding.UTF8.GetString(JsonUtils.DumpJson(parsedRecord)));
+                        var recordTypeID = await AddRecordType(Encoding.UTF8.GetString(JsonUtils.DumpJson(parsedRecord)));
                         uploadCount++;
-                        uploadedRecordTypeIds.Add(recordType.RecordTypeName);
+                        uploadedRecordTypeIds.Add(recordTypeID);
                     }
                     catch (Exception ex)
                     {
