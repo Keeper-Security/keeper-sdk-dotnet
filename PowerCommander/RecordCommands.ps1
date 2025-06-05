@@ -820,7 +820,7 @@ function Edit-KeeperRecordType {
 
     try {
        
-        $result = $vault.UpdateRecordTypeAsync($RecordTypeId,$Data).GetAwaiter().GetResult()
+        $result = $vault.UpdateRecordTypeAsync($RecordTypeId, $Data).GetAwaiter().GetResult()
         Write-Host "Updated Record Type ID: $result"
     }
     catch {
@@ -858,5 +858,51 @@ function Remove-KeeperRecordType {
     }
     catch {
         Write-Error "Error deleting record type: $($_.Exception.Message)" -ErrorAction Stop
+    }
+}
+
+function Add-KeeperRecordTypes {
+    <#
+    .SYNOPSIS
+        Load multiple custom Keeper Record Types from a JSON file.
+
+    .DESCRIPTION
+        This command parses a JSON file containing an array of custom record type definitions
+        and loads each one into Keeper using the .NET implementation.
+
+    .PARAMETER Path
+        Required. The path to the JSON file that contains an array of record types.
+
+    .EXAMPLE
+        Load-KeeperRecordTypes -Path '@("C:\record_types.json")'
+
+    .EXAMPLE
+        Load-KeeperRecordTypes -Path 'C:\record_types.json'
+    #>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true)][string] $Path
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    # Normalize path
+    if ($Path.StartsWith("@")) {
+        $Path = $Path.TrimStart("@").Trim('"').Trim("'").Trim("(").Trim(")")
+    }
+
+    try {
+        $fullPath = [System.IO.Path]::GetFullPath($Path)
+    }
+    catch {
+        Write-Error "Invalid file path: $Path" -ErrorAction Stop
+    }
+
+    try {
+        $vault.LoadRecordTypesAsync($fullPath).GetAwaiter().GetResult()
+    }
+    catch {
+        Write-Error "Error loading record types: $($_.Exception.Message)" -ErrorAction Stop
     }
 }

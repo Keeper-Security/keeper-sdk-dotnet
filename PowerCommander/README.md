@@ -34,7 +34,10 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperInformation                  | kwhoami     | Print account license information
 | Get-KeeperDeviceSettings               |             | Print the current device settings
 | Set-KeeperDeviceSettings               | this-device | Modifies the current device settings=
-
+| New-KeeperRecordType                   |             | Creates a new custom record type
+| Edit-KeeperRecordType                  |             | Modifies the existing custom record type
+| Remove-KeeperRecordType                |             | Removes the custom record type
+| Add-KeeperRecordTypes                  |             | loads new custom record types from file
 
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
