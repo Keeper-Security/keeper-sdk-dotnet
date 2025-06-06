@@ -547,13 +547,6 @@ namespace KeeperSecurity.Vault
         /// <param name="recordTypeId">Record type ID to be given as string</param>
         /// <returns>Task</returns>
         Task<string> DeleteRecordTypeAsync(string recordTypeId);
-
-         /// <summary>
-        ///     Loads Record types from file to available record types across the enterprise.
-        /// </summary>
-        /// <param name="filePath">Record type data to be pulled from json file at this location</param>
-        /// <returns>Task</returns>
-        Task<List<string> > LoadRecordTypesAsync(string filePath);
     }
 
     /// <summary>
