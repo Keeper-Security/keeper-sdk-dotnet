@@ -752,10 +752,176 @@ namespace Commander
             Console.WriteLine($"Deleted Record Type ID: {deletedRecordTypeID}");
         }
 
-        public static async Task RecordTypeLoadCommand(this VaultContext context, RecordTypeLoadOptions recordTypeData)
-        {          
-            var createdRecordTypeIDs = await context.Vault.LoadRecordTypesAsync(recordTypeData.filePath);
-            Console.WriteLine($"Created Record Type IDs: {string.Join(", ",createdRecordTypeIDs)}");
+        public static async Task<List<string>> RecordTypeLoadCommand(this VaultContext context, RecordTypeLoadOptions recordTypeData)
+        {
+            var uploadCount = 0;
+            var uploadedRecordTypeIds = new List<string>();
+            var failedRecordTypeIds = new List<string>();
+            var existingRecordTypeIds = new List<string>();
+
+            var newRecordTypes = RecordTypeService.ValidateRecordTypeFile(recordTypeData.filePath);
+            var existingRecordTypes = RecordTypeService.MapExistingRecordTypesToDictionary(context.Vault.RecordTypes.ToList());
+            if (existingRecordTypes != null)
+            {
+                foreach (var recordType in newRecordTypes)
+                {
+                    if (existingRecordTypes.ContainsKey(recordType.RecordTypeName))
+                    {
+                        existingRecordTypeIds.Add(recordType.RecordTypeName);
+                        continue;
+                    }
+
+                    try
+                    {
+                        var parsedRecord = RecordTypeService.CreateRecordTypeObject(recordType);
+                        var recordTypeID = await context.Vault.AddRecordType(Encoding.UTF8.GetString(JsonUtils.DumpJson(parsedRecord)));
+                        uploadCount = uploadCount+1;
+                        uploadedRecordTypeIds.Add(recordTypeID);
+                    }
+                    catch
+                    {
+                        failedRecordTypeIds.Add(recordType.RecordTypeName);
+                        continue;
+                    }
+                }
+            }
+            Console.WriteLine($"Record types loaded: {uploadCount}");
+            Console.WriteLine($"Existing Record Types which are skipped: {(existingRecordTypeIds.Count > 0 ? string.Join(", ", existingRecordTypeIds) : "None")}");
+            Console.WriteLine($"Failed Record Types: {(failedRecordTypeIds.Count > 0 ? string.Join(", ", failedRecordTypeIds) : "None")}");
+            return uploadedRecordTypeIds;
+        }
+        
+        internal class RecordTypeService
+        {
+            public static List<InputRecordType> ValidateRecordTypeFile(string filePath)
+            {
+                if (string.IsNullOrWhiteSpace(filePath))
+                    throw new ArgumentException("File path is required.");
+
+                if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Record type file must be a JSON file.");
+
+                string content;
+                try
+                {
+                    content = File.ReadAllText(filePath);
+                }
+                catch (FileNotFoundException)
+                {
+                    throw new ArgumentException($"Record type file not found: {filePath}");
+                }
+
+                Dictionary<string, List<InputRecordType>> root = JsonUtils.ParseJson<Dictionary<string, List<InputRecordType>>>(Encoding.UTF8.GetBytes(content));
+
+                List<InputRecordType> recordTypes;
+                if (!root.TryGetValue("record_types", out recordTypes))
+                {
+                    throw new ArgumentException("Missing 'record_types' array in the file.");
+                }
+
+                return recordTypes;
+            }
+
+            public static Dictionary<string, RecordType> MapExistingRecordTypesToDictionary(List<RecordType> recordTypes)
+            {
+                {
+                    if (recordTypes == null || recordTypes.Count == 0)
+                        return new Dictionary<string, RecordType>();
+
+                    return recordTypes.ToDictionary(rt => rt.Name.ToString(), rt => rt);
+                }
+            }
+
+            public static CustomRecordType CreateRecordTypeObject(InputRecordType inputRecordType)
+            {
+                if (inputRecordType == null)
+                    throw new ArgumentException("Input record type cannot be null.");
+
+                var fields = inputRecordType.Fields.Select(f => new Dictionary<string, string>
+                {
+                    { "$type", f.Type },
+                    { "label", f.Label ?? string.Empty },
+                    { "required", f.Required?.ToString() ?? "false" }
+                }).ToList();
+
+                var add_fields = new List<RecordTypeField>();
+                foreach (var field in fields)
+                {
+                    var fieldObject = new RecordTypeField { Ref = field.ContainsKey("$type") ? field["$type"] : null };
+                    if (field.TryGetValue("required", out var requiredValue) && bool.TryParse(requiredValue, out var isRequired) && isRequired)
+                    {
+                        fieldObject.Required = isRequired;
+                    }
+                    add_fields.Add(fieldObject);
+                }
+
+                return new CustomRecordType
+                {
+                    Id = inputRecordType.RecordTypeName,
+                    Description = inputRecordType.Description,
+                    Categories = inputRecordType.Categories,
+                    Fields = add_fields.ToArray()
+                };
+            }
+
+        }
+
+        [DataContract]
+        internal class RecordTypeField
+        {
+            [DataMember(Name = "$ref", EmitDefaultValue = false)]
+            public string Ref { get; set; }
+
+            [DataMember(Name = "label", EmitDefaultValue = false)]
+            public string Label { get; set; }
+
+            [DataMember(Name = "required", EmitDefaultValue = false)]
+            public bool? Required { get; set; }
+        }
+
+        [DataContract]
+        internal class CustomRecordType
+        {
+            [DataMember(Name = "$id", EmitDefaultValue = false)]
+            public string Id { get; set; }
+
+            [DataMember(Name = "description", EmitDefaultValue = false)]
+            public string Description { get; set; }
+
+            [DataMember(Name = "categories", EmitDefaultValue = false)]
+            public string[] Categories { get; set; }
+
+            [DataMember(Name = "fields", EmitDefaultValue = false)]
+            public RecordTypeField[] Fields { get; set; }
+        }
+
+        [DataContract]
+        internal class InputRecordType
+        {
+            [DataMember(Name = "record_type_name", EmitDefaultValue = false)]
+            internal string RecordTypeName { get; set; }
+
+            [DataMember(Name = "description", EmitDefaultValue = false)]
+            public string Description { get; set; }
+
+            [DataMember(Name = "categories", EmitDefaultValue = false)]
+            public string[] Categories { get; set; }
+
+            [DataMember(Name = "fields", EmitDefaultValue = false)]
+            public List<InputRecordTypeField> Fields { get; set; }
+        }
+
+        [DataContract]
+        internal class InputRecordTypeField
+        {
+            [DataMember(Name = "$type", IsRequired = true)]
+            public string Type { get; set; }
+
+            [DataMember(Name = "label", EmitDefaultValue = false)]
+            public string Label { get; set; }
+
+            [DataMember(Name = "required", EmitDefaultValue = false)]
+            public bool? Required { get; set; }
         }
 
         private static string ExtractDataFromFile(string filePath)
