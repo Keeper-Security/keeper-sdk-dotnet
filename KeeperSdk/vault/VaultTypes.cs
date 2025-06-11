@@ -624,6 +624,16 @@ namespace KeeperSecurity.Vault
         /// <returns>Awaitable Task</returns>
         Task DeleteSecretManagerClient(string applicationId, string deviceId);
 
+        /// <summary>
+        /// Share a Secret Manager Application with a user.
+        /// </summary>
+        /// <param name="applicationId">Application ID</param>
+        /// <param name="userUid">User email or Team UID.</param>
+        /// <param name="unshare">boolean which when true un-shares a record/folder from given user</param>
+        /// <param name="sharedFolderOptions">Share Permissions. Optional. Default - No permissions</param>
+        /// <param name="expiration">Share expiration time. Optional.</param>
+        /// <returns>Awaitable Task</returns>
+        Task ShareSecretsManagerApplicationWithUser(string applicationId, string userUid, bool unshare, SharedFolderOptions sharedFolderOptions = null, DateTimeOffset expiration = default);
     }
 
     /// <summary>

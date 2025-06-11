@@ -114,7 +114,7 @@ namespace Commander
                 Console.WriteLine($"Action {arguments.Command} is not supported.");
             }
         }
-        
+
         public static async Task SecretManagerCommand(this VaultContext context, SecretManagerOptions arguments)
         {
             var action = (string.IsNullOrEmpty(arguments.Command) ? "list" : arguments.Command).ToLowerInvariant();
@@ -291,7 +291,7 @@ namespace Commander
                     var configText = Convert.ToBase64String(configData);
                     Console.WriteLine($"KSM Configuration:\n{configText}");
                 }
-                else 
+                else
                 {
                     Console.WriteLine($"One-Time Access Token: {clientKey}");
                     var ipLock = device.LockIp ? "Enabled" : "Disabled";
@@ -320,6 +320,57 @@ namespace Commander
                 }
                 await context.Vault.DeleteSecretManagerClient(application.Uid, device.DeviceId);
                 Console.Write($"Client \"{device.Name}\" has been deleted from application {application.Title}");
+            }
+            else if (action == "app-unshare")
+            {
+                if (string.IsNullOrEmpty(arguments.User))
+                {
+                    Console.Write("\"user\" parameter is required");
+                    return;
+                }
+                var sharedFolderOptions = new SharedFolderOptions
+                {
+                    CanShare = arguments.CanShare,
+                    ManageUsers = arguments.ManageUsers,
+                    ManageRecords = arguments.ManageRecords,
+                    CanEdit = arguments.CanEdit
+                };
+                try
+                {
+                    await context.Vault.ShareSecretsManagerApplicationWithUser(application.Uid, arguments.User, true,sharedFolderOptions);
+                    Console.Write($"Application \"{application.Title}\" has been unshared from user {arguments.User}");
+                }
+                catch (Exception e)
+                {
+                    Console.Write($"Failed to unshare application \"{application.Title}\" from user {arguments.User}: {e.Message}");
+                }
+            }
+            else if (action == "app-share")
+            {
+                if (string.IsNullOrEmpty(arguments.User))
+                {
+                    Console.Write("\"user\" parameter is required");
+                    return;
+                }
+                
+                var sharedFolderOptions = new SharedFolderOptions
+                {
+                    CanShare = arguments.CanShare,
+                    ManageUsers = arguments.ManageUsers,
+                    ManageRecords = arguments.ManageRecords,
+                    CanEdit = arguments.CanEdit
+                };
+                var expiration = arguments.expiration;
+
+                try
+                {
+                    await context.Vault.ShareSecretsManagerApplicationWithUser(application.Uid, arguments.User, false,sharedFolderOptions,expiration);
+                    Console.Write($"Application \"{application.Title}\" has been shared with user {arguments.User}");
+                }
+                catch (Exception e)
+                {
+                    Console.Write($"Failed to share application \"{application.Title}\" with user {arguments.User}: {e.Message}");
+                }
             }
             else
             {
@@ -391,7 +442,7 @@ namespace Commander
 
     }
 
-    class OneTimeShareOptions 
+    class OneTimeShareOptions
     {
         [Option("client", Required = false, HelpText = "One-Time Share name. \"create\" or \"delete\"")]
         public string Client { get; set; }
@@ -423,10 +474,20 @@ namespace Commander
         public int AccessExpire { get; set; }
         [Option("b64", Required = false, HelpText = "Return KSM configuration intead of one time token \"add-client\" only")]
         public bool B64 { get; set; }
+        [Option("user", Required = false, HelpText = "User UID or email address.\"app-share\", \"app-unshare\" only")]
+        public string User { get; set; }
+        [Option('s',"can-share", Required = false, HelpText = "User can share re-share record? \"app-share\", \"app-unshare\" only")]
+        public bool CanShare { get; set; }
+        [Option("manage-users", Required = false, HelpText = "User can manage other user access to this record? \"app-share\", \"app-unshare\" only")]
+        public bool ManageUsers { get; set; }
+        [Option("manage-records", Required = false, HelpText = "User can manage this record? \"app-share\", \"app-unshare\" only")]
+        public bool ManageRecords { get; set; }
+        [Option("expiration", Required = false, HelpText = "User share expires on. \"app-share\" only")]
+        public DateTimeOffset expiration { get; set; }
 
 
 
-        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"delete\", \"share\", \"unshare\", \"add-client\", \"delete-client\", \"list\"")]
+        [Value(0, Required = false, HelpText = "KSM command: \"view\", \"create\", \"delete\", \"share\", \"unshare\", \"add-client\", \"delete-client\", \"list\", \"app-share\", \"app-unshare\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "Secret Manager application UID or Title")]

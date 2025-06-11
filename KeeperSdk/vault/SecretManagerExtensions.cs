@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AuthProto = Authentication;
+using Authentication;
 using EnterpriseProto = Enterprise;
 
 #if NETSTANDARD2_0_OR_GREATER
@@ -278,24 +279,24 @@ namespace KeeperSecurity.Vault
             var host = Auth.Endpoint.Server;
             switch (host)
             {
-            case "keepersecurity.com":
-                host = "US";
-                break;
-            case "keeperseurity.eu":
-                host = "EU";
-                break;
-            case "keepersecurity.com.au":
-                host = "AU";
-                break;
-            case "keepersecurity.jp":
-                host = "JP";
-                break;
-            case "keepersecurity.ca":
-                host = "CA";
-                break;
-            case "govcloud.keepersecurity.us":
-                host = "GOV";
-                break;
+                case "keepersecurity.com":
+                    host = "US";
+                    break;
+                case "keeperseurity.eu":
+                    host = "EU";
+                    break;
+                case "keepersecurity.com.au":
+                    host = "AU";
+                    break;
+                case "keepersecurity.jp":
+                    host = "JP";
+                    break;
+                case "keepersecurity.ca":
+                    host = "CA";
+                    break;
+                case "govcloud.keepersecurity.us":
+                    host = "GOV";
+                    break;
             }
             return Tuple.Create(device, $"{host}:{clientKey.Base64UrlEncode()}");
         }
@@ -509,7 +510,7 @@ namespace KeeperSecurity.Vault
 #endif
                 var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
                 request.Headers.Authorization = new AuthenticationHeaderValue("Signature", Convert.ToBase64String(signature));
-                request.Headers.Add("User-Agent", $"KSM.Net/{KsmClientVersion}"); 
+                request.Headers.Add("User-Agent", $"KSM.Net/{KsmClientVersion}");
                 request.Headers.Add("PublicKeyId", keyId.ToString());
                 request.Headers.Add("Signature", Convert.ToBase64String(signature));
                 request.Headers.Add("TransmissionKey", Convert.ToBase64String(encTransmissionKey));
@@ -521,10 +522,11 @@ namespace KeeperSecurity.Vault
                 {
                     contentTypes = values.ToArray();
                 }
-                if (response.IsSuccessStatusCode) 
+                if (response.IsSuccessStatusCode)
                 {
                     configuration.ServerPublicKeyId = keyId.ToString();
-                    if (contentTypes.Any(x => x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase))) {
+                    if (contentTypes.Any(x => x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase)))
+                    {
                         var data = await response.Content.ReadAsByteArrayAsync();
                         var decryptedRs = CryptoUtils.DecryptAesV2(data, transmissionKey);
 #if DEBUG
@@ -570,27 +572,27 @@ namespace KeeperSecurity.Vault
             {
                 switch (tokenParts[0].ToUpper())
                 {
-                case "US":
-                    host = "keepersecurity.com";
-                    break;
-                case "EU":
-                    host = "keepersecurity.eu";
-                    break;
-                case "AU":
-                    host = "keepersecurity.com.au";
-                    break;
-                case "GOV":
-                    host = "govcloud.keepersecurity.us";
-                    break;
-                case "JP":
-                    host = "keepersecurity.jp";
-                    break;
-                case "CA":
-                    host = "keepersecurity.ca";
-                    break;
-                default:
-                    host = Auth.Endpoint.Server;
-                    break;
+                    case "US":
+                        host = "keepersecurity.com";
+                        break;
+                    case "EU":
+                        host = "keepersecurity.eu";
+                        break;
+                    case "AU":
+                        host = "keepersecurity.com.au";
+                        break;
+                    case "GOV":
+                        host = "govcloud.keepersecurity.us";
+                        break;
+                    case "JP":
+                        host = "keepersecurity.jp";
+                        break;
+                    case "CA":
+                        host = "keepersecurity.ca";
+                        break;
+                    default:
+                        host = Auth.Endpoint.Server;
+                        break;
                 }
                 clientKey = tokenParts[1];
             }
@@ -660,5 +662,106 @@ namespace KeeperSecurity.Vault
             await Auth.ExecuteAuthRest("vault/app_client_remove", rq);
             await GetSecretManagerApplication(application.Uid, true);
         }
+
+        public async Task ShareSecretsManagerApplicationWithUser(
+            string applicationId, string userUid, bool unshare, SharedFolderOptions sharedFolderOptions = null, DateTimeOffset expiration = default)
+        {
+            if (!TryGetKeeperRecord(applicationId, out var record))
+            {
+                throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
+            }
+            var application = record as ApplicationRecord;
+            if (application == null)
+            {
+                throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
+            }
+
+            var appInfoResponse = await GetAppInfo(application.Uid);
+            var appInfo = appInfoResponse.FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(application.Uid.Base64UrlDecode()));
+
+            var shareFolderAction = unshare ? REMOVE : GRANT;
+            var shareRecordAction = unshare ? REVOKE : GRANT;
+
+            var sharedFolderPermissions = new SharedFolderOptions();
+            var isAdmin = Auth.AuthContext.IsEnterpriseAdmin;
+            sharedFolderPermissions.CanEdit = isAdmin && (sharedFolderOptions?.CanEdit ?? !unshare);
+            sharedFolderPermissions.CanShare = isAdmin && (sharedFolderOptions?.CanShare ?? !unshare);
+            sharedFolderPermissions.ManageRecords = isAdmin && (sharedFolderOptions?.ManageRecords ?? !unshare);
+            sharedFolderPermissions.ManageUsers = isAdmin && (sharedFolderOptions?.ManageUsers ?? !unshare);
+
+            var sharedRecordPermissions = new SharedFolderRecordOptions();
+            sharedRecordPermissions.CanEdit = isAdmin && (sharedFolderOptions?.CanEdit ?? !unshare);
+            sharedRecordPermissions.CanShare = isAdmin && (sharedFolderOptions?.CanShare ?? !unshare);
+            if( !unshare && expiration != default)
+            {
+                sharedRecordPermissions.Expiration = expiration;
+            }
+
+            await ShareRecordWithUser(application.Uid, userUid, sharedRecordPermissions);
+
+            var sharedFolderShares = appInfo.Shares.Where(x => x.ShareType == ApplicationShareType.ShareTypeFolder)
+                .Select(x => x.SecretUid).ToArray();
+            if (sharedFolderShares.Length > 0)
+            {
+                foreach (var sharedFolderUid in sharedFolderShares)
+                {
+                    string sharedFolderUidString = sharedFolderUid.ToByteArray().Base64UrlEncode();
+                    if (unshare)
+                    {
+                        await RemoveUserFromSharedFolder(sharedFolderUidString, userUid, UserType.User);
+                    }
+                    else
+                    {
+                        var sharedfolderUserOptions = new SharedFolderUserOptions();
+                        sharedfolderUserOptions.ManageUsers = sharedFolderPermissions.ManageUsers;
+                        sharedfolderUserOptions.ManageRecords = sharedFolderPermissions.ManageRecords;
+                        if (expiration != default)
+                        {
+                            sharedfolderUserOptions.Expiration = expiration;
+                        }
+                        await PutUserToSharedFolder(sharedFolderUidString, userUid, UserType.User, sharedfolderUserOptions);
+                    }
+                }
+            }
+
+            var sharedRecordShares = appInfo.Shares.Where(x => x.ShareType == ApplicationShareType.ShareTypeRecord)
+                .Select(x => x.SecretUid).ToArray();
+            if (sharedRecordShares.Length > 0)
+            {
+                foreach (var sharedRecordUid in sharedRecordShares)
+                {
+                    string sharedRecordUidString = sharedRecordUid.ToByteArray().Base64UrlEncode();
+                    if (unshare)
+                    {
+                        await RevokeShareFromUser(sharedRecordUidString, userUid);
+                    }
+                    else
+                    {
+                        await ShareRecordWithUser(sharedRecordUidString, userUid, sharedRecordPermissions);
+                    }
+                }
+            }
+
+            await SyncDown();
+        }
+
+        private async Task<System.Collections.Generic.IEnumerable<AppInfo>> GetAppInfo(string applicationId)
+        {
+            var rq = new GetAppInfoRequest
+            {
+                AppRecordUid = { ByteString.CopyFrom(applicationId.Base64UrlDecode()) }
+            };
+
+            var appInforResponse = await Auth.ExecuteAuthRest<AuthProto.GetAppInfoRequest, AuthProto.GetAppInfoResponse>("vault/get_app_info", rq);
+            if (appInforResponse.AppInfo.Count == 0)
+            {
+                throw new KeeperInvalidParameter("GetAppInfo", "applicationId", applicationId, "Application not found");
+            }
+            return appInforResponse.AppInfo;
+        }
+
+        internal const string GRANT = "grant";
+        internal const string REMOVE = "remove";
+        internal const string REVOKE = "revoke";
     }
 }
