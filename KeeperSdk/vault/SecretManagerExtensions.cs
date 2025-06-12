@@ -663,87 +663,90 @@ namespace KeeperSecurity.Vault
             await GetSecretManagerApplication(application.Uid, true);
         }
 
-        public async Task ShareSecretsManagerApplicationWithUser(
-            string applicationId, string userUid, bool unshare, SharedFolderOptions sharedFolderOptions = null, DateTimeOffset expiration = default)
+        public async Task ShareSecretsManagerApplicationWithUser(string applicationId, string userUid, bool unshare, SharedFolderOptions sharedFolderOptions = null, DateTimeOffset expiration = default)
         {
             if (!TryGetKeeperRecord(applicationId, out var record))
             {
                 throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
             }
-            var application = record as ApplicationRecord;
-            if (application == null)
-            {
-                throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
-            }
+            ApplicationRecord application = record as ApplicationRecord ?? throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
 
             var appInfoResponse = await GetAppInfo(application.Uid);
             var appInfo = appInfoResponse.FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(application.Uid.Base64UrlDecode()));
 
-            var shareFolderAction = unshare ? REMOVE : GRANT;
-            var shareRecordAction = unshare ? REVOKE : GRANT;
+            var (sharedRecordPermissions, sharedfolderUserOptions) = GetFolderAndRecordPermissions(sharedFolderOptions, unshare, expiration);
 
-            var sharedFolderPermissions = new SharedFolderOptions();
+            // process application first with the user
+            await HandleRecordShareWithUser(unshare, application.Uid, userUid, sharedRecordPermissions);
+            // This is throwing an erorr which is probably NoActiveSessionWIthUser
+            // await HandleFolderShareWithUser(unshare, application.Uid, userUid, sharedfolderUserOptions);
+
+            // process each folder which application covers with the user
+            await Task.WhenAll(
+                appInfo.Shares
+                    .Where(x => x.ShareType == ApplicationShareType.ShareTypeFolder)
+                    .Select(x => HandleFolderShareWithUser(unshare, x.SecretUid, userUid, sharedfolderUserOptions))
+            );
+
+            // process each record which application covers with the user
+            await Task.WhenAll(
+                appInfo.Shares
+                    .Where(x => x.ShareType == ApplicationShareType.ShareTypeRecord)
+                    .Select(x => HandleRecordShareWithUser(unshare, x.SecretUid.ToByteArray().Base64UrlEncode(), userUid, sharedRecordPermissions))
+            );
+
+            // sync down the changes
+            await SyncDown();
+        }
+
+        private (SharedFolderRecordOptions, SharedFolderUserOptions) GetFolderAndRecordPermissions(SharedFolderOptions sharedFolderOptions, bool unshare, DateTimeOffset expiration = default)
+        {
             var isAdmin = Auth.AuthContext.IsEnterpriseAdmin;
-            sharedFolderPermissions.CanEdit = isAdmin && (sharedFolderOptions?.CanEdit ?? !unshare);
-            sharedFolderPermissions.CanShare = isAdmin && (sharedFolderOptions?.CanShare ?? !unshare);
-            sharedFolderPermissions.ManageRecords = isAdmin && (sharedFolderOptions?.ManageRecords ?? !unshare);
-            sharedFolderPermissions.ManageUsers = isAdmin && (sharedFolderOptions?.ManageUsers ?? !unshare);
 
             var sharedRecordPermissions = new SharedFolderRecordOptions();
             sharedRecordPermissions.CanEdit = isAdmin && (sharedFolderOptions?.CanEdit ?? !unshare);
             sharedRecordPermissions.CanShare = isAdmin && (sharedFolderOptions?.CanShare ?? !unshare);
-            if( !unshare && expiration != default)
+
+            var sharedfolderUserOptions = new SharedFolderUserOptions
+            {
+                ManageUsers = isAdmin && (sharedFolderOptions?.ManageUsers ?? !unshare),
+                ManageRecords = isAdmin && (sharedFolderOptions?.ManageRecords ?? !unshare),
+            };
+
+            if (expiration != default)
             {
                 sharedRecordPermissions.Expiration = expiration;
+                sharedfolderUserOptions.Expiration = expiration;
             }
 
-            await ShareRecordWithUser(application.Uid, userUid, sharedRecordPermissions);
-
-            var sharedFolderShares = appInfo.Shares.Where(x => x.ShareType == ApplicationShareType.ShareTypeFolder)
-                .Select(x => x.SecretUid).ToArray();
-            if (sharedFolderShares.Length > 0)
-            {
-                foreach (var sharedFolderUid in sharedFolderShares)
-                {
-                    string sharedFolderUidString = sharedFolderUid.ToByteArray().Base64UrlEncode();
-                    if (unshare)
-                    {
-                        await RemoveUserFromSharedFolder(sharedFolderUidString, userUid, UserType.User);
-                    }
-                    else
-                    {
-                        var sharedfolderUserOptions = new SharedFolderUserOptions();
-                        sharedfolderUserOptions.ManageUsers = sharedFolderPermissions.ManageUsers;
-                        sharedfolderUserOptions.ManageRecords = sharedFolderPermissions.ManageRecords;
-                        if (expiration != default)
-                        {
-                            sharedfolderUserOptions.Expiration = expiration;
-                        }
-                        await PutUserToSharedFolder(sharedFolderUidString, userUid, UserType.User, sharedfolderUserOptions);
-                    }
-                }
-            }
-
-            var sharedRecordShares = appInfo.Shares.Where(x => x.ShareType == ApplicationShareType.ShareTypeRecord)
-                .Select(x => x.SecretUid).ToArray();
-            if (sharedRecordShares.Length > 0)
-            {
-                foreach (var sharedRecordUid in sharedRecordShares)
-                {
-                    string sharedRecordUidString = sharedRecordUid.ToByteArray().Base64UrlEncode();
-                    if (unshare)
-                    {
-                        await RevokeShareFromUser(sharedRecordUidString, userUid);
-                    }
-                    else
-                    {
-                        await ShareRecordWithUser(sharedRecordUidString, userUid, sharedRecordPermissions);
-                    }
-                }
-            }
-
-            await SyncDown();
+            return (sharedRecordPermissions, sharedfolderUserOptions);
         }
+
+        private async Task HandleFolderShareWithUser(bool unshare, ByteString sharedFolderUid, string userUid, SharedFolderUserOptions sharedfolderUserOptions)
+        {
+            string sharedFolderUidString = sharedFolderUid.ToByteArray().Base64UrlEncode();
+            if (unshare)
+            {
+                await RemoveUserFromSharedFolder(sharedFolderUidString, userUid, UserType.User);
+            }
+            else
+            {
+                await PutUserToSharedFolder(sharedFolderUidString, userUid, UserType.User, sharedfolderUserOptions);
+            }
+        }
+
+        private async Task HandleRecordShareWithUser(bool unshare, string recordUid, string userUid, SharedFolderRecordOptions sharedRecordPermissions)
+        {
+            if (unshare)
+            {
+                await RevokeShareFromUser(recordUid, userUid);
+            }
+            else
+            {
+                await ShareRecordWithUser(recordUid, userUid, sharedRecordPermissions);
+            }
+        }
+
 
         private async Task<System.Collections.Generic.IEnumerable<AppInfo>> GetAppInfo(string applicationId)
         {
@@ -759,9 +762,5 @@ namespace KeeperSecurity.Vault
             }
             return appInforResponse.AppInfo;
         }
-
-        internal const string GRANT = "grant";
-        internal const string REMOVE = "remove";
-        internal const string REVOKE = "revoke";
     }
 }
