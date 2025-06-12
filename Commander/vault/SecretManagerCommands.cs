@@ -476,13 +476,13 @@ namespace Commander
         public bool B64 { get; set; }
         [Option("user", Required = false, HelpText = "User UID or email address.\"app-share\", \"app-unshare\" only")]
         public string User { get; set; }
-        [Option('s',"can-share", Required = false, HelpText = "User can share re-share record? \"app-share\", \"app-unshare\" only")]
+        [Option('s',"can-share", Required = false, HelpText = "shared user can share re-share this record \"app-share\", \"app-unshare\" only")]
         public bool CanShare { get; set; }
-        [Option("manage-users", Required = false, HelpText = "User can manage other user access to this record? \"app-share\", \"app-unshare\" only")]
+        [Option("manage-users", Required = false, HelpText = "shared user can manage other user's access to this record if set to true \"app-share\", \"app-unshare\" only")]
         public bool ManageUsers { get; set; }
-        [Option("manage-records", Required = false, HelpText = "User can manage this record? \"app-share\", \"app-unshare\" only")]
+        [Option("manage-records", Required = false, HelpText = "shared user can manage records if set to true \"app-share\", \"app-unshare\" only")]
         public bool ManageRecords { get; set; }
-        [Option("expiration", Required = false, HelpText = "User share expires on. \"app-share\" only")]
+        [Option("expiration", Required = false, HelpText = "share to user expires on. \"app-share\" only")]
         public DateTimeOffset expiration { get; set; }
 
 
