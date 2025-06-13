@@ -165,7 +165,11 @@ function Grant-KeeperRecordAccess {
         }
         if ($rec) {
             try {
-                $vault.ShareRecordWithUser($rec.Uid, $User, $CanShare.IsPresent, $CanEdit.IsPresent).GetAwaiter().GetResult() | Out-Null
+                $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
+                $shareOptions.CanEdit = $CanEdit.IsPresent
+                $shareOptions.CanShare = $CanShare.IsPresent
+
+                $vault.ShareRecordWithUser($rec.Uid, $User, $shareOptions).GetAwaiter().GetResult() | Out-Null
                 Write-Output "Record `"$($rec.Title)`" was shared with $($User)"
             }
             catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
