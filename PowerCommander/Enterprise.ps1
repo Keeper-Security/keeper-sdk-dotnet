@@ -217,6 +217,60 @@ function Get-KeeperEnterpriseTeamUser {
 New-Alias -Name ketu -Value Get-KeeperEnterpriseTeamUser
 Register-ArgumentCompleter -CommandName Get-KeeperEnterpriseTeamUser -ParameterName Team -ScriptBlock $Keeper_TeamNameCompleter
 
+function Add-KeeperEnterpriseTeamMember {
+    <#
+    .SYNOPSIS
+    Adds existing enterprise users to a Keeper team.
+
+    .DESCRIPTION
+    Adds one or more users (by email) to an existing Keeper Enterprise Team. The users must already exist in the enterprise.
+
+    .PARAMETER Team
+    Team UID or Team Name.
+
+    .PARAMETER Emails
+    Array of email addresses of users to add to the team.
+
+    .EXAMPLE
+    Add-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "alice@example.com", "bob@example.com"
+
+    .EXAMPLE
+    Add-KeeperEnterpriseTeamMember -Team "1P7A8XZ9K3J9H" -Emails "eve@example.com", "frank@example.com"
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Team,
+
+        [Parameter(Mandatory = $true)]
+        [string[]] $Emails
+    )
+
+    [Enterprise]$enterprise = GetEnterprise
+
+    $team = $enterprise.enterpriseData.Teams | Where-Object {
+        $_.Uid -eq $Team -or $_.Name.Trim().ToLower() -eq $Team.Trim().ToLower()
+    }
+
+    if (-not $team) {
+        throw "Team '$Team' not found."
+    }
+
+    if ($Emails.Count -eq 0) {
+        Write-Warning "No email addresses provided to add."
+        return
+    }
+
+    # Call SDK method directly with emails
+    $enterprise.enterpriseData.AddUsersToTeams(
+        [string[]] @($team.Uid),
+        [string[]] $Emails
+    )
+
+    Write-Output "Requested addition of $($Emails.Count) user(s) to team '$($team.Name)'."
+}
+
 $Keeper_ActiveUserCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
