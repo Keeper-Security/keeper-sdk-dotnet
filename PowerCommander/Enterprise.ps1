@@ -856,34 +856,21 @@ function Add-KeeperEnterpriseTeamMember {
     )
 
     [Enterprise]$enterprise = GetEnterprise
-    $teams = $enterprise.enterpriseData.Teams
-    $selectedTeam = [KeeperSecurity.Enterprise.EnterpriseTeam]::new()
     try {
-
-        for ($i = 0; $i -lt $teams.Count; $i++) {
-            $t = $teams[$i]
-            if (($t.Uid -eq $Team) -or ($t.Name -and ($t.Name.Trim().ToLower() -eq $Team.Trim().ToLower()))) {
-                $selectedTeam = $t
-                break
-            }
-        }
-    
+        $selectedTeam = Get-KeeperTeamByNameOrUid -EnterpriseData $enterprise.enterpriseData -TeamInput $Team
+        
         if (-not $selectedTeam) {
             Write-Warning "No matching team found for input: $Team"
         }
-    
         if ($Emails.Count -eq 0) {
             Write-Warning "No email addresses provided to add."
             return
         }
     
-        [string[]] $teamData = @($selectedTeam.Uid)
-        [string[]] $emailData = $Emails
         $enterprise.enterpriseData.AddUsersToTeams(
-            $emailData, 
-            $teamData
+            $Emails, 
+            @($selectedTeam.Uid)
         ).GetAwaiter().GetResult() | Out-Null
-    
         Write-Output "Requested addition of $($Emails.Count) user(s) to team '$($selectedTeam.Name)'."
     }
     catch {
@@ -925,39 +912,42 @@ function Remove-KeeperEnterpriseTeamMember {
     )
 
     [Enterprise]$enterprise = GetEnterprise
-    $teams = $enterprise.enterpriseData.Teams
-    $selectedTeam = [KeeperSecurity.Enterprise.EnterpriseTeam]::new()
-
     try {
-        for ($i = 0; $i -lt $teams.Count; $i++) {
-            $t = $teams[$i]
-            if (($t.Uid -eq $Team) -or ($t.Name -and ($t.Name.Trim().ToLower() -eq $Team.Trim().ToLower()))) {
-                $selectedTeam = $t
-                break
-            }
-        }
+        $selectedTeam = Get-KeeperTeamByNameOrUid -EnterpriseData $enterprise.enterpriseData -TeamInput $Team
     
         if (-not $selectedTeam) {
             Write-Warning "❌ No matching team found for input: $Team"
             return
         }
-    
         if ($Emails.Count -eq 0) {
             Write-Warning "⚠️ No email addresses provided to remove."
             return
         }
     
-        [string[]] $teamData = @($selectedTeam.Uid)
-        [string[]] $emailData = $Emails
-    
         $enterprise.enterpriseData.RemoveUsersFromTeams(
-            $emailData, 
-            $teamData
+            $Emails, 
+            @($selectedTeam.Uid)
         ).GetAwaiter().GetResult() | Out-Null
-    
         Write-Output "✅ Requested removal of $($Emails.Count) user(s) from team '$($selectedTeam.Name)'."
     }
     catch {
         Write-Warning "❌ Failed to remove users from team '$Team': $($_.Exception.Message)"
     }
+}
+
+function Get-KeeperTeamByNameOrUid {
+    param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Enterprise.EnterpriseData] $EnterpriseData,
+        
+        [Parameter(Mandatory = $true)]
+        [string] $TeamInput
+    )
+
+    foreach ($t in $EnterpriseData.Teams) {
+        if (($t.Uid -eq $TeamInput) -or ($t.Name -and ($t.Name.Trim().ToLower() -eq $TeamInput.Trim().ToLower()))) {
+            return $t
+        }
+    }
+    return $null
 }
