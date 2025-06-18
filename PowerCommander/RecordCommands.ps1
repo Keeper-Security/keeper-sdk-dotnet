@@ -861,7 +861,7 @@ function Remove-KeeperRecordType {
     }
 }
 
-function Add-KeeperRecordTypes {
+function Import-KeeperRecordTypes {
     <#
     .SYNOPSIS
         Load multiple custom Keeper Record Types from a JSON file.

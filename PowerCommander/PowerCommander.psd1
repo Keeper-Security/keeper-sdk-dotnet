@@ -82,7 +82,7 @@
         'Get-KeeperEnterpriseRoleTeams', 'Get-KeeperEnterpriseAdminRole',
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
         'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
-        'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Add-KeeperRecordTypes',
+        'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
         #'Test-Keeper',
         'Show-KeeperRecordShare', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess',
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
