@@ -1,5 +1,7 @@
-﻿using Cli;
+﻿using Authentication;
+using Cli;
 using CommandLine;
+using KeeperSecurity.Authentication;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 using System;
@@ -328,16 +330,10 @@ namespace Commander
                     Console.Write("\"user\" parameter is required");
                     return;
                 }
-                var sharedFolderOptions = new SharedFolderOptions
-                {
-                    CanShare = arguments.CanShare,
-                    ManageUsers = arguments.ManageUsers,
-                    ManageRecords = arguments.ManageRecords,
-                    CanEdit = arguments.CanEdit
-                };
+
                 try
                 {
-                    await ShareSecretsManagerApplicationWithUser(context.Vault,application.Uid, arguments.User, true, sharedFolderOptions);
+                    await ShareSecretsManagerApplicationWithUser(context.Vault, application.Uid, arguments.User, true, arguments.IsAdmin);
                     Console.Write($"Application \"{application.Title}\" has been unshared from user {arguments.User}");
                 }
                 catch (Exception e)
@@ -353,18 +349,9 @@ namespace Commander
                     return;
                 }
 
-                var sharedFolderOptions = new SharedFolderOptions
-                {
-                    CanShare = arguments.CanShare,
-                    ManageUsers = arguments.ManageUsers,
-                    ManageRecords = arguments.ManageRecords,
-                    CanEdit = arguments.CanEdit
-                };
-                var expiration = arguments.expiration;
-
                 try
                 {
-                    await ShareSecretsManagerApplicationWithUser(context.Vault,application.Uid, arguments.User, false, sharedFolderOptions, expiration);
+                    await ShareSecretsManagerApplicationWithUser(context.Vault, application.Uid, arguments.User, false, arguments.IsAdmin);
                     Console.Write($"Application \"{application.Title}\" has been shared with user {arguments.User}");
                 }
                 catch (Exception e)
@@ -440,56 +427,214 @@ namespace Commander
             clientTab.Dump();
         }
 
-        public static async Task ShareSecretsManagerApplicationWithUser(VaultOnline vault,string applicationId, string userUid, bool unshare, SharedFolderOptions sharedFolderOptions = null, DateTimeOffset expiration = default)
+        public static async Task ShareSecretsManagerApplicationWithUser(VaultOnline vault, string applicationId, string userUid, bool unshare, bool IsAdmin = false)
         {
             if (!vault.TryGetKeeperRecord(applicationId, out var record))
             {
-                throw new KeeperSecurity.Authentication.KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
+                throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
             }
-            ApplicationRecord application = record as ApplicationRecord ?? throw new KeeperSecurity.Authentication.KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
+            ApplicationRecord application = record as ApplicationRecord ?? throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
 
             var appInfoResponse = await GetAppInfo(vault, application.Uid);
             var appInfo = appInfoResponse.FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(application.Uid.Base64UrlDecode()));
 
-            var isShareable = await GetUsersForShareRequest(vault, userUid);
-            if (!isShareable)
-            {
-                await vault.SendShareInvitationRequest(userUid);
-                Console.WriteLine($"Share invitation request has been sent to user {userUid}. Please wait for the user to accept the request before sharing the application.");
-                return;
-            }
-
-            var (sharedRecordPermissions, sharedfolderUserOptions) = GetFolderAndRecordPermissions(vault,sharedFolderOptions, unshare, expiration);
-
-            // process application first with the user
-            await HandleRecordShareWithUser(vault,unshare, application.Uid, userUid, sharedRecordPermissions);
-
-            // process each folder which application covers with the user
-            await Task.WhenAll(
-                appInfo.Shares
-                    .Where(x => x.ShareType == Authentication.ApplicationShareType.ShareTypeFolder)
-                    .Select(x => HandleFolderShareWithUser(vault,unshare, x.SecretUid, userUid, sharedfolderUserOptions))
-            );
-
-            // process each record which application covers with the user
-            await Task.WhenAll(
-                appInfo.Shares
-                    .Where(x => x.ShareType == Authentication.ApplicationShareType.ShareTypeRecord)
-                    .Select(x => HandleRecordShareWithUser(vault,unshare, x.SecretUid.ToByteArray().Base64UrlEncode(), userUid, sharedRecordPermissions))
-            );
-
+            await HandleAppSharePermissions(vault, appInfo, userUid, IsAdmin, unshare);
             // sync down the changes
             await vault.SyncDown();
+
+            var removed = unshare ? userUid : null;
+            await UpdateShareUserPermissions(vault, applicationId, userUid, removed);
+
+        }
+
+        private static async Task HandleAppSharePermissions(VaultOnline vault, AppInfo appInfo, string userUid, bool IsAdmin, bool unshare)
+        {
+            if (!unshare)
+            {
+                var isShareable = await GetUsersForShareRequest(vault, userUid);
+                if (!isShareable)
+                {
+                    await vault.SendShareInvitationRequest(userUid);
+                    Console.WriteLine($"Share invitation request has been sent to user {userUid}. Please wait for the user to accept the request before sharing the application.");
+                    return;
+                }
+                var recordPermissions = new SharedFolderRecordOptions
+                {
+                    CanEdit = IsAdmin && !unshare,
+                    CanShare = IsAdmin && !unshare
+                };
+                await vault.ShareRecordWithUser(appInfo.AppRecordUid.ToByteArray().Base64UrlEncode(), userUid, recordPermissions);
+            }
+            else
+            {
+                await vault.RevokeShareFromUser(appInfo.AppRecordUid.ToByteArray().Base64UrlEncode(), userUid);
+            }
+        }
+
+        private static async Task UpdateShareUserPermissions(VaultOnline vault, string applicationUid, string userUid, string removed)
+        {
+            var applicationRecord = ValidateAndGetApp(vault, applicationUid);
+            var appShares = await vault.GetSharesForRecords(new List<string> { applicationUid });
+            var userPermissions = appShares
+                    .FirstOrDefault(x => x.RecordUid == applicationUid).UserPermissions;
+            var appInfo = (await GetAppInfo(vault, applicationUid))
+                .FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(applicationRecord.Uid.Base64UrlDecode()));
+            var shareUids = appInfo.Shares.Select(x => x.SecretUid.ToByteArray().Base64UrlEncode()).ToList();
+            var sharesRecords = appInfo.Shares.Select(x => x.ShareType == ApplicationShareType.ShareTypeRecord ? x.SecretUid.ToByteArray().Base64UrlEncode() : null).Where(x => x != null).ToList();
+            var sharedFolders = appInfo.Shares.Select(x => x.ShareType == ApplicationShareType.ShareTypeFolder ? x.SecretUid.ToByteArray().Base64UrlEncode() : null).Where(x => x != null).ToList();
+
+            var recordShares = await vault.GetSharesForRecords(sharesRecords);
+            var admins = userPermissions.Where(x => x.CanEdit && (x.Username != vault.Auth.Username)).Select(x => x.Username).ToList();
+            var viewers = userPermissions.Where(x => !x.CanEdit).Select(x => x.Username).ToList();
+            var removedUsers = removed != null ? new List<string> { userUid } : new List<string>();
+
+            var appUsersMap = new Dictionary<string, List<string>>
+            {
+                { "admins", admins },
+                { "viewers", viewers },
+                { "removed", removedUsers }
+            };
+
+            var ShareFolderRequests = new List<Task>();
+            var ShareRecordRequests = new List<Task>();
+
+            foreach (var appUser in appUsersMap)
+            {
+                var group = appUser.Key;
+                var usersList = appUser.Value;
+                if (usersList.Count == 0) continue;
+                var userTasks = usersList.Select(async x => new { User = x, NeedsUpdate = await UserNeedsUpdateAsync(vault, x, group == "admins", shareUids, applicationUid) }).ToList();
+                var userResults = await Task.WhenAll(userTasks);
+                var users = userResults.Where(r => r.NeedsUpdate).Select(r => r.User).ToList();
+
+                var shareFolderAction = removed != null ? "remove" : "grant";
+                var shareRecordAction = removed != null ? "revoke" : "share";
+
+                var sfUpdates = new List<(string FolderUid, string User)>();
+                await HandleSharedFolderShare(vault, applicationUid, sharedFolders, group, users, shareFolderAction);
+                await HandleRecordsShare(vault, applicationUid, recordShares, group, users, shareRecordAction);
+
+            }
+        }
+
+        private static async Task HandleRecordsShare(VaultOnline vault, string applicationUid, IEnumerable<RecordSharePermissions> recordShares, string group, List<string> users, string shareRecordAction)
+        {
+            foreach (var record in recordShares)
+            {
+                foreach (var user in users)
+                {
+                    if (await ShareNeedsUpdate(vault, user, record.RecordUid, group == "admins", applicationUid))
+                    {
+                        if (shareRecordAction == "revoke")
+                        {
+                            await vault.RevokeShareFromUser(record.RecordUid, user);
+                        }
+                        else
+                        {
+                            var sharedRecordOptions = new SharedFolderRecordOptions
+                            {
+                                CanEdit = group == "admins",
+                                CanShare = group == "admins"
+                            };
+                            await vault.ShareRecordWithUser(record.RecordUid, user, sharedRecordOptions);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static async Task HandleSharedFolderShare(VaultOnline vault, string applicationUid, List<string> sharedFolders, string group, List<string> users, string shareFolderAction)
+        {
+            foreach (var folder in sharedFolders)
+            {
+                foreach (var user in users)
+                {
+                    if (await ShareNeedsUpdate(vault, user, folder, group == "admins", applicationUid))
+                    {
+                        if (shareFolderAction == "remove")
+                        {
+                            await vault.RemoveUserFromSharedFolder(folder, user, UserType.User);
+                        }
+                        else
+                        {
+                            var sharedFolderOptions = new SharedFolderUserOptions
+                            {
+                                ManageUsers = group == "admins",
+                                ManageRecords = group == "admins",
+                            };
+                            await vault.PutUserToSharedFolder(folder, user, UserType.User, sharedFolderOptions);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static async Task<bool> UserNeedsUpdateAsync(VaultOnline vault, string user, bool isAdmin, List<string> shareUids, string applicationUid)
+        {
+            foreach (var uid in shareUids)
+            {
+                if (await ShareNeedsUpdate(vault, user, uid, isAdmin, applicationUid))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static async Task<bool> ShareNeedsUpdate(VaultOnline vault, string user, string shareUid, bool elevated, string applicationUid)
+        {
+            var appInfo = (await GetAppInfo(vault, applicationUid))
+                .FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(applicationUid.Base64UrlDecode()));
+
+            if (appInfo == null)
+                return false;
+
+            var isRecordShare = appInfo.Shares
+                .Any(x => x.SecretUid.ToByteArray().Base64UrlEncode() == shareUid &&
+                        x.ShareType == ApplicationShareType.ShareTypeRecord);
+
+            if (isRecordShare)
+            {
+                var shareInfo = (await vault.GetSharesForRecords(new List<string> { shareUid }))
+                    .FirstOrDefault(x => x.RecordUid == shareUid);
+
+                if (shareInfo == null)
+                    return false;
+
+                var userPerms = shareInfo.UserPermissions.FirstOrDefault(p => p.Username == user);
+                if (userPerms == null) return true;
+                
+                return userPerms.CanEdit != elevated || userPerms.CanShare != elevated;
+            }
+            else
+            {
+                vault.TryGetSharedFolder(shareUid, out SharedFolder sharedFolder);
+
+                var folderPerms = sharedFolder.UsersPermissions.FirstOrDefault(p => p.Uid == user);
+                if (folderPerms == null) return true;
+
+                return folderPerms.ManageUsers != elevated || folderPerms.ManageRecords != elevated;
+            }
+        }
+
+        private static KeeperRecord ValidateAndGetApp(VaultOnline vault, string applicationUid)
+        {
+            vault.TryGetKeeperRecord(applicationUid, out var applicationRecord);
+            if (applicationRecord == null)
+            {
+                throw new KeeperInvalidParameter("ValidateAndGetApp", "applicationUid", applicationUid, "Application not found");
+            }
+            return applicationRecord;
         }
 
         private static async Task<bool> GetUsersForShareRequest(VaultOnline vault, string userUid)
         {
             ShareWithUsers users = await vault.GetUsersForShare();
 
-            if (users == null || ((users.SharesFrom.Count() == 0)&& users.GroupUsers.Count() == 0 && users.SharesWith.Count() == 0))
+            if (users == null || ((users.SharesFrom.Count() == 0) && users.GroupUsers.Count() == 0 && users.SharesWith.Count() == 0))
             {
                 Console.Error.WriteLine("No users found for sharing.");
-                throw new KeeperSecurity.Authentication.KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "userUid", userUid, "No users found for sharing");
+                throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "userUid", userUid, "No users found for sharing");
             }
 
             if (users.GroupUsers.Contains(userUid) || users.SharesWith.Contains(userUid))
@@ -501,71 +646,19 @@ namespace Commander
                 Console.WriteLine($"User {userUid} is not found in the list of users for sharing.");
                 return false;
             }
-            
         }
 
-        private static (SharedFolderRecordOptions, SharedFolderUserOptions) GetFolderAndRecordPermissions(VaultOnline vault, SharedFolderOptions sharedFolderOptions, bool unshare, DateTimeOffset expiration = default)
+        private static async Task<IEnumerable<AppInfo>> GetAppInfo(VaultOnline vault, string applicationId)
         {
-            var isAdmin = vault.Auth.AuthContext.IsEnterpriseAdmin;
-
-            var sharedRecordPermissions = new SharedFolderRecordOptions
-            {
-                CanEdit = isAdmin && (sharedFolderOptions?.CanEdit ?? !unshare),
-                CanShare = isAdmin && (sharedFolderOptions?.CanShare ?? !unshare)
-            };
-
-            var sharedfolderUserOptions = new SharedFolderUserOptions
-            {
-                ManageUsers = isAdmin && (sharedFolderOptions?.ManageUsers ?? !unshare),
-                ManageRecords = isAdmin && (sharedFolderOptions?.ManageRecords ?? !unshare),
-            };
-
-            if (expiration != default)
-            {
-                sharedRecordPermissions.Expiration = expiration;
-                sharedfolderUserOptions.Expiration = expiration;
-            }
-
-            return (sharedRecordPermissions, sharedfolderUserOptions);
-        }
-
-        private static async Task HandleFolderShareWithUser(VaultOnline vault,bool unshare, Google.Protobuf.ByteString sharedFolderUid, string userUid, SharedFolderUserOptions sharedfolderUserOptions)
-        {
-            string sharedFolderUidString = sharedFolderUid.ToByteArray().Base64UrlEncode();
-            if (unshare)
-            {
-                await vault.RemoveUserFromSharedFolder(sharedFolderUidString, userUid, UserType.User);
-            }
-            else
-            {
-                await vault.PutUserToSharedFolder(sharedFolderUidString, userUid, UserType.User, sharedfolderUserOptions);
-            }
-        }
-
-        private static async Task HandleRecordShareWithUser(VaultOnline vault,bool unshare, string recordUid, string userUid, SharedFolderRecordOptions sharedRecordPermissions)
-        {
-            if (unshare)
-            {
-                await vault.RevokeShareFromUser(recordUid, userUid);
-            }
-            else
-            {
-                await vault.ShareRecordWithUser(recordUid, userUid, sharedRecordPermissions);
-            }
-        }
-
-
-        private static async Task<IEnumerable<Authentication.AppInfo>> GetAppInfo(VaultOnline vault,string applicationId)
-        {
-            var rq = new Authentication.GetAppInfoRequest
+            var rq = new GetAppInfoRequest
             {
                 AppRecordUid = { Google.Protobuf.ByteString.CopyFrom(applicationId.Base64UrlDecode()) }
             };
 
-            var appInforResponse = (Authentication.GetAppInfoResponse)await vault.Auth.ExecuteAuthRest("vault/get_app_info", rq, typeof(Authentication.GetAppInfoResponse));
+            var appInforResponse = (GetAppInfoResponse) await vault.Auth.ExecuteAuthRest("vault/get_app_info", rq, typeof(GetAppInfoResponse));
             if (appInforResponse.AppInfo.Count == 0)
             {
-                throw new KeeperSecurity.Authentication.KeeperInvalidParameter("GetAppInfo", "applicationId", applicationId, "Application not found");
+                throw new KeeperInvalidParameter("GetAppInfo", "applicationId", applicationId, "Application not found");
             }
             return appInforResponse.AppInfo;
         }
@@ -606,14 +699,14 @@ namespace Commander
         public bool B64 { get; set; }
         [Option("user", Required = false, HelpText = "User UID or email address.\"app-share\", \"app-unshare\" only")]
         public string User { get; set; }
-        [Option('s',"can-share", Required = false, HelpText = "shared user can share re-share this record \"app-share\", \"app-unshare\" only")]
+        [Option('s', "can-share", Required = false, HelpText = "shared user can share re-share this record \"app-share\", \"app-unshare\" only")]
         public bool CanShare { get; set; }
         [Option("manage-users", Required = false, HelpText = "shared user can manage other user's access to this record if set to true \"app-share\", \"app-unshare\" only")]
         public bool ManageUsers { get; set; }
         [Option("manage-records", Required = false, HelpText = "shared user can manage records if set to true \"app-share\", \"app-unshare\" only")]
         public bool ManageRecords { get; set; }
-        [Option("expiration", Required = false, HelpText = "share to user expires on. \"app-share\" only")]
-        public DateTimeOffset expiration { get; set; }
+        [Option("is-admin", Required = false, HelpText = "Share as admin user. \"app-share\", \"app-unshare\" only")]
+        public bool IsAdmin { get; set; }
 
 
 
