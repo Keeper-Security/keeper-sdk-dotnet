@@ -337,7 +337,7 @@ namespace Commander
                 };
                 try
                 {
-                    await context.Vault.ShareSecretsManagerApplicationWithUser(application.Uid, arguments.User, true,sharedFolderOptions);
+                    await ShareSecretsManagerApplicationWithUser(context.Vault,application.Uid, arguments.User, true, sharedFolderOptions);
                     Console.Write($"Application \"{application.Title}\" has been unshared from user {arguments.User}");
                 }
                 catch (Exception e)
@@ -352,7 +352,7 @@ namespace Commander
                     Console.Write("\"user\" parameter is required");
                     return;
                 }
-                
+
                 var sharedFolderOptions = new SharedFolderOptions
                 {
                     CanShare = arguments.CanShare,
@@ -364,7 +364,7 @@ namespace Commander
 
                 try
                 {
-                    await context.Vault.ShareSecretsManagerApplicationWithUser(application.Uid, arguments.User, false,sharedFolderOptions,expiration);
+                    await ShareSecretsManagerApplicationWithUser(context.Vault,application.Uid, arguments.User, false, sharedFolderOptions, expiration);
                     Console.Write($"Application \"{application.Title}\" has been shared with user {arguments.User}");
                 }
                 catch (Exception e)
@@ -438,6 +438,136 @@ namespace Commander
 
             Console.WriteLine("Devices");
             clientTab.Dump();
+        }
+
+        public static async Task ShareSecretsManagerApplicationWithUser(VaultOnline vault,string applicationId, string userUid, bool unshare, SharedFolderOptions sharedFolderOptions = null, DateTimeOffset expiration = default)
+        {
+            if (!vault.TryGetKeeperRecord(applicationId, out var record))
+            {
+                throw new KeeperSecurity.Authentication.KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
+            }
+            ApplicationRecord application = record as ApplicationRecord ?? throw new KeeperSecurity.Authentication.KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
+
+            var appInfoResponse = await GetAppInfo(vault, application.Uid);
+            var appInfo = appInfoResponse.FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(application.Uid.Base64UrlDecode()));
+
+            var isShareable = await GetUsersForShareRequest(vault, userUid);
+            if (!isShareable)
+            {
+                await vault.SendShareInvitationRequest(userUid);
+                Console.WriteLine($"Share invitation request has been sent to user {userUid}. Please wait for the user to accept the request before sharing the application.");
+                return;
+            }
+
+            var (sharedRecordPermissions, sharedfolderUserOptions) = GetFolderAndRecordPermissions(vault,sharedFolderOptions, unshare, expiration);
+
+            // process application first with the user
+            await HandleRecordShareWithUser(vault,unshare, application.Uid, userUid, sharedRecordPermissions);
+
+            // process each folder which application covers with the user
+            await Task.WhenAll(
+                appInfo.Shares
+                    .Where(x => x.ShareType == Authentication.ApplicationShareType.ShareTypeFolder)
+                    .Select(x => HandleFolderShareWithUser(vault,unshare, x.SecretUid, userUid, sharedfolderUserOptions))
+            );
+
+            // process each record which application covers with the user
+            await Task.WhenAll(
+                appInfo.Shares
+                    .Where(x => x.ShareType == Authentication.ApplicationShareType.ShareTypeRecord)
+                    .Select(x => HandleRecordShareWithUser(vault,unshare, x.SecretUid.ToByteArray().Base64UrlEncode(), userUid, sharedRecordPermissions))
+            );
+
+            // sync down the changes
+            await vault.SyncDown();
+        }
+
+        private static async Task<bool> GetUsersForShareRequest(VaultOnline vault, string userUid)
+        {
+            ShareWithUsers users = await vault.GetUsersForShare();
+
+            if (users == null || ((users.SharesFrom.Count() == 0)&& users.GroupUsers.Count() == 0 && users.SharesWith.Count() == 0))
+            {
+                Console.Error.WriteLine("No users found for sharing.");
+                throw new KeeperSecurity.Authentication.KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "userUid", userUid, "No users found for sharing");
+            }
+
+            if (users.GroupUsers.Contains(userUid) || users.SharesWith.Contains(userUid))
+            {
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"User {userUid} is not found in the list of users for sharing.");
+                return false;
+            }
+            
+        }
+
+        private static (SharedFolderRecordOptions, SharedFolderUserOptions) GetFolderAndRecordPermissions(VaultOnline vault, SharedFolderOptions sharedFolderOptions, bool unshare, DateTimeOffset expiration = default)
+        {
+            var isAdmin = vault.Auth.AuthContext.IsEnterpriseAdmin;
+
+            var sharedRecordPermissions = new SharedFolderRecordOptions
+            {
+                CanEdit = isAdmin && (sharedFolderOptions?.CanEdit ?? !unshare),
+                CanShare = isAdmin && (sharedFolderOptions?.CanShare ?? !unshare)
+            };
+
+            var sharedfolderUserOptions = new SharedFolderUserOptions
+            {
+                ManageUsers = isAdmin && (sharedFolderOptions?.ManageUsers ?? !unshare),
+                ManageRecords = isAdmin && (sharedFolderOptions?.ManageRecords ?? !unshare),
+            };
+
+            if (expiration != default)
+            {
+                sharedRecordPermissions.Expiration = expiration;
+                sharedfolderUserOptions.Expiration = expiration;
+            }
+
+            return (sharedRecordPermissions, sharedfolderUserOptions);
+        }
+
+        private static async Task HandleFolderShareWithUser(VaultOnline vault,bool unshare, Google.Protobuf.ByteString sharedFolderUid, string userUid, SharedFolderUserOptions sharedfolderUserOptions)
+        {
+            string sharedFolderUidString = sharedFolderUid.ToByteArray().Base64UrlEncode();
+            if (unshare)
+            {
+                await vault.RemoveUserFromSharedFolder(sharedFolderUidString, userUid, UserType.User);
+            }
+            else
+            {
+                await vault.PutUserToSharedFolder(sharedFolderUidString, userUid, UserType.User, sharedfolderUserOptions);
+            }
+        }
+
+        private static async Task HandleRecordShareWithUser(VaultOnline vault,bool unshare, string recordUid, string userUid, SharedFolderRecordOptions sharedRecordPermissions)
+        {
+            if (unshare)
+            {
+                await vault.RevokeShareFromUser(recordUid, userUid);
+            }
+            else
+            {
+                await vault.ShareRecordWithUser(recordUid, userUid, sharedRecordPermissions);
+            }
+        }
+
+
+        private static async Task<IEnumerable<Authentication.AppInfo>> GetAppInfo(VaultOnline vault,string applicationId)
+        {
+            var rq = new Authentication.GetAppInfoRequest
+            {
+                AppRecordUid = { Google.Protobuf.ByteString.CopyFrom(applicationId.Base64UrlDecode()) }
+            };
+
+            var appInforResponse = (Authentication.GetAppInfoResponse)await vault.Auth.ExecuteAuthRest("vault/get_app_info", rq, typeof(Authentication.GetAppInfoResponse));
+            if (appInforResponse.AppInfo.Count == 0)
+            {
+                throw new KeeperSecurity.Authentication.KeeperInvalidParameter("GetAppInfo", "applicationId", applicationId, "Application not found");
+            }
+            return appInforResponse.AppInfo;
         }
 
     }
