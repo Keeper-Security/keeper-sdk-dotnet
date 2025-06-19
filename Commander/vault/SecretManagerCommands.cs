@@ -323,7 +323,7 @@ namespace Commander
                 await context.Vault.DeleteSecretManagerClient(application.Uid, device.DeviceId);
                 Console.Write($"Client \"{device.Name}\" has been deleted from application {application.Title}");
             }
-            else if (action == "app-unshare")
+            else if (action == "app-unshare" || action == "app-share")
             {
                 if (string.IsNullOrEmpty(arguments.User))
                 {
@@ -334,29 +334,11 @@ namespace Commander
                 try
                 {
                     await ShareSecretsManagerApplicationWithUser(context.Vault, application.Uid, arguments.User, true, arguments.IsAdmin);
-                    Console.Write($"Application \"{application.Title}\" has been unshared from user {arguments.User}");
+                    Console.Write($"Application \"{application.Title}\" has been {(action == "app-unshare" ? "unshared from" : "shared with")} user {arguments.User}");
                 }
                 catch (Exception e)
                 {
-                    Console.Write($"Failed to unshare application \"{application.Title}\" from user {arguments.User}: {e.Message}");
-                }
-            }
-            else if (action == "app-share")
-            {
-                if (string.IsNullOrEmpty(arguments.User))
-                {
-                    Console.Write("\"user\" parameter is required");
-                    return;
-                }
-
-                try
-                {
-                    await ShareSecretsManagerApplicationWithUser(context.Vault, application.Uid, arguments.User, false, arguments.IsAdmin);
-                    Console.Write($"Application \"{application.Title}\" has been shared with user {arguments.User}");
-                }
-                catch (Exception e)
-                {
-                    Console.Write($"Failed to share application \"{application.Title}\" with user {arguments.User}: {e.Message}");
+                    Console.Write($"Failed to {(action == "app-unshare" ? "unshared" : "share")} application \"{application.Title}\" {(action == "app-unshare" ? "from" : "with")} user {arguments.User}: {e.Message}");
                 }
             }
             else
@@ -605,7 +587,7 @@ namespace Commander
 
                 var userPerms = shareInfo.UserPermissions.FirstOrDefault(p => p.Username == user);
                 if (userPerms == null) return true;
-                
+
                 return userPerms.CanEdit != elevated || userPerms.CanShare != elevated;
             }
             else
