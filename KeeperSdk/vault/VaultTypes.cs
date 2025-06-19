@@ -623,8 +623,7 @@ namespace KeeperSecurity.Vault
         /// <param name="deviceId">Device ID or Name</param>
         /// <returns>Awaitable Task</returns>
         Task DeleteSecretManagerClient(string applicationId, string deviceId);
-
-    }
+   }
 
     /// <summary>
     /// Defines methods to manipulate Shared Folders.
