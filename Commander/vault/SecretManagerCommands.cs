@@ -439,12 +439,14 @@ namespace Commander
             var appInfo = appInfoResponse.FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(application.Uid.Base64UrlDecode()));
 
             await HandleAppSharePermissions(vault, appInfo, userUid, IsAdmin, unshare);
-            // sync down the changes
             await vault.SyncDown();
 
             var removed = unshare ? userUid : null;
             await UpdateShareUserPermissions(vault, applicationId, userUid, removed);
 
+            vault.Storage.Clear();
+            vault.Storage.VaultSettings.Load();
+            await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
         }
 
         private static async Task HandleAppSharePermissions(VaultOnline vault, AppInfo appInfo, string userUid, bool IsAdmin, bool unshare)
