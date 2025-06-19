@@ -333,7 +333,7 @@ namespace Commander
 
                 try
                 {
-                    await ShareSecretsManagerApplicationWithUser(context.Vault, application.Uid, arguments.User, true, arguments.IsAdmin);
+                    await ShareSecretsManagerApplicationWithUser(context.Vault, application.Uid, arguments.User, action == "app-unshare", arguments.IsAdmin);
                     Console.Write($"Application \"{application.Title}\" has been {(action == "app-unshare" ? "unshared from" : "shared with")} user {arguments.User}");
                 }
                 catch (Exception e)
