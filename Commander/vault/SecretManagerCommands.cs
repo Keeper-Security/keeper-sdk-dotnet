@@ -681,14 +681,8 @@ namespace Commander
         public int AccessExpire { get; set; }
         [Option("b64", Required = false, HelpText = "Return KSM configuration intead of one time token \"add-client\" only")]
         public bool B64 { get; set; }
-        [Option("user", Required = false, HelpText = "User UID or email address.\"app-share\", \"app-unshare\" only")]
+        [Option("email", Required = false, HelpText = "User UID or email address.\"app-share\", \"app-unshare\" only")]
         public string User { get; set; }
-        [Option('s', "can-share", Required = false, HelpText = "shared user can share re-share this record \"app-share\", \"app-unshare\" only")]
-        public bool CanShare { get; set; }
-        [Option("manage-users", Required = false, HelpText = "shared user can manage other user's access to this record if set to true \"app-share\", \"app-unshare\" only")]
-        public bool ManageUsers { get; set; }
-        [Option("manage-records", Required = false, HelpText = "shared user can manage records if set to true \"app-share\", \"app-unshare\" only")]
-        public bool ManageRecords { get; set; }
         [Option("is-admin", Required = false, HelpText = "Share as admin user. \"app-share\", \"app-unshare\" only")]
         public bool IsAdmin { get; set; }
 
