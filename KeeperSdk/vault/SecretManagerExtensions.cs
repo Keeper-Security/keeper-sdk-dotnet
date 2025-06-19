@@ -278,24 +278,24 @@ namespace KeeperSecurity.Vault
             var host = Auth.Endpoint.Server;
             switch (host)
             {
-            case "keepersecurity.com":
-                host = "US";
-                break;
-            case "keeperseurity.eu":
-                host = "EU";
-                break;
-            case "keepersecurity.com.au":
-                host = "AU";
-                break;
-            case "keepersecurity.jp":
-                host = "JP";
-                break;
-            case "keepersecurity.ca":
-                host = "CA";
-                break;
-            case "govcloud.keepersecurity.us":
-                host = "GOV";
-                break;
+                case "keepersecurity.com":
+                    host = "US";
+                    break;
+                case "keeperseurity.eu":
+                    host = "EU";
+                    break;
+                case "keepersecurity.com.au":
+                    host = "AU";
+                    break;
+                case "keepersecurity.jp":
+                    host = "JP";
+                    break;
+                case "keepersecurity.ca":
+                    host = "CA";
+                    break;
+                case "govcloud.keepersecurity.us":
+                    host = "GOV";
+                    break;
             }
             return Tuple.Create(device, $"{host}:{clientKey.Base64UrlEncode()}");
         }
@@ -509,7 +509,7 @@ namespace KeeperSecurity.Vault
 #endif
                 var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
                 request.Headers.Authorization = new AuthenticationHeaderValue("Signature", Convert.ToBase64String(signature));
-                request.Headers.Add("User-Agent", $"KSM.Net/{KsmClientVersion}"); 
+                request.Headers.Add("User-Agent", $"KSM.Net/{KsmClientVersion}");
                 request.Headers.Add("PublicKeyId", keyId.ToString());
                 request.Headers.Add("Signature", Convert.ToBase64String(signature));
                 request.Headers.Add("TransmissionKey", Convert.ToBase64String(encTransmissionKey));
@@ -521,10 +521,11 @@ namespace KeeperSecurity.Vault
                 {
                     contentTypes = values.ToArray();
                 }
-                if (response.IsSuccessStatusCode) 
+                if (response.IsSuccessStatusCode)
                 {
                     configuration.ServerPublicKeyId = keyId.ToString();
-                    if (contentTypes.Any(x => x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase))) {
+                    if (contentTypes.Any(x => x.StartsWith("application/octet-stream", StringComparison.InvariantCultureIgnoreCase)))
+                    {
                         var data = await response.Content.ReadAsByteArrayAsync();
                         var decryptedRs = CryptoUtils.DecryptAesV2(data, transmissionKey);
 #if DEBUG
@@ -570,27 +571,27 @@ namespace KeeperSecurity.Vault
             {
                 switch (tokenParts[0].ToUpper())
                 {
-                case "US":
-                    host = "keepersecurity.com";
-                    break;
-                case "EU":
-                    host = "keepersecurity.eu";
-                    break;
-                case "AU":
-                    host = "keepersecurity.com.au";
-                    break;
-                case "GOV":
-                    host = "govcloud.keepersecurity.us";
-                    break;
-                case "JP":
-                    host = "keepersecurity.jp";
-                    break;
-                case "CA":
-                    host = "keepersecurity.ca";
-                    break;
-                default:
-                    host = Auth.Endpoint.Server;
-                    break;
+                    case "US":
+                        host = "keepersecurity.com";
+                        break;
+                    case "EU":
+                        host = "keepersecurity.eu";
+                        break;
+                    case "AU":
+                        host = "keepersecurity.com.au";
+                        break;
+                    case "GOV":
+                        host = "govcloud.keepersecurity.us";
+                        break;
+                    case "JP":
+                        host = "keepersecurity.jp";
+                        break;
+                    case "CA":
+                        host = "keepersecurity.ca";
+                        break;
+                    default:
+                        host = Auth.Endpoint.Server;
+                        break;
                 }
                 clientKey = tokenParts[1];
             }
