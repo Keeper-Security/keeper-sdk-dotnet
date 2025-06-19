@@ -657,12 +657,12 @@ namespace Commander
                 AppRecordUid = { Google.Protobuf.ByteString.CopyFrom(applicationId.Base64UrlDecode()) }
             };
 
-            var appInforResponse = (GetAppInfoResponse) await vault.Auth.ExecuteAuthRest("vault/get_app_info", rq, typeof(GetAppInfoResponse));
-            if (appInforResponse.AppInfo.Count == 0)
+            var appInfoResponse = (GetAppInfoResponse) await vault.Auth.ExecuteAuthRest("vault/get_app_info", rq, typeof(GetAppInfoResponse));
+            if (appInfoResponse.AppInfo.Count == 0)
             {
                 throw new KeeperInvalidParameter("GetAppInfo", "applicationId", applicationId, "Application not found");
             }
-            return appInforResponse.AppInfo;
+            return appInfoResponse.AppInfo;
         }
 
     }

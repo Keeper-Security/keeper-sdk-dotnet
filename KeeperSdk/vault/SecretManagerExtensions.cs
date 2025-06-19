@@ -12,7 +12,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AuthProto = Authentication;
-using Authentication;
 using EnterpriseProto = Enterprise;
 
 #if NETSTANDARD2_0_OR_GREATER
@@ -661,106 +660,6 @@ namespace KeeperSecurity.Vault
 
             await Auth.ExecuteAuthRest("vault/app_client_remove", rq);
             await GetSecretManagerApplication(application.Uid, true);
-        }
-
-        public async Task ShareSecretsManagerApplicationWithUser(string applicationId, string userUid, bool unshare, SharedFolderOptions sharedFolderOptions = null, DateTimeOffset expiration = default)
-        {
-            if (!TryGetKeeperRecord(applicationId, out var record))
-            {
-                throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
-            }
-            ApplicationRecord application = record as ApplicationRecord ?? throw new KeeperInvalidParameter("ShareSecretsManagerApplicationWithUser", "applicationId", applicationId, "Application not found");
-
-            var appInfoResponse = await GetAppInfo(application.Uid);
-            var appInfo = appInfoResponse.FirstOrDefault(x => x.AppRecordUid.ToByteArray().SequenceEqual(application.Uid.Base64UrlDecode()));
-
-            var (sharedRecordPermissions, sharedfolderUserOptions) = GetFolderAndRecordPermissions(sharedFolderOptions, unshare, expiration);
-
-            // process application first with the user
-            await HandleRecordShareWithUser(unshare, application.Uid, userUid, sharedRecordPermissions);
-            // This is throwing an erorr which is probably NoActiveSessionWIthUser
-            // await HandleFolderShareWithUser(unshare, application.Uid, userUid, sharedfolderUserOptions);
-
-            // process each folder which application covers with the user
-            await Task.WhenAll(
-                appInfo.Shares
-                    .Where(x => x.ShareType == ApplicationShareType.ShareTypeFolder)
-                    .Select(x => HandleFolderShareWithUser(unshare, x.SecretUid, userUid, sharedfolderUserOptions))
-            );
-
-            // process each record which application covers with the user
-            await Task.WhenAll(
-                appInfo.Shares
-                    .Where(x => x.ShareType == ApplicationShareType.ShareTypeRecord)
-                    .Select(x => HandleRecordShareWithUser(unshare, x.SecretUid.ToByteArray().Base64UrlEncode(), userUid, sharedRecordPermissions))
-            );
-
-            // sync down the changes
-            await SyncDown();
-        }
-
-        private (SharedFolderRecordOptions, SharedFolderUserOptions) GetFolderAndRecordPermissions(SharedFolderOptions sharedFolderOptions, bool unshare, DateTimeOffset expiration = default)
-        {
-            var isAdmin = Auth.AuthContext.IsEnterpriseAdmin;
-
-            var sharedRecordPermissions = new SharedFolderRecordOptions();
-            sharedRecordPermissions.CanEdit = isAdmin && (sharedFolderOptions?.CanEdit ?? !unshare);
-            sharedRecordPermissions.CanShare = isAdmin && (sharedFolderOptions?.CanShare ?? !unshare);
-
-            var sharedfolderUserOptions = new SharedFolderUserOptions
-            {
-                ManageUsers = isAdmin && (sharedFolderOptions?.ManageUsers ?? !unshare),
-                ManageRecords = isAdmin && (sharedFolderOptions?.ManageRecords ?? !unshare),
-            };
-
-            if (expiration != default)
-            {
-                sharedRecordPermissions.Expiration = expiration;
-                sharedfolderUserOptions.Expiration = expiration;
-            }
-
-            return (sharedRecordPermissions, sharedfolderUserOptions);
-        }
-
-        private async Task HandleFolderShareWithUser(bool unshare, ByteString sharedFolderUid, string userUid, SharedFolderUserOptions sharedfolderUserOptions)
-        {
-            string sharedFolderUidString = sharedFolderUid.ToByteArray().Base64UrlEncode();
-            if (unshare)
-            {
-                await RemoveUserFromSharedFolder(sharedFolderUidString, userUid, UserType.User);
-            }
-            else
-            {
-                await PutUserToSharedFolder(sharedFolderUidString, userUid, UserType.User, sharedfolderUserOptions);
-            }
-        }
-
-        private async Task HandleRecordShareWithUser(bool unshare, string recordUid, string userUid, SharedFolderRecordOptions sharedRecordPermissions)
-        {
-            if (unshare)
-            {
-                await RevokeShareFromUser(recordUid, userUid);
-            }
-            else
-            {
-                await ShareRecordWithUser(recordUid, userUid, sharedRecordPermissions);
-            }
-        }
-
-
-        private async Task<System.Collections.Generic.IEnumerable<AppInfo>> GetAppInfo(string applicationId)
-        {
-            var rq = new GetAppInfoRequest
-            {
-                AppRecordUid = { ByteString.CopyFrom(applicationId.Base64UrlDecode()) }
-            };
-
-            var appInforResponse = await Auth.ExecuteAuthRest<AuthProto.GetAppInfoRequest, AuthProto.GetAppInfoResponse>("vault/get_app_info", rq);
-            if (appInforResponse.AppInfo.Count == 0)
-            {
-                throw new KeeperInvalidParameter("GetAppInfo", "applicationId", applicationId, "Application not found");
-            }
-            return appInforResponse.AppInfo;
         }
     }
 }
