@@ -21,6 +21,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperRecord                       | kr          | Enumerate all records
 | Get-KeeperSharedFolder                 | ksf         | Enumerate all shared folders
 | Add-KeeperRecord                       | kadd        | Add/Modify Keeper record
+| Import-RecordTypes                     |             | Load Keeper records from a given file
 | Get-KeeperRecordType                   | krti        | Get Record Type Information
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
