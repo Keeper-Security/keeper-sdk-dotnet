@@ -985,9 +985,9 @@ function Import-RecordTypes {
             }
         }
 
-        Write-Host "✅ Record types loaded: $uploadCount"
-        Write-Host "➤ Existing Record Types (skipped): $($existingRecordTypeIds -join ', ')" 
-        Write-Host "❌ Failed Record Types: $($failedRecordTypeIds -join ', ')"
+        Write-Host "Record types loaded: $uploadCount"
+        Write-Host "Existing Record Types (skipped): $($existingRecordTypeIds -join ', ')" 
+        Write-Host "Failed Record Types: $($failedRecordTypeIds -join ', ')"
     }
     catch {
         throw "Import failed: $_"
