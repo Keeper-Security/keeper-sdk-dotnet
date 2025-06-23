@@ -91,6 +91,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Revoke-KeeperSecretManagerFolderAccess | ksm-unshare | Remove a Shared Folder from KSM Application
 | Add-KeeperSecretManagerClient          |ksm-addclient| Add a client/device to KSM Application
 | Remove-KeeperSecretManagerClient       | ksm-rmclient| Remove a client/device from KSM Application
+| Grant-KeeperAppAccess                  |             | Grant Keeper Secret Manager Application Access to a user
+| Revoke-KeeperAppAccess                 |             | Revoke Keeper Secret Manager Application Access from a user
 
 
 #### Examples
