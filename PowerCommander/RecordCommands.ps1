@@ -820,7 +820,7 @@ function Edit-KeeperRecordType {
 
     try {
        
-        $result = $vault.UpdateRecordTypeAsync($RecordTypeId,$Data).GetAwaiter().GetResult()
+        $result = $vault.UpdateRecordTypeAsync($RecordTypeId, $Data).GetAwaiter().GetResult()
         Write-Host "Updated Record Type ID: $result"
     }
     catch {
@@ -859,4 +859,139 @@ function Remove-KeeperRecordType {
     catch {
         Write-Error "Error deleting record type: $($_.Exception.Message)" -ErrorAction Stop
     }
+}
+
+function Test-RecordTypeFile {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath
+    )
+
+    if (-not (Test-Path $FilePath)) {
+        throw "Record type file not found: $FilePath"
+    }
+
+    $json = Get-Content $FilePath -Raw | ConvertFrom-Json
+    if (-not $json.record_types) {
+        throw "Missing 'record_types' array in the file."
+    }
+
+    return $json.record_types
+}
+
+function Get-ExistingRecordTypes {
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    $types = $vault.RecordTypes
+    $map = @{}
+
+    foreach ($type in $types) {
+        if ($type.Name) {
+            $map[$type.Name] = $type
+        }
+    }
+
+    return $map
+}
+
+function ConvertTo-CustomRecordTypeObject {
+    param (
+        [Parameter(Mandatory = $true)]
+        $InputRecordType
+    )
+
+    $fields = @()
+    foreach ($f in $InputRecordType.fields) {
+        $field = @{ '$ref' = $f.'$type' }
+        if ($f.label) {
+            $field["label"] = $f.label
+        }
+        if ($f.Required -eq $true) {
+            $field["required"] = $true
+        }
+        $fields += ,$field
+    }
+
+    return @{
+        '$id' = $InputRecordType.record_type_name
+        description = $InputRecordType.description
+        categories = $InputRecordType.categories
+        fields = $fields
+    }
+}
+
+
+function Import-KeeperRecordTypes {
+<#
+.SYNOPSIS
+    Imports custom record types into Keeper from a JSON file.
+
+.DESCRIPTION
+    This command reads a JSON file containing custom record type definitions and uploads new record types to the Keeper vault.
+    Existing record types (based on name) are skipped. It reports the number of successfully uploaded, skipped, and failed imports.
+
+.PARAMETER FilePath
+    The full path to the JSON file containing record type definitions. The file must contain a `record_types` array at the root.
+
+.EXAMPLE
+    Import-KeeperRecordTypes -FilePath "C:\configs\custom_record_types.json"
+
+    Loads and uploads custom record types from the specified file.
+
+.EXAMPLE
+    Import-KeeperRecordTypes -FilePath "./data/types.json"
+
+    Works with relative paths as well.
+
+.OUTPUTS
+    [System.Collections.Generic.List[string]]
+    Returns a list of successfully uploaded record type IDs.
+
+.NOTES
+    Requires the Add-KeeperRecordType and Get-KeeperRecordTypes functions to be available in the current session.
+#>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, Position = 0, HelpMessage = "Path to the JSON file containing record types.")]
+        [ValidateNotNullOrEmpty()]
+        [string]$FilePath
+    )
+
+    $uploadedRecordTypeIds = @()
+    $existingRecordTypeIds = @()
+    $failedRecordTypeIds = @()
+    $uploadCount = 0
+
+    try {
+        $newRecordTypes = Test-RecordTypeFile -FilePath $FilePath
+        $existingTypes = Get-ExistingRecordTypes
+
+        foreach ($recordType in $newRecordTypes) {
+            if ($existingTypes.ContainsKey($recordType.record_type_name)) {
+                $existingRecordTypeIds += $recordType.record_type_name
+                continue
+            }
+
+            try {
+                $parsed = ConvertTo-CustomRecordTypeObject -InputRecordType $recordType
+                $json = $parsed | ConvertTo-Json -Depth 10 -Compress
+                $recordTypeId = New-KeeperRecordType -Data $json
+                $uploadedRecordTypeIds += $recordTypeId
+                $uploadCount++
+            }
+            catch {
+                Write-Warning "Failed to upload record type '$($recordType.record_type_name)': $_"
+                $failedRecordTypeIds += $recordType.record_type_name
+                continue
+            }
+        }
+
+        Write-Host "Record types loaded: $uploadCount"
+        Write-Host "Existing Record Types (skipped): $($existingRecordTypeIds -join ', ')" 
+        Write-Host "Failed Record Types: $($failedRecordTypeIds -join ', ')"
+    }
+    catch {
+        throw "Import failed: $_"
+    }
+
+    return $uploadedRecordTypeIds
 }
