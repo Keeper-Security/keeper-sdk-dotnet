@@ -820,7 +820,7 @@ function Edit-KeeperRecordType {
 
     try {
        
-        $result = $vault.UpdateRecordTypeAsync($RecordTypeId,$Data).GetAwaiter().GetResult()
+        $result = $vault.UpdateRecordTypeAsync($RecordTypeId, $Data).GetAwaiter().GetResult()
         Write-Host "Updated Record Type ID: $result"
     }
     catch {
@@ -920,7 +920,7 @@ function ConvertTo-CustomRecordTypeObject {
 }
 
 
-function Import-RecordTypes {
+function Import-KeeperRecordTypes {
 <#
 .SYNOPSIS
     Imports custom record types into Keeper from a JSON file.
@@ -933,12 +933,12 @@ function Import-RecordTypes {
     The full path to the JSON file containing record type definitions. The file must contain a `record_types` array at the root.
 
 .EXAMPLE
-    Import-RecordTypes -FilePath "C:\configs\custom_record_types.json"
+    Import-KeeperRecordTypes -FilePath "C:\configs\custom_record_types.json"
 
     Loads and uploads custom record types from the specified file.
 
 .EXAMPLE
-    Import-RecordTypes -FilePath "./data/types.json"
+    Import-KeeperRecordTypes -FilePath "./data/types.json"
 
     Works with relative paths as well.
 
