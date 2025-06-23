@@ -917,10 +917,10 @@ function Grant-KeeperAppAccess {
 
         Invoke-KeeperAppShareWithUser -ApplicationId $ApplicationId -UserUid $UserUid -IsAdmin:$IsAdmin
 
-        Write-Host "✔ Successfully granted access to application '$ApplicationId' for user '$UserUid'." -ForegroundColor Green
+        Write-Host "Successfully granted access to application '$ApplicationId' for user '$UserUid'." -ForegroundColor Green
     }
     catch {
-        Write-Host "❌ Failed to grant access to '$UserUid'. Error: $_" -ForegroundColor Red
+        Write-Host "Failed to grant access to '$UserUid'. Error: $_" -ForegroundColor Red
     }
 }
 
@@ -957,9 +957,9 @@ function Revoke-KeeperAppAccess {
 
         Invoke-KeeperAppShareWithUser -ApplicationId $ApplicationId -UserUid $UserUid -Unshare
 
-        Write-Host "✔ Successfully revoked access to application '$ApplicationId' from user '$UserUid'." -ForegroundColor Green
+        Write-Host "Successfully revoked access to application '$ApplicationId' from user '$UserUid'." -ForegroundColor Green
     }
     catch {
-        Write-Host "❌ Failed to revoke access from '$UserUid'. Error: $_" -ForegroundColor Red
+        Write-Host "Failed to revoke access from '$UserUid'. Error: $_" -ForegroundColor Red
     }
 }
