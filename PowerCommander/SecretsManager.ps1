@@ -43,55 +43,57 @@ $Keeper_KSMAppCompleter = {
 }
 
 function Get-KeeperSecretManagerApp {
-    <#
-        .Synopsis
-        Get Keeper Secret Manager Applications
+    [CmdletBinding(DefaultParameterSetName = 'ByUid')]
+    param(
+        [Parameter(Mandatory, ParameterSetName = 'ByUid')]
+        [ValidateNotNullOrEmpty()]
+        [string]$Uid,
 
-        .Parameter Uid
-        Record UID
+        [Parameter(Mandatory, ParameterSetName = 'ByFilter')]
+        [ValidateNotNullOrEmpty()]
+        [string]$Filter,
 
-        .Parameter Filter
-        Return matching applications only
-
-        .Parameter Detail
-        Application details
-    #>
-    [CmdletBinding()]
-    Param (
-        [string] $Uid,
-        [string] $Filter,
-        [Switch] $Detail
+        [switch]$Detail
     )
 
-    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-    if ($Uid) {
-        [KeeperSecurity.Vault.ApplicationRecord] $application = $null
-        if ($vault.TryGetKeeperApplication($uid, [ref]$application)) {
-            if ($Detail.IsPresent) {
-                $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
-            }
-            else {
-                $application
-            }
-        }
-    }
-    else {
-        foreach ($application in $vault.KeeperApplications) {
-            if ($Filter) {
-                $match = $($application.Uid, $application.Title) | Select-String $Filter | Select-Object -First 1
-                if (-not $match) {
-                    continue
+    $vault = GetVault
+
+    # guarantee a populated cache
+    $vault.SyncDown().GetAwaiter().GetResult() | Out-Null
+
+    switch ($PSCmdlet.ParameterSetName) {
+        'ByUid' {
+            $app = $vault.KeeperApplications |
+                   Where-Object { $_.Uid -eq $Uid } |
+                   Select-Object -First 1
+
+            if (-not $app) {
+                try {
+                    $app = $vault.GetSecretManagerApplication($Uid, $false).GetAwaiter().GetResult()
+                } catch {
+                    throw "secret-manager application '$Uid' not found"
                 }
             }
-            if ($Detail.IsPresent) {
-                $vault.GetSecretManagerApplication($application.Uid, $false).GetAwaiter().GetResult()
-            }
-            else {
-                $application
-            }
+            $apps = @($app)
+        }
+
+        'ByFilter' {
+            $apps = $vault.KeeperApplications |
+                    Where-Object { $_.Uid -like "*$Filter*" -or $_.AppName -like "*$Filter*" }
+
+            if (-not $apps) { return }
         }
     }
+
+    if ($Detail) {
+        foreach ($a in $apps) {
+            $vault.GetSecretManagerApplication($a.Uid, $false).GetAwaiter().GetResult()
+        }
+    } else {
+        $apps
+    }
 }
+
 New-Alias -Name ksm -Value Get-KeeperSecretManagerApp
 
 function Add-KeeperSecretManagerApp {
