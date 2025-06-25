@@ -382,6 +382,13 @@ namespace Commander
                     Description = "loads Record Types to keeper from given file",
                     Action = context.RecordTypeLoadCommand
                 });
+            cli.Commands.Add("download-record-types",
+                new ParseableCommand<DownloadRecordTypeOptions>
+                {
+                    Order = 84,
+                    Description = "downloads Record Types from keeper to given file",
+                    Action = context.DownloadRecordTypes
+                });
 
             cli.Aliases.Add("list", "search");
             cli.Aliases.Add("d", "sync-down");
