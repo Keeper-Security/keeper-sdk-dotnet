@@ -1011,7 +1011,10 @@ function Export-KeeperRecordTypes {
     Optional. Whether to ensure a fileRef field exists when a keyPair is found.
 
     .EXAMPLE
-    Download-KeeperRecordTypes -Context $vaultContext -FileName 'types.json' -SSHFileRef
+    Download-KeeperRecordTypes -Source keeper -FileName 'types.json' -SSHFileRef
+
+    .EXAMPLE
+    Download-KeeperRecordTypes
     #>
 
     param (
@@ -1075,8 +1078,6 @@ function Export-KeeperRecordTypes {
         } else {
             Write-Warning "No record types were downloaded."
         }
-
-        $vault.SyncDown() | Out-Null
     }
     catch {
         Write-Error "Error during download: $_"
