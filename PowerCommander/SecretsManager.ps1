@@ -122,6 +122,32 @@ function Add-KeeperSecretManagerApp {
 }
 New-Alias -Name ksm-create -Value Add-KeeperSecretManagerApp
 
+function Remove-KeeperSecretManagerApp {
+    <#
+        .SYNOPSIS
+        Deletes a Keeper Secret Manager Application
+
+        .DESCRIPTION
+        This cmdlet deletes a Keeper Secrets Manager application by UID.
+
+        .PARAMETER Uid
+        The UID of the application to delete.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]
+        [string] $Uid
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    if ($PSCmdlet.ShouldProcess("Secrets Manager App UID: $Uid", "Delete")) {
+        $vault.DeleteSecretManagerApplication($Uid).GetAwaiter().GetResult()
+        Write-Host "Secrets Manager Application with UID '$Uid' has been deleted." -ForegroundColor Green
+    }
+}
+New-Alias -Name ksm-delete -Value Remove-KeeperSecretManagerApp
+
 function Grant-KeeperSecretManagerFolderAccess {
     <#
         .Synopsis

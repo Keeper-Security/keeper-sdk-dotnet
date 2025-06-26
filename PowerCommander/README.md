@@ -87,6 +87,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 |----------------------------------------|-------------|----------------------------
 | Get-KeeperSecretManagerApp             | ksm         | Enumerate all Keeper Secret Manager Applications
 | Add-KeeperSecretManagerApp             | ksm-create  | Add a Keeper Secret Manager Application
+| Remove-KeeperSecretManagerApp          | ksm-delete  | Delete a Keeper Secret Manager Application
 | Grant-KeeperSecretManagerFolderAccess  | ksm-share   | Add a shared folder to KSM Application
 | Revoke-KeeperSecretManagerFolderAccess | ksm-unshare | Remove a Shared Folder from KSM Application
 | Add-KeeperSecretManagerClient          |ksm-addclient| Add a client/device to KSM Application
