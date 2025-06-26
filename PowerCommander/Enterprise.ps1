@@ -45,7 +45,8 @@ function getEnterprise {
                 $enterprise.ManagedCompanies[$Script:Context.ManagedCompanyId] = $enterpriseMc
             }
             $enterprise = $enterpriseMc
-        } else {
+        }
+        else {
             $Script:Context.ManagedCompanyId = 0
         }
     }
@@ -467,14 +468,15 @@ function Move-KeeperEnterpriseUser {
         if (Test-InteractiveSession) {
             Write-Output "This action cannot be undone.`n"
             $answer = Read-Host -Prompt "Do you want to proceed with transferring $($fromUserObject.Email) account (Yes/No)? > "
-        } else {
+        }
+        else {
             Write-Output('Non-interactive session. Use -Force parameter')
             $answer = 'no'
         }
         if ($answer -ne 'yes' -and $answer -ne 'y') {
             return
         }
-}
+    }
     $transferResult = $enterprise.enterpriseData.TransferUserAccount($enterprise.roleData, $fromUserObject, $targetUserObject).GetAwaiter().GetResult()
     if ($transferResult) {
         Write-Information "Successfully Transfered:"
@@ -507,7 +509,7 @@ function Remove-KeeperEnterpriseUser {
         .Parameter User
 	    User email, enterprise Id, or instance.
     #>
-    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact = 'High')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     Param (
         [Parameter(Position = 0, Mandatory = $true)]$User,
         [Switch] $Force
@@ -821,4 +823,131 @@ function Script:Get-KeeperRoleName {
     if ($enterprise.roleData.TryGetRole($roleId, [ref]$role)) {
         return $role.DisplayName
     }
+}
+
+function Add-KeeperEnterpriseTeamMember {
+    <#
+        .SYNOPSIS
+        Adds existing enterprise users to a Keeper team.
+
+        .DESCRIPTION
+        Adds one or more users (by email) to an existing Keeper Enterprise Team. The users must already exist in the enterprise.
+
+        .PARAMETER Team
+        Team UID or Team Name.
+
+        .PARAMETER Emails
+        Array of email addresses of users to add to the team.
+
+        .EXAMPLE
+        Add-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "alice@example.com", "bob@example.com"
+
+        .EXAMPLE
+        Add-KeeperEnterpriseTeamMember -Team "1P7A8XZ9K3J9H" -Emails "eve@example.com", "frank@example.com"
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Team,
+
+        [Parameter(Mandatory = $true)]
+        [string[]] $Emails
+    )
+
+    [Enterprise]$enterprise = GetEnterprise
+    try {
+        $selectedTeam = Get-KeeperTeamByNameOrUid -EnterpriseData $enterprise.enterpriseData -TeamInput $Team
+        
+        if (-not $selectedTeam) {
+            Write-Warning "No matching team found for input: $Team"
+        }
+        if ($Emails.Count -eq 0) {
+            Write-Warning "No email addresses provided to add."
+            return
+        }
+    
+        $enterprise.enterpriseData.AddUsersToTeams(
+            $Emails, 
+            @($selectedTeam.Uid)
+        ).GetAwaiter().GetResult() | Out-Null
+        Write-Output "Requested addition of $($Emails.Count) user(s) to team '$($selectedTeam.Name)'."
+    }
+    catch {
+        Write-Warning "❌ Failed to add users to team '$Team': $($_.Exception.Message)"
+    }
+}
+
+function Remove-KeeperEnterpriseTeamMember {
+    <#
+        .SYNOPSIS
+        Removes existing enterprise users from a Keeper team.
+
+        .DESCRIPTION
+        Removes one or more users (by email) from an existing Keeper Enterprise Team. 
+        The specified users must already exist in the enterprise and must be members of the team.
+
+        .PARAMETER Team
+        Team UID or Team Name from which the users will be removed.
+
+        .PARAMETER Emails
+        Array of email addresses of users to remove from the team.
+
+        .EXAMPLE
+        Remove-KeeperEnterpriseTeamMember -Team "Engineering" -Emails "alice@example.com", "bob@example.com"
+
+        .EXAMPLE
+        Remove-KeeperEnterpriseTeamMember -Team "1P7A8XZ9K3J9H" -Emails "eve@example.com", "frank@example.com"
+
+        This command removes the specified users from the given team.
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Team,
+
+        [Parameter(Mandatory = $true)]
+        [string[]] $Emails
+    )
+
+    [Enterprise]$enterprise = GetEnterprise
+    try {
+        $selectedTeam = Get-KeeperTeamByNameOrUid -EnterpriseData $enterprise.enterpriseData -TeamInput $Team
+    
+        if (-not $selectedTeam) {
+            Write-Warning "❌ No matching team found for input: $Team"
+            return
+        }
+        if ($Emails.Count -eq 0) {
+            Write-Warning "⚠️ No email addresses provided to remove."
+            return
+        }
+    
+        $enterprise.enterpriseData.RemoveUsersFromTeams(
+            $Emails, 
+            @($selectedTeam.Uid)
+        ).GetAwaiter().GetResult() | Out-Null
+        Write-Output "✅ Requested removal of $($Emails.Count) user(s) from team '$($selectedTeam.Name)'."
+    }
+    catch {
+        Write-Warning "❌ Failed to remove users from team '$Team': $($_.Exception.Message)"
+    }
+}
+
+function Get-KeeperTeamByNameOrUid {
+    param (
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Enterprise.EnterpriseData] $EnterpriseData,
+        
+        [Parameter(Mandatory = $true)]
+        [string] $TeamInput
+    )
+
+    foreach ($t in $EnterpriseData.Teams) {
+        if (($t.Uid -eq $TeamInput) -or ($t.Name -and ($t.Name.Trim().ToLower() -eq $TeamInput.Trim().ToLower()))) {
+            return $t
+        }
+    }
+    return $null
 }
