@@ -995,3 +995,91 @@ function Import-KeeperRecordTypes {
 
     return $uploadedRecordTypeIds
 }
+
+function Export-KeeperRecordTypes {
+    <#
+    .SYNOPSIS
+    Downloads custom record types from Keeper Vault to a JSON file.
+
+    .PARAMETER Source
+    The source of record types to export from.
+
+    .PARAMETER FileName
+    Optional. The name of the file to write to. Defaults to 'record_types.json'.
+
+    .PARAMETER SSHKeyAsFile
+    Optional. Prefer store SSH keys as file attachments rather than fields on a record.
+
+    .EXAMPLE
+    Download-KeeperRecordTypes -Source keeper -FileName 'types.json' -SSHKeyAsFile
+
+    .EXAMPLE
+    Download-KeeperRecordTypes
+    #>
+
+    param (
+        [string]$Source,
+
+        [string]$FileName = "record_types.json",
+
+        [switch]$SSHKeyAsFile
+    )
+
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        $vault.SyncDown() | Out-Null
+        if ($null -eq $Source){
+            $Source = 'keeper'
+        }
+        $recordTypes = $vault.RecordTypes | Where-Object { $_.Scope -eq "Enterprise" }
+        $recordTypesForDownload = @()
+
+        foreach ($recordType in $recordTypes) {
+            $custom = @{
+                record_type_name = $recordType.Name
+                fields = @()
+            }
+            if($null -ne $recordType.Description){
+                $custom.description = $recordType.Description
+            }
+
+            $needFileRef = $SSHKeyAsFile.IsPresent
+            foreach ($field in $recordType.Fields) {
+                if ($needFileRef -and $field.FieldName.ToString() -eq "keyPair") {
+                    $needFileRef = $true;
+                    continue
+                }
+
+                $fieldObj = @{
+                    '$type' = $field.FieldName.ToString()
+                    label = $field.FieldLabel
+                }
+                if ($field.Required -eq $true)
+                {
+                    $fieldObj.required = $field.Required
+                }
+                $custom.fields += $fieldObj
+            }
+
+            if ($needFileRef) {
+                $hasFileRef = $custom.fields | Where-Object { $_.'$type' -eq "fileRef" }
+                if (-not $hasFileRef) {
+                    $custom.fields += @{ '$type' = "fileRef" }
+                }
+            }
+
+            $recordTypesForDownload += $custom
+        }
+
+        if ($recordTypesForDownload.Count -gt 0) {
+            $json = ConvertTo-Json @{ recordTypes = $recordTypesForDownload } -Depth 10
+            Set-Content -Path $FileName -Value $json -Encoding UTF8
+            Write-Host "Downloaded $($recordTypesForDownload.Count) record types to '$(Resolve-Path $FileName)'"
+        } else {
+            Write-Warning "No record types were downloaded."
+        }
+    }
+    catch {
+        Write-Error "Error during download: $_"
+    }
+}

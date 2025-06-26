@@ -89,7 +89,7 @@
         'Add-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess', 'Revoke-KeeperSecretManagerFolderAccess',
         'Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient', 'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare',
         'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 'Copy-KeeperFileAttachmentToStream', 'Copy-FileToKeeperRecord',
-        'Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess'
+        'Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Export-KeeperRecordTypes'
     )
 
     # Cmdlets to export from this module
