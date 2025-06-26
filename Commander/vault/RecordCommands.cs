@@ -775,7 +775,7 @@ namespace Commander
                     {
                         var parsedRecord = RecordTypeService.CreateRecordTypeObject(recordType);
                         var recordTypeID = await context.Vault.AddRecordType(Encoding.UTF8.GetString(JsonUtils.DumpJson(parsedRecord)));
-                        uploadCount = uploadCount+1;
+                        uploadCount = uploadCount + 1;
                         uploadedRecordTypeIds.Add(recordTypeID);
                     }
                     catch
@@ -790,7 +790,102 @@ namespace Commander
             Console.WriteLine($"Failed Record Types: {(failedRecordTypeIds.Count > 0 ? string.Join(", ", failedRecordTypeIds) : "None")}");
             return uploadedRecordTypeIds;
         }
-        
+
+        public static async Task DownloadRecordTypes(this VaultContext context, DownloadRecordTypeOptions options)
+        {
+            var source = options.GetValidatedSource();
+            List<InputRecordType> customRecordTypes = new();
+            var fileName = options.FileName ?? "record_types.json";
+            if (source == DownloadRecordTypeOptions.SourceType.keeper)
+            {
+                customRecordTypes = await DownloadRecordTypesExtensions.DownloadRecordTypesFromKeeper(context.Vault, options);
+            }
+            if (customRecordTypes.Count > 0)
+            {
+                var downloadRecordTypeData = new DownloadRecordType
+                {
+                    RecordTypes = customRecordTypes
+                };
+                var serializedRecordTypes = JsonUtils.DumpJson(downloadRecordTypeData);
+                try
+                {
+                    await File.WriteAllBytesAsync(fileName, serializedRecordTypes);
+                    Console.WriteLine($"Downloaded {downloadRecordTypeData.RecordTypes.Count} record types to \"{Path.GetFullPath(fileName)}\"");
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Failed to write record types to file \"{fileName}\": {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.Error.WriteLine("No record types are downloaded");
+            }
+            await context.Vault.SyncDown();
+        }
+
+        internal class DownloadRecordTypesExtensions
+        {
+            public static async Task<List<InputRecordType>> DownloadRecordTypesFromKeeper(VaultOnline vault, DownloadRecordTypeOptions options)
+            {
+                await vault.SyncDown();
+                var recordTypes = vault.RecordTypes.ToList();
+                List<InputRecordType> recordTypesForDownload = new();
+
+                foreach (var recordType in recordTypes)
+                {
+                    if (recordType.Scope != RecordTypeScope.Enterprise)
+                    {
+                        continue;
+                    }
+                    var custom = new InputRecordType
+                    {
+                        RecordTypeName = recordType.Name,
+                        Description = recordType.Description,
+                        Categories = null,
+                    };
+
+                    List<InputRecordTypeField> fieldsList = new();
+                    bool needFileRef = options.SSHFileRef;
+
+                    foreach (var field in recordType.Fields)
+                    {
+                        if (needFileRef && field.FieldName.ToString() == "keyPair")
+                        {
+                            needFileRef = true;
+                            continue;
+                        }
+                        var fieldObject = new InputRecordTypeField
+                        {
+                            Type = field.FieldName.ToString(),
+                            Label = field.FieldLabel,
+                            Required = field.Required
+                        };
+
+                        fieldsList.Add(fieldObject);
+                    }
+
+                    if (needFileRef)
+                    {
+                        bool hasFileRef = fieldsList.Any(f => f.Type == "fileRef");
+                        if (!hasFileRef)
+                        {
+                            fieldsList.Add(
+                                new InputRecordTypeField
+                                {
+                                    Type = "fileRef"
+                                }
+                                );
+                        }
+                    }
+                    custom.Fields = fieldsList;
+                    recordTypesForDownload.Add(custom);
+                }
+
+                return recordTypesForDownload;
+            }
+        }
+
         internal class RecordTypeService
         {
             public static List<InputRecordType> ValidateRecordTypeFile(string filePath)
@@ -838,11 +933,11 @@ namespace Commander
                     throw new ArgumentException("Input record type cannot be null.");
 
                 var fields = inputRecordType.Fields.Select(f => new Dictionary<string, string>
-                {
-                    { "$type", f.Type },
-                    { "label", f.Label ?? string.Empty },
-                    { "required", f.Required?.ToString() ?? "false" }
-                }).ToList();
+            {
+                { "$type", f.Type },
+                { "label", f.Label ?? string.Empty },
+                { "required", f.Required?.ToString() ?? "false" }
+            }).ToList();
 
                 var add_fields = new List<RecordTypeField>();
                 foreach (var field in fields)
@@ -922,6 +1017,13 @@ namespace Commander
 
             [DataMember(Name = "required", EmitDefaultValue = false)]
             public bool? Required { get; set; }
+        }
+
+        [DataContract]
+        internal class DownloadRecordType
+        {
+            [DataMember(Name = "record_types", IsRequired = true)]
+            public List<InputRecordType> RecordTypes { get; set; }
         }
 
         private static string ExtractDataFromFile(string filePath)
@@ -1155,5 +1257,30 @@ namespace Commander
     {
         [Value(0, Required = true, Default = false, HelpText = "File path to load record type from")]
         public string filePath { get; set; }
+    }
+    class DownloadRecordTypeOptions
+    {
+        [Value(0, Required = true, Default = false, HelpText = "Source to download record types from. Currently supported sources are: \"keeper\"")]
+        public string Source { get; set; }
+
+        [Option("file-name", Required = false, Default = null, HelpText = "file-name to store the downloaded record types in. default is record-types.json")]
+        public string FileName { get; set; }
+
+        [Option("ssh-key-as-file", Required = false, Default = false, HelpText = "Prefer store SSH keys as file attachments rather than fields on a record")]
+        public bool SSHFileRef { get; set; }
+
+        public enum SourceType
+        {
+            keeper
+        }
+
+        public SourceType GetValidatedSource()
+        {
+            if (Enum.TryParse<SourceType>(Source, ignoreCase: true, out var parsed))
+            {
+                return parsed;
+            }
+            throw new ArgumentException($"Unsupported source type: {Source}. Supported sources are: {string.Join(", ", Enum.GetNames(typeof(SourceType)))}");
+        }
     }
 }
