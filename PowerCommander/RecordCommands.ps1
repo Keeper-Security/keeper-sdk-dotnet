@@ -1034,29 +1034,34 @@ function Export-KeeperRecordTypes {
         foreach ($recordType in $recordTypes) {
             $custom = @{
                 record_type_name = $recordType.Name
-                description = $recordType.Description
-                categories = $null
                 fields = @()
+            }
+            if($null -ne $recordType.Description){
+                $custom.description = $recordType.Description
             }
 
             $needFileRef = $SSHFileRef.IsPresent
             foreach ($field in $recordType.Fields) {
                 if ($needFileRef -and $field.FieldName.ToString() -eq "keyPair") {
+                    $needFileRef = $true;
                     continue
                 }
 
                 $fieldObj = @{
                     '$type' = $field.FieldName.ToString()
                     label = $field.FieldLabel
-                    required = $field.Required
+                }
+                if ($field.Required -eq $true)
+                {
+                    $fieldObj.required = $field.Required
                 }
                 $custom.fields += $fieldObj
             }
 
             if ($needFileRef) {
-                $hasFileRef = $custom.fields | Where-Object { $_.type -eq "fileRef" }
+                $hasFileRef = $custom.fields | Where-Object { $_.'$type' -eq "fileRef" }
                 if (-not $hasFileRef) {
-                    $custom.fields += @{ type = "fileRef" }
+                    $custom.fields += @{ '$type' = "fileRef" }
                 }
             }
 
