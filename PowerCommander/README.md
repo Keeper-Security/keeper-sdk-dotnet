@@ -21,10 +21,14 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperRecord                       | kr          | Enumerate all records
 | Get-KeeperSharedFolder                 | ksf         | Enumerate all shared folders
 | Add-KeeperRecord                       | kadd        | Add/Modify Keeper record
-| Import-KeeperRecordTypes               |             | Load Keeper records from a given file
-| Get-KeeperRecordType                   | krti        | Get Record Type Information
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
+| Get-KeeperRecordType                   | krti        | Get Record Type Information
+| New-KeeperRecordType                   |             | Creates a new custom record type
+| Edit-KeeperRecordType                  |             | Modifies the existing custom record type
+| Remove-KeeperRecordType                |             | Removes the custom record type
+| Import-KeeperRecordTypes               |             | loads new custom record types from file
+| Export-KeeperRecordTypes               |             | exports custom record types from keeper to a file
 | Add-KeeperFolder                       | kmkdir      | Create Keeper folder
 | Remove-KeeperFolder                    | krmdir      | Remove Keeper folder
 | Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard
@@ -35,10 +39,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperInformation                  | kwhoami     | Print account license information
 | Get-KeeperDeviceSettings               |             | Print the current device settings
 | Set-KeeperDeviceSettings               | this-device | Modifies the current device settings=
-| New-KeeperRecordType                   |             | Creates a new custom record type
-| Edit-KeeperRecordType                  |             | Modifies the existing custom record type
-| Remove-KeeperRecordType                |             | Removes the custom record type
-| Import-KeeperRecordTypes               |             | loads new custom record types from file
+
 
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
