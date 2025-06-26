@@ -1007,11 +1007,11 @@ function Export-KeeperRecordTypes {
     .PARAMETER FileName
     Optional. The name of the file to write to. Defaults to 'record_types.json'.
 
-    .PARAMETER SSHFileRef
-    Optional. Whether to ensure a fileRef field exists when a keyPair is found.
+    .PARAMETER SSHKeyAsFile
+    Optional. Prefer store SSH keys as file attachments rather than fields on a record.
 
     .EXAMPLE
-    Download-KeeperRecordTypes -Source keeper -FileName 'types.json' -SSHFileRef
+    Download-KeeperRecordTypes -Source keeper -FileName 'types.json' -SSHKeyAsFile
 
     .EXAMPLE
     Download-KeeperRecordTypes
@@ -1022,7 +1022,7 @@ function Export-KeeperRecordTypes {
 
         [string]$FileName = "record_types.json",
 
-        [switch]$SSHFileRef
+        [switch]$SSHKeyAsFile
     )
 
     try {
@@ -1043,7 +1043,7 @@ function Export-KeeperRecordTypes {
                 $custom.description = $recordType.Description
             }
 
-            $needFileRef = $SSHFileRef.IsPresent
+            $needFileRef = $SSHKeyAsFile.IsPresent
             foreach ($field in $recordType.Fields) {
                 if ($needFileRef -and $field.FieldName.ToString() -eq "keyPair") {
                     $needFileRef = $true;
