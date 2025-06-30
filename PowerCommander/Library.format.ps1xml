@@ -149,6 +149,7 @@
                 <TypeName>KeeperSecurity.Vault.PasswordRecord</TypeName>
                 <TypeName>KeeperSecurity.Vault.TypedRecord</TypeName>
                 <TypeName>KeeperSecurity.Vault.FileRecord</TypeName>
+                <TypeName>KeeperSecurity.Vault.ApplicationRecord</TypeName>
             </ViewSelectedBy>
             <TableControl>
                 <TableHeaders>

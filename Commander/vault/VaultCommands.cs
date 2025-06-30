@@ -354,7 +354,34 @@ namespace Commander
                         }
                     }
                 });
-
+            cli.Commands.Add("record-type-add",
+                new ParseableCommand<RecordTypeAddOptions>
+                {
+                    Order = 81,
+                    Description = "Add a new Record Type",
+                    Action = context.RecordTypeAddCommand
+                });
+            cli.Commands.Add("record-type-update",
+                new ParseableCommand<RecordTypeUpdateOptions>
+                {
+                    Order = 82,
+                    Description = "updates a Record Type of given ID",
+                    Action = context.RecordTypeUpdateCommand
+                });
+            cli.Commands.Add("record-type-delete",
+                new ParseableCommand<RecordTypeDeleteOptions>
+                {
+                    Order = 83,
+                    Description = "deletes a Record Type of given ID",
+                    Action = context.RecordTypeDeleteCommand
+                });
+            cli.Commands.Add("load-record-types",
+                new ParseableCommand<RecordTypeLoadOptions>
+                {
+                    Order = 84,
+                    Description = "loads Record Types to keeper from given file",
+                    Action = context.RecordTypeLoadCommand
+                });
 
             cli.Aliases.Add("list", "search");
             cli.Aliases.Add("d", "sync-down");
@@ -946,7 +973,7 @@ namespace Commander
                         {
                             permissions = "Can Manage " +
                                           string.Join(" & ",
-                                              new[]{ u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }
+                                              new[] { u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }
                                                   .Where(x => !string.IsNullOrEmpty(x)));
                         }
                         else
@@ -1011,4 +1038,5 @@ namespace Commander
         [Option("reset", Required = false, Default = false, HelpText = "resets on-disk storage")]
         public bool Reset { get; set; }
     }
+
 }

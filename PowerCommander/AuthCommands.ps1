@@ -537,18 +537,48 @@ New-Alias -Name kq -Value Disconnect-Keeper
 
 function Sync-Keeper {
     <#
-    .Synopsis
-    Sync down with Keeper
-#>
+    .SYNOPSIS
+    Synchronizes local Keeper vault state with the server.
+
+    .DESCRIPTION
+    Downloads updates from the Keeper and refreshes the local vault cache.
+    Optionally clears and re-syncs record types if the -SyncRecordTypes switch is used.
+
+    .PARAMETER SyncRecordTypes
+    If specified, clears locally cached record types and forces a fresh sync from the server.
+
+    .EXAMPLE
+    Sync-Keeper
+    Performs a standard vault sync from the Keeper server.
+
+    .EXAMPLE
+    Sync-Keeper -SyncRecordTypes
+    Clears local record type definitions and syncs them anew from the Keeper server.
+
+    .NOTES
+    Requires a valid Keeper session. Run `Connect-Keeper` or equivalent before using this command.
+    #>
 
     [CmdletBinding()]
-    [KeeperSecurity.Vault.VaultOnline]$vault = $Script:Context.Vault
-    if ($vault) {
+    param (
+        [Parameter()]
+        [switch] $SyncRecordTypes
+    )
+
+    $vault = $Script:Context.Vault
+    if ($vault -is [KeeperSecurity.Vault.VaultOnline]) {
+        if ($SyncRecordTypes) {
+            $vault.Storage.Clear()
+            Write-Host "Cleared local record type cache for re-sync."
+        }
+
+        Write-Host "Syncing vault with Keeper server..."
         $task = $vault.SyncDown()
         $task.GetAwaiter().GetResult() | Out-Null
+        Write-Host "Vault sync completed."
     }
     else {
-        Write-Error -Message "Not connected" -ErrorAction Stop
+        Write-Error -Message "Not connected to a Keeper vault. Please authenticate first." -ErrorAction Stop
     }
 }
 New-Alias -Name ks -Value Sync-Keeper

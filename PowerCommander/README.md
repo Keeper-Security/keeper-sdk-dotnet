@@ -21,6 +21,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperRecord                       | kr          | Enumerate all records
 | Get-KeeperSharedFolder                 | ksf         | Enumerate all shared folders
 | Add-KeeperRecord                       | kadd        | Add/Modify Keeper record
+| Import-KeeperRecordTypes               |             | Load Keeper records from a given file
 | Get-KeeperRecordType                   | krti        | Get Record Type Information
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
@@ -34,7 +35,10 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperInformation                  | kwhoami     | Print account license information
 | Get-KeeperDeviceSettings               |             | Print the current device settings
 | Set-KeeperDeviceSettings               | this-device | Modifies the current device settings=
-
+| New-KeeperRecordType                   |             | Creates a new custom record type
+| Edit-KeeperRecordType                  |             | Modifies the existing custom record type
+| Remove-KeeperRecordType                |             | Removes the custom record type
+| Import-KeeperRecordTypes               |             | loads new custom record types from file
 
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
@@ -58,6 +62,8 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperEnterpriseUser               | keu         | Enumerate all enterprise users
 | Get-KeeperEnterpriseTeam               | ket         | Enumerate all enterprise teams
 | Get-KeeperEnterpriseTeamUser           | ketu        | Get a list of enterprise users for team
+| Add-KeeperEnterpriseTeamMember         |             | Add a list of enterprise users to a team
+| Remove-KeeperEnterpriseTeamMember      |             | Remove a list of enterprise users from a team
 | New-KeeperEnterpriseNode               | kena        | Create Node
 | Add-KeeperEnterpriseUser               | invite-user | Invite User to Enterprise
 | New-KeeperEnterpriseTeam               | keta        | Create Team <sup style="color:red">(new)</sup>
@@ -83,10 +89,13 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 |----------------------------------------|-------------|----------------------------
 | Get-KeeperSecretManagerApp             | ksm         | Enumerate all Keeper Secret Manager Applications
 | Add-KeeperSecretManagerApp             | ksm-create  | Add a Keeper Secret Manager Application
+| Remove-KeeperSecretManagerApp          | ksm-delete  | Delete a Keeper Secret Manager Application
 | Grant-KeeperSecretManagerFolderAccess  | ksm-share   | Add a shared folder to KSM Application
 | Revoke-KeeperSecretManagerFolderAccess | ksm-unshare | Remove a Shared Folder from KSM Application
 | Add-KeeperSecretManagerClient          |ksm-addclient| Add a client/device to KSM Application
 | Remove-KeeperSecretManagerClient       | ksm-rmclient| Remove a client/device from KSM Application
+| Grant-KeeperAppAccess                  |             | Grant Keeper Secret Manager Application Access to a user
+| Revoke-KeeperAppAccess                 |             | Revoke Keeper Secret Manager Application Access from a user
 
 
 #### Examples

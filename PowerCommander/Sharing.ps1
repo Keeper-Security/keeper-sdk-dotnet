@@ -115,32 +115,66 @@ New-Alias -Name ktr -Value Move-KeeperRecordOwnership
 
 function Grant-KeeperRecordAccess {
     <#
-        .Synopsis
-        Shares a record with user
+        .SYNOPSIS
+            Shares a Keeper record with a specified user, with optional edit/share permissions and flexible expiration input.
 
-    	.Parameter Record
-	    Record UID or any object containing property Uid
+        .DESCRIPTION
+            Grants access to a Keeper record to another user. 
+            You can specify edit and share permissions and optionally set an expiration using a time offset 
+            (as a TimeSpan object, minutes as an integer or string, or a TimeSpan-formatted string) 
+            or an ISO 8601-formatted absolute expiration datetime.
 
-        .Parameter User
-	    User email
+        .PARAMETER Record
+            The UID of the Keeper record to share, or an object containing a 'Uid' property.
 
-        .Parameter CanEdit
-        Grant edit permission
+        .PARAMETER User
+            The email address of the user to share the record with.
 
-        .Parameter CanShare
-        Grant re-share permission
+        .PARAMETER CanEdit
+            Optional switch to grant edit permissions on the record.
 
+        .PARAMETER CanShare
+            Optional switch to grant re-share permissions on the record.
+
+        .PARAMETER ExpireIn
+            Optional. Expiration time offset from now. Can be a TimeSpan object, integer (minutes), or a string representing minutes or a TimeSpan.
+
+        .PARAMETER ExpireAt
+            Optional. An absolute expiration time in ISO 8601 or RFC 1123 format (e.g., "2025-05-23T08:59:11Z" or "Fri, 23 May 2025 08:59:11 GMT").
+
+        .EXAMPLE
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "jane.doe@example.com" -CanEdit -CanShare
+
+            Shares the record with full permissions (edit and re-share) with Jane Doe.
+
+        .EXAMPLE
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "john.doe@example.com" -ExpireIn 60
+
+            Shares the record with John Doe for 1 hour from now.
+
+        .EXAMPLE
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "alice@example.com" -ExpireIn "00:30:00"
+
+            Shares the record with Alice for 30 minutes.
+
+        .EXAMPLE
+            Grant-KeeperRecordAccess -Record "XP-TKMqg9kIf4RXLuW4Qwg" -User "bob@example.com" -ExpireAt "2025-05-23T08:59:11Z"
+
+            Shares the record with Bob until the specified UTC datetime.
     #>
+
 
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)]$Record,
         [Parameter(Mandatory = $true)]$User,
         [Parameter()][switch]$CanEdit,
-        [Parameter()][switch]$CanShare
+        [Parameter()][switch]$CanShare,
+        [Parameter()][System.Object]$ExpireIn,
+        [Parameter()][string]$ExpireAt
     )
 
-	[KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
     if ($Record -is [Array]) {
         if ($Record.Count -ne 1) {
             Write-Error -Message 'Only one record is expected' -ErrorAction Stop
@@ -155,6 +189,17 @@ function Grant-KeeperRecordAccess {
         $uid = $Record.Uid
     }
 
+    $options = [KeeperSecurity.Vault.SharedFolderRecordOptions]::new()
+    try{
+        $expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
+        $options.CanEdit = $CanEdit.IsPresent
+        $options.CanShare = $CanShare.IsPresent
+        $options.Expiration = $expiration
+    }catch  {
+        Write-Error "Error: $($_.Exception.Message)" -ErrorAction Stop
+        throw
+    }
+
     if ($uid) {
         [KeeperSecurity.Vault.KeeperRecord] $rec = $null
         if (-not $vault.TryGetKeeperRecord($uid, [ref]$rec)) {
@@ -165,24 +210,77 @@ function Grant-KeeperRecordAccess {
         }
         if ($rec) {
             try {
-                $vault.ShareRecordWithUser($rec.Uid, $User, $CanShare.IsPresent, $CanEdit.IsPresent).GetAwaiter().GetResult() | Out-Null
+                $shareOptions = New-Object KeeperSecurity.Vault.SharedFolderRecordOptions
+                $shareOptions.CanEdit = $CanEdit.IsPresent
+                $shareOptions.CanShare = $CanShare.IsPresent
+
+                $vault.ShareRecordWithUser($rec.Uid, $User, $shareOptions).GetAwaiter().GetResult() | Out-Null
                 Write-Output "Record `"$($rec.Title)`" was shared with $($User)"
             }
             catch [KeeperSecurity.Vault.NoActiveShareWithUserException] {
                 Write-Output $_
-                $prompt =  "Do you want to send share invitation request to `"$($User)`"? (Yes/No)"
+                $prompt = "Do you want to send share invitation request to `"$($User)`"? (Yes/No)"
                 $answer = Read-Host -Prompt $prompt
                 if ($answer -in 'yes', 'y') {
                     $vault.SendShareInvitationRequest($User).GetAwaiter().GetResult() | Out-Null
                     Write-Output("Invitation has been sent to $($User)`nPlease repeat this command when your invitation is accepted.");
                 }
             }
-        } else {
+        }
+        else {
             Write-Error -Message "Cannot find a Keeper record: $Record"
         }
     }
 }
 New-Alias -Name kshr -Value Grant-KeeperRecordAccess
+
+function Get-ExpirationDate {
+    param(
+        [object]$ExpireIn,
+        [string]$ExpireAt
+    )
+
+    $expireOffset = $null
+
+    if ($ExpireIn) {
+        if ($ExpireIn -is [TimeSpan]) {
+            $expireOffset = $ExpireIn
+        }
+        elseif ($ExpireIn -is [int]) {
+            $expireOffset = [TimeSpan]::FromMinutes($ExpireIn)
+        }
+        elseif ($ExpireIn -is [string]) {
+            $parsedMinutes = $null
+            if ([int]::TryParse($ExpireIn, [ref]$parsedMinutes)) {
+                $expireOffset = [TimeSpan]::FromMinutes($parsedMinutes)
+            }
+            else {
+                try {
+                    $expireOffset = [TimeSpan]::Parse($ExpireIn)
+                }
+                catch {
+                    throw "Cannot parse ExpireIn string value '$ExpireIn' - not a number or valid TimeSpan string."
+                }
+            }
+        }
+        else {
+            throw "Unsupported type for ExpireIn: $($ExpireIn.GetType().FullName)"
+        }
+
+        return [DateTimeOffset]::UtcNow.Add($expireOffset)
+    }
+    elseif ($ExpireAt) {
+        try {
+            return [DateTimeOffset]::Parse($ExpireAt)
+        }
+        catch {
+            throw "Cannot parse ExpireAt: '$ExpireAt'. Must be a valid ISO 8601 or RFC 1123 string."
+        }
+    }
+    else {
+        return $null  # No expiration
+    }
+}
 
 function Revoke-KeeperRecordAccess {
     <#
@@ -595,85 +693,127 @@ function Get-KeeperAvailableTeam {
 	}
 	New-Alias -Name kat -Value Get-KeeperAvailableTeam
 
-    function New-KeeperOneTimeShare {
-        <#
-        .Synopsis
-        New Keeper One-Time Share
+function New-KeeperOneTimeShare {
+    <#
+        .SYNOPSIS
+            Creates a secure one-time share link for a Keeper record, with optional expiration settings and a custom name.
 
-        .Parameter Uid
-        Shared Record UID
+        .DESCRIPTION
+            This command generates a one-time access link to a specified Keeper record. 
+            You can choose to set the link to expire after a specific duration (ExpireIn) or at an exact date/time (ExpireAt). 
+            You may also provide a custom name for easier identification. Once the link expires or is used, it can no longer be accessed.
 
-        .Parameter Expiration
-        Expiration TimeSpan
+        .PARAMETER Uid
+            The UID of the record to share.
 
-        .Parameter ShareName
-        One-Time Share Name
+        .PARAMETER ExpireIn
+            Optional. Expiration offset (TimeSpan, string, or integer in minutes).
+
+        .PARAMETER ExpireAt
+            Optional. Absolute expiration timestamp (ISO 8601 or RFC 1123).
+
+        .PARAMETER ShareName
+            Optional. Custom label for the one-time share.
+
+        .EXAMPLE
+            New-KeeperOneTimeShare -Uid "XP-TKMqg9kIf4RXLuW4Qwg" -ExpireIn 60
+            Creates a one-time share link for the record that expires in 60 minutes from now.
+
+        .EXAMPLE
+            New-KeeperOneTimeShare -Uid "XP-TKMqg9kIf4RXLuW4Qwg" -ExpireIn "00:45:00" -ShareName "Temporary Share"
+            Creates a one-time share that expires in 45 minutes with a custom label "Temporary Share".
+
+        .EXAMPLE
+            New-KeeperOneTimeShare -Uid "XP-TKMqg9kIf4RXLuW4Qwg" -ExpireAt "2025-05-28T12:00:00Z"
+            Creates a one-time share that will expire exactly at the specified UTC time.
+
+        .EXAMPLE
+            New-KeeperOneTimeShare -Uid "XP-TKMqg9kIf4RXLuW4Qwg" -ExpireAt "Wed, 28 May 2025 12:00:00 GMT" -ShareName "Expires Noon"
+            Creates a one-time share that expires at 12 PM UTC on May 28, 2025, with the name "Expires Noon".
+
     #>
-        [CmdletBinding()]
-        [OutputType([string])]
-        Param (
-            [Parameter(Mandatory = $true)][string] $Uid,
-            [Parameter(Mandatory=$true)][TimeSpan] $ExpireIn,
-            [Parameter(Mandatory=$false)][string] $ShareName
-        )
 
-        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-        $oneTimeShare = [KeeperSecurity.Vault.ExternalRecordShareExtensions]::CreateExternalRecordShare($vault, $Uid, $ExpireIn, $ShareName).GetAwaiter().GetResult()
+    [CmdletBinding()]
+    [OutputType([string])]
+    Param (
+        [Parameter(Mandatory = $true)][string] $Uid,
+        [Parameter()][object] $ExpireIn,
+        [Parameter()][string] $ExpireAt,
+        [Parameter()][string] $ShareName
+    )
+
+    try {
+        $expiration = Get-ExpirationDate -ExpireIn $ExpireIn -ExpireAt $ExpireAt
+        if (-not $expiration) {
+            throw "You must provide either ExpireIn or ExpireAt."
+        }
+
+        $expirationTimeSpan = $expiration.ToUniversalTime() - [DateTimeOffset]::UtcNow
+
+        [KeeperSecurity.Vault.VaultOnline]$vault = GetVault
+        $oneTimeShare = [KeeperSecurity.Vault.ExternalRecordShareExtensions]::CreateExternalRecordShare(
+            $vault, $Uid, $expirationTimeSpan, $ShareName
+        ).GetAwaiter().GetResult()
+
         return $oneTimeShare
     }
-
-    New-Alias -Name kotsn -Value New-KeeperOneTimeShare
-
-    function Get-KeeperOneTimeShare {
-        <#
-        .Synopsis
-        Get Keeper One-Time Shares
-
-        .Parameter Uid
-        Shared Record UID
-
-    #>
-        [CmdletBinding()]
-        [OutputType([string])]
-        Param (
-            [Parameter(Mandatory = $true, Position=0)][string] $Uid
-        )
-
-        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-        [KeeperSecurity.Vault.ExternalRecordShareExtensions]::GetExernalRecordShares($vault, $Uid).GetAwaiter().GetResult()
+    catch {
+        Write-Error "Error creating one-time share: $($_.Exception.Message)" -ErrorAction Stop
     }
-    New-Alias -Name kotsg -Value Get-KeeperOneTimeShare
+}
 
-    function Remove-KeeperOneTimeShare {
-        <#
-        .Synopsis
-        Deletes Keeper One-Time Share(s)
+New-Alias -Name kotsn -Value New-KeeperOneTimeShare
 
-        .Parameter Uid
-        Shared Record UID
+function Get-KeeperOneTimeShare {
+    <#
+    .Synopsis
+    Get Keeper One-Time Shares
 
-        .Parameter ShareName
-        One-Time Share Name
-    #>
-        [CmdletBinding()]
-        [OutputType([string])]
-        Param (
-            [Parameter(Mandatory = $true)][string] $Uid,
-            [string[]] $ShareName
-        )
+    .Parameter Uid
+    Shared Record UID
 
-        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+#>
+    [CmdletBinding()]
+    [OutputType([string])]
+    Param (
+        [Parameter(Mandatory = $true, Position=0)][string] $Uid
+    )
 
-        $shares = Get-KeeperOneTimeShare $Uid
-        [String[]]$clientUids = @()
-        foreach ($n in $ShareName) {
-            $share = $shares | Where-Object { $_.Name -eq $n } | Select-Object -First 1
-            if ($share) {
-                $clientUids += $share.ClientId
-            } else {
-                Write-Information -MessageData "One-Time Share not found: $n"
-            }
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    [KeeperSecurity.Vault.ExternalRecordShareExtensions]::GetExernalRecordShares($vault, $Uid).GetAwaiter().GetResult()
+}
+New-Alias -Name kotsg -Value Get-KeeperOneTimeShare
+
+function Remove-KeeperOneTimeShare {
+    <#
+    .Synopsis
+    Deletes Keeper One-Time Share(s)
+
+    .Parameter Uid
+    Shared Record UID
+
+    .Parameter ShareName
+    One-Time Share Name
+#>
+    [CmdletBinding()]
+    [OutputType([string])]
+    Param (
+        [Parameter(Mandatory = $true)][string] $Uid,
+        [string[]] $ShareName
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    $shares = Get-KeeperOneTimeShare $Uid
+    [String[]]$clientUids = @()
+    foreach ($n in $ShareName) {
+        $share = $shares | Where-Object { $_.Name -eq $n } | Select-Object -First 1
+        if ($share) {
+            $clientUids += $share.ClientId
+        } else {
+            Write-Information -MessageData "One-Time Share not found: $n"
         }
-        [KeeperSecurity.Vault.ExternalRecordShareExtensions]::DeleteExernalRecordShares($vault, $Uid, $clientUids).GetAwaiter().GetResult() | Out-Null
     }
-    New-Alias -Name kotsr -Value Remove-KeeperOneTimeShare
+    [KeeperSecurity.Vault.ExternalRecordShareExtensions]::DeleteExernalRecordShares($vault, $Uid, $clientUids).GetAwaiter().GetResult() | Out-Null
+}
+New-Alias -Name kotsr -Value Remove-KeeperOneTimeShare

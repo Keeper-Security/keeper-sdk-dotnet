@@ -30,7 +30,8 @@ Export-ModuleMember -Alias kpwd, kcd, kdir, ko
 
 Export-ModuleMember -Function Get-KeeperRecord, Copy-KeeperToClipboard, Show-TwoFactorCode,
 Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,
-Get-KeeperPasswordVisible, Set-KeeperPasswordVisible, Get-KeeperRecordType
+Get-KeeperPasswordVisible, Set-KeeperPasswordVisible, Get-KeeperRecordType, 
+New-KeeperRecordType, Edit-KeeperRecordType, Remove-KeeperRecordType, Import-KeeperRecordTypes
 Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti
 
 Export-ModuleMember -Function Get-KeeperSharedFolder
@@ -45,7 +46,8 @@ Export-ModuleMember -Function Sync-KeeperEnterprise, Get-KeeperEnterpriseUser, G
 Get-KeeperEnterpriseNode, Add-KeeperEnterpriseUser, Lock-KeeperEnterpriseUser, New-KeeperEnterpriseTeam,
 Unlock-KeeperEnterpriseUser, Move-KeeperEnterpriseUser, Remove-KeeperEnterpriseUser, Get-KeeperEnterpriseRoleTeams,
 Get-KeeperEnterpriseTeamUser, New-KeeperEnterpriseNode, Get-KeeperEnterpriseRole, Get-KeeperEnterpriseRoleUsers,
-Get-KeeperEnterpriseAdminRole
+Get-KeeperEnterpriseAdminRole, Add-KeeperEnterpriseTeamMember, Remove-KeeperEnterpriseTeamMember
+
 Export-ModuleMember -Alias ked, keu, ket, keta, ketu, ken, ker, keru, kert, kerap, kena, 
 invite-user, lock-user, unlock-user, transfer-user, delete-user
 
@@ -58,9 +60,10 @@ Grant-KeeperSharedFolderAccess, Revoke-KeeperSharedFolderAccess, Get-KeeperAvail
 New-KeeperOneTimeShare, Get-KeeperOneTimeShare, Remove-KeeperOneTimeShare
 Export-ModuleMember -Alias kshrsh, kshr, kushr, kshf, kushf, kat, ktr, kotsr, kotsn, kotsg
 
-Export-ModuleMember -Function Get-KeeperSecretManagerApp, Add-KeeperSecretManagerApp, Grant-KeeperSecretManagerFolderAccess,
-Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-KeeperSecretManagerClient
-Export-ModuleMember -Alias ksm, ksm-create, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
+Export-ModuleMember -Function Get-KeeperSecretManagerApp, Add-KeeperSecretManagerApp, Remove-KeeperSecretManagerApp, Grant-KeeperSecretManagerFolderAccess,
+Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-KeeperSecretManagerClient, 
+Grant-KeeperAppAccess, Revoke-KeeperAppAccess
+Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
 
 Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord
 Export-ModuleMember -Alias kda
