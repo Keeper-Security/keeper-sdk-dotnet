@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.0.1'
+    ModuleVersion        = '1.0.2'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -119,7 +119,15 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'New-KeeperEnterpriseTeam cmdlet: Adds team'
+            ReleaseNotes = @('Add-KeeperEnterpriseTeamMember and Remove-KeeperEnterpriseTeamMember commands are now supported.',
+                            'Grant-KeeperAppAccess and Revoke-KeeperAppAccess commands are now supported.',
+                            'Remove-KeeperSecretsManagerApp command added.',
+                            'Get-KeeperSecretManagerApp now correctly displays applications.',
+                            'New-KeeperOneTimeShare now supports both -ExpireAt and -ExpireIn parameters.',
+                            'Grant-KeeperRecordAccess now supports both -ExpireAt and -ExpireIn parameters.',
+                            'Sync-Keeper now supports the -SyncRecordTypes switch.',
+                            'New-KeeperRecordType, Edit-KeeperRecordType, and Remove-KeeperRecordType commands are now supported.',
+                            'Import-KeeperRecordTypes and Export-KeeperRecordTypes commands are now available.')
         }
     }
 
