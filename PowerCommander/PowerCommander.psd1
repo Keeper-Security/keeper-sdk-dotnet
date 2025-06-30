@@ -119,7 +119,27 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = 'New-KeeperEnterpriseTeam cmdlet: Adds team'
+            ReleaseNotes = @'
+PowerCommander
+- Add-KeeperEnterpriseTeamMember and Remove-KeeperEnterpriseTeamMember commands are now supported.
+- Grant-KeeperAppAccess and Revoke-KeeperAppAccess commands are now supported.
+- Remove-KeeperSecretsManagerApp command added.
+- Get-KeeperSecretManagerApp now correctly displays applications.
+- New-KeeperOneTimeShare now supports both -ExpireAt and -ExpireIn parameters.
+- Grant-KeeperRecordAccess now supports both -ExpireAt and -ExpireIn parameters.
+- Sync-Keeper now supports the -SyncRecordTypes switch.
+- New-KeeperRecordType, Edit-KeeperRecordType, and Remove-KeeperRecordType commands are now supported.
+- Import-KeeperRecordTypes and Export-KeeperRecordTypes commands are now available.
+
+DotnetCommander
+- Added support for record-type-add, record-type-update, and record-type-delete commands.
+- Added support for load-record-types and download-record-types.
+- Added support for ksm app-share and ksm app-unshare.
+
+Fixed Issues:
+- #184 Resolved error where Grant-KeeperRecordAccess cmdlet would fail unexpectedly.
+- #165 Added support for -ExpireAt and -ExpireIn parameters in Grant-KeeperRecordAccess.
+'@
         }
     }
 
