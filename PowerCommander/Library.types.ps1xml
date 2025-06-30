@@ -36,6 +36,22 @@
     </Type>
 
     <Type>
+        <Name>KeeperSecurity.Vault.ApplicationRecord</Name>
+        <Members>
+            <NoteProperty>
+                <Name>TypeName</Name>
+                <Value>app</Value>
+            </NoteProperty>
+            <ScriptProperty>
+                <Name>PublicInformation</Name>
+                <GetScriptBlock>
+                    [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordPublicInformation($this)
+                </GetScriptBlock>
+            </ScriptProperty>
+        </Members>
+    </Type>
+
+    <Type>
         <Name>KeeperSecurity.Vault.TypedRecord</Name>
         <Members>
             <ScriptProperty>

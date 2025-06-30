@@ -259,7 +259,7 @@ function Get-ExpirationDate {
                     $expireOffset = [TimeSpan]::Parse($ExpireIn)
                 }
                 catch {
-                    throw "Cannot parse ExpireIn string value '$ExpireIn' — not a number or valid TimeSpan string."
+                    throw "Cannot parse ExpireIn string value '$ExpireIn' - not a number or valid TimeSpan string."
                 }
             }
         }
