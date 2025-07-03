@@ -308,6 +308,13 @@ namespace Commander
                     Action = context.ImportCommand
                 });
 
+            cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
+            {
+                Order = 39,
+                Description = "Show Passwword Report for Records",
+                Action = context.GetPasswordReport
+            });
+
             if (context.Vault.Auth.AuthContext.Enforcements.TryGetValue("allow_secrets_manager", out var value))
             {
                 if (value is bool b && b)
@@ -1007,7 +1014,174 @@ namespace Commander
             tab.LeftPadding = 4;
             tab.Dump();
         }
+
+        private static async Task GetPasswordReport(this VaultContext context, PasswordReportOptions options)
+        {
+            var folderPath = "";
+            if (options.Folder != null)
+            {
+                context.TryResolvePath(options.Folder, out var outFolder);
+                folderPath = outFolder.FolderUid;
+            }
+            context.Vault.TryGetFolder(folderPath, out var folder);
+            var recordIds = folder.Records;
+            List<KeeperRecord> records = new();
+            foreach (var recordId in recordIds)
+            {
+                context.Vault.TryGetKeeperRecord(recordId, out var rec);
+                records.Add(rec);
+            }
+            var strength = passwordStrength(options.Policy);
+            List<string> validPasswords = new();
+            List<string> invalidPasswords = new();
+            foreach (var rec in records)
+            {
+                string password;
+                if (rec is PasswordRecord)
+                {
+                    var passwordRecord = (PasswordRecord) rec;
+                    password = passwordRecord.Password;
+                }
+                else if (rec is TypedRecord typed)
+                {
+                    var passwordField = typed.Fields.FirstOrDefault(x => x.FieldName == "password");
+                    if (passwordField != null && passwordField is TypedField<string> stringField)
+                    {
+                        password = stringField.Values.FirstOrDefault();
+                    }
+                    else
+                    {
+                        password = null;
+                    }
+                }
+                else
+                {
+                    continue;
+                }
+                var passwordStrengthMeets = strength.ValidateCurrentPassword(password);
+                
+
+            }
+            ;
+
+
+
+        }
+
+        public class PasswordStrength
+        {
+            public int Length { get; set; }
+            public int Lower { get; set; }
+            public int Upper { get; set; }
+            public int Digits { get; set; }
+            public int Symbols { get; set; }
+
+            private const int DEFAULT_PASSWORD_LENGTH = 20;
+            private static readonly List<char> PW_SPECIAL_CHARACTERS = "!@#$%()+;<>=?[]{}^.,".ToCharArray().ToList();
+
+            public override string ToString()
+            {
+                return $"Length: {Length}, Lower: {Lower}, Upper: {Upper}, Digits: {Digits}, Symbols: {Symbols}";
+            }
+
+            public PasswordStrength(string policy)
+            {
+                if (string.IsNullOrWhiteSpace(policy))
+                {
+                    throw new ArgumentException("Policy string cannot be null or empty.");
+                }
+
+                var parts = policy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 5)
+                {
+                    throw new ArgumentException("Policy must contain at least 5 comma-separated integers.");
+                }
+
+                if (!int.TryParse(parts[0].Trim(), out int length) ||
+                    !int.TryParse(parts[1].Trim(), out int lower) ||
+                    !int.TryParse(parts[2].Trim(), out int upper) ||
+                    !int.TryParse(parts[3].Trim(), out int digits) ||
+                    !int.TryParse(parts[4].Trim(), out int symbols))
+                {
+                    throw new ArgumentException("Policy string contains non-integer values.");
+                }
+
+                Length = length;
+                Lower = lower;
+                Upper = upper;
+                Digits = digits;
+                Symbols = symbols;
+            }
+
+            public bool MeetsPolicy(PasswordStrength desiredPolicy)
+            {
+                var properties = typeof(PasswordStrength)
+                        .GetProperties()
+                        .Where(p => p.PropertyType == typeof(int)); // Only consider int-based fields
+
+                foreach (var prop in properties)
+                {
+                    int currentValue = (int) (prop.GetValue(this) ?? 0);
+                    int requiredValue = (int) (prop.GetValue(desiredPolicy) ?? 0);
+
+                    if (currentValue < requiredValue)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public bool ValidateCurrentPassword(string password)
+            {
+                if (string.IsNullOrEmpty(password))
+                {
+                    return false;
+                }
+
+                if (password.Length < Length)
+                {
+                    return false;
+                }
+
+                int lowerCount = password.Count(char.IsLower);
+                int upperCount = password.Count(char.IsUpper);
+                int digitCount = password.Count(char.IsDigit);
+                int symbolCount = password.Count(c => PW_SPECIAL_CHARACTERS.Contains(c));
+                int length = password.Length;
+
+                var currentPolicy = new PasswordStrength($"{length},{lowerCount},{upperCount},{digitCount},{symbolCount}");
+                return currentPolicy.MeetsPolicy(this);
+            }
+            
+        }
+
+        public static PasswordStrength passwordStrength(string policy)
+        {
+            var policyList = new List<int>();
+
+            foreach (var item in policy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(item.Trim(), out int value))
+                {
+                    policyList.Add(value);
+                }
+                else
+                {
+                    throw new ArgumentException($"Invalid policy value: {item}, only comma seperated numbers as a string is supported for policy");
+                }
+            }
+
+            if (policyList.Count < 5)
+            {
+                throw new ArgumentException("Policy must contain at least 5 comma-separated integers.");
+            }
+
+            return new PasswordStrength($"{policyList[0]},{policyList[1]},{policyList[2]},{policyList[3]},{policyList[4]}");
+        }
     }
+        
 
     class SearchCommandOptions
     {
@@ -1037,6 +1211,33 @@ namespace Commander
     {
         [Option("reset", Required = false, Default = false, HelpText = "resets on-disk storage")]
         public bool Reset { get; set; }
+    }
+
+    class PasswordReportOptions
+    {
+        [Value(0, Required = false, MetaName = "policy", HelpText = "Password complexity policy. Length,Lower,Upper,Digits,Special. Default is 12,2,2,2,0")]
+        public string Policy { get; set; }
+
+        [Option("length", Required = false, Default = false, HelpText = "Minimum password length.")]
+        public int Length { get; set; }
+
+        [Option("upper", Required = false, Default = false, HelpText = "Minimum uppercase characters.")]
+        public int Upper { get; set; }
+
+        [Option("lower", Required = false, Default = false, HelpText = "Minimum lowercase characters.")]
+        public int Lower { get; set; }
+
+        [Option("digits", Required = false, Default = false, HelpText = "Minimum digits count.")]
+        public int Digits { get; set; }
+
+        [Option("special", Required = false, Default = false, HelpText = "Minimum special characters.")]
+        public int Special { get; set; }
+
+        [Option("verbose", Required = false, Default = false, HelpText = "Display verbose information.")]
+        public bool Verbose { get; set; }
+
+        [Option("folder", Required = false, Default = false, HelpText = "folder path or UID.")]
+        public string Folder { get; set; }
     }
 
 }
