@@ -39,6 +39,14 @@ namespace KeeperSecurity.Vault
                 AddRecord(recordUid);
             }
         }
+        
+        public void AddBreachWatchRecords(IEnumerable<string> recordUids)
+        {
+            foreach (var recordUid in recordUids)
+            {
+                AddRecord(recordUid);
+            }
+        }
 
         private void AddSharedFolder(string sharedFolderUid)
         {
@@ -61,6 +69,7 @@ namespace KeeperSecurity.Vault
 
         public ISet<string> Records { get; private set; }
         public ISet<string> SharedFolders { get; private set; }
+        public ISet<string> BreachWatchRecords { get; private set; }
     }
 
     /// <summary>
