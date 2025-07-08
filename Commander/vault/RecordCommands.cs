@@ -792,7 +792,7 @@ namespace Commander
             return uploadedRecordTypeIds;
         }
 
-        public static async Task BreachWatchCommand(this VaultContext context, BreachWatchOptions options)
+        public static Task BreachWatchCommand(this VaultContext context, BreachWatchOptions options)
         {
             if (string.IsNullOrEmpty(options.subCommand) || string.Equals(options.subCommand, "list", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -879,7 +879,7 @@ namespace Commander
                     vault.TryLoadKeeperRecord(recordUid, out var record);
                     if (record != null)
                     {
-                        var password = ExtractPassword(record);
+                        var password = record.ExtractPassword();
                         if (password != null && password != "")
                         {
                             hasPasswordsToScan = true;
@@ -898,18 +898,11 @@ namespace Commander
             {
                 Console.WriteLine($"Unknown sub-command: {options.subCommand}");
             }
+            
+            return Task.CompletedTask;
         }
 
-        private static string ExtractPassword(KeeperRecord record)
-        {
-            return record switch
-            {
-                null => null,
-                PasswordRecord pr => pr.Password,
-                TypedRecord tr when tr.FindTypedField("password", null, out var rf) => rf is TypedField<string> tfs ? tfs.Values.FirstOrDefault() : null,
-                _ => null,
-            };
-        }
+
 
         internal class RecordTypeService
         {

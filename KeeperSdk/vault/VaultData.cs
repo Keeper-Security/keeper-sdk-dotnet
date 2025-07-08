@@ -441,90 +441,127 @@ namespace KeeperSecurity.Vault
         private void BuildBreachWatch()
         {
             var storageBreachWatchRecords = Storage.BreachWatchRecords.GetAll();
-            if (storageBreachWatchRecords.Count() == 0)
+            if (!storageBreachWatchRecords.Any())
             {
                 return;
             }
-            Dictionary<string, IStorageRecordKey> records = new Dictionary<string, IStorageRecordKey>();
-            foreach (var record in Storage.RecordKeys.GetAllLinks())
-            {
-                if (!records.ContainsKey(record.RecordUid))
-                {
-                    records.Add(record.RecordUid, record);
-                }
-            }
+
+            var recordKeyLookup = BuildRecordKeyLookup();
+            
             foreach (var storageBWRecord in storageBreachWatchRecords)
             {
-                if ((BreachWatchProto.BreachWatchInfoType) storageBWRecord.Type != BreachWatchProto.BreachWatchInfoType.Record)
+                if (!IsValidBreachWatchRecord(storageBWRecord))
                 {
                     continue;
                 }
-                var recordUid = storageBWRecord.RecordUid;
-                if (!records.TryGetValue(recordUid, out var storageRecord))
+
+                var breachWatchInfo = ProcessBreachWatchRecord(storageBWRecord, recordKeyLookup);
+                if (breachWatchInfo != null)
                 {
-                    continue;
-                }
-                DecryptRecordKey(storageRecord, out var recordKey);
-                try
-                {
-                    var decrytedData = CryptoUtils.DecryptAesV2(storageBWRecord.Data.Base64UrlDecode(), recordKey);
-                    var dataObject = BreachWatchData.Parser.ParseFrom(decrytedData);
-                    var status = BWStatus.Good;
-                    ulong resolved = 0;
-                    var total = dataObject.Passwords.Count;
-                    if (total > 0)
-                    {
-                        var found = false;
-                        if (total > 1)
-                        {
-                            TryLoadKeeperRecord(recordUid, out var keeperRecord);
-                            if (keeperRecord != null)
-                            {
-                                var password = ExtractPassword(keeperRecord);
-                                if (password != null)
-                                {
-                                    var bwr = dataObject.Passwords.FirstOrDefault(x => x.Value == password);
-                                    if (bwr != null)
-                                    {
-                                        status = bwr.Status;
-                                        resolved = bwr.Resolved;
-                                        found = true;
-                                    }
-                                }
-                            }
-                        }
-                        if (!found)
-                        {
-                            status = dataObject.Passwords[0].Status;
-                            resolved = dataObject.Passwords[0].Resolved;
-                        }
-                    }
-                    _keeperBreachWatchRecords[recordUid] = new BreachWatchInfo
-                    {
-                        RecordUid = recordUid,
-                        Status = status,
-                        Resolved = resolved,
-                        Total = total
-                    };
-                    
-                }
-                catch (Exception err)
-                {
-                    Trace.TraceError("Decrypt BreachWatch data error: ", err.Message);
+                    _keeperBreachWatchRecords[breachWatchInfo.RecordUid] = breachWatchInfo;
                 }
             }
         }
 
-        private string ExtractPassword(KeeperRecord record)
+        private Dictionary<string, IStorageRecordKey> BuildRecordKeyLookup()
         {
-            return record switch
+            var recordKeyLookup = new Dictionary<string, IStorageRecordKey>();
+            
+            foreach (var record in Storage.RecordKeys.GetAllLinks())
             {
-                null => null,
-                PasswordRecord pr => pr.Password,
-                TypedRecord tr when tr.FindTypedField("password", null, out var rf) => rf.GetExternalValue(),
-                _ => "",
+                // Use the first available key for each record UID
+                if (!recordKeyLookup.ContainsKey(record.RecordUid))
+                {
+                    recordKeyLookup.Add(record.RecordUid, record);
+                }
+            }
+            
+            return recordKeyLookup;
+        }
+
+        private static bool IsValidBreachWatchRecord(IStorageBreachWatchRecord storageBWRecord)
+        {
+            return (BreachWatchProto.BreachWatchInfoType)storageBWRecord.Type == 
+                   BreachWatchProto.BreachWatchInfoType.Record;
+        }
+
+        private BreachWatchInfo ProcessBreachWatchRecord(
+            IStorageBreachWatchRecord storageBWRecord, 
+            Dictionary<string, IStorageRecordKey> recordKeyLookup)
+        {
+            var recordUid = storageBWRecord.RecordUid;
+            
+            if (!recordKeyLookup.TryGetValue(recordUid, out var storageRecord))
+            {
+                return null;
+            }
+
+            if (!DecryptRecordKey(storageRecord, out var recordKey))
+            {
+                return null;
+            }
+
+            try
+            {
+                var breachWatchData = DecryptBreachWatchData(storageBWRecord.Data, recordKey);
+                return CreateBreachWatchInfo(recordUid, breachWatchData);
+            }
+            catch (Exception err)
+            {
+                Trace.TraceError($"Decrypt BreachWatch data error for record {recordUid}: {err.Message}");
+                return null;
+            }
+        }
+
+        private BreachWatchData DecryptBreachWatchData(string encryptedData, byte[] recordKey)
+        {
+            var decryptedData = CryptoUtils.DecryptAesV2(encryptedData.Base64UrlDecode(), recordKey);
+            return BreachWatchData.Parser.ParseFrom(decryptedData);
+        }
+
+        private BreachWatchInfo CreateBreachWatchInfo(string recordUid, BreachWatchData dataObject)
+        {
+            var (status, resolved) = DetermineBreachWatchStatus(recordUid, dataObject);
+            
+            return new BreachWatchInfo
+            {
+                RecordUid = recordUid,
+                Status = status,
+                Resolved = resolved,
+                Total = dataObject.Passwords.Count
             };
         }
+
+        private (BWStatus Status, ulong Resolved) DetermineBreachWatchStatus(
+            string recordUid, 
+            BreachWatchData dataObject)
+        {
+            var total = dataObject.Passwords.Count;
+            if (total == 0)
+            {
+                return (BWStatus.Good, 0);
+            }
+
+            // For records with multiple passwords, try to find the current password
+            if (total > 1 && TryLoadKeeperRecord(recordUid, out var keeperRecord))
+            {
+                var currentPassword = keeperRecord.ExtractPassword();
+                if (!string.IsNullOrEmpty(currentPassword))
+                {
+                    var matchingPasswordInfo = dataObject.Passwords.FirstOrDefault(x => x.Value == currentPassword);
+                    if (matchingPasswordInfo != null)
+                    {
+                        return (matchingPasswordInfo.Status, matchingPasswordInfo.Resolved);
+                    }
+                }
+            }
+
+            // Fall back to the first password entry
+            var firstPassword = dataObject.Passwords[0];
+            return (firstPassword.Status, firstPassword.Resolved);
+        }
+
+
         
         internal void RebuildData(RebuildTask changes = null)
         {
