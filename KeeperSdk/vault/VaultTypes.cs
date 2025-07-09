@@ -1938,6 +1938,32 @@ namespace KeeperSecurity.Vault
         /// </summary>
         public EcPrivateKey TeamEcPrivateKey { get; internal set; }
     }
+  
+    /// <summary>
+    /// Represents BreachWatch scan result info for a record.
+    /// </summary>
+    public class BreachWatchInfo
+    {
+        /// <summary>
+        /// The UID of the record.
+        /// </summary>
+        public string RecordUid { get; set; }
+
+        /// <summary>
+        /// The current BreachWatch status.
+        /// </summary>
+        public Tokens.BWStatus Status { get; set; }
+
+        /// <summary>
+        /// The number of resolved issues.
+        /// </summary>
+        public ulong Resolved { get; set; }
+
+        /// <summary>
+        /// The total number of issues detected.
+        /// </summary>
+        public int Total { get; set; }
+    }
 
     /// <summary>
     /// Specifies folder types.

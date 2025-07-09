@@ -126,79 +126,8 @@ namespace KeeperSecurity
             {
                 return record?.Title;
             }
-            private static string ExtractLogin(this KeeperRecord record)
-            {
-                return record switch
-                {
-                    null => null,
-                    PasswordRecord pr => pr.Login,
-                    TypedRecord tr when tr.FindTypedField("login", null, out var rf) => rf.GetExternalValue(),
-                    _ => "",
-                };
-            }
-            private static string ExtractPassword(this KeeperRecord record)
-            {
-                return record switch
-                {
-                    null => null,
-                    PasswordRecord pr => pr.Password,
-                    TypedRecord tr when tr.FindTypedField("password", null, out var rf) => rf.GetExternalValue(),
-                    _ => "",
-                };
-            }
-            private static string ExtractUrl(this KeeperRecord record)
-            {
-                return record switch
-                {
-                    null => null,
-                    PasswordRecord pr => pr.Link,
-                    TypedRecord tr when tr.FindTypedField("url", null, out var rf) => rf.GetExternalValue(),
-                    _ => "",
-                };
-            }
 
-            private static string ExtractNotes(this KeeperRecord record)
-            {
-                switch (record)
-                {
-                    case null:
-                        return null;
-                    case PasswordRecord pr:
-                        return pr.Notes;
-                    case TypedRecord tr:
-                    {
-                        var notes = tr.Notes ?? "";
-                        if (tr.FindTypedField("note", null, out var rf))
-                        {
-                            notes += rf.GetExternalValue();
-                        }
-                        return notes;
-                    }
-                    default:
-                        return "";
-                }
-            }
 
-            private static string ExtractTotp(this KeeperRecord record)
-            {
-                switch (record)
-                {
-                    case null:
-                        return null;
-                    case PasswordRecord pr:
-                        return pr.Totp;
-                    case TypedRecord tr when tr.FindTypedField("oneTimeCode", null, out var rf):
-                    {
-                        var totp = rf.GetExternalValue();
-                        if (!string.IsNullOrEmpty(totp)) {
-                            Debug.WriteLine(totp);
-                        }
-                        return totp;
-                    }
-                    default:
-                        return "";
-                }
-            }
 
             private static string ExtractHost(this KeeperRecord record)
             {

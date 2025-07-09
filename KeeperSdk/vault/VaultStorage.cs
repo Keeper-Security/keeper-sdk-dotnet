@@ -108,7 +108,7 @@ namespace KeeperSecurity.Vault
         /// </summary>
         bool Shared { get; set; }
     }
-   
+
     /// <summary>
     /// Defines properties for shared folder storage.
     /// </summary>
@@ -509,6 +509,12 @@ namespace KeeperSecurity.Vault
         ILinkStorage<IStorageUserEmail> UserEmails { get; }
 
         /// <summary>
+        /// Gets breachwatch records storage
+        /// </summary>
+        IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords { get; }
+
+
+        /// <summary>
         /// Clear offline Keeper vault storage.
         /// </summary>
         void Clear();
@@ -559,5 +565,28 @@ namespace KeeperSecurity.Vault
         /// Record Type Content (JSON).
         /// </summary>
         string Content { get; }
+    }
+    
+    public interface IStorageBreachWatchRecord : IUid
+    {
+        /// <summary>
+        /// BreachWatch Record UID.
+        /// </summary>
+        string RecordUid { get; }
+
+        /// <summary>
+        /// Last Revision.
+        /// </summary>
+        long Revision { get; }
+
+        /// <summary>
+        /// Type of breach watch record
+        /// </summary>
+        int Type { get; }
+
+        /// <summary>
+        /// Encrypted record data 
+        /// </summary>
+        string Data { get; }
     }
 }

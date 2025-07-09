@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AccountSummary;
 using Authentication;
+using BreachWatch;
 using Google.Protobuf;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Configuration;
@@ -783,9 +784,9 @@ namespace KeeperSecurity.Authentication
                 {
                     try
                     {
-                        var rs = (BreachWatch.EnterprisePublicKeyResponse) await ExecuteAuthRest(
+                        var rs = (EnterprisePublicKeyResponse) await ExecuteAuthRest(
                             "enterprise/get_enterprise_public_key", null,
-                            typeof(BreachWatch.EnterprisePublicKeyResponse));
+                            typeof(EnterprisePublicKeyResponse));
                         authContext.EnterprisePublicEcKey =
                             CryptoUtils.LoadEcPublicKey(rs.EnterpriseECCPublicKey.ToByteArray());
                     }

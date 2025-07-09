@@ -6,9 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using BreachWatchProto = BreachWatch;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
+using Tokens;
 
 namespace KeeperSecurity.Vault
 {
@@ -39,6 +41,14 @@ namespace KeeperSecurity.Vault
                 AddRecord(recordUid);
             }
         }
+        
+        public void AddBreachWatchRecords(IEnumerable<string> recordUids)
+        {
+            foreach (var recordUid in recordUids)
+            {
+                AddRecord(recordUid);
+            }
+        }
 
         private void AddSharedFolder(string sharedFolderUid)
         {
@@ -61,6 +71,7 @@ namespace KeeperSecurity.Vault
 
         public ISet<string> Records { get; private set; }
         public ISet<string> SharedFolders { get; private set; }
+        public ISet<BreachWatchInfo> BreachWatchRecords { get; private set; }
     }
 
     /// <summary>
@@ -216,6 +227,7 @@ namespace KeeperSecurity.Vault
         private readonly ConcurrentDictionary<string, SharedFolder> _keeperSharedFolders = new();
         private readonly ConcurrentDictionary<string, Team> _keeperTeams = new();
         private readonly ConcurrentDictionary<string, FolderNode> _keeperFolders = new();
+        private readonly ConcurrentDictionary<string, BreachWatchInfo> _keeperBreachWatchRecords = new();
 
         /// <inheritdoc/>
         public IKeeperStorage Storage { get; }
@@ -236,6 +248,16 @@ namespace KeeperSecurity.Vault
 
         /// <inheritdoc/>
         public IEnumerable<RecordType> RecordTypes => _keeperRecordTypes.Values.Concat(_customRecordTypes);
+
+        ///<inheritdoc/>
+        public IEnumerable<BreachWatchInfo> BreachWatchRecords()
+        {
+            if (_keeperBreachWatchRecords.IsEmpty)
+            {
+                BuildBreachWatch();
+            }
+            return _keeperBreachWatchRecords.Values;
+        }
 
         /// <inheritdoc/>
         public bool TryGetRecordTypeByName(string name, out RecordType recordType)
@@ -416,6 +438,131 @@ namespace KeeperSecurity.Vault
             return false;
         }
 
+        private void BuildBreachWatch()
+        {
+            var storageBreachWatchRecords = Storage.BreachWatchRecords.GetAll();
+            if (!storageBreachWatchRecords.Any())
+            {
+                return;
+            }
+
+            var recordKeyLookup = BuildRecordKeyLookup();
+            
+            foreach (var storageBWRecord in storageBreachWatchRecords)
+            {
+                if (!IsValidBreachWatchRecord(storageBWRecord))
+                {
+                    continue;
+                }
+
+                var breachWatchInfo = ProcessBreachWatchRecord(storageBWRecord, recordKeyLookup);
+                if (breachWatchInfo != null)
+                {
+                    _keeperBreachWatchRecords[breachWatchInfo.RecordUid] = breachWatchInfo;
+                }
+            }
+        }
+
+        private Dictionary<string, IStorageRecordKey> BuildRecordKeyLookup()
+        {
+            var recordKeyLookup = new Dictionary<string, IStorageRecordKey>();
+            
+            foreach (var record in Storage.RecordKeys.GetAllLinks())
+            {
+                // Use the first available key for each record UID
+                if (!recordKeyLookup.ContainsKey(record.RecordUid))
+                {
+                    recordKeyLookup.Add(record.RecordUid, record);
+                }
+            }
+            
+            return recordKeyLookup;
+        }
+
+        private static bool IsValidBreachWatchRecord(IStorageBreachWatchRecord storageBWRecord)
+        {
+            return (BreachWatchProto.BreachWatchInfoType)storageBWRecord.Type == 
+                   BreachWatchProto.BreachWatchInfoType.Record;
+        }
+
+        private BreachWatchInfo ProcessBreachWatchRecord(
+            IStorageBreachWatchRecord storageBWRecord, 
+            Dictionary<string, IStorageRecordKey> recordKeyLookup)
+        {
+            var recordUid = storageBWRecord.RecordUid;
+            
+            if (!recordKeyLookup.TryGetValue(recordUid, out var storageRecord))
+            {
+                return null;
+            }
+
+            if (!DecryptRecordKey(storageRecord, out var recordKey))
+            {
+                return null;
+            }
+
+            try
+            {
+                var breachWatchData = DecryptBreachWatchData(storageBWRecord.Data, recordKey);
+                return CreateBreachWatchInfo(recordUid, breachWatchData);
+            }
+            catch (Exception err)
+            {
+                Trace.TraceError($"Decrypt BreachWatch data error for record {recordUid}: {err.Message}");
+                return null;
+            }
+        }
+
+        private BreachWatchData DecryptBreachWatchData(string encryptedData, byte[] recordKey)
+        {
+            var decryptedData = CryptoUtils.DecryptAesV2(encryptedData.Base64UrlDecode(), recordKey);
+            return BreachWatchData.Parser.ParseFrom(decryptedData);
+        }
+
+        private BreachWatchInfo CreateBreachWatchInfo(string recordUid, BreachWatchData dataObject)
+        {
+            var (status, resolved) = DetermineBreachWatchStatus(recordUid, dataObject);
+            
+            return new BreachWatchInfo
+            {
+                RecordUid = recordUid,
+                Status = status,
+                Resolved = resolved,
+                Total = dataObject.Passwords.Count
+            };
+        }
+
+        private (BWStatus Status, ulong Resolved) DetermineBreachWatchStatus(
+            string recordUid, 
+            BreachWatchData dataObject)
+        {
+            var total = dataObject.Passwords.Count;
+            if (total == 0)
+            {
+                return (BWStatus.Good, 0);
+            }
+
+            // For records with multiple passwords, try to find the current password
+            if (total > 1 && TryLoadKeeperRecord(recordUid, out var keeperRecord))
+            {
+                var currentPassword = keeperRecord.ExtractPassword();
+                if (!string.IsNullOrEmpty(currentPassword))
+                {
+                    var matchingPasswordInfo = dataObject.Passwords.FirstOrDefault(x => x.Value == currentPassword);
+                    if (matchingPasswordInfo != null)
+                    {
+                        return (matchingPasswordInfo.Status, matchingPasswordInfo.Resolved);
+                    }
+                }
+            }
+
+            // Fall back to the first password entry
+            var firstPassword = dataObject.Passwords[0];
+            return (firstPassword.Status, firstPassword.Resolved);
+        }
+
+
+        
         internal void RebuildData(RebuildTask changes = null)
         {
             var fullRebuild = changes == null || changes.IsFullSync;
@@ -667,6 +814,8 @@ namespace KeeperSecurity.Vault
                     Storage.Records.DeleteUids(uids);
                 }
             }
+
+            BuildBreachWatch();
             BuildFolders();
             if (fullRebuild)
             {

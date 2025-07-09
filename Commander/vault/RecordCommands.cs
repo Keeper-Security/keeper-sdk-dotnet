@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Text;
+using Tokens;
 
 namespace Commander
 {
@@ -775,7 +776,7 @@ namespace Commander
                     {
                         var parsedRecord = RecordTypeService.CreateRecordTypeObject(recordType);
                         var recordTypeID = await context.Vault.AddRecordType(Encoding.UTF8.GetString(JsonUtils.DumpJson(parsedRecord)));
-                        uploadCount = uploadCount+1;
+                        uploadCount = uploadCount + 1;
                         uploadedRecordTypeIds.Add(recordTypeID);
                     }
                     catch
@@ -790,7 +791,119 @@ namespace Commander
             Console.WriteLine($"Failed Record Types: {(failedRecordTypeIds.Count > 0 ? string.Join(", ", failedRecordTypeIds) : "None")}");
             return uploadedRecordTypeIds;
         }
-        
+
+        public static Task BreachWatchCommand(this VaultContext context, BreachWatchOptions options)
+        {
+            if (string.IsNullOrEmpty(options.subCommand) || string.Equals(options.subCommand, "list", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var vault = context.Vault;
+                if (vault == null)
+                {
+                    Console.WriteLine("Vault is not initialized");
+                    throw new VaultException("Vault not initialized");
+                }
+                bool ownedOnly = options.Owned;
+                var recordUids = new HashSet<string>(
+                    vault.BreachWatchRecords()
+                        .Where(x => x.Status == BWStatus.Weak || x.Status == BWStatus.Breached)
+                        .Select(x => x.RecordUid)
+                );
+                var records = vault.KeeperRecords
+                .Where(x =>
+                    recordUids.Contains(x.Uid) &&
+                    (!ownedOnly || x.Owner == ownedOnly)
+                )
+                .ToList();
+                if (records.Count > 0)
+                {
+                    var table = new Tabulate(4);
+                    bool showNumbered = options.Numbered;
+                    bool showAll = options.All;
+
+                    if (showNumbered)
+                    {
+                        table.AddHeader("S.No", "Record UID", "Title", "Description");
+                    }
+                    else
+                    {
+                        table.AddHeader("Record UID", "Title", "Description");
+                    }
+
+                    var rows = records
+                        .Select((x, idx) => showNumbered
+                            ? new[] { (idx + 1).ToString(), x.Uid, x.Title, x.KeeperRecordPublicInformation() }
+                            : new[] { x.Uid, x.Title, x.KeeperRecordPublicInformation() })
+                        .OrderBy(x => x[showNumbered ? 1 : 0], StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+
+                    int total = rows.Count;
+
+
+                    if (!showAll && total > 32)
+                    {
+                        rows = rows.Take(30).ToList();
+                    }
+
+                    foreach (var row in rows)
+                    {
+                        table.AddRow(row);
+                    }
+
+                    table.Dump();
+
+                    if (rows.Count < total)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine($"{total - rows.Count} records skipped.");
+                    }
+
+                    if (rows.Count == 0)
+                    {
+                        Console.WriteLine("No breached records detected");
+                    }
+                }
+
+                var scannedRecordUids = new HashSet<string>(
+                    vault.BreachWatchRecords()
+                        .Select(x => x.RecordUid)
+                );
+
+                var notScannedRecords = vault.KeeperRecords
+                    .Where(x => x.Owner && !scannedRecordUids.Contains(x.Uid))
+                    .Select(x => x.Uid)
+                    .ToList();
+
+                bool hasPasswordsToScan = false;
+                foreach (var recordUid in notScannedRecords)
+                {
+                    vault.TryLoadKeeperRecord(recordUid, out var record);
+                    if (record != null)
+                    {
+                        var password = record.ExtractPassword();
+                        if (password != null && password != "")
+                        {
+                            hasPasswordsToScan = true;
+                            break;
+                        }
+                    }
+                }
+                if (hasPasswordsToScan)
+                {
+                    Console.WriteLine("Some passwords in your vault has not been scanned.\n" +
+                        "Use \"breachwatch scan\" command to scan your passwords against our database " +
+                        "of breached accounts on the Dark Web.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Unknown sub-command: {options.subCommand}");
+            }
+            
+            return Task.CompletedTask;
+        }
+
+
+
         internal class RecordTypeService
         {
             public static List<InputRecordType> ValidateRecordTypeFile(string filePath)
@@ -1155,5 +1268,20 @@ namespace Commander
     {
         [Value(0, Required = true, Default = false, HelpText = "File path to load record type from")]
         public string filePath { get; set; }
+    }
+
+    class BreachWatchOptions
+    {
+        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: \'list\'")]
+        public string subCommand { get; set; }
+
+        [Option("all", Required = false, Default = false, HelpText = "if all breachwatch records are to be shown")]
+        public bool All { get; set; }
+
+        [Option("owned", Required = false, Default = false, HelpText = "if only owned breachwatch records are to be shown")]
+        public bool Owned { get; set; }
+
+        [Option("numbered", Required = false, Default = false, HelpText = "if records are to be shown as numbered list")]
+        public bool Numbered { get; set; }
     }
 }
