@@ -244,16 +244,7 @@
     <Type>
         <Name>KeeperSecurity.Vault.SharedFolderPermission</Name>
         <Members>
-            <ScriptProperty>
-                <Name>Name</Name>
-                <GetScriptBlock>
-                    if ($this.UserType -eq [KeeperSecurity.Vault.UserType]::Team) {
-                    Get-KeeperObject $this.UserId -ObjectType Team -PropertyName Name
-                    } else {
-                    $this.UserId
-                    }
-                </GetScriptBlock>
-            </ScriptProperty>
+
             <ScriptProperty>
                 <Name>ShareStatus</Name>
                 <GetScriptBlock>
