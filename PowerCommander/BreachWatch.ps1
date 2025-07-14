@@ -1,6 +1,38 @@
 #requires -Version 5.1
 
 function Get-KeeperBreachWatchList {
+    <#
+    .SYNOPSIS
+    Lists Keeper records flagged by BreachWatch as Weak or Breached.
+
+    .DESCRIPTION
+    Retrieves Keeper records in your vault that have been identified by BreachWatch as having weak or breached passwords.
+    You can filter to only show records you own, include all records, and display results with numbering.
+
+    .PARAMETER OwnedOnly
+    Show only records owned by you.
+
+    .PARAMETER All
+    Show all BreachWatch-flagged records, even if there are more than 32 (default output is limited for readability).
+
+    .PARAMETER Numbered
+    Display a serial number column in the output.
+
+   .EXAMPLE
+    Get-KeeperBreachWatchList
+    Lists up to 32 records in your vault flagged as Weak or Breached by BreachWatch.
+
+    .EXAMPLE
+    Get-KeeperBreachWatchList -OwnedOnly
+    Lists only the records you own that are flagged by BreachWatch.
+
+    .EXAMPLE
+    Get-KeeperBreachWatchList -All -Numbered
+    Lists all BreachWatch-flagged records with a serial number column.
+
+    .NOTES
+    This function helps you quickly identify and review records in your Keeper vault that require attention due to password weaknesses or breaches.
+    #>
     [CmdletBinding()]
     param(
         [Parameter()][Switch]$OwnedOnly,
