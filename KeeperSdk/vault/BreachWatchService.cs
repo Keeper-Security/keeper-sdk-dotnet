@@ -12,7 +12,7 @@ namespace KeeperSecurity.Vault
     /// <summary>
     /// Service class for handling BreachWatch operations.
     /// </summary>
-    public class BreachWatchService
+    internal class BreachWatchService
     {
         private readonly IKeeperStorage _storage;
         private readonly ConcurrentDictionary<string, BreachWatchInfo> _breachWatchRecords;
@@ -152,7 +152,6 @@ namespace KeeperSecurity.Vault
 
             foreach (var record in _storage.RecordKeys.GetAllLinks())
             {
-                // Use the first available key for each record UID
                 if (!recordKeyLookup.ContainsKey(record.RecordUid))
                 {
                     recordKeyLookup.Add(record.RecordUid, record);
@@ -226,7 +225,6 @@ namespace KeeperSecurity.Vault
                 return (BWStatus.Good, 0);
             }
 
-            // For records with multiple passwords, try to find the current password
             if (total > 1)
             {
                 var keeperRecord = _loadRecord(recordUid);
@@ -244,7 +242,6 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            // Fall back to the first password entry
             var firstPassword = dataObject.Passwords[0];
             return (firstPassword.Status, firstPassword.Resolved);
         }
