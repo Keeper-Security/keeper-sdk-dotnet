@@ -282,4 +282,24 @@ namespace KeeperSecurity.Vault
         string IUidLink.SubjectUid => AccountUid;
         string IUidLink.ObjectUid => Email;
     }
+
+    /// <exclude />
+    [SqlTable(Name = "BreachWatchRecord", PrimaryKey = new[] { "RecordUid" })]
+    public class StorageBreachWatchRecord : IStorageBreachWatchRecord, IEntityCopy<IStorageBreachWatchRecord>
+    {
+        [SqlColumn(Length = 32)] public string RecordUid { get; set; }
+        [SqlColumn] public long Revision { get; set; }
+        [SqlColumn] public int Type { get; set; }
+        [SqlColumn] public string Data { get; set; }
+
+        string IUid.Uid => RecordUid;
+
+        void IEntityCopy<IStorageBreachWatchRecord>.CopyFields(IStorageBreachWatchRecord source)
+        {
+            RecordUid = source.RecordUid;
+            Revision = source.Revision;
+            Type = source.Type;
+            Data = source.Data;
+        }
+    }
 }
