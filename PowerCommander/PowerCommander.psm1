@@ -31,7 +31,8 @@ Export-ModuleMember -Alias kpwd, kcd, kdir, ko
 Export-ModuleMember -Function Get-KeeperRecord, Copy-KeeperToClipboard, Show-TwoFactorCode,
 Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,
 Get-KeeperPasswordVisible, Set-KeeperPasswordVisible, Get-KeeperRecordType, 
-New-KeeperRecordType, Edit-KeeperRecordType, Remove-KeeperRecordType, Import-KeeperRecordTypes
+New-KeeperRecordType, Edit-KeeperRecordType, Remove-KeeperRecordType, Import-KeeperRecordTypes,
+Get-KeeperRecordPassword
 Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti
 
 Export-ModuleMember -Function Get-KeeperSharedFolder
@@ -67,6 +68,9 @@ Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, 
 
 Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord
 Export-ModuleMember -Alias kda
+
+Export-ModuleMember -Function Get-KeeperBreachWatchList
+Export-ModuleMember -Alias kbw
 
 # function Test-Keeper {
 #     [CmdletBinding()]
