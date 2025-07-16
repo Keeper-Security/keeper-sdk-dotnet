@@ -717,6 +717,27 @@ namespace KeeperSecurity.Vault
                     }
 
                 }
+
+                // BreachWatch Records
+                if (rs.BreachWatchRecords.Count > 0)
+                {
+                    var BreachWatchRecords = new List<IStorageBreachWatchRecord>();
+
+                    StorageBreachWatchRecord ToBreachWatchRecord(VaultProto.BreachWatchRecord record)
+                    {
+                        return new StorageBreachWatchRecord
+                        {
+                            RecordUid = record.RecordUid.ToByteArray().Base64UrlEncode(),
+                            Revision = record.Revision,
+                            Type = (int) record.Type,
+                            Data = record.Data.ToByteArray().Base64UrlEncode(),
+                        };
+                    }
+
+                    var breachWatchRecords = rs.BreachWatchRecords.Select(ToBreachWatchRecord).ToArray();
+                    storage.BreachWatchRecords.PutEntities(breachWatchRecords);
+                    result.AddBreachWatchRecords(breachWatchRecords.Select(x => x.RecordUid));
+                }
             }
 
             var sds = new VaultSettings
