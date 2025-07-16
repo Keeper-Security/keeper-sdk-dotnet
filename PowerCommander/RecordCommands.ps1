@@ -241,6 +241,174 @@ function Show-TwoFactorCode {
 }
 New-Alias -Name 2fa -Value Show-TwoFactorCode
 
+function Get-KeeperRecordPassword {
+    <#
+    .SYNOPSIS
+    Gets the password from a Keeper record by name, title, UID, or record object.
+    
+    .DESCRIPTION
+    This function provides a convenient way to extract passwords from Keeper records.
+    It accepts either a record object directly, or a string identifier (UID, name, or title)
+    and automatically resolves it to extract the password field.
+    
+    .PARAMETER Record
+    The record input. Accepts:
+    - KeeperRecord object (PasswordRecord or TypedRecord)
+    - String containing record UID, name, or title
+    
+    .PARAMETER Silent
+    Suppresses error and warning messages. Useful for conditional password retrieval.
+    
+    .OUTPUTS
+    String. The actual password value, or $null if not found.
+    
+    .EXAMPLE
+    # Basic usage with record name
+    $password = Get-KeeperRecordPassword -Record "Gmail Account"
+    
+    .EXAMPLE
+    # Using record UID
+    $password = Get-KeeperRecordPassword -Record "ABC123DEF456GHI789"
+    
+    .EXAMPLE
+    # Using record object
+    $record = Get-KeeperRecord -Uid "ABC123"
+    $password = Get-KeeperRecordPassword -Record $record
+    
+    .EXAMPLE
+    # Silent mode for conditional retrieval
+    $password = Get-KeeperRecordPassword -Record "MightNotExist" -Silent
+    if ($password) {
+        # Use password...
+    }
+    
+    .EXAMPLE
+    # Practical automation example
+    $websites = @("Gmail", "Facebook", "Twitter")
+    foreach ($site in $websites) {
+        $password = Get-KeeperRecordPassword -Record $site -Silent
+        if ($password) {
+            Write-Host "Retrieved password for $site"
+            # Perform authentication...
+        }
+    }
+    
+    .NOTES
+    This function is designed for programmatic use and always returns the actual password.
+    
+    Key features:
+    - Handles both PasswordRecord and TypedRecord types
+    - Flexible input: accepts UIDs, names, titles, or record objects
+    - Smart resolution: exact title matches preferred over partial matches
+    - Error handling: warnings for multiple matches, errors for missing records
+    - Silent mode: suppresses output for conditional logic
+    
+    For password display visibility control, use the existing Get-KeeperPasswordVisible
+    and Set-KeeperPasswordVisible commands which affect other parts of the system.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        $Record,
+        
+        [Parameter()]
+        [switch]$Silent
+    )
+    
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        [KeeperSecurity.Vault.KeeperRecord]$keeperRecord = $null
+        
+        # Check if input is already a KeeperRecord object
+        if ($Record -is [KeeperSecurity.Vault.KeeperRecord]) {
+            $keeperRecord = $Record
+        }
+        # Otherwise, treat it as a string identifier and resolve it
+        elseif ($Record -is [string]) {
+            # First try to get record by UID
+            if ($vault.TryGetKeeperRecord($Record, [ref]$keeperRecord)) {
+                # Found by UID
+            }
+            else {
+                # If UID lookup fails, search by name/title
+                $entries = Get-KeeperChildItem -Filter $Record -ObjectType Record
+                if ($entries -and $entries.Count -gt 0) {
+                    if ($entries.Count -eq 1) {
+                        $vault.TryGetKeeperRecord($entries[0].Uid, [ref]$keeperRecord) | Out-Null
+                    }
+                    else {
+                        # Multiple matches found - look for exact title match first
+                        $tempRecord = $null
+                        foreach ($entry in $entries) {
+                            if ($vault.TryGetKeeperRecord($entry.Uid, [ref]$tempRecord)) {
+                                if ($tempRecord.Title -eq $Record) {
+                                    $keeperRecord = $tempRecord
+                                    break
+                                }
+                            }
+                        }
+                        # If no exact match, use the first one but warn user
+                        if (-not $keeperRecord -and $vault.TryGetKeeperRecord($entries[0].Uid, [ref]$keeperRecord)) {
+                            if (-not $Silent) {
+                                Write-Warning "Multiple records found matching '$Record'. Using first match: '$($keeperRecord.Title)'"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            if (-not $Silent) {
+                Write-Error "Invalid record parameter. Must be a KeeperRecord object or string identifier." -ErrorAction Stop
+            }
+            return $null
+        }
+        
+        # Check if we found a record
+        if ($null -eq $keeperRecord) {
+            if (-not $Silent) {
+                Write-Error "Record not found: '$Record'" -ErrorAction Stop
+            }
+            return $null
+        }
+        
+        # Extract password based on record type
+        $password = $null
+        if ($keeperRecord -is [KeeperSecurity.Vault.PasswordRecord]) {
+            $password = $keeperRecord.Password
+        }
+        elseif ($keeperRecord -is [KeeperSecurity.Vault.TypedRecord]) {
+            $recordField = $keeperRecord.Fields | Where-Object FieldName -eq 'password' | Select-Object -First 1
+            if (-not $recordField) {
+                $recordField = $keeperRecord.Custom | Where-Object FieldName -eq 'password' | Select-Object -First 1
+            }
+            if ($recordField) {
+                $password = $recordField.ObjectValue
+            }
+        }
+        
+        if ($null -eq $password -or $password -eq '') {
+            if (-not $Silent) {
+                Write-Warning "Record '$($keeperRecord.Title)' does not have a password field or password is empty."
+            }
+            return $null
+        }
+        
+        # Verbose output
+        if ($VerbosePreference -eq 'Continue' -and -not $Silent) {
+            Write-Verbose "Retrieved password from record '$($keeperRecord.Title)'"
+        }
+        
+        return $password
+    }
+    catch {
+        if (-not $Silent) {
+            Write-Error "Error retrieving password for record '$Record': $($_.Exception.Message)" -ErrorAction Stop
+        }
+        return $null
+    }
+}
+
 $Keeper_RecordTypeNameCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $result = @()
