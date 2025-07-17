@@ -777,7 +777,7 @@ namespace Commander
                     {
                         var parsedRecord = RecordTypeService.CreateRecordTypeObject(recordType);
                         var recordTypeID = await context.Vault.AddRecordType(Encoding.UTF8.GetString(JsonUtils.DumpJson(parsedRecord)));
-                        uploadCount = uploadCount+1;
+                        uploadCount = uploadCount + 1;
                         uploadedRecordTypeIds.Add(recordTypeID);
                     }
                     catch
