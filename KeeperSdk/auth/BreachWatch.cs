@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Net.Http;
 using System.Threading;
+using System.Text;
 
 namespace KeeperSecurity.BreachWatch
 {
@@ -76,7 +77,7 @@ namespace KeeperSecurity.BreachWatch
 
                 var tokenRq = new BreachWatchTokenRequest
                 {
-                    BreachWatchToken = Google.Protobuf.ByteString.CopyFrom(breachWatchToken)
+                    BreachWatchToken = ByteString.CopyFrom(breachWatchToken)
                 };
 
                 var tokenRs = await auth.ExecuteAuthRest<BreachWatchTokenRequest, AnonymizedTokenResponse>("breachwatch/anonymize_token", tokenRq);
@@ -90,10 +91,37 @@ namespace KeeperSecurity.BreachWatch
             }
         }
 
+        /// <summary>
+        /// Re-initializes BreachWatch tokens. Use this if you encounter "Invalid Payload" errors.
+        /// </summary>
+        /// <param name="auth">The authenticated connection.</param>
+        /// <returns>Task representing the async operation.</returns>
+        public static async Task ReInitializeBreachWatch(IAuthentication auth)
+        {
+            // Clear existing tokens
+            DomainToken = Array.Empty<byte>();
+            EmailToken = Array.Empty<byte>();
+            PasswordToken = Array.Empty<byte>();
+
+            // Re-initialize
+            await InitializeBreachWatch(auth);
+        }
+
+        private static async Task<BreachWatchStatusResponse> ExecuteBreachWatchStatus(BreachWatchStatusRequest rq)
+        {
+            rq.AnonymizedToken = ByteString.CopyFrom(PasswordToken);
+            var apiRequestPayload = new ApiRequestPayload
+            {
+                Payload = rq.ToByteString()
+            };
+            var responseBytes = await _endpoint.ExecuteRest("breachwatch/status", apiRequestPayload);
+            var rs = BreachWatchStatusResponse.Parser.ParseFrom(responseBytes);
+            return rs;
+        }
+
         public static async Task DeleteEuids(IEnumerable<byte[]> euids)
         {
             var euidList = new List<byte[]>(euids);
-
             for (int i = 0; i < euidList.Count; i += EuidBatchSize)
             {
                 var chunk = euidList.GetRange(i, Math.Min(EuidBatchSize, euidList.Count - i));
@@ -104,7 +132,7 @@ namespace KeeperSecurity.BreachWatch
                 };
                 rq.RemovedEuid.AddRange(chunk.Select(ByteString.CopyFrom));
 
-                await auth.ExecuteAuthRest<BreachWatchStatusRequest, BreachWatchStatusResponse>("breachwatch/status", rq);
+                await ExecuteBreachWatchStatus(rq);
             }
         }
 
@@ -112,79 +140,118 @@ namespace KeeperSecurity.BreachWatch
             IEnumerable<(string Password, byte[] Euid)> passwordEntries,
             CancellationToken cancellationToken = default)
         {
+            if (PasswordToken == null || PasswordToken.Length == 0)
+            {
+                throw new BreachWatchException("BreachWatch not properly initialized. Password token is missing.");
+            }
+            if (passwordEntries == null)
+            {
+                throw new ArgumentNullException(nameof(passwordEntries));
+            }
             try
             {
-                var results = new List<(string Password, HashStatus Status)>();
+                var results = new Dictionary<string, HashStatus>(); 
                 var bwHashes = new Dictionary<ByteString, string>();
-                var bwEuids = new Dictionary<ByteString, ByteString>();
 
                 foreach (var (password, euid) in passwordEntries)
                 {
+                    if (string.IsNullOrEmpty(password)) continue;
+
                     int score = PasswordUtils.PasswordScore(password);
-                    var hash = PasswordUtils.BreachWatchHash(password);
+                    var bwHash = PasswordUtils.BreachWatchHash(password);
+
+                    if (bwHash == null || bwHash.IsEmpty)
+                    {
+                        throw new BreachWatchException($"Failed to generate hash for password");
+                    }
 
                     if (score >= MinimumPasswordScore)
                     {
-                        bwHashes[hash] = password;
-                        if (euid != null)
-                            bwEuids[hash] = ByteString.CopyFrom(euid);
+                        bwHashes[bwHash] = password;
                     }
                     else
                     {
-                        results.Add((password, new HashStatus
+                        var status = new HashStatus
                         {
-                            Hash1 = hash,
+                            Hash1 = bwHash,
                             BreachDetected = true
-                        }));
+                        };
+                        results[password] = status;
                     }
                 }
 
                 if (bwHashes.Count > 0)
                 {
-                    var hashList = bwHashes.Keys.ToList();
-                    for (int i = 0; i < hashList.Count; i += HashBatchSize)
+                    var hashes = new List<HashCheck>();
+                    foreach (var bwHash in bwHashes.Keys)
                     {
-                        var chunk = hashList.Skip(i).Take(HashBatchSize);
+                        var check = new HashCheck { Hash1 = bwHash };
+                        hashes.Add(check);
+                    }
 
-                        var rq = new BreachWatchStatusRequest
+                    while (hashes.Count > 0)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var chunk = hashes.Take(HashBatchSize).ToList(); 
+                        hashes = hashes.Skip(HashBatchSize).ToList();
+
+                        var rq = new BreachWatchStatusRequest()
                         {
                             AnonymizedToken = ByteString.CopyFrom(PasswordToken)
                         };
+                        rq.HashCheck.AddRange(chunk);
 
-                        foreach (var h in chunk)
+                        try
                         {
-                            var hc = new HashCheck { Hash1 = h };
-                            if (bwEuids.TryGetValue(h, out var euid))
-                                hc.Euid = euid;
-
-                            rq.HashCheck.Add(hc);
-                        }
-
-                        var rs = await auth.ExecuteAuthRest("breachwatch/status", rq, typeof(BreachWatchStatusResponse))
-                            as BreachWatchStatusResponse;
-
-                        if (rs == null) 
-                            throw new BreachWatchException("BreachWatch status response is null");
-
-                        foreach (var status in rs.HashStatus)
-                        {
-                            if (bwHashes.TryGetValue(status.Hash1, out var pw))
+                            var rs = await ExecuteBreachWatchStatus(rq);
+                            
+                            if (rs == null)
                             {
-                                results.Add((pw, status));
+                                throw new BreachWatchException("BreachWatch status response is null");
                             }
+
+                            foreach (var status in rs.HashStatus)
+                            {
+                                if (bwHashes.TryGetValue(status.Hash1, out var password))
+                                {
+                                    results[password] = status;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new BreachWatchException(ex.Message);
                         }
                     }
                 }
 
-                return results;
+                var resultList = new List<(string Password, HashStatus Status)>();
+                foreach (var kvp in results)
+                {
+                    resultList.Add((kvp.Key, kvp.Value));
+                }
+                return resultList;
+            }
+            catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new BreachWatchException("Request timeout during password scan", ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (HttpRequestException ex)
             {
                 throw new BreachWatchException("Network error during password scan", ex);
             }
-            catch (TaskCanceledException ex)
+            catch (BreachWatchException)
             {
-                throw new BreachWatchException("Request timeout during password scan", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new BreachWatchException($"Unexpected error during password scan: {ex.Message}", ex);
             }
         }
     }
@@ -435,14 +502,15 @@ namespace KeeperSecurity.BreachWatch
             return offsets;
         }
 
-        public static ByteString BreachWatchHash(string password)
-        {
-            if (string.IsNullOrEmpty(password))
-                return ByteString.Empty;
+    public static readonly byte[] PasswordToken = "phl9kdMA_gkJkSfeOYWpX-FOyvfh-APhdSFecIDMyfI".Base64UrlDecode();
 
-            using var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            return ByteString.CopyFrom(hash.Take(20).ToArray()); // Truncate to 20 bytes
-        }
+    public static ByteString BreachWatchHash(string password)
+    {
+        if (string.IsNullOrEmpty(password)) return ByteString.Empty;
+
+        var msg = Encoding.UTF8.GetBytes($"password:{password}");
+        using var hmac = new HMACSHA512(PasswordToken);
+        return ByteString.CopyFrom(hmac.ComputeHash(msg));
+    }
     }
 }
