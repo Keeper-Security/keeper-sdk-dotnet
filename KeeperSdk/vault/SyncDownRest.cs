@@ -516,13 +516,28 @@ namespace KeeperSecurity.Vault
                     result.AddRecords(sfrs.Select(x => x.RecordUid));
                 }
 
-                // TODO use Account UID
                 // shared folder users
                 if (rs.RemovedSharedFolderUsers.Count > 0)
                 {
                     var rsfu = rs.RemovedSharedFolderUsers
-                        .Select(x => UidLink.Create(x.SharedFolderUid.ToByteArray().Base64UrlEncode(),
-                            string.IsNullOrEmpty(x.Username) ? auth.Username : x.Username))
+                        .Select(x =>
+                        {
+                            string accountUid = null;
+                            if (string.IsNullOrEmpty(x.Username))
+                            {
+                                accountUid = auth.AuthContext.AccountUid.Base64UrlEncode();
+                            }
+                            else
+                            {
+                                accountUid = storage.UserEmails.GetLinksForObject(x.Username)
+                                    .Select(y => y.AccountUid)
+                                    .FirstOrDefault();
+                            }
+
+                            if (string.IsNullOrEmpty(accountUid)) return null;
+                            return UidLink.Create(x.SharedFolderUid.ToByteArray().Base64UrlEncode(), accountUid);
+                        })
+                        .Where(x => x != null)
                         .ToArray();
                     storage.SharedFolderPermissions.DeleteLinks(rsfu);
                 }
