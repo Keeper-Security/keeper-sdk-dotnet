@@ -281,11 +281,9 @@ function Test-PasswordAgainstBreachWatch {
         }
         catch {
             Write-Host "Error scanning passwords: $($_.Exception.Message)"
-            if ($_.Exception.InnerException) {
-                Write-Host "Inner error: $($_.Exception.InnerException.Message)"
-            }
             Write-Host "Exception type: $($_.Exception.GetType().FullName)"
             if ($_.Exception.InnerException) {
+                Write-Host "Inner error: $($_.Exception.InnerException.Message)"
                 Write-Host "Inner exception type: $($_.Exception.InnerException.GetType().FullName)"
             }
         }
