@@ -21,6 +21,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Get-KeeperRecord                       | kr          | Enumerate all records
 | Get-KeeperSharedFolder                 | ksf         | Enumerate all shared folders
 | Add-KeeperRecord                       | kadd        | Add/Modify Keeper record
+| Get-KeeperRecordPassword               |             | Get password of a keeper record if present 
 | Import-KeeperRecordTypes               |             | Load Keeper records from a given file
 | Get-KeeperRecordType                   | krti        | Get Record Type Information
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
@@ -83,6 +84,12 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Remove-KeeperManagedCompany            | krmc        | Remove Managed Company
 | Edit-KeeperManagedCompany              | kemc        | Edit Managed Company
 | Get-MspBillingReport                   |             | Run MSP Billing Report
+
+### BreachWatch Cmdlets
+| Cmdlet name                            | Alias       | Description
+|----------------------------------------|-------------|----------------------------
+| Get-KeeperBreachWatchList              | kbw         | List passwords which are breached based on breachwatch
+| Test-PasswordAgainstBreachWatch        | kbwp        | check a given password against breachwatch passwords
 
 ### Secret Manager Cmdlets
 | Cmdlet name                            | Alias       | Description
