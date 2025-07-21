@@ -69,8 +69,8 @@ Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, 
 Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord
 Export-ModuleMember -Alias kda
 
-Export-ModuleMember -Function Get-KeeperBreachWatchList
-Export-ModuleMember -Alias kbw
+Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch
+Export-ModuleMember -Alias kbw, kbwp
 
 # function Test-Keeper {
 #     [CmdletBinding()]
