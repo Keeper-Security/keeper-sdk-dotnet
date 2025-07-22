@@ -14,6 +14,9 @@ using System.IO;
 using System.Text;
 using Tokens;
 using KeeperSecurity.BreachWatch;
+using Authentication;
+using Google.Protobuf;
+using System.Security.Cryptography;
 
 namespace Commander
 {
@@ -402,7 +405,29 @@ namespace Commander
             }
 
             context.AssignRecordFields(record, fields);
-            await context.Vault.CreateRecord(record, node.FolderUid);
+            var createdRecord = await context.Vault.CreateRecord(record, node.FolderUid);
+
+            if (!string.IsNullOrEmpty(options.SelfDestruct))
+            {
+                try
+                {
+                    var destructTime = ParseUtils.ParseTimePeriod(options.SelfDestruct);
+                    var shareUrl = await CreateSelfDestructShare(context.Vault, createdRecord, destructTime);
+                    Console.WriteLine($"Record created with self-destruct enabled ({destructTime.TotalMinutes} minutes)");
+                    Console.WriteLine($"Share URL: {shareUrl}");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to create self-destruct share: {ex.Message}");
+                    return;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Record created: {createdRecord.Uid}");
+            }
+
         }
 
 
@@ -989,9 +1014,39 @@ namespace Commander
             {
                 Console.WriteLine($"Unknown sub-command: {options.subCommand}");
             }
-        }
+                }
 
-        
+        private static async Task<string> CreateSelfDestructShare(VaultOnline vault, KeeperRecord record, TimeSpan expireIn)
+        {
+            if (record is not TypedRecord tr)
+            {
+                throw new VaultException($"Record Uid \"{record.Uid}\" / Title \"{record.Title}\" should be typed record.");
+            }
+
+            var clientKey = CryptoUtils.GenerateEncryptionKey();
+            using var hmac = new HMACSHA512(clientKey);
+            var clientId = hmac.ComputeHash(Encoding.UTF8.GetBytes("KEEPER_SECRETS_MANAGER_CLIENT_ID"));
+            
+            var rq = new AddExternalShareRequest
+            {
+                RecordUid = ByteString.CopyFrom(tr.Uid.Base64UrlDecode()),
+                ClientId = ByteString.CopyFrom(clientId),
+                EncryptedRecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(tr.RecordKey, clientKey)),
+                AccessExpireOn = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (long)expireIn.TotalMilliseconds,
+                IsSelfDestruct = true
+            };
+            
+            await vault.Auth.ExecuteAuthRest("vault/external_share_add", rq);
+            
+            var builder = new UriBuilder(vault.Auth.Endpoint.Server)
+            {
+                Path = "/vault/share",
+                Scheme = "https",
+                Port = -1,
+                Fragment = clientKey.Base64UrlEncode(),
+            };
+            return builder.ToString();
+        }       
 
         internal class RecordTypeService
         {
@@ -1199,6 +1254,9 @@ namespace Commander
 
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
+
+        [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)")]
+        public string SelfDestruct { get; set; }
 
         [Value(0, Required = false, MetaName = "Record fields", HelpText = "Record fields")]
         public IEnumerable<string> Fields { get; set; }
