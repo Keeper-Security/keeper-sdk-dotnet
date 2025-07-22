@@ -430,6 +430,99 @@ $Keeper_RecordTypeNameCompleter = {
 
 }
 
+function ConvertTo-TimeSpan {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Period
+    )
+    
+    if ([string]::IsNullOrWhiteSpace($Period)) {
+        throw "Period cannot be empty"
+    }
+    
+    if ($Period -match '^(\d+)(.*)$') {
+        $num = [int]$Matches[1]
+        $interval = $Matches[2].ToLower().Trim()
+        
+        switch ($interval) {
+            { $_ -in @("mi", "m", "minutes", "minute") } { 
+                return [TimeSpan]::FromMinutes($num) 
+            }
+            { $_ -in @("h", "hours", "hour") } { 
+                return [TimeSpan]::FromHours($num) 
+            }
+            { $_ -in @("d", "days", "day") } { 
+                return [TimeSpan]::FromDays($num) 
+            }
+            { $_ -in @("mo", "months", "month") } { 
+                return [TimeSpan]::FromDays($num * 30) 
+            }
+            { $_ -in @("y", "years", "year") } { 
+                return [TimeSpan]::FromDays($num * 365) 
+            }
+            default {
+                throw "$interval is not allowed as a unit for the timeout value. Valid units are 'years/y, months/mo, days/d, hours/h, minutes/mi/m'."
+            }
+        }
+    }
+    else {
+        throw "Invalid period format: $Period"
+    }
+}
+
+function New-SelfDestructShare {
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline]$Vault,
+        
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.KeeperRecord]$Record,
+        
+        [Parameter(Mandatory = $true)]
+        [TimeSpan]$ExpireIn
+    )
+    
+    $tr = [KeeperSecurity.Vault.KeeperRecord]$Record
+    
+    try {
+        $clientKey = [KeeperSecurity.Utils.CryptoUtils]::GenerateEncryptionKey()
+        $hmac = New-Object System.Security.Cryptography.HMACSHA512 -ArgumentList @(,$clientKey)
+        $clientId = $hmac.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("KEEPER_SECRETS_MANAGER_CLIENT_ID"))
+        $hmac.Dispose()
+        
+        $uidBase64 = $tr.Uid.Replace('-', '+').Replace('_', '/')
+        switch ($uidBase64.Length % 4) {
+            2 { $uidBase64 += '==' }
+            3 { $uidBase64 += '=' }
+        }
+        $uidBytes = [Convert]::FromBase64String($uidBase64)
+        
+        $clientKeyBase64 = [Convert]::ToBase64String($clientKey)
+        $clientKeyBase64Url = $clientKeyBase64.Replace('+', '-').Replace('/', '_').TrimEnd('=')
+        
+        $rq = New-Object Authentication.AddExternalShareRequest
+        $rq.RecordUid = [Google.Protobuf.ByteString]::CopyFrom($uidBytes)
+        $rq.ClientId = [Google.Protobuf.ByteString]::CopyFrom($clientId)
+        $rq.EncryptedRecordKey = [Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::EncryptAesV2($tr.RecordKey, $clientKey))
+        $rq.AccessExpireOn = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + [long]$ExpireIn.TotalMilliseconds
+        $rq.IsSelfDestruct = $true
+        
+        $task = $Vault.Auth.ExecuteAuthRest("vault/external_share_add", $rq)
+        $task.GetAwaiter().GetResult()
+        
+        $builder = New-Object System.UriBuilder $Vault.Auth.Endpoint.Server
+        $builder.Path = "/vault/share"
+        $builder.Scheme = "https"
+        $builder.Port = -1 
+        $builder.Fragment = $clientKeyBase64Url
+        
+        return $builder.ToString()
+    }
+    catch {
+        throw "Failed to create self-destruct external share: $($_.Exception.Message)"
+    }
+}
+
 function Add-KeeperRecord {
     <#
 	.Synopsis
@@ -449,6 +542,9 @@ function Add-KeeperRecord {
 
 	.Parameter GeneratePassword
 	Generate random password.
+
+	.Parameter SelfDestruct
+	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
 
 	.Parameter Fields
 	A list of record Fields. See DESCRIPTION
@@ -515,6 +611,10 @@ function Add-KeeperRecord {
     PS> $publicKey = [Convert]::ToBase64String($rsa.ExportRSAPublicKey())
     PS> $keyPair = @{privateKey=$privateKey; publicKey=$publicKey}
     PS> Add-KeeperRecord -Uid ... -keyPair $keyPair
+
+    .EXAMPLE
+    PS> Add-KeeperRecord -Title "Temp Record" -RecordType login login=user@example.com password=secret123 -SelfDestruct 5m
+    Creates a record with a 5-minute self-destruct timer and returns a share URL.
 #>
 
     [CmdletBinding(DefaultParameterSetName = 'add')]
@@ -525,6 +625,7 @@ function Add-KeeperRecord {
         [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
         [Parameter()] [string] $Title,
         [Parameter()] [string] $Notes,
+        [Parameter()] [string] $SelfDestruct,
         [Parameter(ValueFromRemainingArguments = $true)] $Extra
     )
 
@@ -672,6 +773,8 @@ function Add-KeeperRecord {
     End {
         if ($record.Uid) {
             $task = $vault.UpdateRecord($record)
+            $task.GetAwaiter().GetResult()
+            Write-Host "Record updated: $($record.Uid)"
         }
         else {
             $folderUid = $Script:Context.CurrentFolder
@@ -681,8 +784,23 @@ function Add-KeeperRecord {
             }
 
             $task = $vault.CreateRecord($record, $folderUid)
+            $createdRecord = $task.GetAwaiter().GetResult()
+            
+            if (-not [string]::IsNullOrEmpty($SelfDestruct)) {
+                try {
+                    $destructTime = ConvertTo-TimeSpan -Period $SelfDestruct
+                    $shareUrl = New-SelfDestructShare -Vault $vault -Record $createdRecord -ExpireIn $destructTime
+                    Write-Host "Record created with self-destruct enabled ($($destructTime.TotalMinutes) minutes)"
+                    Write-Host "Share URL: $shareUrl"
+                }
+                catch {
+                    Write-Error "Failed to create self-destruct share: $($_.Exception.Message)"
+                }
+            }
+            else {
+                Write-Host "Record created: $($createdRecord.Uid)"
+            }
         }
-        $task.GetAwaiter().GetResult()
     }
 }
 New-Alias -Name kadd -Value Add-KeeperRecord
