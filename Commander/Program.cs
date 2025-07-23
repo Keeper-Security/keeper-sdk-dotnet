@@ -31,7 +31,7 @@ namespace Commander
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
             var configFile = "";
-            Parser.Default.ParseArguments<CommanderLaunchOptions>(args).WithParsed(x =>
+            CommandExtensions.DefaultParser.ParseArguments<CommanderLaunchOptions>(args).WithParsed(x =>
             {
                 if (!string.IsNullOrWhiteSpace(x.Config))
                 {
