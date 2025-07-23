@@ -1255,7 +1255,7 @@ namespace Commander
         [Option('g', "generate", Required = false, Default = false, HelpText = "generate random password")]
         public bool Generate { get; set; }
 
-        [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)")]
+        [Option("self-destruct", Required = false, Default = null, HelpText = "Time period record share URL is valid. The record will be deleted in your vault in 5 minutes since open. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d). \n Note: 1 month = 30 days and 1year= 365 days ")]
         public string SelfDestruct { get; set; }
 
         [Value(0, Required = false, MetaName = "Record fields", HelpText = "Record fields")]
