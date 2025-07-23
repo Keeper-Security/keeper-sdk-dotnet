@@ -545,6 +545,8 @@ function Add-KeeperRecord {
 
 	.Parameter SelfDestruct
 	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
+    Month is considered as 30 days
+    year is considered as 365 days
 
 	.Parameter Fields
 	A list of record Fields. See DESCRIPTION
