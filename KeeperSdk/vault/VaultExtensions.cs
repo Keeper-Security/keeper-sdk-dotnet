@@ -5,9 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Google.Protobuf;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Utils;
+using KeeperSecurity.BreachWatch;
+using Tokens;
 
 namespace KeeperSecurity.Vault
 {
@@ -753,6 +757,165 @@ namespace KeeperSecurity.Vault
             }
 
             return t;
+        }
+
+        /// <summary>
+        /// Scans and stores BreachWatch status for vault records.
+        /// </summary>
+        /// <param name="vault">The vault to scan records from.</param>
+        /// <param name="recordUids">Record UIDs to scan. If null or empty, scans all owned records with passwords.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Number of records scanned and updated.</returns>
+        public static async Task<int> ScanAndStoreRecordStatusAsync(
+            this VaultOnline vault,
+            IEnumerable<string> recordUids = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (BreachWatch.BreachWatch.PasswordToken == null || BreachWatch.BreachWatch.PasswordToken.Length == 0)
+            {
+                await BreachWatch.BreachWatch.InitializeBreachWatch(vault.Auth);
+                if (BreachWatch.BreachWatch.PasswordToken.Length == 0)
+                {
+                    throw new BreachWatchException("BreachWatch not properly initialized.");
+                }
+            }
+
+            try
+            {
+                // Determine which records to scan
+                var targetRecords = new List<KeeperRecord>();
+                
+                if (recordUids != null && recordUids.Any())
+                {
+                    // Scan specific records
+                    foreach (var uid in recordUids)
+                    {
+                        if (vault.TryLoadKeeperRecord(uid, out var record) && record != null)
+                        {
+                            targetRecords.Add(record);
+                        }
+                    }
+                }
+                else
+                {
+                    // Scan all owned records with passwords
+                    var scannedRecordUids = new HashSet<string>(
+                        vault.BreachWatchRecords()
+                            .Select(x => x.RecordUid)
+                    );
+
+                    var candidateRecords = vault.KeeperRecords
+                        .Where(x => x.Owner && !scannedRecordUids.Contains(x.Uid))
+                        .Where(x => x.GetType() != typeof(ApplicationRecord))
+                        .ToList();
+
+                    foreach (var record in candidateRecords)
+                    {
+                        if (vault.TryLoadKeeperRecord(record.Uid, out var loadedRecord) && loadedRecord != null)
+                        {
+                            var password = loadedRecord.ExtractPassword();
+                            if (!string.IsNullOrEmpty(password))
+                            {
+                                targetRecords.Add(loadedRecord);
+                            }
+                        }
+                    }
+                }
+
+                if (targetRecords.Count == 0)
+                {
+                    return 0;
+                }
+
+                // Prepare password entries for scanning
+                var passwordEntries = new List<(string Password, byte[] Euid)>();
+                var recordPasswordMap = new Dictionary<string, string>();
+
+                foreach (var record in targetRecords)
+                {
+                    var password = record.ExtractPassword();
+                    if (!string.IsNullOrEmpty(password))
+                    {
+                        passwordEntries.Add((password, null));
+                        recordPasswordMap[password] = record.Uid;
+                    }
+                }
+
+                if (passwordEntries.Count == 0)
+                {
+                    return 0;
+                }
+
+                // Scan passwords
+                var scanResults = await BreachWatch.BreachWatch.ScanPasswordsAsync(passwordEntries, cancellationToken);
+
+                // Create update requests
+                var updateRequest = new BreachWatchUpdateRequest();
+
+                foreach (var (password, status) in scanResults)
+                {
+                    if (recordPasswordMap.TryGetValue(password, out var recordUid))
+                    {
+                        if (vault.TryLoadKeeperRecord(recordUid, out var record) && record != null)
+                        {
+                            // Create BreachWatchData
+                            var breachWatchData = new BreachWatchData();
+                            var passwordInfo = new BWPassword
+                            {
+                                Value = password,
+                                Status = status.BreachDetected ? BWStatus.Breached : BWStatus.Good,
+                                Resolved = 0
+                            };
+                            breachWatchData.Passwords.Add(passwordInfo);
+
+                            // Encrypt the data with record key
+                            var dataBytes = breachWatchData.ToByteArray();
+                            var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, record.RecordKey);
+
+                            // Create record request
+                            var recordRequest = new BreachWatchRecordRequest
+                            {
+                                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                                EncryptedData = ByteString.CopyFrom(encryptedData),
+                                BreachWatchInfoType = BreachWatchInfoType.Record,
+                                UpdateUserWhoScanned = true
+                            };
+
+                            updateRequest.BreachWatchRecordRequest.Add(recordRequest);
+                        }
+                    }
+                }
+
+                // Send update request
+                if (updateRequest.BreachWatchRecordRequest.Count > 0)
+                {
+                    await vault.Auth.ExecuteAuthRest("breachwatch/update", updateRequest);
+                    
+                    return updateRequest.BreachWatchRecordRequest.Count;
+                }
+
+                return 0;
+            }
+            catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new BreachWatchException("Request timeout during record scan", ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (System.Net.Http.HttpRequestException ex)
+            {
+                throw new BreachWatchException("Network error during record scan", ex);
+            }
+            catch (BreachWatchException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new BreachWatchException($"Unexpected error during record scan: {ex.Message}", ex);
+            }
         }
     }
 }

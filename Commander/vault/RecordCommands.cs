@@ -920,6 +920,40 @@ namespace Commander
                         "of breached accounts on the Dark Web.");
                 }
             }
+            else if (string.Equals(options.subCommand, "scan", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var vault = context.Vault;
+                if (!vault.Auth.IsBreachWatchEnabled())
+                {
+                    Console.WriteLine("BreachWatch is not available for this account type.");
+                    Console.WriteLine("BreachWatch requires an Enterprise license.");
+                    return;
+                }
+
+                try
+                {
+                    var recordUids = options.RecordUids?.Any() == true ? options.RecordUids : null;
+                    var scannedCount = await vault.ScanAndStoreRecordStatusAsync(recordUids);
+                    
+                    if (scannedCount > 0)
+                    {
+                        Console.WriteLine($"Successfully scanned and updated {scannedCount} record(s).");
+                        Console.WriteLine("Use \"breachwatch list\" to view updated results.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No records found to scan or all eligible records have already been scanned.");
+                    }
+                }
+                catch (BreachWatchException ex)
+                {
+                    Console.WriteLine($"BreachWatch scan error: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error scanning records: {ex.Message}");
+                }
+            }
             else if (string.Equals(options.subCommand, "password", StringComparison.InvariantCultureIgnoreCase))
             {
                 var vault = context.Vault;
@@ -1419,7 +1453,7 @@ namespace Commander
 
     class BreachWatchOptions
     {
-        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: \'list\', \'password\'")]
+        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: \'list\', \'scan\', \'password\'")]
         public string subCommand { get; set; }
 
         [Option("all", Required = false, Default = false, HelpText = "if all breachwatch records are to be shown")]
@@ -1430,6 +1464,9 @@ namespace Commander
 
         [Option("numbered", Required = false, Default = false, HelpText = "if records are to be shown as numbered list")]
         public bool Numbered { get; set; }
+
+        [Value(1, Required = false, HelpText = "Record UIDs to scan (for scan subcommand) or passwords to check for breaches (for password subcommand). If not provided, it will scan all unscanned records or prompt for password input.")]
+        public IEnumerable<string> RecordUids { get; set; }
 
         [Value(1, Required = false, HelpText = "Passwords to check for breaches (for password subcommand). If not provided, it will prompt for input.")]
         public IEnumerable<string> Passwords { get; set; }
