@@ -11,6 +11,8 @@ using System.Security.Cryptography;
 using System.Net.Http;
 using System.Threading;
 using System.Text;
+using Tokens;
+using KeeperSecurity.Vault;
 
 namespace KeeperSecurity.BreachWatch
 {
@@ -21,6 +23,100 @@ namespace KeeperSecurity.BreachWatch
     {
         public BreachWatchException(string message) : base(message) { }
         public BreachWatchException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    /// <summary>
+    /// Manages ignored BreachWatch records and provides functionality to ignore records.
+    /// </summary>
+    public static class BreachWatchIgnore
+    {
+        /// <summary>
+        /// Ignores a BreachWatch record by setting its status to BWStatus.Ignore.
+        /// </summary>
+        public static async Task IgnoreRecord(IAuthentication auth, VaultOnline vault, string recordUid)
+        {
+            if (string.IsNullOrEmpty(recordUid))
+            {
+                throw new ArgumentException("Record UID cannot be null or empty", nameof(recordUid));
+            }
+
+            if (auth == null)
+            {
+                throw new ArgumentNullException(nameof(auth));
+            }
+
+            if (vault == null)
+            {
+                throw new ArgumentNullException(nameof(vault));
+            }
+
+            if (!vault.TryLoadKeeperRecord(recordUid, out var record))
+            {
+                throw new BreachWatchException($"Record with UID '{recordUid}' not found");
+            }
+
+            var updateRequest = CreateIgnoreUpdateRequest(recordUid, record, BWStatus.Ignore);
+
+            try
+            {
+                await auth.ExecuteAuthRest("breachwatch/update_record_data", updateRequest);
+            }
+            catch (Exception ex)
+            {
+                throw new BreachWatchException($"Failed to ignore record: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Checks if a specific record is currently ignored.
+        /// </summary>
+        public static bool IsRecordIgnored(VaultOnline vault, string recordUid)
+        {
+            if (vault == null || string.IsNullOrEmpty(recordUid))
+            {
+                return false;
+            }
+
+            var breachWatchRecords = vault.BreachWatchRecords();
+            var bwRecord = breachWatchRecords.FirstOrDefault(x => x.RecordUid == recordUid);
+            
+            return bwRecord?.Status == BWStatus.Ignore;
+        }
+
+        private static global::BreachWatch.BreachWatchUpdateRequest CreateIgnoreUpdateRequest(
+            string recordUid, 
+            KeeperRecord record, 
+            BWStatus status)
+        {
+            var breachWatchData = new BreachWatchData();
+            
+            // For ignore functionality, we need to include at least one password entry
+            // even if we're just setting the ignore status
+            var password = record.ExtractPassword();
+            var passwordInfo = new BWPassword
+            {
+                Value = password ?? "",
+                Status = status,
+                Resolved = 0
+            };
+            breachWatchData.Passwords.Add(passwordInfo);
+
+            var dataBytes = breachWatchData.ToByteArray();
+            var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, record.RecordKey);
+
+            var recordRequest = new global::BreachWatch.BreachWatchRecordRequest
+            {
+                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                EncryptedData = ByteString.CopyFrom(encryptedData),
+                BreachWatchInfoType = global::BreachWatch.BreachWatchInfoType.Record,
+                UpdateUserWhoScanned = true
+            };
+
+            var updateRequest = new global::BreachWatch.BreachWatchUpdateRequest();
+            updateRequest.BreachWatchRecordRequest.Add(recordRequest);
+
+            return updateRequest;
+        }
     }
 
     public static class BreachWatch
@@ -37,11 +133,7 @@ namespace KeeperSecurity.BreachWatch
 
         private static KeeperEndpoint _endpoint;
         private static IAuthentication auth;
-        public static byte[] DomainToken { get; private set; } = Array.Empty<byte>();
-        public static byte[] EmailToken { get; private set; } = Array.Empty<byte>();
         public static byte[] PasswordToken { get; private set; } = Array.Empty<byte>();
-
-        public static bool SendAuditEvents { get; set; } = false;
 
         private const int MinimumPasswordScore = 40;
         private const int HashBatchSize = 500;
@@ -53,7 +145,6 @@ namespace KeeperSecurity.BreachWatch
             BreachWatch.auth = auth;
             _endpoint = new KeeperEndpoint(new Configuration.InMemoryConfigurationStorage(), keeperEndpoint.Server);
 
-            // Initialize BreachWatch
             BreachWatchTokenResponse rs = await auth.ExecuteAuthRest<BreachWatchTokenRequest, BreachWatchTokenResponse>("breachwatch/initialize", null);
 
             if (rs != null)
@@ -84,8 +175,6 @@ namespace KeeperSecurity.BreachWatch
 
                 if (tokenRs != null)
                 {
-                    DomainToken = tokenRs.DomainToken.ToByteArray();
-                    EmailToken = tokenRs.EmailToken.ToByteArray();
                     PasswordToken = tokenRs.PasswordToken.ToByteArray();
                 }
             }
@@ -94,16 +183,9 @@ namespace KeeperSecurity.BreachWatch
         /// <summary>
         /// Re-initializes BreachWatch tokens. Use this if you encounter "Invalid Payload" errors.
         /// </summary>
-        /// <param name="auth">The authenticated connection.</param>
-        /// <returns>Task representing the async operation.</returns>
         public static async Task ReInitializeBreachWatch(IAuthentication auth)
         {
-            // Clear existing tokens
-            DomainToken = Array.Empty<byte>();
-            EmailToken = Array.Empty<byte>();
             PasswordToken = Array.Empty<byte>();
-
-            // Re-initialize
             await InitializeBreachWatch(auth);
         }
 
@@ -270,7 +352,6 @@ namespace KeeperSecurity.BreachWatch
             int digits = 0;
             int symbols = 0;
 
-            // Count character types
             foreach (char c in password)
             {
                 if (char.IsUpper(c))
@@ -292,7 +373,6 @@ namespace KeeperSecurity.BreachWatch
             if (ds < 0)
                 ds = 0;
 
-            // Base scoring
             score += total * 4;
             if (uppers > 0)
                 score += (total - uppers) * 2;
@@ -303,7 +383,6 @@ namespace KeeperSecurity.BreachWatch
             score += symbols * 6;
             score += ds * 2;
 
-            // Variance bonus
             int variance = 0;
             if (uppers > 0) variance++;
             if (lowers > 0) variance++;
@@ -313,7 +392,6 @@ namespace KeeperSecurity.BreachWatch
             if (total >= 8 && variance >= 3)
                 score += (variance + 1) * 2;
 
-            // Penalties for missing character types
             if (digits + symbols == 0)
                 score -= total;
 
@@ -345,7 +423,6 @@ namespace KeeperSecurity.BreachWatch
                 score -= repInc;
             }
 
-            // Consecutive characters penalty
             int consecCount = 0;
             consecCount += CountConsecutiveChars(password, char.IsUpper);
             consecCount += CountConsecutiveChars(password, char.IsLower);
@@ -354,7 +431,6 @@ namespace KeeperSecurity.BreachWatch
             if (consecCount > 0)
                 score -= 2 * consecCount;
 
-            // Sequential characters penalty
             int seqCount = 0;
             seqCount += CountSequentialChars(password.ToLower(), char.IsLetter, 26);
             seqCount += CountSequentialChars(password, char.IsDigit, 10);
@@ -363,7 +439,6 @@ namespace KeeperSecurity.BreachWatch
             if (seqCount > 0)
                 score -= 3 * seqCount;
 
-            // Clamp score between 0-100
             return Math.Max(0, Math.Min(100, score));
         }
 
@@ -502,14 +577,12 @@ namespace KeeperSecurity.BreachWatch
             return offsets;
         }
 
-    public static readonly byte[] PasswordToken = "phl9kdMA_gkJkSfeOYWpX-FOyvfh-APhdSFecIDMyfI".Base64UrlDecode();
-
     public static ByteString BreachWatchHash(string password)
     {
         if (string.IsNullOrEmpty(password)) return ByteString.Empty;
 
         var msg = Encoding.UTF8.GetBytes($"password:{password}");
-        using var hmac = new HMACSHA512(PasswordToken);
+        using var hmac = new HMACSHA512(BreachWatch.PasswordToken);
         return ByteString.CopyFrom(hmac.ComputeHash(msg));
     }
     }

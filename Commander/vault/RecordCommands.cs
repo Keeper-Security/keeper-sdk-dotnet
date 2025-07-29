@@ -17,6 +17,7 @@ using KeeperSecurity.BreachWatch;
 using Authentication;
 using Google.Protobuf;
 using System.Security.Cryptography;
+using System.Threading;
 
 namespace Commander
 {
@@ -832,6 +833,7 @@ namespace Commander
                 var recordUids = new HashSet<string>(
                     vault.BreachWatchRecords()
                         .Where(x => x.Status == BWStatus.Weak || x.Status == BWStatus.Breached)
+                        .Where(x => !BreachWatchIgnore.IsRecordIgnored(vault, x.RecordUid))
                         .Select(x => x.RecordUid)
                 );
                 var records = vault.KeeperRecords
@@ -932,7 +934,7 @@ namespace Commander
 
                 try
                 {
-                    var recordUids = options.RecordUids?.Any() == true ? options.RecordUids : null;
+                    var recordUids = options.Arguments?.Any() == true ? options.Arguments : null;
                     var scannedCount = await vault.ScanAndStoreRecordStatusAsync(recordUids);
                     
                     if (scannedCount > 0)
@@ -954,6 +956,44 @@ namespace Commander
                     Console.WriteLine($"Error scanning records: {ex.Message}");
                 }
             }
+            else if (string.Equals(options.subCommand, "ignore", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var vault = context.Vault;
+                if (!vault.Auth.IsBreachWatchEnabled())
+                {
+                    Console.WriteLine("BreachWatch is not available for this account type.");
+                    Console.WriteLine("BreachWatch requires an Enterprise license.");
+                    return;
+                }
+
+                if (options.Arguments?.Any() != true)
+                {
+                    Console.WriteLine("Record UID is required for 'ignore' command.");
+                    Console.WriteLine("Usage: breachwatch ignore <record_uid>");
+                    return;
+                }
+
+                try
+                {
+                    foreach (var recordUid in options.Arguments)
+                    {
+                        if (vault.TryGetKeeperRecord(recordUid, out var record))
+                        {
+                            await BreachWatchIgnore.IgnoreRecord(vault.Auth, vault, recordUid);
+                            Console.WriteLine($"Record '{record.Title}' (UID: {recordUid}) has been ignored.");
+                        }
+                        else
+                        {
+                            await BreachWatchIgnore.IgnoreRecord(vault.Auth, vault, recordUid);
+                            Console.WriteLine($"Record with UID '{recordUid}' has been ignored.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error ignoring record(s): {ex.Message}");
+                }
+            }
             else if (string.Equals(options.subCommand, "password", StringComparison.InvariantCultureIgnoreCase))
             {
                 var vault = context.Vault;
@@ -967,9 +1007,9 @@ namespace Commander
                 var passwords = new List<string>();
                 bool echoPassword = true;
 
-                if (options.Passwords != null && options.Passwords.Any())
+                if (options.Arguments != null && options.Arguments.Any())
                 {
-                    passwords.AddRange(options.Passwords);
+                    passwords.AddRange(options.Arguments);
                 }
                 else
                 {
@@ -993,18 +1033,21 @@ namespace Commander
                     }
                     Console.WriteLine($"Scanning {passwords.Count} password(s)...");
                     var passwordEntries = passwords.Select(p => (Password: p, Euid: (byte[])null));
-                    var results = await KeeperSecurity.BreachWatch.BreachWatch.ScanPasswordsAsync(passwordEntries);
+                    var results = await KeeperSecurity.BreachWatch.BreachWatch.ScanPasswordsAsync(passwordEntries, default(CancellationToken));
                     var euids = new List<byte[]>();
 
-                    foreach (var (Password, Status) in results)
+                    foreach (var result in results)
                     {
-                        if (Status.Euid != null && !Status.Euid.IsEmpty)
+                        var password = result.Password;
+                        var status = result.Status;
+                        
+                        if (status.Euid != null && !status.Euid.IsEmpty)
                         {
-                            euids.Add(Status.Euid.ToByteArray());
+                            euids.Add(status.Euid.ToByteArray());
                         }
 
-                        var displayPassword = echoPassword ? Password : new string('*', Password.Length);
-                        var statusText = Status.BreachDetected ? "WEAK" : "GOOD";
+                        var displayPassword = echoPassword ? password : new string('*', password.Length);
+                        var statusText = status.BreachDetected ? "WEAK" : "GOOD";
                         
                         Console.WriteLine($"{displayPassword,16}: {statusText}");
                     }
@@ -1047,8 +1090,9 @@ namespace Commander
             else
             {
                 Console.WriteLine($"Unknown sub-command: {options.subCommand}");
+                Console.WriteLine("Available commands: list, scan, password, ignore");
             }
-                }
+        }
 
         private static async Task<string> CreateSelfDestructShare(VaultOnline vault, KeeperRecord record, TimeSpan expireIn)
         {
@@ -1453,7 +1497,7 @@ namespace Commander
 
     class BreachWatchOptions
     {
-        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: \'list\', \'scan\', \'password\'")]
+        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: 'list', 'scan', 'password', 'ignore', 'unignore', 'ignored'")]
         public string subCommand { get; set; }
 
         [Option("all", Required = false, Default = false, HelpText = "if all breachwatch records are to be shown")]
@@ -1465,11 +1509,8 @@ namespace Commander
         [Option("numbered", Required = false, Default = false, HelpText = "if records are to be shown as numbered list")]
         public bool Numbered { get; set; }
 
-        [Value(1, Required = false, HelpText = "Record UIDs to scan (for scan subcommand) or passwords to check for breaches (for password subcommand). If not provided, it will scan all unscanned records or prompt for password input.")]
-        public IEnumerable<string> RecordUids { get; set; }
-
-        [Value(1, Required = false, HelpText = "Passwords to check for breaches (for password subcommand). If not provided, it will prompt for input.")]
-        public IEnumerable<string> Passwords { get; set; }
+        [Value(1, Required = false, HelpText = "Arguments for the command (record UIDs for scan/ignore/unignore, passwords for password command)")]
+        public IEnumerable<string> Arguments { get; set; }
     }
 
 
