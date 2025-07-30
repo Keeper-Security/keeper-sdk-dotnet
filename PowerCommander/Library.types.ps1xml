@@ -204,7 +204,18 @@
                 <GetScriptBlock>
                     $ul = @()
                     foreach ($up in $this.UsersPermissions) {
-                    $ul += "$($up.UserType): $($up.Name) ($($up.ShareStatus))"
+                        $displayName = $up.Name
+                        if (-not $displayName) {
+                            if ($up.UserType -eq [KeeperSecurity.Vault.UserType]::Team) {
+                                $availableTeam = Get-KeeperAvailableTeam -Uid $up.Uid
+                                if ($availableTeam) {
+                                    $displayName = $availableTeam.Name
+                                } else {
+                                    $displayName = $up.Uid
+                                }
+                            }
+                        }
+                        $ul += "$($up.UserType): $displayName ($($up.ShareStatus))"
                     }
                     $ul -join "`r`n"
                 </GetScriptBlock>
@@ -246,6 +257,24 @@
         <Members>
 
             <ScriptProperty>
+                <Name>DisplayName</Name>
+                <GetScriptBlock>
+                    $displayName = $this.Name
+                    if (-not $displayName) {
+                        if ($this.UserType -eq [KeeperSecurity.Vault.UserType]::Team) {
+                            $availableTeam = Get-KeeperAvailableTeam -Uid $this.Uid
+                            if ($availableTeam) {
+                                $displayName = $availableTeam.Name
+                            } else {
+                                $displayName = $this.Uid
+                            }
+                        }
+                    }
+                    $displayName
+                </GetScriptBlock>
+            </ScriptProperty>
+
+            <ScriptProperty>
                 <Name>ShareStatus</Name>
                 <GetScriptBlock>
                     if ($this.ManageRecords -and $this.ManageUsers) {
@@ -268,7 +297,7 @@
                         <Name>DefaultDisplayPropertySet</Name>
                         <ReferencedProperties>
                             <Name>UserType</Name>
-                            <Name>Name</Name>
+                            <Name>DisplayName</Name>
                             <Name>ManageRecords</Name>
                             <Name>ManageUsers</Name>
                         </ReferencedProperties>
