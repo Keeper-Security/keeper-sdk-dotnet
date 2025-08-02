@@ -20,23 +20,24 @@ namespace KeeperSecurity.Vault
         /// Incrementally downloads vault data.
         /// </summary>
         /// <param name="vault">Vault connected to Keeper.</param>
+        /// <param name="fullSync"></param>
         /// <param name="syncRecordTypes">Force record types reloading</param>
         /// <returns></returns>
-        internal static async Task RunSyncDownRest(this VaultOnline vault, bool syncRecordTypes = false)
+        internal static async Task RunSyncDownRest(this VaultOnline vault, bool fullSync = false)
         {
             var auth = vault.Auth;
             var storage = vault.Storage;
             var context = vault.Auth.AuthContext;
             var clientKey = vault.ClientKey;
 
-            if (syncRecordTypes)
+            if (fullSync)
             {
                 vault.RecordTypesLoaded = false;
             }
 
             var settings = storage.VaultSettings.Load();
             byte[] token = null;
-            if (settings?.SyncDownToken != null)
+            if (!fullSync && settings?.SyncDownToken != null)
             {
                 token = settings.SyncDownToken;
             }
@@ -540,6 +541,7 @@ namespace KeeperSecurity.Vault
                         .Where(x => x != null)
                         .ToArray();
                     storage.SharedFolderPermissions.DeleteLinks(rsfu);
+                    result.AddSharedFolders(rsfu.Select(x => x.SubjectUid));
                 }
 
                 if (rs.SharedFolderUsers.Count > 0)
@@ -555,6 +557,7 @@ namespace KeeperSecurity.Vault
                         Expiration = x.Expiration,
                     }).ToArray();
                     storage.SharedFolderPermissions.PutLinks(sfus);
+                    result.AddSharedFolders(sfus.Select(x => x.SharedFolderUid));
                 }
 
                 // shared folder teams
@@ -581,6 +584,7 @@ namespace KeeperSecurity.Vault
                         Expiration = x.Expiration,
                     }).ToArray();
                     storage.SharedFolderPermissions.PutLinks(sfts);
+                    result.AddSharedFolders(sfts.Select(x => x.SharedFolderUid));
                 }
 
                 // folders
