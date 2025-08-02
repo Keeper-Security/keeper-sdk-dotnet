@@ -71,8 +71,9 @@ namespace KeeperSecurity.Vault
         /// Schedules sync down.
         /// </summary>
         /// <param name="delay">delay</param>
+        /// <param name="fullSync"></param>
         /// <returns>Awaitable task</returns>
-        public Task ScheduleSyncDown(TimeSpan delay)
+        public Task ScheduleSyncDown(TimeSpan delay, bool fullSync = false)
         {
             if (delay > TimeSpan.FromSeconds(5))
             {
@@ -102,7 +103,7 @@ namespace KeeperSecurity.Vault
                     if (myTask == _syncDownTask)
                     {
                         _scheduledAt = DateTimeOffset.Now.ToUnixTimeMilliseconds() + 1000;
-                        await this.RunSyncDownRest();
+                        await this.RunSyncDownRest(fullSync: fullSync);
                         OnIdle();
                     }
                 }
@@ -124,9 +125,9 @@ namespace KeeperSecurity.Vault
         /// Immediately executes sync down.
         /// </summary>
         /// <returns>Awaitable task</returns>
-        public async Task SyncDown()
+        public async Task SyncDown(bool fullSync = false)
         {
-            await ScheduleSyncDown(TimeSpan.FromMilliseconds(10));
+            await ScheduleSyncDown(TimeSpan.Zero, fullSync);
         }
 
         private bool OnNotificationReceived(NotificationEvent evt)

@@ -184,7 +184,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await SyncDown();
         }
 
         /// <inheritdoc/>>
@@ -243,7 +243,7 @@ namespace KeeperSecurity.Vault
                 }
             }
 
-            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await SyncDown();
         }
 
         /// <inheritdoc/>>
@@ -293,7 +293,7 @@ namespace KeeperSecurity.Vault
                 Console.WriteLine($"Record UID ({recordUid}) cannot be found in Shared Folder ({sharedFolder.Name})");
             }
 
-            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await SyncDown();
         }
     }
 }

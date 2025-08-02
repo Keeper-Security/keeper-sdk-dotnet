@@ -428,7 +428,7 @@ namespace Commander
 
             vault.Storage.Clear();
             vault.Storage.VaultSettings.Load();
-            await vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
+            await vault.SyncDown();
         }
 
         private static async Task HandleAppSharePermissions(VaultOnline vault, AppInfo appInfo, string userUid, bool IsAdmin, bool unshare)
