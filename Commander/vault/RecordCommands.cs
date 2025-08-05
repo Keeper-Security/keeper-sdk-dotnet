@@ -977,16 +977,8 @@ namespace Commander
                 {
                     foreach (var recordUid in options.Arguments)
                     {
-                        if (vault.TryGetKeeperRecord(recordUid, out var record))
-                        {
-                            await BreachWatchIgnore.IgnoreRecord(vault, recordUid);
-                            Console.WriteLine($"Record '{record.Title}' (UID: {recordUid}) has been ignored.");
-                        }
-                        else
-                        {
-                            await BreachWatchIgnore.IgnoreRecord(vault, recordUid);
-                            Console.WriteLine($"Record with UID '{recordUid}' has been ignored.");
-                        }
+                        await BreachWatchIgnore.IgnoreRecord(vault, recordUid);
+                        Console.WriteLine($"Record (UID: {recordUid}) has been ignored.");
                     }
                 }
                 catch (Exception ex)

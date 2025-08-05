@@ -75,7 +75,7 @@ namespace KeeperSecurity.BreachWatch
         {
             if (vault == null || string.IsNullOrEmpty(recordUid))
             {
-                return false;
+                throw new VaultException("Vault is not inititated or record UID is given as empty");
             }
 
             var breachWatchRecords = vault.BreachWatchRecords();
@@ -90,9 +90,6 @@ namespace KeeperSecurity.BreachWatch
             BWStatus status)
         {
             var breachWatchData = new BreachWatchData();
-            
-            // For ignore functionality, we need to include at least one password entry
-            // even if we're just setting the ignore status
             var password = record.ExtractPassword();
             var passwordInfo = new BWPassword
             {

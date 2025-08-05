@@ -345,12 +345,7 @@ function Set-KeeperBreachWatchRecordIgnore {
                 Write-Host "Record '$($record.Title)' (UID: $recordUid) has been ignored."
             }
             else {
-                try {
-                    Write-Host "Record with UID '$recordUid' has not been found."
-                }
-                catch {
-                    Write-Host "Record with UID '$recordUid' has not been found."
-                }
+                Write-Host "Record with UID '$recordUid' has not been found."                
             }
         }
     }
