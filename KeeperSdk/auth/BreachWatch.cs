@@ -33,21 +33,22 @@ namespace KeeperSecurity.BreachWatch
         /// <summary>
         /// Ignores a BreachWatch record by setting its status to BWStatus.Ignore.
         /// </summary>
-        public static async Task IgnoreRecord(IAuthentication auth, VaultOnline vault, string recordUid)
+        public static async Task IgnoreRecord(VaultOnline vault, string recordUid)
         {
+            
             if (string.IsNullOrEmpty(recordUid))
             {
                 throw new ArgumentException("Record UID cannot be null or empty", nameof(recordUid));
             }
 
-            if (auth == null)
-            {
-                throw new ArgumentNullException(nameof(auth));
-            }
-
             if (vault == null)
             {
                 throw new ArgumentNullException(nameof(vault));
+            }
+            var auth = vault.Auth;
+            if (auth == null)
+            {
+                throw new ArgumentNullException(nameof(auth));
             }
 
             if (!vault.TryLoadKeeperRecord(recordUid, out var record))

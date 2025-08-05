@@ -91,7 +91,8 @@
         'Add-KeeperSecretManagerApp', 'Remove-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess', 'Revoke-KeeperSecretManagerFolderAccess',
         'Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient', 'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare',
         'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 'Copy-KeeperFileAttachmentToStream', 'Copy-FileToKeeperRecord',
-        'Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword', 'Test-PasswordAgainstBreachWatch'
+        'Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword', 'Test-PasswordAgainstBreachWatch',
+        'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords'
     )
 
     # Cmdlets to export from this module
