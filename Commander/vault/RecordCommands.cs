@@ -1497,7 +1497,7 @@ namespace Commander
 
     class BreachWatchOptions
     {
-        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: 'list', 'scan', 'password', 'ignore', 'unignore', 'ignored'")]
+        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: 'list', 'scan', 'password', 'ignore'")]
         public string subCommand { get; set; }
 
         [Option("all", Required = false, Default = false, HelpText = "if all breachwatch records are to be shown")]
@@ -1509,7 +1509,7 @@ namespace Commander
         [Option("numbered", Required = false, Default = false, HelpText = "if records are to be shown as numbered list")]
         public bool Numbered { get; set; }
 
-        [Value(1, Required = false, HelpText = "Arguments for the command (record UIDs for scan/ignore/unignore, passwords for password command)")]
+        [Value(1, Required = false, HelpText = "Arguments for the command (record UIDs for scan/ignore, passwords for password command)")]
         public IEnumerable<string> Arguments { get; set; }
     }
 
