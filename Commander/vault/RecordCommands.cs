@@ -860,32 +860,40 @@ namespace Commander
                     var rows = records
                         .Select((x, idx) => showNumbered
                             ? new[] { (idx + 1).ToString(), x.Uid, x.Title, x.KeeperRecordPublicInformation() }
-                            : new[] { x.Uid, x.Title, x.KeeperRecordPublicInformation() })
-                        .OrderBy(x => x[showNumbered ? 1 : 0], StringComparer.OrdinalIgnoreCase)
-                        .ToList();
+                            : new[] { x.Uid, x.Title, x.KeeperRecordPublicInformation() });
 
-                    int total = rows.Count;
+                    List<string[]> sortedRows;
+                    if (showNumbered)
+                    {
+                        sortedRows = rows.OrderBy(x => int.Parse(x[0])).ToList();
+                    }
+                    else
+                    {
+                        sortedRows = rows.OrderBy(x => x[0], StringComparer.OrdinalIgnoreCase).ToList();
+                    }
+
+                    int total = rows.Count();
 
 
                     if (!showAll && total > 32)
                     {
-                        rows = rows.Take(30).ToList();
+                        sortedRows = sortedRows.Take(30).ToList();
                     }
 
-                    foreach (var row in rows)
+                    foreach (var row in sortedRows)
                     {
                         table.AddRow(row);
                     }
 
                     table.Dump();
 
-                    if (rows.Count < total)
+                    if (sortedRows.Count < total)
                     {
                         Console.WriteLine();
-                        Console.WriteLine($"{total - rows.Count} records skipped.");
+                        Console.WriteLine($"{total - sortedRows.Count} records skipped.");
                     }
 
-                    if (rows.Count == 0)
+                    if (sortedRows.Count == 0)
                     {
                         Console.WriteLine("No breached records detected");
                     }
