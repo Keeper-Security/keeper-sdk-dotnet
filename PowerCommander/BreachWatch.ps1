@@ -3,10 +3,11 @@
 function Get-KeeperBreachWatchList {
     <#
     .SYNOPSIS
-    Lists Keeper records flagged by BreachWatch as Weak or Breached.
+    Lists Keeper records flagged by BreachWatch that require attention (excludes ignored and good records).
 
     .DESCRIPTION
-    Retrieves Keeper records in your vault that have been identified by BreachWatch as having weak or breached passwords.
+    Retrieves Keeper records in your vault that have been flagged by BreachWatch and require attention, including weak, breached, and changed passwords. 
+    This excludes records marked as "Good" or "Ignore" status.
     You can filter to only show records you own, include all records, and display results with numbering.
 
     .PARAMETER OwnedOnly
@@ -20,18 +21,19 @@ function Get-KeeperBreachWatchList {
 
    .EXAMPLE
     Get-KeeperBreachWatchList
-    Lists up to 32 records in your vault flagged as Weak or Breached by BreachWatch.
+    Lists up to 32 records in your vault that require BreachWatch attention (weak, breached, or changed passwords).
 
     .EXAMPLE
     Get-KeeperBreachWatchList -OwnedOnly
-    Lists only the records you own that are flagged by BreachWatch.
+    Lists only the records you own that require BreachWatch attention.
 
     .EXAMPLE
     Get-KeeperBreachWatchList -All -Numbered
     Lists all BreachWatch-flagged records with a serial number column.
 
     .NOTES
-    This function helps you quickly identify and review records in your Keeper vault that require attention due to password weaknesses or breaches.
+    This function helps you quickly identify and review records in your Keeper vault that require attention due to password issues (weak, breached, or changed passwords). 
+    Records with "Good" or "Ignore" status are excluded from the results.
     #>
     [CmdletBinding()]
     param(
@@ -44,7 +46,7 @@ function Get-KeeperBreachWatchList {
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
     $recordUids = $vault.BreachWatchRecords() |
-        Where-Object { $_.Status -in @("Weak", "Breached") } |
+        Where-Object { $_.Status -ne "Ignore" -and $_.Status -ne "Good" } |
         Select-Object -ExpandProperty RecordUid
 
     $records = $vault.KeeperRecords |
@@ -87,7 +89,7 @@ function Get-KeeperBreachWatchList {
             Write-Host "$($total - $table.Count) records skipped."
         }
     } else {
-        Write-Host "No breached records detected"
+        Write-Host "No BreachWatch issues detected (excluding ignored records)"
     }
 
     $scannedUids = $vault.BreachWatchRecords() | Select-Object -ExpandProperty RecordUid
@@ -290,5 +292,156 @@ function Test-PasswordAgainstBreachWatch {
     }
 }
 
+function Set-KeeperBreachWatchRecordIgnore {
+    <#
+    .SYNOPSIS
+    Ignores BreachWatch records.
+
+    .DESCRIPTION
+    Sets one or more records' BreachWatch status to "Ignore", which excludes them from BreachWatch scanning and reporting.
+
+    .PARAMETER RecordUids
+    One or more record UIDs to ignore.
+
+    .EXAMPLE
+    Set-KeeperBreachWatchRecordIgnore -RecordUids "abc123def456"
+    Ignores the record with the specified UID from breachwatch scan.
+
+    .EXAMPLE
+    Set-KeeperBreachWatchRecordIgnore -RecordUids "abc123def456", "xyz789ghi012"
+    Ignores multiple records with the specified UIDs from breachwatch scan.
+
+    .NOTES
+    Usage: Set-KeeperBreachWatchRecordIgnore -RecordUids <record_uid1> [<record_uid2> ...]
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$RecordUids,
+
+        [Parameter()]
+        [string]$VaultContextVar = "Global:KeeperVaultContext"
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    if ($vault.Auth.AuthContext.License.AccountType -ne 2) {
+        Write-Host "BreachWatch is not available for this account type."
+        Write-Host "BreachWatch requires an Enterprise license."
+        return
+    }
+
+    if ($RecordUids.Count -eq 0) {
+        Write-Host "Record UID is required for 'ignore' command."
+        Write-Host "Usage: Set-KeeperBreachWatchRecordIgnore -RecordUids <record_uid>"
+        return
+    }
+
+    try {
+        foreach ($recordUid in $RecordUids) {
+            $record = $null
+            if ($vault.TryLoadKeeperRecord($recordUid, [ref]$record)) {
+                [KeeperSecurity.BreachWatch.BreachWatchIgnore]::IgnoreRecord($vault, $recordUid).GetAwaiter().GetResult()
+                Write-Host "Record '$($record.Title)' (UID: $recordUid) has been ignored."
+            }
+            else {
+                Write-Host "Record with UID '$recordUid' has not been found."                
+            }
+        }
+    }
+    catch {
+        Write-Host "Error ignoring record(s): $($_.Exception.Message)"
+    }
+}
+
+function Get-KeeperIgnoredBreachWatchRecords {
+    <#
+    .SYNOPSIS
+    Lists all BreachWatch records that are currently ignored.
+
+    .DESCRIPTION
+    Retrieves all records in your vault that have been marked as ignored in BreachWatch.
+    This helps you review which records you've previously chosen to exclude from BreachWatch monitoring.
+
+    .PARAMETER OwnedOnly
+    Show only records owned by you.
+
+    .PARAMETER Numbered
+    Display a serial number column in the output.
+
+    .EXAMPLE
+    Get-KeeperIgnoredBreachWatchRecords
+    Lists all ignored BreachWatch records.
+
+    .EXAMPLE
+    Get-KeeperIgnoredBreachWatchRecords -OwnedOnly -Numbered
+    Lists only your ignored records with numbering.
+
+    .NOTES
+    This function helps you audit which records have been excluded from BreachWatch monitoring.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter()][Switch]$OwnedOnly,
+        [Parameter()][Switch]$Numbered,
+        [Parameter()][string]$VaultContextVar = "Global:KeeperVaultContext"
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    if ($vault.Auth.AuthContext.License.AccountType -ne 2) {
+        Write-Host "BreachWatch is not available for this account type."
+        Write-Host "BreachWatch requires an Enterprise license."
+        return
+    }
+
+    $ignoredRecordUids = $vault.BreachWatchRecords() |
+        Where-Object { $_.Status -eq "Ignore" } |
+        Select-Object -ExpandProperty RecordUid
+
+    if ($ignoredRecordUids.Count -eq 0) {
+        Write-Host "No ignored BreachWatch records found."
+        return
+    }
+
+    $records = $vault.KeeperRecords |
+        Where-Object {
+            $ignoredRecordUids -contains $_.Uid -and
+            (-not $OwnedOnly -or $_.Owner)
+        }
+
+    if ($records.Count -gt 0) {
+        $table = New-Object System.Collections.Generic.List[object]
+        $index = 1
+
+        foreach ($r in $records | Sort-Object Title) {
+            $row = if ($Numbered) {
+                [PSCustomObject]@{
+                    "S.No"       = $index++
+                    "Record UID" = $r.Uid
+                    "Title"      = $r.Title
+                    "Description"= [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordPublicInformation($r)
+                    "Status"     = "Ignored"
+                }
+            } else {
+                [PSCustomObject]@{
+                    "Record UID" = $r.Uid
+                    "Title"      = $r.Title
+                    "Description"= [KeeperSecurity.Utils.RecordTypesUtils]::KeeperRecordPublicInformation($r)
+                    "Status"     = "Ignored"
+                }
+            }
+            $table.Add($row)
+        }
+
+        $table | Format-Table -AutoSize
+        Write-Host "Total ignored records: $($table.Count)"
+    } else {
+        Write-Host "No ignored BreachWatch records found for the specified criteria."
+    }
+}
+
 Set-Alias -Name kbw -Value Get-KeeperBreachWatchList
 Set-Alias -Name kbwp -Value Test-PasswordAgainstBreachWatch
+Set-Alias -Name kbwi -Value Set-KeeperBreachWatchRecordIgnore
+Set-Alias -Name kbwig -Value Get-KeeperIgnoredBreachWatchRecords
