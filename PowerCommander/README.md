@@ -90,6 +90,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 |----------------------------------------|-------------|----------------------------
 | Get-KeeperBreachWatchList              | kbw         | List passwords which are breached based on breachwatch
 | Test-PasswordAgainstBreachWatch        | kbwp        | check a given password against breachwatch passwords
+ Set-KeeperBreachWatchRecordIgnore       | kbwi        | Ignore a given record from breachwatch alerts
 
 ### Secret Manager Cmdlets
 | Cmdlet name                            | Alias       | Description
