@@ -17,6 +17,7 @@ using KeeperSecurity.BreachWatch;
 using Authentication;
 using Google.Protobuf;
 using System.Security.Cryptography;
+using System.Threading;
 
 namespace Commander
 {
@@ -822,233 +823,296 @@ namespace Commander
         {
             if (string.IsNullOrEmpty(options.subCommand) || string.Equals(options.subCommand, "list", StringComparison.InvariantCultureIgnoreCase))
             {
-                var vault = context.Vault;
-                if (vault == null)
-                {
-                    Console.WriteLine("Vault is not initialized");
-                    throw new VaultException("Vault not initialized");
-                }
-                bool ownedOnly = options.Owned;
-                var recordUids = new HashSet<string>(
-                    vault.BreachWatchRecords()
-                        .Where(x => x.Status == BWStatus.Weak || x.Status == BWStatus.Breached)
-                        .Select(x => x.RecordUid)
-                );
-                var records = vault.KeeperRecords
-                .Where(x =>
-                    recordUids.Contains(x.Uid) &&
-                    (!ownedOnly || x.Owner == ownedOnly)
-                )
-                .ToList();
-                if (records.Count > 0)
-                {
-                    var table = new Tabulate(4);
-                    bool showNumbered = options.Numbered;
-                    bool showAll = options.All;
-
-                    if (showNumbered)
-                    {
-                        table.AddHeader("S.No", "Record UID", "Title", "Description");
-                    }
-                    else
-                    {
-                        table.AddHeader("Record UID", "Title", "Description");
-                    }
-
-                    var rows = records
-                        .Select((x, idx) => showNumbered
-                            ? new[] { (idx + 1).ToString(), x.Uid, x.Title, x.KeeperRecordPublicInformation() }
-                            : new[] { x.Uid, x.Title, x.KeeperRecordPublicInformation() })
-                        .OrderBy(x => x[showNumbered ? 1 : 0], StringComparer.OrdinalIgnoreCase)
-                        .ToList();
-
-                    int total = rows.Count;
-
-
-                    if (!showAll && total > 32)
-                    {
-                        rows = rows.Take(30).ToList();
-                    }
-
-                    foreach (var row in rows)
-                    {
-                        table.AddRow(row);
-                    }
-
-                    table.Dump();
-
-                    if (rows.Count < total)
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine($"{total - rows.Count} records skipped.");
-                    }
-
-                    if (rows.Count == 0)
-                    {
-                        Console.WriteLine("No breached records detected");
-                    }
-                }
-
-                var scannedRecordUids = new HashSet<string>(
-                    vault.BreachWatchRecords()
-                        .Select(x => x.RecordUid)
-                );
-
-                var notScannedRecords = vault.KeeperRecords
-                    .Where(x => x.Owner && !scannedRecordUids.Contains(x.Uid))
-                    .Select(x => x.Uid)
-                    .ToList();
-
-                bool hasPasswordsToScan = false;
-                foreach (var recordUid in notScannedRecords)
-                {
-                    vault.TryLoadKeeperRecord(recordUid, out var record);
-                    if (record != null)
-                    {
-                        var password = record.ExtractPassword();
-                        if (password != null && password != "")
-                        {
-                            hasPasswordsToScan = true;
-                            break;
-                        }
-                    }
-                }
-                if (hasPasswordsToScan)
-                {
-                    Console.WriteLine("Some passwords in your vault has not been scanned.\n" +
-                        "Use \"breachwatch scan\" command to scan your passwords against our database " +
-                        "of breached accounts on the Dark Web.");
-                }
+                BreachWatchList(context, options);
             }
             else if (string.Equals(options.subCommand, "scan", StringComparison.InvariantCultureIgnoreCase))
             {
-                var vault = context.Vault;
-                if (!vault.Auth.IsBreachWatchEnabled())
-                {
-                    Console.WriteLine("BreachWatch is not available for this account type.");
-                    Console.WriteLine("BreachWatch requires an Enterprise license.");
-                    return;
-                }
-
-                try
-                {
-                    var recordUids = options.RecordUids?.Any() == true ? options.RecordUids : null;
-                    var scannedCount = await vault.ScanAndStoreRecordStatusAsync(recordUids);
-                    
-                    if (scannedCount > 0)
-                    {
-                        Console.WriteLine($"Successfully scanned and updated {scannedCount} record(s).");
-                        Console.WriteLine("Use \"breachwatch list\" to view updated results.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("No records found to scan or all eligible records have already been scanned.");
-                    }
-                }
-                catch (BreachWatchException ex)
-                {
-                    Console.WriteLine($"BreachWatch scan error: {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error scanning records: {ex.Message}");
-                }
+                await BreachWatchScan(context, options);
+            }
+            else if (string.Equals(options.subCommand, "ignore", StringComparison.InvariantCultureIgnoreCase))
+            {
+                await BreachWatchIgnoreCommand(context, options);
             }
             else if (string.Equals(options.subCommand, "password", StringComparison.InvariantCultureIgnoreCase))
             {
-                var vault = context.Vault;
-                if (!vault.Auth.IsBreachWatchEnabled())
-                {
-                    Console.WriteLine("BreachWatch is not available for this account type.");
-                    Console.WriteLine("BreachWatch requires an Enterprise license.");
-                    return;
-                }
-
-                var passwords = new List<string>();
-                bool echoPassword = true;
-
-                if (options.Passwords != null && options.Passwords.Any())
-                {
-                    passwords.AddRange(options.Passwords);
-                }
-                else
-                {
-                    echoPassword = false;
-                    Console.Write("Password to Check: ");
-                    var password = await Program.GetInputManager().ReadLine(new ReadLineParameters { IsSecured = true });
-                    if (string.IsNullOrEmpty(password))
-                    {
-                        return;
-                    }
-                    passwords.Add(password);
-                }
-
-                try
-                {
-                    await KeeperSecurity.BreachWatch.BreachWatch.InitializeBreachWatch(vault.Auth);
-
-                    if (KeeperSecurity.BreachWatch.BreachWatch.PasswordToken.Length == 0)
-                    {
-                        return;
-                    }
-                    Console.WriteLine($"Scanning {passwords.Count} password(s)...");
-                    var passwordEntries = passwords.Select(p => (Password: p, Euid: (byte[])null));
-                    var results = await KeeperSecurity.BreachWatch.BreachWatch.ScanPasswordsAsync(passwordEntries);
-                    var euids = new List<byte[]>();
-
-                    foreach (var (Password, Status) in results)
-                    {
-                        if (Status.Euid != null && !Status.Euid.IsEmpty)
-                        {
-                            euids.Add(Status.Euid.ToByteArray());
-                        }
-
-                        var displayPassword = echoPassword ? Password : new string('*', Password.Length);
-                        var statusText = Status.BreachDetected ? "WEAK" : "GOOD";
-                        
-                        Console.WriteLine($"{displayPassword,16}: {statusText}");
-                    }
-
-                    if (euids.Count > 0)
-                    {
-                        await KeeperSecurity.BreachWatch.BreachWatch.DeleteEuids(euids);
-                    }
-                }
-                catch (BreachWatchException ex) when (ex.Message.Contains("Invalid payload"))
-                {
-                    Console.WriteLine($"BreachWatch Invalid Payload Error: {ex.Message}");
-                    Console.WriteLine();
-                    Console.WriteLine("Attempting to re-initialize BreachWatch tokens...");
-                    
-                    try
-                    {
-                        await KeeperSecurity.BreachWatch.BreachWatch.ReInitializeBreachWatch(vault.Auth);
-                        Console.WriteLine("BreachWatch tokens re-initialized. Please try the command again.");
-                    }
-                    catch (Exception reinitEx)
-                    {
-                        Console.WriteLine($"Failed to re-initialize BreachWatch tokens: {reinitEx.Message}");
-                        Console.WriteLine("This may indicate an account permissions issue or temporary server problem.");
-                    }
-                }
-                catch (BreachWatchException ex)
-                {
-                    Console.WriteLine($"BreachWatch error: {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error scanning passwords: {ex.Message}");
-                    if (ex.InnerException != null)
-                    {
-                        Console.WriteLine($"Inner error: {ex.InnerException.Message}");
-                    }
-                }
+                await BreachWatchPasswordCommand(context, options);
             }
             else
             {
                 Console.WriteLine($"Unknown sub-command: {options.subCommand}");
+                Console.WriteLine("Available commands: list, scan, password, ignore");
             }
+        }
+
+        private static void BreachWatchList(this VaultContext context, BreachWatchOptions options)
+        {
+            var vault = context.Vault;
+            if (vault == null)
+            {
+                Console.WriteLine("Vault is not initialized");
+                throw new VaultException("Vault not initialized");
+            }
+            bool ownedOnly = options.Owned;
+            var recordUids = new HashSet<string>(
+                vault.BreachWatchRecords()
+                    .Where(x => x.Status == BWStatus.Weak || x.Status == BWStatus.Breached)
+                    .Where(x => !BreachWatchIgnore.IsRecordIgnored(vault, x.RecordUid))
+                    .Select(x => x.RecordUid)
+            );
+            var records = vault.KeeperRecords
+            .Where(x =>
+                recordUids.Contains(x.Uid) &&
+                (!ownedOnly || x.Owner == ownedOnly)
+            )
+            .ToList();
+            if (records.Count > 0)
+            {
+                var table = new Tabulate(4);
+                bool showNumbered = options.Numbered;
+                bool showAll = options.All;
+
+                if (showNumbered)
+                {
+                    table.AddHeader("S.No", "Record UID", "Title", "Description");
                 }
+                else
+                {
+                    table.AddHeader("Record UID", "Title", "Description");
+                }
+
+                var rows = records
+                    .Select((x, idx) => showNumbered
+                        ? new[] { (idx + 1).ToString(), x.Uid, x.Title, x.KeeperRecordPublicInformation() }
+                        : new[] { x.Uid, x.Title, x.KeeperRecordPublicInformation() });
+
+                List<string[]> sortedRows;
+                if (showNumbered)
+                {
+                    sortedRows = rows.OrderBy(x => int.Parse(x[0])).ToList();
+                }
+                else
+                {
+                    sortedRows = rows.OrderBy(x => x[0], StringComparer.OrdinalIgnoreCase).ToList();
+                }
+
+                int total = rows.Count();
+
+
+                if (!showAll && total > 32)
+                {
+                    sortedRows = sortedRows.Take(30).ToList();
+                }
+
+                foreach (var row in sortedRows)
+                {
+                    table.AddRow(row);
+                }
+
+                table.Dump();
+
+                if (sortedRows.Count < total)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine($"{total - sortedRows.Count} records skipped.");
+                }
+
+                if (sortedRows.Count == 0)
+                {
+                    Console.WriteLine("No breached records detected");
+                }
+            }
+
+            var scannedRecordUids = new HashSet<string>(
+                vault.BreachWatchRecords()
+                    .Select(x => x.RecordUid)
+            );
+
+            var notScannedRecords = vault.KeeperRecords
+                .Where(x => x.Owner && !scannedRecordUids.Contains(x.Uid))
+                .Select(x => x.Uid)
+                .ToList();
+
+            bool hasPasswordsToScan = false;
+            foreach (var recordUid in notScannedRecords)
+            {
+                vault.TryLoadKeeperRecord(recordUid, out var record);
+                if (record != null)
+                {
+                    var password = record.ExtractPassword();
+                    if (password != null && password != "")
+                    {
+                        hasPasswordsToScan = true;
+                        break;
+                    }
+                }
+            }
+            if (hasPasswordsToScan)
+            {
+                Console.WriteLine("Some passwords in your vault has not been scanned.\n" +
+                    "Use \"breachwatch scan\" command to scan your passwords against our database " +
+                    "of breached accounts on the Dark Web.");
+            }
+        }
+
+        private static async Task BreachWatchScan(this VaultContext context, BreachWatchOptions options)
+        {
+            var vault = context.Vault;
+            if (!vault.Auth.IsBreachWatchEnabled())
+            {
+                Console.WriteLine("BreachWatch is not available for this account type.");
+                Console.WriteLine("BreachWatch requires an Enterprise license.");
+                return;
+            }
+
+            try
+            {
+                var recordUids = options.Arguments?.Any() == true ? options.Arguments : null;
+                var scannedCount = await vault.ScanAndStoreRecordStatusAsync(recordUids);
+
+                if (scannedCount > 0)
+                {
+                    Console.WriteLine($"Successfully scanned and updated {scannedCount} record(s).");
+                    Console.WriteLine("Use \"breachwatch list\" to view updated results.");
+                }
+                else
+                {
+                    Console.WriteLine("No records found to scan or all eligible records have already been scanned.");
+                }
+            }
+            catch (BreachWatchException ex)
+            {
+                Console.WriteLine($"BreachWatch scan error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error scanning records: {ex.Message}");
+            }
+        }
+
+        private static async Task BreachWatchIgnoreCommand(this VaultContext context, BreachWatchOptions options)
+        {
+            var vault = context.Vault;
+            if (!vault.Auth.IsBreachWatchEnabled())
+            {
+                Console.WriteLine("BreachWatch is not available for this account type.");
+                Console.WriteLine("BreachWatch requires an Enterprise license.");
+                return;
+            }
+
+            if (options.Arguments?.Any() != true)
+            {
+                Console.WriteLine("Record UID is required for 'ignore' command.");
+                Console.WriteLine("Usage: breachwatch ignore <record_uid>");
+                return;
+            }
+
+            try
+            {
+                foreach (var recordUid in options.Arguments)
+                {
+                    await BreachWatchIgnore.IgnoreRecord(vault, recordUid);
+                    Console.WriteLine($"Record (UID: {recordUid}) has been ignored.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error ignoring record(s): {ex.Message}");
+            }
+        }
+
+        private static async Task BreachWatchPasswordCommand(this VaultContext context, BreachWatchOptions options)
+        {
+            var vault = context.Vault;
+            if (!vault.Auth.IsBreachWatchEnabled())
+            {
+                Console.WriteLine("BreachWatch is not available for this account type.");
+                Console.WriteLine("BreachWatch requires an Enterprise license.");
+                return;
+            }
+
+            var passwords = new List<string>();
+            bool echoPassword = true;
+
+            if (options.Arguments != null && options.Arguments.Any())
+            {
+                passwords.AddRange(options.Arguments);
+            }
+            else
+            {
+                echoPassword = false;
+                Console.Write("Password to Check: ");
+                var password = await Program.GetInputManager().ReadLine(new ReadLineParameters { IsSecured = true });
+                if (string.IsNullOrEmpty(password))
+                {
+                    return;
+                }
+                passwords.Add(password);
+            }
+
+            try
+            {
+                await KeeperSecurity.BreachWatch.BreachWatch.InitializeBreachWatch(vault.Auth);
+
+                if (KeeperSecurity.BreachWatch.BreachWatch.PasswordToken.Length == 0)
+                {
+                    return;
+                }
+                Console.WriteLine($"Scanning {passwords.Count} password(s)...");
+                var passwordEntries = passwords.Select(p => (Password: p, Euid: (byte[]) null));
+                var results = await KeeperSecurity.BreachWatch.BreachWatch.ScanPasswordsAsync(passwordEntries, default);
+                var euids = new List<byte[]>();
+
+                foreach (var result in results)
+                {
+                    var password = result.Password;
+                    var status = result.Status;
+
+                    if (status.Euid != null && !status.Euid.IsEmpty)
+                    {
+                        euids.Add(status.Euid.ToByteArray());
+                    }
+
+                    var displayPassword = echoPassword ? password : new string('*', password.Length);
+                    var statusText = status.BreachDetected ? "WEAK" : "GOOD";
+
+                    Console.WriteLine($"{displayPassword,16}: {statusText}");
+                }
+
+                if (euids.Count > 0)
+                {
+                    await KeeperSecurity.BreachWatch.BreachWatch.DeleteEuids(euids);
+                }
+            }
+            catch (BreachWatchException ex) when (ex.Message.Contains("Invalid payload"))
+            {
+                Console.WriteLine($"BreachWatch Invalid Payload Error: {ex.Message}");
+                Console.WriteLine();
+                Console.WriteLine("Attempting to re-initialize BreachWatch tokens...");
+
+                try
+                {
+                    await KeeperSecurity.BreachWatch.BreachWatch.ReInitializeBreachWatch(vault.Auth);
+                    Console.WriteLine("BreachWatch tokens re-initialized. Please try the command again.");
+                }
+                catch (Exception reinitEx)
+                {
+                    Console.WriteLine($"Failed to re-initialize BreachWatch tokens: {reinitEx.Message}");
+                    Console.WriteLine("This may indicate an account permissions issue or temporary server problem.");
+                }
+            }
+            catch (BreachWatchException ex)
+            {
+                Console.WriteLine($"BreachWatch error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error scanning passwords: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner error: {ex.InnerException.Message}");
+                }
+            }
+        }
 
         private static async Task<string> CreateSelfDestructShare(VaultOnline vault, KeeperRecord record, TimeSpan expireIn)
         {
@@ -1060,18 +1124,18 @@ namespace Commander
             var clientKey = CryptoUtils.GenerateEncryptionKey();
             using var hmac = new HMACSHA512(clientKey);
             var clientId = hmac.ComputeHash(Encoding.UTF8.GetBytes("KEEPER_SECRETS_MANAGER_CLIENT_ID"));
-            
+
             var rq = new AddExternalShareRequest
             {
                 RecordUid = ByteString.CopyFrom(tr.Uid.Base64UrlDecode()),
                 ClientId = ByteString.CopyFrom(clientId),
                 EncryptedRecordKey = ByteString.CopyFrom(CryptoUtils.EncryptAesV2(tr.RecordKey, clientKey)),
-                AccessExpireOn = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (long)expireIn.TotalMilliseconds,
+                AccessExpireOn = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + (long) expireIn.TotalMilliseconds,
                 IsSelfDestruct = true
             };
-            
+
             await vault.Auth.ExecuteAuthRest("vault/external_share_add", rq);
-            
+
             var builder = new UriBuilder(vault.Auth.Endpoint.Server)
             {
                 Path = "/vault/share",
@@ -1080,7 +1144,7 @@ namespace Commander
                 Fragment = clientKey.Base64UrlEncode(),
             };
             return builder.ToString();
-        }       
+        }
 
         internal class RecordTypeService
         {
@@ -1453,7 +1517,7 @@ namespace Commander
 
     class BreachWatchOptions
     {
-        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: \'list\', \'scan\', \'password\'")]
+        [Value(0, Required = false, Default = "list", HelpText = "BreachWatch Command. Supported commands are: 'list', 'scan', 'password', 'ignore'")]
         public string subCommand { get; set; }
 
         [Option("all", Required = false, Default = false, HelpText = "if all breachwatch records are to be shown")]
@@ -1465,11 +1529,8 @@ namespace Commander
         [Option("numbered", Required = false, Default = false, HelpText = "if records are to be shown as numbered list")]
         public bool Numbered { get; set; }
 
-        [Value(1, Required = false, HelpText = "Record UIDs to scan (for scan subcommand) or passwords to check for breaches (for password subcommand). If not provided, it will scan all unscanned records or prompt for password input.")]
-        public IEnumerable<string> RecordUids { get; set; }
-
-        [Value(1, Required = false, HelpText = "Passwords to check for breaches (for password subcommand). If not provided, it will prompt for input.")]
-        public IEnumerable<string> Passwords { get; set; }
+        [Value(1, Required = false, HelpText = "Arguments for the command (record UIDs for scan/ignore, passwords for password command)")]
+        public IEnumerable<string> Arguments { get; set; }
     }
 
 
