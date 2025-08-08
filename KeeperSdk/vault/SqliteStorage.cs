@@ -22,6 +22,7 @@ namespace KeeperSecurity.Vault
         private readonly SqliteLinkStorage<IStorageFolderRecord, StorageFolderRecord> _folderRecords;
         private readonly SqliteEntityStorage<IStorageRecordType, StorageRecordType> _recordTypes;
         private readonly SqliteLinkStorage<IStorageUserEmail, StorageUserEmail> _userEmails;
+        private readonly SqliteEntityStorage<IStorageBreachWatchRecord, StorageBreachWatchRecord> _breachWatchRecords;
 
         public SqliteKeeperStorage(Func<IDbConnection> getConnection, string ownerId)
         {
@@ -54,6 +55,7 @@ namespace KeeperSecurity.Vault
                     ownerId);
             _userEmails =
                 new SqliteLinkStorage<IStorageUserEmail, StorageUserEmail>(getConnection, OwnerColumnName, ownerId);
+            _breachWatchRecords = new SqliteEntityStorage<IStorageBreachWatchRecord, StorageBreachWatchRecord>(getConnection, OwnerColumnName, ownerId);
         }
 
         public IEnumerable<SqliteStorage> GetStorages()
@@ -70,6 +72,7 @@ namespace KeeperSecurity.Vault
             yield return _folderRecords;
             yield return _recordTypes;
             yield return _userEmails;
+            yield return _breachWatchRecords;
         }
 
         public string PersonalScopeUid { get; }
@@ -86,6 +89,7 @@ namespace KeeperSecurity.Vault
         public ILinkStorage<IStorageFolderRecord> FolderRecords => _folderRecords;
         public IEntityStorage<IStorageRecordType> RecordTypes => _recordTypes;
         public ILinkStorage<IStorageUserEmail> UserEmails => _userEmails;
+        public IEntityStorage<IStorageBreachWatchRecord> BreachWatchRecords => _breachWatchRecords;
 
         public void Clear()
         {

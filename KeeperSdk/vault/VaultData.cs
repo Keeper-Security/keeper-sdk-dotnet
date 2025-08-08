@@ -6,9 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using BreachWatchProto = BreachWatch;
 using KeeperSecurity.Commands;
 using KeeperSecurity.Storage;
 using KeeperSecurity.Utils;
+using Tokens;
 
 namespace KeeperSecurity.Vault
 {
@@ -39,6 +41,14 @@ namespace KeeperSecurity.Vault
                 AddRecord(recordUid);
             }
         }
+        
+        public void AddBreachWatchRecords(IEnumerable<string> recordUids)
+        {
+            foreach (var recordUid in recordUids)
+            {
+                AddRecord(recordUid);
+            }
+        }
 
         private void AddSharedFolder(string sharedFolderUid)
         {
@@ -61,6 +71,7 @@ namespace KeeperSecurity.Vault
 
         public ISet<string> Records { get; private set; }
         public ISet<string> SharedFolders { get; private set; }
+        public ISet<BreachWatchInfo> BreachWatchRecords { get; private set; }
     }
 
     /// <summary>
@@ -77,6 +88,12 @@ namespace KeeperSecurity.Vault
         {
             ClientKey = clientKey;
             Storage = storage;
+
+            // Initialize BreachWatchService with required delegates
+            _breachWatchService = new BreachWatchService(
+                storage,
+                (recordKey) => DecryptRecordKey(recordKey, out var key) ? key : null,
+                (recordUid) => TryLoadKeeperRecord(recordUid, out var record) ? record : null);
 
             RootFolder = new FolderNode
             {
@@ -216,6 +233,7 @@ namespace KeeperSecurity.Vault
         private readonly ConcurrentDictionary<string, SharedFolder> _keeperSharedFolders = new();
         private readonly ConcurrentDictionary<string, Team> _keeperTeams = new();
         private readonly ConcurrentDictionary<string, FolderNode> _keeperFolders = new();
+        private readonly BreachWatchService _breachWatchService;
 
         /// <inheritdoc/>
         public IKeeperStorage Storage { get; }
@@ -236,6 +254,12 @@ namespace KeeperSecurity.Vault
 
         /// <inheritdoc/>
         public IEnumerable<RecordType> RecordTypes => _keeperRecordTypes.Values.Concat(_customRecordTypes);
+
+        ///<inheritdoc/>
+        public IEnumerable<BreachWatchInfo> BreachWatchRecords()
+        {
+            return _breachWatchService.GetBreachWatchRecords();
+        }
 
         /// <inheritdoc/>
         public bool TryGetRecordTypeByName(string name, out RecordType recordType)
@@ -667,6 +691,17 @@ namespace KeeperSecurity.Vault
                     Storage.Records.DeleteUids(uids);
                 }
             }
+
+            // Handle BreachWatch updates 
+            if (fullRebuild)
+            {
+                _breachWatchService.RefreshBreachWatchData();
+            }
+            else if (changes?.Records != null)
+            {
+                _breachWatchService.UpdateBreachWatchRecords(changes.Records);
+            }
+
             BuildFolders();
             if (fullRebuild)
             {

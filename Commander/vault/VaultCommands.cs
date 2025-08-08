@@ -389,7 +389,13 @@ namespace Commander
                     Description = "loads Record Types to keeper from given file",
                     Action = context.RecordTypeLoadCommand
                 });
-
+            cli.Commands.Add("breachwatch",
+                new ParseableCommand<BreachWatchOptions>
+                {
+                    Order = 85,
+                    Description = "BreachWatch commands",
+                    Action = context.BreachWatchCommand
+                });
             cli.Aliases.Add("list", "search");
             cli.Aliases.Add("d", "sync-down");
             cli.Aliases.Add("add", "add-record");

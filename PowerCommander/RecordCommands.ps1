@@ -241,6 +241,174 @@ function Show-TwoFactorCode {
 }
 New-Alias -Name 2fa -Value Show-TwoFactorCode
 
+function Get-KeeperRecordPassword {
+    <#
+    .SYNOPSIS
+    Gets the password from a Keeper record by name, title, UID, or record object.
+    
+    .DESCRIPTION
+    This function provides a convenient way to extract passwords from Keeper records.
+    It accepts either a record object directly, or a string identifier (UID, name, or title)
+    and automatically resolves it to extract the password field.
+    
+    .PARAMETER Record
+    The record input. Accepts:
+    - KeeperRecord object (PasswordRecord or TypedRecord)
+    - String containing record UID, name, or title
+    
+    .PARAMETER Silent
+    Suppresses error and warning messages. Useful for conditional password retrieval.
+    
+    .OUTPUTS
+    String. The actual password value, or $null if not found.
+    
+    .EXAMPLE
+    # Basic usage with record name
+    $password = Get-KeeperRecordPassword -Record "Gmail Account"
+    
+    .EXAMPLE
+    # Using record UID
+    $password = Get-KeeperRecordPassword -Record "ABC123DEF456GHI789"
+    
+    .EXAMPLE
+    # Using record object
+    $record = Get-KeeperRecord -Uid "ABC123"
+    $password = Get-KeeperRecordPassword -Record $record
+    
+    .EXAMPLE
+    # Silent mode for conditional retrieval
+    $password = Get-KeeperRecordPassword -Record "MightNotExist" -Silent
+    if ($password) {
+        # Use password...
+    }
+    
+    .EXAMPLE
+    # Practical automation example
+    $websites = @("Gmail", "Facebook", "Twitter")
+    foreach ($site in $websites) {
+        $password = Get-KeeperRecordPassword -Record $site -Silent
+        if ($password) {
+            Write-Host "Retrieved password for $site"
+            # Perform authentication...
+        }
+    }
+    
+    .NOTES
+    This function is designed for programmatic use and always returns the actual password.
+    
+    Key features:
+    - Handles both PasswordRecord and TypedRecord types
+    - Flexible input: accepts UIDs, names, titles, or record objects
+    - Smart resolution: exact title matches preferred over partial matches
+    - Error handling: warnings for multiple matches, errors for missing records
+    - Silent mode: suppresses output for conditional logic
+    
+    For password display visibility control, use the existing Get-KeeperPasswordVisible
+    and Set-KeeperPasswordVisible commands which affect other parts of the system.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        $Record,
+        
+        [Parameter()]
+        [switch]$Silent
+    )
+    
+    try {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+        [KeeperSecurity.Vault.KeeperRecord]$keeperRecord = $null
+        
+        # Check if input is already a KeeperRecord object
+        if ($Record -is [KeeperSecurity.Vault.KeeperRecord]) {
+            $keeperRecord = $Record
+        }
+        # Otherwise, treat it as a string identifier and resolve it
+        elseif ($Record -is [string]) {
+            # First try to get record by UID
+            if ($vault.TryGetKeeperRecord($Record, [ref]$keeperRecord)) {
+                # Found by UID
+            }
+            else {
+                # If UID lookup fails, search by name/title
+                $entries = Get-KeeperChildItem -Filter $Record -ObjectType Record
+                if ($entries -and $entries.Count -gt 0) {
+                    if ($entries.Count -eq 1) {
+                        $vault.TryGetKeeperRecord($entries[0].Uid, [ref]$keeperRecord) | Out-Null
+                    }
+                    else {
+                        # Multiple matches found - look for exact title match first
+                        $tempRecord = $null
+                        foreach ($entry in $entries) {
+                            if ($vault.TryGetKeeperRecord($entry.Uid, [ref]$tempRecord)) {
+                                if ($tempRecord.Title -eq $Record) {
+                                    $keeperRecord = $tempRecord
+                                    break
+                                }
+                            }
+                        }
+                        # If no exact match, use the first one but warn user
+                        if (-not $keeperRecord -and $vault.TryGetKeeperRecord($entries[0].Uid, [ref]$keeperRecord)) {
+                            if (-not $Silent) {
+                                Write-Warning "Multiple records found matching '$Record'. Using first match: '$($keeperRecord.Title)'"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            if (-not $Silent) {
+                Write-Error "Invalid record parameter. Must be a KeeperRecord object or string identifier." -ErrorAction Stop
+            }
+            return $null
+        }
+        
+        # Check if we found a record
+        if ($null -eq $keeperRecord) {
+            if (-not $Silent) {
+                Write-Error "Record not found: '$Record'" -ErrorAction Stop
+            }
+            return $null
+        }
+        
+        # Extract password based on record type
+        $password = $null
+        if ($keeperRecord -is [KeeperSecurity.Vault.PasswordRecord]) {
+            $password = $keeperRecord.Password
+        }
+        elseif ($keeperRecord -is [KeeperSecurity.Vault.TypedRecord]) {
+            $recordField = $keeperRecord.Fields | Where-Object FieldName -eq 'password' | Select-Object -First 1
+            if (-not $recordField) {
+                $recordField = $keeperRecord.Custom | Where-Object FieldName -eq 'password' | Select-Object -First 1
+            }
+            if ($recordField) {
+                $password = $recordField.ObjectValue
+            }
+        }
+        
+        if ($null -eq $password -or $password -eq '') {
+            if (-not $Silent) {
+                Write-Warning "Record '$($keeperRecord.Title)' does not have a password field or password is empty."
+            }
+            return $null
+        }
+        
+        # Verbose output
+        if ($VerbosePreference -eq 'Continue' -and -not $Silent) {
+            Write-Verbose "Retrieved password from record '$($keeperRecord.Title)'"
+        }
+        
+        return $password
+    }
+    catch {
+        if (-not $Silent) {
+            Write-Error "Error retrieving password for record '$Record': $($_.Exception.Message)" -ErrorAction Stop
+        }
+        return $null
+    }
+}
+
 $Keeper_RecordTypeNameCompleter = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
     $result = @()
@@ -262,6 +430,99 @@ $Keeper_RecordTypeNameCompleter = {
 
 }
 
+function ConvertTo-TimeSpan {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Period
+    )
+    
+    if ([string]::IsNullOrWhiteSpace($Period)) {
+        throw "Period cannot be empty"
+    }
+    
+    if ($Period -match '^(\d+)(.*)$') {
+        $num = [int]$Matches[1]
+        $interval = $Matches[2].ToLower().Trim()
+        
+        switch ($interval) {
+            { $_ -in @("mi", "m", "minutes", "minute") } { 
+                return [TimeSpan]::FromMinutes($num) 
+            }
+            { $_ -in @("h", "hours", "hour") } { 
+                return [TimeSpan]::FromHours($num) 
+            }
+            { $_ -in @("d", "days", "day") } { 
+                return [TimeSpan]::FromDays($num) 
+            }
+            { $_ -in @("mo", "months", "month") } { 
+                return [TimeSpan]::FromDays($num * 30) 
+            }
+            { $_ -in @("y", "years", "year") } { 
+                return [TimeSpan]::FromDays($num * 365) 
+            }
+            default {
+                throw "$interval is not allowed as a unit for the timeout value. Valid units are 'years/y, months/mo, days/d, hours/h, minutes/mi/m'."
+            }
+        }
+    }
+    else {
+        throw "Invalid period format: $Period"
+    }
+}
+
+function New-SelfDestructShare {
+    param(
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.VaultOnline]$Vault,
+        
+        [Parameter(Mandatory = $true)]
+        [KeeperSecurity.Vault.KeeperRecord]$Record,
+        
+        [Parameter(Mandatory = $true)]
+        [TimeSpan]$ExpireIn
+    )
+    
+    $tr = [KeeperSecurity.Vault.KeeperRecord]$Record
+    
+    try {
+        $clientKey = [KeeperSecurity.Utils.CryptoUtils]::GenerateEncryptionKey()
+        $hmac = New-Object System.Security.Cryptography.HMACSHA512 -ArgumentList @(,$clientKey)
+        $clientId = $hmac.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("KEEPER_SECRETS_MANAGER_CLIENT_ID"))
+        $hmac.Dispose()
+        
+        $uidBase64 = $tr.Uid.Replace('-', '+').Replace('_', '/')
+        switch ($uidBase64.Length % 4) {
+            2 { $uidBase64 += '==' }
+            3 { $uidBase64 += '=' }
+        }
+        $uidBytes = [Convert]::FromBase64String($uidBase64)
+        
+        $clientKeyBase64 = [Convert]::ToBase64String($clientKey)
+        $clientKeyBase64Url = $clientKeyBase64.Replace('+', '-').Replace('/', '_').TrimEnd('=')
+        
+        $rq = New-Object Authentication.AddExternalShareRequest
+        $rq.RecordUid = [Google.Protobuf.ByteString]::CopyFrom($uidBytes)
+        $rq.ClientId = [Google.Protobuf.ByteString]::CopyFrom($clientId)
+        $rq.EncryptedRecordKey = [Google.Protobuf.ByteString]::CopyFrom([KeeperSecurity.Utils.CryptoUtils]::EncryptAesV2($tr.RecordKey, $clientKey))
+        $rq.AccessExpireOn = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() + [long]$ExpireIn.TotalMilliseconds
+        $rq.IsSelfDestruct = $true
+        
+        $task = $Vault.Auth.ExecuteAuthRest("vault/external_share_add", $rq)
+        $task.GetAwaiter().GetResult()
+        
+        $builder = New-Object System.UriBuilder $Vault.Auth.Endpoint.Server
+        $builder.Path = "/vault/share"
+        $builder.Scheme = "https"
+        $builder.Port = -1 
+        $builder.Fragment = $clientKeyBase64Url
+        
+        return $builder.ToString()
+    }
+    catch {
+        throw "Failed to create self-destruct external share: $($_.Exception.Message)"
+    }
+}
+
 function Add-KeeperRecord {
     <#
 	.Synopsis
@@ -281,6 +542,11 @@ function Add-KeeperRecord {
 
 	.Parameter GeneratePassword
 	Generate random password.
+
+	.Parameter SelfDestruct
+	Time period for self-destruct share URL. The record will be deleted after the specified time. Format: <NUMBER>[m|mi|h|d|mo|y] (e.g., 5m, 2h, 1d)
+    Month is considered as 30 days
+    year is considered as 365 days
 
 	.Parameter Fields
 	A list of record Fields. See DESCRIPTION
@@ -347,6 +613,10 @@ function Add-KeeperRecord {
     PS> $publicKey = [Convert]::ToBase64String($rsa.ExportRSAPublicKey())
     PS> $keyPair = @{privateKey=$privateKey; publicKey=$publicKey}
     PS> Add-KeeperRecord -Uid ... -keyPair $keyPair
+
+    .EXAMPLE
+    PS> Add-KeeperRecord -Title "Temp Record" -RecordType login login=user@example.com password=secret123 -SelfDestruct 5m
+    Creates a record with a 5-minute self-destruct timer and returns a share URL.
 #>
 
     [CmdletBinding(DefaultParameterSetName = 'add')]
@@ -357,6 +627,7 @@ function Add-KeeperRecord {
         [Parameter(ParameterSetName = 'edit', Mandatory = $True)] [string] $Uid,
         [Parameter()] [string] $Title,
         [Parameter()] [string] $Notes,
+        [Parameter()] [string] $SelfDestruct,
         [Parameter(ValueFromRemainingArguments = $true)] $Extra
     )
 
@@ -504,6 +775,8 @@ function Add-KeeperRecord {
     End {
         if ($record.Uid) {
             $task = $vault.UpdateRecord($record)
+            $task.GetAwaiter().GetResult()
+            Write-Host "Record updated: $($record.Uid)"
         }
         else {
             $folderUid = $Script:Context.CurrentFolder
@@ -513,8 +786,23 @@ function Add-KeeperRecord {
             }
 
             $task = $vault.CreateRecord($record, $folderUid)
+            $createdRecord = $task.GetAwaiter().GetResult()
+            
+            if (-not [string]::IsNullOrEmpty($SelfDestruct)) {
+                try {
+                    $destructTime = ConvertTo-TimeSpan -Period $SelfDestruct
+                    $shareUrl = New-SelfDestructShare -Vault $vault -Record $createdRecord -ExpireIn $destructTime
+                    Write-Host "Record created with self-destruct enabled ($($destructTime.TotalMinutes) minutes)"
+                    Write-Host "Share URL: $shareUrl"
+                }
+                catch {
+                    Write-Error "Failed to create self-destruct share: $($_.Exception.Message)"
+                }
+            }
+            else {
+                Write-Host "Record created: $($createdRecord.Uid)"
+            }
         }
-        $task.GetAwaiter().GetResult()
     }
 }
 New-Alias -Name kadd -Value Add-KeeperRecord
