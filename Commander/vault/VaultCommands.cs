@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 using CommandLine;
+using KeeperSecurity.BreachWatch;
 
 namespace Commander
 {
@@ -311,7 +312,7 @@ namespace Commander
             cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
             {
                 Order = 39,
-                Description = "Show Passwword Report for Records",
+                Description = "Generate comprehensive password security report",
                 Action = context.GetPasswordReport
             });
 
@@ -1021,57 +1022,160 @@ namespace Commander
             tab.Dump();
         }
 
-        private static async Task GetPasswordReport(this VaultContext context, PasswordReportOptions options)
+        private static Task GetPasswordReport(this VaultContext context, PasswordReportOptions options)
         {
-            var folderPath = "";
-            if (options.Folder != null)
+            var policyString = "12,2,2,2,0";
+            var filterToFailingOnly = false;
+            
+            if (!string.IsNullOrEmpty(options.PolicyFlag))
             {
-                context.TryResolvePath(options.Folder, out var outFolder);
-                folderPath = outFolder.FolderUid;
+                policyString = options.PolicyFlag;
+                filterToFailingOnly = true;
             }
-            context.Vault.TryGetFolder(folderPath, out var folder);
-            var recordIds = folder.Records;
-            List<KeeperRecord> records = new();
-            foreach (var recordId in recordIds)
+            else if (options.Length > 0 || options.Lower > 0 || options.Upper > 0 || options.Digits > 0 || options.Special > 0)
             {
-                context.Vault.TryGetKeeperRecord(recordId, out var rec);
-                records.Add(rec);
+                var length = options.Length > 0 ? options.Length : 12;
+                policyString = $"{length},{options.Lower},{options.Upper},{options.Digits},{options.Special}";
+                filterToFailingOnly = true;
             }
-            var strength = passwordStrength(options.Policy);
-            List<string> validPasswords = new();
-            List<string> invalidPasswords = new();
-            foreach (var rec in records)
+            else if (!string.IsNullOrEmpty(options.Policy))
             {
-                string password;
-                if (rec is PasswordRecord)
+                policyString = options.Policy;
+                filterToFailingOnly = false;
+            }
+
+            var strength = passwordStrength(policyString);
+
+            Console.WriteLine($"     Password Length: {strength.Length}");
+            Console.WriteLine($"Lowercase characters: {strength.Lower}");
+            Console.WriteLine($"Uppercase characters: {strength.Upper}");
+            Console.WriteLine($"              Digits: {strength.Digits}");
+            if (strength.Symbols > 0)
+            {
+                Console.WriteLine($"    Special characters: {strength.Symbols}");
+            }
+            Console.WriteLine();
+
+            var records = new List<KeeperRecord>();
+            
+            if (!string.IsNullOrEmpty(options.Folder))
+            {
+                if (context.TryResolvePath(options.Folder, out var folder))
                 {
-                    var passwordRecord = (PasswordRecord) rec;
-                    password = passwordRecord.Password;
-                }
-                else if (rec is TypedRecord typed)
-                {
-                    var passwordField = typed.Fields.FirstOrDefault(x => x.FieldName == "password");
-                    if (passwordField != null && passwordField is TypedField<string> stringField)
+                    foreach (var recordId in folder.Records)
                     {
-                        password = stringField.Values.FirstOrDefault();
-                    }
-                    else
-                    {
-                        password = null;
+                        if (context.Vault.TryGetKeeperRecord(recordId, out var rec))
+                        {
+                            records.Add(rec);
+                        }
                     }
                 }
                 else
                 {
+                    Console.WriteLine($"Invalid folder: {options.Folder}");
+                    return Task.CompletedTask;
+                }
+            }
+            else
+            {
+                records.AddRange(context.Vault.KeeperRecords.Where(r => r.Version == 2 || r.Version == 3));
+            }
+
+            var recordsWithPasswords = new List<(KeeperRecord record, string password)>();
+            foreach (var rec in records)
+            {
+                try
+                {
+                    var password = ExtractPassword(rec);
+                    if (!string.IsNullOrWhiteSpace(password) && password.Trim().Length > 0)
+                    {
+                        recordsWithPasswords.Add((rec, password.Trim()));
+                    }
+                }
+                catch (Exception)
+                {
                     continue;
                 }
-                var passwordStrengthMeets = strength.ValidateCurrentPassword(password);
-                
-
             }
-            ;
 
+            if (recordsWithPasswords.Count == 0)
+            {
+                Console.WriteLine("No records with passwords found.");
+                return Task.CompletedTask;
+            }
 
+            var tab = new Tabulate(8)
+            {
+                DumpRowNo = true
+            };
+            tab.AddHeader("Record UID", "Title", "Description", "Length", "Lower", "Upper", "Digits", "Special");
 
+            foreach (var (rec, password) in recordsWithPasswords)
+            {
+                try
+                {
+                    //skip empties
+                    if (string.IsNullOrWhiteSpace(password))
+                    {
+                        continue;
+                    }
+
+                    var description = rec.KeeperRecordPublicInformation();
+                    var length = password.Length;
+                    var lower = password.Count(char.IsLower);
+                    var upper = password.Count(char.IsUpper);
+                    var digits = password.Count(char.IsDigit);
+                    var special = password.Count(c => "!@#$%()+;<>=?[]{}^.,".Contains(c));
+
+                    if (filterToFailingOnly)
+                    {
+                        var meetsPolicy = length >= strength.Length &&
+                                         lower >= strength.Lower &&
+                                         upper >= strength.Upper &&
+                                         digits >= strength.Digits &&
+                                         special >= strength.Symbols;
+                        
+                        if (meetsPolicy)
+                        {
+                            continue; 
+                        }
+                    }
+
+                    tab.AddRow(rec.Uid, rec.Title, description, length.ToString(), lower.ToString(), 
+                              upper.ToString(), digits.ToString(), special.ToString());
+                }
+                catch (Exception ex)
+                {
+                    if (options.Verbose)
+                    {
+                        Console.WriteLine($"Skipping record {rec.Uid} due to error: {ex.Message}");
+                    }
+                }
+            }
+
+            tab.Dump();
+            
+            return Task.CompletedTask;
+        }
+
+        private static string ExtractPassword(KeeperRecord record)
+        {
+            switch (record)
+            {
+                case PasswordRecord passwordRecord:
+                    return passwordRecord.Password;
+                case TypedRecord typed:
+                    var passwordField = typed.Fields.FirstOrDefault(x => x.FieldName == "password");
+                    if (passwordField is TypedField<string> stringField && stringField.Count > 0)
+                    {
+                        return stringField.Values.FirstOrDefault();
+                    }
+                    break;
+                case FileRecord:
+                    // File records don't have passwords
+                    return null;
+            }
+            return null;
         }
 
         public class PasswordStrength
@@ -1224,25 +1328,28 @@ namespace Commander
         [Value(0, Required = false, MetaName = "policy", HelpText = "Password complexity policy. Length,Lower,Upper,Digits,Special. Default is 12,2,2,2,0")]
         public string Policy { get; set; }
 
-        [Option("length", Required = false, Default = false, HelpText = "Minimum password length.")]
+        [Option("policy", Required = false, HelpText = "Password complexity policy (filter to failing records only). Length,Lower,Upper,Digits,Special.")]
+        public string PolicyFlag { get; set; }
+
+        [Option("length", Required = false, Default = 0, HelpText = "Minimum password length.")]
         public int Length { get; set; }
 
-        [Option("upper", Required = false, Default = false, HelpText = "Minimum uppercase characters.")]
+        [Option("upper", Required = false, Default = 0, HelpText = "Minimum uppercase characters.")]
         public int Upper { get; set; }
 
-        [Option("lower", Required = false, Default = false, HelpText = "Minimum lowercase characters.")]
+        [Option("lower", Required = false, Default = 0, HelpText = "Minimum lowercase characters.")]
         public int Lower { get; set; }
 
-        [Option("digits", Required = false, Default = false, HelpText = "Minimum digits count.")]
+        [Option("digits", Required = false, Default = 0, HelpText = "Minimum digits count.")]
         public int Digits { get; set; }
 
-        [Option("special", Required = false, Default = false, HelpText = "Minimum special characters.")]
+        [Option("special", Required = false, Default = 0, HelpText = "Minimum special characters.")]
         public int Special { get; set; }
 
         [Option("verbose", Required = false, Default = false, HelpText = "Display verbose information.")]
         public bool Verbose { get; set; }
 
-        [Option("folder", Required = false, Default = false, HelpText = "folder path or UID.")]
+        [Option("folder", Required = false, HelpText = "folder path or UID.")]
         public string Folder { get; set; }
     }
 
