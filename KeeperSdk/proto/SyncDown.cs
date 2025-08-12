@@ -26,158 +26,166 @@ namespace Vault {
           string.Concat(
             "Cg5TeW5jRG93bi5wcm90bxIFVmF1bHQaDHJlY29yZC5wcm90bxoRYnJlYWNo",
             "d2F0Y2gucHJvdG8aEEFQSVJlcXVlc3QucHJvdG8aEGVudGVycHJpc2UucHJv",
-            "dG8iQQoPU3luY0Rvd25SZXF1ZXN0EhkKEWNvbnRpbnVhdGlvblRva2VuGAEg",
-            "ASgMEhMKC2RhdGFWZXJzaW9uGAIgASgFIokQChBTeW5jRG93blJlc3BvbnNl",
-            "EhkKEWNvbnRpbnVhdGlvblRva2VuGAEgASgMEg8KB2hhc01vcmUYAiABKAgS",
-            "JwoLY2FjaGVTdGF0dXMYAyABKA4yEi5WYXVsdC5DYWNoZVN0YXR1cxImCgt1",
-            "c2VyRm9sZGVycxgEIAMoCzIRLlZhdWx0LlVzZXJGb2xkZXISKgoNc2hhcmVk",
-            "Rm9sZGVycxgFIAMoCzITLlZhdWx0LlNoYXJlZEZvbGRlchI+Chd1c2VyRm9s",
-            "ZGVyU2hhcmVkRm9sZGVycxgGIAMoCzIdLlZhdWx0LlVzZXJGb2xkZXJTaGFy",
-            "ZWRGb2xkZXISNgoTc2hhcmVkRm9sZGVyRm9sZGVycxgHIAMoCzIZLlZhdWx0",
-            "LlNoYXJlZEZvbGRlckZvbGRlchIeCgdyZWNvcmRzGAggAygLMg0uVmF1bHQu",
-            "UmVjb3JkEi0KDnJlY29yZE1ldGFEYXRhGAkgAygLMhUuVmF1bHQuUmVjb3Jk",
-            "TWV0YURhdGESKwoNbm9uU2hhcmVkRGF0YRgKIAMoCzIULlZhdWx0Lk5vblNo",
-            "YXJlZERhdGESJgoLcmVjb3JkTGlua3MYCyADKAsyES5WYXVsdC5SZWNvcmRM",
-            "aW5rEjIKEXVzZXJGb2xkZXJSZWNvcmRzGAwgAygLMhcuVmF1bHQuVXNlckZv",
-            "bGRlclJlY29yZBI2ChNzaGFyZWRGb2xkZXJSZWNvcmRzGA0gAygLMhkuVmF1",
-            "bHQuU2hhcmVkRm9sZGVyUmVjb3JkEkIKGXNoYXJlZEZvbGRlckZvbGRlclJl",
-            "Y29yZHMYDiADKAsyHy5WYXVsdC5TaGFyZWRGb2xkZXJGb2xkZXJSZWNvcmQS",
-            "MgoRc2hhcmVkRm9sZGVyVXNlcnMYDyADKAsyFy5WYXVsdC5TaGFyZWRGb2xk",
-            "ZXJVc2VyEjIKEXNoYXJlZEZvbGRlclRlYW1zGBAgAygLMhcuVmF1bHQuU2hh",
-            "cmVkRm9sZGVyVGVhbRIaChJyZWNvcmRBZGRBdWRpdERhdGEYESADKAwSGgoF",
-            "dGVhbXMYEiADKAsyCy5WYXVsdC5UZWFtEiwKDnNoYXJpbmdDaGFuZ2VzGBMg",
-            "AygLMhQuVmF1bHQuU2hhcmluZ0NoYW5nZRIfCgdwcm9maWxlGBQgASgLMg4u",
-            "VmF1bHQuUHJvZmlsZRIlCgpwcm9maWxlUGljGBUgASgLMhEuVmF1bHQuUHJv",
-            "ZmlsZVBpYxI0ChJwZW5kaW5nVGVhbU1lbWJlcnMYFiADKAsyGC5WYXVsdC5Q",
-            "ZW5kaW5nVGVhbU1lbWJlchI0ChJicmVhY2hXYXRjaFJlY29yZHMYFyADKAsy",
-            "GC5WYXVsdC5CcmVhY2hXYXRjaFJlY29yZBIiCgl1c2VyQXV0aHMYGCADKAsy",
-            "Dy5WYXVsdC5Vc2VyQXV0aBI/ChdicmVhY2hXYXRjaFNlY3VyaXR5RGF0YRgZ",
-            "IAMoCzIeLlZhdWx0LkJyZWFjaFdhdGNoU2VjdXJpdHlEYXRhEi8KD3JldXNl",
-            "ZFBhc3N3b3JkcxgaIAEoCzIWLlZhdWx0LlJldXNlZFBhc3N3b3JkcxIaChJy",
-            "ZW1vdmVkVXNlckZvbGRlcnMYGyADKAwSHAoUcmVtb3ZlZFNoYXJlZEZvbGRl",
-            "cnMYHCADKAwSRQoecmVtb3ZlZFVzZXJGb2xkZXJTaGFyZWRGb2xkZXJzGB0g",
-            "AygLMh0uVmF1bHQuVXNlckZvbGRlclNoYXJlZEZvbGRlchI9ChpyZW1vdmVk",
-            "U2hhcmVkRm9sZGVyRm9sZGVycxgeIAMoCzIZLlZhdWx0LlNoYXJlZEZvbGRl",
-            "ckZvbGRlchIWCg5yZW1vdmVkUmVjb3JkcxgfIAMoDBItChJyZW1vdmVkUmVj",
-            "b3JkTGlua3MYICADKAsyES5WYXVsdC5SZWNvcmRMaW5rEjkKGHJlbW92ZWRV",
-            "c2VyRm9sZGVyUmVjb3JkcxghIAMoCzIXLlZhdWx0LlVzZXJGb2xkZXJSZWNv",
-            "cmQSPQoacmVtb3ZlZFNoYXJlZEZvbGRlclJlY29yZHMYIiADKAsyGS5WYXVs",
-            "dC5TaGFyZWRGb2xkZXJSZWNvcmQSSQogcmVtb3ZlZFNoYXJlZEZvbGRlckZv",
-            "bGRlclJlY29yZHMYIyADKAsyHy5WYXVsdC5TaGFyZWRGb2xkZXJGb2xkZXJS",
-            "ZWNvcmQSOQoYcmVtb3ZlZFNoYXJlZEZvbGRlclVzZXJzGCQgAygLMhcuVmF1",
-            "bHQuU2hhcmVkRm9sZGVyVXNlchI5ChhyZW1vdmVkU2hhcmVkRm9sZGVyVGVh",
-            "bXMYJSADKAsyFy5WYXVsdC5TaGFyZWRGb2xkZXJUZWFtEhQKDHJlbW92ZWRU",
-            "ZWFtcxgmIAMoDBImCgxrc21BcHBTaGFyZXMYJyADKAsyEC5WYXVsdC5Lc21D",
-            "aGFuZ2USJwoNa3NtQXBwQ2xpZW50cxgoIAMoCzIQLlZhdWx0LktzbUNoYW5n",
-            "ZRIwChBzaGFyZUludml0YXRpb25zGCkgAygLMhYuVmF1bHQuU2hhcmVJbnZp",
-            "dGF0aW9uEisKC2RpYWdub3N0aWNzGCogASgLMhYuVmF1bHQuU3luY0RpYWdu",
-            "b3N0aWNzEi4KD3JlY29yZFJvdGF0aW9ucxgrIAMoCzIVLlZhdWx0LlJlY29y",
-            "ZFJvdGF0aW9uEhoKBXVzZXJzGCwgAygLMgsuVmF1bHQuVXNlchIUCgxyZW1v",
-            "dmVkVXNlcnMYLSADKAwikgEKClVzZXJGb2xkZXISEQoJZm9sZGVyVWlkGAEg",
-            "ASgMEhEKCXBhcmVudFVpZBgCIAEoDBIVCg11c2VyRm9sZGVyS2V5GAMgASgM",
-            "EicKB2tleVR5cGUYBCABKA4yFi5SZWNvcmRzLlJlY29yZEtleVR5cGUSEAoI",
-            "cmV2aXNpb24YBSABKAMSDAoEZGF0YRgGIAEoDCLVAgoMU2hhcmVkRm9sZGVy",
-            "EhcKD3NoYXJlZEZvbGRlclVpZBgBIAEoDBIQCghyZXZpc2lvbhgCIAEoAxIX",
-            "Cg9zaGFyZWRGb2xkZXJLZXkYAyABKAwSJwoHa2V5VHlwZRgEIAEoDjIWLlJl",
-            "Y29yZHMuUmVjb3JkS2V5VHlwZRIMCgRkYXRhGAUgASgMEhwKFGRlZmF1bHRN",
-            "YW5hZ2VSZWNvcmRzGAYgASgIEhoKEmRlZmF1bHRNYW5hZ2VVc2VycxgHIAEo",
-            "CBIWCg5kZWZhdWx0Q2FuRWRpdBgIIAEoCBIZChFkZWZhdWx0Q2FuUmVzaGFy",
-            "ZRgJIAEoCBInCgtjYWNoZVN0YXR1cxgKIAEoDjISLlZhdWx0LkNhY2hlU3Rh",
-            "dHVzEg0KBW93bmVyGAsgASgJEhcKD293bmVyQWNjb3VudFVpZBgMIAEoDBIM",
-            "CgRuYW1lGA0gASgMIlYKFlVzZXJGb2xkZXJTaGFyZWRGb2xkZXISEQoJZm9s",
-            "ZGVyVWlkGAEgASgMEhcKD3NoYXJlZEZvbGRlclVpZBgCIAEoDBIQCghyZXZp",
-            "c2lvbhgDIAEoAyK7AQoSU2hhcmVkRm9sZGVyRm9sZGVyEhcKD3NoYXJlZEZv",
-            "bGRlclVpZBgBIAEoDBIRCglmb2xkZXJVaWQYAiABKAwSEQoJcGFyZW50VWlk",
-            "GAMgASgMEh0KFXNoYXJlZEZvbGRlckZvbGRlcktleRgEIAEoDBInCgdrZXlU",
-            "eXBlGAUgASgOMhYuUmVjb3Jkcy5SZWNvcmRLZXlUeXBlEhAKCHJldmlzaW9u",
-            "GAYgASgDEgwKBGRhdGEYByABKAwibAoPU2hhcmVkRm9sZGVyS2V5EhcKD3No",
-            "YXJlZEZvbGRlclVpZBgBIAEoDBIXCg9zaGFyZWRGb2xkZXJLZXkYAiABKAwS",
-            "JwoHa2V5VHlwZRgDIAEoDjIWLlJlY29yZHMuUmVjb3JkS2V5VHlwZSLDAgoE",
-            "VGVhbRIPCgd0ZWFtVWlkGAEgASgMEgwKBG5hbWUYAiABKAkSDwoHdGVhbUtl",
-            "eRgDIAEoDBIrCgt0ZWFtS2V5VHlwZRgEIAEoDjIWLlJlY29yZHMuUmVjb3Jk",
-            "S2V5VHlwZRIWCg50ZWFtUHJpdmF0ZUtleRgFIAEoDBIUCgxyZXN0cmljdEVk",
-            "aXQYBiABKAgSFQoNcmVzdHJpY3RTaGFyZRgHIAEoCBIUCgxyZXN0cmljdFZp",
-            "ZXcYCCABKAgSHAoUcmVtb3ZlZFNoYXJlZEZvbGRlcnMYCSADKAwSMAoQc2hh",
-            "cmVkRm9sZGVyS2V5cxgKIAMoCzIWLlZhdWx0LlNoYXJlZEZvbGRlcktleRIZ",
-            "ChF0ZWFtRWNjUHJpdmF0ZUtleRgLIAEoDBIYChB0ZWFtRWNjUHVibGljS2V5",
-            "GAwgASgMIr8BCgZSZWNvcmQSEQoJcmVjb3JkVWlkGAEgASgMEhAKCHJldmlz",
-            "aW9uGAIgASgDEg8KB3ZlcnNpb24YAyABKAUSDgoGc2hhcmVkGAQgASgIEhoK",
-            "EmNsaWVudE1vZGlmaWVkVGltZRgFIAEoAxIMCgRkYXRhGAYgASgMEg0KBWV4",
-            "dHJhGAcgASgMEg0KBXVkYXRhGAggASgJEhAKCGZpbGVTaXplGAkgASgDEhUK",
-            "DXRodW1ibmFpbFNpemUYCiABKAMiYgoKUmVjb3JkTGluaxIXCg9wYXJlbnRS",
-            "ZWNvcmRVaWQYASABKAwSFgoOY2hpbGRSZWNvcmRVaWQYAiABKAwSEQoJcmVj",
-            "b3JkS2V5GAMgASgMEhAKCHJldmlzaW9uGAQgASgDIkoKEFVzZXJGb2xkZXJS",
-            "ZWNvcmQSEQoJZm9sZGVyVWlkGAEgASgMEhEKCXJlY29yZFVpZBgCIAEoDBIQ",
-            "CghyZXZpc2lvbhgDIAEoAyJrChhTaGFyZWRGb2xkZXJGb2xkZXJSZWNvcmQS",
+            "dG8aGE5vdGlmaWNhdGlvbkNlbnRlci5wcm90byJBCg9TeW5jRG93blJlcXVl",
+            "c3QSGQoRY29udGludWF0aW9uVG9rZW4YASABKAwSEwoLZGF0YVZlcnNpb24Y",
+            "AiABKAUigREKEFN5bmNEb3duUmVzcG9uc2USGQoRY29udGludWF0aW9uVG9r",
+            "ZW4YASABKAwSDwoHaGFzTW9yZRgCIAEoCBInCgtjYWNoZVN0YXR1cxgDIAEo",
+            "DjISLlZhdWx0LkNhY2hlU3RhdHVzEiYKC3VzZXJGb2xkZXJzGAQgAygLMhEu",
+            "VmF1bHQuVXNlckZvbGRlchIqCg1zaGFyZWRGb2xkZXJzGAUgAygLMhMuVmF1",
+            "bHQuU2hhcmVkRm9sZGVyEj4KF3VzZXJGb2xkZXJTaGFyZWRGb2xkZXJzGAYg",
+            "AygLMh0uVmF1bHQuVXNlckZvbGRlclNoYXJlZEZvbGRlchI2ChNzaGFyZWRG",
+            "b2xkZXJGb2xkZXJzGAcgAygLMhkuVmF1bHQuU2hhcmVkRm9sZGVyRm9sZGVy",
+            "Eh4KB3JlY29yZHMYCCADKAsyDS5WYXVsdC5SZWNvcmQSLQoOcmVjb3JkTWV0",
+            "YURhdGEYCSADKAsyFS5WYXVsdC5SZWNvcmRNZXRhRGF0YRIrCg1ub25TaGFy",
+            "ZWREYXRhGAogAygLMhQuVmF1bHQuTm9uU2hhcmVkRGF0YRImCgtyZWNvcmRM",
+            "aW5rcxgLIAMoCzIRLlZhdWx0LlJlY29yZExpbmsSMgoRdXNlckZvbGRlclJl",
+            "Y29yZHMYDCADKAsyFy5WYXVsdC5Vc2VyRm9sZGVyUmVjb3JkEjYKE3NoYXJl",
+            "ZEZvbGRlclJlY29yZHMYDSADKAsyGS5WYXVsdC5TaGFyZWRGb2xkZXJSZWNv",
+            "cmQSQgoZc2hhcmVkRm9sZGVyRm9sZGVyUmVjb3JkcxgOIAMoCzIfLlZhdWx0",
+            "LlNoYXJlZEZvbGRlckZvbGRlclJlY29yZBIyChFzaGFyZWRGb2xkZXJVc2Vy",
+            "cxgPIAMoCzIXLlZhdWx0LlNoYXJlZEZvbGRlclVzZXISMgoRc2hhcmVkRm9s",
+            "ZGVyVGVhbXMYECADKAsyFy5WYXVsdC5TaGFyZWRGb2xkZXJUZWFtEhoKEnJl",
+            "Y29yZEFkZEF1ZGl0RGF0YRgRIAMoDBIaCgV0ZWFtcxgSIAMoCzILLlZhdWx0",
+            "LlRlYW0SLAoOc2hhcmluZ0NoYW5nZXMYEyADKAsyFC5WYXVsdC5TaGFyaW5n",
+            "Q2hhbmdlEh8KB3Byb2ZpbGUYFCABKAsyDi5WYXVsdC5Qcm9maWxlEiUKCnBy",
+            "b2ZpbGVQaWMYFSABKAsyES5WYXVsdC5Qcm9maWxlUGljEjQKEnBlbmRpbmdU",
+            "ZWFtTWVtYmVycxgWIAMoCzIYLlZhdWx0LlBlbmRpbmdUZWFtTWVtYmVyEjQK",
+            "EmJyZWFjaFdhdGNoUmVjb3JkcxgXIAMoCzIYLlZhdWx0LkJyZWFjaFdhdGNo",
+            "UmVjb3JkEiIKCXVzZXJBdXRocxgYIAMoCzIPLlZhdWx0LlVzZXJBdXRoEj8K",
+            "F2JyZWFjaFdhdGNoU2VjdXJpdHlEYXRhGBkgAygLMh4uVmF1bHQuQnJlYWNo",
+            "V2F0Y2hTZWN1cml0eURhdGESLwoPcmV1c2VkUGFzc3dvcmRzGBogASgLMhYu",
+            "VmF1bHQuUmV1c2VkUGFzc3dvcmRzEhoKEnJlbW92ZWRVc2VyRm9sZGVycxgb",
+            "IAMoDBIcChRyZW1vdmVkU2hhcmVkRm9sZGVycxgcIAMoDBJFCh5yZW1vdmVk",
+            "VXNlckZvbGRlclNoYXJlZEZvbGRlcnMYHSADKAsyHS5WYXVsdC5Vc2VyRm9s",
+            "ZGVyU2hhcmVkRm9sZGVyEj0KGnJlbW92ZWRTaGFyZWRGb2xkZXJGb2xkZXJz",
+            "GB4gAygLMhkuVmF1bHQuU2hhcmVkRm9sZGVyRm9sZGVyEhYKDnJlbW92ZWRS",
+            "ZWNvcmRzGB8gAygMEi0KEnJlbW92ZWRSZWNvcmRMaW5rcxggIAMoCzIRLlZh",
+            "dWx0LlJlY29yZExpbmsSOQoYcmVtb3ZlZFVzZXJGb2xkZXJSZWNvcmRzGCEg",
+            "AygLMhcuVmF1bHQuVXNlckZvbGRlclJlY29yZBI9ChpyZW1vdmVkU2hhcmVk",
+            "Rm9sZGVyUmVjb3JkcxgiIAMoCzIZLlZhdWx0LlNoYXJlZEZvbGRlclJlY29y",
+            "ZBJJCiByZW1vdmVkU2hhcmVkRm9sZGVyRm9sZGVyUmVjb3JkcxgjIAMoCzIf",
+            "LlZhdWx0LlNoYXJlZEZvbGRlckZvbGRlclJlY29yZBI5ChhyZW1vdmVkU2hh",
+            "cmVkRm9sZGVyVXNlcnMYJCADKAsyFy5WYXVsdC5TaGFyZWRGb2xkZXJVc2Vy",
+            "EjkKGHJlbW92ZWRTaGFyZWRGb2xkZXJUZWFtcxglIAMoCzIXLlZhdWx0LlNo",
+            "YXJlZEZvbGRlclRlYW0SFAoMcmVtb3ZlZFRlYW1zGCYgAygMEiYKDGtzbUFw",
+            "cFNoYXJlcxgnIAMoCzIQLlZhdWx0LktzbUNoYW5nZRInCg1rc21BcHBDbGll",
+            "bnRzGCggAygLMhAuVmF1bHQuS3NtQ2hhbmdlEjAKEHNoYXJlSW52aXRhdGlv",
+            "bnMYKSADKAsyFi5WYXVsdC5TaGFyZUludml0YXRpb24SKwoLZGlhZ25vc3Rp",
+            "Y3MYKiABKAsyFi5WYXVsdC5TeW5jRGlhZ25vc3RpY3MSLgoPcmVjb3JkUm90",
+            "YXRpb25zGCsgAygLMhUuVmF1bHQuUmVjb3JkUm90YXRpb24SGgoFdXNlcnMY",
+            "LCADKAsyCy5WYXVsdC5Vc2VyEhQKDHJlbW92ZWRVc2VycxgtIAMoDBIzChFz",
+            "ZWN1cml0eVNjb3JlRGF0YRguIAMoCzIYLlZhdWx0LlNlY3VyaXR5U2NvcmVE",
+            "YXRhEkEKEG5vdGlmaWNhdGlvblN5bmMYLyADKAsyJy5Ob3RpZmljYXRpb25D",
+            "ZW50ZXIuTm90aWZpY2F0aW9uV3JhcHBlciKSAQoKVXNlckZvbGRlchIRCglm",
+            "b2xkZXJVaWQYASABKAwSEQoJcGFyZW50VWlkGAIgASgMEhUKDXVzZXJGb2xk",
+            "ZXJLZXkYAyABKAwSJwoHa2V5VHlwZRgEIAEoDjIWLlJlY29yZHMuUmVjb3Jk",
+            "S2V5VHlwZRIQCghyZXZpc2lvbhgFIAEoAxIMCgRkYXRhGAYgASgMItUCCgxT",
+            "aGFyZWRGb2xkZXISFwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMEhAKCHJldmlz",
+            "aW9uGAIgASgDEhcKD3NoYXJlZEZvbGRlcktleRgDIAEoDBInCgdrZXlUeXBl",
+            "GAQgASgOMhYuUmVjb3Jkcy5SZWNvcmRLZXlUeXBlEgwKBGRhdGEYBSABKAwS",
+            "HAoUZGVmYXVsdE1hbmFnZVJlY29yZHMYBiABKAgSGgoSZGVmYXVsdE1hbmFn",
+            "ZVVzZXJzGAcgASgIEhYKDmRlZmF1bHRDYW5FZGl0GAggASgIEhkKEWRlZmF1",
+            "bHRDYW5SZXNoYXJlGAkgASgIEicKC2NhY2hlU3RhdHVzGAogASgOMhIuVmF1",
+            "bHQuQ2FjaGVTdGF0dXMSDQoFb3duZXIYCyABKAkSFwoPb3duZXJBY2NvdW50",
+            "VWlkGAwgASgMEgwKBG5hbWUYDSABKAwiVgoWVXNlckZvbGRlclNoYXJlZEZv",
+            "bGRlchIRCglmb2xkZXJVaWQYASABKAwSFwoPc2hhcmVkRm9sZGVyVWlkGAIg",
+            "ASgMEhAKCHJldmlzaW9uGAMgASgDIrsBChJTaGFyZWRGb2xkZXJGb2xkZXIS",
             "FwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMEhEKCWZvbGRlclVpZBgCIAEoDBIR",
-            "CglyZWNvcmRVaWQYAyABKAwSEAoIcmV2aXNpb24YBCABKAMiMAoNTm9uU2hh",
-            "cmVkRGF0YRIRCglyZWNvcmRVaWQYASABKAwSDAoEZGF0YRgCIAEoDCKfAgoO",
-            "UmVjb3JkTWV0YURhdGESEQoJcmVjb3JkVWlkGAEgASgMEg0KBW93bmVyGAIg",
-            "ASgIEhEKCXJlY29yZEtleRgDIAEoDBItCg1yZWNvcmRLZXlUeXBlGAQgASgO",
-            "MhYuUmVjb3Jkcy5SZWNvcmRLZXlUeXBlEhAKCGNhblNoYXJlGAUgASgIEg8K",
-            "B2NhbkVkaXQYBiABKAgSFwoPb3duZXJBY2NvdW50VWlkGAcgASgMEhIKCmV4",
-            "cGlyYXRpb24YCCABKAMSQgoaZXhwaXJhdGlvbk5vdGlmaWNhdGlvblR5cGUY",
-            "CSABKA4yHi5SZWNvcmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZRIVCg1vd25l",
-            "clVzZXJuYW1lGAogASgJIjIKDVNoYXJpbmdDaGFuZ2USEQoJcmVjb3JkVWlk",
-            "GAEgASgMEg4KBnNoYXJlZBgCIAEoCCI+CgdQcm9maWxlEgwKBGRhdGEYASAB",
-            "KAwSEwoLcHJvZmlsZU5hbWUYAiABKAkSEAoIcmV2aXNpb24YAyABKAMiKwoK",
-            "UHJvZmlsZVBpYxILCgN1cmwYASABKAkSEAoIcmV2aXNpb24YAiABKAMicAoR",
-            "UGVuZGluZ1RlYW1NZW1iZXISGAoQZW50ZXJwcmlzZVVzZXJJZBgBIAEoAxIV",
-            "Cg11c2VyUHVibGljS2V5GAIgASgMEhAKCHRlYW1VaWRzGAMgAygMEhgKEHVz",
-            "ZXJFY2NQdWJsaWNLZXkYBCABKAwipgEKEUJyZWFjaFdhdGNoUmVjb3JkEhEK",
-            "CXJlY29yZFVpZBgBIAEoDBIMCgRkYXRhGAIgASgMEi4KBHR5cGUYAyABKA4y",
-            "IC5CcmVhY2hXYXRjaC5CcmVhY2hXYXRjaEluZm9UeXBlEhEKCXNjYW5uZWRC",
-            "eRgEIAEoCRIQCghyZXZpc2lvbhgFIAEoAxIbChNzY2FubmVkQnlBY2NvdW50",
-            "VWlkGAYgASgMIrQBCghVc2VyQXV0aBILCgN1aWQYASABKAwSLAoJbG9naW5U",
-            "eXBlGAIgASgOMhkuQXV0aGVudGljYXRpb24uTG9naW5UeXBlEg8KB2RlbGV0",
-            "ZWQYAyABKAgSEgoKaXRlcmF0aW9ucxgEIAEoBRIMCgRzYWx0GAUgASgMEhoK",
-            "EmVuY3J5cHRlZENsaWVudEtleRgGIAEoDBIQCghyZXZpc2lvbhgHIAEoAxIM",
-            "CgRuYW1lGAggASgJIj4KF0JyZWFjaFdhdGNoU2VjdXJpdHlEYXRhEhEKCXJl",
-            "Y29yZFVpZBgBIAEoDBIQCghyZXZpc2lvbhgCIAEoAyIyCg9SZXVzZWRQYXNz",
-            "d29yZHMSDQoFY291bnQYASABKAUSEAoIcmV2aXNpb24YAiABKAMijQIKElNo",
-            "YXJlZEZvbGRlclJlY29yZBIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSEQoJ",
-            "cmVjb3JkVWlkGAIgASgMEhEKCXJlY29yZEtleRgDIAEoDBIQCghjYW5TaGFy",
-            "ZRgEIAEoCBIPCgdjYW5FZGl0GAUgASgIEhcKD293bmVyQWNjb3VudFVpZBgG",
-            "IAEoDBISCgpleHBpcmF0aW9uGAcgASgDEg0KBW93bmVyGAggASgIEkIKGmV4",
-            "cGlyYXRpb25Ob3RpZmljYXRpb25UeXBlGAkgASgOMh4uUmVjb3Jkcy5UaW1l",
-            "ck5vdGlmaWNhdGlvblR5cGUSFQoNb3duZXJVc2VybmFtZRgKIAEoCSLVAQoQ",
-            "U2hhcmVkRm9sZGVyVXNlchIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSEAoI",
-            "dXNlcm5hbWUYAiABKAkSFQoNbWFuYWdlUmVjb3JkcxgDIAEoCBITCgttYW5h",
-            "Z2VVc2VycxgEIAEoCBISCgphY2NvdW50VWlkGAUgASgMEhIKCmV4cGlyYXRp",
-            "b24YBiABKAMSQgoaZXhwaXJhdGlvbk5vdGlmaWNhdGlvblR5cGUYByABKA4y",
-            "Hi5SZWNvcmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZSLOAQoQU2hhcmVkRm9s",
-            "ZGVyVGVhbRIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSDwoHdGVhbVVpZBgC",
-            "IAEoDBIMCgRuYW1lGAMgASgJEhUKDW1hbmFnZVJlY29yZHMYBCABKAgSEwoL",
-            "bWFuYWdlVXNlcnMYBSABKAgSEgoKZXhwaXJhdGlvbhgGIAEoAxJCChpleHBp",
-            "cmF0aW9uTm90aWZpY2F0aW9uVHlwZRgHIAEoDjIeLlJlY29yZHMuVGltZXJO",
-            "b3RpZmljYXRpb25UeXBlIooBCglLc21DaGFuZ2USFAoMYXBwUmVjb3JkVWlk",
-            "GAEgASgMEhAKCGRldGFpbElkGAIgASgMEg8KB3JlbW92ZWQYAyABKAgSMAoN",
-            "YXBwQ2xpZW50VHlwZRgEIAEoDjIZLkVudGVycHJpc2UuQXBwQ2xpZW50VHlw",
-            "ZRISCgpleHBpcmF0aW9uGAUgASgDIiMKD1NoYXJlSW52aXRhdGlvbhIQCgh1",
-            "c2VybmFtZRgBIAEoCSIsCgRVc2VyEhIKCmFjY291bnRVaWQYASABKAwSEAoI",
-            "dXNlcm5hbWUYAiABKAkiewoPU3luY0RpYWdub3N0aWNzEhkKEWNvbnRpbnVh",
-            "dGlvblRva2VuGAEgASgMEg4KBnVzZXJJZBgCIAEoBRIYChBlbnRlcnByaXNl",
-            "VXNlcklkGAMgASgDEhAKCHN5bmNlZFRvGAQgASgDEhEKCXN5bmNpbmdUbxgF",
-            "IAEoAyLuAQoOUmVjb3JkUm90YXRpb24SEQoJcmVjb3JkVWlkGAEgASgMEhAK",
-            "CHJldmlzaW9uGAIgASgDEhgKEGNvbmZpZ3VyYXRpb25VaWQYAyABKAwSEAoI",
-            "c2NoZWR1bGUYBCABKAkSFQoNcHdkQ29tcGxleGl0eRgFIAEoDBIQCghkaXNh",
-            "YmxlZBgGIAEoCBITCgtyZXNvdXJjZVVpZBgHIAEoDBIUCgxsYXN0Um90YXRp",
-            "b24YCCABKAMSNwoSbGFzdFJvdGF0aW9uU3RhdHVzGAkgASgOMhsuVmF1bHQu",
-            "UmVjb3JkUm90YXRpb25TdGF0dXMiMwodQnJlYWNoV2F0Y2hHZXRTeW5jRGF0",
-            "YVJlcXVlc3QSEgoKcmVjb3JkVWlkcxgBIAMoDCKzAQoeQnJlYWNoV2F0Y2hH",
-            "ZXRTeW5jRGF0YVJlc3BvbnNlEjQKEmJyZWFjaFdhdGNoUmVjb3JkcxgBIAMo",
-            "CzIYLlZhdWx0LkJyZWFjaFdhdGNoUmVjb3JkEj8KF2JyZWFjaFdhdGNoU2Vj",
-            "dXJpdHlEYXRhGAIgAygLMh4uVmF1bHQuQnJlYWNoV2F0Y2hTZWN1cml0eURh",
-            "dGESGgoFdXNlcnMYAyADKAsyCy5WYXVsdC5Vc2VyKiIKC0NhY2hlU3RhdHVz",
-            "EggKBEtFRVAQABIJCgVDTEVBUhABKmYKFFJlY29yZFJvdGF0aW9uU3RhdHVz",
-            "EhQKEFJSU1RfTk9UX1JPVEFURUQQABIUChBSUlNUX0lOX1BST0dSRVNTEAES",
-            "EAoMUlJTVF9TVUNDRVNTEAISEAoMUlJTVF9GQUlMVVJFEANCIQoYY29tLmtl",
-            "ZXBlcnNlY3VyaXR5LnByb3RvQgVWYXVsdGIGcHJvdG8z"));
+            "CglwYXJlbnRVaWQYAyABKAwSHQoVc2hhcmVkRm9sZGVyRm9sZGVyS2V5GAQg",
+            "ASgMEicKB2tleVR5cGUYBSABKA4yFi5SZWNvcmRzLlJlY29yZEtleVR5cGUS",
+            "EAoIcmV2aXNpb24YBiABKAMSDAoEZGF0YRgHIAEoDCJsCg9TaGFyZWRGb2xk",
+            "ZXJLZXkSFwoPc2hhcmVkRm9sZGVyVWlkGAEgASgMEhcKD3NoYXJlZEZvbGRl",
+            "cktleRgCIAEoDBInCgdrZXlUeXBlGAMgASgOMhYuUmVjb3Jkcy5SZWNvcmRL",
+            "ZXlUeXBlIsMCCgRUZWFtEg8KB3RlYW1VaWQYASABKAwSDAoEbmFtZRgCIAEo",
+            "CRIPCgd0ZWFtS2V5GAMgASgMEisKC3RlYW1LZXlUeXBlGAQgASgOMhYuUmVj",
+            "b3Jkcy5SZWNvcmRLZXlUeXBlEhYKDnRlYW1Qcml2YXRlS2V5GAUgASgMEhQK",
+            "DHJlc3RyaWN0RWRpdBgGIAEoCBIVCg1yZXN0cmljdFNoYXJlGAcgASgIEhQK",
+            "DHJlc3RyaWN0VmlldxgIIAEoCBIcChRyZW1vdmVkU2hhcmVkRm9sZGVycxgJ",
+            "IAMoDBIwChBzaGFyZWRGb2xkZXJLZXlzGAogAygLMhYuVmF1bHQuU2hhcmVk",
+            "Rm9sZGVyS2V5EhkKEXRlYW1FY2NQcml2YXRlS2V5GAsgASgMEhgKEHRlYW1F",
+            "Y2NQdWJsaWNLZXkYDCABKAwivwEKBlJlY29yZBIRCglyZWNvcmRVaWQYASAB",
+            "KAwSEAoIcmV2aXNpb24YAiABKAMSDwoHdmVyc2lvbhgDIAEoBRIOCgZzaGFy",
+            "ZWQYBCABKAgSGgoSY2xpZW50TW9kaWZpZWRUaW1lGAUgASgDEgwKBGRhdGEY",
+            "BiABKAwSDQoFZXh0cmEYByABKAwSDQoFdWRhdGEYCCABKAkSEAoIZmlsZVNp",
+            "emUYCSABKAMSFQoNdGh1bWJuYWlsU2l6ZRgKIAEoAyJiCgpSZWNvcmRMaW5r",
+            "EhcKD3BhcmVudFJlY29yZFVpZBgBIAEoDBIWCg5jaGlsZFJlY29yZFVpZBgC",
+            "IAEoDBIRCglyZWNvcmRLZXkYAyABKAwSEAoIcmV2aXNpb24YBCABKAMiSgoQ",
+            "VXNlckZvbGRlclJlY29yZBIRCglmb2xkZXJVaWQYASABKAwSEQoJcmVjb3Jk",
+            "VWlkGAIgASgMEhAKCHJldmlzaW9uGAMgASgDImsKGFNoYXJlZEZvbGRlckZv",
+            "bGRlclJlY29yZBIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSEQoJZm9sZGVy",
+            "VWlkGAIgASgMEhEKCXJlY29yZFVpZBgDIAEoDBIQCghyZXZpc2lvbhgEIAEo",
+            "AyIwCg1Ob25TaGFyZWREYXRhEhEKCXJlY29yZFVpZBgBIAEoDBIMCgRkYXRh",
+            "GAIgASgMIp8CCg5SZWNvcmRNZXRhRGF0YRIRCglyZWNvcmRVaWQYASABKAwS",
+            "DQoFb3duZXIYAiABKAgSEQoJcmVjb3JkS2V5GAMgASgMEi0KDXJlY29yZEtl",
+            "eVR5cGUYBCABKA4yFi5SZWNvcmRzLlJlY29yZEtleVR5cGUSEAoIY2FuU2hh",
+            "cmUYBSABKAgSDwoHY2FuRWRpdBgGIAEoCBIXCg9vd25lckFjY291bnRVaWQY",
+            "ByABKAwSEgoKZXhwaXJhdGlvbhgIIAEoAxJCChpleHBpcmF0aW9uTm90aWZp",
+            "Y2F0aW9uVHlwZRgJIAEoDjIeLlJlY29yZHMuVGltZXJOb3RpZmljYXRpb25U",
+            "eXBlEhUKDW93bmVyVXNlcm5hbWUYCiABKAkiMgoNU2hhcmluZ0NoYW5nZRIR",
+            "CglyZWNvcmRVaWQYASABKAwSDgoGc2hhcmVkGAIgASgIIj4KB1Byb2ZpbGUS",
+            "DAoEZGF0YRgBIAEoDBITCgtwcm9maWxlTmFtZRgCIAEoCRIQCghyZXZpc2lv",
+            "bhgDIAEoAyIrCgpQcm9maWxlUGljEgsKA3VybBgBIAEoCRIQCghyZXZpc2lv",
+            "bhgCIAEoAyJwChFQZW5kaW5nVGVhbU1lbWJlchIYChBlbnRlcnByaXNlVXNl",
+            "cklkGAEgASgDEhUKDXVzZXJQdWJsaWNLZXkYAiABKAwSEAoIdGVhbVVpZHMY",
+            "AyADKAwSGAoQdXNlckVjY1B1YmxpY0tleRgEIAEoDCKmAQoRQnJlYWNoV2F0",
+            "Y2hSZWNvcmQSEQoJcmVjb3JkVWlkGAEgASgMEgwKBGRhdGEYAiABKAwSLgoE",
+            "dHlwZRgDIAEoDjIgLkJyZWFjaFdhdGNoLkJyZWFjaFdhdGNoSW5mb1R5cGUS",
+            "EQoJc2Nhbm5lZEJ5GAQgASgJEhAKCHJldmlzaW9uGAUgASgDEhsKE3NjYW5u",
+            "ZWRCeUFjY291bnRVaWQYBiABKAwitAEKCFVzZXJBdXRoEgsKA3VpZBgBIAEo",
+            "DBIsCglsb2dpblR5cGUYAiABKA4yGS5BdXRoZW50aWNhdGlvbi5Mb2dpblR5",
+            "cGUSDwoHZGVsZXRlZBgDIAEoCBISCgppdGVyYXRpb25zGAQgASgFEgwKBHNh",
+            "bHQYBSABKAwSGgoSZW5jcnlwdGVkQ2xpZW50S2V5GAYgASgMEhAKCHJldmlz",
+            "aW9uGAcgASgDEgwKBG5hbWUYCCABKAkiPgoXQnJlYWNoV2F0Y2hTZWN1cml0",
+            "eURhdGESEQoJcmVjb3JkVWlkGAEgASgMEhAKCHJldmlzaW9uGAIgASgDIjIK",
+            "D1JldXNlZFBhc3N3b3JkcxINCgVjb3VudBgBIAEoBRIQCghyZXZpc2lvbhgC",
+            "IAEoAyKpAgoSU2hhcmVkRm9sZGVyUmVjb3JkEhcKD3NoYXJlZEZvbGRlclVp",
+            "ZBgBIAEoDBIRCglyZWNvcmRVaWQYAiABKAwSEQoJcmVjb3JkS2V5GAMgASgM",
+            "EhAKCGNhblNoYXJlGAQgASgIEg8KB2NhbkVkaXQYBSABKAgSFwoPb3duZXJB",
+            "Y2NvdW50VWlkGAYgASgMEhIKCmV4cGlyYXRpb24YByABKAMSDQoFb3duZXIY",
+            "CCABKAgSQgoaZXhwaXJhdGlvbk5vdGlmaWNhdGlvblR5cGUYCSABKA4yHi5S",
+            "ZWNvcmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZRIVCg1vd25lclVzZXJuYW1l",
+            "GAogASgJEhoKEnJvdGF0ZU9uRXhwaXJhdGlvbhgLIAEoCCLxAQoQU2hhcmVk",
+            "Rm9sZGVyVXNlchIXCg9zaGFyZWRGb2xkZXJVaWQYASABKAwSEAoIdXNlcm5h",
+            "bWUYAiABKAkSFQoNbWFuYWdlUmVjb3JkcxgDIAEoCBITCgttYW5hZ2VVc2Vy",
+            "cxgEIAEoCBISCgphY2NvdW50VWlkGAUgASgMEhIKCmV4cGlyYXRpb24YBiAB",
+            "KAMSQgoaZXhwaXJhdGlvbk5vdGlmaWNhdGlvblR5cGUYByABKA4yHi5SZWNv",
+            "cmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZRIaChJyb3RhdGVPbkV4cGlyYXRp",
+            "b24YCCABKAgi6gEKEFNoYXJlZEZvbGRlclRlYW0SFwoPc2hhcmVkRm9sZGVy",
+            "VWlkGAEgASgMEg8KB3RlYW1VaWQYAiABKAwSDAoEbmFtZRgDIAEoCRIVCg1t",
+            "YW5hZ2VSZWNvcmRzGAQgASgIEhMKC21hbmFnZVVzZXJzGAUgASgIEhIKCmV4",
+            "cGlyYXRpb24YBiABKAMSQgoaZXhwaXJhdGlvbk5vdGlmaWNhdGlvblR5cGUY",
+            "ByABKA4yHi5SZWNvcmRzLlRpbWVyTm90aWZpY2F0aW9uVHlwZRIaChJyb3Rh",
+            "dGVPbkV4cGlyYXRpb24YCCABKAgiigEKCUtzbUNoYW5nZRIUCgxhcHBSZWNv",
+            "cmRVaWQYASABKAwSEAoIZGV0YWlsSWQYAiABKAwSDwoHcmVtb3ZlZBgDIAEo",
+            "CBIwCg1hcHBDbGllbnRUeXBlGAQgASgOMhkuRW50ZXJwcmlzZS5BcHBDbGll",
+            "bnRUeXBlEhIKCmV4cGlyYXRpb24YBSABKAMiIwoPU2hhcmVJbnZpdGF0aW9u",
+            "EhAKCHVzZXJuYW1lGAEgASgJIiwKBFVzZXISEgoKYWNjb3VudFVpZBgBIAEo",
+            "DBIQCgh1c2VybmFtZRgCIAEoCSJ7Cg9TeW5jRGlhZ25vc3RpY3MSGQoRY29u",
+            "dGludWF0aW9uVG9rZW4YASABKAwSDgoGdXNlcklkGAIgASgFEhgKEGVudGVy",
+            "cHJpc2VVc2VySWQYAyABKAMSEAoIc3luY2VkVG8YBCABKAMSEQoJc3luY2lu",
+            "Z1RvGAUgASgDIu4BCg5SZWNvcmRSb3RhdGlvbhIRCglyZWNvcmRVaWQYASAB",
+            "KAwSEAoIcmV2aXNpb24YAiABKAMSGAoQY29uZmlndXJhdGlvblVpZBgDIAEo",
+            "DBIQCghzY2hlZHVsZRgEIAEoCRIVCg1wd2RDb21wbGV4aXR5GAUgASgMEhAK",
+            "CGRpc2FibGVkGAYgASgIEhMKC3Jlc291cmNlVWlkGAcgASgMEhQKDGxhc3RS",
+            "b3RhdGlvbhgIIAEoAxI3ChJsYXN0Um90YXRpb25TdGF0dXMYCSABKA4yGy5W",
+            "YXVsdC5SZWNvcmRSb3RhdGlvblN0YXR1cyJGChFTZWN1cml0eVNjb3JlRGF0",
+            "YRIRCglyZWNvcmRVaWQYASABKAwSDAoEZGF0YRgCIAEoDBIQCghyZXZpc2lv",
+            "bhgDIAEoAyIzCh1CcmVhY2hXYXRjaEdldFN5bmNEYXRhUmVxdWVzdBISCgpy",
+            "ZWNvcmRVaWRzGAEgAygMIrMBCh5CcmVhY2hXYXRjaEdldFN5bmNEYXRhUmVz",
+            "cG9uc2USNAoSYnJlYWNoV2F0Y2hSZWNvcmRzGAEgAygLMhguVmF1bHQuQnJl",
+            "YWNoV2F0Y2hSZWNvcmQSPwoXYnJlYWNoV2F0Y2hTZWN1cml0eURhdGEYAiAD",
+            "KAsyHi5WYXVsdC5CcmVhY2hXYXRjaFNlY3VyaXR5RGF0YRIaCgV1c2VycxgD",
+            "IAMoCzILLlZhdWx0LlVzZXIiNgoYR2V0QWNjb3VudFVpZE1hcFJlc3BvbnNl",
+            "EhoKBXVzZXJzGAEgAygLMgsuVmF1bHQuVXNlcioiCgtDYWNoZVN0YXR1cxII",
+            "CgRLRUVQEAASCQoFQ0xFQVIQASpmChRSZWNvcmRSb3RhdGlvblN0YXR1cxIU",
+            "ChBSUlNUX05PVF9ST1RBVEVEEAASFAoQUlJTVF9JTl9QUk9HUkVTUxABEhAK",
+            "DFJSU1RfU1VDQ0VTUxACEhAKDFJSU1RfRkFJTFVSRRADQiEKGGNvbS5rZWVw",
+            "ZXJzZWN1cml0eS5wcm90b0IFVmF1bHRiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, global::BreachWatch.BreachwatchReflection.Descriptor, global::Authentication.APIRequestReflection.Descriptor, global::Enterprise.EnterpriseReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, global::BreachWatch.BreachwatchReflection.Descriptor, global::Authentication.APIRequestReflection.Descriptor, global::Enterprise.EnterpriseReflection.Descriptor, global::NotificationCenter.NotificationCenterReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Vault.CacheStatus), typeof(global::Vault.RecordRotationStatus), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SyncDownRequest), global::Vault.SyncDownRequest.Parser, new[]{ "ContinuationToken", "DataVersion" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SyncDownResponse), global::Vault.SyncDownResponse.Parser, new[]{ "ContinuationToken", "HasMore", "CacheStatus", "UserFolders", "SharedFolders", "UserFolderSharedFolders", "SharedFolderFolders", "Records", "RecordMetaData", "NonSharedData", "RecordLinks", "UserFolderRecords", "SharedFolderRecords", "SharedFolderFolderRecords", "SharedFolderUsers", "SharedFolderTeams", "RecordAddAuditData", "Teams", "SharingChanges", "Profile", "ProfilePic", "PendingTeamMembers", "BreachWatchRecords", "UserAuths", "BreachWatchSecurityData", "ReusedPasswords", "RemovedUserFolders", "RemovedSharedFolders", "RemovedUserFolderSharedFolders", "RemovedSharedFolderFolders", "RemovedRecords", "RemovedRecordLinks", "RemovedUserFolderRecords", "RemovedSharedFolderRecords", "RemovedSharedFolderFolderRecords", "RemovedSharedFolderUsers", "RemovedSharedFolderTeams", "RemovedTeams", "KsmAppShares", "KsmAppClients", "ShareInvitations", "Diagnostics", "RecordRotations", "Users", "RemovedUsers" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SyncDownResponse), global::Vault.SyncDownResponse.Parser, new[]{ "ContinuationToken", "HasMore", "CacheStatus", "UserFolders", "SharedFolders", "UserFolderSharedFolders", "SharedFolderFolders", "Records", "RecordMetaData", "NonSharedData", "RecordLinks", "UserFolderRecords", "SharedFolderRecords", "SharedFolderFolderRecords", "SharedFolderUsers", "SharedFolderTeams", "RecordAddAuditData", "Teams", "SharingChanges", "Profile", "ProfilePic", "PendingTeamMembers", "BreachWatchRecords", "UserAuths", "BreachWatchSecurityData", "ReusedPasswords", "RemovedUserFolders", "RemovedSharedFolders", "RemovedUserFolderSharedFolders", "RemovedSharedFolderFolders", "RemovedRecords", "RemovedRecordLinks", "RemovedUserFolderRecords", "RemovedSharedFolderRecords", "RemovedSharedFolderFolderRecords", "RemovedSharedFolderUsers", "RemovedSharedFolderTeams", "RemovedTeams", "KsmAppShares", "KsmAppClients", "ShareInvitations", "Diagnostics", "RecordRotations", "Users", "RemovedUsers", "SecurityScoreData", "NotificationSync" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.UserFolder), global::Vault.UserFolder.Parser, new[]{ "FolderUid", "ParentUid", "UserFolderKey", "KeyType", "Revision", "Data" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolder), global::Vault.SharedFolder.Parser, new[]{ "SharedFolderUid", "Revision", "SharedFolderKey", "KeyType", "Data", "DefaultManageRecords", "DefaultManageUsers", "DefaultCanEdit", "DefaultCanReshare", "CacheStatus", "Owner", "OwnerAccountUid", "Name" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.UserFolderSharedFolder), global::Vault.UserFolderSharedFolder.Parser, new[]{ "FolderUid", "SharedFolderUid", "Revision" }, null, null, null, null),
@@ -198,16 +206,18 @@ namespace Vault {
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.UserAuth), global::Vault.UserAuth.Parser, new[]{ "Uid", "LoginType", "Deleted", "Iterations", "Salt", "EncryptedClientKey", "Revision", "Name" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.BreachWatchSecurityData), global::Vault.BreachWatchSecurityData.Parser, new[]{ "RecordUid", "Revision" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.ReusedPasswords), global::Vault.ReusedPasswords.Parser, new[]{ "Count", "Revision" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolderRecord), global::Vault.SharedFolderRecord.Parser, new[]{ "SharedFolderUid", "RecordUid", "RecordKey", "CanShare", "CanEdit", "OwnerAccountUid", "Expiration", "Owner", "ExpirationNotificationType", "OwnerUsername" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolderUser), global::Vault.SharedFolderUser.Parser, new[]{ "SharedFolderUid", "Username", "ManageRecords", "ManageUsers", "AccountUid", "Expiration", "ExpirationNotificationType" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolderTeam), global::Vault.SharedFolderTeam.Parser, new[]{ "SharedFolderUid", "TeamUid", "Name", "ManageRecords", "ManageUsers", "Expiration", "ExpirationNotificationType" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolderRecord), global::Vault.SharedFolderRecord.Parser, new[]{ "SharedFolderUid", "RecordUid", "RecordKey", "CanShare", "CanEdit", "OwnerAccountUid", "Expiration", "Owner", "ExpirationNotificationType", "OwnerUsername", "RotateOnExpiration" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolderUser), global::Vault.SharedFolderUser.Parser, new[]{ "SharedFolderUid", "Username", "ManageRecords", "ManageUsers", "AccountUid", "Expiration", "ExpirationNotificationType", "RotateOnExpiration" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SharedFolderTeam), global::Vault.SharedFolderTeam.Parser, new[]{ "SharedFolderUid", "TeamUid", "Name", "ManageRecords", "ManageUsers", "Expiration", "ExpirationNotificationType", "RotateOnExpiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.KsmChange), global::Vault.KsmChange.Parser, new[]{ "AppRecordUid", "DetailId", "Removed", "AppClientType", "Expiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.ShareInvitation), global::Vault.ShareInvitation.Parser, new[]{ "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.User), global::Vault.User.Parser, new[]{ "AccountUid", "Username" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SyncDiagnostics), global::Vault.SyncDiagnostics.Parser, new[]{ "ContinuationToken", "UserId", "EnterpriseUserId", "SyncedTo", "SyncingTo" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.RecordRotation), global::Vault.RecordRotation.Parser, new[]{ "RecordUid", "Revision", "ConfigurationUid", "Schedule", "PwdComplexity", "Disabled", "ResourceUid", "LastRotation", "LastRotationStatus" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.SecurityScoreData), global::Vault.SecurityScoreData.Parser, new[]{ "RecordUid", "Data", "Revision" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Vault.BreachWatchGetSyncDataRequest), global::Vault.BreachWatchGetSyncDataRequest.Parser, new[]{ "RecordUids" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.BreachWatchGetSyncDataResponse), global::Vault.BreachWatchGetSyncDataResponse.Parser, new[]{ "BreachWatchRecords", "BreachWatchSecurityData", "Users" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.BreachWatchGetSyncDataResponse), global::Vault.BreachWatchGetSyncDataResponse.Parser, new[]{ "BreachWatchRecords", "BreachWatchSecurityData", "Users" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Vault.GetAccountUidMapResponse), global::Vault.GetAccountUidMapResponse.Parser, new[]{ "Users" }, null, null, null, null)
           }));
     }
     #endregion
@@ -544,6 +554,8 @@ namespace Vault {
       recordRotations_ = other.recordRotations_.Clone();
       users_ = other.users_.Clone();
       removedUsers_ = other.removedUsers_.Clone();
+      securityScoreData_ = other.securityScoreData_.Clone();
+      notificationSync_ = other.notificationSync_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1064,6 +1076,28 @@ namespace Vault {
       get { return removedUsers_; }
     }
 
+    /// <summary>Field number for the "securityScoreData" field.</summary>
+    public const int SecurityScoreDataFieldNumber = 46;
+    private static readonly pb::FieldCodec<global::Vault.SecurityScoreData> _repeated_securityScoreData_codec
+        = pb::FieldCodec.ForMessage(370, global::Vault.SecurityScoreData.Parser);
+    private readonly pbc::RepeatedField<global::Vault.SecurityScoreData> securityScoreData_ = new pbc::RepeatedField<global::Vault.SecurityScoreData>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Vault.SecurityScoreData> SecurityScoreData {
+      get { return securityScoreData_; }
+    }
+
+    /// <summary>Field number for the "notificationSync" field.</summary>
+    public const int NotificationSyncFieldNumber = 47;
+    private static readonly pb::FieldCodec<global::NotificationCenter.NotificationWrapper> _repeated_notificationSync_codec
+        = pb::FieldCodec.ForMessage(378, global::NotificationCenter.NotificationWrapper.Parser);
+    private readonly pbc::RepeatedField<global::NotificationCenter.NotificationWrapper> notificationSync_ = new pbc::RepeatedField<global::NotificationCenter.NotificationWrapper>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::NotificationCenter.NotificationWrapper> NotificationSync {
+      get { return notificationSync_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -1124,6 +1158,8 @@ namespace Vault {
       if(!recordRotations_.Equals(other.recordRotations_)) return false;
       if(!users_.Equals(other.users_)) return false;
       if(!removedUsers_.Equals(other.removedUsers_)) return false;
+      if(!securityScoreData_.Equals(other.securityScoreData_)) return false;
+      if(!notificationSync_.Equals(other.notificationSync_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1176,6 +1212,8 @@ namespace Vault {
       hash ^= recordRotations_.GetHashCode();
       hash ^= users_.GetHashCode();
       hash ^= removedUsers_.GetHashCode();
+      hash ^= securityScoreData_.GetHashCode();
+      hash ^= notificationSync_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1260,6 +1298,8 @@ namespace Vault {
       recordRotations_.WriteTo(output, _repeated_recordRotations_codec);
       users_.WriteTo(output, _repeated_users_codec);
       removedUsers_.WriteTo(output, _repeated_removedUsers_codec);
+      securityScoreData_.WriteTo(output, _repeated_securityScoreData_codec);
+      notificationSync_.WriteTo(output, _repeated_notificationSync_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1336,6 +1376,8 @@ namespace Vault {
       recordRotations_.WriteTo(ref output, _repeated_recordRotations_codec);
       users_.WriteTo(ref output, _repeated_users_codec);
       removedUsers_.WriteTo(ref output, _repeated_removedUsers_codec);
+      securityScoreData_.WriteTo(ref output, _repeated_securityScoreData_codec);
+      notificationSync_.WriteTo(ref output, _repeated_notificationSync_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1405,6 +1447,8 @@ namespace Vault {
       size += recordRotations_.CalculateSize(_repeated_recordRotations_codec);
       size += users_.CalculateSize(_repeated_users_codec);
       size += removedUsers_.CalculateSize(_repeated_removedUsers_codec);
+      size += securityScoreData_.CalculateSize(_repeated_securityScoreData_codec);
+      size += notificationSync_.CalculateSize(_repeated_notificationSync_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -1488,6 +1532,8 @@ namespace Vault {
       recordRotations_.Add(other.recordRotations_);
       users_.Add(other.users_);
       removedUsers_.Add(other.removedUsers_);
+      securityScoreData_.Add(other.securityScoreData_);
+      notificationSync_.Add(other.notificationSync_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -1699,6 +1745,14 @@ namespace Vault {
             removedUsers_.AddEntriesFrom(input, _repeated_removedUsers_codec);
             break;
           }
+          case 370: {
+            securityScoreData_.AddEntriesFrom(input, _repeated_securityScoreData_codec);
+            break;
+          }
+          case 378: {
+            notificationSync_.AddEntriesFrom(input, _repeated_notificationSync_codec);
+            break;
+          }
         }
       }
     #endif
@@ -1908,6 +1962,14 @@ namespace Vault {
           }
           case 362: {
             removedUsers_.AddEntriesFrom(ref input, _repeated_removedUsers_codec);
+            break;
+          }
+          case 370: {
+            securityScoreData_.AddEntriesFrom(ref input, _repeated_securityScoreData_codec);
+            break;
+          }
+          case 378: {
+            notificationSync_.AddEntriesFrom(ref input, _repeated_notificationSync_codec);
             break;
           }
         }
@@ -9096,6 +9158,7 @@ namespace Vault {
       owner_ = other.owner_;
       expirationNotificationType_ = other.expirationNotificationType_;
       ownerUsername_ = other.ownerUsername_;
+      rotateOnExpiration_ = other.rotateOnExpiration_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -9231,6 +9294,18 @@ namespace Vault {
       }
     }
 
+    /// <summary>Field number for the "rotateOnExpiration" field.</summary>
+    public const int RotateOnExpirationFieldNumber = 11;
+    private bool rotateOnExpiration_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool RotateOnExpiration {
+      get { return rotateOnExpiration_; }
+      set {
+        rotateOnExpiration_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -9256,6 +9331,7 @@ namespace Vault {
       if (Owner != other.Owner) return false;
       if (ExpirationNotificationType != other.ExpirationNotificationType) return false;
       if (OwnerUsername != other.OwnerUsername) return false;
+      if (RotateOnExpiration != other.RotateOnExpiration) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -9273,6 +9349,7 @@ namespace Vault {
       if (Owner != false) hash ^= Owner.GetHashCode();
       if (ExpirationNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= ExpirationNotificationType.GetHashCode();
       if (OwnerUsername.Length != 0) hash ^= OwnerUsername.GetHashCode();
+      if (RotateOnExpiration != false) hash ^= RotateOnExpiration.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -9331,6 +9408,10 @@ namespace Vault {
         output.WriteRawTag(82);
         output.WriteString(OwnerUsername);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -9381,6 +9462,10 @@ namespace Vault {
         output.WriteRawTag(82);
         output.WriteString(OwnerUsername);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -9420,6 +9505,9 @@ namespace Vault {
       }
       if (OwnerUsername.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(OwnerUsername);
+      }
+      if (RotateOnExpiration != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -9462,6 +9550,9 @@ namespace Vault {
       }
       if (other.OwnerUsername.Length != 0) {
         OwnerUsername = other.OwnerUsername;
+      }
+      if (other.RotateOnExpiration != false) {
+        RotateOnExpiration = other.RotateOnExpiration;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -9520,6 +9611,10 @@ namespace Vault {
           }
           case 82: {
             OwnerUsername = input.ReadString();
+            break;
+          }
+          case 88: {
+            RotateOnExpiration = input.ReadBool();
             break;
           }
         }
@@ -9581,6 +9676,10 @@ namespace Vault {
             OwnerUsername = input.ReadString();
             break;
           }
+          case 88: {
+            RotateOnExpiration = input.ReadBool();
+            break;
+          }
         }
       }
     }
@@ -9630,6 +9729,7 @@ namespace Vault {
       accountUid_ = other.accountUid_;
       expiration_ = other.expiration_;
       expirationNotificationType_ = other.expirationNotificationType_;
+      rotateOnExpiration_ = other.rotateOnExpiration_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -9732,6 +9832,18 @@ namespace Vault {
       }
     }
 
+    /// <summary>Field number for the "rotateOnExpiration" field.</summary>
+    public const int RotateOnExpirationFieldNumber = 8;
+    private bool rotateOnExpiration_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool RotateOnExpiration {
+      get { return rotateOnExpiration_; }
+      set {
+        rotateOnExpiration_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -9754,6 +9866,7 @@ namespace Vault {
       if (AccountUid != other.AccountUid) return false;
       if (Expiration != other.Expiration) return false;
       if (ExpirationNotificationType != other.ExpirationNotificationType) return false;
+      if (RotateOnExpiration != other.RotateOnExpiration) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -9768,6 +9881,7 @@ namespace Vault {
       if (AccountUid.Length != 0) hash ^= AccountUid.GetHashCode();
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
       if (ExpirationNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= ExpirationNotificationType.GetHashCode();
+      if (RotateOnExpiration != false) hash ^= RotateOnExpiration.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -9814,6 +9928,10 @@ namespace Vault {
         output.WriteRawTag(56);
         output.WriteEnum((int) ExpirationNotificationType);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -9852,6 +9970,10 @@ namespace Vault {
         output.WriteRawTag(56);
         output.WriteEnum((int) ExpirationNotificationType);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -9882,6 +10004,9 @@ namespace Vault {
       }
       if (ExpirationNotificationType != global::Records.TimerNotificationType.NotificationOff) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ExpirationNotificationType);
+      }
+      if (RotateOnExpiration != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -9915,6 +10040,9 @@ namespace Vault {
       }
       if (other.ExpirationNotificationType != global::Records.TimerNotificationType.NotificationOff) {
         ExpirationNotificationType = other.ExpirationNotificationType;
+      }
+      if (other.RotateOnExpiration != false) {
+        RotateOnExpiration = other.RotateOnExpiration;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -9963,6 +10091,10 @@ namespace Vault {
             ExpirationNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
             break;
           }
+          case 64: {
+            RotateOnExpiration = input.ReadBool();
+            break;
+          }
         }
       }
     #endif
@@ -10008,6 +10140,10 @@ namespace Vault {
           }
           case 56: {
             ExpirationNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
+          case 64: {
+            RotateOnExpiration = input.ReadBool();
             break;
           }
         }
@@ -10059,6 +10195,7 @@ namespace Vault {
       manageUsers_ = other.manageUsers_;
       expiration_ = other.expiration_;
       expirationNotificationType_ = other.expirationNotificationType_;
+      rotateOnExpiration_ = other.rotateOnExpiration_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -10155,6 +10292,18 @@ namespace Vault {
       }
     }
 
+    /// <summary>Field number for the "rotateOnExpiration" field.</summary>
+    public const int RotateOnExpirationFieldNumber = 8;
+    private bool rotateOnExpiration_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool RotateOnExpiration {
+      get { return rotateOnExpiration_; }
+      set {
+        rotateOnExpiration_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -10177,6 +10326,7 @@ namespace Vault {
       if (ManageUsers != other.ManageUsers) return false;
       if (Expiration != other.Expiration) return false;
       if (ExpirationNotificationType != other.ExpirationNotificationType) return false;
+      if (RotateOnExpiration != other.RotateOnExpiration) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -10191,6 +10341,7 @@ namespace Vault {
       if (ManageUsers != false) hash ^= ManageUsers.GetHashCode();
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
       if (ExpirationNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= ExpirationNotificationType.GetHashCode();
+      if (RotateOnExpiration != false) hash ^= RotateOnExpiration.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -10237,6 +10388,10 @@ namespace Vault {
         output.WriteRawTag(56);
         output.WriteEnum((int) ExpirationNotificationType);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -10275,6 +10430,10 @@ namespace Vault {
         output.WriteRawTag(56);
         output.WriteEnum((int) ExpirationNotificationType);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -10305,6 +10464,9 @@ namespace Vault {
       }
       if (ExpirationNotificationType != global::Records.TimerNotificationType.NotificationOff) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ExpirationNotificationType);
+      }
+      if (RotateOnExpiration != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -10338,6 +10500,9 @@ namespace Vault {
       }
       if (other.ExpirationNotificationType != global::Records.TimerNotificationType.NotificationOff) {
         ExpirationNotificationType = other.ExpirationNotificationType;
+      }
+      if (other.RotateOnExpiration != false) {
+        RotateOnExpiration = other.RotateOnExpiration;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -10386,6 +10551,10 @@ namespace Vault {
             ExpirationNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
             break;
           }
+          case 64: {
+            RotateOnExpiration = input.ReadBool();
+            break;
+          }
         }
       }
     #endif
@@ -10431,6 +10600,10 @@ namespace Vault {
           }
           case 56: {
             ExpirationNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
+          case 64: {
+            RotateOnExpiration = input.ReadBool();
             break;
           }
         }
@@ -12068,6 +12241,278 @@ namespace Vault {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class SecurityScoreData : pb::IMessage<SecurityScoreData>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SecurityScoreData> _parser = new pb::MessageParser<SecurityScoreData>(() => new SecurityScoreData());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SecurityScoreData> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Vault.SyncDownReflection.Descriptor.MessageTypes[30]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SecurityScoreData() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SecurityScoreData(SecurityScoreData other) : this() {
+      recordUid_ = other.recordUid_;
+      data_ = other.data_;
+      revision_ = other.revision_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SecurityScoreData Clone() {
+      return new SecurityScoreData(this);
+    }
+
+    /// <summary>Field number for the "recordUid" field.</summary>
+    public const int RecordUidFieldNumber = 1;
+    private pb::ByteString recordUid_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString RecordUid {
+      get { return recordUid_; }
+      set {
+        recordUid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "data" field.</summary>
+    public const int DataFieldNumber = 2;
+    private pb::ByteString data_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString Data {
+      get { return data_; }
+      set {
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "revision" field.</summary>
+    public const int RevisionFieldNumber = 3;
+    private long revision_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long Revision {
+      get { return revision_; }
+      set {
+        revision_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SecurityScoreData);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SecurityScoreData other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RecordUid != other.RecordUid) return false;
+      if (Data != other.Data) return false;
+      if (Revision != other.Revision) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RecordUid.Length != 0) hash ^= RecordUid.GetHashCode();
+      if (Data.Length != 0) hash ^= Data.GetHashCode();
+      if (Revision != 0L) hash ^= Revision.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
+      }
+      if (Revision != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(Revision);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RecordUid.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(RecordUid);
+      }
+      if (Data.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(Data);
+      }
+      if (Revision != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(Revision);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RecordUid.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RecordUid);
+      }
+      if (Data.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
+      }
+      if (Revision != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Revision);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SecurityScoreData other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RecordUid.Length != 0) {
+        RecordUid = other.RecordUid;
+      }
+      if (other.Data.Length != 0) {
+        Data = other.Data;
+      }
+      if (other.Revision != 0L) {
+        Revision = other.Revision;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Data = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            Revision = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RecordUid = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            Data = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            Revision = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
   /// <summary>
   ///  breachwatch/get_sync_data - not sync_down responses, but they use sync_down
   ///  types, so:
@@ -12087,7 +12532,7 @@ namespace Vault {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Vault.SyncDownReflection.Descriptor.MessageTypes[30]; }
+      get { return global::Vault.SyncDownReflection.Descriptor.MessageTypes[31]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12274,7 +12719,7 @@ namespace Vault {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Vault.SyncDownReflection.Descriptor.MessageTypes[31]; }
+      get { return global::Vault.SyncDownReflection.Descriptor.MessageTypes[32]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12491,6 +12936,200 @@ namespace Vault {
             break;
           }
           case 26: {
+            users_.AddEntriesFrom(ref input, _repeated_users_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  ///  vault/get_account_uid_map - not sync_down responses, but they use sync_down
+  ///  types, so:
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class GetAccountUidMapResponse : pb::IMessage<GetAccountUidMapResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<GetAccountUidMapResponse> _parser = new pb::MessageParser<GetAccountUidMapResponse>(() => new GetAccountUidMapResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<GetAccountUidMapResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Vault.SyncDownReflection.Descriptor.MessageTypes[33]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAccountUidMapResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAccountUidMapResponse(GetAccountUidMapResponse other) : this() {
+      users_ = other.users_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GetAccountUidMapResponse Clone() {
+      return new GetAccountUidMapResponse(this);
+    }
+
+    /// <summary>Field number for the "users" field.</summary>
+    public const int UsersFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Vault.User> _repeated_users_codec
+        = pb::FieldCodec.ForMessage(10, global::Vault.User.Parser);
+    private readonly pbc::RepeatedField<global::Vault.User> users_ = new pbc::RepeatedField<global::Vault.User>();
+    /// <summary>
+    ///  maps accountUids to usernames
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Vault.User> Users {
+      get { return users_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as GetAccountUidMapResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(GetAccountUidMapResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!users_.Equals(other.users_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= users_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      users_.WriteTo(output, _repeated_users_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      users_.WriteTo(ref output, _repeated_users_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += users_.CalculateSize(_repeated_users_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(GetAccountUidMapResponse other) {
+      if (other == null) {
+        return;
+      }
+      users_.Add(other.users_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            users_.AddEntriesFrom(input, _repeated_users_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
             users_.AddEntriesFrom(ref input, _repeated_users_codec);
             break;
           }

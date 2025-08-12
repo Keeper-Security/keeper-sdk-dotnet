@@ -61,104 +61,106 @@ namespace Folder {
             "GAIgAygLMhUuRm9sZGVyLlJlY29yZFJlcXVlc3QifAoaSW1wb3J0Rm9sZGVy",
             "UmVjb3JkUmVzcG9uc2USLgoOZm9sZGVyUmVzcG9uc2UYASADKAsyFi5Gb2xk",
             "ZXIuRm9sZGVyUmVzcG9uc2USLgoOcmVjb3JkUmVzcG9uc2UYAiADKAsyFi5G",
-            "b2xkZXIuUmVjb3JkUmVzcG9uc2UirQIKGFNoYXJlZEZvbGRlclVwZGF0ZVJl",
+            "b2xkZXIuUmVjb3JkUmVzcG9uc2UiyQIKGFNoYXJlZEZvbGRlclVwZGF0ZVJl",
             "Y29yZBIRCglyZWNvcmRVaWQYASABKAwSFwoPc2hhcmVkRm9sZGVyVWlkGAIg",
             "ASgMEg8KB3RlYW1VaWQYAyABKAwSKAoHY2FuRWRpdBgEIAEoDjIXLkZvbGRl",
             "ci5TZXRCb29sZWFuVmFsdWUSKQoIY2FuU2hhcmUYBSABKA4yFy5Gb2xkZXIu",
             "U2V0Qm9vbGVhblZhbHVlEhoKEmVuY3J5cHRlZFJlY29yZEtleRgGIAEoDBIQ",
             "CghyZXZpc2lvbhgHIAEoBRISCgpleHBpcmF0aW9uGAggASgSEj0KFXRpbWVy",
             "Tm90aWZpY2F0aW9uVHlwZRgJIAEoDjIeLlJlY29yZHMuVGltZXJOb3RpZmlj",
-            "YXRpb25UeXBlIrACChZTaGFyZWRGb2xkZXJVcGRhdGVVc2VyEhAKCHVzZXJu",
-            "YW1lGAEgASgJEiwKC21hbmFnZVVzZXJzGAIgASgOMhcuRm9sZGVyLlNldEJv",
-            "b2xlYW5WYWx1ZRIuCg1tYW5hZ2VSZWNvcmRzGAMgASgOMhcuRm9sZGVyLlNl",
-            "dEJvb2xlYW5WYWx1ZRIbCg9zaGFyZWRGb2xkZXJLZXkYBCABKAxCAhgBEhIK",
-            "CmV4cGlyYXRpb24YBSABKBISPQoVdGltZXJOb3RpZmljYXRpb25UeXBlGAYg",
-            "ASgOMh4uUmVjb3Jkcy5UaW1lck5vdGlmaWNhdGlvblR5cGUSNgoUdHlwZWRT",
-            "aGFyZWRGb2xkZXJLZXkYByABKAsyGC5Gb2xkZXIuRW5jcnlwdGVkRGF0YUtl",
-            "eSL9AQoWU2hhcmVkRm9sZGVyVXBkYXRlVGVhbRIPCgd0ZWFtVWlkGAEgASgM",
-            "EhMKC21hbmFnZVVzZXJzGAIgASgIEhUKDW1hbmFnZVJlY29yZHMYAyABKAgS",
-            "GwoPc2hhcmVkRm9sZGVyS2V5GAQgASgMQgIYARISCgpleHBpcmF0aW9uGAUg",
-            "ASgSEj0KFXRpbWVyTm90aWZpY2F0aW9uVHlwZRgGIAEoDjIeLlJlY29yZHMu",
-            "VGltZXJOb3RpZmljYXRpb25UeXBlEjYKFHR5cGVkU2hhcmVkRm9sZGVyS2V5",
-            "GAcgASgLMhguRm9sZGVyLkVuY3J5cHRlZERhdGFLZXkijgcKG1NoYXJlZEZv",
-            "bGRlclVwZGF0ZVYzUmVxdWVzdBIsCiRzaGFyZWRGb2xkZXJVcGRhdGVPcGVy",
-            "YXRpb25fZG9udF91c2UYASABKAUSFwoPc2hhcmVkRm9sZGVyVWlkGAIgASgM",
-            "EiEKGWVuY3J5cHRlZFNoYXJlZEZvbGRlck5hbWUYAyABKAwSEAoIcmV2aXNp",
-            "b24YBCABKAMSEwoLZm9yY2VVcGRhdGUYBSABKAgSEwoLZnJvbVRlYW1VaWQY",
-            "BiABKAwSMwoSZGVmYXVsdE1hbmFnZVVzZXJzGAcgASgOMhcuRm9sZGVyLlNl",
-            "dEJvb2xlYW5WYWx1ZRI1ChRkZWZhdWx0TWFuYWdlUmVjb3JkcxgIIAEoDjIX",
-            "LkZvbGRlci5TZXRCb29sZWFuVmFsdWUSLwoOZGVmYXVsdENhbkVkaXQYCSAB",
-            "KA4yFy5Gb2xkZXIuU2V0Qm9vbGVhblZhbHVlEjAKD2RlZmF1bHRDYW5TaGFy",
-            "ZRgKIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSPwoVc2hhcmVkRm9s",
-            "ZGVyQWRkUmVjb3JkGAsgAygLMiAuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0",
-            "ZVJlY29yZBI7ChNzaGFyZWRGb2xkZXJBZGRVc2VyGAwgAygLMh4uRm9sZGVy",
-            "LlNoYXJlZEZvbGRlclVwZGF0ZVVzZXISOwoTc2hhcmVkRm9sZGVyQWRkVGVh",
-            "bRgNIAMoCzIeLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtEkIKGHNo",
-            "YXJlZEZvbGRlclVwZGF0ZVJlY29yZBgOIAMoCzIgLkZvbGRlci5TaGFyZWRG",
-            "b2xkZXJVcGRhdGVSZWNvcmQSPgoWc2hhcmVkRm9sZGVyVXBkYXRlVXNlchgP",
-            "IAMoCzIeLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVVc2VyEj4KFnNoYXJl",
-            "ZEZvbGRlclVwZGF0ZVRlYW0YECADKAsyHi5Gb2xkZXIuU2hhcmVkRm9sZGVy",
-            "VXBkYXRlVGVhbRIgChhzaGFyZWRGb2xkZXJSZW1vdmVSZWNvcmQYESADKAwS",
-            "HgoWc2hhcmVkRm9sZGVyUmVtb3ZlVXNlchgSIAMoCRIeChZzaGFyZWRGb2xk",
-            "ZXJSZW1vdmVUZWFtGBMgAygMEhkKEXNoYXJlZEZvbGRlck93bmVyGBQgASgJ",
-            "ImMKHVNoYXJlZEZvbGRlclVwZGF0ZVYzUmVxdWVzdFYyEkIKFXNoYXJlZEZv",
-            "bGRlcnNVcGRhdGVWMxgBIAMoCzIjLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRh",
-            "dGVWM1JlcXVlc3QiQwoeU2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVz",
-            "EhEKCXJlY29yZFVpZBgBIAEoDBIOCgZzdGF0dXMYAiABKAkiQAocU2hhcmVk",
-            "Rm9sZGVyVXBkYXRlVXNlclN0YXR1cxIQCgh1c2VybmFtZRgBIAEoCRIOCgZz",
-            "dGF0dXMYAiABKAkiPwocU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxIP",
-            "Cgd0ZWFtVWlkGAEgASgMEg4KBnN0YXR1cxgCIAEoCSKIBgocU2hhcmVkRm9s",
-            "ZGVyVXBkYXRlVjNSZXNwb25zZRIQCghyZXZpc2lvbhgBIAEoAxJLChtzaGFy",
-            "ZWRGb2xkZXJBZGRSZWNvcmRTdGF0dXMYAiADKAsyJi5Gb2xkZXIuU2hhcmVk",
-            "Rm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzEkcKGXNoYXJlZEZvbGRlckFkZFVz",
-            "ZXJTdGF0dXMYAyADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNl",
-            "clN0YXR1cxJHChlzaGFyZWRGb2xkZXJBZGRUZWFtU3RhdHVzGAQgAygLMiQu",
-            "Rm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVRlYW1TdGF0dXMSTgoec2hhcmVk",
-            "Rm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzGAUgAygLMiYuRm9sZGVyLlNoYXJl",
-            "ZEZvbGRlclVwZGF0ZVJlY29yZFN0YXR1cxJKChxzaGFyZWRGb2xkZXJVcGRh",
-            "dGVVc2VyU3RhdHVzGAYgAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0",
-            "ZVVzZXJTdGF0dXMSSgocc2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxgH",
-            "IAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzEk4K",
-            "HnNoYXJlZEZvbGRlclJlbW92ZVJlY29yZFN0YXR1cxgIIAMoCzImLkZvbGRl",
-            "ci5TaGFyZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0dXMSSgocc2hhcmVkRm9s",
-            "ZGVyUmVtb3ZlVXNlclN0YXR1cxgJIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xk",
-            "ZXJVcGRhdGVVc2VyU3RhdHVzEkoKHHNoYXJlZEZvbGRlclJlbW92ZVRlYW1T",
-            "dGF0dXMYCiADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0",
-            "YXR1cxIXCg9zaGFyZWRGb2xkZXJVaWQYDCABKAwSDgoGc3RhdHVzGA0gASgJ",
-            "Im0KHlNoYXJlZEZvbGRlclVwZGF0ZVYzUmVzcG9uc2VWMhJLCh1zaGFyZWRG",
-            "b2xkZXJzVXBkYXRlVjNSZXNwb25zZRgBIAMoCzIkLkZvbGRlci5TaGFyZWRG",
-            "b2xkZXJVcGRhdGVWM1Jlc3BvbnNlIvoBCilHZXREZWxldGVkU2hhcmVkRm9s",
-            "ZGVyc0FuZFJlY29yZHNSZXNwb25zZRIyCg1zaGFyZWRGb2xkZXJzGAEgAygL",
-            "MhsuRm9sZGVyLkRlbGV0ZWRTaGFyZWRGb2xkZXISPgoTc2hhcmVkRm9sZGVy",
-            "UmVjb3JkcxgCIAMoCzIhLkZvbGRlci5EZWxldGVkU2hhcmVkRm9sZGVyUmVj",
-            "b3JkEjQKEWRlbGV0ZWRSZWNvcmREYXRhGAMgAygLMhkuRm9sZGVyLkRlbGV0",
-            "ZWRSZWNvcmREYXRhEiMKCXVzZXJuYW1lcxgEIAMoCzIQLkZvbGRlci5Vc2Vy",
-            "bmFtZSLRAQoTRGVsZXRlZFNoYXJlZEZvbGRlchIXCg9zaGFyZWRGb2xkZXJV",
-            "aWQYASABKAwSEQoJZm9sZGVyVWlkGAIgASgMEhEKCXBhcmVudFVpZBgDIAEo",
-            "DBIXCg9zaGFyZWRGb2xkZXJLZXkYBCABKAwSLQoNZm9sZGVyS2V5VHlwZRgF",
-            "IAEoDjIWLlJlY29yZHMuUmVjb3JkS2V5VHlwZRIMCgRkYXRhGAYgASgMEhMK",
-            "C2RhdGVEZWxldGVkGAcgASgDEhAKCHJldmlzaW9uGAggASgDIoEBChlEZWxl",
-            "dGVkU2hhcmVkRm9sZGVyUmVjb3JkEhEKCWZvbGRlclVpZBgBIAEoDBIRCgly",
-            "ZWNvcmRVaWQYAiABKAwSFwoPc2hhcmVkUmVjb3JkS2V5GAMgASgMEhMKC2Rh",
-            "dGVEZWxldGVkGAQgASgDEhAKCHJldmlzaW9uGAUgASgDIoUBChFEZWxldGVk",
-            "UmVjb3JkRGF0YRIRCglyZWNvcmRVaWQYASABKAwSEAoIb3duZXJVaWQYAiAB",
-            "KAwSEAoIcmV2aXNpb24YAyABKAMSGgoSY2xpZW50TW9kaWZpZWRUaW1lGAQg",
-            "ASgDEgwKBGRhdGEYBSABKAwSDwoHdmVyc2lvbhgGIAEoBSIwCghVc2VybmFt",
-            "ZRISCgphY2NvdW50VWlkGAEgASgMEhAKCHVzZXJuYW1lGAIgASgJIooBCixS",
-            "ZXN0b3JlRGVsZXRlZFNoYXJlZEZvbGRlcnNBbmRSZWNvcmRzUmVxdWVzdBIs",
-            "Cgdmb2xkZXJzGAEgAygLMhsuRm9sZGVyLlJlc3RvcmVTaGFyZWRPYmplY3QS",
-            "LAoHcmVjb3JkcxgCIAMoCzIbLkZvbGRlci5SZXN0b3JlU2hhcmVkT2JqZWN0",
-            "IjwKE1Jlc3RvcmVTaGFyZWRPYmplY3QSEQoJZm9sZGVyVWlkGAEgASgMEhIK",
-            "CnJlY29yZFVpZHMYAiADKAwqGgoKUmVjb3JkVHlwZRIMCghwYXNzd29yZBAA",
-            "Kl4KCkZvbGRlclR5cGUSEgoOZGVmYXVsdF9mb2xkZXIQABIPCgt1c2VyX2Zv",
-            "bGRlchABEhEKDXNoYXJlZF9mb2xkZXIQAhIYChRzaGFyZWRfZm9sZGVyX2Zv",
-            "bGRlchADKpYBChBFbmNyeXB0ZWRLZXlUeXBlEgoKBm5vX2tleRAAEhkKFWVu",
-            "Y3J5cHRlZF9ieV9kYXRhX2tleRABEhsKF2VuY3J5cHRlZF9ieV9wdWJsaWNf",
-            "a2V5EAISHQoZZW5jcnlwdGVkX2J5X2RhdGFfa2V5X2djbRADEh8KG2VuY3J5",
-            "cHRlZF9ieV9wdWJsaWNfa2V5X2VjYxAEKk0KD1NldEJvb2xlYW5WYWx1ZRIV",
-            "ChFCT09MRUFOX05PX0NIQU5HRRAAEhAKDEJPT0xFQU5fVFJVRRABEhEKDUJP",
-            "T0xFQU5fRkFMU0UQAkIiChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CBkZv",
-            "bGRlcmIGcHJvdG8z"));
+            "YXRpb25UeXBlEhoKEnJvdGF0ZU9uRXhwaXJhdGlvbhgKIAEoCCLMAgoWU2hh",
+            "cmVkRm9sZGVyVXBkYXRlVXNlchIQCgh1c2VybmFtZRgBIAEoCRIsCgttYW5h",
+            "Z2VVc2VycxgCIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSLgoNbWFu",
+            "YWdlUmVjb3JkcxgDIAEoDjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSGwoP",
+            "c2hhcmVkRm9sZGVyS2V5GAQgASgMQgIYARISCgpleHBpcmF0aW9uGAUgASgS",
+            "Ej0KFXRpbWVyTm90aWZpY2F0aW9uVHlwZRgGIAEoDjIeLlJlY29yZHMuVGlt",
+            "ZXJOb3RpZmljYXRpb25UeXBlEjYKFHR5cGVkU2hhcmVkRm9sZGVyS2V5GAcg",
+            "ASgLMhguRm9sZGVyLkVuY3J5cHRlZERhdGFLZXkSGgoScm90YXRlT25FeHBp",
+            "cmF0aW9uGAggASgIIpkCChZTaGFyZWRGb2xkZXJVcGRhdGVUZWFtEg8KB3Rl",
+            "YW1VaWQYASABKAwSEwoLbWFuYWdlVXNlcnMYAiABKAgSFQoNbWFuYWdlUmVj",
+            "b3JkcxgDIAEoCBIbCg9zaGFyZWRGb2xkZXJLZXkYBCABKAxCAhgBEhIKCmV4",
+            "cGlyYXRpb24YBSABKBISPQoVdGltZXJOb3RpZmljYXRpb25UeXBlGAYgASgO",
+            "Mh4uUmVjb3Jkcy5UaW1lck5vdGlmaWNhdGlvblR5cGUSNgoUdHlwZWRTaGFy",
+            "ZWRGb2xkZXJLZXkYByABKAsyGC5Gb2xkZXIuRW5jcnlwdGVkRGF0YUtleRIa",
+            "ChJyb3RhdGVPbkV4cGlyYXRpb24YCCABKAgijgcKG1NoYXJlZEZvbGRlclVw",
+            "ZGF0ZVYzUmVxdWVzdBIsCiRzaGFyZWRGb2xkZXJVcGRhdGVPcGVyYXRpb25f",
+            "ZG9udF91c2UYASABKAUSFwoPc2hhcmVkRm9sZGVyVWlkGAIgASgMEiEKGWVu",
+            "Y3J5cHRlZFNoYXJlZEZvbGRlck5hbWUYAyABKAwSEAoIcmV2aXNpb24YBCAB",
+            "KAMSEwoLZm9yY2VVcGRhdGUYBSABKAgSEwoLZnJvbVRlYW1VaWQYBiABKAwS",
+            "MwoSZGVmYXVsdE1hbmFnZVVzZXJzGAcgASgOMhcuRm9sZGVyLlNldEJvb2xl",
+            "YW5WYWx1ZRI1ChRkZWZhdWx0TWFuYWdlUmVjb3JkcxgIIAEoDjIXLkZvbGRl",
+            "ci5TZXRCb29sZWFuVmFsdWUSLwoOZGVmYXVsdENhbkVkaXQYCSABKA4yFy5G",
+            "b2xkZXIuU2V0Qm9vbGVhblZhbHVlEjAKD2RlZmF1bHRDYW5TaGFyZRgKIAEo",
+            "DjIXLkZvbGRlci5TZXRCb29sZWFuVmFsdWUSPwoVc2hhcmVkRm9sZGVyQWRk",
+            "UmVjb3JkGAsgAygLMiAuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVJlY29y",
+            "ZBI7ChNzaGFyZWRGb2xkZXJBZGRVc2VyGAwgAygLMh4uRm9sZGVyLlNoYXJl",
+            "ZEZvbGRlclVwZGF0ZVVzZXISOwoTc2hhcmVkRm9sZGVyQWRkVGVhbRgNIAMo",
+            "CzIeLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtEkIKGHNoYXJlZEZv",
+            "bGRlclVwZGF0ZVJlY29yZBgOIAMoCzIgLkZvbGRlci5TaGFyZWRGb2xkZXJV",
+            "cGRhdGVSZWNvcmQSPgoWc2hhcmVkRm9sZGVyVXBkYXRlVXNlchgPIAMoCzIe",
+            "LkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVVc2VyEj4KFnNoYXJlZEZvbGRl",
+            "clVwZGF0ZVRlYW0YECADKAsyHi5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRl",
+            "VGVhbRIgChhzaGFyZWRGb2xkZXJSZW1vdmVSZWNvcmQYESADKAwSHgoWc2hh",
+            "cmVkRm9sZGVyUmVtb3ZlVXNlchgSIAMoCRIeChZzaGFyZWRGb2xkZXJSZW1v",
+            "dmVUZWFtGBMgAygMEhkKEXNoYXJlZEZvbGRlck93bmVyGBQgASgJImMKHVNo",
+            "YXJlZEZvbGRlclVwZGF0ZVYzUmVxdWVzdFYyEkIKFXNoYXJlZEZvbGRlcnNV",
+            "cGRhdGVWMxgBIAMoCzIjLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVWM1Jl",
+            "cXVlc3QiQwoeU2hhcmVkRm9sZGVyVXBkYXRlUmVjb3JkU3RhdHVzEhEKCXJl",
+            "Y29yZFVpZBgBIAEoDBIOCgZzdGF0dXMYAiABKAkiQAocU2hhcmVkRm9sZGVy",
+            "VXBkYXRlVXNlclN0YXR1cxIQCgh1c2VybmFtZRgBIAEoCRIOCgZzdGF0dXMY",
+            "AiABKAkiPwocU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxIPCgd0ZWFt",
+            "VWlkGAEgASgMEg4KBnN0YXR1cxgCIAEoCSKIBgocU2hhcmVkRm9sZGVyVXBk",
+            "YXRlVjNSZXNwb25zZRIQCghyZXZpc2lvbhgBIAEoAxJLChtzaGFyZWRGb2xk",
+            "ZXJBZGRSZWNvcmRTdGF0dXMYAiADKAsyJi5Gb2xkZXIuU2hhcmVkRm9sZGVy",
+            "VXBkYXRlUmVjb3JkU3RhdHVzEkcKGXNoYXJlZEZvbGRlckFkZFVzZXJTdGF0",
+            "dXMYAyADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVXNlclN0YXR1",
+            "cxJHChlzaGFyZWRGb2xkZXJBZGRUZWFtU3RhdHVzGAQgAygLMiQuRm9sZGVy",
+            "LlNoYXJlZEZvbGRlclVwZGF0ZVRlYW1TdGF0dXMSTgoec2hhcmVkRm9sZGVy",
+            "VXBkYXRlUmVjb3JkU3RhdHVzGAUgAygLMiYuRm9sZGVyLlNoYXJlZEZvbGRl",
+            "clVwZGF0ZVJlY29yZFN0YXR1cxJKChxzaGFyZWRGb2xkZXJVcGRhdGVVc2Vy",
+            "U3RhdHVzGAYgAygLMiQuRm9sZGVyLlNoYXJlZEZvbGRlclVwZGF0ZVVzZXJT",
+            "dGF0dXMSSgocc2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxgHIAMoCzIk",
+            "LkZvbGRlci5TaGFyZWRGb2xkZXJVcGRhdGVUZWFtU3RhdHVzEk4KHnNoYXJl",
+            "ZEZvbGRlclJlbW92ZVJlY29yZFN0YXR1cxgIIAMoCzImLkZvbGRlci5TaGFy",
+            "ZWRGb2xkZXJVcGRhdGVSZWNvcmRTdGF0dXMSSgocc2hhcmVkRm9sZGVyUmVt",
+            "b3ZlVXNlclN0YXR1cxgJIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJVcGRh",
+            "dGVVc2VyU3RhdHVzEkoKHHNoYXJlZEZvbGRlclJlbW92ZVRlYW1TdGF0dXMY",
+            "CiADKAsyJC5Gb2xkZXIuU2hhcmVkRm9sZGVyVXBkYXRlVGVhbVN0YXR1cxIX",
+            "Cg9zaGFyZWRGb2xkZXJVaWQYDCABKAwSDgoGc3RhdHVzGA0gASgJIm0KHlNo",
+            "YXJlZEZvbGRlclVwZGF0ZVYzUmVzcG9uc2VWMhJLCh1zaGFyZWRGb2xkZXJz",
+            "VXBkYXRlVjNSZXNwb25zZRgBIAMoCzIkLkZvbGRlci5TaGFyZWRGb2xkZXJV",
+            "cGRhdGVWM1Jlc3BvbnNlIvoBCilHZXREZWxldGVkU2hhcmVkRm9sZGVyc0Fu",
+            "ZFJlY29yZHNSZXNwb25zZRIyCg1zaGFyZWRGb2xkZXJzGAEgAygLMhsuRm9s",
+            "ZGVyLkRlbGV0ZWRTaGFyZWRGb2xkZXISPgoTc2hhcmVkRm9sZGVyUmVjb3Jk",
+            "cxgCIAMoCzIhLkZvbGRlci5EZWxldGVkU2hhcmVkRm9sZGVyUmVjb3JkEjQK",
+            "EWRlbGV0ZWRSZWNvcmREYXRhGAMgAygLMhkuRm9sZGVyLkRlbGV0ZWRSZWNv",
+            "cmREYXRhEiMKCXVzZXJuYW1lcxgEIAMoCzIQLkZvbGRlci5Vc2VybmFtZSLR",
+            "AQoTRGVsZXRlZFNoYXJlZEZvbGRlchIXCg9zaGFyZWRGb2xkZXJVaWQYASAB",
+            "KAwSEQoJZm9sZGVyVWlkGAIgASgMEhEKCXBhcmVudFVpZBgDIAEoDBIXCg9z",
+            "aGFyZWRGb2xkZXJLZXkYBCABKAwSLQoNZm9sZGVyS2V5VHlwZRgFIAEoDjIW",
+            "LlJlY29yZHMuUmVjb3JkS2V5VHlwZRIMCgRkYXRhGAYgASgMEhMKC2RhdGVE",
+            "ZWxldGVkGAcgASgDEhAKCHJldmlzaW9uGAggASgDIoEBChlEZWxldGVkU2hh",
+            "cmVkRm9sZGVyUmVjb3JkEhEKCWZvbGRlclVpZBgBIAEoDBIRCglyZWNvcmRV",
+            "aWQYAiABKAwSFwoPc2hhcmVkUmVjb3JkS2V5GAMgASgMEhMKC2RhdGVEZWxl",
+            "dGVkGAQgASgDEhAKCHJldmlzaW9uGAUgASgDIoUBChFEZWxldGVkUmVjb3Jk",
+            "RGF0YRIRCglyZWNvcmRVaWQYASABKAwSEAoIb3duZXJVaWQYAiABKAwSEAoI",
+            "cmV2aXNpb24YAyABKAMSGgoSY2xpZW50TW9kaWZpZWRUaW1lGAQgASgDEgwK",
+            "BGRhdGEYBSABKAwSDwoHdmVyc2lvbhgGIAEoBSIwCghVc2VybmFtZRISCgph",
+            "Y2NvdW50VWlkGAEgASgMEhAKCHVzZXJuYW1lGAIgASgJIooBCixSZXN0b3Jl",
+            "RGVsZXRlZFNoYXJlZEZvbGRlcnNBbmRSZWNvcmRzUmVxdWVzdBIsCgdmb2xk",
+            "ZXJzGAEgAygLMhsuRm9sZGVyLlJlc3RvcmVTaGFyZWRPYmplY3QSLAoHcmVj",
+            "b3JkcxgCIAMoCzIbLkZvbGRlci5SZXN0b3JlU2hhcmVkT2JqZWN0IjwKE1Jl",
+            "c3RvcmVTaGFyZWRPYmplY3QSEQoJZm9sZGVyVWlkGAEgASgMEhIKCnJlY29y",
+            "ZFVpZHMYAiADKAwqGgoKUmVjb3JkVHlwZRIMCghwYXNzd29yZBAAKl4KCkZv",
+            "bGRlclR5cGUSEgoOZGVmYXVsdF9mb2xkZXIQABIPCgt1c2VyX2ZvbGRlchAB",
+            "EhEKDXNoYXJlZF9mb2xkZXIQAhIYChRzaGFyZWRfZm9sZGVyX2ZvbGRlchAD",
+            "KpYBChBFbmNyeXB0ZWRLZXlUeXBlEgoKBm5vX2tleRAAEhkKFWVuY3J5cHRl",
+            "ZF9ieV9kYXRhX2tleRABEhsKF2VuY3J5cHRlZF9ieV9wdWJsaWNfa2V5EAIS",
+            "HQoZZW5jcnlwdGVkX2J5X2RhdGFfa2V5X2djbRADEh8KG2VuY3J5cHRlZF9i",
+            "eV9wdWJsaWNfa2V5X2VjYxAEKk0KD1NldEJvb2xlYW5WYWx1ZRIVChFCT09M",
+            "RUFOX05PX0NIQU5HRRAAEhAKDEJPT0xFQU5fVFJVRRABEhEKDUJPT0xFQU5f",
+            "RkFMU0UQAkIiChhjb20ua2VlcGVyc2VjdXJpdHkucHJvdG9CBkZvbGRlcmIG",
+            "cHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Records.RecordReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Folder.RecordType), typeof(global::Folder.FolderType), typeof(global::Folder.EncryptedKeyType), typeof(global::Folder.SetBooleanValue), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -175,9 +177,9 @@ namespace Folder {
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.FolderResponse), global::Folder.FolderResponse.Parser, new[]{ "FolderUid", "Revision", "Status" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.ImportFolderRecordRequest), global::Folder.ImportFolderRecordRequest.Parser, new[]{ "FolderRequest", "RecordRequest" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.ImportFolderRecordResponse), global::Folder.ImportFolderRecordResponse.Parser, new[]{ "FolderResponse", "RecordResponse" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateRecord), global::Folder.SharedFolderUpdateRecord.Parser, new[]{ "RecordUid", "SharedFolderUid", "TeamUid", "CanEdit", "CanShare", "EncryptedRecordKey", "Revision", "Expiration", "TimerNotificationType" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateUser), global::Folder.SharedFolderUpdateUser.Parser, new[]{ "Username", "ManageUsers", "ManageRecords", "SharedFolderKey", "Expiration", "TimerNotificationType", "TypedSharedFolderKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateTeam), global::Folder.SharedFolderUpdateTeam.Parser, new[]{ "TeamUid", "ManageUsers", "ManageRecords", "SharedFolderKey", "Expiration", "TimerNotificationType", "TypedSharedFolderKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateRecord), global::Folder.SharedFolderUpdateRecord.Parser, new[]{ "RecordUid", "SharedFolderUid", "TeamUid", "CanEdit", "CanShare", "EncryptedRecordKey", "Revision", "Expiration", "TimerNotificationType", "RotateOnExpiration" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateUser), global::Folder.SharedFolderUpdateUser.Parser, new[]{ "Username", "ManageUsers", "ManageRecords", "SharedFolderKey", "Expiration", "TimerNotificationType", "TypedSharedFolderKey", "RotateOnExpiration" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateTeam), global::Folder.SharedFolderUpdateTeam.Parser, new[]{ "TeamUid", "ManageUsers", "ManageRecords", "SharedFolderKey", "Expiration", "TimerNotificationType", "TypedSharedFolderKey", "RotateOnExpiration" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3Request), global::Folder.SharedFolderUpdateV3Request.Parser, new[]{ "SharedFolderUpdateOperationDontUse", "SharedFolderUid", "EncryptedSharedFolderName", "Revision", "ForceUpdate", "FromTeamUid", "DefaultManageUsers", "DefaultManageRecords", "DefaultCanEdit", "DefaultCanShare", "SharedFolderAddRecord", "SharedFolderAddUser", "SharedFolderAddTeam", "SharedFolderUpdateRecord", "SharedFolderUpdateUser", "SharedFolderUpdateTeam", "SharedFolderRemoveRecord", "SharedFolderRemoveUser", "SharedFolderRemoveTeam", "SharedFolderOwner" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateV3RequestV2), global::Folder.SharedFolderUpdateV3RequestV2.Parser, new[]{ "SharedFoldersUpdateV3" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Folder.SharedFolderUpdateRecordStatus), global::Folder.SharedFolderUpdateRecordStatus.Parser, new[]{ "RecordUid", "Status" }, null, null, null, null),
@@ -3963,6 +3965,7 @@ namespace Folder {
       revision_ = other.revision_;
       expiration_ = other.expiration_;
       timerNotificationType_ = other.timerNotificationType_;
+      rotateOnExpiration_ = other.rotateOnExpiration_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4089,6 +4092,18 @@ namespace Folder {
       }
     }
 
+    /// <summary>Field number for the "rotateOnExpiration" field.</summary>
+    public const int RotateOnExpirationFieldNumber = 10;
+    private bool rotateOnExpiration_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool RotateOnExpiration {
+      get { return rotateOnExpiration_; }
+      set {
+        rotateOnExpiration_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -4113,6 +4128,7 @@ namespace Folder {
       if (Revision != other.Revision) return false;
       if (Expiration != other.Expiration) return false;
       if (TimerNotificationType != other.TimerNotificationType) return false;
+      if (RotateOnExpiration != other.RotateOnExpiration) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -4129,6 +4145,7 @@ namespace Folder {
       if (Revision != 0) hash ^= Revision.GetHashCode();
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
       if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= TimerNotificationType.GetHashCode();
+      if (RotateOnExpiration != false) hash ^= RotateOnExpiration.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -4183,6 +4200,10 @@ namespace Folder {
         output.WriteRawTag(72);
         output.WriteEnum((int) TimerNotificationType);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -4229,6 +4250,10 @@ namespace Folder {
         output.WriteRawTag(72);
         output.WriteEnum((int) TimerNotificationType);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(80);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -4265,6 +4290,9 @@ namespace Folder {
       }
       if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) TimerNotificationType);
+      }
+      if (RotateOnExpiration != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -4304,6 +4332,9 @@ namespace Folder {
       }
       if (other.TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) {
         TimerNotificationType = other.TimerNotificationType;
+      }
+      if (other.RotateOnExpiration != false) {
+        RotateOnExpiration = other.RotateOnExpiration;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -4358,6 +4389,10 @@ namespace Folder {
           }
           case 72: {
             TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
+            break;
+          }
+          case 80: {
+            RotateOnExpiration = input.ReadBool();
             break;
           }
         }
@@ -4415,6 +4450,10 @@ namespace Folder {
             TimerNotificationType = (global::Records.TimerNotificationType) input.ReadEnum();
             break;
           }
+          case 80: {
+            RotateOnExpiration = input.ReadBool();
+            break;
+          }
         }
       }
     }
@@ -4464,6 +4503,7 @@ namespace Folder {
       expiration_ = other.expiration_;
       timerNotificationType_ = other.timerNotificationType_;
       typedSharedFolderKey_ = other.typedSharedFolderKey_ != null ? other.typedSharedFolderKey_.Clone() : null;
+      rotateOnExpiration_ = other.rotateOnExpiration_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4561,6 +4601,18 @@ namespace Folder {
       }
     }
 
+    /// <summary>Field number for the "rotateOnExpiration" field.</summary>
+    public const int RotateOnExpirationFieldNumber = 8;
+    private bool rotateOnExpiration_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool RotateOnExpiration {
+      get { return rotateOnExpiration_; }
+      set {
+        rotateOnExpiration_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -4583,6 +4635,7 @@ namespace Folder {
       if (Expiration != other.Expiration) return false;
       if (TimerNotificationType != other.TimerNotificationType) return false;
       if (!object.Equals(TypedSharedFolderKey, other.TypedSharedFolderKey)) return false;
+      if (RotateOnExpiration != other.RotateOnExpiration) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -4597,6 +4650,7 @@ namespace Folder {
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
       if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= TimerNotificationType.GetHashCode();
       if (typedSharedFolderKey_ != null) hash ^= TypedSharedFolderKey.GetHashCode();
+      if (RotateOnExpiration != false) hash ^= RotateOnExpiration.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -4643,6 +4697,10 @@ namespace Folder {
         output.WriteRawTag(58);
         output.WriteMessage(TypedSharedFolderKey);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -4681,6 +4739,10 @@ namespace Folder {
         output.WriteRawTag(58);
         output.WriteMessage(TypedSharedFolderKey);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -4711,6 +4773,9 @@ namespace Folder {
       }
       if (typedSharedFolderKey_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(TypedSharedFolderKey);
+      }
+      if (RotateOnExpiration != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -4747,6 +4812,9 @@ namespace Folder {
           TypedSharedFolderKey = new global::Folder.EncryptedDataKey();
         }
         TypedSharedFolderKey.MergeFrom(other.TypedSharedFolderKey);
+      }
+      if (other.RotateOnExpiration != false) {
+        RotateOnExpiration = other.RotateOnExpiration;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -4796,6 +4864,10 @@ namespace Folder {
               TypedSharedFolderKey = new global::Folder.EncryptedDataKey();
             }
             input.ReadMessage(TypedSharedFolderKey);
+            break;
+          }
+          case 64: {
+            RotateOnExpiration = input.ReadBool();
             break;
           }
         }
@@ -4848,6 +4920,10 @@ namespace Folder {
             input.ReadMessage(TypedSharedFolderKey);
             break;
           }
+          case 64: {
+            RotateOnExpiration = input.ReadBool();
+            break;
+          }
         }
       }
     }
@@ -4897,6 +4973,7 @@ namespace Folder {
       expiration_ = other.expiration_;
       timerNotificationType_ = other.timerNotificationType_;
       typedSharedFolderKey_ = other.typedSharedFolderKey_ != null ? other.typedSharedFolderKey_.Clone() : null;
+      rotateOnExpiration_ = other.rotateOnExpiration_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4994,6 +5071,18 @@ namespace Folder {
       }
     }
 
+    /// <summary>Field number for the "rotateOnExpiration" field.</summary>
+    public const int RotateOnExpirationFieldNumber = 8;
+    private bool rotateOnExpiration_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool RotateOnExpiration {
+      get { return rotateOnExpiration_; }
+      set {
+        rotateOnExpiration_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -5016,6 +5105,7 @@ namespace Folder {
       if (Expiration != other.Expiration) return false;
       if (TimerNotificationType != other.TimerNotificationType) return false;
       if (!object.Equals(TypedSharedFolderKey, other.TypedSharedFolderKey)) return false;
+      if (RotateOnExpiration != other.RotateOnExpiration) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -5030,6 +5120,7 @@ namespace Folder {
       if (Expiration != 0L) hash ^= Expiration.GetHashCode();
       if (TimerNotificationType != global::Records.TimerNotificationType.NotificationOff) hash ^= TimerNotificationType.GetHashCode();
       if (typedSharedFolderKey_ != null) hash ^= TypedSharedFolderKey.GetHashCode();
+      if (RotateOnExpiration != false) hash ^= RotateOnExpiration.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5076,6 +5167,10 @@ namespace Folder {
         output.WriteRawTag(58);
         output.WriteMessage(TypedSharedFolderKey);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -5114,6 +5209,10 @@ namespace Folder {
         output.WriteRawTag(58);
         output.WriteMessage(TypedSharedFolderKey);
       }
+      if (RotateOnExpiration != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(RotateOnExpiration);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -5144,6 +5243,9 @@ namespace Folder {
       }
       if (typedSharedFolderKey_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(TypedSharedFolderKey);
+      }
+      if (RotateOnExpiration != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -5180,6 +5282,9 @@ namespace Folder {
           TypedSharedFolderKey = new global::Folder.EncryptedDataKey();
         }
         TypedSharedFolderKey.MergeFrom(other.TypedSharedFolderKey);
+      }
+      if (other.RotateOnExpiration != false) {
+        RotateOnExpiration = other.RotateOnExpiration;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -5231,6 +5336,10 @@ namespace Folder {
             input.ReadMessage(TypedSharedFolderKey);
             break;
           }
+          case 64: {
+            RotateOnExpiration = input.ReadBool();
+            break;
+          }
         }
       }
     #endif
@@ -5279,6 +5388,10 @@ namespace Folder {
               TypedSharedFolderKey = new global::Folder.EncryptedDataKey();
             }
             input.ReadMessage(TypedSharedFolderKey);
+            break;
+          }
+          case 64: {
+            RotateOnExpiration = input.ReadBool();
             break;
           }
         }
