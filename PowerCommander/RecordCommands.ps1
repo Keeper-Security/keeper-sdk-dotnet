@@ -395,7 +395,7 @@ function Get-KeeperRecordPassword {
         }
         
         # Verbose output
-        if ($VerbosePreference -eq 'Continue' -and -not $Silent) {
+        if (($ShowErrorsPreference -eq 'Continue' -or $VerbosePreference -eq 'Continue') -and -not $Silent) {
             Write-Verbose "Retrieved password from record '$($keeperRecord.Title)'"
         }
         
@@ -1283,3 +1283,245 @@ function Import-KeeperRecordTypes {
 
     return $uploadedRecordTypeIds
 }
+
+
+function Get-KeeperPasswordReport {
+<#
+.SYNOPSIS
+    Generate comprehensive password security report for Keeper records.
+
+.DESCRIPTION
+    Analyzes passwords in Keeper records and generates a security report showing password complexity metrics.
+    Can filter by folder and apply password policy filters to show only non-compliant passwords.
+
+.PARAMETER Policy
+    Password complexity policy as comma-separated values: Length,Lower,Upper,Digits,Special
+    Default: "12,2,2,2,0" (shows all records with metrics)
+    When specified, filters to show only failing records.
+
+.PARAMETER Folder
+    Optional folder path or UID to limit analysis to specific folder
+
+.PARAMETER Length
+    Minimum password length (when specified, filters to failing records only)
+
+.PARAMETER Lower
+    Minimum lowercase characters (when specified, filters to failing records only)
+
+.PARAMETER Upper
+    Minimum uppercase characters (when specified, filters to failing records only)
+
+.PARAMETER Digits
+    Minimum digits count (when specified, filters to failing records only)
+
+.PARAMETER Special
+    Minimum special characters (when specified, filters to failing records only)
+
+.PARAMETER ShowErrors
+    Show detailed error messages for records that cannot be processed
+
+.EXAMPLE
+    Get-KeeperPasswordReport
+    Shows password report for all records with default policy metrics
+
+.EXAMPLE
+    Get-KeeperPasswordReport -Policy "16,3,3,3,1"
+    Shows only records that fail the specified policy requirements
+
+.EXAMPLE
+    Get-KeeperPasswordReport -Folder "MyFolder" -Length 12 -Upper 2
+    Shows records in MyFolder that don't meet length >= 12 and upper >= 2 requirements
+
+.OUTPUTS
+    Formatted table showing Record UID, Title, Description, and password complexity metrics
+#>
+    [CmdletBinding()]
+    param (
+        [string]$Policy = "",
+        [string]$Folder = "",
+        [int]$Length = 0,
+        [int]$Lower = 0,
+        [int]$Upper = 0,
+        [int]$Digits = 0,
+        [int]$Special = 0,
+        [switch]$ShowErrors
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    
+    $policyString = "12,2,2,2,0"
+    $filterToFailingOnly = $false
+    
+    if ($Policy -ne "") {
+        $policyString = $Policy
+        $filterToFailingOnly = $true
+    }
+    elseif ($Length -gt 0 -or $Lower -gt 0 -or $Upper -gt 0 -or $Digits -gt 0 -or $Special -gt 0) {
+        $len = if ($Length -gt 0) { $Length } else { 12 }
+        $policyString = "$len,$Lower,$Upper,$Digits,$Special"
+        $filterToFailingOnly = $true
+    }
+
+    try {
+        $policyParts = $policyString -split ','
+        if ($policyParts.Count -lt 5) {
+            throw "Policy must contain at least 5 comma-separated integers"
+        }
+        
+        $reqLength = [int]$policyParts[0].Trim()
+        $reqLower = [int]$policyParts[1].Trim()
+        $reqUpper = [int]$policyParts[2].Trim()
+        $reqDigits = [int]$policyParts[3].Trim()
+        $reqSpecial = [int]$policyParts[4].Trim()
+    }
+    catch {
+        Write-Error "Invalid policy format. Use: Length,Lower,Upper,Digits,Special (e.g., '12,2,2,2,0')"
+        return
+    }
+
+    Write-Host "     Password Length: $reqLength"
+    Write-Host "Lowercase characters: $reqLower"
+    Write-Host "Uppercase characters: $reqUpper"
+    Write-Host "              Digits: $reqDigits"
+    if ($reqSpecial -gt 0) {
+        Write-Host "    Special characters: $reqSpecial"
+    }
+    Write-Host ""
+
+    $records = @()
+    
+    if ($Folder -ne "") {
+        $folderNode = $null
+        if ($vault.TryGetFolder($Folder, [ref]$folderNode)) {
+            foreach ($recordUid in $folderNode.Records) {
+                $record = $null
+                if ($vault.TryGetKeeperRecord($recordUid, [ref]$record)) {
+                    $records += $record
+                }
+            }
+        }
+        else {
+            $foundFolder = $false
+            foreach ($folder in $vault.Folders) {
+                if ($folder.Name -eq $Folder) {
+                    foreach ($recordUid in $folder.Records) {
+                        $record = $null
+                        if ($vault.TryGetKeeperRecord($recordUid, [ref]$record)) {
+                            $records += $record
+                        }
+                    }
+                    $foundFolder = $true
+                    break
+                }
+            }
+            if (-not $foundFolder) {
+                Write-Error "Invalid folder: $Folder"
+                return
+            }
+        }
+    }
+    else {
+        foreach ($record in $vault.KeeperRecords) {
+            if ($record.Version -eq 2 -or $record.Version -eq 3) {
+                $records += $record
+            }
+        }
+    }
+
+    $recordsWithPasswords = @()
+    foreach ($record in $records) {
+        try {
+            $password = Get-KeeperRecordPassword -Record $record -Silent
+            if ($password -and $password.Trim().Length -gt 0) {
+                $recordsWithPasswords += @{
+                    Record = $record
+                    Password = $password.Trim()
+                }
+            }
+        }
+        catch {
+            if ($ShowErrors) {
+                Write-Warning "Skipping record $($record.Uid) due to error: $($_.Exception.Message)"
+            }
+            continue
+        }
+    }
+
+    if ($recordsWithPasswords.Count -eq 0) {
+        Write-Host "No records with passwords found."
+        return
+    }
+
+    $results = @()
+    $specialChars = "!@#`$%()+;<>=?[]{}^.,"
+    
+    foreach ($item in $recordsWithPasswords) {
+        $record = $item.Record
+        $password = $item.Password
+        
+        try {
+            if ([string]::IsNullOrWhiteSpace($password)) {
+                continue
+            }
+
+            $description = ""
+            if ($record -is [KeeperSecurity.Vault.PasswordRecord]) {
+                $description = $record.Login
+            }
+            elseif ($record -is [KeeperSecurity.Vault.TypedRecord]) {
+                $loginField = $record.Fields | Where-Object { $_.FieldName -eq "login" } | Select-Object -First 1
+                if ($loginField -and $loginField.Count -gt 0) {
+                    $description = $loginField.Values[0]
+                }
+            }
+
+            $length = $password.Length
+            $lowerCount = ($password.ToCharArray() | Where-Object { [char]::IsLower($_) }).Count
+            $upperCount = ($password.ToCharArray() | Where-Object { [char]::IsUpper($_) }).Count
+            $digitCount = ($password.ToCharArray() | Where-Object { [char]::IsDigit($_) }).Count
+            $specialCount = ($password.ToCharArray() | Where-Object { $specialChars.Contains($_) }).Count
+
+            if ($filterToFailingOnly) {
+                $meetsPolicy = $length -ge $reqLength -and 
+                              $lowerCount -ge $reqLower -and 
+                              $upperCount -ge $reqUpper -and 
+                              $digitCount -ge $reqDigits -and 
+                              $specialCount -ge $reqSpecial
+                
+                if ($meetsPolicy) {
+                    continue
+                }
+            }
+
+            $results += [PSCustomObject]@{
+                'Record UID' = $record.Uid
+                'Title' = $record.Title
+                'Description' = $description
+                'Length' = $length
+                'Lower' = $lowerCount
+                'Upper' = $upperCount
+                'Digits' = $digitCount
+                'Special' = $specialCount
+            }
+        }
+        catch {
+            if ($ShowErrors) {
+                Write-Warning "Skipping record $($record.Uid) due to error: $($_.Exception.Message)"
+            }
+        }
+    }
+
+    if ($results.Count -gt 0) {
+        $results | Format-Table -AutoSize
+    }
+    else {
+        if ($filterToFailingOnly) {
+            Write-Host "All passwords meet the specified policy requirements."
+        }
+        else {
+            Write-Host "No valid password records found for analysis."
+        }
+    }
+}
+
+
