@@ -32,7 +32,7 @@ Export-ModuleMember -Function Get-KeeperRecord, Copy-KeeperToClipboard, Show-Two
 Add-KeeperRecord, Remove-KeeperRecord, Move-RecordToFolder,
 Get-KeeperPasswordVisible, Set-KeeperPasswordVisible, Get-KeeperRecordType, 
 New-KeeperRecordType, Edit-KeeperRecordType, Remove-KeeperRecordType, Import-KeeperRecordTypes,
-Get-KeeperRecordPassword
+Get-KeeperRecordPassword, Get-KeeperPasswordReport
 Export-ModuleMember -Alias kr, kcc, 2fa, kadd, kdel, kmv, krti
 
 Export-ModuleMember -Function Get-KeeperSharedFolder
