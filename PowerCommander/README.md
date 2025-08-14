@@ -39,7 +39,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | New-KeeperRecordType                   |             | Creates a new custom record type
 | Edit-KeeperRecordType                  |             | Modifies the existing custom record type
 | Remove-KeeperRecordType                |             | Removes the custom record type
-| Import-KeeperRecordTypes               |             | loads new custom record types from file
+| Get-KeeperPasswordReport               |             | Retrieves password report based on policy and strengths
 
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
