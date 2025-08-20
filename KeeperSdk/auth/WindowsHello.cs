@@ -1,11 +1,12 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Win32;
-
-#if NET472_OR_GREATER
+using System.Reflection;
+using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Authentication
 {
@@ -47,6 +48,12 @@ namespace KeeperSecurity.Authentication
         /// </summary>
         public static async Task<bool> IsAvailableAsync()
         {
+            // Check if we're running on Windows
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return false;
+            }
+
             try
             {
                 var result = await RequestVerificationAsync("Windows Hello availability check", false);
@@ -68,10 +75,30 @@ namespace KeeperSecurity.Authentication
         /// <returns>Verification result</returns>
         public static async Task<BiometricVerificationResult> RequestVerificationAsync(string message, bool actualVerification = true)
         {
+            // Check if we're running on Windows
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return BiometricVerificationResult.DeviceNotPresent;
+            }
+
             try
             {
-                // Use Windows Runtime UserConsentVerifier
+                // Try to load Windows Runtime UserConsentVerifier using reflection
                 var userConsentVerifierType = Type.GetType("Windows.Security.Credentials.UI.UserConsentVerifier, Windows.Security.Credentials.UI, ContentType=WindowsRuntime");
+                if (userConsentVerifierType == null)
+                {
+                    // Fallback: try loading from WinRT assemblies
+                    try
+                    {
+                        var winrtAssembly = Assembly.Load("Windows.Security.Credentials.UI");
+                        userConsentVerifierType = winrtAssembly.GetType("Windows.Security.Credentials.UI.UserConsentVerifier");
+                    }
+                    catch
+                    {
+                        return BiometricVerificationResult.DeviceNotPresent;
+                    }
+                }
+
                 if (userConsentVerifierType == null)
                 {
                     return BiometricVerificationResult.DeviceNotPresent;
@@ -86,14 +113,19 @@ namespace KeeperSecurity.Authentication
                 }
 
                 // Check availability first
-                var availabilityTask = (dynamic)checkAvailabilityMethod.Invoke(null, null);
-                var availability = await availabilityTask;
-                
-                // Map Windows availability result to our enum
-                var availabilityResult = MapAvailabilityToBiometricResult(availability);
-                if (availabilityResult != BiometricVerificationResult.Verified)
+                var availabilityTask = checkAvailabilityMethod.Invoke(null, null);
+                if (availabilityTask is Task<object> task)
                 {
-                    return availabilityResult;
+                    var availability = await task;
+                    var availabilityResult = MapAvailabilityToBiometricResult(availability);
+                    if (availabilityResult != BiometricVerificationResult.Verified)
+                    {
+                        return availabilityResult;
+                    }
+                }
+                else
+                {
+                    return BiometricVerificationResult.DeviceNotPresent;
                 }
 
                 if (!actualVerification)
@@ -102,10 +134,14 @@ namespace KeeperSecurity.Authentication
                 }
 
                 // Request verification
-                var verificationTask = (dynamic)requestVerificationMethod.Invoke(null, new object[] { message ?? "Verify your identity" });
-                var verificationResult = await verificationTask;
+                var verificationTask = requestVerificationMethod.Invoke(null, new object[] { message ?? "Verify your identity" });
+                if (verificationTask is Task<object> verifyTask)
+                {
+                    var verificationResult = await verifyTask;
+                    return MapVerificationToBiometricResult(verificationResult);
+                }
                 
-                return MapVerificationToBiometricResult(verificationResult);
+                return BiometricVerificationResult.DeviceNotPresent;
             }
             catch (Exception)
             {
@@ -114,7 +150,7 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <summary>
-        /// Store biometric credential securely using DPAPI
+        /// Store biometric credential securely
         /// </summary>
         public static bool StoreBiometricCredential(string username, string password, string server = "keepersecurity.com")
         {
@@ -124,16 +160,12 @@ namespace KeeperSecurity.Authentication
                 {
                     Username = username,
                     Server = server,
-                    EncryptedPassword = ProtectedData.Protect(
-                        Encoding.UTF8.GetBytes(password),
-                        GetEntropy(username, server),
-                        DataProtectionScope.CurrentUser
-                    ),
+                    EncryptedPassword = ProtectPassword(password, username, server),
                     CreatedAt = DateTime.UtcNow,
                     LastUsedAt = DateTime.UtcNow
                 };
 
-                return StoreCredentialInRegistry(credential);
+                return StoreCredentialSecurely(credential);
             }
             catch (Exception)
             {
@@ -148,7 +180,7 @@ namespace KeeperSecurity.Authentication
         {
             try
             {
-                return RetrieveCredentialFromRegistry(username, server);
+                return RetrieveCredentialSecurely(username, server);
             }
             catch
             {
@@ -163,7 +195,7 @@ namespace KeeperSecurity.Authentication
         {
             try
             {
-                return RemoveCredentialFromRegistry(username, server);
+                return RemoveCredentialSecurely(username, server);
             }
             catch
             {
@@ -178,12 +210,7 @@ namespace KeeperSecurity.Authentication
         {
             try
             {
-                var decryptedBytes = ProtectedData.Unprotect(
-                    credential.EncryptedPassword,
-                    GetEntropy(credential.Username, credential.Server),
-                    DataProtectionScope.CurrentUser
-                );
-                return Encoding.UTF8.GetString(decryptedBytes);
+                return UnprotectPassword(credential.EncryptedPassword, credential.Username, credential.Server);
             }
             catch
             {
@@ -193,10 +220,10 @@ namespace KeeperSecurity.Authentication
 
         #region Private Helper Methods
 
-        private static BiometricVerificationResult MapAvailabilityToBiometricResult(dynamic availability)
+        private static BiometricVerificationResult MapAvailabilityToBiometricResult(object availability)
         {
             // Map Windows UserConsentVerifierAvailability to our enum
-            var availabilityValue = (int)availability;
+            var availabilityValue = Convert.ToInt32(availability);
             switch (availabilityValue)
             {
                 case 0: return BiometricVerificationResult.Verified; // Available
@@ -207,10 +234,10 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        private static BiometricVerificationResult MapVerificationToBiometricResult(dynamic verificationResult)
+        private static BiometricVerificationResult MapVerificationToBiometricResult(object verificationResult)
         {
             // Map Windows UserConsentVerificationResult to our enum
-            var resultValue = (int)verificationResult;
+            var resultValue = Convert.ToInt32(verificationResult);
             switch (resultValue)
             {
                 case 0: return BiometricVerificationResult.Verified; // Verified
@@ -224,34 +251,152 @@ namespace KeeperSecurity.Authentication
             }
         }
 
+        private static byte[] ProtectPassword(string password, string username, string server)
+        {
+            var passwordBytes = Encoding.UTF8.GetBytes(password);
+            var entropy = GetEntropy(username, server);
+
+            // Try Windows DPAPI first if available
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                try
+                {
+                    var protectedDataType = Type.GetType("System.Security.Cryptography.ProtectedData, System.Security.Cryptography.ProtectedData");
+                    if (protectedDataType != null)
+                    {
+                        var protectMethod = protectedDataType.GetMethod("Protect", new Type[] { typeof(byte[]), typeof(byte[]), typeof(object) });
+                        if (protectMethod != null)
+                        {
+                            // DataProtectionScope.CurrentUser = 0
+                            var result = protectMethod.Invoke(null, new object[] { passwordBytes, entropy, 0 });
+                            return (byte[])result;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fall through to cross-platform encryption
+                }
+            }
+
+            // Cross-platform encryption using AES (less secure than DPAPI)
+            using (var aes = Aes.Create())
+            {
+                aes.Key = entropy.Take(32).ToArray(); // 256-bit key
+                aes.IV = entropy.Skip(16).Take(16).ToArray(); // 128-bit IV
+                
+                using (var encryptor = aes.CreateEncryptor())
+                {
+                    return encryptor.TransformFinalBlock(passwordBytes, 0, passwordBytes.Length);
+                }
+            }
+        }
+
+        private static string UnprotectPassword(byte[] encryptedPassword, string username, string server)
+        {
+            var entropy = GetEntropy(username, server);
+
+            // Try Windows DPAPI first if available
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                try
+                {
+                    var protectedDataType = Type.GetType("System.Security.Cryptography.ProtectedData, System.Security.Cryptography.ProtectedData");
+                    if (protectedDataType != null)
+                    {
+                        var unprotectMethod = protectedDataType.GetMethod("Unprotect", new Type[] { typeof(byte[]), typeof(byte[]), typeof(object) });
+                        if (unprotectMethod != null)
+                        {
+                            // DataProtectionScope.CurrentUser = 0
+                            var result = unprotectMethod.Invoke(null, new object[] { encryptedPassword, entropy, 0 });
+                            return Encoding.UTF8.GetString((byte[])result);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fall through to cross-platform decryption
+                }
+            }
+
+            // Cross-platform decryption using AES
+            using (var aes = Aes.Create())
+            {
+                aes.Key = entropy.Take(32).ToArray(); // 256-bit key
+                aes.IV = entropy.Skip(16).Take(16).ToArray(); // 128-bit IV
+                
+                using (var decryptor = aes.CreateDecryptor())
+                {
+                    var decryptedBytes = decryptor.TransformFinalBlock(encryptedPassword, 0, encryptedPassword.Length);
+                    return Encoding.UTF8.GetString(decryptedBytes);
+                }
+            }
+        }
+
         private static byte[] GetEntropy(string username, string server)
         {
-            var entropy = $"Keeper-{username}-{server}-{Environment.MachineName}";
-            return SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(entropy));
+            var entropy = $"Keeper-{username}-{server}-{Environment.MachineName}-BiometricAuth-2024";
+            using (var sha256 = SHA256.Create())
+            {
+                return sha256.ComputeHash(Encoding.UTF8.GetBytes(entropy));
+            }
         }
 
-        private static string GetRegistryKeyName(string username, string server)
+        private static string GetCredentialFileName(string username, string server)
         {
-            return $"{username}@{server}";
+            var safe = $"{username}@{server}".Replace(":", "_").Replace("/", "_").Replace("\\", "_");
+            return $"keeper_biometric_{safe}.dat";
         }
 
-        private static bool StoreCredentialInRegistry(BiometricCredential credential)
+        private static string GetCredentialDirectory()
+        {
+            var userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var credentialDir = Path.Combine(userFolder, ".keeper", "biometric");
+            
+            if (!Directory.Exists(credentialDir))
+            {
+                Directory.CreateDirectory(credentialDir);
+            }
+            
+            return credentialDir;
+        }
+
+        private static bool StoreCredentialSecurely(BiometricCredential credential)
         {
             try
             {
-                using (var key = Registry.CurrentUser.CreateSubKey(CREDENTIAL_REGISTRY_KEY))
+                var credentialDir = GetCredentialDirectory();
+                var fileName = GetCredentialFileName(credential.Username, credential.Server);
+                var filePath = Path.Combine(credentialDir, fileName);
+
+                var data = new
                 {
-                    var credentialKey = GetRegistryKeyName(credential.Username, credential.Server);
-                    using (var subKey = key.CreateSubKey(credentialKey))
+                    Username = credential.Username,
+                    Server = credential.Server,
+                    EncryptedPassword = Convert.ToBase64String(credential.EncryptedPassword),
+                    CreatedAt = credential.CreatedAt.ToBinary(),
+                    LastUsedAt = credential.LastUsedAt.ToBinary()
+                };
+
+                var json = JsonUtils.DumpJson(data);
+                File.WriteAllText(filePath, Encoding.UTF8.GetString(json));
+                
+                // Set file permissions to be readable only by current user
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    // Unix/Linux file permissions - owner read/write only
+                    try
                     {
-                        subKey.SetValue("Username", credential.Username);
-                        subKey.SetValue("Server", credential.Server);
-                        subKey.SetValue("EncryptedPassword", credential.EncryptedPassword);
-                        subKey.SetValue("CreatedAt", credential.CreatedAt.ToBinary());
-                        subKey.SetValue("LastUsedAt", credential.LastUsedAt.ToBinary());
-                        return true;
+                        var chmod = System.Diagnostics.Process.Start("chmod", $"600 \"{filePath}\"");
+                        chmod?.WaitForExit();
+                    }
+                    catch
+                    {
+                        // Ignore if chmod fails
                     }
                 }
+
+                return true;
             }
             catch
             {
@@ -259,35 +404,43 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        private static BiometricCredential RetrieveCredentialFromRegistry(string username, string server)
+        private class CredentialData
+        {
+            public string Username { get; set; }
+            public string Server { get; set; }
+            public string EncryptedPassword { get; set; }
+            public long CreatedAt { get; set; }
+            public long LastUsedAt { get; set; }
+        }
+
+        private static BiometricCredential RetrieveCredentialSecurely(string username, string server)
         {
             try
             {
-                using (var key = Registry.CurrentUser.OpenSubKey(CREDENTIAL_REGISTRY_KEY))
+                var credentialDir = GetCredentialDirectory();
+                var fileName = GetCredentialFileName(username, server);
+                var filePath = Path.Combine(credentialDir, fileName);
+
+                if (!File.Exists(filePath))
+                    return null;
+
+                var json = File.ReadAllText(filePath);
+                var data = JsonUtils.ParseJson<CredentialData>(Encoding.UTF8.GetBytes(json));
+                
+                var credential = new BiometricCredential
                 {
-                    if (key == null) return null;
+                    Username = data.Username,
+                    Server = data.Server,
+                    EncryptedPassword = Convert.FromBase64String(data.EncryptedPassword),
+                    CreatedAt = DateTime.FromBinary(data.CreatedAt),
+                    LastUsedAt = DateTime.FromBinary(data.LastUsedAt)
+                };
 
-                    var credentialKey = GetRegistryKeyName(username, server);
-                    using (var subKey = key.OpenSubKey(credentialKey))
-                    {
-                        if (subKey == null) return null;
+                // Update last used time
+                credential.LastUsedAt = DateTime.UtcNow;
+                StoreCredentialSecurely(credential);
 
-                        var credential = new BiometricCredential
-                        {
-                            Username = subKey.GetValue("Username")?.ToString(),
-                            Server = subKey.GetValue("Server")?.ToString(),
-                            EncryptedPassword = (byte[])subKey.GetValue("EncryptedPassword"),
-                            CreatedAt = DateTime.FromBinary((long)subKey.GetValue("CreatedAt")),
-                            LastUsedAt = DateTime.FromBinary((long)subKey.GetValue("LastUsedAt"))
-                        };
-
-                        // Update last used time
-                        credential.LastUsedAt = DateTime.UtcNow;
-                        StoreCredentialInRegistry(credential);
-
-                        return credential;
-                    }
-                }
+                return credential;
             }
             catch
             {
@@ -295,18 +448,20 @@ namespace KeeperSecurity.Authentication
             }
         }
 
-        private static bool RemoveCredentialFromRegistry(string username, string server)
+        private static bool RemoveCredentialSecurely(string username, string server)
         {
             try
             {
-                using (var key = Registry.CurrentUser.OpenSubKey(CREDENTIAL_REGISTRY_KEY, true))
-                {
-                    if (key == null) return true;
+                var credentialDir = GetCredentialDirectory();
+                var fileName = GetCredentialFileName(username, server);
+                var filePath = Path.Combine(credentialDir, fileName);
 
-                    var credentialKey = GetRegistryKeyName(username, server);
-                    key.DeleteSubKey(credentialKey, false);
-                    return true;
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
                 }
+                
+                return true;
             }
             catch
             {
@@ -415,5 +570,3 @@ namespace KeeperSecurity.Authentication
         }
     }
 }
-
-#endif
