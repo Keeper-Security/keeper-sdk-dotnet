@@ -20,13 +20,11 @@ class KeeperContext {
 
 New-Variable -Name Context -Option Constant -Scope 'Script' -Value (New-Object KeeperContext)
 
-# Import Windows Hello biometric authentication
-. "$PSScriptRoot\WindowsHelloAuth.ps1"
+# Windows Hello biometric authentication is loaded as a nested module via PowerCommander.psd1
 
 Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation, 
-Get-KeeperDeviceSettings, Set-KeeperDeviceSettings, Connect-KeeperWithBiometrics, Test-WindowsHelloAvailability,
-Set-KeeperBiometricCredential, Get-KeeperBiometricCredential, Remove-KeeperBiometricCredential
-Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device, kcb, khello
+Get-KeeperDeviceSettings, Set-KeeperDeviceSettings
+Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItem,
 Get-KeeperObject

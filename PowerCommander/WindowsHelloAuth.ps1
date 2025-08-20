@@ -1,121 +1,97 @@
 #requires -Version 5.1
 
 # Windows Hello / Biometric Authentication for PowerCommander
-# Implements biometric login similar to Python Commander's biometric module
+# This module provides a PowerShell wrapper for the Windows Hello functionality in KeeperSdk
 
-Add-Type -AssemblyName System.Security
+# Load the KeeperSdk assembly
+Add-Type -Path "$PSScriptRoot\KeeperSdk.dll"
 
-# Windows Hello API definitions
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+#region Helper Functions
 
-namespace KeeperSecurity.WindowsHello
-{
-    public enum UserConsentVerificationResult
-    {
-        Verified = 0,
-        DeviceNotPresent = 1,
-        NotConfiguredForUser = 2,
-        DisabledByPolicy = 3,
-        DeviceBusy = 4,
-        RetriesExhausted = 5,
-        Canceled = 6
+function Test-InteractiveSession {
+    <#
+    .SYNOPSIS
+    Tests if the current PowerShell session is interactive
+    #>
+    if ($psISE) { return $true }
+    if ($Host.Name -eq 'ConsoleHost') { return $true }
+    if ($PSPrivateMetadata.JobId) { return $false }
+    return $true
+}
+
+#endregion
+
+#region Main Functions
+
+function Test-WindowsHelloAvailability {
+    <#
+    .SYNOPSIS
+    Tests if Windows Hello biometric authentication is available
+    
+    .DESCRIPTION
+    This function checks if Windows Hello is configured and available on the current system.
+    It returns $true if biometric authentication can be used, $false otherwise.
+    
+    .EXAMPLE
+    if (Test-WindowsHelloAvailability) {
+        Write-Host "Windows Hello is available" -ForegroundColor Green
+    } else {
+        Write-Host "Windows Hello is not available" -ForegroundColor Red
     }
-
-    public static class WindowsHelloApi
-    {
-        // Windows Runtime factory for UserConsentVerifier
-        public static async Task<UserConsentVerificationResult> RequestVerificationAsync(string message)
-        {
-            try 
-            {
-                // Use Windows Runtime UserConsentVerifier
-                var userConsentVerifierType = Type.GetType("Windows.Security.Credentials.UI.UserConsentVerifier, Windows.Security.Credentials.UI, ContentType=WindowsRuntime");
-                if (userConsentVerifierType == null)
-                {
-                    return UserConsentVerificationResult.DeviceNotPresent;
-                }
-
-                var checkAvailabilityMethod = userConsentVerifierType.GetMethod("CheckAvailabilityAsync");
-                var requestVerificationMethod = userConsentVerifierType.GetMethod("RequestVerificationAsync", new Type[] { typeof(string) });
-
-                if (checkAvailabilityMethod == null || requestVerificationMethod == null)
-                {
-                    return UserConsentVerificationResult.DeviceNotPresent;
-                }
-
-                // Check if Windows Hello is available
-                var availabilityTask = (dynamic)checkAvailabilityMethod.Invoke(null, null);
-                var availability = await availabilityTask;
-                
-                if (availability.ToString() != "Available")
-                {
-                    return UserConsentVerificationResult.NotConfiguredForUser;
-                }
-
-                // Request verification
-                var verificationTask = (dynamic)requestVerificationMethod.Invoke(null, new object[] { message });
-                var result = await verificationTask;
-                
-                switch (result.ToString())
-                {
-                    case "Verified":
-                        return UserConsentVerificationResult.Verified;
-                    case "DeviceNotPresent":
-                        return UserConsentVerificationResult.DeviceNotPresent;
-                    case "NotConfiguredForUser":
-                        return UserConsentVerificationResult.NotConfiguredForUser;
-                    case "DisabledByPolicy":
-                        return UserConsentVerificationResult.DisabledByPolicy;
-                    case "DeviceBusy":
-                        return UserConsentVerificationResult.DeviceBusy;
-                    case "RetriesExhausted":
-                        return UserConsentVerificationResult.RetriesExhausted;
-                    case "Canceled":
-                        return UserConsentVerificationResult.Canceled;
-                    default:
-                        return UserConsentVerificationResult.DeviceNotPresent;
-                }
-            }
-            catch 
-            {
-                return UserConsentVerificationResult.DeviceNotPresent;
-            }
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param()
+    
+    # Check if we're on Windows
+    if (-not $IsWindows) {
+        Write-Verbose "Windows Hello is only available on Windows systems"
+        return $false
+    }
+    
+    try {
+        # Check if the WindowsHelloProvider class is available (requires .NET Framework 4.7.2+)
+        $providerType = [KeeperSecurity.Authentication.WindowsHelloProvider] -as [type]
+        if (-not $providerType) {
+            Write-Verbose "Windows Hello provider not available - requires .NET Framework 4.7.2+ build"
+            return $false
         }
-
-        public static async Task<bool> IsWindowsHelloAvailableAsync()
-        {
-            try
-            {
-                var result = await RequestVerificationAsync("Checking Windows Hello availability");
-                return result != UserConsentVerificationResult.DeviceNotPresent;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+        
+        # Use SDK method to check availability
+        $task = [KeeperSecurity.Authentication.WindowsHelloProvider]::IsAvailableAsync()
+        $result = $task.GetAwaiter().GetResult()
+        return $result
+    }
+    catch {
+        Write-Verbose "Error checking Windows Hello availability: $($_.Exception.Message)"
+        return $false
     }
 }
-"@
 
-# Biometric credential storage functions
 function Set-KeeperBiometricCredential {
     <#
     .SYNOPSIS
-    Stores encrypted Keeper credentials for biometric authentication
+    Stores biometric credentials for a Keeper user
+    
+    .DESCRIPTION
+    This function stores encrypted credentials for biometric authentication.
+    The credentials are encrypted using Windows DPAPI and stored securely.
     
     .PARAMETER Username
     Keeper username/email
     
-    .PARAMETER Password  
-    Keeper master password (SecureString)
+    .PARAMETER Password
+    Master password (as SecureString)
     
     .PARAMETER Server
-    Keeper server (optional)
+    Keeper server (optional, defaults to keepersecurity.com)
+    
+    .EXAMPLE
+    $password = Read-Host "Enter password" -AsSecureString
+    Set-KeeperBiometricCredential -Username "user@example.com" -Password $password
     #>
+    [CmdletBinding()]
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory=$true)][string]$Username,
         [Parameter(Mandatory=$true)][SecureString]$Password,
@@ -123,71 +99,63 @@ function Set-KeeperBiometricCredential {
     )
     
     try {
-        # Create credential name
-        $credentialName = "Keeper_Biometric_$($Username)_$($Server)"
+        # Convert SecureString to plain text for storage
+        $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
+        $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
         
-        # Convert SecureString to encrypted data using Windows DPAPI
-        $encryptedPassword = $Password | ConvertFrom-SecureString
+        # Store using SDK method
+        $result = [KeeperSecurity.Authentication.WindowsHelloProvider]::StoreBiometricCredential($Username, $plainPassword, $Server)
         
-        # Store credential data
-        $credentialData = @{
-            Username = $Username
-            Server = $Server
-            EncryptedPassword = $encryptedPassword
-            CreatedDate = Get-Date
-            LastUsed = Get-Date
-        } | ConvertTo-Json
+        if ($result) {
+            Write-Information "✓ Biometric credentials stored for $Username" -InformationAction Continue
+        } else {
+            Write-Warning "Failed to store biometric credentials"
+        }
         
-        # Use Windows Credential Manager to store
-        $credential = New-Object System.Management.Automation.PSCredential($credentialName, (ConvertTo-SecureString $credentialData -AsPlainText -Force))
-        
-        # Store in Windows Credential Manager
-        cmdkey /generic:$credentialName /user:$Username /pass:$credentialData | Out-Null
-        
-        Write-Information "Biometric credential stored for $Username on $Server"
-        return $true
+        return $result
     }
     catch {
-        Write-Warning "Failed to store biometric credential: $($_.Exception.Message)"
+        Write-Error "Error storing biometric credential: $($_.Exception.Message)"
         return $false
+    }
+    finally {
+        # Clear password from memory
+        if ($plainPassword) {
+            $plainPassword = $null
+        }
     }
 }
 
 function Get-KeeperBiometricCredential {
     <#
     .SYNOPSIS
-    Retrieves stored biometric credentials for a user
+    Retrieves biometric credential information (without the password)
     
     .PARAMETER Username
     Keeper username/email
     
-    .PARAMETER Server
-    Keeper server (optional)
+    .PARAMETER Server  
+    Keeper server (optional, defaults to keepersecurity.com)
+    
+    .EXAMPLE
+    $cred = Get-KeeperBiometricCredential -Username "user@example.com"
+    if ($cred) {
+        Write-Host "Credential found, created: $($cred.CreatedAt)"
+    }
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)][string]$Username,
         [Parameter()][string]$Server = "keepersecurity.com"
     )
     
     try {
-        $credentialName = "Keeper_Biometric_$($Username)_$($Server)"
-        
-        # Try to retrieve from Windows Credential Manager
-        $cmdResult = cmdkey /list:$credentialName 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            return $null
-        }
-        
-        # Parse credential data (this is a simplified approach)
-        # In production, you'd want more robust credential retrieval
-        return @{
-            Username = $Username
-            Server = $Server
-            Exists = $true
-        }
+        $credential = [KeeperSecurity.Authentication.WindowsHelloProvider]::GetBiometricCredential($Username, $Server)
+        return $credential
     }
     catch {
-        Write-Warning "Failed to retrieve biometric credential: $($_.Exception.Message)"
+        Write-Warning "Error retrieving biometric credential: $($_.Exception.Message)"
         return $null
     }
 }
@@ -201,104 +169,60 @@ function Remove-KeeperBiometricCredential {
     Keeper username/email
     
     .PARAMETER Server
-    Keeper server (optional)
+    Keeper server (optional, defaults to keepersecurity.com)
+    
+    .EXAMPLE
+    Remove-KeeperBiometricCredential -Username "user@example.com"
     #>
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory=$true)][string]$Username,
         [Parameter()][string]$Server = "keepersecurity.com"
     )
     
-    try {
-        $credentialName = "Keeper_Biometric_$($Username)_$($Server)"
-        cmdkey /delete:$credentialName | Out-Null
-        
-        Write-Information "Biometric credential removed for $Username"
-        return $true
-    }
-    catch {
-        Write-Warning "Failed to remove biometric credential: $($_.Exception.Message)"
-        return $false
-    }
-}
-
-function Test-WindowsHelloAvailability {
-    <#
-    .SYNOPSIS
-    Tests if Windows Hello is available on the current system
-    #>
-    
-    try {
-        # Test Windows Hello availability
-        $task = [KeeperSecurity.WindowsHello.WindowsHelloApi]::IsWindowsHelloAvailableAsync()
-        $result = $task.GetAwaiter().GetResult()
-        
-        if ($result) {
-            Write-Information "Windows Hello is available and configured"
-            return $true
+    if ($PSCmdlet.ShouldProcess("$Username@$Server", "Remove biometric credential")) {
+        try {
+            $result = [KeeperSecurity.Authentication.WindowsHelloProvider]::RemoveBiometricCredential($Username, $Server)
+            if ($result) {
+                Write-Information "✓ Biometric credentials removed for $Username" -InformationAction Continue
+            } else {
+                Write-Warning "No biometric credentials found to remove"
+            }
+            return $result
         }
-        else {
-            Write-Warning "Windows Hello is not available or not configured"
+        catch {
+            Write-Error "Error removing biometric credential: $($_.Exception.Message)"
             return $false
         }
     }
-    catch {
-        Write-Warning "Cannot determine Windows Hello availability: $($_.Exception.Message)"
-        return $false
-    }
+    return $false
 }
 
 function Invoke-WindowsHelloVerification {
     <#
     .SYNOPSIS
-    Performs Windows Hello biometric verification
+    Requests biometric verification from the user
     
     .PARAMETER Message
     Message to display during verification
+    
+    .EXAMPLE
+    if (Invoke-WindowsHelloVerification -Message "Verify to access Keeper") {
+        Write-Host "Verification successful"
+    }
     #>
+    [CmdletBinding()]
+    [OutputType([bool])]
     param(
-        [Parameter()][string]$Message = "Please verify your identity with Windows Hello to access Keeper"
+        [Parameter()][string]$Message = "Verify your identity"
     )
     
     try {
-        Write-Information $Message
-        
-        $task = [KeeperSecurity.WindowsHello.WindowsHelloApi]::RequestVerificationAsync($Message)
+        $task = [KeeperSecurity.Authentication.WindowsHelloProvider]::RequestVerificationAsync($Message, $true)
         $result = $task.GetAwaiter().GetResult()
         
-        switch ($result) {
-            'Verified' {
-                Write-Information "Biometric verification successful"
-                return $true
-            }
-            'DeviceNotPresent' {
-                Write-Warning "Windows Hello device not present"
-                return $false
-            }
-            'NotConfiguredForUser' {
-                Write-Warning "Windows Hello not configured for current user"
-                return $false
-            }
-            'DisabledByPolicy' {
-                Write-Warning "Windows Hello disabled by policy"
-                return $false
-            }
-            'DeviceBusy' {
-                Write-Warning "Windows Hello device is busy, please try again"
-                return $false
-            }
-            'RetriesExhausted' {
-                Write-Warning "Too many failed attempts, please try again later"
-                return $false
-            }
-            'Canceled' {
-                Write-Information "Biometric verification was canceled by user"
-                return $false
-            }
-            default {
-                Write-Warning "Unknown verification result: $result"
-                return $false
-            }
-        }
+        return ($result -eq [KeeperSecurity.Authentication.BiometricVerificationResult]::Verified)
     }
     catch {
         Write-Warning "Biometric verification failed: $($_.Exception.Message)"
@@ -313,7 +237,7 @@ function Connect-KeeperWithBiometrics {
     
     .DESCRIPTION
     This function provides biometric authentication for Keeper login using Windows Hello.
-    It stores encrypted credentials locally and uses biometric verification to access them.
+    It can set up new biometric credentials or use existing ones for login.
     
     .PARAMETER Username
     Keeper username/email
@@ -329,15 +253,12 @@ function Connect-KeeperWithBiometrics {
     
     .EXAMPLE
     # Set up biometric authentication (first time)
-    Connect-KeeperWithBiometrics -Username "user@example.com" -SetupBiometric -Password $securePassword
+    $password = Read-Host "Enter password" -AsSecureString
+    Connect-KeeperWithBiometrics -Username "user@example.com" -SetupBiometric -Password $password
     
     .EXAMPLE  
     # Login using biometrics (after setup)
     Connect-KeeperWithBiometrics -Username "user@example.com"
-    
-    .EXAMPLE
-    # Login with different server
-    Connect-KeeperWithBiometrics -Username "user@example.com" -Server "eu.keepersecurity.com"
     #>
     [CmdletBinding()]
     param(
@@ -350,7 +271,11 @@ function Connect-KeeperWithBiometrics {
     
     # Check Windows Hello availability
     if (-not (Test-WindowsHelloAvailability)) {
-        Write-Error "Windows Hello is not available or configured on this system. Please set up Windows Hello in Windows Settings." -ErrorAction Stop
+        if (-not $IsWindows) {
+            Write-Error "Windows Hello biometric authentication is only available on Windows systems." -ErrorAction Stop
+        } else {
+            Write-Error "Windows Hello is not available or configured on this system. Please set up Windows Hello in Windows Settings, or use the .NET Framework 4.7.2+ build of PowerCommander." -ErrorAction Stop
+        }
         return
     }
     
@@ -366,31 +291,21 @@ function Connect-KeeperWithBiometrics {
             }
         }
         
-        # Verify the password works first by attempting login
-        Write-Information "Verifying password and setting up biometric authentication..."
+        Write-Information "Setting up biometric authentication..." -InformationAction Continue
         
-        try {
-            # Test login with provided credentials
-            $testResult = Connect-Keeper -Username $Username -Password $Password -Server $Server -Config $Config
-            
-            if ($Script:Context.Auth -and $Script:Context.Auth.IsAuthenticated()) {
-                # Password works, store biometric credential
-                $stored = Set-KeeperBiometricCredential -Username $Username -Password $Password -Server $Server
-                
-                if ($stored) {
-                    Write-Information "✓ Biometric authentication setup complete for $Username"
-                    Write-Information "You can now use 'Connect-KeeperWithBiometrics -Username $Username' for biometric login"
-                }
-                else {
-                    Write-Error "Failed to store biometric credentials"
-                }
-            }
-            else {
-                Write-Error "Failed to authenticate with provided credentials"
-            }
+        # Verify biometric access first
+        $verified = Invoke-WindowsHelloVerification -Message "Set up biometric login for $Username"
+        if (-not $verified) {
+            Write-Error "Biometric verification failed. Setup canceled." -ErrorAction Stop
+            return
         }
-        catch {
-            Write-Error "Setup failed: $($_.Exception.Message)"
+        
+        # Store the credential
+        $stored = Set-KeeperBiometricCredential -Username $Username -Password $Password -Server $Server
+        
+        if ($stored) {
+            Write-Information "✅ Biometric authentication setup complete for $Username" -InformationAction Continue
+            Write-Information "You can now use 'Connect-KeeperWithBiometrics -Username $Username' for biometric login" -InformationAction Continue
         }
     }
     else {
@@ -404,7 +319,7 @@ function Connect-KeeperWithBiometrics {
         }
         
         # Perform biometric verification
-        Write-Information "🔐 Biometric authentication required for Keeper login"
+        Write-Information "🔐 Biometric authentication required for Keeper login" -InformationAction Continue
         $verified = Invoke-WindowsHelloVerification -Message "Verify your identity to access Keeper vault for $Username"
         
         if (-not $verified) {
@@ -413,42 +328,50 @@ function Connect-KeeperWithBiometrics {
         }
         
         try {
-            # Retrieve stored password (simplified - in production you'd decrypt from credential store)
-            Write-Information "🔓 Biometric verification successful, logging into Keeper..."
+            # Decrypt stored password
+            Write-Information "🔓 Biometric verification successful, logging into Keeper..." -InformationAction Continue
             
-            # For now, prompt for password after biometric verification
-            # In a full implementation, you'd decrypt the stored password
-            if (Test-InteractiveSession) {
-                $Password = Read-Host -Prompt "Enter Master Password (biometric verification successful)" -AsSecureString
-                
-                # Use regular Connect-Keeper with verified password
-                Connect-Keeper -Username $Username -Password $Password -Server $Server -Config $Config
-                
-                if ($Script:Context.Auth -and $Script:Context.Auth.IsAuthenticated()) {
-                    Write-Information "✅ Successfully logged into Keeper with biometric authentication"
-                }
+            $plainPassword = [KeeperSecurity.Authentication.WindowsHelloProvider]::DecryptPassword($credential)
+            if (-not $plainPassword) {
+                Write-Error "Failed to decrypt stored password. Please set up biometric authentication again." -ErrorAction Stop
+                return
             }
-            else {
-                Write-Error "Cannot complete biometric login in non-interactive mode"
+            
+            # Convert to SecureString
+            $securePassword = ConvertTo-SecureString -String $plainPassword -AsPlainText -Force
+            $plainPassword = $null # Clear from memory
+            
+            # Check if Connect-Keeper is available
+            if (Get-Command 'Connect-Keeper' -ErrorAction SilentlyContinue) {
+                Connect-Keeper -Username $Username -Password $securePassword -Server $Server -Config $Config
+                
+                if ((Get-Variable -Name 'Context' -Scope Script -ErrorAction SilentlyContinue) -and 
+                    $Script:Context.Auth -and $Script:Context.Auth.IsAuthenticated()) {
+                    Write-Information "✅ Successfully logged into Keeper with biometric authentication" -InformationAction Continue
+                }
+            } else {
+                Write-Error "Connect-Keeper function not available. Please import the full PowerCommander module first."
             }
         }
         catch {
             Write-Error "Biometric login failed: $($_.Exception.Message)"
         }
+        finally {
+            # Clear sensitive data
+            if ($securePassword) { $securePassword.Dispose() }
+            if ($plainPassword) { $plainPassword = $null }
+        }
     }
 }
 
-# Create convenient aliases
-New-Alias -Name 'kcb' -Value 'Connect-KeeperWithBiometrics' -Description 'Connect to Keeper with biometric authentication'
-New-Alias -Name 'khello' -Value 'Test-WindowsHelloAvailability' -Description 'Test Windows Hello availability'
+#endregion
 
-# Export functions and aliases
-Export-ModuleMember -Function @(
-    'Test-WindowsHelloAvailability',
-    'Connect-KeeperWithBiometrics', 
-    'Set-KeeperBiometricCredential',
-    'Get-KeeperBiometricCredential',
-    'Remove-KeeperBiometricCredential',
-    'Invoke-WindowsHelloVerification'
-)
-Export-ModuleMember -Alias @('kcb', 'khello')
+#region Aliases
+
+# Create convenient aliases
+New-Alias -Name 'kcb' -Value 'Connect-KeeperWithBiometrics' -Description 'Connect to Keeper with biometric authentication' -Force
+New-Alias -Name 'khello' -Value 'Test-WindowsHelloAvailability' -Description 'Test Windows Hello availability' -Force
+
+#endregion
+
+# Note: Export-ModuleMember calls are handled in PowerCommander.psm1
