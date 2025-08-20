@@ -20,9 +20,13 @@ class KeeperContext {
 
 New-Variable -Name Context -Option Constant -Scope 'Script' -Value (New-Object KeeperContext)
 
+# Import Windows Hello biometric authentication
+. "$PSScriptRoot\WindowsHelloAuth.ps1"
+
 Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation, 
-Get-KeeperDeviceSettings, Set-KeeperDeviceSettings
-Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
+Get-KeeperDeviceSettings, Set-KeeperDeviceSettings, Connect-KeeperWithBiometrics, Test-WindowsHelloAvailability,
+Set-KeeperBiometricCredential, Get-KeeperBiometricCredential, Remove-KeeperBiometricCredential
+Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device, kcb, khello
 
 Export-ModuleMember -Function Get-KeeperLocation, Set-KeeperLocation, Get-KeeperChildItem,
 Get-KeeperObject
