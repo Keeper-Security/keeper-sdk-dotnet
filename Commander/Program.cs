@@ -23,6 +23,8 @@ namespace Commander
         }
 
         public static IExternalLoader CommanderStorage { get; private set; }
+        
+        public static StateCommands Context { get; set; }
 
         private static void Main(string[] args)
         {
@@ -40,7 +42,8 @@ namespace Commander
             });
 
             CommanderStorage = StorageUtils.SetupCommanderStorage(configFile);
-            MainLoop.StateContext = new NotConnectedCliContext(true);
+            Context = new NotConnectedCliContext(true);
+            MainLoop.StateContext = Context;
 
             _ = MainLoop.Run(GetInputManager());
             InputManager.Run();

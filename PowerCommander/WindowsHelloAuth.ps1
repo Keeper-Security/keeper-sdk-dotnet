@@ -44,7 +44,7 @@ function Test-WindowsHelloAvailability {
     param()
     
     # Check if we're on Windows
-    if (-not $IsWindows) {
+    if ($env:OS -ne "Windows_NT") {
         Write-Verbose "Windows Hello is only available on Windows systems"
         return $false
     }
@@ -108,7 +108,7 @@ function Set-KeeperBiometricCredential {
         $result = [KeeperSecurity.Authentication.WindowsHelloProvider]::StoreBiometricCredential($Username, $plainPassword, $Server)
         
         if ($result) {
-            Write-Information "✓ Biometric credentials stored for $Username" -InformationAction Continue
+            Write-Information "Biometric credentials stored for $Username" -InformationAction Continue
         } else {
             Write-Warning "Failed to store biometric credentials"
         }
@@ -185,7 +185,7 @@ function Remove-KeeperBiometricCredential {
         try {
             $result = [KeeperSecurity.Authentication.WindowsHelloProvider]::RemoveBiometricCredential($Username, $Server)
             if ($result) {
-                Write-Information "✓ Biometric credentials removed for $Username" -InformationAction Continue
+                Write-Information "Biometric credentials removed for $Username" -InformationAction Continue
             } else {
                 Write-Warning "No biometric credentials found to remove"
             }
@@ -304,7 +304,7 @@ function Connect-KeeperWithBiometrics {
         $stored = Set-KeeperBiometricCredential -Username $Username -Password $Password -Server $Server
         
         if ($stored) {
-            Write-Information "✅ Biometric authentication setup complete for $Username" -InformationAction Continue
+            Write-Information "Biometric authentication setup complete for $Username" -InformationAction Continue
             Write-Information "You can now use 'Connect-KeeperWithBiometrics -Username $Username' for biometric login" -InformationAction Continue
         }
     }
@@ -319,7 +319,7 @@ function Connect-KeeperWithBiometrics {
         }
         
         # Perform biometric verification
-        Write-Information "🔐 Biometric authentication required for Keeper login" -InformationAction Continue
+        Write-Information "Biometric authentication required for Keeper login" -InformationAction Continue
         $verified = Invoke-WindowsHelloVerification -Message "Verify your identity to access Keeper vault for $Username"
         
         if (-not $verified) {
@@ -329,7 +329,7 @@ function Connect-KeeperWithBiometrics {
         
         try {
             # Decrypt stored password
-            Write-Information "🔓 Biometric verification successful, logging into Keeper..." -InformationAction Continue
+            Write-Information "Biometric verification successful, logging into Keeper..." -InformationAction Continue
             
             $plainPassword = [KeeperSecurity.Authentication.WindowsHelloProvider]::DecryptPassword($credential)
             if (-not $plainPassword) {

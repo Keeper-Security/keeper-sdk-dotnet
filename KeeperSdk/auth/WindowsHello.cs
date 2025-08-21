@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using System.Reflection;
 using KeeperSecurity.Utils;
 
 namespace KeeperSecurity.Authentication
@@ -32,6 +31,11 @@ namespace KeeperSecurity.Authentication
         public string Username { get; set; }
         public string Server { get; set; }
         public byte[] EncryptedPassword { get; set; }
+        public byte[] CredentialId { get; set; }
+        public byte[] PublicKey { get; set; }
+        public uint SignatureCounter { get; set; }
+        public string CredType { get; set; }
+        public Guid AaGuid { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastUsedAt { get; set; }
     }
@@ -56,10 +60,44 @@ namespace KeeperSecurity.Authentication
 
             try
             {
-                var result = await RequestVerificationAsync("Windows Hello availability check", false);
-                return result != BiometricVerificationResult.DeviceNotPresent && 
-                       result != BiometricVerificationResult.NotConfiguredForUser &&
-                       result != BiometricVerificationResult.DisabledByPolicy;
+                // Try to load Windows Runtime UserConsentVerifier using reflection (same as PowerShell implementation)
+                var userConsentVerifierType = Type.GetType("Windows.Security.Credentials.UI.UserConsentVerifier, Windows.Security.Credentials.UI, ContentType=WindowsRuntime");
+                if (userConsentVerifierType == null)
+                {
+                    // Fallback: try loading from WinRT assemblies
+                    try
+                    {
+                        var winrtAssembly = System.Reflection.Assembly.Load("Windows.Security.Credentials.UI");
+                        userConsentVerifierType = winrtAssembly.GetType("Windows.Security.Credentials.UI.UserConsentVerifier");
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+
+                if (userConsentVerifierType == null)
+                {
+                    return false;
+                }
+
+                var checkAvailabilityMethod = userConsentVerifierType.GetMethod("CheckAvailabilityAsync");
+                if (checkAvailabilityMethod == null)
+                {
+                    return false;
+                }
+
+                // Check availability
+                var availabilityTask = checkAvailabilityMethod.Invoke(null, null);
+                if (availabilityTask is Task<object> task)
+                {
+                    var availability = await task;
+                    var availabilityValue = Convert.ToInt32(availability);
+                    // Return true if Available (0), false for other states
+                    return availabilityValue == 0;
+                }
+                
+                return false;
             }
             catch
             {
@@ -68,7 +106,7 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <summary>
-        /// Request biometric verification from the user
+        /// Request biometric verification from the user using Windows Hello
         /// </summary>
         /// <param name="message">Message to display to the user</param>
         /// <param name="actualVerification">Whether to perform actual verification or just check availability</param>
@@ -90,7 +128,7 @@ namespace KeeperSecurity.Authentication
                     // Fallback: try loading from WinRT assemblies
                     try
                     {
-                        var winrtAssembly = Assembly.Load("Windows.Security.Credentials.UI");
+                        var winrtAssembly = System.Reflection.Assembly.Load("Windows.Security.Credentials.UI");
                         userConsentVerifierType = winrtAssembly.GetType("Windows.Security.Credentials.UI.UserConsentVerifier");
                     }
                     catch
@@ -148,19 +186,59 @@ namespace KeeperSecurity.Authentication
                 return BiometricVerificationResult.DeviceNotPresent;
             }
         }
+        
+        private static BiometricVerificationResult MapAvailabilityToBiometricResult(object availability)
+        {
+            // Map Windows UserConsentVerifierAvailability to our enum
+            var availabilityValue = Convert.ToInt32(availability);
+            switch (availabilityValue)
+            {
+                case 0: return BiometricVerificationResult.Verified; // Available
+                case 1: return BiometricVerificationResult.DeviceNotPresent; // DeviceNotPresent
+                case 2: return BiometricVerificationResult.NotConfiguredForUser; // NotConfiguredForUser
+                case 3: return BiometricVerificationResult.DisabledByPolicy; // DisabledByPolicy
+                default: return BiometricVerificationResult.DeviceNotPresent;
+            }
+        }
+
+        private static BiometricVerificationResult MapVerificationToBiometricResult(object verificationResult)
+        {
+            // Map Windows UserConsentVerificationResult to our enum
+            var resultValue = Convert.ToInt32(verificationResult);
+            switch (resultValue)
+            {
+                case 0: return BiometricVerificationResult.Verified; // Verified
+                case 1: return BiometricVerificationResult.DeviceNotPresent; // DeviceNotPresent
+                case 2: return BiometricVerificationResult.NotConfiguredForUser; // NotConfiguredForUser
+                case 3: return BiometricVerificationResult.DisabledByPolicy; // DisabledByPolicy
+                case 4: return BiometricVerificationResult.DeviceBusy; // DeviceBusy
+                case 5: return BiometricVerificationResult.RetriesExhausted; // RetriesExhausted
+                case 6: return BiometricVerificationResult.Canceled; // Canceled
+                default: return BiometricVerificationResult.Canceled;
+            }
+        }
+
 
         /// <summary>
         /// Store biometric credential securely
         /// </summary>
-        public static bool StoreBiometricCredential(string username, string password, string server = "keepersecurity.com")
+        public static async Task<bool> StoreBiometricCredentialAsync(string username, string password, string server = "keepersecurity.com")
         {
             try
             {
+                // Verify Windows Hello is available and user can authenticate
+                var verificationResult = await RequestVerificationAsync($"Set up biometric authentication for {username}", true);
+                if (verificationResult != BiometricVerificationResult.Verified)
+                {
+                    return false;
+                }
+                
                 var credential = new BiometricCredential
                 {
                     Username = username,
                     Server = server,
                     EncryptedPassword = ProtectPassword(password, username, server),
+                    CredentialId = CryptoUtils.GetRandomBytes(32), // Use random credential ID for tracking
                     CreatedAt = DateTime.UtcNow,
                     LastUsedAt = DateTime.UtcNow
                 };
@@ -168,6 +246,22 @@ namespace KeeperSecurity.Authentication
                 return StoreCredentialSecurely(credential);
             }
             catch (Exception)
+            {
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Store biometric credential securely (backward compatibility - synchronous wrapper)
+        /// </summary>
+        [Obsolete("Use StoreBiometricCredentialAsync for better async support")]
+        public static bool StoreBiometricCredential(string username, string password, string server = "keepersecurity.com")
+        {
+            try
+            {
+                return StoreBiometricCredentialAsync(username, password, server).GetAwaiter().GetResult();
+            }
+            catch
             {
                 return false;
             }
@@ -219,37 +313,6 @@ namespace KeeperSecurity.Authentication
         }
 
         #region Private Helper Methods
-
-        private static BiometricVerificationResult MapAvailabilityToBiometricResult(object availability)
-        {
-            // Map Windows UserConsentVerifierAvailability to our enum
-            var availabilityValue = Convert.ToInt32(availability);
-            switch (availabilityValue)
-            {
-                case 0: return BiometricVerificationResult.Verified; // Available
-                case 1: return BiometricVerificationResult.DeviceNotPresent; // DeviceNotPresent
-                case 2: return BiometricVerificationResult.NotConfiguredForUser; // NotConfiguredForUser
-                case 3: return BiometricVerificationResult.DisabledByPolicy; // DisabledByPolicy
-                default: return BiometricVerificationResult.DeviceNotPresent;
-            }
-        }
-
-        private static BiometricVerificationResult MapVerificationToBiometricResult(object verificationResult)
-        {
-            // Map Windows UserConsentVerificationResult to our enum
-            var resultValue = Convert.ToInt32(verificationResult);
-            switch (resultValue)
-            {
-                case 0: return BiometricVerificationResult.Verified; // Verified
-                case 1: return BiometricVerificationResult.DeviceNotPresent; // DeviceNotPresent
-                case 2: return BiometricVerificationResult.NotConfiguredForUser; // NotConfiguredForUser
-                case 3: return BiometricVerificationResult.DisabledByPolicy; // DisabledByPolicy
-                case 4: return BiometricVerificationResult.DeviceBusy; // DeviceBusy
-                case 5: return BiometricVerificationResult.RetriesExhausted; // RetriesExhausted
-                case 6: return BiometricVerificationResult.Canceled; // Canceled
-                default: return BiometricVerificationResult.Canceled;
-            }
-        }
 
         private static byte[] ProtectPassword(string password, string username, string server)
         {
@@ -374,6 +437,11 @@ namespace KeeperSecurity.Authentication
                     Username = credential.Username,
                     Server = credential.Server,
                     EncryptedPassword = Convert.ToBase64String(credential.EncryptedPassword),
+                    CredentialId = credential.CredentialId != null ? Convert.ToBase64String(credential.CredentialId) : null,
+                    PublicKey = credential.PublicKey != null ? Convert.ToBase64String(credential.PublicKey) : null,
+                    SignatureCounter = credential.SignatureCounter,
+                    CredType = credential.CredType,
+                    AaGuid = credential.AaGuid.ToString(),
                     CreatedAt = credential.CreatedAt.ToBinary(),
                     LastUsedAt = credential.LastUsedAt.ToBinary()
                 };
@@ -409,6 +477,11 @@ namespace KeeperSecurity.Authentication
             public string Username { get; set; }
             public string Server { get; set; }
             public string EncryptedPassword { get; set; }
+            public string CredentialId { get; set; }
+            public string PublicKey { get; set; }
+            public uint SignatureCounter { get; set; }
+            public string CredType { get; set; }
+            public string AaGuid { get; set; }
             public long CreatedAt { get; set; }
             public long LastUsedAt { get; set; }
         }
@@ -432,6 +505,11 @@ namespace KeeperSecurity.Authentication
                     Username = data.Username,
                     Server = data.Server,
                     EncryptedPassword = Convert.FromBase64String(data.EncryptedPassword),
+                    CredentialId = !string.IsNullOrEmpty(data.CredentialId) ? Convert.FromBase64String(data.CredentialId) : null,
+                    PublicKey = !string.IsNullOrEmpty(data.PublicKey) ? Convert.FromBase64String(data.PublicKey) : null,
+                    SignatureCounter = data.SignatureCounter,
+                    CredType = data.CredType,
+                    AaGuid = !string.IsNullOrEmpty(data.AaGuid) ? Guid.Parse(data.AaGuid) : Guid.Empty,
                     CreatedAt = DateTime.FromBinary(data.CreatedAt),
                     LastUsedAt = DateTime.FromBinary(data.LastUsedAt)
                 };
@@ -496,7 +574,7 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <summary>
-        /// Set up biometric authentication for a user
+        /// Set up biometric authentication for a user using FIDO2
         /// </summary>
         public async Task<bool> SetupBiometricAsync(string username, string password, string server = "keepersecurity.com")
         {
@@ -506,16 +584,10 @@ namespace KeeperSecurity.Authentication
                 return false;
             }
 
-            // Verify biometric access first
-            var verificationResult = await WindowsHelloProvider.RequestVerificationAsync($"Set up biometric login for {username}");
-            if (verificationResult != BiometricVerificationResult.Verified)
-            {
-                await _ui.ShowErrorAsync($"Biometric verification failed: {verificationResult}");
-                return false;
-            }
-
+            await _ui.ShowMessageAsync($"Setting up biometric authentication for {username}...");
+            
             // Store the credential
-            var stored = WindowsHelloProvider.StoreBiometricCredential(username, password, server);
+            var stored = await WindowsHelloProvider.StoreBiometricCredentialAsync(username, password, server);
             if (stored)
             {
                 await _ui.ShowMessageAsync($"✓ Biometric authentication setup complete for {username}");
@@ -549,6 +621,7 @@ namespace KeeperSecurity.Authentication
 
             // Request biometric verification
             await _ui.ShowMessageAsync($"🔐 Biometric authentication required for {username}");
+            
             var verificationResult = await WindowsHelloProvider.RequestVerificationAsync($"Verify your identity to access Keeper vault for {username}");
 
             if (verificationResult != BiometricVerificationResult.Verified)

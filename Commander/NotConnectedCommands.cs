@@ -79,6 +79,34 @@ namespace Commander
                 Action = DoCreateAccount
             });
 
+            Commands.Add("test-windows-hello", new ParseableCommand<TestWindowsHelloOptions>
+            {
+                Order = 12,
+                Description = "Test Windows Hello availability",
+                Action = async (options) => await WindowsHelloCommands.TestWindowsHelloCommand(options)
+            });
+
+            Commands.Add("setup-biometric", new ParseableCommand<SetupBiometricOptions>
+            {
+                Order = 13,
+                Description = "Set up biometric authentication for Keeper",
+                Action = async (options) => await WindowsHelloCommands.SetupBiometricCommand(options)
+            });
+
+            Commands.Add("login-biometric", new ParseableCommand<LoginBiometricOptions>
+            {
+                Order = 14,
+                Description = "Login to Keeper using biometric authentication",
+                Action = WindowsHelloCommands.LoginBiometricCommand
+            });
+
+            Commands.Add("remove-biometric", new ParseableCommand<RemoveBiometricOptions>
+            {
+                Order = 15,
+                Description = "Remove stored biometric credentials",
+                Action = async (options) => await WindowsHelloCommands.RemoveBiometricCommand(options)
+            });
+
             Commands.Add("server", new SimpleCommand
             {
                 Order = 20,
