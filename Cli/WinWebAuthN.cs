@@ -21,6 +21,22 @@ namespace WinWebAuthn
             public Guid TheGuid;
         }
 
+        /// <summary>
+        /// Check if Windows Hello (platform authenticator) is available
+        /// </summary>
+        public static bool IsWindowsHelloAvailable()
+        {
+            try
+            {
+                var result = NativeWebAuthn.WebAuthNIsUserVerifyingPlatformAuthenticatorAvailable(out bool isAvailable);
+                return result == NativeWebAuthn.HRESULT.S_OK && isAvailable;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static Task<WebAuthnSignature> GetAssertion(IntPtr hWnd, PublicKeyCredentialRequestOptions options)
         {
             return GetAssertion(hWnd, options, CancellationToken.None);

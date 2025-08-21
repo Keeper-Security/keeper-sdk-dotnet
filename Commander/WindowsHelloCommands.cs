@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
 using CommandLine;
@@ -54,7 +56,7 @@ namespace Commander
     }
 
     /// <summary>
-    /// Windows Hello commands for Commander
+    /// Windows Hello commands for Commander - works on all targets with runtime platform detection
     /// </summary>
     public static class WindowsHelloCommands
     {

@@ -78,7 +78,6 @@ namespace Commander
                 Description = "Create Keeper account",
                 Action = DoCreateAccount
             });
-
             Commands.Add("test-windows-hello", new ParseableCommand<TestWindowsHelloOptions>
             {
                 Order = 12,

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -7,8 +8,24 @@ using System.Text;
 using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 
+// Available for all targets including netstandard2.0
+
+#if FIDO2_AVAILABLE
+using Fido2NetLib;
+using Fido2NetLib.Objects;
+#endif
+
+#if WINDOWS_HELLO_AVAILABLE
+using Windows.Security.Credentials;
+using Windows.Security.Credentials.UI;
+using Windows.Storage.Streams;
+using System.Runtime.InteropServices.WindowsRuntime;
+#endif
+
 namespace KeeperSecurity.Authentication
 {
+
+
     /// <summary>
     /// Windows Hello verification result
     /// </summary>
@@ -38,17 +55,46 @@ namespace KeeperSecurity.Authentication
         public Guid AaGuid { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastUsedAt { get; set; }
+        
+#if FIDO2_AVAILABLE
+        // FIDO2-specific properties (only available when FIDO2 library is included)
+        public byte[] UserHandle { get; set; }
+        public string AttestationFormat { get; set; }
+        public PublicKeyCredentialType CredentialType { get; set; }
+        public AuthenticatorTransport[] Transports { get; set; }
+        public byte[] AttestationObject { get; set; }
+        public byte[] ClientDataJson { get; set; }
+#endif
     }
 
     /// <summary>
-    /// Windows Hello biometric authentication provider
+    /// Windows Hello biometric authentication provider with FIDO2 support (.NET 8.0+) or basic Windows Hello
     /// </summary>
     public static class WindowsHelloProvider
     {
-        private const string CREDENTIAL_REGISTRY_KEY = @"SOFTWARE\Keeper Security\PowerCommander\Biometric";
+#if FIDO2_AVAILABLE
+        private static readonly IFido2 _fido2;
+        private static readonly string _origin = "https://keepersecurity.com";
+        private static readonly string _rpId = "keepersecurity.com";
+
+        static WindowsHelloProvider()
+        {
+            var config = new Fido2Configuration()
+            {
+                ServerDomain = _rpId,
+                ServerName = "Keeper Security",
+                Origins = new HashSet<string> { _origin },
+                TimestampDriftTolerance = 300000
+            };
+            
+            _fido2 = new Fido2(config);
+        }
+#endif
 
         /// <summary>
         /// Check if Windows Hello is available on this system
+        /// Following Microsoft's official documentation approach:
+        /// https://learn.microsoft.com/en-us/windows/apps/develop/security/windows-hello
         /// </summary>
         public static async Task<bool> IsAvailableAsync()
         {
@@ -57,53 +103,26 @@ namespace KeeperSecurity.Authentication
             {
                 return false;
             }
-
-            try
-            {
-                // Try to load Windows Runtime UserConsentVerifier using reflection (same as PowerShell implementation)
-                var userConsentVerifierType = Type.GetType("Windows.Security.Credentials.UI.UserConsentVerifier, Windows.Security.Credentials.UI, ContentType=WindowsRuntime");
-                if (userConsentVerifierType == null)
+            else{
+                try
                 {
-                    // Fallback: try loading from WinRT assemblies
-                    try
-                    {
-                        var winrtAssembly = System.Reflection.Assembly.Load("Windows.Security.Credentials.UI");
-                        userConsentVerifierType = winrtAssembly.GetType("Windows.Security.Credentials.UI.UserConsentVerifier");
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+#if WINDOWS_HELLO_AVAILABLE
+                    var keyCredentialAvailable = await KeyCredentialManager.IsSupportedAsync();
+                    return keyCredentialAvailable;
+#else
+                    // For netstandard2.0, Windows Hello is not available
+                    return false;
+#endif
                 }
-
-                if (userConsentVerifierType == null)
+                catch (Exception)
                 {
+                    // If Windows Runtime API fails, Windows Hello is not available
                     return false;
                 }
-
-                var checkAvailabilityMethod = userConsentVerifierType.GetMethod("CheckAvailabilityAsync");
-                if (checkAvailabilityMethod == null)
-                {
-                    return false;
-                }
-
-                // Check availability
-                var availabilityTask = checkAvailabilityMethod.Invoke(null, null);
-                if (availabilityTask is Task<object> task)
-                {
-                    var availability = await task;
-                    var availabilityValue = Convert.ToInt32(availability);
-                    // Return true if Available (0), false for other states
-                    return availabilityValue == 0;
-                }
-                
-                return false;
-            }
-            catch
-            {
-                return false;
             }
         }
+
+
 
         /// <summary>
         /// Request biometric verification from the user using Windows Hello
@@ -121,65 +140,27 @@ namespace KeeperSecurity.Authentication
 
             try
             {
-                // Try to load Windows Runtime UserConsentVerifier using reflection
-                var userConsentVerifierType = Type.GetType("Windows.Security.Credentials.UI.UserConsentVerifier, Windows.Security.Credentials.UI, ContentType=WindowsRuntime");
-                if (userConsentVerifierType == null)
-                {
-                    // Fallback: try loading from WinRT assemblies
-                    try
-                    {
-                        var winrtAssembly = System.Reflection.Assembly.Load("Windows.Security.Credentials.UI");
-                        userConsentVerifierType = winrtAssembly.GetType("Windows.Security.Credentials.UI.UserConsentVerifier");
-                    }
-                    catch
-                    {
-                        return BiometricVerificationResult.DeviceNotPresent;
-                    }
-                }
-
-                if (userConsentVerifierType == null)
-                {
-                    return BiometricVerificationResult.DeviceNotPresent;
-                }
-
-                var checkAvailabilityMethod = userConsentVerifierType.GetMethod("CheckAvailabilityAsync");
-                var requestVerificationMethod = userConsentVerifierType.GetMethod("RequestVerificationAsync", new Type[] { typeof(string) });
-
-                if (checkAvailabilityMethod == null || requestVerificationMethod == null)
-                {
-                    return BiometricVerificationResult.DeviceNotPresent;
-                }
-
-                // Check availability first
-                var availabilityTask = checkAvailabilityMethod.Invoke(null, null);
-                if (availabilityTask is Task<object> task)
-                {
-                    var availability = await task;
-                    var availabilityResult = MapAvailabilityToBiometricResult(availability);
-                    if (availabilityResult != BiometricVerificationResult.Verified)
-                    {
-                        return availabilityResult;
-                    }
-                }
-                else
-                {
-                    return BiometricVerificationResult.DeviceNotPresent;
-                }
-
                 if (!actualVerification)
                 {
-                    return BiometricVerificationResult.Verified;
+                    return await IsAvailableAsync() ? BiometricVerificationResult.Verified : BiometricVerificationResult.DeviceNotPresent;
                 }
 
-                // Request verification
-                var verificationTask = requestVerificationMethod.Invoke(null, new object[] { message ?? "Verify your identity" });
-                if (verificationTask is Task<object> verifyTask)
+                // Use Windows Runtime APIs for Windows targets
+                try
                 {
-                    var verificationResult = await verifyTask;
-                    return MapVerificationToBiometricResult(verificationResult);
+#if WINDOWS_HELLO_AVAILABLE
+                    var result = await UserConsentVerifier.RequestVerificationAsync(message ?? "Verify your identity");
+                    return MapUserConsentResultToBiometricResult(result);
+#else
+                    // For netstandard2.0, just check availability
+                    return await IsAvailableAsync() ? BiometricVerificationResult.Verified : BiometricVerificationResult.DeviceNotPresent;
+#endif
                 }
-                
-                return BiometricVerificationResult.DeviceNotPresent;
+                catch (Exception)
+                {
+                    // Fall back to availability check if verification fails
+                    return await IsAvailableAsync() ? BiometricVerificationResult.DeviceNotPresent : BiometricVerificationResult.DeviceNotPresent;
+                }
             }
             catch (Exception)
             {
@@ -187,37 +168,189 @@ namespace KeeperSecurity.Authentication
             }
         }
         
-        private static BiometricVerificationResult MapAvailabilityToBiometricResult(object availability)
+        /// <summary>
+        /// Map Windows UserConsentVerificationResult to our BiometricVerificationResult
+        /// </summary>
+#if WINDOWS_HELLO_AVAILABLE
+        private static BiometricVerificationResult MapUserConsentResultToBiometricResult(UserConsentVerificationResult result)
         {
-            // Map Windows UserConsentVerifierAvailability to our enum
-            var availabilityValue = Convert.ToInt32(availability);
-            switch (availabilityValue)
+            switch (result)
             {
-                case 0: return BiometricVerificationResult.Verified; // Available
-                case 1: return BiometricVerificationResult.DeviceNotPresent; // DeviceNotPresent
-                case 2: return BiometricVerificationResult.NotConfiguredForUser; // NotConfiguredForUser
-                case 3: return BiometricVerificationResult.DisabledByPolicy; // DisabledByPolicy
-                default: return BiometricVerificationResult.DeviceNotPresent;
+                case UserConsentVerificationResult.Verified:
+                    return BiometricVerificationResult.Verified;
+                case UserConsentVerificationResult.DeviceNotPresent:
+                    return BiometricVerificationResult.DeviceNotPresent;
+                case UserConsentVerificationResult.NotConfiguredForUser:
+                    return BiometricVerificationResult.NotConfiguredForUser;
+                case UserConsentVerificationResult.DisabledByPolicy:
+                    return BiometricVerificationResult.DisabledByPolicy;
+                case UserConsentVerificationResult.DeviceBusy:
+                    return BiometricVerificationResult.DeviceBusy;
+                case UserConsentVerificationResult.RetriesExhausted:
+                    return BiometricVerificationResult.RetriesExhausted;
+                case UserConsentVerificationResult.Canceled:
+                    return BiometricVerificationResult.Canceled;
+                default:
+                    return BiometricVerificationResult.DeviceNotPresent;
             }
         }
+#endif
 
-        private static BiometricVerificationResult MapVerificationToBiometricResult(object verificationResult)
+        /// <summary>
+        /// Test Windows Hello authentication by showing the popup dialog
+        /// </summary>
+        /// <param name="message">Custom message to display (optional)</param>
+        /// <returns>Verification result</returns>
+        public static async Task<BiometricVerificationResult> TestWindowsHelloPopupAsync(string message = null)
         {
-            // Map Windows UserConsentVerificationResult to our enum
-            var resultValue = Convert.ToInt32(verificationResult);
-            switch (resultValue)
-            {
-                case 0: return BiometricVerificationResult.Verified; // Verified
-                case 1: return BiometricVerificationResult.DeviceNotPresent; // DeviceNotPresent
-                case 2: return BiometricVerificationResult.NotConfiguredForUser; // NotConfiguredForUser
-                case 3: return BiometricVerificationResult.DisabledByPolicy; // DisabledByPolicy
-                case 4: return BiometricVerificationResult.DeviceBusy; // DeviceBusy
-                case 5: return BiometricVerificationResult.RetriesExhausted; // RetriesExhausted
-                case 6: return BiometricVerificationResult.Canceled; // Canceled
-                default: return BiometricVerificationResult.Canceled;
-            }
+            // Always force actual verification (show popup)
+            return await RequestVerificationAsync(message ?? "🔐 Test Windows Hello Authentication", actualVerification: true);
         }
 
+        /// <summary>
+        /// Create a Windows Hello-protected cryptographic key for the given account
+        /// </summary>
+        /// <param name="accountId">Unique identifier for the account (e.g., username@server)</param>
+        /// <returns>Result indicating success/failure and key information</returns>
+        public static async Task<WindowsHelloKeyResult> CreateProtectedKeyAsync(string accountId)
+        {
+#if WINDOWS_HELLO_AVAILABLE
+            try
+            {
+                // Check if Windows Hello is supported
+                var isSupported = await KeyCredentialManager.IsSupportedAsync();
+                if (!isSupported)
+                {
+                    return new WindowsHelloKeyResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Windows Hello is not supported on this device"
+                    };
+                }
+
+                // Create a new key credential protected by Windows Hello
+                var keyCreationResult = await KeyCredentialManager.RequestCreateAsync(
+                    accountId, 
+                    KeyCredentialCreationOption.ReplaceExisting);
+
+                switch (keyCreationResult.Status)
+                {
+                    case KeyCredentialStatus.Success:
+                        var userKey = keyCreationResult.Credential;
+                        var publicKey = userKey.RetrievePublicKey();
+                        
+                        // Get attestation information
+                        var keyAttestationResult = await userKey.GetAttestationAsync();
+                        
+                        return new WindowsHelloKeyResult
+                        {
+                            Success = true,
+#if WINDOWS_HELLO_AVAILABLE
+                            KeyCredential = userKey,
+                            AttestationStatus = keyAttestationResult.Status,
+#endif
+                            PublicKey = publicKey?.ToArray(),
+                            AttestationBuffer = keyAttestationResult.AttestationBuffer?.ToArray(),
+                            CertificateChain = keyAttestationResult.CertificateChainBuffer?.ToArray()
+                        };
+
+                    case KeyCredentialStatus.UserCanceled:
+                        return new WindowsHelloKeyResult
+                        {
+                            Success = false,
+                            ErrorMessage = "User canceled Windows Hello setup"
+                        };
+
+                    case KeyCredentialStatus.UserPrefersPassword:
+                        return new WindowsHelloKeyResult
+                        {
+                            Success = false,
+                            ErrorMessage = "User prefers password authentication"
+                        };
+
+                    default:
+                        return new WindowsHelloKeyResult
+                        {
+                            Success = false,
+                            ErrorMessage = $"Key creation failed: {keyCreationResult.Status}"
+                        };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new WindowsHelloKeyResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Exception during key creation: {ex.Message}"
+                };
+            }
+#else
+            // For netstandard2.0, Windows Hello key creation is not available
+            return new WindowsHelloKeyResult
+            {
+                Success = false,
+                ErrorMessage = "Windows Hello key creation requires Windows Runtime APIs (not available in netstandard2.0)"
+            };
+#endif
+        }
+
+        /// <summary>
+        /// Result of Windows Hello key creation
+        /// </summary>
+        public class WindowsHelloKeyResult
+        {
+            public bool Success { get; set; }
+            public string ErrorMessage { get; set; }
+#if WINDOWS_HELLO_AVAILABLE
+            public KeyCredential KeyCredential { get; set; }
+            public KeyCredentialAttestationStatus AttestationStatus { get; set; }
+#endif
+            public byte[] PublicKey { get; set; }
+            public byte[] AttestationBuffer { get; set; }
+            public byte[] CertificateChain { get; set; }
+        }
+
+#if FIDO2_AVAILABLE
+        /// <summary>
+        /// Create FIDO2 credential options for registration (.NET 8.0+ only)
+        /// </summary>
+        public static CredentialCreateOptions CreateRegistrationOptions(string username, string displayName, string server = "keepersecurity.com")
+        {
+            var user = new Fido2User
+            {
+                Name = username,
+                Id = Encoding.UTF8.GetBytes(username),
+                DisplayName = displayName ?? username
+            };
+
+            var options = _fido2.RequestNewCredential(
+                user, 
+                new List<PublicKeyCredentialDescriptor>(), // No existing credentials to exclude
+                AuthenticatorSelection.Default,
+                AttestationConveyancePreference.Direct
+            );
+
+            return options;
+        }
+
+        /// <summary>
+        /// Create FIDO2 assertion options for authentication (.NET 8.0+ only)
+        /// </summary>
+        public static AssertionOptions CreateAuthenticationOptions(BiometricCredential credential)
+        {
+            var allowedCredentials = new List<PublicKeyCredentialDescriptor>
+            {
+                new PublicKeyCredentialDescriptor(credential.CredentialId)
+            };
+
+            var options = _fido2.GetAssertionOptions(
+                allowedCredentials,
+                UserVerificationRequirement.Required
+            );
+
+            return options;
+        }
+#endif
 
         /// <summary>
         /// Store biometric credential securely
@@ -226,7 +359,13 @@ namespace KeeperSecurity.Authentication
         {
             try
             {
-                // Verify Windows Hello is available and user can authenticate
+                // First verify Windows Hello is available
+                if (!await IsAvailableAsync())
+                {
+                    return false;
+                }
+
+                // Verify user can authenticate before setting up
                 var verificationResult = await RequestVerificationAsync($"Set up biometric authentication for {username}", true);
                 if (verificationResult != BiometricVerificationResult.Verified)
                 {
@@ -238,16 +377,69 @@ namespace KeeperSecurity.Authentication
                     Username = username,
                     Server = server,
                     EncryptedPassword = ProtectPassword(password, username, server),
-                    CredentialId = CryptoUtils.GetRandomBytes(32), // Use random credential ID for tracking
+                    CredentialId = CryptoUtils.GetRandomBytes(32),
                     CreatedAt = DateTime.UtcNow,
-                    LastUsedAt = DateTime.UtcNow
+                    LastUsedAt = DateTime.UtcNow,
+                    CredType = "platform"
                 };
+
+#if FIDO2_AVAILABLE
+                // Add FIDO2-specific properties for .NET 8.0+
+                var options = CreateRegistrationOptions(username, username, server);
+                credential.UserHandle = options.User.Id;
+                credential.CredentialType = PublicKeyCredentialType.PublicKey;
+                credential.AttestationFormat = "packed";
+#endif
 
                 return StoreCredentialSecurely(credential);
             }
             catch (Exception)
             {
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Authenticate using stored biometric credential
+        /// </summary>
+        public static async Task<string> AuthenticateWithBiometricAsync(string username, string server = "keepersecurity.com")
+        {
+            try
+            {
+                // Check if Windows Hello is available
+                if (!await IsAvailableAsync())
+                {
+                    return null;
+                }
+
+                // Retrieve stored credential
+                var credential = GetBiometricCredential(username, server);
+                if (credential == null)
+                {
+                    return null;
+                }
+
+                // Request biometric verification
+                var verificationResult = await RequestVerificationAsync($"Verify your identity to access Keeper vault for {username}");
+                if (verificationResult != BiometricVerificationResult.Verified)
+                {
+                    return null;
+                }
+
+                // Decrypt the password
+                var password = DecryptPassword(credential);
+                if (password != null)
+                {
+                    // Update last used time
+                    credential.LastUsedAt = DateTime.UtcNow;
+                    StoreCredentialSecurely(credential);
+                }
+
+                return password;
+            }
+            catch
+            {
+                return null;
             }
         }
         
@@ -324,17 +516,8 @@ namespace KeeperSecurity.Authentication
             {
                 try
                 {
-                    var protectedDataType = Type.GetType("System.Security.Cryptography.ProtectedData, System.Security.Cryptography.ProtectedData");
-                    if (protectedDataType != null)
-                    {
-                        var protectMethod = protectedDataType.GetMethod("Protect", new Type[] { typeof(byte[]), typeof(byte[]), typeof(object) });
-                        if (protectMethod != null)
-                        {
-                            // DataProtectionScope.CurrentUser = 0
-                            var result = protectMethod.Invoke(null, new object[] { passwordBytes, entropy, 0 });
-                            return (byte[])result;
-                        }
-                    }
+                    // Use System.Security.Cryptography.ProtectedData directly - it's available in .NET Standard 2.0 on Windows
+                    return ProtectedData.Protect(passwordBytes, entropy, DataProtectionScope.CurrentUser);
                 }
                 catch
                 {
@@ -364,17 +547,9 @@ namespace KeeperSecurity.Authentication
             {
                 try
                 {
-                    var protectedDataType = Type.GetType("System.Security.Cryptography.ProtectedData, System.Security.Cryptography.ProtectedData");
-                    if (protectedDataType != null)
-                    {
-                        var unprotectMethod = protectedDataType.GetMethod("Unprotect", new Type[] { typeof(byte[]), typeof(byte[]), typeof(object) });
-                        if (unprotectMethod != null)
-                        {
-                            // DataProtectionScope.CurrentUser = 0
-                            var result = unprotectMethod.Invoke(null, new object[] { encryptedPassword, entropy, 0 });
-                            return Encoding.UTF8.GetString((byte[])result);
-                        }
-                    }
+                    // Use System.Security.Cryptography.ProtectedData directly - it's available in .NET Standard 2.0 on Windows
+                    var result = ProtectedData.Unprotect(encryptedPassword, entropy, DataProtectionScope.CurrentUser);
+                    return Encoding.UTF8.GetString(result);
                 }
                 catch
                 {
@@ -398,7 +573,11 @@ namespace KeeperSecurity.Authentication
 
         private static byte[] GetEntropy(string username, string server)
         {
+#if FIDO2_AVAILABLE
+            var entropy = $"Keeper-{username}-{server}-{Environment.MachineName}-FIDO2Auth-2024";
+#else
             var entropy = $"Keeper-{username}-{server}-{Environment.MachineName}-BiometricAuth-2024";
+#endif
             using (var sha256 = SHA256.Create())
             {
                 return sha256.ComputeHash(Encoding.UTF8.GetBytes(entropy));
@@ -408,13 +587,21 @@ namespace KeeperSecurity.Authentication
         private static string GetCredentialFileName(string username, string server)
         {
             var safe = $"{username}@{server}".Replace(":", "_").Replace("/", "_").Replace("\\", "_");
+#if FIDO2_AVAILABLE
+            return $"keeper_fido2_{safe}.dat";
+#else
             return $"keeper_biometric_{safe}.dat";
+#endif
         }
 
         private static string GetCredentialDirectory()
         {
             var userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+#if FIDO2_AVAILABLE
+            var credentialDir = Path.Combine(userFolder, ".keeper", "fido2");
+#else
             var credentialDir = Path.Combine(userFolder, ".keeper", "biometric");
+#endif
             
             if (!Directory.Exists(credentialDir))
             {
@@ -443,7 +630,15 @@ namespace KeeperSecurity.Authentication
                     CredType = credential.CredType,
                     AaGuid = credential.AaGuid.ToString(),
                     CreatedAt = credential.CreatedAt.ToBinary(),
-                    LastUsedAt = credential.LastUsedAt.ToBinary()
+                    LastUsedAt = credential.LastUsedAt.ToBinary(),
+#if FIDO2_AVAILABLE
+                    UserHandle = credential.UserHandle != null ? Convert.ToBase64String(credential.UserHandle) : null,
+                    AttestationFormat = credential.AttestationFormat,
+                    CredentialType = credential.CredentialType.ToString(),
+                    Transports = credential.Transports?.Select(t => t.ToString()).ToArray(),
+                    AttestationObject = credential.AttestationObject != null ? Convert.ToBase64String(credential.AttestationObject) : null,
+                    ClientDataJson = credential.ClientDataJson != null ? Convert.ToBase64String(credential.ClientDataJson) : null
+#endif
                 };
 
                 var json = JsonUtils.DumpJson(data);
@@ -484,6 +679,14 @@ namespace KeeperSecurity.Authentication
             public string AaGuid { get; set; }
             public long CreatedAt { get; set; }
             public long LastUsedAt { get; set; }
+#if FIDO2_AVAILABLE
+            public string UserHandle { get; set; }
+            public string AttestationFormat { get; set; }
+            public string CredentialType { get; set; }
+            public string[] Transports { get; set; }
+            public string AttestationObject { get; set; }
+            public string ClientDataJson { get; set; }
+#endif
         }
 
         private static BiometricCredential RetrieveCredentialSecurely(string username, string server)
@@ -514,9 +717,27 @@ namespace KeeperSecurity.Authentication
                     LastUsedAt = DateTime.FromBinary(data.LastUsedAt)
                 };
 
-                // Update last used time
-                credential.LastUsedAt = DateTime.UtcNow;
-                StoreCredentialSecurely(credential);
+#if FIDO2_AVAILABLE
+                credential.UserHandle = !string.IsNullOrEmpty(data.UserHandle) ? Convert.FromBase64String(data.UserHandle) : null;
+                credential.AttestationFormat = data.AttestationFormat;
+                credential.AttestationObject = !string.IsNullOrEmpty(data.AttestationObject) ? Convert.FromBase64String(data.AttestationObject) : null;
+                credential.ClientDataJson = !string.IsNullOrEmpty(data.ClientDataJson) ? Convert.FromBase64String(data.ClientDataJson) : null;
+
+                // Parse CredentialType
+                if (!string.IsNullOrEmpty(data.CredentialType) && Enum.TryParse<PublicKeyCredentialType>(data.CredentialType, out var credType))
+                {
+                    credential.CredentialType = credType;
+                }
+
+                // Parse Transports
+                if (data.Transports != null)
+                {
+                    credential.Transports = data.Transports
+                        .Where(t => Enum.TryParse<AuthenticatorTransport>(t, out _))
+                        .Select(t => Enum.Parse<AuthenticatorTransport>(t))
+                        .ToArray();
+                }
+#endif
 
                 return credential;
             }
@@ -574,7 +795,7 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <summary>
-        /// Set up biometric authentication for a user using FIDO2
+        /// Set up biometric authentication for a user
         /// </summary>
         public async Task<bool> SetupBiometricAsync(string username, string password, string server = "keepersecurity.com")
         {
@@ -584,13 +805,21 @@ namespace KeeperSecurity.Authentication
                 return false;
             }
 
+#if FIDO2_AVAILABLE
+            await _ui.ShowMessageAsync($"Setting up FIDO2 biometric authentication for {username}...");
+#else
             await _ui.ShowMessageAsync($"Setting up biometric authentication for {username}...");
+#endif
             
             // Store the credential
             var stored = await WindowsHelloProvider.StoreBiometricCredentialAsync(username, password, server);
             if (stored)
             {
+#if FIDO2_AVAILABLE
+                await _ui.ShowMessageAsync($"✓ FIDO2 biometric authentication setup complete for {username}");
+#else
                 await _ui.ShowMessageAsync($"✓ Biometric authentication setup complete for {username}");
+#endif
                 return true;
             }
             else
@@ -615,31 +844,41 @@ namespace KeeperSecurity.Authentication
             var credential = WindowsHelloProvider.GetBiometricCredential(username, server);
             if (credential == null)
             {
+#if FIDO2_AVAILABLE
+                await _ui.ShowErrorAsync($"No FIDO2 biometric credentials found for {username} on {server}. Please set up biometric authentication first.");
+#else
                 await _ui.ShowErrorAsync($"No biometric credentials found for {username} on {server}. Please set up biometric authentication first.");
+#endif
                 return null;
             }
 
             // Request biometric verification
+#if FIDO2_AVAILABLE
+            await _ui.ShowMessageAsync($"🔐 FIDO2 biometric authentication required for {username}");
+#else
             await _ui.ShowMessageAsync($"🔐 Biometric authentication required for {username}");
+#endif
             
-            var verificationResult = await WindowsHelloProvider.RequestVerificationAsync($"Verify your identity to access Keeper vault for {username}");
+            var password = await WindowsHelloProvider.AuthenticateWithBiometricAsync(username, server);
 
-            if (verificationResult != BiometricVerificationResult.Verified)
-            {
-                await _ui.ShowErrorAsync($"Biometric verification failed: {verificationResult}");
-                return null;
-            }
-
-            // Decrypt and return password
-            var password = WindowsHelloProvider.DecryptPassword(credential);
             if (password == null)
             {
-                await _ui.ShowErrorAsync("Failed to decrypt stored password. Please set up biometric authentication again.");
+#if FIDO2_AVAILABLE
+                await _ui.ShowErrorAsync("FIDO2 biometric authentication failed");
+#else
+                await _ui.ShowErrorAsync("Biometric authentication failed");
+#endif
                 return null;
             }
 
+#if FIDO2_AVAILABLE
+            await _ui.ShowMessageAsync("✅ FIDO2 biometric authentication successful");
+#else
             await _ui.ShowMessageAsync("✅ Biometric authentication successful");
+#endif
             return password;
         }
     }
 }
+
+// End of file - available for all targets
