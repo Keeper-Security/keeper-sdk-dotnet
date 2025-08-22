@@ -57,6 +57,11 @@ namespace Commander
             {
                 Endpoint = { DeviceName = "Commander C#", ClientVersion = "c17.0.0" }
             };
+#if NET472_OR_GREATER
+            _auth.UiCallback = new WindowsAuthSyncCallback(()=>{
+
+            });
+#endif
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>
             {
                 Order = 9,

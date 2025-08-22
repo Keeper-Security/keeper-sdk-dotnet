@@ -577,7 +577,7 @@ namespace Cli
     }
 
 #if NET472_OR_GREATER
-    internal class WindowsAuthSyncCallback : AuthSyncCallback, IAuthSecurityKeyUI
+    public class WindowsAuthSyncCallback : AuthSyncCallback, IAuthSecurityKeyUI
     {
         public WindowsAuthSyncCallback(Action onNextStep) : base(onNextStep)
         {
