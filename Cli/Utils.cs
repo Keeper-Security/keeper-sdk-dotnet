@@ -108,6 +108,15 @@ namespace Cli
                     passwds.Add(uc.Password);
                 }
             }
+#if NET472_OR_GREATER
+            auth.UiCallback = new WindowsAuthSyncCallback(() =>
+            {
+            });
+#else
+            auth.UiCallback = new AuthSyncCallback(() =>
+            {
+            });
+#endif
 
             await auth.Login(email, passwds.ToArray());
             if (!auth.IsCompleted) 
@@ -577,7 +586,7 @@ namespace Cli
     }
 
 #if NET472_OR_GREATER
-    public class WindowsAuthSyncCallback : AuthSyncCallback, IAuthSecurityKeyUI
+    internal class WindowsAuthSyncCallback : AuthSyncCallback, IAuthSecurityKeyUI
     {
         public WindowsAuthSyncCallback(Action onNextStep) : base(onNextStep)
         {
