@@ -108,9 +108,8 @@ namespace Commander
                     {
                         if (!Vault.TryGetFolder(subFolder, out var subNode)) return false;
 
-                        if (string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0)
+                        if ((string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0) && (string.Compare(folder, subNode.FolderUid, StringComparison.CurrentCultureIgnoreCase) != 0))
                             continue;
-
                         found = true;
                         node = subNode;
                         break;
