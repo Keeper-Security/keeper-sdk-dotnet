@@ -855,6 +855,9 @@ namespace KeeperSecurity.Authentication
         {
             try
             {
+                _timer?.Dispose();
+                _timer = null;
+                SetPushNotifications(null);
                 if (this.IsAuthenticated())
                 {
                     await ExecuteAuthRest("vault/logout_v3", null);
@@ -864,8 +867,6 @@ namespace KeeperSecurity.Authentication
             finally
             {
                 authContext = null;
-                _timer?.Dispose();
-                _timer = null;
             }
         }
 
