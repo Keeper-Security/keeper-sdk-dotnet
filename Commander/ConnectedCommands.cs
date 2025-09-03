@@ -70,7 +70,7 @@ namespace Commander
                     {
                         Order = 25,
                         Description = "Get information about any Keeper object (record, folder, team, etc.)",
-                        Action = async options => await GetCommand(options.ObjectUid),
+                        Action = async options => await GetCommand(options),
                     });
 
                 Commands.Add("logout",
@@ -533,48 +533,259 @@ namespace Commander
             return _vaultContext.Vault.RootFolder.Name;
         }
 
-        private async Task GetCommand(string uid)
+        // Helper methods for resolving names to UIDs
+        private KeeperRecord TryResolveRecord(string identifier)
         {
+            // First try as UID
+            if (_vaultContext.Vault.TryGetKeeperRecord(identifier, out var record))
+            {
+                return record;
+            }
+            
+            // Then try by title/name
+            foreach (var r in _vaultContext.Vault.KeeperRecords)
+            {
+                if (string.Equals(r.Title, identifier, StringComparison.OrdinalIgnoreCase))
+                {
+                    return r;
+                }
+            }
+            
+            return null;
+        }
+
+        private FolderNode TryResolveFolder(string identifier)
+        {
+            // First try as UID
+            if (_vaultContext.Vault.TryGetFolder(identifier, out var folder))
+            {
+                return folder;
+            }
+            
+            // Then try by name
+            foreach (var f in _vaultContext.Vault.Folders)
+            {
+                if (string.Equals(f.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                {
+                    return f;
+                }
+            }
+            
+            return null;
+        }
+
+        private SharedFolder TryResolveSharedFolder(string identifier)
+        {
+            // First try as UID
+            if (_vaultContext.Vault.TryGetSharedFolder(identifier, out var sharedFolder))
+            {
+                return sharedFolder;
+            }
+            
+            // Then try by name
+            foreach (var sf in _vaultContext.Vault.SharedFolders)
+            {
+                if (string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                {
+                    return sf;
+                }
+            }
+            
+            return null;
+        }
+
+        private async Task<(KeeperSecurity.Vault.Team vaultTeam, string resolvedUid)> TryResolveTeam(string identifier)
+        {
+            // First try as UID
+            if (_vaultContext.Vault.TryGetTeam(identifier, out var team))
+            {
+                return (team, identifier);
+            }
+            
+            // Then try by name in vault teams
+            foreach (var t in _vaultContext.Vault.Teams)
+            {
+                if (string.Equals(t.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                {
+                    return (t, t.TeamUid);
+                }
+            }
+            
+            // Try available teams by name
+            try
+            {
+                var availableTeams = await _vaultContext.GetAvailableTeams();
+                foreach (var at in availableTeams)
+                {
+                    if (string.Equals(at.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return (null, at.TeamUid); // Return UID for further processing
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors getting available teams
+            }
+            
+            // Try enterprise teams by name
+            if (EnterpriseData?.Teams != null)
+            {
+                foreach (var et in EnterpriseData.Teams)
+                {
+                    if (string.Equals(et.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return (null, et.Uid); // Return UID for further processing
+                    }
+                }
+            }
+            
+            return (null, null);
+        }
+
+        private async Task GetCommand(GetObjectOptions options)
+        {
+            var identifier = options.ObjectIdentifier;
             var tab = new Tabulate(3);
             tab.MaxColumnWidth = 1000; // Set large width to prevent truncation
             
-            // Try all object types in order
-            if (_vaultContext.Vault.TryGetKeeperRecord(uid, out var record))
+            // Validate that only one object type is specified
+            var typeCount = new[] { options.IsRecord, options.IsFolder, options.IsSharedFolder, options.IsTeam }.Count(x => x);
+            if (typeCount > 1)
             {
-                // Use existing record display logic from VaultCommands
-                await DisplayRecordInfo(record, tab);
+                Console.WriteLine("Error: Only one object type can be specified at a time.");
+                Console.WriteLine("Use one of: --record, --folder, --shared-folder, --team");
+                return;
             }
-            else if (_vaultContext.Vault.TryGetSharedFolder(uid, out var sf))
+            
+            // If a specific type is requested, check only that type
+            if (options.IsRecord)
             {
-                // Use existing shared folder display logic
-                DisplaySharedFolderInfo(sf, tab);
-            }
-            else if (_vaultContext.Vault.TryGetFolder(uid, out var f))
-            {
-                // Use existing folder display logic
-                DisplayFolderInfo(f, tab);
-            }
-            else if (_vaultContext.Vault.TryGetTeam(uid, out var vaultTeam))
-            {
-                // User is a team member - show full info
-                tab.AddRow("Team UID:", vaultTeam.TeamUid);
-                tab.AddRow("Name:", vaultTeam.Name);
-                tab.AddRow("Access Level:", "Full member access");
-                
-                // Try to get enterprise data for this team to show restrictions
-                if (EnterpriseData?.TryGetTeam(uid, out var memberTeamEnterprise) == true)
+                var record = TryResolveRecord(identifier);
+                if (record != null)
                 {
-                    tab.AddRow("Restrict Edit:", memberTeamEnterprise.RestrictEdit.ToString());
-                    tab.AddRow("Restrict Share:", memberTeamEnterprise.RestrictSharing.ToString());
-                    tab.AddRow("Restrict View:", memberTeamEnterprise.RestrictView.ToString());
+                    await DisplayRecordInfo(record, tab);
+                }
+                else
+                {
+                    Console.WriteLine($"Record with name or UID '{identifier}' not found or not accessible.");
+                    return;
+                }
+            }
+            else if (options.IsFolder)
+            {
+                var folder = TryResolveFolder(identifier);
+                if (folder != null)
+                {
+                    DisplayFolderInfo(folder, tab);
+                }
+                else
+                {
+                    Console.WriteLine($"Folder with name or UID '{identifier}' not found or not accessible.");
+                    return;
+                }
+            }
+            else if (options.IsSharedFolder)
+            {
+                var sharedFolder = TryResolveSharedFolder(identifier);
+                if (sharedFolder != null)
+                {
+                    DisplaySharedFolderInfo(sharedFolder, tab);
+                }
+                else
+                {
+                    Console.WriteLine($"Shared folder with name or UID '{identifier}' not found or not accessible.");
+                    return;
+                }
+            }
+            else if (options.IsTeam)
+            {
+                var teamResult = await TryResolveTeam(identifier);
+                if (teamResult.vaultTeam != null)
+                {
+                    // User is a team member - show full info
+                    tab.AddRow("Team UID:", teamResult.vaultTeam.TeamUid);
+                    tab.AddRow("Name:", teamResult.vaultTeam.Name);
+                    tab.AddRow("Access Level:", "Full member access");
+                    
+                    // Try to get enterprise data for this team to show restrictions
+                    if (EnterpriseData?.TryGetTeam(teamResult.resolvedUid, out var memberTeamEnterprise) == true)
+                    {
+                        tab.AddRow("Restrict Edit:", memberTeamEnterprise.RestrictEdit.ToString());
+                        tab.AddRow("Restrict Share:", memberTeamEnterprise.RestrictSharing.ToString());
+                        tab.AddRow("Restrict View:", memberTeamEnterprise.RestrictView.ToString());
+                    }
+                }
+                else if (!string.IsNullOrEmpty(teamResult.resolvedUid))
+                {
+                    // Try other team sources using EXISTING IEnterpriseContext properties
+                    if (!await TryDisplayTeamFromOtherSources(teamResult.resolvedUid, tab))
+                    {
+                        return; // Error message already displayed
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Team with name or UID '{identifier}' not found or not accessible.");
+                    return;
                 }
             }
             else
             {
-                // Try other team sources using EXISTING IEnterpriseContext properties
-                if (!await TryDisplayTeamFromOtherSources(uid, tab))
+                // No specific type specified - try all object types in order (original behavior)
+                var record = TryResolveRecord(identifier);
+                if (record != null)
                 {
-                    return; // Error message already displayed
+                    await DisplayRecordInfo(record, tab);
+                }
+                else
+                {
+                    var sharedFolder = TryResolveSharedFolder(identifier);
+                    if (sharedFolder != null)
+                    {
+                        DisplaySharedFolderInfo(sharedFolder, tab);
+                    }
+                    else
+                    {
+                        var folder = TryResolveFolder(identifier);
+                        if (folder != null)
+                        {
+                            DisplayFolderInfo(folder, tab);
+                        }
+                        else
+                        {
+                            var teamResult = await TryResolveTeam(identifier);
+                            if (teamResult.vaultTeam != null)
+                            {
+                                // User is a team member - show full info
+                                tab.AddRow("Team UID:", teamResult.vaultTeam.TeamUid);
+                                tab.AddRow("Name:", teamResult.vaultTeam.Name);
+                                tab.AddRow("Access Level:", "Full member access");
+                                
+                                // Try to get enterprise data for this team to show restrictions
+                                if (EnterpriseData?.TryGetTeam(teamResult.resolvedUid, out var memberTeamEnterprise) == true)
+                                {
+                                    tab.AddRow("Restrict Edit:", memberTeamEnterprise.RestrictEdit.ToString());
+                                    tab.AddRow("Restrict Share:", memberTeamEnterprise.RestrictSharing.ToString());
+                                    tab.AddRow("Restrict View:", memberTeamEnterprise.RestrictView.ToString());
+                                }
+                            }
+                            else if (!string.IsNullOrEmpty(teamResult.resolvedUid))
+                            {
+                                // Try other team sources using EXISTING IEnterpriseContext properties
+                                if (!await TryDisplayTeamFromOtherSources(teamResult.resolvedUid, tab))
+                                {
+                                    return; // Error message already displayed
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Object with name or UID '{identifier}' not found or not accessible.");
+                                Console.WriteLine("Checked: Records, Shared Folders, Folders, and Teams");
+                                return;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -962,8 +1173,20 @@ namespace Commander
 
     class GetObjectOptions
     {
-        [Value(0, Required = true, HelpText = "UID of the object (record, folder, teams) to retrieve information about")]
-        public string ObjectUid { get; set; }
+        [Value(0, Required = true, HelpText = "UID or name of the object (record, folder, shared-folder, team) to retrieve information about")]
+        public string ObjectIdentifier { get; set; }
+
+        [Option('r', "record", Required = false, HelpText = "Specify that the UID is a record")]
+        public bool IsRecord { get; set; }
+
+        [Option('f', "folder", Required = false, HelpText = "Specify that the UID is a folder")]
+        public bool IsFolder { get; set; }
+
+        [Option('s', "shared-folder", Required = false, HelpText = "Specify that the UID is a shared folder")]
+        public bool IsSharedFolder { get; set; }
+
+        [Option('t', "team", Required = false, HelpText = "Specify that the UID is a team")]
+        public bool IsTeam { get; set; }
     }
 
 }
