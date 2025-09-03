@@ -282,11 +282,6 @@ namespace KeeperSecurity.Vault
 
                 if (string.IsNullOrEmpty(mo.RecordUid)) // move folder
                 {
-                    if (string.IsNullOrEmpty(sourceFolder.ParentUid))
-                    {
-                        throw new VaultException("Cannot move root folder");
-                    }
-
                     var f = destinationFolder;
                     while (!string.IsNullOrEmpty(f.ParentUid))
                     {
@@ -305,7 +300,7 @@ namespace KeeperSecurity.Vault
                     {
                         fromUid = string.IsNullOrEmpty(sourceFolder.FolderUid) ? null : sourceFolder.FolderUid,
                         fromType = parentFolder.FolderType.GetFolderTypeText(),
-                        uid = mo.RecordUid,
+                        uid = mo.FolderUid,
                         type = sourceFolder.FolderType.GetFolderTypeText(),
                         cascade = true,
                     });

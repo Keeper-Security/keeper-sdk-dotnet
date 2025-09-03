@@ -458,12 +458,15 @@ namespace KeeperSecurity.Authentication
                                 keyId = keeperRs.KeyId;
                                 continue;
 
-                            case "throttled":
+                        case "throttled":
+                            if (!string.Equals("keep_alive", endpoint, StringComparison.InvariantCultureIgnoreCase)) {
 #if DEBUG
                                 Debug.WriteLine("\"throttled\" sleeping for 10 seconds");
 #endif
                                 await Task.Delay(TimeSpan.FromSeconds(10));
                                 continue;
+                            }
+                            break;
 
                             case "region_redirect":
                                 throw new KeeperRegionRedirect(keeperRs.RegionHost);
