@@ -533,16 +533,15 @@ namespace Commander
             return _vaultContext.Vault.RootFolder.Name;
         }
 
-        // Helper methods for resolving names to UIDs
+        // Helper methods for resolving names to UIDs using existing VaultContext functionality
         private KeeperRecord TryResolveRecord(string identifier)
         {
-            // First try as UID
             if (_vaultContext.Vault.TryGetKeeperRecord(identifier, out var record))
             {
                 return record;
             }
             
-            // Then try by title/name
+            // Iterate over all records to find a match by title/name
             foreach (var r in _vaultContext.Vault.KeeperRecords)
             {
                 if (string.Equals(r.Title, identifier, StringComparison.OrdinalIgnoreCase))
@@ -556,19 +555,9 @@ namespace Commander
 
         private FolderNode TryResolveFolder(string identifier)
         {
-            // First try as UID
-            if (_vaultContext.Vault.TryGetFolder(identifier, out var folder))
+            if (_vaultContext.TryResolvePath(identifier, out var folder))
             {
                 return folder;
-            }
-            
-            // Then try by name
-            foreach (var f in _vaultContext.Vault.Folders)
-            {
-                if (string.Equals(f.Name, identifier, StringComparison.OrdinalIgnoreCase))
-                {
-                    return f;
-                }
             }
             
             return null;
@@ -576,13 +565,12 @@ namespace Commander
 
         private SharedFolder TryResolveSharedFolder(string identifier)
         {
-            // First try as UID
             if (_vaultContext.Vault.TryGetSharedFolder(identifier, out var sharedFolder))
             {
                 return sharedFolder;
             }
             
-            // Then try by name
+            // Iterate over all shared folders to find a match by name
             foreach (var sf in _vaultContext.Vault.SharedFolders)
             {
                 if (string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase))
@@ -596,47 +584,46 @@ namespace Commander
 
         private async Task<(KeeperSecurity.Vault.Team vaultTeam, string resolvedUid)> TryResolveTeam(string identifier)
         {
-            // First try as UID
+           
             if (_vaultContext.Vault.TryGetTeam(identifier, out var team))
             {
                 return (team, identifier);
             }
             
-            // Then try by name in vault teams
-            foreach (var t in _vaultContext.Vault.Teams)
+            // Try by Name in vault teams
+            var teamByName = _vaultContext.Vault.Teams.FirstOrDefault(x =>
+                string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0);
+            if (teamByName != null)
             {
-                if (string.Equals(t.Name, identifier, StringComparison.OrdinalIgnoreCase))
-                {
-                    return (t, t.TeamUid);
-                }
+                return (teamByName, teamByName.TeamUid);
             }
             
-            // Try available teams by name
+            // Try available teams by name and UID (like FolderCommands.cs does)
             try
             {
                 var availableTeams = await _vaultContext.GetAvailableTeams();
-                foreach (var at in availableTeams)
+                var availableTeam = availableTeams.FirstOrDefault(x =>
+                    string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0 ||
+                    string.CompareOrdinal(x.TeamUid, identifier) == 0);
+                
+                if (availableTeam != null)
                 {
-                    if (string.Equals(at.Name, identifier, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return (null, at.TeamUid); // Return UID for further processing
-                    }
+                    return (null, availableTeam.TeamUid);
                 }
             }
             catch
             {
-                // Ignore errors getting available teams
+               
             }
             
             // Try enterprise teams by name
             if (EnterpriseData?.Teams != null)
             {
-                foreach (var et in EnterpriseData.Teams)
+                var enterpriseTeam = EnterpriseData.Teams.FirstOrDefault(x =>
+                    string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0);
+                if (enterpriseTeam != null)
                 {
-                    if (string.Equals(et.Name, identifier, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return (null, et.Uid); // Return UID for further processing
-                    }
+                    return (null, enterpriseTeam.Uid);
                 }
             }
             
@@ -1176,7 +1163,7 @@ namespace Commander
         [Value(0, Required = true, HelpText = "UID or name of the object (record, folder, shared-folder, team) to retrieve information about")]
         public string ObjectIdentifier { get; set; }
 
-        [Option('r', "record", Required = false, HelpText = "Specify that the UID is a record")]
+        [Option('r', "record", Required = false, HelpText = "Record title / uid")]
         public bool IsRecord { get; set; }
 
         [Option('f', "folder", Required = false, HelpText = "Specify that the UID is a folder")]
