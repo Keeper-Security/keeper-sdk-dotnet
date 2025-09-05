@@ -533,7 +533,6 @@ namespace Commander
             return _vaultContext.Vault.RootFolder.Name;
         }
 
-        // Helper methods for resolving names to UIDs using existing VaultContext functionality
         private KeeperRecord TryResolveRecord(string identifier)
         {
             if (_vaultContext.Vault.TryGetKeeperRecord(identifier, out var record))
@@ -541,7 +540,6 @@ namespace Commander
                 return record;
             }
             
-            // Iterate over all records to find a match by title/name
             foreach (var r in _vaultContext.Vault.KeeperRecords)
             {
                 if (string.Equals(r.Title, identifier, StringComparison.OrdinalIgnoreCase))
@@ -570,7 +568,6 @@ namespace Commander
                 return sharedFolder;
             }
             
-            // Iterate over all shared folders to find a match by name
             foreach (var sf in _vaultContext.Vault.SharedFolders)
             {
                 if (string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase))
@@ -590,7 +587,6 @@ namespace Commander
                 return (team, identifier);
             }
             
-            // Try by Name in vault teams
             var teamByName = _vaultContext.Vault.Teams.FirstOrDefault(x =>
                 string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0);
             if (teamByName != null)
@@ -598,7 +594,6 @@ namespace Commander
                 return (teamByName, teamByName.TeamUid);
             }
             
-            // Try available teams by name and UID (like FolderCommands.cs does)
             try
             {
                 var availableTeams = await _vaultContext.GetAvailableTeams();
@@ -611,12 +606,11 @@ namespace Commander
                     return (null, availableTeam.TeamUid);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-               
+                Console.WriteLine($"Failed to retrieve available teams: {ex.Message}");
             }
-            
-            // Try enterprise teams by name
+    
             if (EnterpriseData?.Teams != null)
             {
                 var enterpriseTeam = EnterpriseData.Teams.FirstOrDefault(x =>
@@ -634,9 +628,8 @@ namespace Commander
         {
             var identifier = options.ObjectIdentifier;
             var tab = new Tabulate(3);
-            tab.MaxColumnWidth = 1000; // Set large width to prevent truncation
+            tab.MaxColumnWidth = 1000;
             
-            // Validate that only one object type is specified
             var typeCount = new[] { options.IsRecord, options.IsFolder, options.IsSharedFolder, options.IsTeam }.Count(x => x);
             if (typeCount > 1)
             {
@@ -644,8 +637,7 @@ namespace Commander
                 Console.WriteLine("Use one of: --record, --folder, --shared-folder, --team");
                 return;
             }
-            
-            // If a specific type is requested, check only that type
+                    
             if (options.IsRecord)
             {
                 var record = TryResolveRecord(identifier);
@@ -690,12 +682,10 @@ namespace Commander
                 var teamResult = await TryResolveTeam(identifier);
                 if (teamResult.vaultTeam != null)
                 {
-                    // User is a team member - show full info
                     tab.AddRow("Team UID:", teamResult.vaultTeam.TeamUid);
                     tab.AddRow("Name:", teamResult.vaultTeam.Name);
                     tab.AddRow("Access Level:", "Full member access");
                     
-                    // Try to get enterprise data for this team to show restrictions
                     if (EnterpriseData?.TryGetTeam(teamResult.resolvedUid, out var memberTeamEnterprise) == true)
                     {
                         tab.AddRow("Restrict Edit:", memberTeamEnterprise.RestrictEdit.ToString());
@@ -705,10 +695,9 @@ namespace Commander
                 }
                 else if (!string.IsNullOrEmpty(teamResult.resolvedUid))
                 {
-                    // Try other team sources using EXISTING IEnterpriseContext properties
                     if (!await TryDisplayTeamFromOtherSources(teamResult.resolvedUid, tab))
                     {
-                        return; // Error message already displayed
+                        return;
                     }
                 }
                 else
@@ -719,7 +708,6 @@ namespace Commander
             }
             else
             {
-                // No specific type specified - try all object types in order (original behavior)
                 var record = TryResolveRecord(identifier);
                 if (record != null)
                 {
@@ -744,12 +732,10 @@ namespace Commander
                             var teamResult = await TryResolveTeam(identifier);
                             if (teamResult.vaultTeam != null)
                             {
-                                // User is a team member - show full info
                                 tab.AddRow("Team UID:", teamResult.vaultTeam.TeamUid);
                                 tab.AddRow("Name:", teamResult.vaultTeam.Name);
                                 tab.AddRow("Access Level:", "Full member access");
                                 
-                                // Try to get enterprise data for this team to show restrictions
                                 if (EnterpriseData?.TryGetTeam(teamResult.resolvedUid, out var memberTeamEnterprise) == true)
                                 {
                                     tab.AddRow("Restrict Edit:", memberTeamEnterprise.RestrictEdit.ToString());
@@ -759,10 +745,9 @@ namespace Commander
                             }
                             else if (!string.IsNullOrEmpty(teamResult.resolvedUid))
                             {
-                                // Try other team sources using EXISTING IEnterpriseContext properties
                                 if (!await TryDisplayTeamFromOtherSources(teamResult.resolvedUid, tab))
                                 {
-                                    return; // Error message already displayed
+                                    return;
                                 }
                             }
                             else
@@ -784,7 +769,6 @@ namespace Commander
 
         private async Task<bool> TryDisplayTeamFromOtherSources(string uid, Tabulate tab)
         {
-            // Try available teams (sharing)
             try
             {
                 var availableTeams = await _vaultContext.GetAvailableTeams();
@@ -797,7 +781,6 @@ namespace Commander
                     tab.AddRow("Name:", availableTeam.Name);
                     tab.AddRow("Access Level:", "Available for sharing");
                     
-                    // Try to get enterprise data for restrictions if available
                     if (EnterpriseData?.TryGetTeam(uid, out var availableTeamEnterprise) == true)
                     {
                         tab.AddRow("Restrict Edit:", availableTeamEnterprise.RestrictEdit.ToString());
@@ -814,7 +797,6 @@ namespace Commander
                 Console.WriteLine($"Warning: Could not fetch available teams: {ex.Message}");
             }
 
-            // Try enterprise teams using EXISTING EnterpriseData property
             if (EnterpriseData?.TryGetTeam(uid, out var enterpriseTeam) == true)
             {
                 tab.AddRow("Team UID:", enterpriseTeam.Uid);
@@ -825,7 +807,6 @@ namespace Commander
                 tab.AddRow("Restrict Share:", enterpriseTeam.RestrictSharing.ToString());
                 tab.AddRow("Restrict View:", enterpriseTeam.RestrictView.ToString());
                 
-                // Show member count using EXISTING EnterpriseData
                 var memberIds = EnterpriseData.GetUsersForTeam(enterpriseTeam.Uid);
                 tab.AddRow("Member Count:", memberIds.Length.ToString());
                 
@@ -833,7 +814,6 @@ namespace Commander
                 return true;
             }
 
-            // Not found anywhere
             Console.WriteLine($"UID {uid} is not a valid Keeper object");
             Console.WriteLine("Checked: Records, Shared Folders, Folders, and Teams");
             return false;
@@ -922,7 +902,7 @@ namespace Commander
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    Console.WriteLine($"Error occurred while trying to resolve as record: {e.Message}");
                 }
             }
 
