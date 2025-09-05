@@ -902,7 +902,7 @@ namespace Commander
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Error occurred while trying to resolve as record: {e.Message}");
+                    Console.WriteLine($"Error: {e.Message}");
                 }
             }
 
