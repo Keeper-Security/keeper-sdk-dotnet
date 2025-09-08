@@ -553,9 +553,14 @@ namespace Commander
 
         private FolderNode TryResolveFolder(string identifier)
         {
-            if (_vaultContext.TryResolvePath(identifier, out var folder))
+            if (_vaultContext.Vault.TryGetFolder(identifier, out var folder))
             {
                 return folder;
+            }
+            
+            else if (_vaultContext.TryResolvePath(identifier, out var folderByPath))
+            {
+                return folderByPath;
             }
             
             return null;
@@ -1098,6 +1103,10 @@ namespace Commander
             }
             tab.AddRow("Folder Type:", f.FolderType.ToString());
             tab.AddRow("Name:", f.Name);
+            if (!string.IsNullOrEmpty(f.SharedFolderUid))
+            {
+                tab.AddRow("Shared Folder UID:", f.SharedFolderUid);
+            }
         }
 
         protected override void Dispose(bool disposing)
