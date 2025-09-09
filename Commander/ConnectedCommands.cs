@@ -543,6 +543,7 @@ namespace Commander
         private Task WhoamiCommand(string _)
         {
             var tab = new Tabulate(2);
+            tab.SetColumnRightAlign(0, true);
             var enterpriseTier = EnterpriseData.EnterpriseLicense.Tier;
 
             tab.AddRow("User:", _auth.Username);
