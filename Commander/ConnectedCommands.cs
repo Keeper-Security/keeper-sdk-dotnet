@@ -74,6 +74,13 @@ namespace Commander
                         Action = LogoutCommand,
                     });
 
+                Commands.Add("whoami",
+                    new SimpleCommand
+                    {
+                        Order = 201,
+                        Description = "Display information about the currently logged in user",
+                        Action = WhoamiCommand,
+                    });
             }
 
             Program.GetMainLoop().CommandQueue.Enqueue("sync-down");
@@ -531,6 +538,27 @@ namespace Commander
             base.Dispose(disposing);
             _vaultContext.Vault.Dispose();
             _auth.Dispose();
+        }
+
+        private Task WhoamiCommand(string _)
+        {
+            var tab = new Tabulate(2);
+            var enterpriseTier = EnterpriseData.EnterpriseLicense.Tier;
+
+            tab.AddRow("User:", _auth.Username);
+            tab.AddRow("Server:", _auth.Endpoint.Server);
+            tab.AddRow("Admin:", _auth.AuthContext.IsEnterpriseAdmin ? "Yes" : "No");
+            tab.AddRow("Account Type:", _auth.AuthContext.License.AccountType);
+            tab.AddRow("Renewal Date:", _auth.AuthContext.License.ExpirationDate);
+            tab.AddRow("Storage Capacity:", _auth.AuthContext.License.BytesTotal/(1024*1024*1024) + "GB");
+            tab.AddRow("Storage Usage:", _auth.AuthContext.License.BytesUsed/(1024*1024*1024) + "GB");
+            tab.AddRow("Storage Expires:", _auth.AuthContext.License.StorageExpirationDate);
+            tab.AddRow("License Type:", _auth.AuthContext.License.ProductTypeName);
+            tab.AddRow("License Expires:", _auth.AuthContext.License.ExpirationDate);
+            tab.AddRow("Base Plan: ", enterpriseTier == 1 ? "Enterprise" : "Business");
+            
+            tab.Dump();
+            return Task.FromResult(true);
         }
     }
 
