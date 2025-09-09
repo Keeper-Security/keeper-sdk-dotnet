@@ -558,7 +558,7 @@ namespace Commander
                 return folder;
             }
             
-            else if (_vaultContext.TryResolvePath(identifier, out var folderByPath))
+            if (_vaultContext.TryResolvePath(identifier, out var folderByPath))
             {
                 return folderByPath;
             }
@@ -642,47 +642,73 @@ namespace Commander
                 Console.WriteLine("Use one of: --record, --folder, --shared-folder, --team");
                 return;
             }
-                    
-            if (options.IsRecord)
+            
+            bool checkRecords = options.IsRecord || typeCount == 0;
+            bool checkFolders = options.IsFolder || typeCount == 0;
+            bool checkSharedFolders = options.IsSharedFolder || typeCount == 0;
+            bool checkTeams = options.IsTeam || typeCount == 0;
+            
+            if (checkRecords)
             {
                 var record = TryResolveRecord(identifier);
                 if (record != null)
                 {
                     await DisplayRecordInfo(record, tab);
+                    Console.WriteLine();
+                    tab.SetColumnRightAlign(0, true);
+                    tab.LeftPadding = 4;
+                    tab.Dump();
+                    return;
                 }
-                else
+                
+                if (options.IsRecord)
                 {
                     Console.WriteLine($"Record with name or UID '{identifier}' not found or not accessible.");
                     return;
                 }
             }
-            else if (options.IsFolder)
-            {
-                var folder = TryResolveFolder(identifier);
-                if (folder != null)
-                {
-                    DisplayFolderInfo(folder, tab);
-                }
-                else
-                {
-                    Console.WriteLine($"Folder with name or UID '{identifier}' not found or not accessible.");
-                    return;
-                }
-            }
-            else if (options.IsSharedFolder)
+            
+            if (checkSharedFolders)
             {
                 var sharedFolder = TryResolveSharedFolder(identifier);
                 if (sharedFolder != null)
                 {
                     DisplaySharedFolderInfo(sharedFolder, tab);
+                    Console.WriteLine();
+                    tab.SetColumnRightAlign(0, true);
+                    tab.LeftPadding = 4;
+                    tab.Dump();
+                    return;
                 }
-                else
+                
+                if (options.IsSharedFolder)
                 {
                     Console.WriteLine($"Shared folder with name or UID '{identifier}' not found or not accessible.");
                     return;
                 }
             }
-            else if (options.IsTeam)
+            
+            if (checkFolders)
+            {
+                var folder = TryResolveFolder(identifier);
+                if (folder != null)
+                {
+                    DisplayFolderInfo(folder, tab);
+                    Console.WriteLine();
+                    tab.SetColumnRightAlign(0, true);
+                    tab.LeftPadding = 4;
+                    tab.Dump();
+                    return;
+                }
+                
+                if (options.IsFolder)
+                {
+                    Console.WriteLine($"Folder with name or UID '{identifier}' not found or not accessible.");
+                    return;
+                }
+            }
+            
+            if (checkTeams)
             {
                 var teamResult = await TryResolveTeam(identifier);
                 if (teamResult.vaultTeam != null)
@@ -697,79 +723,33 @@ namespace Commander
                         tab.AddRow("Restrict Share:", memberTeamEnterprise.RestrictSharing.ToString());
                         tab.AddRow("Restrict View:", memberTeamEnterprise.RestrictView.ToString());
                     }
+                    
+                    Console.WriteLine();
+                    tab.SetColumnRightAlign(0, true);
+                    tab.LeftPadding = 4;
+                    tab.Dump();
+                    return;
                 }
                 else if (!string.IsNullOrEmpty(teamResult.resolvedUid))
                 {
-                    if (!await TryDisplayTeamFromOtherSources(teamResult.resolvedUid, tab))
+                    if (await TryDisplayTeamFromOtherSources(teamResult.resolvedUid, tab))
                     {
-                        return;
+                        Console.WriteLine();
+                        tab.SetColumnRightAlign(0, true);
+                        tab.LeftPadding = 4;
+                        tab.Dump();
                     }
+                    return;
                 }
-                else
+                
+                if (options.IsTeam)
                 {
                     Console.WriteLine($"Team with name or UID '{identifier}' not found or not accessible.");
                     return;
                 }
             }
-            else
-            {
-                var record = TryResolveRecord(identifier);
-                if (record != null)
-                {
-                    await DisplayRecordInfo(record, tab);
-                }
-                else
-                {
-                    var sharedFolder = TryResolveSharedFolder(identifier);
-                    if (sharedFolder != null)
-                    {
-                        DisplaySharedFolderInfo(sharedFolder, tab);
-                    }
-                    else
-                    {
-                        var folder = TryResolveFolder(identifier);
-                        if (folder != null)
-                        {
-                            DisplayFolderInfo(folder, tab);
-                        }
-                        else
-                        {
-                            var teamResult = await TryResolveTeam(identifier);
-                            if (teamResult.vaultTeam != null)
-                            {
-                                tab.AddRow("Team UID:", teamResult.vaultTeam.TeamUid);
-                                tab.AddRow("Name:", teamResult.vaultTeam.Name);
-                                tab.AddRow("Access Level:", "Full member access");
-                                
-                                if (EnterpriseData?.TryGetTeam(teamResult.resolvedUid, out var memberTeamEnterprise) == true)
-                                {
-                                    tab.AddRow("Restrict Edit:", memberTeamEnterprise.RestrictEdit.ToString());
-                                    tab.AddRow("Restrict Share:", memberTeamEnterprise.RestrictSharing.ToString());
-                                    tab.AddRow("Restrict View:", memberTeamEnterprise.RestrictView.ToString());
-                                }
-                            }
-                            else if (!string.IsNullOrEmpty(teamResult.resolvedUid))
-                            {
-                                if (!await TryDisplayTeamFromOtherSources(teamResult.resolvedUid, tab))
-                                {
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Object with name or UID '{identifier}' not found or not accessible.");
-                                Console.WriteLine("Checked: Records, Shared Folders, Folders, and Teams");
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-
-            Console.WriteLine();
-            tab.SetColumnRightAlign(0, true);
-            tab.LeftPadding = 4;
-            tab.Dump();
+            
+            Console.WriteLine($"Object with name or UID '{identifier}' not found or not accessible.");
         }
 
         private async Task<bool> TryDisplayTeamFromOtherSources(string uid, Tabulate tab)
