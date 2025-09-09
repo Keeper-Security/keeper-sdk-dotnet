@@ -556,7 +556,7 @@ namespace Commander
             tab.AddRow("Storage Expires:", _auth.AuthContext.License.StorageExpirationDate);
             tab.AddRow("License Type:", _auth.AuthContext.License.ProductTypeName);
             tab.AddRow("License Expires:", _auth.AuthContext.License.ExpirationDate);
-            tab.AddRow("Base Plan: ", enterpriseTier == 1 ? "Enterprise" : "Business");
+            tab.AddRow("Base Plan:", enterpriseTier == 1 ? "Enterprise" : "Business");
             
             tab.Dump();
             return Task.FromResult(true);
