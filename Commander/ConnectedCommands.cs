@@ -11,6 +11,7 @@ using CommandLine;
 using Enterprise;
 using Google.Protobuf;
 using KeeperSecurity.Authentication;
+using KeeperSecurity.BreachWatch;
 using KeeperSecurity.Utils;
 using KeeperSecurity.Vault;
 
@@ -74,6 +75,13 @@ namespace Commander
                         Action = LogoutCommand,
                     });
 
+                Commands.Add("whoami",
+                    new SimpleCommand
+                    {
+                        Order = 201,
+                        Description = "Display information about the currently logged in user",
+                        Action = WhoamiCommand,
+                    });
             }
 
             Program.GetMainLoop().CommandQueue.Enqueue("sync-down");
@@ -532,7 +540,57 @@ namespace Commander
             _vaultContext.Vault.Dispose();
             _auth.Dispose();
         }
-    }
+
+        private Task WhoamiCommand(string _)
+        {
+            var tab = new Tabulate(2);
+            tab.SetColumnRightAlign(0, true);
+            var enterpriseTier = EnterpriseData.EnterpriseLicense.Tier;
+
+            tab.AddRow("User:", _auth.Username);
+            tab.AddRow("Server:", _auth.Endpoint.Server);
+            tab.AddRow("Data Center:", get_data_center(_auth.Endpoint.Server));
+            if (get_environment(_auth.Endpoint.Server) != string.Empty) {
+                tab.AddRow("Environment:", get_environment(_auth.Endpoint.Server));
+            }
+            tab.AddRow("Admin:", _auth.AuthContext.IsEnterpriseAdmin ? "Yes" : "No");
+            tab.AddRow("Account Type:", _auth.AuthContext.License.AccountType);
+            tab.AddRow("Renewal Date:", _auth.AuthContext.License.ExpirationDate);
+            tab.AddRow("Storage Capacity:", _auth.AuthContext.License.BytesTotal/(1024*1024*1024) + "GB");
+            tab.AddRow("Storage Usage:", _auth.AuthContext.License.BytesUsed/(1024*1024*1024) + "GB");
+            tab.AddRow("Storage Expires:", _auth.AuthContext.License.StorageExpirationDate);
+            tab.AddRow("License Type:", _auth.AuthContext.License.ProductTypeName);
+            tab.AddRow("License Expires:", _auth.AuthContext.License.ExpirationDate);
+            tab.AddRow("Base Plan:", enterpriseTier == 1 ? "Enterprise" : "Business");
+            tab.AddRow("BreachWatch:", _vaultContext.Vault.Auth.IsBreachWatchEnabled() ? "Yes" : "No");
+            tab.Dump();
+            return Task.FromResult(true);
+        }
+    
+        private string get_data_center(string hostname) {
+            if (hostname.EndsWith(".com")) {
+                return "US";
+            } else if (hostname.EndsWith("eu")) {
+                return "EU";
+            } else if (hostname.EndsWith("govcloud.keepersecurity.us")) {
+                return "US GOV";
+            } else if (hostname.EndsWith(".au")) {
+                return "AU";
+            } else {
+                return hostname;
+            }
+        }
+        
+        private string get_environment(string hostname) {
+            if (hostname.StartsWith("dev.")) {
+                return "DEV";
+            } else if (hostname.StartsWith("qa.")) {
+                return "QA";
+            } else if (hostname.EndsWith("local")) {
+                return "LOCAL";
+            }
+            return string.Empty;
+        }
 
     class LogoutOptions
     {
@@ -564,4 +622,5 @@ namespace Commander
         public string Parameter { get; set; }
     }
 
+}
 }
