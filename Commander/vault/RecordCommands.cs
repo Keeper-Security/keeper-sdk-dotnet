@@ -610,7 +610,84 @@ namespace Commander
             var uploadTask = new FileAttachmentUploadTask(options.FileName);
             await context.Vault.UploadAttachment(record, uploadTask);
         }
+        
+        public static async Task DeleteAttachmentCommand(this VaultContext context, DeleteAttachmentOptions options)
+        {
+            if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
+            {
+            }
+            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            {
+                foreach (var uid in node.Records)
+                {
+                    if (!context.Vault.TryGetKeeperRecord(uid, out var r)) continue;
+                    if (string.CompareOrdinal(title, r.Title) != 0) continue;
 
+                    record = r;
+                    break;
+                }
+            }
+
+            if (record == null)
+            {
+                Console.WriteLine($"Cannot resolve record {options.RecordName}");
+                return;
+            }
+
+            var attachments = context.Vault.RecordAttachments(record).ToArray();
+            var attachmentToDelete = attachments.FirstOrDefault(x =>
+            {
+                // Match by ID
+                if (string.Equals(options.AttachmentName, x.Id))
+                {
+                    return true;
+                }
+
+                if (string.Equals(options.AttachmentName, x.Title, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (string.Equals(options.AttachmentName, x.Name, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+
+                return false;
+            });
+
+            if (attachmentToDelete == null)
+            {
+                Console.WriteLine($"Attachment '{options.AttachmentName}' not found in record '{record.Title}'");
+                
+                if (attachments.Length > 0)
+                {
+                    Console.WriteLine("Available attachments:");
+                    foreach (var att in attachments)
+                    {
+                        Console.WriteLine($"  - {att.Name} (ID: {att.Id})");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Record has no attachments.");
+                }
+                return;
+            }
+
+            var success = await context.Vault.DeleteAttachment(record, attachmentToDelete.Id);
+            
+            if (success)
+            {
+                Console.WriteLine($"Attachment '{attachmentToDelete.Name}' has been deleted successfully.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to delete attachment '{attachmentToDelete.Name}'.");
+            }
+           
+        }
+        
         public static async Task RemoveRecordCommand(this VaultContext context, RemoveRecordOptions options)
         {
             if (string.IsNullOrEmpty(options.RecordName))
@@ -1401,6 +1478,15 @@ namespace Commander
         public string RecordName { get; set; }
     }
 
+    class DeleteAttachmentOptions
+    {
+        [Value(0, Required = true, MetaName = "record path or uid", HelpText = "Keeper Record")]
+        public string RecordName { get; set; }
+
+        [Value(1, Required = true, MetaName = "attachment name or uid", HelpText = "Attachment Name of File or UID")]
+        public string AttachmentName { get; set; }
+    }
+    
     class RemoveRecordOptions
     {
         [Value(0, Required = true, MetaName = "record title, uid, or pattern", HelpText = "remove records")]
