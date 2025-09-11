@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,7 @@ namespace Commander
     {
         private readonly VaultContext _vaultContext;
         private readonly AuthCommon _auth;
-
         private AccountSummaryElements _accountSummary;
-
         public ConnectedContext(AuthCommon auth)
         {
             _auth = auth;
@@ -65,6 +64,14 @@ namespace Commander
                             Action = ShareDatakeyCommand,
                         });
                 }
+
+                Commands.Add("get",
+                    new ParseableCommand<GetObjectOptions>
+                    {
+                        Order = 25,
+                        Description = "Get information about any Keeper object (record, folder, team, etc.)",
+                        Action = async options => await GetCommand(options),
+                    });
 
                 Commands.Add("logout",
                     new ParseableCommand<LogoutOptions>
@@ -526,6 +533,562 @@ namespace Commander
             return _vaultContext.Vault.RootFolder.Name;
         }
 
+        private KeeperRecord TryResolveRecord(string identifier)
+        {
+            if (_vaultContext.Vault.TryGetKeeperRecord(identifier, out var record))
+            {
+                return record;
+            }
+            
+            foreach (var r in _vaultContext.Vault.KeeperRecords)
+            {
+                if (string.Equals(r.Title, identifier, StringComparison.OrdinalIgnoreCase))
+                {
+                    return r;
+                }
+            }
+            
+            return null;
+        }
+
+        private FolderNode TryResolveFolder(string identifier)
+        {
+            if (_vaultContext.Vault.TryGetFolder(identifier, out var folder))
+            {
+                return folder;
+            }
+            
+            if (_vaultContext.TryResolvePath(identifier, out var folderByPath))
+            {
+                return folderByPath;
+            }
+            
+            return null;
+        }
+
+        private SharedFolder TryResolveSharedFolder(string identifier)
+        {
+            if (_vaultContext.Vault.TryGetSharedFolder(identifier, out var sharedFolder))
+            {
+                return sharedFolder;
+            }
+            
+            foreach (var sf in _vaultContext.Vault.SharedFolders)
+            {
+                if (string.Equals(sf.Name, identifier, StringComparison.OrdinalIgnoreCase))
+                {
+                    return sf;
+                }
+            }
+            
+            return null;
+        }
+
+        private async Task<(KeeperSecurity.Vault.Team vaultTeam, string resolvedUid)> TryResolveTeam(string identifier)
+        {
+           
+            if (_vaultContext.Vault.TryGetTeam(identifier, out var team))
+            {
+                return (team, identifier);
+            }
+            
+            var teamByName = _vaultContext.Vault.Teams.FirstOrDefault(x =>
+                string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0);
+            if (teamByName != null)
+            {
+                return (teamByName, teamByName.TeamUid);
+            }
+            
+            try
+            {
+                var availableTeams = await _vaultContext.GetAvailableTeams();
+                var availableTeam = availableTeams.FirstOrDefault(x =>
+                    string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0 ||
+                    string.CompareOrdinal(x.TeamUid, identifier) == 0);
+                
+                if (availableTeam != null)
+                {
+                    return (null, availableTeam.TeamUid);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to retrieve available teams: {ex.Message}");
+            }
+    
+            if (EnterpriseData?.Teams != null)
+            {
+                var enterpriseTeam = EnterpriseData.Teams.FirstOrDefault(x =>
+                    string.Compare(x.Name, identifier, StringComparison.CurrentCultureIgnoreCase) == 0);
+                if (enterpriseTeam != null)
+                {
+                    return (null, enterpriseTeam.Uid);
+                }
+            }
+            
+            return (null, null);
+        }
+
+        private async Task GetCommand(GetObjectOptions options)
+        {
+            var identifier = options.ObjectIdentifier;
+            var tab = new Tabulate(3);
+            tab.MaxColumnWidth = 1000;
+            
+            var typeCount = new[] { options.IsRecord, options.IsFolder, options.IsSharedFolder, options.IsTeam }.Count(x => x);
+            if (typeCount > 1)
+            {
+                Console.WriteLine("Error: Only one object type can be specified at a time.");
+                Console.WriteLine("Use one of: --record, --folder, --shared-folder, --team");
+                return;
+            }
+            
+            bool checkRecords = options.IsRecord || typeCount == 0;
+            bool checkFolders = options.IsFolder || typeCount == 0;
+            bool checkSharedFolders = options.IsSharedFolder || typeCount == 0;
+            bool checkTeams = options.IsTeam || typeCount == 0;
+            
+            if (checkRecords)
+            {
+                var record = TryResolveRecord(identifier);
+                if (record != null)
+                {
+                    await DisplayRecordInfo(record, tab);
+                    Console.WriteLine();
+                    tab.SetColumnRightAlign(0, true);
+                    tab.LeftPadding = 4;
+                    tab.Dump();
+                    return;
+                }
+                
+                if (options.IsRecord)
+                {
+                    Console.WriteLine($"Record with name or UID '{identifier}' not found or not accessible.");
+                    return;
+                }
+            }
+            
+            if (checkSharedFolders)
+            {
+                var sharedFolder = TryResolveSharedFolder(identifier);
+                if (sharedFolder != null)
+                {
+                    DisplaySharedFolderInfo(sharedFolder, tab);
+                    Console.WriteLine();
+                    tab.SetColumnRightAlign(0, true);
+                    tab.LeftPadding = 4;
+                    tab.Dump();
+                    return;
+                }
+                
+                if (options.IsSharedFolder)
+                {
+                    Console.WriteLine($"Shared folder with name or UID '{identifier}' not found or not accessible.");
+                    return;
+                }
+            }
+            
+            if (checkFolders)
+            {
+                var folder = TryResolveFolder(identifier);
+                if (folder != null)
+                {
+                    DisplayFolderInfo(folder, tab);
+                    Console.WriteLine();
+                    tab.SetColumnRightAlign(0, true);
+                    tab.LeftPadding = 4;
+                    tab.Dump();
+                    return;
+                }
+                
+                if (options.IsFolder)
+                {
+                    Console.WriteLine($"Folder with name or UID '{identifier}' not found or not accessible.");
+                    return;
+                }
+            }
+            
+            if (checkTeams)
+            {
+                var teamResult = await TryResolveTeam(identifier);
+                if (teamResult.vaultTeam != null)
+                {
+                    tab.AddRow("Team UID:", teamResult.vaultTeam.TeamUid);
+                    tab.AddRow("Name:", teamResult.vaultTeam.Name);
+                    tab.AddRow("Access Level:", "Full member access");
+                    
+                    if (EnterpriseData?.TryGetTeam(teamResult.resolvedUid, out var memberTeamEnterprise) == true)
+                    {
+                        tab.AddRow("Restrict Edit:", memberTeamEnterprise.RestrictEdit.ToString());
+                        tab.AddRow("Restrict Share:", memberTeamEnterprise.RestrictSharing.ToString());
+                        tab.AddRow("Restrict View:", memberTeamEnterprise.RestrictView.ToString());
+                    }
+                    
+                    Console.WriteLine();
+                    tab.SetColumnRightAlign(0, true);
+                    tab.LeftPadding = 4;
+                    tab.Dump();
+                    return;
+                }
+                else if (!string.IsNullOrEmpty(teamResult.resolvedUid))
+                {
+                    if (await TryDisplayTeamFromOtherSources(teamResult.resolvedUid, tab))
+                    {
+                        Console.WriteLine();
+                        tab.SetColumnRightAlign(0, true);
+                        tab.LeftPadding = 4;
+                        tab.Dump();
+                    }
+                    return;
+                }
+                
+                if (options.IsTeam)
+                {
+                    Console.WriteLine($"Team with name or UID '{identifier}' not found or not accessible.");
+                    return;
+                }
+            }
+            
+            Console.WriteLine($"Object with name or UID '{identifier}' not found or not accessible.");
+        }
+
+        private async Task<bool> TryDisplayTeamFromOtherSources(string uid, Tabulate tab)
+        {
+            try
+            {
+                var availableTeams = await _vaultContext.GetAvailableTeams();
+                var availableTeam = availableTeams.FirstOrDefault(t => 
+                    string.Equals(t.TeamUid, uid, StringComparison.OrdinalIgnoreCase));
+                
+                if (availableTeam != null)
+                {
+                    tab.AddRow("Team UID:", availableTeam.TeamUid);
+                    tab.AddRow("Name:", availableTeam.Name);
+                    tab.AddRow("Access Level:", "Available for sharing");
+                    
+                    if (EnterpriseData?.TryGetTeam(uid, out var availableTeamEnterprise) == true)
+                    {
+                        tab.AddRow("Restrict Edit:", availableTeamEnterprise.RestrictEdit.ToString());
+                        tab.AddRow("Restrict Share:", availableTeamEnterprise.RestrictSharing.ToString());
+                        tab.AddRow("Restrict View:", availableTeamEnterprise.RestrictView.ToString());
+                    }
+                    
+                    tab.AddRow("Note:", $"User {_auth.Username} does not belong to team {availableTeam.Name}");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Could not fetch available teams: {ex.Message}");
+            }
+
+            if (EnterpriseData?.TryGetTeam(uid, out var enterpriseTeam) == true)
+            {
+                tab.AddRow("Team UID:", enterpriseTeam.Uid);
+                tab.AddRow("Name:", enterpriseTeam.Name);
+                tab.AddRow("Access Level:", "Enterprise administrative access");
+                tab.AddRow("Parent Node ID:", enterpriseTeam.ParentNodeId.ToString());
+                tab.AddRow("Restrict Edit:", enterpriseTeam.RestrictEdit.ToString());
+                tab.AddRow("Restrict Share:", enterpriseTeam.RestrictSharing.ToString());
+                tab.AddRow("Restrict View:", enterpriseTeam.RestrictView.ToString());
+                
+                var memberIds = EnterpriseData.GetUsersForTeam(enterpriseTeam.Uid);
+                tab.AddRow("Member Count:", memberIds.Length.ToString());
+                
+                tab.AddRow("Note:", $"User {_auth.Username} does not belong to team {enterpriseTeam.Name}");
+                return true;
+            }
+
+            Console.WriteLine($"UID {uid} is not a valid Keeper object");
+            Console.WriteLine("Checked: Records, Shared Folders, Folders, and Teams");
+            return false;
+        }
+
+        private async Task DisplayRecordInfo(KeeperRecord record, Tabulate tab)
+        {
+            var totps = new List<string>();
+
+            tab.AddRow("Record UID:", record.Uid);
+            tab.AddRow("Type:", record.KeeperRecordType());
+            tab.AddRow("Title:", record.Title);
+            
+            if (record is PasswordRecord legacy)
+            {
+                tab.AddRow("Notes:", legacy.Notes);
+                tab.AddRow("$login:", legacy.Login);
+                tab.AddRow("$password:", legacy.Password);
+                tab.AddRow("$url:", legacy.Link);
+                if (!string.IsNullOrEmpty(legacy.Totp))
+                {
+                    totps.Add(legacy.Totp);
+                    tab.AddRow("$oneTimeCode:", legacy.Totp);
+                }
+
+                if (legacy.Custom != null && legacy.Custom.Count > 0)
+                {
+                    foreach (var c in legacy.Custom)
+                    {
+                        tab.AddRow(c.Name + ":", c.Value);
+                    }
+                }
+            }
+            else if (record is TypedRecord typed)
+            {
+                tab.AddRow("Notes:", typed.Notes);
+                foreach (var f in typed.Fields.Concat(typed.Custom))
+                {
+                    if (f.FieldName == "oneTimeCode")
+                    {
+                        if (f is TypedField<string> sf && sf.Count > 0)
+                        {
+                            totps.AddRange(sf.Values.Where(x => !string.IsNullOrEmpty(x)));
+                        }
+                    }
+                    else
+                    {
+                        var label = f.GetTypedFieldName();
+                        var values = f.GetTypedFieldValues().ToArray();
+                        for (var i = 0; i < Math.Max(values.Length, 1); i++)
+                        {
+                            var v = i < values.Length ? values[i] : "";
+                            if (i == 0)
+                            {
+                                tab.AddRow($"{label}:", v);
+                            }
+                            else
+                            {
+                                tab.AddRow("", v);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (record is FileRecord file)
+            {
+                tab.AddRow("Name:", file.Name);
+                tab.AddRow("MIME Type:", file.MimeType ?? "");
+                tab.AddRow("Size:", file.FileSize.ToString("N0"));
+                if (file.ThumbnailSize > 0)
+                {
+                    tab.AddRow("Thumbnail Size:", file.ThumbnailSize.ToString("N0"));
+                }
+            }
+
+            foreach (var url in totps)
+            {
+                tab.AddRow("$oneTimeCode:", url);
+                try
+                {
+                    var tup = CryptoUtils.GetTotpCode(url);
+                    if (tup != null)
+                    {
+                        tab.AddRow($"{tup.Item1}:", $"expires in {tup.Item3 - tup.Item2} sec.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error: {e.Message}");
+                }
+            }
+
+            tab.AddRow("Last Modified:", record.ClientModified.LocalDateTime.ToString("F"));
+            var shareInfo = (await _vaultContext.Vault.GetSharesForRecords(new[] { record.Uid }))
+                .FirstOrDefault(x => x.RecordUid == record.Uid);
+            
+            if (shareInfo?.UserPermissions?.Length > 0)
+            {
+                tab.AddRow("", "");
+                tab.AddRow("User Shares:", "");
+                foreach (var rs in shareInfo.UserPermissions)
+                {
+                    string status;
+                    if (rs.Owner)
+                    {
+                        status = "Owner";
+                    }
+                    else
+                    {
+                        if (rs.AwaitingApproval)
+                        {
+                            status = "Awaiting Approval";
+                        }
+                        else
+                        {
+                            if (!rs.CanEdit && !rs.CanShare)
+                            {
+                                status = "Read Only";
+                            }
+                            else if (rs.CanEdit && rs.CanShare)
+                            {
+                                status = "Can Edit & Share";
+                            }
+                            else if (rs.CanEdit)
+                            {
+                                status = "Can Edit";
+                            }
+                            else
+                            {
+                                status = "Can Share";
+                            }
+                        }
+                    }
+
+                    if (rs.Expiration.HasValue)
+                    {
+                        status += $" (Expires: {rs.Expiration.Value.LocalDateTime:g})";
+                    }
+
+                    tab.AddRow(rs.Username, status);
+                }
+            }
+
+            if (shareInfo?.SharedFolderPermissions != null)
+            {
+                tab.AddRow("", "");
+                tab.AddRow("Shared Folders:", "");
+                foreach (var sfs in shareInfo.SharedFolderPermissions)
+                {
+                    string status;
+                    if (!sfs.CanEdit && !sfs.CanShare)
+                    {
+                        status = "Read Only";
+                    }
+                    else if (sfs.CanEdit && sfs.CanShare)
+                    {
+                        status = "Can Edit & Share";
+                    }
+                    else if (sfs.CanEdit)
+                    {
+                        status = "Can Edit";
+                    }
+                    else
+                    {
+                        status = "Can Share";
+                    }
+
+                    var name = sfs.SharedFolderUid;
+                    if (_vaultContext.Vault.TryGetSharedFolder(sfs.SharedFolderUid, out var sf))
+                    {
+                        name = sf.Name;
+                    }
+
+                    tab.AddRow(name, status);
+                }
+            }
+
+            _vaultContext.Vault.AuditLogRecordOpen(record.Uid);
+        }
+
+        private void DisplaySharedFolderInfo(SharedFolder sf, Tabulate tab)
+        {
+            tab.AddRow("Shared Folder UID:", sf.Uid);
+            tab.AddRow("Name:", sf.Name);
+            tab.AddRow("Default Manage Records:", sf.DefaultManageRecords.ToString());
+            tab.AddRow("Default Manage Users:", sf.DefaultManageUsers.ToString());
+            tab.AddRow("Default Can Edit:", sf.DefaultCanEdit.ToString());
+            tab.AddRow("Default Can Share:", sf.DefaultCanShare.ToString());
+            
+            if (sf.RecordPermissions.Count > 0)
+            {
+                tab.AddRow("");
+                tab.AddRow("Record Permissions:");
+                foreach (var r in sf.RecordPermissions)
+                {
+                    string permission;
+                    if (r.CanEdit && r.CanShare)
+                    {
+                        permission = "Can Edit & Share";
+                    }
+                    else if (r.CanEdit)
+                    {
+                        permission = "Can Edit";
+                    }
+                    else if (r.CanShare)
+                    {
+                        permission = "Can Share";
+                    }
+                    else
+                    {
+                        permission = "View Only";
+                    }
+
+                    tab.AddRow(r.RecordUid + ":", permission);
+                }
+            }
+
+            string GetUsername(string userId, UserType userType)
+            {
+                switch (userType)
+                {
+                    case UserType.User:
+                        if (_vaultContext.Vault.TryGetUsername(userId, out var email))
+                        {
+                            return email;
+                        }
+                        break;
+                    case UserType.Team:
+                        if (_vaultContext.Vault.TryGetTeam(userId, out var team))
+                        {
+                            return team.Name;
+                        }
+                        break;
+                }
+                return userId;
+            }
+
+            if (sf.UsersPermissions.Count > 0)
+            {
+                tab.AddRow("");
+                tab.AddRow("User/Team Permissions:");
+                var sortedList = sf.UsersPermissions.ToList();
+                sortedList.Sort((x, y) =>
+                {
+                    var res = x.UserType.CompareTo(y.UserType);
+                    if (res == 0)
+                    {
+                        var xName = GetUsername(x.Uid, x.UserType);
+                        var yName = GetUsername(y.Uid, y.UserType);
+                        res = string.Compare(xName, yName, StringComparison.OrdinalIgnoreCase);
+                    }
+                    return res;
+                });
+                
+                foreach (var u in sortedList)
+                {
+                    string permissions;
+                    if (u.ManageRecords || u.ManageUsers)
+                    {
+                        permissions = "Can Manage " +
+                                      string.Join(" & ",
+                                          new[] { u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }
+                                              .Where(x => !string.IsNullOrEmpty(x)));
+                    }
+                    else
+                    {
+                        permissions = "No User Permissions";
+                    }
+
+                    var subjectName = GetUsername(u.Uid, u.UserType);
+                    tab.AddRow($"{u.UserType} {subjectName}:", permissions);
+                }
+            }
+        }
+
+        private void DisplayFolderInfo(FolderNode f, Tabulate tab)
+        {
+            tab.AddRow("Folder UID:", f.FolderUid);
+            if (!string.IsNullOrEmpty(f.ParentUid))
+            {
+                tab.AddRow("Parent Folder UID:", f.ParentUid);
+            }
+            tab.AddRow("Folder Type:", f.FolderType.ToString());
+            tab.AddRow("Name:", f.Name);
+            if (!string.IsNullOrEmpty(f.SharedFolderUid))
+            {
+                tab.AddRow("Shared Folder UID:", f.SharedFolderUid);
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -562,6 +1125,24 @@ namespace Commander
 
         [Value(1, Required = false, HelpText = "sub-command parameter")]
         public string Parameter { get; set; }
+    }
+
+    class GetObjectOptions
+    {
+        [Value(0, Required = true, HelpText = "UID or name of the object (record, folder, shared-folder, team) to retrieve information about")]
+        public string ObjectIdentifier { get; set; }
+
+        [Option('r', "record", Required = false, HelpText = "Record title / uid")]
+        public bool IsRecord { get; set; }
+
+        [Option('f', "folder", Required = false, HelpText = "Specify that the UID is a folder")]
+        public bool IsFolder { get; set; }
+
+        [Option('s', "shared-folder", Required = false, HelpText = "Specify that the UID is a shared folder")]
+        public bool IsSharedFolder { get; set; }
+
+        [Option('t', "team", Required = false, HelpText = "Specify that the UID is a team")]
+        public bool IsTeam { get; set; }
     }
 
 }
