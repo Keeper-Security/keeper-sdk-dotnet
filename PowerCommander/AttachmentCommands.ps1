@@ -203,16 +203,16 @@ function Remove-KeeperFileAttachment {
             ($_.Id -eq $AttachmentName) -or
             ($_.Title -eq $AttachmentName) -or
             ($_.Name -eq $AttachmentName) -or
-            ($_.Title -like $AttachmentName) -or
-            ($_.Name -like $AttachmentName)
+            ($_.Title.ToLower().Trim() -eq $AttachmentName.ToLower().Trim()) -or
+            ($_.Name.ToLower().Trim() -eq $AttachmentName.ToLower().Trim())
         } | Select-Object -First 1
 
         if (-not $attachmentToDelete) {
             Write-Warning "Attachment `"$AttachmentName`" not found in record `"$($keeperRecord.Title)`""
             Write-Host "Available attachments:"
-            foreach ($att in $attachments) {
-                $displayName = if ($att.Title) { $att.Title } elseif ($att.Name) { $att.Name } else { $att.Id }
-                Write-Host "  - $displayName (ID: $($att.Id))"
+            foreach ($attachment in $attachments) {
+                $displayName = if ($attachment.Title) { $attachment.Title } elseif ($attachment.Name) { $attachment.Name } else { $attachment.Id }
+                Write-Host "  - $displayName (ID: $($attachment.Id))"
             }
             return
         }
