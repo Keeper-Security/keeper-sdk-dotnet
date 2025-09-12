@@ -231,9 +231,9 @@ function Remove-KeeperFileAttachment {
             if ($notFoundFiles.Count -gt 0) {
                 Write-Host "Files not found: $($notFoundFiles -join ', ')" -ForegroundColor Yellow
                 Write-Host "Available attachments:"
-                foreach ($att in $attachments) {
-                    $displayName = if ($att.Title) { $att.Title } elseif ($att.Name) { $att.Name } else { $att.Id }
-                    Write-Host "  - $displayName (ID: $($att.Id))"
+                foreach ($attachment in $attachments) {
+                    $displayName = if ($attachment.Title) { $attachment.Title } elseif ($attachment.Name) { $attachment.Name } else { $attachment.Id }
+                    Write-Host "  - $displayName (ID: $($attachment.Id))"
                 }
             }
             return
@@ -273,8 +273,8 @@ function Remove-KeeperFileAttachment {
             if ($notFoundFiles.Count -gt 0) {
                 Write-Host "Files not found: $($notFoundFiles -join ', ')" -ForegroundColor Yellow
                 Write-Host "Available attachments:"
-                foreach ($att in $attachments) {
-                    $displayName = if ($att.Title) { $att.Title } elseif ($att.Name) { $att.Name } else { $att.Id }
+                foreach ($attachment in $attachments) {
+                    $displayName = if ($attachment.Title) { $attachment.Title } elseif ($attachment.Name) { $attachment.Name } else { $attachment.Id }
                     Write-Host "  - $displayName (ID: $($att.Id))"
                 }
             }
