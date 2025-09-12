@@ -156,3 +156,129 @@ function Copy-FileToKeeperRecord {
 
     $vault.UploadAttachment($keeperRecord, $uploadTask).GetAwaiter().GetResult() | Out-Null
 }
+
+function Remove-KeeperFileAttachment {
+    <#
+    .Synopsis
+    Remove file attachments from a record
+
+    .Parameter Record
+    Keeper Record Uid or Name
+
+    .Parameter FileName
+    Attachment filename(s) to delete. Can be used multiple times to delete multiple filenames.
+
+    .Example
+    Remove-KeeperFileAttachment -Record "My Record" -FileName "document.pdf"
+
+    .Example
+    Remove-KeeperFileAttachment -Record "My Record" -FileName "document.pdf", "image.jpg", "report.docx"
+
+    .Example
+    Remove-KeeperFileAttachment -Record "record-uid" -FileName "attachment-id"
+    #>
+
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+    Param (
+        [Parameter(Mandatory = $true)]
+        [string] $Record,
+        
+        [Parameter(Mandatory = $true)]
+        [Alias('f')]
+        [string[]] $FileName
+    )
+
+    Begin {
+        [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    }
+
+    Process {
+        $keeperRecord = Get-KeeperRecord $Record
+        if (-not $keeperRecord) {
+            Write-Error "Record `"$Record`" was not found" -ErrorAction Stop
+        }
+
+        $attachments = @($vault.RecordAttachments($keeperRecord))
+        
+        if ($attachments.Count -eq 0) {
+            Write-Warning "Record `"$($keeperRecord.Title)`" has no attachments"
+            return
+        }
+
+        $allAttachmentsToDelete = @()
+        $notFoundFiles = @()
+
+        foreach ($file in $FileName) {
+            $matchingAttachments = $attachments | Where-Object {
+                ($_.Id -eq $file) -or
+                ($_.Title -eq $file) -or
+                ($_.Name -eq $file) -or
+                ($_.Title.ToLower().Trim() -eq $file.ToLower().Trim()) -or
+                ($_.Name.ToLower().Trim() -eq $file.ToLower().Trim())
+            }
+
+            if (-not $matchingAttachments) {
+                $notFoundFiles += $file
+            }
+            else {
+                Write-Host "Found $($matchingAttachments.Count) attachment(s) matching '$file'"
+                $allAttachmentsToDelete += $matchingAttachments
+            }
+        }
+
+        if ($allAttachmentsToDelete.Count -eq 0) {
+            Write-Warning "No matching attachments found to delete."
+            if ($notFoundFiles.Count -gt 0) {
+                Write-Host "Files not found: $($notFoundFiles -join ', ')" -ForegroundColor Yellow
+                Write-Host "Available attachments:"
+                foreach ($attachment in $attachments) {
+                    $displayName = if ($attachment.Title) { $attachment.Title } elseif ($attachment.Name) { $attachment.Name } else { $attachment.Id }
+                    Write-Host "  - $displayName (ID: $($attachment.Id))"
+                }
+            }
+            return
+        }
+
+        $confirmMessage = "Delete $($allAttachmentsToDelete.Count) attachment(s) from record '$($keeperRecord.Title)'"
+        
+        if ($PSCmdlet.ShouldProcess($confirmMessage, "Remove Attachments")) {
+            $deletedCount = 0
+            $failedCount = 0
+
+            foreach ($attachment in $allAttachmentsToDelete) {
+                $displayName = if ($attachment.Title) { $attachment.Title } 
+                              elseif ($attachment.Name) { $attachment.Name } 
+                              else { $attachment.Id }
+
+                try {
+                    $success = $vault.DeleteAttachment($keeperRecord, $attachment.Id).GetAwaiter().GetResult()
+                    
+                    if ($success) {
+                        Write-Host "Deleted '$displayName' (ID: $($attachment.Id))" -ForegroundColor Green
+                        $deletedCount++
+                    }
+                    else {
+                        Write-Host "Failed to delete '$displayName' (ID: $($attachment.Id))" -ForegroundColor Red
+                        $failedCount++
+                    }
+                }
+                catch {
+                    Write-Host "Error deleting '$displayName': $($_.Exception.Message)" -ForegroundColor Red
+                    $failedCount++
+                }
+            }
+
+            Write-Host "Summary: $deletedCount deleted, $failedCount failed" -ForegroundColor Cyan
+            
+            if ($notFoundFiles.Count -gt 0) {
+                Write-Host "Files not found: $($notFoundFiles -join ', ')" -ForegroundColor Yellow
+                Write-Host "Available attachments:"
+                foreach ($attachment in $attachments) {
+                    $displayName = if ($attachment.Title) { $attachment.Title } elseif ($attachment.Name) { $attachment.Name } else { $attachment.Id }
+                    Write-Host "  - $displayName (ID: $($att.Id))"
+                }
+            }
+        }
+    }
+}
+New-Alias -Name krfa -Value Remove-KeeperFileAttachment
