@@ -90,7 +90,7 @@
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
         'Add-KeeperSecretManagerApp', 'Remove-KeeperSecretManagerApp', 'Grant-KeeperSecretManagerFolderAccess', 'Revoke-KeeperSecretManagerFolderAccess',
         'Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient', 'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare',
-        'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 'Copy-KeeperFileAttachmentToStream', 'Copy-FileToKeeperRecord',
+        'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 'Copy-KeeperFileAttachmentToStream','Remove-KeeperFileAttachment', 'Copy-FileToKeeperRecord',
         'Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword', 'Test-PasswordAgainstBreachWatch',
         'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperPasswordReport'
     )
@@ -106,7 +106,7 @@
         'ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'msp-license', 
         'switch-to-mc', 'switch-to-msp', 'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
         'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
-        'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw')
+        'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'krfa')
 
     # List of all modules packaged with this module
     # ModuleList = @()
