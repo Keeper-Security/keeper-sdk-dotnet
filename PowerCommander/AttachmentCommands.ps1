@@ -161,25 +161,32 @@ function Copy-FileToKeeperRecord {
 function Remove-KeeperFileAttachment {
     <#
     .Synopsis
-    Remove file attachment from a record
+    Remove file attachments from a record
 
-    .Record
+    .Parameter Record
     Keeper Record Uid or Name
 
-    .AttachmentName
-    Attachment Name, Title, or ID to remove
+    .Parameter FileName
+    Attachment filename(s) to delete. Can be used multiple times to delete multiple filenames.
 
     .Example
-    Remove-KeeperFileAttachment -Record "My Record" -AttachmentName "document.pdf"
+    Remove-KeeperFileAttachment -Record "My Record" -FileName "document.pdf"
 
     .Example
-    Remove-KeeperFileAttachment -Record "record-uid" -AttachmentName "attachment-id"
+    Remove-KeeperFileAttachment -Record "My Record" -FileName "document.pdf", "image.jpg", "report.docx"
+
+    .Example
+    Remove-KeeperFileAttachment -Record "record-uid" -FileName "attachment-id"
     #>
 
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     Param (
-        [Parameter(Mandatory = $true)][string] $Record,
-        [Parameter(Mandatory = $true)][string] $AttachmentName
+        [Parameter(Mandatory = $true)]
+        [string] $Record,
+        
+        [Parameter(Mandatory = $true)]
+        [Alias('f')]
+        [string[]] $FileName
     )
 
     Begin {
@@ -199,40 +206,78 @@ function Remove-KeeperFileAttachment {
             return
         }
 
-        $attachmentToDelete = $attachments | Where-Object {
-            ($_.Id -eq $AttachmentName) -or
-            ($_.Title -eq $AttachmentName) -or
-            ($_.Name -eq $AttachmentName) -or
-            ($_.Title.ToLower().Trim() -eq $AttachmentName.ToLower().Trim()) -or
-            ($_.Name.ToLower().Trim() -eq $AttachmentName.ToLower().Trim())
-        } | Select-Object -First 1
+        $allAttachmentsToDelete = @()
+        $notFoundFiles = @()
 
-        if (-not $attachmentToDelete) {
-            Write-Warning "Attachment `"$AttachmentName`" not found in record `"$($keeperRecord.Title)`""
-            Write-Host "Available attachments:"
-            foreach ($attachment in $attachments) {
-                $displayName = if ($attachment.Title) { $attachment.Title } elseif ($attachment.Name) { $attachment.Name } else { $attachment.Id }
-                Write-Host "  - $displayName (ID: $($attachment.Id))"
+        foreach ($file in $FileName) {
+            $matchingAttachments = $attachments | Where-Object {
+                ($_.Id -eq $file) -or
+                ($_.Title -eq $file) -or
+                ($_.Name -eq $file) -or
+                ($_.Title.ToLower().Trim() -eq $file.ToLower().Trim()) -or
+                ($_.Name.ToLower().Trim() -eq $file.ToLower().Trim())
+            }
+
+            if (-not $matchingAttachments) {
+                $notFoundFiles += $file
+            }
+            else {
+                Write-Host "Found $($matchingAttachments.Count) attachment(s) matching '$file'"
+                $allAttachmentsToDelete += $matchingAttachments
+            }
+        }
+
+        if ($allAttachmentsToDelete.Count -eq 0) {
+            Write-Warning "No matching attachments found to delete."
+            if ($notFoundFiles.Count -gt 0) {
+                Write-Host "Files not found: $($notFoundFiles -join ', ')" -ForegroundColor Yellow
+                Write-Host "Available attachments:"
+                foreach ($att in $attachments) {
+                    $displayName = if ($att.Title) { $att.Title } elseif ($att.Name) { $att.Name } else { $att.Id }
+                    Write-Host "  - $displayName (ID: $($att.Id))"
+                }
             }
             return
         }
 
-        $displayName = if ($attachmentToDelete.Title) { $attachmentToDelete.Title } 
-                      elseif ($attachmentToDelete.Name) { $attachmentToDelete.Name } 
-                      else { $attachmentToDelete.Id }
+        $confirmMessage = "Delete $($allAttachmentsToDelete.Count) attachment(s) from record '$($keeperRecord.Title)'"
+        
+        if ($PSCmdlet.ShouldProcess($confirmMessage, "Remove Attachments")) {
+            $deletedCount = 0
+            $failedCount = 0
 
-        if ($PSCmdlet.ShouldProcess("$displayName from record '$($keeperRecord.Title)'", "Remove Attachment")) {
-            try {
-                $success = $vault.DeleteAttachment($keeperRecord, $attachmentToDelete.Id).GetAwaiter().GetResult()
-                
-                if ($success) {
-                    Write-Host "Attachment '$displayName' has been deleted successfully from record '$($keeperRecord.Title)'" -ForegroundColor Green
-                } else {
-                    Write-Error "Failed to delete attachment '$displayName' from record '$($keeperRecord.Title)'"
+            foreach ($attachment in $allAttachmentsToDelete) {
+                $displayName = if ($attachment.Title) { $attachment.Title } 
+                              elseif ($attachment.Name) { $attachment.Name } 
+                              else { $attachment.Id }
+
+                try {
+                    $success = $vault.DeleteAttachment($keeperRecord, $attachment.Id).GetAwaiter().GetResult()
+                    
+                    if ($success) {
+                        Write-Host "Deleted '$displayName' (ID: $($attachment.Id))" -ForegroundColor Green
+                        $deletedCount++
+                    }
+                    else {
+                        Write-Host "Failed to delete '$displayName' (ID: $($attachment.Id))" -ForegroundColor Red
+                        $failedCount++
+                    }
+                }
+                catch {
+                    Write-Host "Error deleting '$displayName': $($_.Exception.Message)" -ForegroundColor Red
+                    $failedCount++
                 }
             }
-            catch {
-                Write-Error "Error deleting attachment '$displayName': $($_.Exception.Message)"
+
+            Write-Host "Summary: $deletedCount deleted, $failedCount failed" -ForegroundColor Cyan
+            
+            if ($notFoundFiles.Count -gt 0) {
+                Write-Host "Files not found: $($notFoundFiles -join ', ')" -ForegroundColor Yellow
+                Write-Host "Available attachments:"
+                foreach ($att in $attachments) {
+                    $displayName = if ($att.Title) { $att.Title } elseif ($att.Name) { $att.Name } else { $att.Id }
+                    Write-Host "  - $displayName (ID: $($att.Id))"
+                }
             }
         }
     }
