@@ -155,7 +155,6 @@ function Copy-FileToKeeperRecord {
     $uploadTask  = New-Object -TypeName KeeperSecurity.Vault.FileAttachmentUploadTask -ArgumentList $path.Path, $null
 
     $vault.UploadAttachment($keeperRecord, $uploadTask).GetAwaiter().GetResult() | Out-Null
-    Write-Host "Attachment uploaded successfully" -ForegroundColor Green
 }
 
 function Remove-KeeperFileAttachment {
