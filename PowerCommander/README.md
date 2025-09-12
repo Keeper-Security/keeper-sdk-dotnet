@@ -31,6 +31,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard
 | Show-TwoFactorCode                     | 2fa         | Display Two Factor Code 
 | Copy-KeeperFileAttachment              | kda         | Download file attachments 
+| Remove-KeeperFileAttachment            | krfa        | Remove file attachment from record
 | Copy-KeeperFileAttachmentToStream      |             | Download file attachement to stream
 | Copy-FileToKeeperRecord                |             | Upload file attachment to a record
 | Get-KeeperInformation                  | kwhoami     | Print account license information
