@@ -611,6 +611,97 @@ namespace Commander
             await context.Vault.UploadAttachment(record, uploadTask);
         }
 
+        public static async Task DeleteAttachmentCommand(this VaultContext context, DeleteAttachmentOptions options)
+        {
+            if (context.Vault.TryGetKeeperRecord(options.RecordName, out var record))
+            {
+            }
+            else if (context.TryResolvePath(options.RecordName, out var node, out var title))
+            {
+                foreach (var uid in node.Records)
+                {
+                    if (!context.Vault.TryGetKeeperRecord(uid, out var r)) continue;
+                    if (string.CompareOrdinal(title, r.Title) != 0) continue;
+
+                    record = r;
+                    break;
+                }
+            }
+
+            if (record == null)
+            {
+                Console.WriteLine($"Cannot resolve record {options.RecordName}");
+                return;
+            }
+
+            var attachments = context.Vault.RecordAttachments(record).ToArray();
+
+            if (attachments.Length == 0)
+            {
+                Console.WriteLine("Record has no attachments.");
+                return;
+            }
+
+            var notFoundFiles = new List<string>();
+
+            foreach (var fileName in options.FileNames)
+            {
+                var attachmentsToDelete = attachments.Where(x =>
+                {
+                    // Match by ID
+                    if (string.Equals(fileName, x.Id))
+                    {
+                        return true;
+                    }
+
+                    if (string.Equals(fileName, x.Title, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                    if (string.Equals(fileName, x.Name, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }).ToArray();
+
+                if (attachmentsToDelete.Length == 0)
+                {
+                    notFoundFiles.Add(fileName);
+                    continue;
+                }
+
+                Console.WriteLine($"Deleting {attachmentsToDelete.Length} attachment(s) matching '{fileName}':");
+
+                foreach (var attachmentToDelete in attachmentsToDelete)
+                {
+                    var success = await context.Vault.DeleteAttachment(record, attachmentToDelete.Id);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"Attachment '{attachmentToDelete.Name}' (ID: {attachmentToDelete.Id}) deleted successfully.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to delete attachment '{attachmentToDelete.Name}' (ID: {attachmentToDelete.Id}).");
+                    }
+                }
+            }
+
+            if (notFoundFiles.Count > 0)
+            {
+                Console.WriteLine($"  Files not found: {string.Join(", ", notFoundFiles)}");
+                Console.WriteLine("\nAvailable attachments:");
+                foreach (var att in attachments)
+                {
+                    Console.WriteLine($"  - {att.Name} (ID: {att.Id})");
+                }
+            }
+
+        }
+
         public static async Task RemoveRecordCommand(this VaultContext context, RemoveRecordOptions options)
         {
             if (string.IsNullOrEmpty(options.RecordName))
@@ -1401,6 +1492,15 @@ namespace Commander
         public string RecordName { get; set; }
     }
 
+    class DeleteAttachmentOptions
+    {
+        [Value(0, Required = true, MetaName = "record path or uid", HelpText = "Keeper Record")]
+        public string RecordName { get; set; }
+
+        [Option('f', "file", Required = true, HelpText = "Attachment filename(s) to delete. Can be used multiple times to delete multiple filenames.")]
+        public IEnumerable<string> FileNames { get; set; }
+    }
+    
     class RemoveRecordOptions
     {
         [Value(0, Required = true, MetaName = "record title, uid, or pattern", HelpText = "remove records")]
