@@ -644,7 +644,7 @@ namespace Commander
 
             var notFoundFiles = new List<string>();
 
-            foreach (var fileName in options.FileNames)
+            foreach (var fileName in options.FileNames.Select(f => f.Trim()))
             {
                 var attachmentsToDelete = attachments.Where(x =>
                 {
@@ -1497,7 +1497,7 @@ namespace Commander
         [Value(0, Required = true, MetaName = "record path or uid", HelpText = "Keeper Record")]
         public string RecordName { get; set; }
 
-        [Option('f', "file", Required = true, HelpText = "Attachment filename(s) to delete. Can be used multiple times to delete multiple filenames.")]
+        [Option('f', "file", Required = true, Separator = ',', HelpText = "Attachment filename(s) to delete. Can be used multiple times to delete multiple filenames.")]
         public IEnumerable<string> FileNames { get; set; }
     }
     
