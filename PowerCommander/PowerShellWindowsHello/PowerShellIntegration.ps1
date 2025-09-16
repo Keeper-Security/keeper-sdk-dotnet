@@ -784,6 +784,125 @@ function Debug-AttestationObject {
     }
 }
 
+function Get-KeeperAuthenticationOptions {
+    <#
+    .SYNOPSIS
+    Gets Windows Hello authentication options from Keeper API
+    
+    .DESCRIPTION
+    This function retrieves authentication options from the Keeper API,
+    including challenge and assertion options needed for Windows Hello authentication.
+    Based on the Python generate_authentication_options function.
+    
+    .PARAMETER Username
+    The username to authenticate (optional - will use current auth username if not provided)
+    
+    .PARAMETER Purpose
+    The purpose of authentication: 'login' (default) or 'vault' (re-authentication)
+    
+    .PARAMETER Vault
+    Keeper vault instance (optional - will use global vault if not provided)
+    
+    .EXAMPLE
+    $authOptions = Get-KeeperAuthenticationOptions
+    if ($authOptions) {
+        # Use with Windows Hello authentication
+    }
+    
+    .EXAMPLE
+    $authOptions = Get-KeeperAuthenticationOptions -Username "user@company.com" -Purpose "vault"
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [string]$Username,
+        
+        [Parameter()]
+        [ValidateSet('login', 'vault')]
+        [string]$Purpose = 'login',
+        
+        [Parameter()]
+        [object]$Vault
+    )
+    
+    try {
+        # Get vault instance
+        if (-not $Vault) {
+            if (Get-Command getVault -ErrorAction SilentlyContinue) {
+                $vault = getVault
+            } elseif ($Script:Context.Vault) {
+                $vault = $Script:Context.Vault
+            } else {
+                throw "No vault instance available. Please connect to Keeper first or provide a vault parameter."
+            }
+        } else {
+            $vault = $Vault
+        }
+        
+        $auth = $vault.Auth
+        Write-Verbose "Generating passkey authentication options from Keeper API"
+        
+        # Create the PasskeyAuthenticationRequest
+        $request = [Authentication.PasskeyAuthenticationRequest]::new()
+        $request.AuthenticatorAttachment = [Authentication.AuthenticatorAttachment]::Platform
+        $request.ClientVersion = $auth.Endpoint.ClientVersion
+        
+        # Set username (use provided username or current auth username)
+        if ($Username) {
+            $request.Username = $Username
+        } else {
+            $request.Username = $auth.Username
+        }
+        
+        # Set passkey purpose
+        if ($Purpose -eq 'vault') {
+            $request.PasskeyPurpose = [Authentication.PasskeyPurpose]::PkReauth
+        } else {
+            $request.PasskeyPurpose = [Authentication.PasskeyPurpose]::PkLogin
+        }
+        
+        # Add device token if available
+        if ($auth.DeviceToken) {
+            Write-Verbose "Adding device token to authentication request"
+            $request.EncryptedDeviceToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$auth.DeviceToken)
+        }
+        
+        # Execute the REST API call
+        $response = $auth.ExecuteAuthRest("authentication/passkey/generate_authentication", $request, [Authentication.PasskeyAuthenticationResponse]).GetAwaiter().GetResult()
+        
+        # Parse the request options JSON
+        $requestOptions = $response.PkRequestOptions | ConvertFrom-Json
+        
+        # Return structured result
+        $result = @{
+            challenge_token = $response.ChallengeToken
+            request_options = $requestOptions
+            login_token = $response.EncryptedLoginToken
+            purpose = $Purpose
+            username = $request.Username
+            success = $true
+            
+            # Add convenience properties for PowerShell usage
+            challenge = $requestOptions.challenge
+            allowCredentials = $requestOptions.allowCredentials
+            timeout = $requestOptions.timeout
+            userVerification = $requestOptions.userVerification
+            rpId = $requestOptions.rpId
+        }
+        
+        Write-Verbose "Successfully generated authentication options for user: $($request.Username)"
+        return $result
+    }
+    catch {
+        Write-Error "Failed to generate authentication options: $($_.Exception.Message)"
+        return @{
+            success = $false
+            error_message = $_.Exception.Message
+            error_type = $_.Exception.GetType().Name
+        }
+    }
+}
+
 function Register-KeeperCredential {
     <#
     .SYNOPSIS
@@ -1365,12 +1484,13 @@ New-Alias -Name 'Invoke-WHAuth' -Value 'Invoke-WindowsHelloAuthentication' -Desc
 New-Alias -Name 'Invoke-WHOp' -Value 'Invoke-WindowsHelloOperation' -Description 'Unified Windows Hello interface for PowerCommander' -Force
 New-Alias -Name 'New-WHCredential' -Value 'Invoke-WindowsHelloCredentialCreation' -Description 'Create Windows Hello credential' -Force
 New-Alias -Name 'Get-KeeperRegOpts' -Value 'Get-KeeperRegistrationOptions' -Description 'Get Keeper registration options' -Force
+New-Alias -Name 'Get-KeeperAuthOpts' -Value 'Get-KeeperAuthenticationOptions' -Description 'Get Keeper authentication options' -Force
 New-Alias -Name 'Register-KeeperCred' -Value 'Register-KeeperCredential' -Description 'Register credential with Keeper' -Force
 New-Alias -Name 'Invoke-KeeperCredReg' -Value 'Invoke-KeeperCredentialCreation' -Description 'Keeper credential registration' -Force
 
 # Export functions and aliases - Primary interface function is Invoke-WindowsHelloOperation
-Export-ModuleMember -Function Invoke-WindowsHelloOperation, Test-WindowsHelloCapabilities, Invoke-WindowsHelloAuthentication, Get-WindowsHelloInfo, Import-PowerShellWindowsHello, Invoke-WindowsHelloCredentialCreation, Get-KeeperRegistrationOptions, Register-KeeperCredential, Invoke-KeeperCredentialCreation, ConvertFrom-Base64Url, ConvertTo-ByteString, Utf8BytesToString
-Export-ModuleMember -Alias Invoke-WHOp, Test-WHello, Get-WHello, Invoke-WHAuth, New-WHCredential, Get-KeeperRegOpts, Register-KeeperCred, Invoke-KeeperCredReg
+Export-ModuleMember -Function Invoke-WindowsHelloOperation, Test-WindowsHelloCapabilities, Invoke-WindowsHelloAuthentication, Get-WindowsHelloInfo, Import-PowerShellWindowsHello, Invoke-WindowsHelloCredentialCreation, Get-KeeperRegistrationOptions, Get-KeeperAuthenticationOptions, Register-KeeperCredential, Invoke-KeeperCredentialCreation, ConvertFrom-Base64Url, ConvertTo-ByteString, Utf8BytesToString
+Export-ModuleMember -Alias Invoke-WHOp, Test-WHello, Get-WHello, Invoke-WHAuth, New-WHCredential, Get-KeeperRegOpts, Get-KeeperAuthOpts, Register-KeeperCred, Invoke-KeeperCredReg
 
 #endregion
 
@@ -1514,3 +1634,6 @@ function Find-WindowsHelloCredentials {
 Set-Alias -Name Find-WHCreds -Value Find-WindowsHelloCredentials
 
 #endregion
+
+
+# $auth.DeviceToken
