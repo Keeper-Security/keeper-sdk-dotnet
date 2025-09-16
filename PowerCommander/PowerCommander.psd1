@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.0.5'
+    ModuleVersion        = '1.0.6'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -121,7 +121,7 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = @('Connect-Keeper -NewLogin parameter disables session resumption')
+            ReleaseNotes = @('Breachwatch, Get-KeeperPasswordReport, Remove-KeeperFileAttachment cmdlets added')
         }
     }
 
