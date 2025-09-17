@@ -76,7 +76,8 @@ Get-KeeperIgnoredBreachWatchRecords
 Export-ModuleMember -Alias kbw, kbwp
 
 Export-ModuleMember -Function Test-WindowsHelloAvailability, Connect-KeeperWithBiometrics, Set-KeeperBiometricCredential, Get-KeeperBiometricCredential,
-        Remove-KeeperBiometricCredential, Invoke-WindowsHelloVerification
+        Remove-KeeperBiometricCredential, Invoke-WindowsHelloVerification, New-WindowsHelloPasskey,
+        Get-KeeperPasskeyAuthenticationOptions, Get-KeeperPasskeyRegistrationOptions
 
 # function Test-Keeper {
 #     [CmdletBinding()]

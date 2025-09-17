@@ -96,6 +96,7 @@
         'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperPasswordReport',
         'Test-WindowsHelloAvailability', 'Connect-KeeperWithBiometrics', 'Set-KeeperBiometricCredential', 'Get-KeeperBiometricCredential',
         'Remove-KeeperBiometricCredential', 'Invoke-WindowsHelloVerification','New-WindowsHelloPasskey', 'Get-KeeperAuthenticationOptions',
+        'Invoke-WindowsHelloAssertion', 'Complete-KeeperAuthentication', 'Invoke-KeeperWindowsHelloAuthentication',
         'Invoke-WindowsHelloOperation', 'Test-WindowsHelloCapabilities', 'Invoke-WindowsHelloAuthentication', 'Get-WindowsHelloInfo',
         'Invoke-WindowsHelloCredentialCreation', 'Get-KeeperRegistrationOptions', 'Register-KeeperCredential', 'Invoke-KeeperCredentialCreation'
     )
@@ -112,7 +113,8 @@
         'switch-to-mc', 'switch-to-msp', 'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
         'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
         'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kcb', 'khello',
-        'Invoke-WHOp', 'Test-WHello', 'Get-WHello', 'Invoke-WHAuth', 'New-WHCredential', 'Get-KeeperRegOpts', 'Get-KeeperAuthOpts', 'Register-KeeperCred', 'Invoke-KeeperCredReg', 
+        'Invoke-WHOp', 'Test-WHello', 'Get-WHello', 'Invoke-WHAuth', 'New-WHCredential', 'Get-KeeperRegOpts', 'Get-KeeperAuthOpts', 
+        'Invoke-WHAssertion', 'Complete-KeeperAuth', 'Invoke-KeeperWHAuth', 'Register-KeeperCred', 'Invoke-KeeperCredReg', 
         'Find-WHCreds')
 
     # List of all modules packaged with this module
