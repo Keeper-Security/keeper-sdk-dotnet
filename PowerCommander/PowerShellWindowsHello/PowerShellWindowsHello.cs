@@ -22,6 +22,58 @@ namespace PowerShellWindowsHello
     {
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetConsoleWindow();
+        
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+        
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetActiveWindow();
+        
+        [DllImport("user32.dll")]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+        
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        
+        [DllImport("user32.dll")]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+        
+        private const int SW_RESTORE = 9;
+        private const int SW_SHOW = 5;
+
+        /// <summary>
+        /// Gets the best window handle for Windows Hello dialogs
+        /// This helps with dialog positioning and interaction issues
+        /// </summary>
+        private static IntPtr GetBestWindowHandle()
+        {
+            // Try to get the foreground window first (most likely to be interactive)
+            var foregroundWnd = GetForegroundWindow();
+            if (foregroundWnd != IntPtr.Zero && IsWindowVisible(foregroundWnd))
+            {
+                return foregroundWnd;
+            }
+            
+            // Fall back to active window
+            var activeWnd = GetActiveWindow();
+            if (activeWnd != IntPtr.Zero && IsWindowVisible(activeWnd))
+            {
+                return activeWnd;
+            }
+            
+            // Last resort: console window
+            var consoleWnd = GetConsoleWindow();
+            if (consoleWnd != IntPtr.Zero)
+            {
+                // Try to bring console window to foreground
+                SetForegroundWindow(consoleWnd);
+                ShowWindow(consoleWnd, SW_RESTORE);
+                return consoleWnd;
+            }
+            
+            // If all else fails, use desktop window (IntPtr.Zero)
+            return IntPtr.Zero;
+        }
 
         /// <summary>
         /// Comprehensive Windows Hello information for PowerShell scripts
@@ -128,7 +180,7 @@ namespace PowerShellWindowsHello
         {
             try
             {
-                var hWnd = GetConsoleWindow();
+                var hWnd = GetBestWindowHandle();
                 var result = await GetAssertionAsync(hWnd, options);
                 
                 return new AuthenticationResult
@@ -158,12 +210,12 @@ namespace PowerShellWindowsHello
          /// <summary>
          /// Create a new Windows Hello credential (WebAuthn MakeCredential)
          /// </summary>
-         public static async Task<CredentialCreationResult> CreateCredentialAsync(RegistrationOptions options)
-         {
-             try
-             {
-                 var hWnd = GetConsoleWindow();
-                 var result = await MakeCredentialAsync(hWnd, options);
+        public static async Task<CredentialCreationResult> CreateCredentialAsync(RegistrationOptions options)
+        {
+            try
+            {
+                var hWnd = GetBestWindowHandle();
+                var result = await MakeCredentialAsync(hWnd, options);
                  
                  return new CredentialCreationResult
                  {
@@ -200,10 +252,10 @@ namespace PowerShellWindowsHello
          /// </summary>
          public static async Task<CredentialCreationResult> CreateCredentialManualAsync(RegistrationOptions options)
          {
-             try
-             {
-                 // Step 1: Create a REAL Windows Hello credential first (with Windows Hello UI)
-                 var hWnd = GetConsoleWindow();
+            try
+            {
+                // Step 1: Create a REAL Windows Hello credential first (with Windows Hello UI)
+                var hWnd = GetBestWindowHandle();
                  File.WriteAllText(@"C:\Users\satish.gaddala_metro\Desktop\keeper\keeper-sdk-dotnet\PowerCommander\manual_step1_start.txt", 
                      $"Creating real Windows Hello credential for {options.RpId}...");
                  
@@ -447,6 +499,7 @@ namespace PowerShellWindowsHello
                         },
                         dwAuthenticatorAttachment = NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM,
                         dwUserVerificationRequirement = options.UserVerification == "required" ? 1u : 0u,
+                        // Use flags to improve dialog behavior - try to center dialog
                         dwFlags = 0,
                         pwszU2fAppId = IntPtr.Zero,
                         pbU2fAppId = IntPtr.Zero,
@@ -454,6 +507,15 @@ namespace PowerShellWindowsHello
                         pAllowCredentialList = IntPtr.Zero,
                     };
 
+                    // Ensure window is focused and visible before calling WebAuthn API
+                    if (hWnd != IntPtr.Zero)
+                    {
+                        SetForegroundWindow(hWnd);
+                        ShowWindow(hWnd, SW_SHOW);
+                        // Small delay to ensure window is ready
+                        System.Threading.Thread.Sleep(100);
+                    }
+                    
                     // Call WebAuthn API
                     var hr = NativeWebAuthn.WebAuthNAuthenticatorGetAssertion(
                         hWnd, 
