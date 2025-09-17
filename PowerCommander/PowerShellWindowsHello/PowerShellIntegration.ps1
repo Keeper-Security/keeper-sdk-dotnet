@@ -888,6 +888,9 @@ function Get-KeeperAuthenticationOptions {
             timeout = $requestOptions.timeout
             userVerification = $requestOptions.userVerification
             rpId = $requestOptions.rpId
+            
+            # Note: Actual structure for rpId extraction is:
+            # $result.request_options.publicKeyCredentialRequestOptions.rpId
         }
         
         Write-Verbose "Successfully generated authentication options for user: $($request.Username)"
@@ -899,6 +902,493 @@ function Get-KeeperAuthenticationOptions {
             success = $false
             error_message = $_.Exception.Message
             error_type = $_.Exception.GetType().Name
+        }
+    }
+}
+
+function Invoke-WindowsHelloAssertion {
+    <#
+    .SYNOPSIS
+    Performs Windows Hello authentication (GetAssertion) using existing credentials
+    
+    .DESCRIPTION
+    This function performs WebAuthn GetAssertion operation using Windows Hello,
+    similar to the Python biometric client implementation.
+    Uses existing Windows Hello credentials to authenticate with a challenge.
+    
+    .PARAMETER Challenge
+    The authentication challenge (byte array, Base64Url string, or ByteString)
+    
+    .PARAMETER RpId
+    The relying party identifier (e.g., "keepersecurity.com")
+    
+    .PARAMETER AllowedCredentials
+    Array of allowed credential descriptors with id and type
+    
+    .PARAMETER UserVerification
+    User verification requirement ("required", "preferred", "discouraged")
+    
+    .PARAMETER TimeoutMs
+    Timeout in milliseconds (default: 60000)
+    
+    .EXAMPLE
+    $authOptions = Get-KeeperAuthenticationOptions
+    $rpid = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
+    $assertion = Invoke-WindowsHelloAssertion -Challenge $authOptions.challenge -RpId $rpid -AllowedCredentials $authOptions.allowCredentials
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        $Challenge,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$RpId,
+        
+        [Parameter()]
+        [array]$AllowedCredentials = @(),
+        
+        [Parameter()]
+        [string]$UserVerification = "required",
+        
+        [Parameter()]
+        [int]$TimeoutMs = 60000
+    )
+    
+    if (-not $PowerShellWindowsHelloAvailable) {
+        Write-Warning "PowerShellWindowsHello assembly not available. Please build the project first."
+        return @{
+            Success = $false
+            ErrorMessage = "PowerShellWindowsHello assembly not available"
+            ErrorType = "AssemblyNotFound"
+        }
+    }
+    
+    try {
+        Write-Verbose "Starting Windows Hello assertion for RP: $RpId"
+        
+        # Handle challenge input - can be byte array, Base64Url string, or ByteString
+        $challengeBytes = $null
+        Write-Verbose "Challenge type: $($Challenge.GetType().FullName)"
+        Write-Verbose "Challenge value: $Challenge"
+        
+        if ($Challenge -is [byte[]]) {
+            Write-Verbose "Challenge is byte array"
+            $challengeBytes = $Challenge
+        }
+        elseif ($Challenge -is [string]) {
+            Write-Verbose "Challenge is string, converting from Base64Url"
+            # Convert from Base64Url to bytes
+            $challengeBytes = [System.Convert]::FromBase64String($Challenge.Replace('-', '+').Replace('_', '/').PadRight(($Challenge.Length + 3) -band -4, '='))
+        }
+        elseif ($Challenge.GetType().Name -eq "ByteString" -or $Challenge.GetType().FullName -like "*ByteString*") {
+            Write-Verbose "Challenge is ByteString, converting to byte array"
+            # Handle Google.Protobuf.ByteString
+            $challengeBytes = $Challenge.ToByteArray()
+        }
+        elseif ($Challenge -and $Challenge.GetType().GetMethod("ToByteArray")) {
+            Write-Verbose "Challenge has ToByteArray method, attempting conversion"
+            $challengeBytes = $Challenge.ToByteArray()
+        }
+        else {
+            throw "Challenge must be either a byte array, Base64Url encoded string, or ByteString. Received type: $($Challenge.GetType().FullName)"
+        }
+        
+        # Create authentication options object
+        $options = [PowerShellWindowsHello.AuthenticationOptions]@{
+            RpId = $RpId
+            Challenge = $challengeBytes
+            TimeoutMs = $TimeoutMs
+            UserVerification = $UserVerification
+        }
+        
+        # Convert allowed credentials if provided
+        if ($AllowedCredentials -and $AllowedCredentials.Count -gt 0) {
+            $credentialIds = @()
+            foreach ($cred in $AllowedCredentials) {
+                if ($cred.id) {
+                    $credentialIds += $cred.id
+                }
+            }
+            if ($credentialIds.Count -gt 0) {
+                $options.AllowedCredentialIds = $credentialIds
+            }
+        }
+        
+        Write-Verbose "Performing Windows Hello authentication..."
+        Write-Host "Please complete biometric authentication..." -ForegroundColor Yellow
+        
+        # Call the Windows Hello authentication
+        $result = [PowerShellWindowsHello.WindowsHelloApi]::AuthenticateAsync($options).GetAwaiter().GetResult()
+        
+        if (-not $result.Success) {
+            Write-Warning "Windows Hello authentication failed: $($result.ErrorMessage)"
+            return @{
+                Success = $false
+                ErrorMessage = $result.ErrorMessage
+                ErrorType = $result.ErrorType
+                HResult = $result.HResult
+            }
+        }
+        
+        Write-Host "Windows Hello authentication successful!" -ForegroundColor Green
+        
+        # Return the assertion result
+        return @{
+            Success = $true
+            CredentialId = $result.CredentialId
+            AuthenticatorData = $result.AuthenticatorData
+            ClientDataJSON = $result.ClientDataJSON
+            Signature = $result.Signature
+            UserHandle = $result.UserHandle
+            RpId = $RpId
+            Challenge = $Challenge
+        }
+    }
+    catch {
+        Write-Error "Windows Hello assertion failed: $($_.Exception.Message)"
+        return @{
+            Success = $false
+            ErrorMessage = $_.Exception.Message
+            ErrorType = $_.Exception.GetType().Name
+        }
+    }
+}
+
+function Complete-KeeperAuthentication {
+    <#
+    .SYNOPSIS
+    Completes Keeper authentication using Windows Hello assertion result
+    
+    .DESCRIPTION
+    This function sends the Windows Hello assertion result to Keeper to complete
+    the authentication process, similar to the Python biometric client implementation.
+    
+    .PARAMETER ChallengeToken
+    The challenge token received from Get-KeeperAuthenticationOptions
+    
+    .PARAMETER LoginToken
+    The encrypted login token from Get-KeeperAuthenticationOptions
+    
+    .PARAMETER CredentialId
+    The credential ID from Windows Hello assertion (Base64Url encoded)
+    
+    .PARAMETER AuthenticatorData
+    The authenticator data from Windows Hello assertion (Base64Url encoded)
+    
+    .PARAMETER ClientDataJSON
+    The client data JSON from Windows Hello assertion (Base64Url encoded)
+    
+    .PARAMETER Signature
+    The assertion signature from Windows Hello (Base64Url encoded)
+    
+    .PARAMETER UserHandle
+    The user handle from Windows Hello assertion (optional)
+    
+    .PARAMETER RpId
+    The relying party identifier (optional - for logging/validation)
+    
+    .PARAMETER Purpose
+    The purpose of authentication: 'login' (default) or 'vault' (re-authentication)
+    
+    .PARAMETER Vault
+    Keeper vault instance (optional - will use global vault if not provided)
+    
+    .EXAMPLE
+    $authOptions = Get-KeeperAuthenticationOptions -Purpose "vault"
+    $rpid = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
+    $assertion = Invoke-WindowsHelloAssertion -Challenge $authOptions.challenge -RpId $rpid -AllowedCredentials $authOptions.allowCredentials
+    if ($assertion.Success) {
+        $authResult = Complete-KeeperAuthentication -ChallengeToken $authOptions.challenge_token -LoginToken $authOptions.login_token -CredentialId $assertion.CredentialId -AuthenticatorData $assertion.AuthenticatorData -ClientDataJSON $assertion.ClientDataJSON -Signature $assertion.Signature -RpId $rpid -Purpose "vault"
+    }
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [byte[]]$ChallengeToken,
+        
+        [Parameter(Mandatory=$true)]
+        [byte[]]$LoginToken,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$CredentialId,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$AuthenticatorData,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$ClientDataJSON,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$Signature,
+        
+        [Parameter()]
+        [string]$UserHandle,
+        
+        [Parameter()]
+        [string]$RpId,
+        
+        [Parameter()]
+        [ValidateSet('login', 'vault')]
+        [string]$Purpose = 'login',
+        
+        [Parameter()]
+        [object]$Vault
+    )
+    
+    try {
+        # Get vault instance
+        if (-not $Vault) {
+            if (Get-Command getVault -ErrorAction SilentlyContinue) {
+                $vault = getVault
+            } elseif ($Script:Context.Vault) {
+                $vault = $Script:Context.Vault
+            } else {
+                throw "No vault instance available. Please connect to Keeper first or provide a vault parameter."
+            }
+        } else {
+            $vault = $Vault
+        }
+        
+        $auth = $vault.Auth
+        Write-Host "Completing Keeper authentication with assertion data"
+        if ($RpId) {
+            Write-Host "Using RP ID: $RpId"
+        }
+        
+        # Create the authentication completion request
+        $request = [Authentication.PasskeyValidationRequest]::new()
+        
+        Write-Host "Setting challenge token..."
+        $request.ChallengeToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$ChallengeToken)
+        
+        # Set passkey purpose based on the purpose parameter
+        # if ($Purpose -ne 'vault') {
+        #     $request.PasskeyPurpose = [Authentication.PasskeyPurpose]::PkReauth
+        # } else {
+        #     $request.PasskeyPurpose = [Authentication.PasskeyPurpose]::PkLogin
+        # }
+        Write-Host "Set PasskeyPurpose to: $($request.PasskeyPurpose)"
+        
+            # Handle login token - decode using URL-safe Base64 decoding
+            if ($LoginToken -is [string]) {
+                $loginTokenBase64 = $LoginToken.Replace('-', '+').Replace('_', '/').PadRight(($LoginToken.Length + 3) -band -4, '=')
+                $loginTokenBytes = [System.Convert]::FromBase64String($loginTokenBase64)
+                $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom($loginTokenBytes)
+            } else {
+                $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$LoginToken)
+            }
+                
+        # Convert all assertion data from bytes to Base64Url (matching Python implementation)
+        $clientDataBase64Url = ""
+        $authenticatorDataBase64Url = ""
+        $signatureBase64Url = ""
+        
+        # Helper function to convert byte array to Base64Url
+        function ConvertTo-Base64Url {
+            param([byte[]]$Bytes)
+            if ($Bytes -is [byte[]]) {
+                $base64 = [System.Convert]::ToBase64String($Bytes)
+                return $base64.Replace('+', '-').Replace('/', '_').TrimEnd('=')
+            }
+            return $Bytes
+        }
+        
+        # Convert ClientDataJSON
+        if ($ClientDataJSON -is [byte[]]) {
+            $clientDataBase64Url = ConvertTo-Base64Url $ClientDataJSON
+        } else {
+            $clientDataBase64Url = $ClientDataJSON
+        }
+        
+        # Convert AuthenticatorData
+        if ($AuthenticatorData -is [byte[]]) {
+            $authenticatorDataBase64Url = ConvertTo-Base64Url $AuthenticatorData
+        } else {
+            $authenticatorDataBase64Url = $AuthenticatorData
+        }
+        
+        # Convert Signature
+        if ($Signature -is [byte[]]) {
+            $signatureBase64Url = ConvertTo-Base64Url $Signature
+        } else {
+            $signatureBase64Url = $Signature
+        }
+        
+        # Create the assertion response (matching Python format exactly)
+        $assertionResponse = @{
+            id = $CredentialId
+            rawId = $CredentialId
+            response = @{
+                authenticatorData = $authenticatorDataBase64Url
+                clientDataJSON = $clientDataBase64Url
+                signature = $signatureBase64Url
+            }
+            type = "public-key"
+            clientExtensionResults = @{}
+        }
+        
+        # Add user handle if provided
+        if ($UserHandle) {
+            $assertionResponse.response.userHandle = $UserHandle
+        }
+        
+        # Convert to JSON (matching Python json.dumps() behavior)
+        $assertionResponseJson = $assertionResponse | ConvertTo-Json -Depth 10 -Compress
+        
+        # Convert JSON string to UTF-8 bytes for the protobuf property (matching Python: json.dumps().encode('utf-8'))
+        $assertionResponseBytes = [System.Text.Encoding]::UTF8.GetBytes($assertionResponseJson)
+        $request.AssertionResponse = [Google.Protobuf.ByteString]::CopyFrom($assertionResponseBytes)
+ 
+        $response = $auth.ExecuteAuthRest("authentication/passkey/verify_authentication", $request, [Authentication.PasskeyValidationResponse]).GetAwaiter().GetResult()
+                
+        return @{
+            Success = $true
+            Message = "Authentication completed successfully"
+            IsValid = $response.IsValid
+            EncryptedLoginToken = $response.EncryptedLoginToken
+            Descriptor = $response.Descriptor
+        }
+    }
+    catch {
+        Write-Error "Failed to complete Keeper authentication: $($_.Exception.Message)"
+        return @{
+            Success = $false
+            ErrorMessage = $_.Exception.Message
+            ErrorType = $_.Exception.GetType().Name
+        }
+    }
+}
+
+function Invoke-KeeperWindowsHelloAuthentication {
+    <#
+    .SYNOPSIS
+    Complete Windows Hello authentication flow with Keeper
+    
+    .DESCRIPTION
+    This function performs the complete Windows Hello authentication flow:
+    1. Gets authentication options from Keeper API
+    2. Performs Windows Hello assertion
+    3. Completes authentication with Keeper
+    
+    Based on the Keeper Commander Python biometric client implementation.
+    
+    .PARAMETER Username
+    The username to authenticate (optional - will use current auth username if not provided)
+    
+    .PARAMETER Purpose
+    The purpose of authentication: 'login' (default) or 'vault' (re-authentication)
+    
+    .PARAMETER Vault
+    Keeper vault instance (optional - will use global vault if not provided)
+    
+    .EXAMPLE
+    $result = Invoke-KeeperWindowsHelloAuthentication
+    if ($result.Success) {
+        Write-Host "Authentication successful!"
+    }
+    
+    .EXAMPLE
+    $result = Invoke-KeeperWindowsHelloAuthentication -Purpose "vault"
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [string]$Username,
+        
+        [Parameter()]
+        [ValidateSet('login', 'vault')]
+        [string]$Purpose = 'login',
+        
+        [Parameter()]
+        [object]$Vault
+    )
+    
+    try {
+        # Step 1: Get authentication options from Keeper API
+        Write-Host "`nStep 1: Getting authentication options from Keeper..." -ForegroundColor Yellow
+        $authOptions = Get-KeeperAuthenticationOptions -Username $Username -Purpose $Purpose -Vault $Vault
+        
+        if (-not $authOptions.success) {
+            return @{
+                Success = $false
+                ErrorMessage = "Failed to get authentication options: $($authOptions.error_message)"
+                ErrorType = "AuthenticationOptionsError"
+            }
+        }
+        $rpid = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
+        Write-Host "Authentication options retrieved successfully" -ForegroundColor Green
+        $authOptionsJson = $authOptions | ConvertTo-Json -Depth 10
+        Write-Host "Authentication options JSON: $authOptionsJson" -ForegroundColor Cyan
+        
+        Write-Host "RP ID: $($rpid)" -ForegroundColor Cyan
+        if ($authOptions.allowCredentials) {
+            Write-Host "Allowed credentials: $($authOptions.allowCredentials.Count)" -ForegroundColor Cyan
+        } else {
+            Write-Host "Allowed credentials: 0 (any registered credential)" -ForegroundColor Cyan
+        }
+        
+        # Step 2: Perform Windows Hello assertion
+        Write-Host "`nStep 2: Performing Windows Hello authentication..." -ForegroundColor Yellow
+        
+        # Ensure we have the required properties
+        if (-not $authOptions.challenge_token) {
+            return @{
+                Success = $false
+                ErrorMessage = "No challenge token received from authentication options"
+                ErrorType = "AuthenticationOptionsError"
+            }
+        }
+        
+        if (-not $rpid) {
+            return @{
+                Success = $false
+                ErrorMessage = "No RP ID received from authentication options"
+                ErrorType = "AuthenticationOptionsError"
+            }
+        }
+        
+        $assertion = Invoke-WindowsHelloAssertion -Challenge $authOptions.request_options.publicKeyCredentialRequestOptions.challenge -RpId $rpid -AllowedCredentials $authOptions.allowCredentials -UserVerification $authOptions.userVerification
+        
+        if (-not $assertion.Success) {
+            return @{
+                Success = $false
+                ErrorMessage = "Windows Hello assertion failed: $($assertion.ErrorMessage)"
+                ErrorType = "WindowsHelloAssertionError"
+            }
+        }
+        
+        Write-Host "Windows Hello assertion completed successfully" -ForegroundColor Green
+        
+        # Step 3: Complete authentication with Keeper
+        Write-Host "`nStep 3: Completing authentication with Keeper..." -ForegroundColor Yellow
+        $completion = Complete-KeeperAuthentication -ChallengeToken $authOptions.challenge_token -LoginToken $authOptions.login_token -CredentialId $assertion.CredentialId -AuthenticatorData $assertion.AuthenticatorData -ClientDataJSON $assertion.ClientDataJSON -Signature $assertion.Signature -UserHandle $assertion.UserHandle -Vault $Vault -RpId $rpid -Purpose $Purpose
+        
+        if (-not $completion.Success) {
+            return @{
+                Success = $false
+                ErrorMessage = "Failed to complete Keeper authentication: $($completion.ErrorMessage)"
+                ErrorType = "KeeperAuthenticationError"
+            }
+        }
+        
+        Write-Host "`nAuthentication flow completed successfully!" -ForegroundColor Green
+        
+        return @{
+            Success = $true
+            Purpose = $Purpose
+            Username = $authOptions.username
+            CredentialId = $assertion.CredentialId
+            IsValid = $completion.IsValid
+            EncryptedLoginToken = $completion.EncryptedLoginToken
+            Message = "Windows Hello authentication with Keeper completed successfully"
+        }
+    }
+    catch {
+        Write-Error "Windows Hello authentication flow failed: $($_.Exception.Message)"
+        return @{
+            Success = $false
+            ErrorMessage = $_.Exception.Message
+            ErrorType = $_.Exception.GetType().Name
         }
     }
 }
@@ -967,7 +1457,7 @@ function Register-KeeperCredential {
         }
         
         $auth = $vault.Auth
-        Write-Verbose "Registering WebAuthn credential with Keeper API"
+        Write-Host "Registering WebAuthn credential with Keeper API"
         
         # Debug the incoming challenge token
         Write-Host "=== DEBUGGING REGISTER-KEEPERCREDENTIAL INPUTS ===" -ForegroundColor Yellow
@@ -1485,16 +1975,43 @@ New-Alias -Name 'Invoke-WHOp' -Value 'Invoke-WindowsHelloOperation' -Description
 New-Alias -Name 'New-WHCredential' -Value 'Invoke-WindowsHelloCredentialCreation' -Description 'Create Windows Hello credential' -Force
 New-Alias -Name 'Get-KeeperRegOpts' -Value 'Get-KeeperRegistrationOptions' -Description 'Get Keeper registration options' -Force
 New-Alias -Name 'Get-KeeperAuthOpts' -Value 'Get-KeeperAuthenticationOptions' -Description 'Get Keeper authentication options' -Force
+New-Alias -Name 'Invoke-WHAssertion' -Value 'Invoke-WindowsHelloAssertion' -Description 'Windows Hello assertion' -Force
+New-Alias -Name 'Complete-KeeperAuth' -Value 'Complete-KeeperAuthentication' -Description 'Complete Keeper authentication' -Force
+New-Alias -Name 'Invoke-KeeperWHAuth' -Value 'Invoke-KeeperWindowsHelloAuthentication' -Description 'Keeper Windows Hello authentication flow' -Force
 New-Alias -Name 'Register-KeeperCred' -Value 'Register-KeeperCredential' -Description 'Register credential with Keeper' -Force
 New-Alias -Name 'Invoke-KeeperCredReg' -Value 'Invoke-KeeperCredentialCreation' -Description 'Keeper credential registration' -Force
 
 # Export functions and aliases - Primary interface function is Invoke-WindowsHelloOperation
-Export-ModuleMember -Function Invoke-WindowsHelloOperation, Test-WindowsHelloCapabilities, Invoke-WindowsHelloAuthentication, Get-WindowsHelloInfo, Import-PowerShellWindowsHello, Invoke-WindowsHelloCredentialCreation, Get-KeeperRegistrationOptions, Get-KeeperAuthenticationOptions, Register-KeeperCredential, Invoke-KeeperCredentialCreation, ConvertFrom-Base64Url, ConvertTo-ByteString, Utf8BytesToString
-Export-ModuleMember -Alias Invoke-WHOp, Test-WHello, Get-WHello, Invoke-WHAuth, New-WHCredential, Get-KeeperRegOpts, Get-KeeperAuthOpts, Register-KeeperCred, Invoke-KeeperCredReg
+Export-ModuleMember -Function Invoke-WindowsHelloOperation, Test-WindowsHelloCapabilities, Invoke-WindowsHelloAuthentication, Get-WindowsHelloInfo, Import-PowerShellWindowsHello, Invoke-WindowsHelloCredentialCreation, Get-KeeperRegistrationOptions, Get-KeeperAuthenticationOptions, Invoke-WindowsHelloAssertion, Complete-KeeperAuthentication, Invoke-KeeperWindowsHelloAuthentication, Register-KeeperCredential, Invoke-KeeperCredentialCreation, ConvertFrom-Base64Url, ConvertTo-ByteString, Utf8BytesToString
+Export-ModuleMember -Alias Invoke-WHOp, Test-WHello, Get-WHello, Invoke-WHAuth, New-WHCredential, Get-KeeperRegOpts, Get-KeeperAuthOpts, Invoke-WHAssertion, Complete-KeeperAuth, Invoke-KeeperWHAuth, Register-KeeperCred, Invoke-KeeperCredReg
 
 #endregion
 
 #region Integration Examples and Documentation
+
+<#
+.AUTHENTICATION FLOW EXAMPLES
+
+# Complete Windows Hello authentication flow
+$result = Invoke-KeeperWindowsHelloAuthentication
+if ($result.Success) {
+    Write-Host "Authentication successful!"
+}
+
+# Step-by-step authentication
+$authOptions = Get-KeeperAuthenticationOptions -Purpose "vault"
+$rpid = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
+$assertion = Invoke-WindowsHelloAssertion -Challenge $authOptions.challenge -RpId $rpid -AllowedCredentials $authOptions.allowCredentials
+if ($assertion.Success) {
+    $completion = Complete-KeeperAuthentication -ChallengeToken $authOptions.challenge_token -LoginToken $authOptions.login_token -CredentialId $assertion.CredentialId -AuthenticatorData $assertion.AuthenticatorData -ClientDataJSON $assertion.ClientDataJSON -Signature $assertion.Signature -RpId $rpid -Purpose "vault"
+}
+
+# Using aliases for shorter commands
+$result = Invoke-KeeperWHAuth -Purpose "login"
+$authOpts = Get-KeeperAuthOpts
+$rpid = $authOpts.request_options.publicKeyCredentialRequestOptions.rpId
+$assertion = Invoke-WHAssertion -Challenge $authOpts.challenge_token -RpId $rpid
+#>
 
 <#
 .EXAMPLE
