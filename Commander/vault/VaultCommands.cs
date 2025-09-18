@@ -218,6 +218,14 @@ namespace Commander
                     Action = context.UploadAttachmentCommand
                 });
 
+            cli.Commands.Add("delete-attachment",
+                new ParseableCommand<DeleteAttachmentOptions>
+                {
+                    Order = 25,
+                    Description = "Delete attachment",
+                    Action = context.DeleteAttachmentCommand
+                });
+
             cli.Commands.Add("mkdir",
                 new ParseableCommand<MakeFolderOptions>
                 {
@@ -338,10 +346,17 @@ namespace Commander
                     Description = "Download & decrypt data",
                     Action = async (options) =>
                     {
+                        if (options.Reset)
+                        {
+                            Console.WriteLine("Resetting offline storage.");
+                            context.Vault.Storage.Clear();
+                            context.Vault.RecordTypesLoaded = false;
+                        }
+
                         var s = context.Vault.Storage.VaultSettings.Load();
-                        var fullSync = options.Reset || s == null;
+                        var fullSync = s == null;
                         Console.WriteLine("Syncing...");
-                        await context.Vault.SyncDown(fullSync: fullSync);
+                        await context.Vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
                         if (fullSync)
                         {
                             Console.WriteLine($"Decrypted {context.Vault.RecordCount} record(s)");
