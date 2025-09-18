@@ -98,7 +98,7 @@
         'Remove-KeeperBiometricCredential', 'Invoke-WindowsHelloVerification','New-WindowsHelloPasskey', 'Get-KeeperAuthenticationOptions',
         'Invoke-WindowsHelloAssertion', 'Complete-KeeperAuthentication', 'Invoke-KeeperWindowsHelloAuthentication',
         'Invoke-WindowsHelloOperation', 'Test-WindowsHelloCapabilities', 'Invoke-WindowsHelloAuthentication', 'Get-WindowsHelloInfo',
-        'Invoke-WindowsHelloCredentialCreation', 'Get-KeeperRegistrationOptions', 'Register-KeeperCredential', 'Invoke-KeeperCredentialCreation'
+        'Invoke-WindowsHelloCredentialCreation', 'Get-KeeperRegistrationOptions', 'Register-KeeperCredential', 'Invoke-KeeperCredentialCreation','Test-KeeperCredentialExists'
     )
 
     # Cmdlets to export from this module
@@ -115,7 +115,7 @@
         'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kcb', 'khello',
         'Invoke-WHOp', 'Test-WHello', 'Get-WHello', 'Invoke-WHAuth', 'New-WHCredential', 'Get-KeeperRegOpts', 'Get-KeeperAuthOpts', 
         'Invoke-WHAssertion', 'Complete-KeeperAuth', 'Invoke-KeeperWHAuth', 'Register-KeeperCred', 'Invoke-KeeperCredReg', 
-        'Find-WHCreds')
+        'Find-WHCreds', 'Test-WHCredExists')
 
     # List of all modules packaged with this module
     # ModuleList = @()

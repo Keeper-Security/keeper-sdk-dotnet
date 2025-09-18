@@ -455,7 +455,7 @@ namespace PowerShellWindowsHello
                     if (options.AllowedCredentialIds != null && options.AllowedCredentialIds.Length > 0)
                     {
                         var credentials = options.AllowedCredentialIds
-                            .Select(x => Convert.FromBase64String(x))
+                            .Select(x => FromBase64Url(x))
                             .ToArray();
                         
                         credentialCount = credentials.Length;
@@ -865,20 +865,39 @@ namespace PowerShellWindowsHello
         /// </summary>
         public static CredentialDiscoveryResult DiscoverCredentials(string rpId = null, string username = null)
         {
+            return DiscoverCredentials(rpId, username, null);
+        }
+
+        /// <summary>
+        /// Discover existing Windows Hello credentials with specific credential IDs to check
+        /// This method uses the WebAuthn API to check which of the provided credential IDs are valid
+        /// </summary>
+        public static CredentialDiscoveryResult DiscoverCredentials(string rpId = null, string username = null, string[] credentialIdsToCheck = null)
+        {
+            Console.WriteLine($"Discovering credentials for {username}@{rpId}");
+            if (credentialIdsToCheck != null && credentialIdsToCheck.Length > 0)
+            {
+                Console.WriteLine($"Checking specific credential IDs: {credentialIdsToCheck.Length}");
+            }
+            
             var result = new CredentialDiscoveryResult
             {
                 Username = username,
                 RpId = rpId,
-                Method = "WebAuthn Platform Credential List",
+                Method = credentialIdsToCheck != null && credentialIdsToCheck.Length > 0 ? 
+                    "WebAuthn Platform Credential List + Specific ID Check" : 
+                    "WebAuthn Platform Credential List",
                 Timestamp = DateTime.UtcNow,
                 DiscoveredCredentials = new List<DiscoveredCredential>()
             };
 
-            // No validation required - we can list all credentials or filter by rpId/username
-
             IntPtr pList = IntPtr.Zero;
             try
             {
+                // Get a valid window handle for the API call
+                IntPtr hWnd = GetBestWindowHandle();
+                Console.WriteLine($"Using window handle: 0x{hWnd.ToInt64():X8}");
+                
                 // Call the WebAuthn API to get platform credentials
                 int hr = NativeWebAuthn.WebAuthNGetPlatformCredentialList(IntPtr.Zero, out pList);
                 if (hr != 0 || pList == IntPtr.Zero)
@@ -898,35 +917,61 @@ namespace PowerShellWindowsHello
                     return result;
                 }
 
-                // Parse the credential list
+                // Marshal the list structure first
                 var list = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_CREDENTIAL_DETAILS_LIST>(pList);
-                
-                long current = list.pCredentials.ToInt64();
-                int structSize = Marshal.SizeOf<NativeWebAuthn.WEBAUTHN_CREDENTIAL_DETAILS>();
+                IntPtr ppArray = list.ppCredentialDetails; // this points to an array of IntPtr (pointer-to-pointer)
+                int count = (int)list.cCredentialDetails;
 
-                for (uint i = 0; i < list.cCredentials; i++)
+                for (int i = 0; i < count; i++)
                 {
                     try
                     {
-                        IntPtr pEntry = new IntPtr(current + i * structSize);
-                        var entry = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_CREDENTIAL_DETAILS>(pEntry);
+                        // Read the pointer to the WEBAUTHN_CREDENTIAL_DETAILS for entry i
+                        IntPtr pDetailPtr = Marshal.ReadIntPtr(ppArray, i * IntPtr.Size);
+                        if (pDetailPtr == IntPtr.Zero) continue;
 
-                        // Read credential ID bytes
-                        byte[] credentialIdBytes = new byte[entry.cbId];
-                        if (entry.cbId > 0 && entry.pbId != IntPtr.Zero)
+                        var detail = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_CREDENTIAL_DETAILS>(pDetailPtr);
+
+                        // Credential ID bytes
+                        byte[] credentialIdBytes = Array.Empty<byte>();
+                        int idLen = (int)detail.cbCredentialID;
+                        if (idLen > 0 && detail.pbCredentialID != IntPtr.Zero)
                         {
-                            Marshal.Copy(entry.pbId, credentialIdBytes, 0, (int)entry.cbId);
+                            credentialIdBytes = new byte[idLen];
+                            Marshal.Copy(detail.pbCredentialID, credentialIdBytes, 0, idLen);
                         }
 
-                        // Read rpId and userName (LPCWSTR pointers -> managed string)
-                        string credentialRpId = entry.pRpId != IntPtr.Zero ? Marshal.PtrToStringUni(entry.pRpId) : null;
-                        string credentialUser = entry.pUserName != IntPtr.Zero ? Marshal.PtrToStringUni(entry.pUserName) : null;
+                        // RpId (from nested RP info)
+                        string credentialRpId = null;
+                        if (detail.pRpInformation != IntPtr.Zero)
+                        {
+                            var rpInfo = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_RP_ENTITY_INFORMATION_READ>(detail.pRpInformation);
+                            credentialRpId = rpInfo.pwszId != IntPtr.Zero ? Marshal.PtrToStringUni(rpInfo.pwszId) : null;
+                        }
 
-                        // Check if this credential matches our criteria (include all if no filters provided)
-                        bool rpIdMatch = string.IsNullOrEmpty(rpId) || 
-                                        string.Equals(credentialRpId, rpId, StringComparison.OrdinalIgnoreCase);
-                        bool userMatch = string.IsNullOrEmpty(username) || 
-                                        string.Equals(credentialUser, username, StringComparison.OrdinalIgnoreCase);
+                        // Username / user display name (from nested User info)
+                        string credentialUserName = null;
+                        string credentialUserDisplayName = null;
+                        string credentialUserHandleBase64Url = null;
+                        if (detail.pUserInformation != IntPtr.Zero)
+                        {
+                            var userInfo = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_USER_ENTITY_INFORMATION_READ>(detail.pUserInformation);
+                            credentialUserName = userInfo.pwszName != IntPtr.Zero ? Marshal.PtrToStringUni(userInfo.pwszName) : null;
+                            credentialUserDisplayName = userInfo.pwszDisplayName != IntPtr.Zero ? Marshal.PtrToStringUni(userInfo.pwszDisplayName) : null;
+
+                            if (userInfo.cbId > 0 && userInfo.pbId != IntPtr.Zero)
+                            {
+                                var userIdBytes = new byte[userInfo.cbId];
+                                Marshal.Copy(userInfo.pbId, userIdBytes, 0, (int)userInfo.cbId);
+                                credentialUserHandleBase64Url = ToBase64Url(userIdBytes);
+                            }
+                        }
+
+                        bool rpIdMatch = string.IsNullOrEmpty(rpId) ||
+                                         string.Equals(credentialRpId, rpId, StringComparison.OrdinalIgnoreCase);
+                        bool userMatch = string.IsNullOrEmpty(username) ||
+                                         string.Equals(credentialUserName, username, StringComparison.OrdinalIgnoreCase) ||
+                                         string.Equals(credentialUserDisplayName, username, StringComparison.OrdinalIgnoreCase);
 
                         if (rpIdMatch && userMatch)
                         {
@@ -935,23 +980,66 @@ namespace PowerShellWindowsHello
                                 CredentialId = ToBase64Url(credentialIdBytes),
                                 Source = "WebAuthn Platform Credential List",
                                 IsAvailable = true,
-                                UserHandle = credentialUser,
+                                UserHandle = credentialUserName ?? credentialUserDisplayName ?? credentialUserHandleBase64Url,
                                 RpId = credentialRpId
                             });
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception exEntry)
                     {
-                        // Log the error but continue processing other credentials
-                        Console.WriteLine($"Error processing credential {i}: {ex.Message}");
+                        // don't abort the whole enumeration on a single bad entry
+                        Console.WriteLine($"Error processing credential {i}: {exEntry}");
                     }
                 }
 
-                result.Success = true;
-                result.HasCredentials = result.DiscoveredCredentials.Count > 0;
-                result.StatusMessage = result.HasCredentials 
-                    ? $"Found {result.DiscoveredCredentials.Count} credential(s) for {username ?? "any user"}@{rpId}"
-                    : $"No credentials found for {username ?? "any user"}@{rpId}";
+                // If specific credential IDs were provided, check which ones are valid
+                if (credentialIdsToCheck != null && credentialIdsToCheck.Length > 0)
+                {
+                    Console.WriteLine($"Checking {credentialIdsToCheck.Length} specific credential IDs against discovered credentials");
+                    
+                    var validCredentials = new List<DiscoveredCredential>();
+                    var invalidCredentialIds = new List<string>();
+                    
+                    foreach (var credIdToCheck in credentialIdsToCheck)
+                    {
+                        var found = result.DiscoveredCredentials.FirstOrDefault(c => 
+                            string.Equals(c.CredentialId, credIdToCheck, StringComparison.OrdinalIgnoreCase));
+                        
+                        if (found != null)
+                        {
+                            validCredentials.Add(found);
+                            Console.WriteLine($"Credential {credIdToCheck.Substring(0, Math.Min(20, credIdToCheck.Length))}... is VALID");
+                        }
+                        else
+                        {
+                            invalidCredentialIds.Add(credIdToCheck);
+                            Console.WriteLine($"Credential {credIdToCheck.Substring(0, Math.Min(20, credIdToCheck.Length))}... is INVALID");
+                        }
+                    }
+                    
+                    // Update result to only include valid credentials
+                    result.DiscoveredCredentials = validCredentials;
+                    result.HasCredentials = validCredentials.Count > 0;
+                    result.StatusMessage = $"Found {validCredentials.Count} of {credentialIdsToCheck.Length} specified credentials";
+                    
+                    // Add additional analysis information
+                    result.AllowCredentialsAnalysis = new
+                    {
+                        TotalAllowed = credentialIdsToCheck.Length,
+                        Present = validCredentials.Count,
+                        Missing = invalidCredentialIds.Count,
+                        ValidCredentialIds = validCredentials.Select(c => c.CredentialId).ToArray(),
+                        InvalidCredentialIds = invalidCredentialIds.ToArray()
+                    };
+                }
+                else
+                {
+                    result.Success = true;
+                    result.HasCredentials = result.DiscoveredCredentials.Count > 0;
+                    result.StatusMessage = result.HasCredentials
+                        ? $"Found {result.DiscoveredCredentials.Count} credential(s) for {username ?? "any user"}@{rpId ?? "any rp"}"
+                        : $"No credentials found for {username ?? "any user"}@{rpId ?? "any rp"}";
+                }
 
                 return result;
             }
@@ -970,8 +1058,7 @@ namespace PowerShellWindowsHello
                 }
             }
         }
-
-         #endregion
+        #endregion
     }
 
     #region Data Classes
@@ -1096,6 +1183,7 @@ namespace PowerShellWindowsHello
         public DateTime Timestamp { get; set; }
         public string ErrorMessage { get; set; }
         public string ErrorType { get; set; }
+        public object AllowCredentialsAnalysis { get; set; }
     }
 
     /// <summary>
@@ -1344,23 +1432,55 @@ namespace PowerShellWindowsHello
         [StructLayout(LayoutKind.Sequential)]
         internal struct WEBAUTHN_CREDENTIAL_DETAILS
         {
-            public IntPtr pNext;               // PWEBAUTHN_CREDENTIAL_DETAILS
-            public ushort credentialType;      // WEBAUTHN_CREDENTIAL_TYPE
-            public ushort padding;
-            public uint cbId;                  // size of pbId
-            public IntPtr pbId;                // pointer to byte[] credential id
-            public IntPtr pRpId;               // LPCWSTR rpId (platform string pointer)
-            public IntPtr pUserName;           // LPCWSTR userName (may be null)
-            public IntPtr pUserDisplayName;    // LPCWSTR userDisplayName (may be null)
+            public uint dwVersion;
+            public uint cbCredentialID;                // size of pbCredentialID
+            public IntPtr pbCredentialID;              // PBYTE
+            public IntPtr pRpInformation;              // PWEBAUTHN_RP_ENTITY_INFORMATION
+            public IntPtr pUserInformation;            // PWEBAUTHN_USER_ENTITY_INFORMATION
+            public IntPtr pCredBlob;                   // PBYTE (Windows 11+)
+            public uint cbCredBlob;                    // size of pCredBlob (Windows 11+)
+            public IntPtr pHmacSecretSalt;             // PBYTE (Windows 11+)
+            public uint dwCredProtect;                 // credential protection policy (Windows 11+)
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool bRemovable;
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool bBackedUp;
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool bHasLargeBlob;                 // Windows 11+
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool bHasCredBlob;                  // Windows 11+
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool bHasHmacSecret;                // Windows 11+
         }
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct WEBAUTHN_CREDENTIAL_DETAILS_LIST
         {
-            public uint Version;
-            public uint cCredentials; // count
-            public IntPtr pCredentials; // PWEBAUTHN_CREDENTIAL_DETAILS (pointer to first element)
+            public uint cCredentialDetails;            // DWORD
+            public IntPtr ppCredentialDetails;         // PWEBAUTHN_CREDENTIAL_DETAILS *
         }
+
+        // Structs for reading from native structures (with IntPtr fields)
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        internal struct WEBAUTHN_RP_ENTITY_INFORMATION_READ
+        {
+            public uint dwVersion;
+            public IntPtr pwszId;      // PCWSTR
+            public IntPtr pwszName;
+            public IntPtr pwszIcon;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        internal struct WEBAUTHN_USER_ENTITY_INFORMATION_READ
+        {
+            public uint dwVersion;
+            public uint cbId;          // size of pbId
+            public IntPtr pbId;        // PBYTE user handle
+            public IntPtr pwszName;    // PCWSTR username (e.g. john@example.com)
+            public IntPtr pwszIcon;
+            public IntPtr pwszDisplayName;
+        }
+
     }
 
     #endregion
