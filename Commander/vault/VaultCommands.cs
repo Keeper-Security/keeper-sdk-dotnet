@@ -346,17 +346,10 @@ namespace Commander
                     Description = "Download & decrypt data",
                     Action = async (options) =>
                     {
-                        if (options.Reset)
-                        {
-                            Console.WriteLine("Resetting offline storage.");
-                            context.Vault.Storage.Clear();
-                            context.Vault.RecordTypesLoaded = false;
-                        }
-
                         var s = context.Vault.Storage.VaultSettings.Load();
-                        var fullSync = s == null;
+                        var fullSync = options.Reset || s == null;
                         Console.WriteLine("Syncing...");
-                        await context.Vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
+                        await context.Vault.SyncDown(fullSync: fullSync);
                         if (fullSync)
                         {
                             Console.WriteLine($"Decrypted {context.Vault.RecordCount} record(s)");
