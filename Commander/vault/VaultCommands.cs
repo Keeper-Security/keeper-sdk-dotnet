@@ -226,14 +226,6 @@ namespace Commander
                     Action = context.DeleteAttachmentCommand
                 });
 
-            cli.Commands.Add("delete-attachment",
-                new ParseableCommand<DeleteAttachmentOptions>
-                {
-                    Order = 25,
-                    Description = "Delete attachment",
-                    Action = context.DeleteAttachmentCommand
-                });
-
             cli.Commands.Add("mkdir",
                 new ParseableCommand<MakeFolderOptions>
                 {

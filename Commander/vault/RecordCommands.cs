@@ -705,7 +705,10 @@ namespace Commander
             if (notFoundFiles.Count > 0)
             {
                 Console.WriteLine($"  Files not found: {string.Join(", ", notFoundFiles)}");
+
+                attachments = context.Vault.RecordAttachments(record).ToArray(); // Refresh the array since there is a chance that some of the attachments are removed in earlier delete attachments call
                 Console.WriteLine("\nAvailable attachments:");
+                
                 foreach (var att in attachments)
                 {
                     Console.WriteLine($"  - {att.Name} (ID: {att.Id})");
