@@ -646,54 +646,70 @@ namespace Commander
 
             foreach (var fileName in options.FileNames.Select(f => f.Trim()))
             {
-                var attachmentsToDelete = attachments.Where(x =>
+                var exactIdMatch = attachments.FirstOrDefault(x => string.Equals(fileName, x.Id));
+                
+                if (exactIdMatch != null)
                 {
-                    // Match by ID
-                    if (string.Equals(fileName, x.Id))
+                    Console.WriteLine($"Deleting attachment by ID '{fileName}':");
+                    var deleteSuccess = await context.Vault.DeleteAttachment(record, exactIdMatch.Id);
+
+                    if (deleteSuccess)
                     {
-                        return true;
+                        Console.WriteLine($"Attachment '{exactIdMatch.Name}' (ID: {exactIdMatch.Id}) deleted successfully.");
                     }
-
-                    if (string.Equals(fileName, x.Title, StringComparison.InvariantCultureIgnoreCase))
+                    else
                     {
-                        return true;
+                        Console.WriteLine($"Failed to delete attachment '{exactIdMatch.Name}' (ID: {exactIdMatch.Id}).");
                     }
+                    continue;
+                }
 
-                    if (string.Equals(fileName, x.Name, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        return true;
-                    }
+                var attachmentsByName = attachments.Where(x =>
+                    string.Equals(fileName, x.Title, StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(fileName, x.Name, StringComparison.InvariantCultureIgnoreCase)
+                ).ToArray();
 
-                    return false;
-                }).ToArray();
-
-                if (attachmentsToDelete.Length == 0)
+                if (attachmentsByName.Length == 0)
                 {
                     notFoundFiles.Add(fileName);
                     continue;
                 }
 
-                Console.WriteLine($"Deleting {attachmentsToDelete.Length} attachment(s) matching '{fileName}':");
-
-                foreach (var attachmentToDelete in attachmentsToDelete)
+                if (attachmentsByName.Length > 1)
                 {
-                    var success = await context.Vault.DeleteAttachment(record, attachmentToDelete.Id);
+                    Console.WriteLine($"Multiple attachments found with name '{fileName}'. Cannot delete by name when duplicates exist.");
+                    Console.WriteLine("Please specify the attachment ID to delete:");
+                    foreach (var att in attachmentsByName)
+                    {
+                        Console.WriteLine($"  - {att.Name} (ID: {att.Id})");
+                    }
+                    Console.WriteLine("Use the ID in the delete command to specify which attachment to delete.");
+                    continue;
+                }
 
-                    if (success)
-                    {
-                        Console.WriteLine($"Attachment '{attachmentToDelete.Name}' (ID: {attachmentToDelete.Id}) deleted successfully.");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Failed to delete attachment '{attachmentToDelete.Name}' (ID: {attachmentToDelete.Id}).");
-                    }
+                var attachmentToDelete = attachmentsByName[0];
+                Console.WriteLine($"Deleting attachment '{fileName}':");
+
+                var deleteResult = await context.Vault.DeleteAttachment(record, attachmentToDelete.Id);
+
+                if (deleteResult)
+                {
+                    Console.WriteLine($"Attachment '{attachmentToDelete.Name}' (ID: {attachmentToDelete.Id}) deleted successfully.");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to delete attachment '{attachmentToDelete.Name}' (ID: {attachmentToDelete.Id}).");
                 }
             }
 
             if (notFoundFiles.Count > 0)
             {
                 Console.WriteLine($"  Files not found: {string.Join(", ", notFoundFiles)}");
+
+                // Refresh the array since there is a chance that some of the attachments are removed in earlier delete attachments call
+                attachments = context.Vault.RecordAttachments(record).ToArray();
                 Console.WriteLine("\nAvailable attachments:");
+                
                 foreach (var att in attachments)
                 {
                     Console.WriteLine($"  - {att.Name} (ID: {att.Id})");
@@ -701,7 +717,7 @@ namespace Commander
             }
 
         }
-
+        
         public static async Task RemoveRecordCommand(this VaultContext context, RemoveRecordOptions options)
         {
             if (string.IsNullOrEmpty(options.RecordName))
