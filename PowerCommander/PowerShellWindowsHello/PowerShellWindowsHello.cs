@@ -210,12 +210,12 @@ namespace PowerShellWindowsHello
          /// <summary>
          /// Create a new Windows Hello credential (WebAuthn MakeCredential)
          /// </summary>
-        public static async Task<CredentialCreationResult> CreateCredentialAsync(RegistrationOptions options)
+        public static async Task<CredentialCreationResult> CreateCredentialAsync(RegistrationOptions options, ExcludeCredential[] excludeCredentials = null)
         {
             try
             {
                 var hWnd = GetBestWindowHandle();
-                var result = await MakeCredentialAsync(hWnd, options);
+                var result = await MakeCredentialAsync(hWnd, options, excludeCredentials);
                  
                  return new CredentialCreationResult
                  {
@@ -593,11 +593,11 @@ namespace PowerShellWindowsHello
             return await taskSource.Task;
         }
 
-        private static Task<InternalCredentialCreationResult> MakeCredentialAsync(IntPtr hWnd, RegistrationOptions options)
+        private static Task<InternalCredentialCreationResult> MakeCredentialAsync(IntPtr hWnd, RegistrationOptions options, ExcludeCredential[] excludeCredentials = null)
         {
             var taskSource = new TaskCompletionSource<InternalCredentialCreationResult>();
             var ptrList = new List<IntPtr>();
-
+            Console.WriteLine($"ExcludeCredentials count: {excludeCredentials?.Length}");
             Task.Run(() =>
             {
                 try
@@ -666,17 +666,56 @@ namespace PowerShellWindowsHello
                         pCredentialParameters = credParamPtr
                     };
 
+                    IntPtr excludeCredentialListPtr = IntPtr.Zero;
+                    IntPtr pubKeyPtr = IntPtr.Zero; 
+                    
+                    if (excludeCredentials != null && excludeCredentials.Length > 0)
+                    {   
+                        try
+                        {
+                            var excludeCredentialsCbor = EncodeExcludeCredentialsAsCbor(excludeCredentials);
+                            var excludeCborPtr = Marshal.AllocHGlobal(excludeCredentialsCbor.Length);
+                            ptrList.Add(excludeCborPtr);
+                            Marshal.Copy(excludeCredentialsCbor, 0, excludeCborPtr, excludeCredentialsCbor.Length);
+                            
+                            var excludeList = new NativeWebAuthn.WEBAUTHN_CREDENTIAL_LIST
+                            {
+                                cCredentials = excludeCredentials.Length,
+                                ppCredentials = excludeCborPtr 
+                            };
+
+                            IntPtr excludeListPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(NativeWebAuthn.WEBAUTHN_CREDENTIAL_LIST)));
+                            ptrList.Add(excludeListPtr);
+                            Marshal.StructureToPtr(excludeList, excludeListPtr, false);
+
+                            excludeCredentialListPtr = excludeListPtr;
+                            
+                            var excludeListCheck = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_CREDENTIAL_LIST>(excludeListPtr);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error encoding exclude credentials as CBOR: {ex.Message}");
+                            throw;
+                        }
+                        
+                        Console.WriteLine($"=== END EXCLUDE CREDENTIALS CBOR DEBUG ===");
+                    }
+                    Console.WriteLine($"ExcludeCredentialListPtr: {excludeCredentialListPtr}");
                     // Create make credential options
                     var makeCredOptions = new NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_MAKE_CREDENTIAL_OPTIONS
                     {
-                        dwVersion = NativeWebAuthn.WEBAUTHN_CREDENTIAL_CURRENT_VERSION,
+                        dwVersion = NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_MAKE_CREDENTIAL_OPTIONS_CURRENT_VERSION,
                         dwTimeoutMilliseconds = (uint)options.TimeoutMs,
-                        CredentialList = new NativeWebAuthn.WEBAUTHN_CREDENTIALS_LIST
+                        CredentialList = new NativeWebAuthn.WEBAUTHN_CREDENTIAL_LIST
                         {
                             cCredentials = 0,
                             ppCredentials = IntPtr.Zero
                         },
-                        Extensions = IntPtr.Zero,
+                        Extensions = new NativeWebAuthn.WEBAUTHN_EXTENSIONS
+                        {
+                            cExtensions = 0,
+                            pExtensions = IntPtr.Zero
+                        },
                         dwAuthenticatorAttachment = options.AuthenticatorAttachment == "platform" 
                             ? NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM 
                             : NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_ANY,
@@ -684,10 +723,22 @@ namespace PowerShellWindowsHello
                         dwUserVerificationRequirement = options.UserVerification == "required" ? 1u : 0u,
                         dwAttestationConveyancePreference = options.AttestationConveyancePreference == "direct" ? 1u : 0u,
                         dwFlags = 0,
-                        pCancellationId = IntPtr.Zero,
-                        pExcludeCredentialList = IntPtr.Zero
+                        pwszCancellationId = null,
+                        pExcludeCredentialList = excludeCredentialListPtr,
+                        dwEnterpriseAttestation = 0,
+                        bPreferResidentKey = false,
+                        dwLargeBlobSupport = 0,
+                        bPreferPlatformAttachment = false,
+                        bBrowserInPrivateMode = false,
+                        bEnablePrf = false,
+                        pLinkedDevice = IntPtr.Zero,
+                        cbJsonExt = 0,
+                        pbJsonExt = IntPtr.Zero,
+                        pPRFGlobalEval = IntPtr.Zero,
+                        cCredentialHints = 0,
+                        ppwszCredentialHints = IntPtr.Zero,
+                        bThirdPartyPayment = false
                     };
-
                     // Call native WebAuthn MakeCredential API
                     var hr = NativeWebAuthn.WebAuthNAuthenticatorMakeCredential(
                         hWnd,
@@ -705,7 +756,9 @@ namespace PowerShellWindowsHello
                         // Extract credential data
                         var credentialId = new byte[credentialAttestation.cbCredentialId];
                         Marshal.Copy(credentialAttestation.pbCredentialId, credentialId, 0, credentialAttestation.cbCredentialId);
-
+                        
+                        // Debug: Show the created credential ID
+                        var createdCredIdBase64Url = ToBase64Url(credentialId);
                         var attestationObject = new byte[credentialAttestation.cbAttestationObject];
                         Marshal.Copy(credentialAttestation.pbAttestationObject, attestationObject, 0, credentialAttestation.cbAttestationObject);
 
@@ -729,6 +782,12 @@ namespace PowerShellWindowsHello
                         var ptr = NativeWebAuthn.WebAuthNGetErrorName(hr);
                         var error = Marshal.PtrToStringUni(ptr);
                         taskSource.SetException(new Exception($"WebAuthn MakeCredential error: {error} (HRESULT: 0x{hr:X8})"));
+                    }
+
+                    // Free the public key type string after the API call is complete
+                    if (pubKeyPtr != IntPtr.Zero)
+                    {
+                        Marshal.FreeHGlobal(pubKeyPtr);
                     }
                 }
                 catch (Exception ex)
@@ -771,17 +830,73 @@ namespace PowerShellWindowsHello
          /// </summary>
          private static byte[] FromBase64Url(string base64Url)
          {
-             // Convert base64url to standard base64
-             string base64 = base64Url.Replace('-', '+').Replace('_', '/');
-             
-             // Add padding if needed
-             switch (base64.Length % 4)
+             try
              {
-                 case 2: base64 += "=="; break;
-                 case 3: base64 += "="; break;
+                 if (string.IsNullOrEmpty(base64Url))
+                 {
+                     throw new ArgumentException("Base64Url string cannot be null or empty");
+                 }
+
+                 // Convert base64url to standard base64
+                 string base64 = base64Url.Replace('-', '+').Replace('_', '/');
+                 
+                 // Add padding if needed
+                 switch (base64.Length % 4)
+                 {
+                     case 2: base64 += "=="; break;
+                     case 3: base64 += "="; break;
+                 }
+                 
+                 return Convert.FromBase64String(base64);
+             }
+             catch (Exception ex)
+             {
+                 Console.WriteLine($"Error decoding Base64Url: '{base64Url}' (Length: {base64Url?.Length ?? 0})");
+                 Console.WriteLine($"Exception: {ex.Message}");
+                 throw new ArgumentException($"Invalid Base64Url format: {ex.Message}", ex);
+             }
+         }
+
+         /// <summary>
+         /// Encodes exclude credentials as CBOR (matching Yubico python-fido2 approach)
+         /// </summary>
+         private static byte[] EncodeExcludeCredentialsAsCbor(ExcludeCredential[] excludeCredentials)
+         {
+             if (excludeCredentials == null || excludeCredentials.Length == 0)
+                 return new byte[0];
+
+             var cborArray = CBORObject.NewArray();
+             
+             foreach (var cred in excludeCredentials)
+             {
+                 var credObj = CBORObject.NewMap();
+                 credObj["type"] = CBORObject.FromObject(cred.Type ?? "public-key");
+                 credObj["id"] = CBORObject.FromObject(FromBase64Url(cred.Id));
+                 
+                 if (cred.Transports != null && cred.Transports.Length > 0)
+                 {
+                     var transportsArray = CBORObject.NewArray();
+                     foreach (var transport in cred.Transports)
+                     {
+                         transportsArray.Add(CBORObject.FromObject(transport));
+                     }
+                     credObj["transports"] = transportsArray;
+                 }
+                 
+                 cborArray.Add(credObj);
              }
              
-             return Convert.FromBase64String(base64);
+             return cborArray.EncodeToBytes();
+         }
+
+         /// <summary>
+         /// Helper method to read bytes from unmanaged memory
+         /// </summary>
+         private static byte[] ReadBytes(IntPtr ptr, int count)
+         {
+             var bytes = new byte[count];
+             Marshal.Copy(ptr, bytes, 0, count);
+             return bytes;
          }
 
          /// <summary>
@@ -1140,6 +1255,16 @@ namespace PowerShellWindowsHello
     }
 
     /// <summary>
+    /// Exclude credential for WebAuthn registration
+    /// </summary>
+    public class ExcludeCredential
+    {
+        public string Type { get; set; } = "public-key";
+        public string Id { get; set; }
+        public string[] Transports { get; set; }
+    }
+
+    /// <summary>
     /// PowerShell-friendly credential creation result
     /// </summary>
     public class CredentialCreationResult
@@ -1223,6 +1348,7 @@ namespace PowerShellWindowsHello
         internal const uint WEBAUTHN_CLIENT_DATA_CURRENT_VERSION = 1;
         internal const string WEBAUTHN_HASH_ALGORITHM_SHA_256 = "SHA-256";
         internal const uint WEBAUTHN_CREDENTIAL_CURRENT_VERSION = 1;
+        internal const uint WEBAUTHN_AUTHENTICATOR_MAKE_CREDENTIAL_OPTIONS_CURRENT_VERSION = 1;
         internal const string WEBAUTHN_CREDENTIAL_TYPE_PUBLIC_KEY = "public-key";
         
         internal const uint WEBAUTHN_AUTHENTICATOR_ATTACHMENT_ANY = 0;
@@ -1308,6 +1434,24 @@ namespace PowerShellWindowsHello
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        internal struct WEBAUTHN_CREDENTIAL_LIST
+        {
+            public int cCredentials;
+            public IntPtr ppCredentials;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct WEBAUTHN_CREDENTIAL_EX
+        {
+            public uint dwVersion;
+            public uint cbId;
+            public IntPtr pbId;
+            [MarshalAs(UnmanagedType.LPWStr)]
+            public string pwszCredentialType;
+            public uint dwTransports;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         internal struct WEBAUTHN_EXTENSIONS
         {
             public uint cExtensions;
@@ -1387,20 +1531,37 @@ namespace PowerShellWindowsHello
             public IntPtr pCredentialParameters;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         internal struct WEBAUTHN_AUTHENTICATOR_MAKE_CREDENTIAL_OPTIONS
         {
             public uint dwVersion;
             public uint dwTimeoutMilliseconds;
-            public WEBAUTHN_CREDENTIALS_LIST CredentialList;
-            public IntPtr Extensions;
+            public WEBAUTHN_CREDENTIAL_LIST CredentialList;
+            public WEBAUTHN_EXTENSIONS Extensions;
             public uint dwAuthenticatorAttachment;
+            [MarshalAs(UnmanagedType.Bool)]
             public bool bRequireResidentKey;
             public uint dwUserVerificationRequirement;
             public uint dwAttestationConveyancePreference;
             public uint dwFlags;
-            public IntPtr pCancellationId;
-            public IntPtr pExcludeCredentialList;
+            [MarshalAs(UnmanagedType.LPWStr)]
+            public string pwszCancellationId;
+            public IntPtr pExcludeCredentialList;  // PWEBAUTHN_CREDENTIAL_LIST
+            public uint dwEnterpriseAttestation;
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool bPreferResidentKey;
+            public uint dwLargeBlobSupport;
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool bPreferPlatformAttachment;
+            public bool bBrowserInPrivateMode;
+            public bool bEnablePrf;
+            public IntPtr pLinkedDevice;  // PCTAPCBOR_HYBRID_STORAGE_LINKED_DATA
+            public uint cbJsonExt;
+            public IntPtr pbJsonExt;  // PBYTE
+            public IntPtr pPRFGlobalEval;  // PWEBAUTHN_HMAC_SECRET_SALT
+            public uint cCredentialHints;
+            public IntPtr ppwszCredentialHints;  // LPCWSTR*
+            public bool bThirdPartyPayment;
         }
 
         [StructLayout(LayoutKind.Sequential)]

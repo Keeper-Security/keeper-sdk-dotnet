@@ -24,7 +24,7 @@
 
   <!-- Package dependencies for CBOR encoding -->
   <ItemGroup>
-    <PackageReference Include="PeterO.Cbor" Version="4.5.2" />
+    <PackageReference Include="PeterO.Cbor" Version="4.5.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
