@@ -96,7 +96,7 @@
         'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperPasswordReport',
         'Test-WindowsHelloAvailability', 'Connect-KeeperWithBiometrics', 'Set-KeeperBiometricCredential', 'Get-KeeperBiometricCredential',
         'Remove-KeeperBiometricCredential', 'Invoke-WindowsHelloVerification','New-WindowsHelloPasskey', 'Get-KeeperAuthenticationOptions',
-        'Invoke-WindowsHelloAssertion', 'Complete-KeeperAuthentication', 'Invoke-KeeperWindowsHelloAuthentication',
+        'Invoke-WindowsHelloAssertion', 'Invoke-KeeperWindowsHelloAuthentication',
         'Invoke-WindowsHelloOperation', 'Test-WindowsHelloCapabilities', 'Invoke-WindowsHelloAuthentication', 'Get-WindowsHelloInfo',
         'Invoke-WindowsHelloCredentialCreation', 'Get-KeeperRegistrationOptions', 'Register-KeeperCredential', 'Invoke-KeeperCredentialCreation','Test-KeeperCredentialExists'
     )

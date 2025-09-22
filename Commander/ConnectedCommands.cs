@@ -66,27 +66,6 @@ namespace Commander
                         });
                 }
 
-                Commands.Add("test-windows-hello", new ParseableCommand<TestWindowsHelloOptions>
-                {
-                    Order = 190,
-                    Description = "Test Windows Hello availability",
-                    Action = async (options) => await WindowsHelloCommands.TestWindowsHelloCommand(options)
-                });
-
-                Commands.Add("setup-biometric", new ParseableCommand<SetupBiometricOptions>
-                {
-                    Order = 191,
-                    Description = "Set up biometric authentication for Keeper",
-                    Action = async (options) => await WindowsHelloCommands.SetupBiometricCommand(options)
-                });
-
-                Commands.Add("remove-biometric", new ParseableCommand<RemoveBiometricOptions>
-                {
-                    Order = 192,
-                    Description = "Remove stored biometric credentials",
-                    Action = async (options) => await WindowsHelloCommands.RemoveBiometricCommand(options)
-                });
-
                 Commands.Add("logout",
                     new ParseableCommand<LogoutOptions>
                     {
@@ -238,6 +217,7 @@ namespace Commander
 
                 case "register":
                 {
+                    Console.WriteLine(device);
                     if (!device.EncryptedDataKeyPresent)
                     {
                         await _auth.RegisterDataKeyForDevice(device);

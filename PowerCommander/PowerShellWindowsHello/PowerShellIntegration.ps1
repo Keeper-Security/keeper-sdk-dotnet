@@ -119,62 +119,6 @@ function Test-WindowsHelloCapabilities {
         # Get comprehensive capabilities
         $capabilities = [PowerShellWindowsHello.WindowsHelloApi]::GetFormattedInfo()
         
-        if (-not $Quiet) {
-            # Display formatted information
-            Write-Host "Windows Hello Capabilities Report" -ForegroundColor Yellow
-            Write-Host "══════════════════════════════════" -ForegroundColor Yellow
-            Write-Host ""
-            
-            # Status
-            Write-Host "Status: " -NoNewline -ForegroundColor Cyan
-            Write-Host $capabilities.WindowsHello.Status -ForegroundColor $(if ($capabilities.WindowsHello.Available) { "Green" } else { "Red" })
-            
-            if ($capabilities.WindowsHello.Available) {
-                Write-Host "API Version: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.WindowsHello.ApiVersion -ForegroundColor White
-                
-                Write-Host "Platform: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.WindowsHello.Platform -ForegroundColor White
-                
-                Write-Host "Supported Methods: " -NoNewline -ForegroundColor Cyan
-                Write-Host ($capabilities.WindowsHello.Methods -join ", ") -ForegroundColor White
-                
-                Write-Host ""
-                Write-Host "PowerShell Integration:" -ForegroundColor Yellow
-                Write-Host "  Can Create Credentials: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.PowerShellIntegration.CanCreateCredentials -ForegroundColor $(if ($capabilities.PowerShellIntegration.CanCreateCredentials) { "Green" } else { "Yellow" })
-                
-                Write-Host "  Can Authenticate: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.PowerShellIntegration.CanAuthenticate -ForegroundColor $(if ($capabilities.PowerShellIntegration.CanAuthenticate) { "Green" } else { "Yellow" })
-                
-                Write-Host "  Recommended Command: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.PowerShellIntegration.RecommendedCommand -ForegroundColor Magenta
-                
-                Write-Host ""
-                Write-Host "System Information:" -ForegroundColor Yellow
-                Write-Host "  WebAuthn DLL: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.PowerShellIntegration.WebAuthnDllStatus -ForegroundColor White
-                
-                Write-Host "  Production Ready: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.SystemInfo.ProductionReady -ForegroundColor $(if ($capabilities.SystemInfo.ProductionReady) { "Green" } else { "Yellow" })
-                
-                Write-Host "  Runtime Version: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.SystemInfo.RuntimeVersion -ForegroundColor White
-                
-                Write-Host "  64-bit Process: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.SystemInfo.Is64BitProcess -ForegroundColor White
-                
-                Write-Host "  Last Checked: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.WindowsHello.LastChecked -ForegroundColor White
-            } else {
-                Write-Host "Error: " -NoNewline -ForegroundColor Red
-                Write-Host $capabilities.WindowsHello.Error -ForegroundColor White
-                
-                Write-Host "WebAuthn DLL Status: " -NoNewline -ForegroundColor Cyan
-                Write-Host $capabilities.PowerShellIntegration.WebAuthnDllStatus -ForegroundColor White
-            }
-        }
-        
         if ($PassThru) {
             return $capabilities
         }
@@ -184,7 +128,7 @@ function Test-WindowsHelloCapabilities {
     }
     catch {
         if (-not $Quiet) {
-            Write-Error "Failed to check Windows Hello capabilities: $($_.Exception.Message)"
+            Write-Debug "Failed to check Windows Hello capabilities: $($_.Exception.Message)"
         }
         return $false
     }
@@ -543,7 +487,10 @@ function Get-KeeperRegistrationOptions {
         $request = [Authentication.PasskeyRegistrationRequest]::new()
         $request.AuthenticatorAttachment = [Authentication.AuthenticatorAttachment]::Platform
         
-        $response = $auth.ExecuteAuthRest("authentication/passkey/generate_registration", $request, [Authentication.PasskeyRegistrationResponse]).GetAwaiter().GetResult()
+        $responseBytes = $auth.ExecuteAuthRest("authentication/passkey/generate_registration", $request, [Authentication.PasskeyRegistrationResponse]).GetAwaiter().GetResult()
+        
+        # Parse the response using protobuf parser
+        $response = [Authentication.PasskeyRegistrationResponse]::Parser.ParseFrom($responseBytes)
         
         $creationOptions = $response.PkCreationOptions | ConvertFrom-Json
         
@@ -786,8 +733,8 @@ function Get-KeeperAuthenticationOptions {
     .PARAMETER Purpose
     The purpose of authentication: 'login' (default) or 'vault' (re-authentication)
     
-    .PARAMETER Vault
-    Keeper vault instance (optional - will use global vault if not provided)
+    .PARAMETER AuthSyncObject
+    Keeper AuthSync instance (optional - will use global auth if not provided)
     
     .EXAMPLE
     $authOptions = Get-KeeperAuthenticationOptions
@@ -808,36 +755,35 @@ function Get-KeeperAuthenticationOptions {
         [string]$Purpose = 'login',
         
         [Parameter()]
-        [object]$Vault
+        [object]$AuthSyncObject
     )
     
     try {
-        # Get vault instance
-        if (-not $Vault) {
-            if (Get-Command getVault -ErrorAction SilentlyContinue) {
-                $vault = getVault
-            } elseif ($Script:Context.Vault) {
-                $vault = $Script:Context.Vault
+        # Get AuthSync instance
+        if (-not $AuthSyncObject) {
+            if (Get-Command getAuthSync -ErrorAction SilentlyContinue) {
+                $authSync = getAuthSync
+            } elseif ($Script:Context.AuthSync) {
+                $authSync = $Script:Context.AuthSync
             } else {
-                throw "No vault instance available. Please connect to Keeper first or provide a vault parameter."
+                throw "No AuthSync instance available. Please connect to Keeper first or provide an AuthSyncObject parameter."
             }
         } else {
-            $vault = $Vault
+            $authSync = $AuthSyncObject
         }
         
-        $auth = $vault.Auth
         Write-Verbose "Generating passkey authentication options from Keeper API"
         
         # Create the PasskeyAuthenticationRequest
         $request = [Authentication.PasskeyAuthenticationRequest]::new()
         $request.AuthenticatorAttachment = [Authentication.AuthenticatorAttachment]::Platform
-        $request.ClientVersion = $auth.Endpoint.ClientVersion
+        $request.ClientVersion = $authSync.Endpoint.ClientVersion
         
         # Set username (use provided username or current auth username)
         if ($Username) {
             $request.Username = $Username
         } else {
-            $request.Username = $auth.Username
+            $request.Username = $authSync.Username
         }
         
         # Set passkey purpose
@@ -848,13 +794,20 @@ function Get-KeeperAuthenticationOptions {
         }
         
         # Add device token if available
-        if ($auth.DeviceToken) {
+        if ($authSync.DeviceToken) {
             Write-Verbose "Adding device token to authentication request"
-            $request.EncryptedDeviceToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$auth.DeviceToken)
+            $request.EncryptedDeviceToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$authSync.DeviceToken)
         }
         
         # Execute the REST API call
-        $response = $auth.ExecuteAuthRest("authentication/passkey/generate_authentication", $request, [Authentication.PasskeyAuthenticationResponse]).GetAwaiter().GetResult()
+        # Serialize the request object to bytes using protobuf extension method
+        $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
+        $apiRequest = [Authentication.ApiRequestPayload]::new()
+        $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
+        $responseBytes = $authSync.Endpoint.ExecuteRest("authentication/passkey/generate_authentication", $apiRequest).GetAwaiter().GetResult()
+        
+        # Parse the response using protobuf parser
+        $response = [Authentication.PasskeyAuthenticationResponse]::Parser.ParseFrom($responseBytes)
         
         # Parse the request options JSON
         $requestOptions = $response.PkRequestOptions | ConvertFrom-Json
@@ -1076,8 +1029,8 @@ function Complete-KeeperAuthentication {
     .PARAMETER Purpose
     The purpose of authentication: 'login' (default) or 'vault' (re-authentication)
     
-    .PARAMETER Vault
-    Keeper vault instance (optional - will use global vault if not provided)
+    .PARAMETER AuthSyncObject
+    Keeper AuthSync instance (optional - will use global auth if not provided)
     
     .EXAMPLE
     $authOptions = Get-KeeperAuthenticationOptions -Purpose "vault"
@@ -1118,51 +1071,36 @@ function Complete-KeeperAuthentication {
         [string]$Purpose = 'login',
         
         [Parameter()]
-        [object]$Vault
+        [object]$AuthSyncObject
     )
     
     try {
-        # Get vault instance
-        if (-not $Vault) {
-            if (Get-Command getVault -ErrorAction SilentlyContinue) {
-                $vault = getVault
-            } elseif ($Script:Context.Vault) {
-                $vault = $Script:Context.Vault
+        # Get AuthSync instance
+        if (-not $AuthSyncObject) {
+            if (Get-Command getAuthSync -ErrorAction SilentlyContinue) {
+                $authSync = getAuthSync
+            } elseif ($Script:Context.AuthSync) {
+                $authSync = $Script:Context.AuthSync
             } else {
-                throw "No vault instance available. Please connect to Keeper first or provide a vault parameter."
+                throw "No AuthSync instance available. Please connect to Keeper first or provide an AuthSyncObject parameter."
             }
         } else {
-            $vault = $Vault
-        }
-        
-        $auth = $vault.Auth
-        Write-Host "Completing Keeper authentication with assertion data"
-        if ($RpId) {
-            Write-Host "Using RP ID: $RpId"
+            $authSync = $AuthSyncObject
         }
         
         # Create the authentication completion request
         $request = [Authentication.PasskeyValidationRequest]::new()
         
-        Write-Host "Setting challenge token..."
         $request.ChallengeToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$ChallengeToken)
-        
-        # Set passkey purpose based on the purpose parameter
-        # if ($Purpose -ne 'vault') {
-        #     $request.PasskeyPurpose = [Authentication.PasskeyPurpose]::PkReauth
-        # } else {
-        #     $request.PasskeyPurpose = [Authentication.PasskeyPurpose]::PkLogin
-        # }
-        Write-Host "Set PasskeyPurpose to: $($request.PasskeyPurpose)"
-        
-            # Handle login token - decode using URL-safe Base64 decoding
-            if ($LoginToken -is [string]) {
-                $loginTokenBase64 = $LoginToken.Replace('-', '+').Replace('_', '/').PadRight(($LoginToken.Length + 3) -band -4, '=')
-                $loginTokenBytes = [System.Convert]::FromBase64String($loginTokenBase64)
-                $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom($loginTokenBytes)
-            } else {
-                $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$LoginToken)
-            }
+    
+        # Handle login token - decode using URL-safe Base64 decoding
+        if ($LoginToken -is [string]) {
+            $loginTokenBase64 = $LoginToken.Replace('-', '+').Replace('_', '/').PadRight(($LoginToken.Length + 3) -band -4, '=')
+            $loginTokenBytes = [System.Convert]::FromBase64String($loginTokenBase64)
+            $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom($loginTokenBytes)
+        } else {
+            $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$LoginToken)
+        }
                 
         # Convert all assertion data from bytes to Base64Url (matching Python implementation)
         $clientDataBase64Url = ""
@@ -1225,7 +1163,14 @@ function Complete-KeeperAuthentication {
         $assertionResponseBytes = [System.Text.Encoding]::UTF8.GetBytes($assertionResponseJson)
         $request.AssertionResponse = [Google.Protobuf.ByteString]::CopyFrom($assertionResponseBytes)
  
-        $response = $auth.ExecuteAuthRest("authentication/passkey/verify_authentication", $request, [Authentication.PasskeyValidationResponse]).GetAwaiter().GetResult()
+        # Serialize the request object to bytes using protobuf extension method
+        $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
+        $apiRequest = [Authentication.ApiRequestPayload]::new()
+        $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
+        $responseBytes = $authSync.Endpoint.ExecuteRest("authentication/passkey/verify_authentication", $apiRequest).GetAwaiter().GetResult()
+        
+        # Parse the response using protobuf parser
+        $response = [Authentication.PasskeyValidationResponse]::Parser.ParseFrom($responseBytes)
                 
         return @{
             Success = $true
@@ -1264,8 +1209,8 @@ function Invoke-KeeperWindowsHelloAuthentication {
     .PARAMETER Purpose
     The purpose of authentication: 'login' (default) or 'vault' (re-authentication)
     
-    .PARAMETER Vault
-    Keeper vault instance (optional - will use global vault if not provided)
+    .PARAMETER AuthSyncObject
+    Keeper AuthSync instance (optional - will use global auth if not provided)
     
     .EXAMPLE
     $result = Invoke-KeeperWindowsHelloAuthentication
@@ -1286,13 +1231,13 @@ function Invoke-KeeperWindowsHelloAuthentication {
         [string]$Purpose = 'login',
         
         [Parameter()]
-        [object]$Vault
+        [object]$AuthSyncObject
     )
     
     try {
         # Step 1: Get authentication options from Keeper API
-        Write-Host "`nStep 1: Getting authentication options from Keeper..." -ForegroundColor Yellow
-        $authOptions = Get-KeeperAuthenticationOptions -Username $Username -Purpose $Purpose -Vault $Vault
+        Write-Debug "`nStep 1: Getting authentication options from Keeper..."
+        $authOptions = Get-KeeperAuthenticationOptions -Username $Username -Purpose $Purpose -AuthSyncObject $AuthSyncObject
         
         if (-not $authOptions.success) {
             return @{
@@ -1302,20 +1247,17 @@ function Invoke-KeeperWindowsHelloAuthentication {
             }
         }
         $rpid = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
-        Write-Host "Authentication options retrieved successfully" -ForegroundColor Green
-        $authOptionsJson = $authOptions | ConvertTo-Json -Depth 10
-        Write-Host "Authentication options JSON: $authOptionsJson" -ForegroundColor Cyan
+        Write-Debug "Authentication options retrieved successfully"
         
-        Write-Host "RP ID: $($rpid)" -ForegroundColor Cyan
         $allowCredentials = $authOptions.request_options.publicKeyCredentialRequestOptions.allowCredentials
         if ($allowCredentials) {
-            Write-Host "Allowed credentials: $($allowCredentials.Count)" -ForegroundColor Cyan
+            Write-Debug "Allowed credentials: $($allowCredentials.Count)"
         } else {
-            Write-Host "Allowed credentials: 0 (any registered credential)" -ForegroundColor Cyan
+            Write-Debug "Allowed credentials: 0 (any registered credential)"
         }
         
         # Step 2: Perform Windows Hello assertion
-        Write-Host "`nStep 2: Performing Windows Hello authentication..." -ForegroundColor Yellow
+        Write-Debug "`nStep 2: Performing Windows Hello authentication..."
         
         # Ensure we have the required properties
         if (-not $authOptions.challenge_token) {
@@ -1344,11 +1286,11 @@ function Invoke-KeeperWindowsHelloAuthentication {
             }
         }
         
-        Write-Host "Windows Hello assertion completed successfully" -ForegroundColor Green
+        Write-Debug "Windows Hello assertion completed successfully"
         
         # Step 3: Complete authentication with Keeper
-        Write-Host "`nStep 3: Completing authentication with Keeper..." -ForegroundColor Yellow
-        $completion = Complete-KeeperAuthentication -ChallengeToken $authOptions.challenge_token -LoginToken $authOptions.login_token -CredentialId $assertion.CredentialId -AuthenticatorData $assertion.AuthenticatorData -ClientDataJSON $assertion.ClientDataJSON -Signature $assertion.Signature -UserHandle $assertion.UserHandle -Vault $Vault -RpId $rpid -Purpose $Purpose
+        Write-Debug "`nStep 3: Completing authentication with Keeper..."
+        $completion = Complete-KeeperAuthentication -ChallengeToken $authOptions.challenge_token -LoginToken $authOptions.login_token -CredentialId $assertion.CredentialId -AuthenticatorData $assertion.AuthenticatorData -ClientDataJSON $assertion.ClientDataJSON -Signature $assertion.Signature -UserHandle $assertion.UserHandle -AuthSyncObject $AuthSyncObject -RpId $rpid -Purpose $Purpose
         
         if (-not $completion.Success) {
             return @{
@@ -1358,7 +1300,7 @@ function Invoke-KeeperWindowsHelloAuthentication {
             }
         }
         
-        Write-Host "`nAuthentication flow completed successfully!" -ForegroundColor Green
+        Write-Debug "`nAuthentication flow completed successfully!"
         
         return @{
             Success = $true
@@ -1491,7 +1433,14 @@ function Register-KeeperCredential {
         Write-Host "=== REQUEST OBJECT CONTENT ===" -ForegroundColor Yellow
         $request | Format-List * | Out-String | Write-Host -ForegroundColor Green
         Write-Host "=============================" -ForegroundColor Yellow
-        $response = $auth.ExecuteAuthRest("authentication/passkey/verify_registration", $request).GetAwaiter().GetResult()
+        # Serialize the request object to bytes using protobuf extension method
+        $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
+        $apiRequest = [Authentication.ApiRequestPayload]::new()
+        $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
+        $responseBytes = $auth.ExecuteAuthRest("authentication/passkey/verify_registration", $apiRequest).GetAwaiter().GetResult()
+        
+        # Parse the response using protobuf parser
+        $response = [Authentication.PasskeyValidationResponse]::Parser.ParseFrom($responseBytes)
         
         $responseJson = $response | ConvertTo-Json -Depth 10
 
@@ -1603,28 +1552,23 @@ function Invoke-KeeperCredentialCreation {
             }
         }
         
-        # Get all existing registry entries for this user
-        $existingRegistryCreds = Get-WindowsHelloRegisteredCredentials -Username $username -RpId $rpId
+        # Check if user already has a credential ID stored
+        $existingCredentialId = Get-WindowsHelloCredentialId -Username $username
         
-        # Check for matches between registry entries and excludeCredentials
+        # Check for matches between stored credential ID and excludeCredentials
         $matchedCredential = $null
-        if ($existingRegistryCreds.Count -gt 0 -and $excludeCredentials.Count -gt 0 -and -not $Force) {
-                        
-            foreach ($regCred in $existingRegistryCreds) {
-                $regCredId = $regCred.CredentialId
+        if ($existingCredentialId -and $excludeCredentials.Count -gt 0 -and -not $Force) {
+            foreach ($excludeCred in $excludeCredentials) {
+                $excludeCredId = $excludeCred.id
                 
-                foreach ($excludeCred in $excludeCredentials) {
-                    $excludeCredId = $excludeCred.id
-                    $excludeCredIdShort = $excludeCredId.Substring(0, [Math]::Min(20, $excludeCredId.Length))
-                    
-                    # Compare the first 20 characters (our registry key format)
-                    if ($regCredId -eq $excludeCredIdShort) {
-                        $matchedCredential = $regCred
-                        break
+                # Compare the full credential IDs
+                if ($existingCredentialId -eq $excludeCredId) {
+                    $matchedCredential = @{
+                        Username = $username
+                        CredentialId = $existingCredentialId
                     }
+                    break
                 }
-                
-                if ($matchedCredential) { break }
             }
         }
         
@@ -1651,27 +1595,16 @@ function Invoke-KeeperCredentialCreation {
                 $rpId = $regOptions.rp_id
                 $username = $regOptions.user_name
                 
-                $registryResult = Register-WindowsHelloCredential -Username $username -RpId $rpId -CredentialId $credentialId -BiometricsEnabled $true
-                if ($registryResult) {
-                    Write-Host "Credential registered in local registry for tracking" -ForegroundColor Green
+                # Store the credential ID for this user
+                $storeResult = Set-WindowsHelloCredentialId -Username $username -CredentialId $credentialId
+                if ($storeResult) {
+                    Write-Host "Credential ID stored for user: $username" -ForegroundColor Green
                 } else {
-                    Write-Warning "Failed to register credential in local registry (tracking may be limited)"
+                    Write-Warning "Failed to store credential ID for user: $username"
                 }
             } else {
-                Write-Host " Windows Hello credential creation failed: $($credResult.ErrorMessage)" -ForegroundColor Red0
-                else {
-                    # Credential created but registration failed
-                    return @{
-                        Success = $false
-                        Error = "Credential created but registration failed: $($registerResult.Error)"
-                        ErrorType = "RegistrationFailed"
-                        PartialSuccess = $true
-                        CredentialCreated = $true
-                        CredentialId = $credResult.CredentialId
-                        Timestamp = $credResult.Timestamp
-                        }
-                    }
-                }
+                Write-Host " Windows Hello credential creation failed: $($credResult.ErrorMessage)" -ForegroundColor Red
+            }
         } else {
             return @{
                 Success = $false
@@ -2014,7 +1947,6 @@ New-Alias -Name 'New-WHCredential' -Value 'Invoke-WindowsHelloCredentialCreation
 New-Alias -Name 'Get-KeeperRegOpts' -Value 'Get-KeeperRegistrationOptions' -Description 'Get Keeper registration options' -Force
 New-Alias -Name 'Get-KeeperAuthOpts' -Value 'Get-KeeperAuthenticationOptions' -Description 'Get Keeper authentication options' -Force
 New-Alias -Name 'Invoke-WHAssertion' -Value 'Invoke-WindowsHelloAssertion' -Description 'Windows Hello assertion' -Force
-New-Alias -Name 'Complete-KeeperAuth' -Value 'Complete-KeeperAuthentication' -Description 'Complete Keeper authentication' -Force
 New-Alias -Name 'Invoke-KeeperWHAuth' -Value 'Invoke-KeeperWindowsHelloAuthentication' -Description 'Keeper Windows Hello authentication flow' -Force
 New-Alias -Name 'Register-KeeperCred' -Value 'Register-KeeperCredential' -Description 'Register credential with Keeper' -Force
 New-Alias -Name 'Invoke-KeeperCredReg' -Value 'Invoke-KeeperCredentialCreation' -Description 'Keeper credential registration' -Force
@@ -2156,38 +2088,6 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
         }
     }
     
-    function Test-WindowsHelloCredentialRegistered {
-        [CmdletBinding()]
-        param(
-            [Parameter(Mandatory=$true)]
-            [string]$Username,
-            
-            [Parameter(Mandatory=$true)]
-            [string]$RpId,
-            
-            [Parameter(Mandatory=$true)]
-            [string]$CredentialId
-        )
-        
-        try {
-            # Create the same key name as registration
-            $safeUsername = $Username -replace '@', '_' -replace '\\', '_' -replace '/', '_'
-            $safeRpId = $RpId -replace '\.', '_'
-            $shortCredId = $CredentialId.Substring(0, [Math]::Min(20, $CredentialId.Length))
-            $keyName = "${safeUsername}___${safeRpId}___${shortCredId}"
-            
-            if (Test-Path $script:WindowsHelloRegistryPath) {
-                $value = (Get-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $keyName -ErrorAction SilentlyContinue).$keyName
-                return $value -ne $null
-            }
-            return $false
-        }
-        catch {
-            Write-Error "Failed to check credential registration: $($_.Exception.Message)"
-            return $false
-        }
-    }
-    
     function Clear-AllWindowsHelloCredentials {
         [CmdletBinding()]
         param()
@@ -2207,53 +2107,105 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
         }
     }
     
-    function Get-WindowsHelloCredentialIds {
+    function Get-WindowsHelloCredentialId {
         [CmdletBinding()]
         param(
-            [Parameter()]
-            [string]$Username,
-            
-            [Parameter()]
-            [string]$RpId
+            [Parameter(Mandatory = $true)]
+            [string]$Username
         )
         
         try {
-            $credentialIds = @()
-            
             if (Test-Path $script:WindowsHelloRegistryPath) {
-                $properties = Get-ItemProperty -Path $script:WindowsHelloRegistryPath
+                # Get the credential ID value for the username key
+                $credentialId = Get-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
                 
-                foreach ($prop in $properties.PSObject.Properties) {
-                    if ($prop.Name -notlike "PS*") {
-                        # Parse the key format: username___rpid___credentialId
-                        # Example: satish.gaddala_metronlabs.com___keepersecurity.com___AC55W4EFR_tvICoiRrz6
-                        $keyName = $prop.Name
-                        $keyParts = $keyName.Split('___')
-                        
-                        if ($keyParts.Length -eq 3) {
-                            # Simple parsing with ___ separators
-                            $usernamePart = $keyParts[0] -replace '_', '@'
-                            $rpIdPart = $keyParts[1] -replace '_', '.'
-                            $credentialIdPart = $keyParts[2]
-                            
-                            # Apply filters if specified
-                            if ((!$Username -or $usernamePart -like "*$Username*") -and
-                                (!$RpId -or $rpIdPart -like "*$RpId*")) {
-                                
-                                $credentialIds += $credentialIdPart
-                                Write-Verbose "Found credential ID: $credentialIdPart"
-                            }
-                        }
-                    }
+                if ($credentialId -and $credentialId.$Username) {
+                    $id = $credentialId.$Username
+                    Write-Verbose "Retrieved credential ID for user: $Username"
+                    return $id
+                } else {
+                    Write-Verbose "No credential ID found for user: $Username"
+                    return $null
                 }
+            } else {
+                Write-Verbose "Registry path does not exist: $script:WindowsHelloRegistryPath"
+                return $null
             }
-            
-            Write-Host "Found $($credentialIds.Count) credential ID(s) in registry" -ForegroundColor Cyan
-            return $credentialIds
+        }
+        catch [System.Management.Automation.ItemNotFoundException] {
+            Write-Verbose "No credential ID found for user: $Username"
+            return $null
         }
         catch {
-            Write-Error "Failed to get credential IDs: $($_.Exception.Message)"
-            return @()
+            Write-Warning "Failed to retrieve credential ID for $Username`: $($_.Exception.Message)"
+            return $null
+        }
+    }
+    
+    function Set-WindowsHelloCredentialId {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$Username,
+            
+            [Parameter(Mandatory = $false)]
+            [string]$CredentialId
+        )
+        
+        try {
+            # Ensure registry path exists
+            if (!(Test-Path $script:WindowsHelloRegistryPath)) {
+                New-Item -Path $script:WindowsHelloRegistryPath -Force | Out-Null
+            }
+            
+            if ($CredentialId) {
+                # Store the credential ID for the username
+                Set-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -Value $CredentialId -Type String
+                Write-Verbose "Stored credential ID for user: $Username"
+            } else {
+                # Remove the credential key
+                Remove-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
+                Write-Verbose "Removed credential ID for user: $Username"
+            }
+            return $true
+        }
+        catch {
+            Write-Warning "Failed to set credential ID for $Username`: $($_.Exception.Message)"
+            return $false
+        }
+    }
+    
+    function Test-WindowsHelloBiometricPreviouslyUsed {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$Username
+        )
+        
+        try {
+            if (Test-Path $script:WindowsHelloRegistryPath) {
+                # Check if the credential key exists for the username
+                $credentialExists = Get-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
+                
+                if ($credentialExists) {
+                    Write-Verbose "Biometric credential previously used for user: $Username"
+                    return $true
+                } else {
+                    Write-Verbose "No biometric credential found for user: $Username"
+                    return $false
+                }
+            } else {
+                Write-Verbose "Registry path does not exist: $script:WindowsHelloRegistryPath"
+                return $false
+            }
+        }
+        catch [System.Management.Automation.ItemNotFoundException] {
+            Write-Verbose "No biometric credential found for user: $Username"
+            return $false
+        }
+        catch {
+            Write-Warning "Failed to check biometric credential for $Username`: $($_.Exception.Message)"
+            return $false
         }
     }
 } # End of Windows conditional compilation
@@ -2263,17 +2215,18 @@ $exportFunctions = @(
     "Invoke-WindowsHelloOperation", "Test-WindowsHelloCapabilities", "Invoke-WindowsHelloAuthentication", 
     "Get-WindowsHelloInfo", "Import-PowerShellWindowsHello", "Invoke-WindowsHelloCredentialCreation", 
     "Get-KeeperRegistrationOptions", "Get-KeeperAuthenticationOptions", "Invoke-WindowsHelloAssertion", 
-    "Complete-KeeperAuthentication", "Invoke-KeeperWindowsHelloAuthentication", "Register-KeeperCredential", 
-    "Invoke-KeeperCredentialCreation", "ConvertFrom-Base64Url", "ConvertTo-ByteString", "Utf8BytesToString", 
-    "Find-WindowsHelloCredentials", "Test-KeeperCredentialExists"
+    "Invoke-KeeperWindowsHelloAuthentication", "Register-KeeperCredential", 
+    "Invoke-KeeperCredentialCreation", "ConvertFrom-Base64Url", "ConvertTo-ByteString", 
+    "Utf8BytesToString", "Find-WindowsHelloCredentials", "Test-KeeperCredentialExists"
 )
 
 # Add Windows-specific registry functions if on Windows
 if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
     $exportFunctions += @(
         "Register-WindowsHelloCredential", "Unregister-WindowsHelloCredential", 
-        "Get-WindowsHelloRegisteredCredentials", "Test-WindowsHelloCredentialRegistered", 
-        "Clear-AllWindowsHelloCredentials", "Get-WindowsHelloCredentialIds"
+        "Get-WindowsHelloRegisteredCredentials", 
+        "Clear-AllWindowsHelloCredentials",
+        "Get-WindowsHelloCredentialId", "Set-WindowsHelloCredentialId"
     )
 }
 
@@ -2281,317 +2234,3 @@ Export-ModuleMember -Function $exportFunctions
 Export-ModuleMember -Alias Invoke-WHOp, Test-WHello, Get-WHello, Invoke-WHAuth, New-WHCredential, Get-KeeperRegOpts, Get-KeeperAuthOpts, Invoke-WHAssertion, Complete-KeeperAuth, Invoke-KeeperWHAuth, Register-KeeperCred, Invoke-KeeperCredReg, Find-WHCreds
 
 #endregion
-
-#region Integration Examples and Documentation
-
-<#
-.AUTHENTICATION FLOW EXAMPLES
-
-# Complete Windows Hello authentication flow
-$result = Invoke-KeeperWindowsHelloAuthentication
-if ($result.Success) {
-    Write-Host "Authentication successful!"
-}
-
-# Step-by-step authentication
-$authOptions = Get-KeeperAuthenticationOptions -Purpose "vault"
-$rpid = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
-$assertion = Invoke-WindowsHelloAssertion -Challenge $authOptions.challenge -RpId $rpid -AllowedCredentials $authOptions.allowCredentials
-if ($assertion.Success) {
-    $completion = Complete-KeeperAuthentication -ChallengeToken $authOptions.challenge_token -LoginToken $authOptions.login_token -CredentialId $assertion.CredentialId -AuthenticatorData $assertion.AuthenticatorData -ClientDataJSON $assertion.ClientDataJSON -Signature $assertion.Signature -RpId $rpid -Purpose "vault"
-}
-
-# Using aliases for shorter commands
-$result = Invoke-KeeperWHAuth -Purpose "login"
-$authOpts = Get-KeeperAuthOpts
-$rpid = $authOpts.request_options.publicKeyCredentialRequestOptions.rpId
-$assertion = Invoke-WHAssertion -Challenge $authOpts.challenge_token -RpId $rpid
-#>
-
-<#
-.EXAMPLE
-# Basic capability test
-Test-WindowsHelloCapabilities
-
-.EXAMPLE
-# Get detailed information programmatically
-$caps = Test-WindowsHelloCapabilities -PassThru
-if ($caps.SystemInfo.ProductionReady) {
-    Write-Host "Ready for production use"
-}
-
-.EXAMPLE
-# Perform authentication with custom parameters
-$challenge = [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes(32)
-$result = Invoke-WindowsHelloAuthentication -Challenge $challenge -RpId "mycompany.com" -TimeoutMs 30000
-
-.EXAMPLE
-# Simple availability check
-$info = Get-WindowsHelloInfo
-if ($info.IsAvailable -and $info.CanPerformAuthentication) {
-    Write-Host "Windows Hello authentication is available"
-}
-
-.EXAMPLE
-# Integration with existing Keeper PowerCommander workflow
-if ((Get-WindowsHelloInfo).IsAvailable) {
-    # Use Windows Hello enhanced authentication
-    $challenge = Get-KeeperAuthChallenge -Username "user@example.com"
-    $authResult = Invoke-WindowsHelloAuthentication -Challenge $challenge.Challenge -RpId $challenge.RpId
-    
-    if ($authResult.Success) {
-        # Continue with Keeper authentication using the assertion
-        Complete-KeeperAuthentication -Username "user@example.com" -AuthResult $authResult
-    }
-} else {
-    # Fall back to regular authentication
-    Connect-Keeper -Username "user@example.com"
-}
-#>
-
-function Find-WindowsHelloCredentials {
-    <#
-    .SYNOPSIS
-    Discover existing Windows Hello credentials (all or filtered by RP ID and username)
-    
-    .DESCRIPTION
-    This function uses the WebAuthn API to enumerate platform credentials directly.
-    Lists all Windows Hello credentials by default, or filters by RP ID and username if provided.
-    Can also check specific credentials from Keeper authentication options.
-    
-    .PARAMETER RpId
-    The relying party identifier (e.g., "keepersecurity.com") - optional filter
-    
-    .PARAMETER Username
-    The username to search for - optional filter
-    
-    .PARAMETER AuthenticationOptions
-    Keeper authentication options object - if provided, will check which allowCredentials are present
-    
-    .EXAMPLE
-    # List all Windows Hello credentials on the system
-    $allCredentials = Find-WindowsHelloCredentials
-    
-    .EXAMPLE
-    # Find credentials for a specific relying party
-    $credentials = Find-WindowsHelloCredentials -RpId "keepersecurity.com"
-    
-    .EXAMPLE
-    # Find credentials for specific user and relying party
-    $credentials = Find-WindowsHelloCredentials -RpId "keepersecurity.com" -Username "john.doe@company.com"
-    
-    .EXAMPLE
-    # Check which allowCredentials from Keeper authentication options are present
-    $authOptions = Get-KeeperAuthenticationOptions -Username "user@example.com"
-    $credentials = Find-WindowsHelloCredentials -AuthenticationOptions $authOptions
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter()]
-        [string]$RpId,
-        
-        [Parameter()]
-        [string]$Username,
-        
-        [Parameter(Mandatory = $true)]
-        [object]$AuthenticationOptions
-    )
-    
-    if (-not $PowerShellWindowsHelloAvailable) {
-        Write-Warning "PowerShellWindowsHello assembly not available. Please build the project first."
-        return @{
-            Success = $false
-            ErrorMessage = "PowerShellWindowsHello assembly not available"
-            HasCredentials = $false
-            DiscoveredCredentials = @()
-        }
-    }
-    
-    try {
-        Write-Host "Discovering Windows Hello credentials..." -ForegroundColor Cyan
-        Write-Host "Relying Party: $RpId" -ForegroundColor Gray
-        if ($Username) {
-            Write-Host "Username: $Username" -ForegroundColor Gray
-        }
-        
-        # Extract allowCredentials from authentication options
-        $allowCredentials = $AuthenticationOptions.request_options.publicKeyCredentialRequestOptions.allowCredentials
-        if ($allowCredentials -and $allowCredentials.Count -gt 0) {
-                Write-Host "Checking specific credentials from authentication options..." -ForegroundColor Yellow
-                Write-Host "AllowCredentials count: $($allowCredentials.Count)" -ForegroundColor Gray
-                
-                # Extract credential IDs from allowCredentials
-                $credentialIds = @()
-                foreach ($allowedCred in $allowCredentials) {
-                    $credentialIds += $allowedCred.id
-                }
-                
-                Write-Host "Credential IDs: $($credentialIds | ConvertTo-Json -Compress)" -ForegroundColor Yellow
-                # Call C# method with specific credential IDs to check
-                $allResult = [PowerShellWindowsHello.WindowsHelloApi]::DiscoverCredentials($RpId, $Username, $credentialIds)
-                Write-Host "Credential discovery result: $($allResult | ConvertTo-Json -Compress)" -ForegroundColor Gray
-
-
-                if ($allResult.Success) {
-                    # C# method already did the credential ID checking, just return the result
-                    return $allResult
-                }
-        } else {
-            Write-Host "No allowCredentials specified - checking all credentials for RP/User" -ForegroundColor Yellow
-        }
-        
-        # Call the simple C# method that uses WebAuthn API directly
-        $result = [PowerShellWindowsHello.WindowsHelloApi]::DiscoverCredentials($RpId, $Username)
-        Write-Host "Credential discovery result: $($result | ConvertTo-Json -Compress)" -ForegroundColor Gray
-        
-        if ($result.Success) {
-            Write-Host "Credential discovery completed successfully" -ForegroundColor Green
-            Write-Host "Method: $($result.Method)" -ForegroundColor Cyan
-            Write-Host "Status: $($result.StatusMessage)" -ForegroundColor White
-            
-            if ($result.HasCredentials) {
-                Write-Host "Found $($result.DiscoveredCredentials.Count) credential(s):" -ForegroundColor Green
-                foreach ($cred in $result.DiscoveredCredentials) {
-                    Write-Host "  Source: $($cred.Source)" -ForegroundColor Gray
-                    Write-Host "     RP ID: $($cred.RpId)" -ForegroundColor DarkCyan
-                    if ($cred.UserHandle) {
-                        Write-Host "     User: $($cred.UserHandle)" -ForegroundColor DarkCyan
-                    }
-                    Write-Host "     Credential ID: $($cred.CredentialId.Substring(0, [Math]::Min(20, $cred.CredentialId.Length)))..." -ForegroundColor DarkMagenta
-                }
-            } else {
-                Write-Host "No credentials found" -ForegroundColor Red
-                Write-Host "Try creating a credential first with Invoke-WindowsHelloCredentialCreation" -ForegroundColor Yellow
-            }
-        } else {
-            Write-Host "Failed to discover credentials" -ForegroundColor Red
-            Write-Host "Error: $($result.ErrorMessage)" -ForegroundColor Red
-        }
-        
-        return $result
-    }
-    catch {
-        Write-Error "Credential discovery failed: $($_.Exception.Message)"
-        return @{
-            Success = $false
-            ErrorMessage = $_.Exception.Message
-            HasCredentials = $false
-            DiscoveredCredentials = @()
-        }
-    }
-}
-
-# Alias for convenience  
-Set-Alias -Name Find-WHCreds -Value Find-WindowsHelloCredentials
-
-function Test-KeeperCredentialExists {
-    <#
-    .SYNOPSIS
-    Check if Windows Hello credentials exist using Keeper authentication options
-    
-    .DESCRIPTION
-    This function checks if Windows Hello credentials exist by using Keeper authentication
-    options to get the allowCredentials list and checking which ones are present on the system.
-    
-    .PARAMETER Username
-    The username to get authentication options for
-    
-    .PARAMETER Purpose
-    The purpose for authentication (default: "login")
-    
-    .PARAMETER Vault
-    Keeper vault instance (optional - will use global vault if not provided)
-    
-    .EXAMPLE
-    $exists = Test-KeeperCredentialExists -Username "user@company.com"
-    if ($exists) {
-        Write-Host "Credentials exist for this user"
-    }
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$Username,
-        
-        [Parameter()]
-        [string]$Purpose = "login",
-        
-        [Parameter()]
-        [object]$Vault
-    )
-    
-    try {
-        # Get authentication options from Keeper
-        $authOptions = Get-KeeperAuthenticationOptions -Username $Username -Purpose $Purpose -Vault $Vault
-        
-        if (-not $authOptions.success) {
-            Write-Warning "Failed to get authentication options: $($authOptions.error_message)"
-            return $false
-        }
-
-        Find-WindowsHelloCredentials -RpId "keepersecurity.com" -Username "satish.gaddala@metronlabs.com" -AuthenticationOptions $authOptions
-        # Get RP ID and username from authentication options for diagnostic
-        $diagnosticRpId = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
-        $diagnosticUsername = $Username
-        
-        # First, check our local registry for fast credential lookup (Windows only)
-        if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
-            Write-Host "Checking local registry for registered credentials..." -ForegroundColor Cyan
-            $registeredCreds = Get-WindowsHelloRegisteredCredentials -Username $diagnosticUsername -RpId $diagnosticRpId
-            if ($registeredCreds.Count -gt 0) {
-                Write-Host "Found $($registeredCreds.Count) registered credential(s) in local registry" -ForegroundColor Green
-                foreach ($cred in $registeredCreds) {
-                    Write-Host "  - $($cred.Username)@$($cred.RpId): $($cred.CredentialId.Substring(0, [Math]::Min(20, $cred.CredentialId.Length)))... (biometrics: $($cred.BiometricsEnabled))" -ForegroundColor Gray
-                }
-                return $true
-            }
-            
-            Write-Host "No credentials found in local registry, checking Windows Hello directly..." -ForegroundColor Yellow
-        } else {
-            Write-Host "Checking Windows Hello directly (registry tracking not available on this platform)..." -ForegroundColor Yellow
-        }
-        
-        Write-Host "Running diagnostic to show all Windows Hello credentials..." -ForegroundColor Yellow
-        [PowerShellWindowsHello.WindowsHelloApi]::DumpAllWindowsHelloCredentials($diagnosticRpId, $diagnosticUsername)
-        
-        # Test specific credentials from allowCredentials if they exist
-        $allowCredentials = $authOptions.request_options.publicKeyCredentialRequestOptions.allowCredentials
-        if ($allowCredentials -and $allowCredentials.Count -gt 0) {
-            Write-Host "`nTesting specific credentials from allowCredentials..." -ForegroundColor Yellow
-            foreach ($allowedCred in $allowCredentials) {
-                $credId = $allowedCred.id
-                $exists = [PowerShellWindowsHello.WindowsHelloApi]::TestCredentialExists($diagnosticRpId, $credId)
-                Write-Host "Credential $($credId.Substring(0, [Math]::Min(20, $credId.Length)))... exists: $exists" -ForegroundColor $(if($exists) {"Green"} else {"Red"})
-            }
-        }
-        
-        # Check credentials using authentication options
-        $credentials = Find-WindowsHelloCredentials -AuthenticationOptions $authOptions
-        
-        if ($credentials.Success) {
-            if ($credentials.AllowCredentialsAnalysis) {
-                # If we have allowCredentials analysis, check if any are present
-                $hasCredentials = $credentials.AllowCredentialsAnalysis.Present -gt 0
-                Write-Verbose "Found $($credentials.AllowCredentialsAnalysis.Present) of $($credentials.AllowCredentialsAnalysis.TotalAllowed) allowed credentials"
-                return $hasCredentials
-            } else {
-                # Fallback to general credential check
-                $hasCredentials = $credentials.HasCredentials
-                Write-Verbose "Found $($credentials.DiscoveredCredentials.Count) credential(s) for $Username"
-                return $hasCredentials
-            }
-        } else {
-            Write-Verbose "No credentials found for $Username"
-            return $false
-        }
-    }
-    catch {
-        Write-Warning "Error checking for existing credentials: $($_.Exception.Message)"
-        return $false
-    }
-}
-
-#endregion
-
-
-# $auth.DeviceToken
