@@ -594,6 +594,7 @@ function Get-KeeperAuthenticationOptions {
     .DESCRIPTION
     This function retrieves authentication options from the Keeper API,
     including challenge and assertion options needed for Windows Hello authentication.
+    It works with both Vault and AuthSync objects, automatically detecting which one is provided.
     Based on the Python generate_authentication_options function.
     
     .PARAMETER Username
@@ -605,6 +606,9 @@ function Get-KeeperAuthenticationOptions {
     .PARAMETER AuthSyncObject
     Keeper AuthSync instance (optional - will use global auth if not provided)
     
+    .PARAMETER Vault
+    Keeper Vault instance (optional - will use global vault if not provided)
+    
     .EXAMPLE
     $authOptions = Get-KeeperAuthenticationOptions
     if ($authOptions) {
@@ -613,6 +617,9 @@ function Get-KeeperAuthenticationOptions {
     
     .EXAMPLE
     $authOptions = Get-KeeperAuthenticationOptions -Username "user@company.com" -Purpose "vault"
+    
+    .EXAMPLE
+    $authOptions = Get-KeeperAuthenticationOptions -Vault $vault -Purpose "vault"
     #>
     [CmdletBinding()]
     param(
@@ -624,35 +631,54 @@ function Get-KeeperAuthenticationOptions {
         [string]$Purpose = 'login',
         
         [Parameter()]
-        [object]$AuthSyncObject
+        [object]$AuthSyncObject,
+        
+        [Parameter()]
+        [object]$Vault
     )
     
     try {
-        # Get AuthSync instance
-        if (-not $AuthSyncObject) {
-            if (Get-Command getAuthSync -ErrorAction SilentlyContinue) {
-                $authSync = getAuthSync
-            } elseif ($Script:Context.AuthSync) {
-                $authSync = $Script:Context.AuthSync
-            } else {
-                throw "No AuthSync instance available. Please connect to Keeper first or provide an AuthSyncObject parameter."
-            }
+        $auth = $null
+        $isVault = $false
+        
+        # Determine which object to use - prioritize Vault if both are provided
+        if ($Vault) {
+            $auth = $Vault.Auth
+            $isVault = $true
+        } elseif ($AuthSyncObject) {
+            $auth = $AuthSyncObject
+            $isVault = $false
         } else {
-            $authSync = $AuthSyncObject
+            # Try to get from global context - prioritize Vault
+            if (Get-Command getVault -ErrorAction SilentlyContinue) {
+                $vault = getVault
+                $auth = $vault.Auth
+                $isVault = $true
+            } elseif ($Script:Context.Vault) {
+                $vault = $Script:Context.Vault
+                $auth = $vault.Auth
+                $isVault = $true
+            } elseif (Get-Command getAuthSync -ErrorAction SilentlyContinue) {
+                $auth = getAuthSync
+                $isVault = $false
+            } elseif ($Script:Context.AuthSync) {
+                $auth = $Script:Context.AuthSync
+                $isVault = $false
+            } else {
+                throw "No Vault or AuthSync instance available. Please connect to Keeper first or provide a Vault or AuthSyncObject parameter."
+            }
         }
-        
-        Write-Verbose "Generating passkey authentication options from Keeper API"
-        
+                
         # Create the PasskeyAuthenticationRequest
         $request = [Authentication.PasskeyAuthenticationRequest]::new()
         $request.AuthenticatorAttachment = [Authentication.AuthenticatorAttachment]::Platform
-        $request.ClientVersion = $authSync.Endpoint.ClientVersion
+        $request.ClientVersion = $auth.Endpoint.ClientVersion
         
         # Set username (use provided username or current auth username)
         if ($Username) {
             $request.Username = $Username
         } else {
-            $request.Username = $authSync.Username
+            $request.Username = $auth.Username
         }
         
         # Set passkey purpose
@@ -663,16 +689,22 @@ function Get-KeeperAuthenticationOptions {
         }
         
         # Add device token if available
-        if ($authSync.DeviceToken) {
-            $request.EncryptedDeviceToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$authSync.DeviceToken)
+        if ($auth.DeviceToken) {
+            $request.EncryptedDeviceToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$auth.DeviceToken)
         }
         
-        $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
-        $apiRequest = [Authentication.ApiRequestPayload]::new()
-        $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
-        $responseBytes = $authSync.Endpoint.ExecuteRest("authentication/passkey/generate_authentication", $apiRequest).GetAwaiter().GetResult()
-        
-        $response = [Authentication.PasskeyAuthenticationResponse]::Parser.ParseFrom($responseBytes)
+        # Execute API call based on object type
+        if ($isVault) {
+            # Use ExecuteAuthRest for Vault
+            $response = $auth.ExecuteAuthRest("authentication/passkey/generate_authentication", $request, [Authentication.PasskeyAuthenticationResponse]).GetAwaiter().GetResult()
+        } else {
+            # Use ExecuteRest for AuthSync
+            $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
+            $apiRequest = [Authentication.ApiRequestPayload]::new()
+            $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
+            $responseBytes = $auth.Endpoint.ExecuteRest("authentication/passkey/generate_authentication", $apiRequest).GetAwaiter().GetResult()
+            $response = [Authentication.PasskeyAuthenticationResponse]::Parser.ParseFrom($responseBytes)
+        }
         
         $requestOptions = $response.PkRequestOptions | ConvertFrom-Json
         
@@ -803,7 +835,7 @@ function Invoke-WindowsHelloAssertion {
         $result = [PowerShellWindowsHello.WindowsHelloApi]::AuthenticateAsync($options).GetAwaiter().GetResult()
         
         if (-not $result.Success) {
-            Write-Warning "Windows Hello authentication failed: $($result.ErrorMessage)"
+            Write-Warning "Windows Hello Assertion failed: $($result.ErrorMessage)"
             return @{
                 Success = $false
                 ErrorMessage = $result.ErrorMessage
@@ -811,9 +843,7 @@ function Invoke-WindowsHelloAssertion {
                 HResult = $result.HResult
             }
         }
-        
-        Write-Host "Windows Hello authentication successful!" -ForegroundColor Green
-        
+                
         # Return the assertion result
         return @{
             Success = $true
@@ -875,6 +905,9 @@ function Complete-KeeperAuthentication {
     .PARAMETER AuthSyncObject
     Keeper AuthSync instance (optional - will use global auth if not provided)
     
+    .PARAMETER Vault
+    Keeper Vault instance (optional - will use global vault if not provided)
+    
     .EXAMPLE
     $authOptions = Get-KeeperAuthenticationOptions -Purpose "vault"
     $rpid = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
@@ -914,21 +947,42 @@ function Complete-KeeperAuthentication {
         [string]$Purpose = 'login',
         
         [Parameter()]
-        [object]$AuthSyncObject
+        [object]$AuthSyncObject,
+        
+        [Parameter()]
+        [object]$Vault
     )
     
     try {
-        # Get AuthSync instance
-        if (-not $AuthSyncObject) {
-            if (Get-Command getAuthSync -ErrorAction SilentlyContinue) {
-                $authSync = getAuthSync
-            } elseif ($Script:Context.AuthSync) {
-                $authSync = $Script:Context.AuthSync
-            } else {
-                throw "No AuthSync instance available. Please connect to Keeper first or provide an AuthSyncObject parameter."
-            }
+        $auth = $null
+        $isVault = $false
+        
+        # Determine which object to use - prioritize Vault if both are provided
+        if ($Vault) {
+            $auth = $Vault.Auth
+            $isVault = $true
+        } elseif ($AuthSyncObject) {
+            $auth = $AuthSyncObject
+            $isVault = $false
         } else {
-            $authSync = $AuthSyncObject
+            # Try to get from global context - prioritize Vault
+            if (Get-Command getVault -ErrorAction SilentlyContinue) {
+                $vault = getVault
+                $auth = $vault.Auth
+                $isVault = $true
+            } elseif ($Script:Context.Vault) {
+                $vault = $Script:Context.Vault
+                $auth = $vault.Auth
+                $isVault = $true
+            } elseif (Get-Command getAuthSync -ErrorAction SilentlyContinue) {
+                $auth = getAuthSync
+                $isVault = $false
+            } elseif ($Script:Context.AuthSync) {
+                $auth = $Script:Context.AuthSync
+                $isVault = $false
+            } else {
+                throw "No Vault or AuthSync instance available. Please connect to Keeper first or provide a Vault or AuthSyncObject parameter."
+            }
         }
         
         # Create the authentication completion request
@@ -1006,14 +1060,18 @@ function Complete-KeeperAuthentication {
         $assertionResponseBytes = [System.Text.Encoding]::UTF8.GetBytes($assertionResponseJson)
         $request.AssertionResponse = [Google.Protobuf.ByteString]::CopyFrom($assertionResponseBytes)
  
-        # Serialize the request object to bytes using protobuf extension method
-        $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
-        $apiRequest = [Authentication.ApiRequestPayload]::new()
-        $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
-        $responseBytes = $authSync.Endpoint.ExecuteRest("authentication/passkey/verify_authentication", $apiRequest).GetAwaiter().GetResult()
-        
-        # Parse the response using protobuf parser
-        $response = [Authentication.PasskeyValidationResponse]::Parser.ParseFrom($responseBytes)
+        # Execute API call based on object type
+        if ($isVault) {
+            # Use ExecuteAuthRest for Vault
+            $response = $auth.ExecuteAuthRest("authentication/passkey/verify_authentication", $request, [Authentication.PasskeyValidationResponse]).GetAwaiter().GetResult()
+        } else {
+            # Use ExecuteRest for AuthSync
+            $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
+            $apiRequest = [Authentication.ApiRequestPayload]::new()
+            $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
+            $responseBytes = $auth.Endpoint.ExecuteRest("authentication/passkey/verify_authentication", $apiRequest).GetAwaiter().GetResult()
+            $response = [Authentication.PasskeyValidationResponse]::Parser.ParseFrom($responseBytes)
+        }
                 
         return @{
             Success = $true
@@ -1055,14 +1113,24 @@ function Invoke-KeeperWindowsHelloAuthentication {
     .PARAMETER AuthSyncObject
     Keeper AuthSync instance (optional - will use global auth if not provided)
     
+    .PARAMETER Vault
+    Keeper Vault instance (optional - will use global vault if not provided)
+    
+    .PARAMETER PassThru
+    Return the authentication result object. If not specified, function returns nothing.
+    
     .EXAMPLE
-    $result = Invoke-KeeperWindowsHelloAuthentication
+    Invoke-KeeperWindowsHelloAuthentication
+    # Performs authentication without returning a result object
+    
+    .EXAMPLE
+    $result = Invoke-KeeperWindowsHelloAuthentication -PassThru
     if ($result.Success) {
         Write-Host "Authentication successful!"
     }
     
     .EXAMPLE
-    $result = Invoke-KeeperWindowsHelloAuthentication -Purpose "vault"
+    $result = Invoke-KeeperWindowsHelloAuthentication -Purpose "vault" -PassThru
     #>
     [CmdletBinding()]
     param(
@@ -1074,19 +1142,28 @@ function Invoke-KeeperWindowsHelloAuthentication {
         [string]$Purpose = 'login',
         
         [Parameter()]
-        [object]$AuthSyncObject
+        [object]$AuthSyncObject,
+        
+        [Parameter()]
+        [object]$Vault,
+        
+        [Parameter()]
+        [switch]$PassThru
     )
     
     try {
         Write-Debug "`nStep 1: Getting authentication options from Keeper..."
-        $authOptions = Get-KeeperAuthenticationOptions -Username $Username -Purpose $Purpose -AuthSyncObject $AuthSyncObject
+        $authOptions = Get-KeeperAuthenticationOptions -Username $Username -Purpose $Purpose -AuthSyncObject $AuthSyncObject -Vault $Vault
         
         if (-not $authOptions.success) {
-            return @{
-                Success = $false
-                ErrorMessage = "Failed to get authentication options: $($authOptions.error_message)"
-                ErrorType = "AuthenticationOptionsError"
+            if ($PassThru) {
+                return @{
+                    Success = $false
+                    ErrorMessage = "Failed to get authentication options: $($authOptions.error_message)"
+                    ErrorType = "AuthenticationOptionsError"
+                }
             }
+            return
         }
         $rpid = $authOptions.request_options.publicKeyCredentialRequestOptions.rpId
         Write-Debug "Authentication options retrieved successfully"
@@ -1103,63 +1180,79 @@ function Invoke-KeeperWindowsHelloAuthentication {
         
         # Ensure we have the required properties
         if (-not $authOptions.challenge_token) {
-            return @{
-                Success = $false
-                ErrorMessage = "No challenge token received from authentication options"
-                ErrorType = "AuthenticationOptionsError"
+            if ($PassThru) {
+                return @{
+                    Success = $false
+                    ErrorMessage = "No challenge token received from authentication options"
+                    ErrorType = "AuthenticationOptionsError"
+                }
             }
+            return
         }
         
         if (-not $rpid) {
-            return @{
-                Success = $false
-                ErrorMessage = "No RP ID received from authentication options"
-                ErrorType = "AuthenticationOptionsError"
+            if ($PassThru) {
+                return @{
+                    Success = $false
+                    ErrorMessage = "No RP ID received from authentication options"
+                    ErrorType = "AuthenticationOptionsError"
+                }
             }
+            return
         }
         
         $assertion = Invoke-WindowsHelloAssertion -Challenge $authOptions.request_options.publicKeyCredentialRequestOptions.challenge -RpId $rpid -AllowedCredentials $allowCredentials -UserVerification $authOptions.userVerification
         
         if (-not $assertion.Success) {
-            return @{
-                Success = $false
-                ErrorMessage = "Windows Hello assertion failed: $($assertion.ErrorMessage)"
-                ErrorType = "WindowsHelloAssertionError"
+            if ($PassThru) {
+                return @{
+                    Success = $false
+                    ErrorMessage = "Windows Hello assertion failed: $($assertion.ErrorMessage)"
+                    ErrorType = "WindowsHelloAssertionError"
+                }
             }
+            return
         }
         
         Write-Debug "Windows Hello assertion completed successfully"
         
         # Step 3: Complete authentication with Keeper
         Write-Debug "`nStep 3: Completing authentication with Keeper..."
-        $completion = Complete-KeeperAuthentication -ChallengeToken $authOptions.challenge_token -LoginToken $authOptions.login_token -CredentialId $assertion.CredentialId -AuthenticatorData $assertion.AuthenticatorData -ClientDataJSON $assertion.ClientDataJSON -Signature $assertion.Signature -UserHandle $assertion.UserHandle -AuthSyncObject $AuthSyncObject -RpId $rpid -Purpose $Purpose
+        $completion = Complete-KeeperAuthentication -ChallengeToken $authOptions.challenge_token -LoginToken $authOptions.login_token -CredentialId $assertion.CredentialId -AuthenticatorData $assertion.AuthenticatorData -ClientDataJSON $assertion.ClientDataJSON -Signature $assertion.Signature -UserHandle $assertion.UserHandle -AuthSyncObject $AuthSyncObject -Vault $Vault -RpId $rpid -Purpose $Purpose
         
         if (-not $completion.Success) {
-            return @{
-                Success = $false
-                ErrorMessage = "Failed to complete Keeper authentication: $($completion.ErrorMessage)"
-                ErrorType = "KeeperAuthenticationError"
+            if ($PassThru) {
+                return @{
+                    Success = $false
+                    ErrorMessage = "Failed to complete Keeper authentication: $($completion.ErrorMessage)"
+                    ErrorType = "KeeperAuthenticationError"
+                }
             }
+            return
         }
         
-        Write-Debug "`nAuthentication flow completed successfully!"
+        Write-Host "Verification completed successfully!"
         
-        return @{
-            Success = $true
-            Purpose = $Purpose
-            Username = $authOptions.username
-            CredentialId = $assertion.CredentialId
-            IsValid = $completion.IsValid
-            EncryptedLoginToken = $completion.EncryptedLoginToken
-            Message = "Windows Hello authentication with Keeper completed successfully"
+        if ($PassThru) {
+            return @{
+                Success = $true
+                Purpose = $Purpose
+                Username = $authOptions.username
+                CredentialId = $assertion.CredentialId
+                IsValid = $completion.IsValid
+                EncryptedLoginToken = $completion.EncryptedLoginToken
+                Message = "Windows Hello authentication with Keeper completed successfully"
+            }
         }
     }
     catch {
         Write-Error "Windows Hello authentication flow failed: $($_.Exception.Message)"
-        return @{
-            Success = $false
-            ErrorMessage = $_.Exception.Message
-            ErrorType = $_.Exception.GetType().Name
+        if ($PassThru) {
+            return @{
+                Success = $false
+                ErrorMessage = $_.Exception.Message
+                ErrorType = $_.Exception.GetType().Name
+            }
         }
     }
 }
@@ -1396,6 +1489,258 @@ function Get-ProviderNameFromAAGUID {
     }
 }
 
+
+function Disable-KeeperPasskey {
+    <#
+    .SYNOPSIS
+    Disable a passkey on the Keeper server
+    
+    .DESCRIPTION
+    This function disables a specific passkey on the Keeper server using the UpdatePasskeyRequest API.
+    Based on the Python disable_passkey function.
+    
+    .PARAMETER Vault
+    Keeper vault instance
+    
+    .PARAMETER UserId
+    User ID for the passkey
+    
+    .PARAMETER CredentialId
+    Credential ID to disable (Base64Url encoded)
+    
+    .EXAMPLE
+    $result = Disable-KeeperPasskey -Vault $vault -UserId "user123" -CredentialId "abc123def456"
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [object]$Vault,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$UserId,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$CredentialId
+    )
+    
+    try {
+        $auth = $vault.Auth
+        # Create the UpdatePasskeyRequest
+        $request = [Authentication.UpdatePasskeyRequest]::new()
+        $request.UserId = $UserId
+        # Convert credential ID to bytes if it's Base64Url encoded
+        $credentialIdBytes = $null
+        if ($CredentialId -match '^[A-Za-z0-9_-]+$') {
+            # Base64Url decode
+            $base64 = $CredentialId.Replace('-', '+').Replace('_', '/')
+            while ($base64.Length % 4 -ne 0) { $base64 += '=' }
+            $credentialIdBytes = [Convert]::FromBase64String($base64)
+        } else {
+            # Assume it's already bytes or convert from string
+            $credentialIdBytes = [System.Text.Encoding]::UTF8.GetBytes($CredentialId)
+        }
+        
+        $request.CredentialId = [Google.Protobuf.ByteString]::CopyFrom($credentialIdBytes)
+        # Execute the API call
+        $response = $auth.ExecuteAuthRest("authentication/passkey/disable", $request).GetAwaiter().GetResult()
+        return @{
+            Success = $true
+            Message = "Passkey disabled successfully"
+            UserId = $UserId
+            CredentialId = $CredentialId
+        }
+    }
+    catch {
+        $errorMsg = $_.Exception.Message.ToLower()
+        if ($errorMsg -like "*bad_request*" -or $errorMsg -like "*credential id*" -or $errorMsg -like "*userid*") {
+            return @{
+                Success = $false
+                ErrorMessage = "Invalid credential ID or user ID"
+                ErrorType = "BadRequest"
+            }
+        } elseif ($errorMsg -like "*server_error*" -or $errorMsg -like "*unexpected*") {
+            return @{
+                Success = $false
+                ErrorMessage = "Server error occurred"
+                ErrorType = "ServerError"
+            }
+        } else {
+            return @{
+                Success = $false
+                ErrorMessage = $_.Exception.Message
+                ErrorType = $_.Exception.GetType().Name
+            }
+        }
+    }
+}
+
+function Remove-KeeperBiometricCredentials {
+    <#
+    .SYNOPSIS
+    Remove/disable biometric credentials from Keeper
+    
+    .DESCRIPTION
+    This function removes or disables biometric credentials (passkeys) from the Keeper account.
+    It can remove specific credentials by ID or disable all biometric authentication for the user.
+    
+    .PARAMETER CredentialId
+    Specific credential ID to remove (optional - if not provided, disables all biometric auth)
+    
+    .PARAMETER Username
+    Username to disable biometric auth for (optional - uses current user if not provided)
+    
+    .PARAMETER Confirm
+    Skip confirmation prompt (default: false)
+    
+    .PARAMETER Vault
+    Keeper vault instance (optional - will use global vault if not provided)
+    
+    .EXAMPLE
+    # Disable all biometric authentication for current user
+    Remove-KeeperBiometricCredentials
+    
+    .EXAMPLE
+    # Remove specific credential
+    Remove-KeeperBiometricCredentials -CredentialId "abc123def456"
+    
+    .EXAMPLE
+    # Disable for specific user without confirmation
+    Remove-KeeperBiometricCredentials -Username "user@company.com" -Confirm
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$CredentialId,
+        
+        [Parameter(Mandatory=$false)]
+        [string]$Username,
+        
+        [Parameter(Mandatory=$false)]
+        [object]$Vault
+    )
+    
+    try {
+        # Get vault instance
+        if (-not $Vault) {
+            if (Get-Command getVault -ErrorAction SilentlyContinue) {
+                $vault = getVault
+            } elseif ($Script:Context.Vault) {
+                $vault = $Script:Context.Vault
+            } else {
+                throw "No vault instance available. Please connect to Keeper first or provide a vault parameter."
+            }
+        } else {
+            $vault = $Vault
+        }
+        $auth = $vault.Auth
+        
+        if (-not $Username) {
+            $Username = $auth.Username
+        }
+        
+        $hasBiometric = Test-WindowsHelloBiometricPreviouslyUsed -Username $Username
+        if (-not $hasBiometric) {
+            Write-Verbose "Biometric authentication is already disabled for user '$Username'." -ForegroundColor Yellow
+            return @{
+                Success = $true
+                Message = "Biometric authentication already disabled"
+            }
+        }
+        
+        # Confirmation prompt
+        if (-not $PSCmdlet.ShouldProcess("Remove biometric credentials for user '$Username'", "Remove", "Are you sure you want to remove biometric authentication?")) {
+            return @{
+                Success = $false
+                Message = "Operation cancelled by user"
+            }
+        }
+        
+        # Get RP ID from server (assuming keepersecurity.com)
+        $rpId = "keepersecurity.com"
+        
+        # Disable server passkeys - following Python pattern
+        Write-Host "Disabling server passkeys..." -ForegroundColor Yellow
+        $disableResult = $true
+        
+        # Get stored credential ID from registry
+        $storedCredentialId = Get-WindowsHelloCredentialId -Username $Username
+        if ($storedCredentialId) {
+            
+            try {
+                # Get all available credentials (following Python pattern)
+                $availableCredentials = Get-KeeperAvailableBiometricCredentials -Vault $vault
+                
+                # Find the target passkey by credential ID
+                $targetPasskey = $null
+                foreach ($credential in $availableCredentials) {
+                    $credentialId = $credential.CredentialId
+                    
+                    # Compare credential IDs (handle both string and byte array formats)
+                    if ($credentialId -eq $storedCredentialId) {
+                        $targetPasskey = $credential
+                        break
+                    }
+                }
+                
+                if ($targetPasskey) {
+                    # Call server API to disable the passkey using the credential's user ID and credential ID
+                    try {
+                        $disableResult = Disable-KeeperPasskey -Vault $vault -UserId $targetPasskey.Id -CredentialId $targetPasskey.CredentialId
+                        if ($disableResult.Success) {
+                            Write-Host "Successfully disabled passkey on server" -ForegroundColor Green
+                        } else {
+                            Write-Warning "Failed to disable passkey on server: $($disableResult.ErrorMessage)"
+                            $disableResult = $false
+                        }
+                    } catch {
+                        Write-Warning "Error calling server API to disable passkey: $($_.Exception.Message)"
+                        $disableResult = $false
+                    }
+                } else {
+                    Write-Host "Stored credential ID not found in available credentials - may already be disabled" -ForegroundColor Yellow
+                }
+            } catch {
+                Write-Warning "Failed to get available credentials: $($_.Exception.Message)"
+                $disableResult = $false
+            }
+        } else {
+            Write-Host "No stored credential ID found for user" -ForegroundColor Yellow
+        }
+
+        $cleanupSuccess = $true
+        if ($CredentialId) {
+            $cleanupSuccess = Unregister-WindowsHelloCredential -Username $Username -RpId $rpId -CredentialId $CredentialId
+        }
+        
+        # Verify cleanup
+        $verificationSuccess = -not (Test-WindowsHelloBiometricPreviouslyUsed -Username $Username)
+        
+        if ($cleanupSuccess -and $verificationSuccess) {
+            return @{
+                Success = $true
+                Message = "Biometric credentials removed successfully"
+                Username = $Username
+                CredentialId = $CredentialId
+            }
+        } else {
+            return @{
+                Success = $false
+                Message = "Biometric credential removal may have failed"
+                Username = $Username
+                CredentialId = $CredentialId
+            }
+        }
+    }
+    catch {
+        Write-Error "Failed to remove biometric credentials: $($_.Exception.Message)"
+        return @{
+            Success = $false
+            ErrorMessage = $_.Exception.Message
+            ErrorType = $_.Exception.GetType().Name
+        }
+    }
+}
+
 function Show-KeeperBiometricCredentials {
     <#
     .SYNOPSIS
@@ -1468,7 +1813,9 @@ function Show-KeeperBiometricCredentials {
             if ($credential.Disabled) {
                 $displayName += " (DISABLED)"
             }
-            
+            # Convert ByteString to readable format for display
+            $credentialIdDisplay = [System.Convert]::ToBase64String($credential.CredentialId)
+            Write-Host "Id: $credentialIdDisplay" -ForegroundColor Cyan
             Write-Host "Name: $displayName" -ForegroundColor White
             Write-Host "Created: $createdDate" -ForegroundColor Cyan
             Write-Host "Last Used: $lastUsedDate" -ForegroundColor Cyan
@@ -1642,48 +1989,6 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
     # Define registry path for Windows Hello credentials
     $script:WindowsHelloRegistryPath = "HKCU:\Software\Keeper Security\Commander\Biometric"
     
-    function Register-WindowsHelloCredential {
-        [CmdletBinding()]
-        param(
-            [Parameter(Mandatory=$true)]
-            [string]$Username,
-            
-            [Parameter(Mandatory=$true)]
-            [string]$RpId,
-            
-            [Parameter(Mandatory=$true)]
-            [string]$CredentialId,
-            
-            [Parameter()]
-            [bool]$BiometricsEnabled = $true
-        )
-        
-        try {
-            # Create a safe key name: username_rpid_credentialId (first 20 chars of credentialId)
-            $safeUsername = $Username -replace '@', '_' -replace '\\', '_' -replace '/', '_'
-            $safeRpId = $RpId -replace '\.', '_'
-            $shortCredId = $CredentialId.Substring(0, [Math]::Min(20, $CredentialId.Length))
-            $keyName = "${safeUsername}___${safeRpId}___${shortCredId}"
-            
-            # Ensure the registry path exists
-            if (-not (Test-Path $script:WindowsHelloRegistryPath)) {
-                New-Item -Path $script:WindowsHelloRegistryPath -Force | Out-Null
-            }
-            
-            # Set the credential info
-            $regValue = if ($BiometricsEnabled) { 1 } else { 0 }
-            New-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $keyName -Value $regValue -PropertyType DWord -Force | Out-Null
-            
-            Write-Host "Successfully registered credential for $Username@$RpId" -ForegroundColor Green
-            Write-Verbose "Registry key: $keyName = $regValue"
-            return $true
-        }
-        catch {
-            Write-Error "Failed to register credential: $($_.Exception.Message)"
-            return $false
-        }
-    }
-    
     function Unregister-WindowsHelloCredential {
         [CmdletBinding()]
         param(
@@ -1698,11 +2003,7 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
         )
         
         try {
-            # Create the same key name as registration
-            $safeUsername = $Username -replace '@', '_' -replace '\\', '_' -replace '/', '_'
-            $safeRpId = $RpId -replace '\.', '_'
-            $shortCredId = $CredentialId.Substring(0, [Math]::Min(20, $CredentialId.Length))
-            $keyName = "${safeUsername}___${safeRpId}___${shortCredId}"
+            $keyName = $Username
             
             if (Test-Path $script:WindowsHelloRegistryPath) {
                 Remove-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $keyName -Force -ErrorAction SilentlyContinue
@@ -1713,63 +2014,6 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
         catch {
             Write-Error "Failed to unregister credential: $($_.Exception.Message)"
             return $false
-        }
-    }
-    
-    function Get-WindowsHelloRegisteredCredentials {
-        [CmdletBinding()]
-        param(
-            [Parameter()]
-            [string]$Username,
-            
-            [Parameter()]
-            [string]$RpId
-        )
-        
-        try {
-            $credentials = @()
-            
-            if (Test-Path $script:WindowsHelloRegistryPath) {
-                $properties = Get-ItemProperty -Path $script:WindowsHelloRegistryPath
-                
-                foreach ($prop in $properties.PSObject.Properties) {
-                    if ($prop.Name -notlike "PS*") {
-                        $keyName = $prop.Name
-                        $keyParts = $keyName -split '___'
-                        if ($keyParts.Length -eq 3) {
-                            # Simple parsing with ___ separators
-                            $usernamePart = $keyParts[0].replace('_', '')
-                            $rpIdPart = $keyParts[1]
-                            $credentialIdPart = $keyParts[2]
-                            $biometricsEnabled = $prop.Value -eq 1
-                            
-                            # Clean up username for comparison
-                            $cleanUsername = $Username -replace '@', '' -replace '_', ''
-                            $cleanUsernamePart = $usernamePart -replace '_', ''
-                            $cleanRpId = $RpId -replace '_', '.'
-
-                            # Apply filters if specified
-                            if ((!$Username -or $cleanUsernamePart -like "*$cleanUsername*") -and
-                                (!$RpId -or $rpId -like "*$cleanRpId*")) {
-                                
-                                $credentials += [PSCustomObject]@{
-                                    Username = $usernamePart
-                                    RpId = $rpIdPart
-                                    CredentialId = $credentialIdPart
-                                    BiometricsEnabled = $biometricsEnabled
-                                    RegistryKey = $prop.Name
-                                }                                
-                            }
-                        }
-                    }
-                }
-            }
-            
-            return ,$credentials
-        }
-        catch {
-            Write-Error "Failed to get registered credentials: $($_.Exception.Message)"
-            return @()
         }
     }
     
@@ -1883,7 +2127,7 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
 } # End of Windows conditional compilation
 
 $exportFunctions = @(
-    "Test-WindowsHelloCapabilities","Invoke-KeeperWindowsHelloAuthentication","Invoke-KeeperCredentialCreation","Show-KeeperBiometricCredentials"
+    "Test-WindowsHelloCapabilities","Invoke-KeeperWindowsHelloAuthentication","Invoke-KeeperCredentialCreation","Show-KeeperBiometricCredentials","Remove-KeeperBiometricCredentials"
 )
 
 Export-ModuleMember -Function $exportFunctions

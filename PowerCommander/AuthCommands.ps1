@@ -415,8 +415,8 @@ function Connect-Keeper {
         $windowsHelloAvailable = Test-WindowsHelloCapabilities
         if ($windowsHelloAvailable) {
             $biometricPresent = Test-WindowsHelloBiometricPreviouslyUsed -Username $Username
-            if ($biometricPresent) {
-                Write-Host "Windows Hello biometric authentication available for this user" -InformationAction Continue
+            if (-not $biometricPresent) {
+                Write-Host "Windows Hello biometric authentication not available for this user" -InformationAction Continue
             }
         } else {
             Write-Host "Windows Hello not available on this system"
@@ -444,15 +444,16 @@ function Connect-Keeper {
 
     while (-not $authFlow.IsCompleted) {
         if ($lastStep -ne $authFlow.Step.State) {
-            printStepHelp $authFlow
+            if (-not $biometricPresent) {
+                printStepHelp $authFlow
+            }
             $lastStep = $authFlow.Step.State
         }
         if ($biometricPresent) {
             try {
-                Write-Host "Attempting Windows Hello biometric authentication..." -InformationAction Continue
-                $biometricResult = Invoke-KeeperWindowsHelloAuthentication -AuthSyncObject $authFlow -Username $Username
+                Write-Host "Attempting Keeper biometric authentication..." -InformationAction Continue
+                $biometricResult = Invoke-KeeperWindowsHelloAuthentication -AuthSyncObject $authFlow -Username $Username -PassThru
                 if ($biometricResult.Success) {
-                    Write-Host "Biometric authentication successful!" -InformationAction Continue
                     $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
                     if ($authFlow.IsCompleted) {
                         Write-Host "Authentication completed successfully!" -InformationAction Continue
@@ -894,7 +895,7 @@ function Set-KeeperDeviceSettings {
             $persistentLoginRestricted = $plp.Value
         }
     }
-    Write-Host "Device :$($device | Set-Content -Path "deviceobj.json")"
+
     if ($Register.IsPresent) {
         if ($persistentLoginRestricted -eq $true) {
             Write-Error "Persistent Login feature is restricted by Enterprise Administrator" -ErrorAction Stop

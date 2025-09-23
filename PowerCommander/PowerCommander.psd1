@@ -93,7 +93,8 @@
         'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 'Copy-KeeperFileAttachmentToStream', 'Copy-FileToKeeperRecord',
         'Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword', 'Test-PasswordAgainstBreachWatch',
         'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperPasswordReport',
-        'Invoke-KeeperWindowsHelloAuthentication','Invoke-KeeperCredentialCreation', 'Get-KeeperAvailableBiometricCredentials', 'Show-KeeperBiometricCredentials'
+        'Invoke-KeeperWindowsHelloAuthentication','Invoke-KeeperCredentialCreation', 'Get-KeeperAvailableBiometricCredentials', 'Show-KeeperBiometricCredentials', 
+        'Remove-KeeperBiometricCredentials'
     )
 
     # Cmdlets to export from this module
