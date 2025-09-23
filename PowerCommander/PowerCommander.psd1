@@ -69,7 +69,7 @@
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
     NestedModules        = @('AuthCommands.ps1', 'VaultCommands.ps1', 'RecordCommands.ps1', 'SharedFolderCommands.ps1',
         'FolderCommands.ps1', 'Enterprise.ps1', 'ManagedCompany.ps1', 'Sharing.ps1', 'SecretsManager.ps1', 
-        'AttachmentCommands.ps1', 'BreachWatch.ps1', 'WindowsHelloAuth.ps1', 'PowerShellWindowsHello\PowerShellIntegration.ps1')
+        'AttachmentCommands.ps1', 'BreachWatch.ps1', 'PowerShellWindowsHello\PowerShellIntegration.ps1')
 
     # Functions to export from this module
     FunctionsToExport    = @('Connect-Keeper', 'Sync-Keeper', 'Disconnect-Keeper', 'Get-KeeperLocation', 'Set-KeeperLocation',
@@ -92,13 +92,8 @@
         'Add-KeeperSecretManagerClient', 'Remove-KeeperSecretManagerClient', 'New-KeeperOneTimeShare', 'Get-KeeperOneTimeShare',
         'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 'Copy-KeeperFileAttachmentToStream', 'Copy-FileToKeeperRecord',
         'Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword', 'Test-PasswordAgainstBreachWatch',
-        'Find-WindowsHelloCredentials',
         'Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperPasswordReport',
-        'Test-WindowsHelloAvailability', 'Connect-KeeperWithBiometrics', 'Set-KeeperBiometricCredential', 'Get-KeeperBiometricCredential',
-        'Remove-KeeperBiometricCredential', 'Invoke-WindowsHelloVerification','New-WindowsHelloPasskey', 'Get-KeeperAuthenticationOptions',
-        'Invoke-WindowsHelloAssertion', 'Invoke-KeeperWindowsHelloAuthentication',
-        'Invoke-WindowsHelloOperation', 'Test-WindowsHelloCapabilities', 'Invoke-WindowsHelloAuthentication', 'Get-WindowsHelloInfo',
-        'Invoke-WindowsHelloCredentialCreation', 'Get-KeeperRegistrationOptions', 'Register-KeeperCredential', 'Invoke-KeeperCredentialCreation','Test-KeeperCredentialExists'
+        'Invoke-KeeperWindowsHelloAuthentication','Invoke-KeeperCredentialCreation'
     )
 
     # Cmdlets to export from this module
@@ -112,10 +107,7 @@
         'ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'msp-license', 
         'switch-to-mc', 'switch-to-msp', 'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
         'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
-        'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kcb', 'khello',
-        'Invoke-WHOp', 'Test-WHello', 'Get-WHello', 'Invoke-WHAuth', 'New-WHCredential', 'Get-KeeperRegOpts', 'Get-KeeperAuthOpts', 
-        'Invoke-WHAssertion', 'Complete-KeeperAuth', 'Invoke-KeeperWHAuth', 'Register-KeeperCred', 'Invoke-KeeperCredReg', 
-        'Find-WHCreds', 'Test-WHCredExists')
+        'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kcb')
 
     # List of all modules packaged with this module
     # ModuleList = @()

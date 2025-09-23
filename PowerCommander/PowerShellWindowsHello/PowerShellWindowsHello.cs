@@ -47,31 +47,26 @@ namespace PowerShellWindowsHello
         /// </summary>
         private static IntPtr GetBestWindowHandle()
         {
-            // Try to get the foreground window first (most likely to be interactive)
             var foregroundWnd = GetForegroundWindow();
             if (foregroundWnd != IntPtr.Zero && IsWindowVisible(foregroundWnd))
             {
                 return foregroundWnd;
             }
             
-            // Fall back to active window
             var activeWnd = GetActiveWindow();
             if (activeWnd != IntPtr.Zero && IsWindowVisible(activeWnd))
             {
                 return activeWnd;
             }
             
-            // Last resort: console window
             var consoleWnd = GetConsoleWindow();
             if (consoleWnd != IntPtr.Zero)
             {
-                // Try to bring console window to foreground
                 SetForegroundWindow(consoleWnd);
                 ShowWindow(consoleWnd, SW_RESTORE);
                 return consoleWnd;
             }
             
-            // If all else fails, use desktop window (IntPtr.Zero)
             return IntPtr.Zero;
         }
 
@@ -150,7 +145,7 @@ namespace PowerShellWindowsHello
             {
                 WindowsHello = new {
                     Available = caps.IsAvailable,
-                    Status = caps.IsAvailable ? "✅ Ready" : "❌ Not Available",
+                    Status = caps.IsAvailable ? "Ready" : "Not Available",
                     ApiVersion = caps.ApiVersion,
                     Platform = caps.Platform,
                     Methods = caps.SupportedMethods,
@@ -217,173 +212,29 @@ namespace PowerShellWindowsHello
                 var hWnd = GetBestWindowHandle();
                 var result = await MakeCredentialAsync(hWnd, options, excludeCredentials);
                  
-                 return new CredentialCreationResult
-                 {
-                     Success = true,
-                     CredentialId = ToBase64Url(result.CredentialId),
-                     AttestationObject = ToBase64Url(result.AttestationObject),
-                     ClientDataJSON = ToBase64Url(result.ClientDataJSON),
-                     PublicKey = result.PublicKey != null ? ToBase64Url(result.PublicKey) : null,
-                     Method = "Native WebAuthn MakeCredential",
-                     SignatureCount = result.SignatureCount,
-                     Timestamp = DateTime.UtcNow
-                 };
-             }
-             catch (Exception ex)
-             {
-                 return new CredentialCreationResult
-                 {
-                     Success = false,
-                     ErrorMessage = ex.Message,
-                     ErrorType = ex.GetType().Name,
-                     Timestamp = DateTime.UtcNow
-                 };
-             }
-         }
-
-         /// <summary>
-         /// Create credential using macOS-style manual CBOR construction with real Windows Hello credential data
-         /// Based on: https://github.com/Keeper-Security/Commander/blob/e3a944e598e06ccd6f1d9cdb2fb789c3ead15fc0/keepercommander/biometric/platforms/macos/webauthn.py#L89
-         /// 
-         /// This method:
-         /// 1. Creates a real Windows Hello credential (with user interaction)
-         /// 2. Extracts the real credential data (ID, public key coordinates)
-         /// 3. Manually constructs CBOR attestation object in macOS format using that real data
-         /// </summary>
-         public static async Task<CredentialCreationResult> CreateCredentialManualAsync(RegistrationOptions options)
-         {
-            try
+                return new CredentialCreationResult
+                {
+                    Success = true,
+                    CredentialId = ToBase64Url(result.CredentialId),
+                    AttestationObject = ToBase64Url(result.AttestationObject),
+                    ClientDataJSON = ToBase64Url(result.ClientDataJSON),
+                    PublicKey = result.PublicKey != null ? ToBase64Url(result.PublicKey) : null,
+                    Method = "Native WebAuthn MakeCredential",
+                    SignatureCount = result.SignatureCount,
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+            catch (Exception ex)
             {
-                // Step 1: Create a REAL Windows Hello credential first (with Windows Hello UI)
-                var hWnd = GetBestWindowHandle();
-                 File.WriteAllText(@"C:\Users\satish.gaddala_metro\Desktop\keeper\keeper-sdk-dotnet\PowerCommander\manual_step1_start.txt", 
-                     $"Creating real Windows Hello credential for {options.RpId}...");
-                 
-                 var realCredResult = await MakeCredentialAsync(hWnd, options);
-                 
-                 // Step 2: Extract real data from the Windows Hello credential
-                 var credentialIdBytes = realCredResult.CredentialId;
-                 var credentialId = ToBase64Url(credentialIdBytes);
-                 
-                 File.WriteAllText(@"C:\Users\satish.gaddala_metro\Desktop\keeper\keeper-sdk-dotnet\PowerCommander\manual_step2_extracted.txt", 
-                     $"Real credential created: {credentialId}\nExtracting public key coordinates...");
-                 
-                 // Extract public key coordinates from the real Windows Hello credential
-                 var extractedKey = ExtractPublicKeyFromAuthenticatorData(realCredResult.PublicKey);
-                 var xCoord = extractedKey.XCoord;
-                 var yCoord = extractedKey.YCoord;
-                 
-                 // Step 4: Create COSE key (exactly like macOS format)
-                 var coseKey = CBORObject.NewMap();
-                 coseKey.Set(1, 2);        // kty: EC2
-                 coseKey.Set(3, -7);       // alg: ES256  
-                 coseKey.Set(-1, 1);       // crv: P-256
-                 coseKey.Set(-2, CBORObject.FromObject(xCoord));  // x coordinate
-                 coseKey.Set(-3, CBORObject.FromObject(yCoord));  // y coordinate
-                 
-                 // Step 5: Create attested credential data (like macOS)
-                 var attestedCredData = new List<byte>();
-                 attestedCredData.AddRange(new byte[16]); // AAGUID (16 zero bytes)
-                 
-                 // Credential ID length (2 bytes, big-endian)
-                 var credIdLen = credentialIdBytes.Length;
-                 attestedCredData.Add((byte)(credIdLen >> 8));
-                 attestedCredData.Add((byte)(credIdLen & 0xFF));
-                 
-                 // Credential ID bytes
-                 attestedCredData.AddRange(credentialIdBytes);
-                 
-                 // COSE public key
-                 attestedCredData.AddRange(coseKey.EncodeToBytes());
-                 
-                 // Step 6: Create authenticator data (like macOS _create_authenticator_data)
-                 var authenticatorData = new List<byte>();
-                 
-                 // RP ID hash (SHA-256 of RP ID)
-                 using (var sha256 = SHA256.Create())
-                 {
-                     var rpIdHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(options.RpId));
-                     authenticatorData.AddRange(rpIdHash);
-                 }
-                 
-                 // Flags: User Present (0x01) + Attested Credential Data (0x40) = 0x41
-                 authenticatorData.Add(0x41);
-                 
-                 // Signature count (4 bytes, big-endian, starts at 0)
-                 authenticatorData.AddRange(new byte[] { 0x00, 0x00, 0x00, 0x00 });
-                 
-                 // Attested credential data
-                 authenticatorData.AddRange(attestedCredData);
-                 
-                 // Step 7: Create client data JSON (like macOS _create_client_data)
-                 var clientData = new
-                 {
-                     type = "webauthn.create",
-                     challenge = ToBase64Url(options.Challenge),
-                     origin = $"https://{options.RpId}",
-                     crossOrigin = false
-                 };
-                 var clientDataJson = JsonConvert.SerializeObject(clientData);
-                 var clientDataBytes = Encoding.UTF8.GetBytes(clientDataJson);
-                 
-                 // Step 8: Create attestation object (exactly like macOS format)
-                 var attestationObject = CBORObject.NewMap();
-                 attestationObject.Set("fmt", "none");
-                 attestationObject.Set("attStmt", CBORObject.NewMap()); // Empty map
-                 attestationObject.Set("authData", CBORObject.FromObject(authenticatorData.ToArray()));
-                 
-                 // Encode attestation object to CBOR bytes
-                 var attestationObjectBytes = attestationObject.EncodeToBytes();
-                 
-                 // Step 9: Debug - Write manual construction details
-                 var debugInfo = new StringBuilder();
-                 debugInfo.AppendLine("=== MANUAL CBOR CONSTRUCTION WITH REAL WH CREDENTIAL ===");
-                 debugInfo.AppendLine($"Step 1: Created real Windows Hello credential for RP ID: {options.RpId}");
-                 debugInfo.AppendLine($"Step 2: Extracted real credential ID: {credentialId}");
-                 debugInfo.AppendLine($"Step 3: Extracted real public key coordinates from authenticator data");
-                 debugInfo.AppendLine($"Step 4-8: Manually constructed CBOR attestation object in macOS format");
-                 debugInfo.AppendLine();
-                 debugInfo.AppendLine("REAL CREDENTIAL DATA:");
-                 debugInfo.AppendLine($"  Credential ID: {credentialId}");
-                 debugInfo.AppendLine($"  Credential ID bytes: {BitConverter.ToString(credentialIdBytes).Replace("-", "")}");
-                 debugInfo.AppendLine($"  X Coordinate ({xCoord.Length} bytes): {BitConverter.ToString(xCoord).Replace("-", "")}");
-                 debugInfo.AppendLine($"  Y Coordinate ({yCoord.Length} bytes): {BitConverter.ToString(yCoord).Replace("-", "")}");
-                 debugInfo.AppendLine();
-                 debugInfo.AppendLine("MANUAL CBOR CONSTRUCTION:");
-                 debugInfo.AppendLine($"  COSE Key CBOR: {BitConverter.ToString(coseKey.EncodeToBytes()).Replace("-", "")}");
-                 debugInfo.AppendLine($"  Authenticator Data Length: {authenticatorData.Count} bytes");
-                 debugInfo.AppendLine($"  Client Data JSON: {clientDataJson}");
-                 debugInfo.AppendLine($"  Attestation Object CBOR: {attestationObject.ToJSONString()}");
-                 debugInfo.AppendLine($"  Final Attestation Object Size: {attestationObjectBytes.Length} bytes");
-                 debugInfo.AppendLine();
-                 debugInfo.AppendLine("This combines REAL Windows Hello credential with macOS-style CBOR formatting!");
-                 debugInfo.AppendLine("================================================================");
-                 
-                 File.WriteAllText(@"C:\Users\satish.gaddala_metro\Desktop\keeper\keeper-sdk-dotnet\PowerCommander\manual_credential_debug.txt", debugInfo.ToString());
-                 
-                 return new CredentialCreationResult
-                 {
-                     Success = true,
-                     CredentialId = credentialId,
-                     AttestationObject = ToBase64Url(attestationObjectBytes),
-                     ClientDataJSON = ToBase64Url(clientDataBytes),
-                     PublicKey = ToBase64Url(coseKey.EncodeToBytes()),
-                     Method = "Real Windows Hello + Manual macOS CBOR",
-                     SignatureCount = 0,
-                     Timestamp = DateTime.UtcNow
-                 };
-             }
-             catch (Exception ex)
-             {
-                 return new CredentialCreationResult
-                 {
-                     Success = false,
-                     ErrorMessage = ex.Message,
-                     ErrorType = ex.GetType().Name,
-                     Timestamp = DateTime.UtcNow
-                 };
-             }
-         }
+                return new CredentialCreationResult
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ErrorType = ex.GetType().Name,
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+        }
 
         #region Private Implementation
 
@@ -402,17 +253,12 @@ namespace PowerShellWindowsHello
 
         private static string[] DetectSupportedBiometricMethods()
         {
-            var methods = new List<string>();
-            
-            // Always add PIN if Windows Hello is available
+            var methods = new List<string>();      
             methods.Add("PIN");
-            
             // TODO: Add platform-specific detection for:
             // - Fingerprint readers (WinBio API)
             // - Face recognition cameras (Windows.Devices.Enumeration)
             // - Security keys (additional WebAuthn calls)
-            // For now, we'll just indicate PIN is always available
-            
             return methods.ToArray();
         }
 
@@ -597,7 +443,6 @@ namespace PowerShellWindowsHello
         {
             var taskSource = new TaskCompletionSource<InternalCredentialCreationResult>();
             var ptrList = new List<IntPtr>();
-            Console.WriteLine($"ExcludeCredentials count: {excludeCredentials?.Length}");
             Task.Run(() =>
             {
                 try
@@ -698,9 +543,7 @@ namespace PowerShellWindowsHello
                             throw;
                         }
                         
-                        Console.WriteLine($"=== END EXCLUDE CREDENTIALS CBOR DEBUG ===");
                     }
-                    Console.WriteLine($"ExcludeCredentialListPtr: {excludeCredentialListPtr}");
                     // Create make credential options
                     var makeCredOptions = new NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_MAKE_CREDENTIAL_OPTIONS
                     {
@@ -757,7 +600,6 @@ namespace PowerShellWindowsHello
                         var credentialId = new byte[credentialAttestation.cbCredentialId];
                         Marshal.Copy(credentialAttestation.pbCredentialId, credentialId, 0, credentialAttestation.cbCredentialId);
                         
-                        // Debug: Show the created credential ID
                         var createdCredIdBase64Url = ToBase64Url(credentialId);
                         var attestationObject = new byte[credentialAttestation.cbAttestationObject];
                         Marshal.Copy(credentialAttestation.pbAttestationObject, attestationObject, 0, credentialAttestation.cbAttestationObject);
@@ -807,12 +649,10 @@ namespace PowerShellWindowsHello
             return taskSource.Task;
         }
 
-         private static string SerializeClientData(SecurityKeyClientData clientData)
-         {
-             // WebAuthn compliant client data JSON with all required fields
-             // crossOrigin should be false for same-origin requests (Keeper API)
-             return $"{{\"type\":\"{clientData.dataType}\",\"challenge\":\"{clientData.challenge}\",\"origin\":\"{clientData.origin}\",\"crossOrigin\":false}}";
-         }
+        private static string SerializeClientData(SecurityKeyClientData clientData)
+        {
+        return $"{{\"type\":\"{clientData.dataType}\",\"challenge\":\"{clientData.challenge}\",\"origin\":\"{clientData.origin}\",\"crossOrigin\":false}}";
+        }
 
         /// <summary>
         /// Converts byte array to Base64Url string (WebAuthn standard)
@@ -828,33 +668,31 @@ namespace PowerShellWindowsHello
          /// <summary>
          /// Converts Base64Url string back to byte array
          /// </summary>
-         private static byte[] FromBase64Url(string base64Url)
-         {
-             try
-             {
-                 if (string.IsNullOrEmpty(base64Url))
-                 {
-                     throw new ArgumentException("Base64Url string cannot be null or empty");
-                 }
+        private static byte[] FromBase64Url(string base64Url)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(base64Url))
+                {
+                    throw new ArgumentException("Base64Url string cannot be null or empty");
+                }
 
-                 // Convert base64url to standard base64
-                 string base64 = base64Url.Replace('-', '+').Replace('_', '/');
-                 
-                 // Add padding if needed
-                 switch (base64.Length % 4)
-                 {
-                     case 2: base64 += "=="; break;
-                     case 3: base64 += "="; break;
-                 }
-                 
-                 return Convert.FromBase64String(base64);
-             }
-             catch (Exception ex)
-             {
-                 Console.WriteLine($"Error decoding Base64Url: '{base64Url}' (Length: {base64Url?.Length ?? 0})");
-                 Console.WriteLine($"Exception: {ex.Message}");
-                 throw new ArgumentException($"Invalid Base64Url format: {ex.Message}", ex);
-             }
+                string base64 = base64Url.Replace('-', '+').Replace('_', '/');
+                
+                switch (base64.Length % 4)
+                {
+                    case 2: base64 += "=="; break;
+                    case 3: base64 += "="; break;
+                }
+                
+                return Convert.FromBase64String(base64);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error decoding Base64Url: '{base64Url}' (Length: {base64Url?.Length ?? 0})");
+                Console.WriteLine($"Exception: {ex.Message}");
+                throw new ArgumentException($"Invalid Base64Url format: {ex.Message}", ex);
+            }
          }
 
          /// <summary>
@@ -916,8 +754,6 @@ namespace PowerShellWindowsHello
          {
              try
              {
-                 // Authenticator data structure: RP ID Hash (32) + Flags (1) + Sign Count (4) + [Attested Credential Data]
-                 // Attested Credential Data: AAGUID (16) + Cred ID Len (2) + Cred ID (variable) + Public Key (CBOR)
                  
                  if (authenticatorData.Length < 37)
                  {
@@ -989,12 +825,6 @@ namespace PowerShellWindowsHello
         /// </summary>
         public static CredentialDiscoveryResult DiscoverCredentials(string rpId = null, string username = null, string[] credentialIdsToCheck = null)
         {
-            Console.WriteLine($"Discovering credentials for {username}@{rpId}");
-            if (credentialIdsToCheck != null && credentialIdsToCheck.Length > 0)
-            {
-                Console.WriteLine($"Checking specific credential IDs: {credentialIdsToCheck.Length}");
-            }
-            
             var result = new CredentialDiscoveryResult
             {
                 Username = username,
@@ -1009,11 +839,8 @@ namespace PowerShellWindowsHello
             IntPtr pList = IntPtr.Zero;
             try
             {
-                // Get a valid window handle for the API call
                 IntPtr hWnd = GetBestWindowHandle();
-                Console.WriteLine($"Using window handle: 0x{hWnd.ToInt64():X8}");
                 
-                // Call the WebAuthn API to get platform credentials
                 int hr = NativeWebAuthn.WebAuthNGetPlatformCredentialList(IntPtr.Zero, out pList);
                 if (hr != 0 || pList == IntPtr.Zero)
                 {
@@ -1032,22 +859,19 @@ namespace PowerShellWindowsHello
                     return result;
                 }
 
-                // Marshal the list structure first
                 var list = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_CREDENTIAL_DETAILS_LIST>(pList);
-                IntPtr ppArray = list.ppCredentialDetails; // this points to an array of IntPtr (pointer-to-pointer)
+                IntPtr ppArray = list.ppCredentialDetails;
                 int count = (int)list.cCredentialDetails;
 
                 for (int i = 0; i < count; i++)
                 {
                     try
                     {
-                        // Read the pointer to the WEBAUTHN_CREDENTIAL_DETAILS for entry i
                         IntPtr pDetailPtr = Marshal.ReadIntPtr(ppArray, i * IntPtr.Size);
                         if (pDetailPtr == IntPtr.Zero) continue;
 
                         var detail = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_CREDENTIAL_DETAILS>(pDetailPtr);
 
-                        // Credential ID bytes
                         byte[] credentialIdBytes = Array.Empty<byte>();
                         int idLen = (int)detail.cbCredentialID;
                         if (idLen > 0 && detail.pbCredentialID != IntPtr.Zero)
@@ -1056,7 +880,6 @@ namespace PowerShellWindowsHello
                             Marshal.Copy(detail.pbCredentialID, credentialIdBytes, 0, idLen);
                         }
 
-                        // RpId (from nested RP info)
                         string credentialRpId = null;
                         if (detail.pRpInformation != IntPtr.Zero)
                         {
@@ -1064,7 +887,6 @@ namespace PowerShellWindowsHello
                             credentialRpId = rpInfo.pwszId != IntPtr.Zero ? Marshal.PtrToStringUni(rpInfo.pwszId) : null;
                         }
 
-                        // Username / user display name (from nested User info)
                         string credentialUserName = null;
                         string credentialUserDisplayName = null;
                         string credentialUserHandleBase64Url = null;
@@ -1102,16 +924,12 @@ namespace PowerShellWindowsHello
                     }
                     catch (Exception exEntry)
                     {
-                        // don't abort the whole enumeration on a single bad entry
                         Console.WriteLine($"Error processing credential {i}: {exEntry}");
                     }
                 }
 
-                // If specific credential IDs were provided, check which ones are valid
                 if (credentialIdsToCheck != null && credentialIdsToCheck.Length > 0)
                 {
-                    Console.WriteLine($"Checking {credentialIdsToCheck.Length} specific credential IDs against discovered credentials");
-                    
                     var validCredentials = new List<DiscoveredCredential>();
                     var invalidCredentialIds = new List<string>();
                     
@@ -1123,21 +941,17 @@ namespace PowerShellWindowsHello
                         if (found != null)
                         {
                             validCredentials.Add(found);
-                            Console.WriteLine($"Credential {credIdToCheck.Substring(0, Math.Min(20, credIdToCheck.Length))}... is VALID");
                         }
                         else
                         {
                             invalidCredentialIds.Add(credIdToCheck);
-                            Console.WriteLine($"Credential {credIdToCheck.Substring(0, Math.Min(20, credIdToCheck.Length))}... is INVALID");
                         }
                     }
                     
-                    // Update result to only include valid credentials
                     result.DiscoveredCredentials = validCredentials;
                     result.HasCredentials = validCredentials.Count > 0;
                     result.StatusMessage = $"Found {validCredentials.Count} of {credentialIdsToCheck.Length} specified credentials";
                     
-                    // Add additional analysis information
                     result.AllowCredentialsAnalysis = new
                     {
                         TotalAllowed = credentialIdsToCheck.Length,

@@ -191,12 +191,6 @@ function Invoke-WindowsHelloAuthentication {
     }
     
     try {
-        Write-Host " Starting Windows Hello Authentication" -ForegroundColor Green
-        Write-Host "Relying Party: $RpId" -ForegroundColor Cyan
-        Write-Host "Challenge Length: $($Challenge.Length) bytes" -ForegroundColor Cyan
-        Write-Host "Timeout: $($TimeoutMs / 1000) seconds" -ForegroundColor Cyan
-        Write-Host ""
-        
         # Create authentication options
         $authOptions = New-Object PowerShellWindowsHello.AuthenticationOptions
         $authOptions.Challenge = $Challenge
@@ -205,22 +199,11 @@ function Invoke-WindowsHelloAuthentication {
         $authOptions.TimeoutMs = $TimeoutMs
         $authOptions.UserVerification = $UserVerification
         
-        Write-Host "Please complete Windows Hello verification when prompted..." -ForegroundColor Yellow
+        Write-Debug "Please complete Windows Hello verification when prompted..."
         
         # Perform authentication
         $task = [PowerShellWindowsHello.WindowsHelloApi]::AuthenticateAsync($authOptions)
         $result = $task.GetAwaiter().GetResult()
-        
-        if ($result.Success) {
-            Write-Host " Windows Hello authentication successful!" -ForegroundColor Green
-            Write-Host "Credential ID: $($result.CredentialId.Substring(0, [Math]::Min(16, $result.CredentialId.Length)))..." -ForegroundColor Cyan
-            Write-Host "Method: $($result.Method)" -ForegroundColor Cyan
-            Write-Host "Timestamp: $($result.Timestamp)" -ForegroundColor Cyan
-        } else {
-            Write-Host " Windows Hello authentication failed" -ForegroundColor Red
-            Write-Host "Error: $($result.ErrorMessage)" -ForegroundColor Red
-            Write-Host "Error Type: $($result.ErrorType)" -ForegroundColor Red
-        }
         
         return $result
     }
@@ -389,14 +372,6 @@ function Invoke-WindowsHelloCredentialCreation {
     }
     
     try {
-        Write-Host "ExcludeCredentials: $($ExcludeCredentials)" -ForegroundColor Cyan
-        Write-Host " Starting Windows Hello Credential Creation" -ForegroundColor Green
-        Write-Host "Relying Party: $RpId" -ForegroundColor Cyan
-        Write-Host "Username: $UserName" -ForegroundColor Cyan
-        Write-Host "Challenge Length: $($Challenge.Length) bytes" -ForegroundColor Cyan
-        Write-Host "Timeout: $($TimeoutMs / 1000) seconds" -ForegroundColor Cyan
-        Write-Host ""
-        
         # Create registration options
         $regOptions = New-Object PowerShellWindowsHello.RegistrationOptions
         $regOptions.Challenge = $Challenge
@@ -415,19 +390,7 @@ function Invoke-WindowsHelloCredentialCreation {
         
         # Create credential
         $task = [PowerShellWindowsHello.WindowsHelloApi]::CreateCredentialAsync($regOptions,$excludeCredentials)
-        write-host "excludeCredentials: $($excludeCredentials.Count)"
         $result = $task.GetAwaiter().GetResult()
-        
-        if ($result.Success) {
-            Write-Host " Windows Hello credential created successfully!" -ForegroundColor Green
-            Write-Host "Credential ID: $($result.CredentialId.Substring(0, [Math]::Min(16, $result.CredentialId.Length)))..." -ForegroundColor Cyan
-            Write-Host "Method: $($result.Method)" -ForegroundColor Cyan
-            Write-Host "Timestamp: $($result.Timestamp)" -ForegroundColor Cyan
-        } else {
-            Write-Host " Windows Hello credential creation failed" -ForegroundColor Red
-            Write-Host "Error: $($result.ErrorMessage)" -ForegroundColor Red
-            Write-Host "Error Type: $($result.ErrorType)" -ForegroundColor Red
-        }
         
         return $result
     }
@@ -487,10 +450,7 @@ function Get-KeeperRegistrationOptions {
         $request = [Authentication.PasskeyRegistrationRequest]::new()
         $request.AuthenticatorAttachment = [Authentication.AuthenticatorAttachment]::Platform
         
-        $responseBytes = $auth.ExecuteAuthRest("authentication/passkey/generate_registration", $request, [Authentication.PasskeyRegistrationResponse]).GetAwaiter().GetResult()
-        
-        # Parse the response using protobuf parser
-        $response = [Authentication.PasskeyRegistrationResponse]::Parser.ParseFrom($responseBytes)
+        $response = $auth.ExecuteAuthRest("authentication/passkey/generate_registration", $request, [Authentication.PasskeyRegistrationResponse]).GetAwaiter().GetResult()
         
         $creationOptions = $response.PkCreationOptions | ConvertFrom-Json
         
@@ -557,44 +517,32 @@ function ConvertFrom-Base64Url {
 function ConvertTo-ByteString {
     param($InputData)
     
-    Write-Host "=== DEBUGGING ConvertTo-ByteString ===" -ForegroundColor Yellow
-    Write-Host "Input Type: $($InputData.GetType().FullName)" -ForegroundColor Cyan
-    Write-Host "Input Value: $InputData" -ForegroundColor Cyan
-    
     if ($null -eq $InputData) {
-        Write-Host "Input is null, returning null" -ForegroundColor Red
         return $null
     }
     
     # Handle different input types
     if ($InputData -is [Google.Protobuf.ByteString]) {
-        Write-Host "Input is already ByteString, returning as-is" -ForegroundColor Green
         return $InputData
     }
     elseif ($InputData -is [byte[]]) {
-        Write-Host "Input is byte array, converting to ByteString" -ForegroundColor Green
         return [Google.Protobuf.ByteString]::CopyFrom($InputData)
     }
     elseif ($InputData -is [string]) {
-        Write-Host "Input is string, attempting to parse as byte array" -ForegroundColor Yellow
         try {
             # Try to parse string like "1 2 3 4" into byte array
             $bytes = $InputData -split '\s+' | ForEach-Object { [byte]$_ }
-            Write-Host "Successfully parsed string to $($bytes.Length) bytes" -ForegroundColor Green
             return [Google.Protobuf.ByteString]::CopyFrom([byte[]]$bytes)
         }
         catch {
-            Write-Host "Failed to parse string as bytes: $($_.Exception.Message)" -ForegroundColor Red
             throw
         }
     }
     else {
-        Write-Host "Unexpected input type, trying direct conversion" -ForegroundColor Red
         try {
             return [Google.Protobuf.ByteString]::CopyFrom($InputData)
         }
         catch {
-            Write-Host "Direct conversion failed: $($_.Exception.Message)" -ForegroundColor Red
             throw
         }
     }
@@ -603,117 +551,38 @@ function ConvertTo-ByteString {
 function Utf8BytesToString {
     param($InputData)
     
-    Write-Host "=== DEBUGGING Utf8BytesToString ===" -ForegroundColor Yellow
-    Write-Host "Input Type: $($InputData.GetType().FullName)" -ForegroundColor Cyan
-    Write-Host "Input Value (first 100 chars): $($InputData.ToString().Substring(0, [Math]::Min(100, $InputData.ToString().Length)))" -ForegroundColor Cyan
-    
     if ($null -eq $InputData) {
-        Write-Host "Input is null, returning null" -ForegroundColor Red
         return $null
     }
     
     try {
         # Handle different input types
         if ($InputData -is [Google.Protobuf.ByteString]) {
-            Write-Host "Input is ByteString, converting to byte array then UTF-8 string" -ForegroundColor Green
             $bytes = $InputData.ToByteArray()
             $result = [System.Text.Encoding]::UTF8.GetString($bytes)
-            Write-Host "Converted to UTF-8 string: $($result.Substring(0, [Math]::Min(50, $result.Length)))..." -ForegroundColor Green
             return $result
         }
         elseif ($InputData -is [byte[]]) {
-            Write-Host "Input is byte array, converting to UTF-8 string" -ForegroundColor Green
             $result = [System.Text.Encoding]::UTF8.GetString($InputData)
-            Write-Host "Converted to UTF-8 string: $($result.Substring(0, [Math]::Min(50, $result.Length)))..." -ForegroundColor Green
             return $result
         }
         elseif ($InputData -is [string]) {
-            Write-Host "Input is already string, attempting to parse as space-separated bytes first" -ForegroundColor Yellow
             try {
                 # Try to parse string like "1 2 3 4" into byte array, then to UTF-8 string
                 $bytes = $InputData -split '\s+' | ForEach-Object { [byte]$_ }
                 $result = [System.Text.Encoding]::UTF8.GetString([byte[]]$bytes)
-                Write-Host "Successfully parsed space-separated bytes to UTF-8 string: $($result.Substring(0, [Math]::Min(50, $result.Length)))..." -ForegroundColor Green
                 return $result
             }
             catch {
-                Write-Host "Failed to parse as space-separated bytes, returning original string" -ForegroundColor Yellow
                 return $InputData
             }
         }
         else {
-            Write-Host "Unexpected input type, trying direct ToString()" -ForegroundColor Yellow
             return $InputData.ToString()
         }
     }
     catch {
-        Write-Host "Conversion failed: $($_.Exception.Message)" -ForegroundColor Red
         throw
-    }
-}
-
-function Debug-AttestationObject {
-    param([string]$Base64AttestationObject)
-    
-    if ([string]::IsNullOrEmpty($Base64AttestationObject)) {
-        Write-Host "AttestationObject is null or empty" -ForegroundColor Red
-        return
-    }
-    
-    try {
-        Write-Host "=== DEBUGGING ATTESTATION OBJECT ===" -ForegroundColor Yellow
-        Write-Host "Base64 Length: $($Base64AttestationObject.Length)" -ForegroundColor Cyan
-        Write-Host "Base64 (first 100 chars): $($Base64AttestationObject.Substring(0, [Math]::Min(100, $Base64AttestationObject.Length)))..." -ForegroundColor Cyan
-        
-        # Decode base64 to bytes (handle both base64 and base64url)
-        $base64 = $Base64AttestationObject.Replace('-', '+').Replace('_', '/')
-        # Add padding if needed
-        switch ($base64.Length % 4) {
-            2 { $base64 += '==' }
-            3 { $base64 += '=' }
-        }
-        
-        $attestationBytes = [Convert]::FromBase64String($base64)
-        Write-Host "Decoded Bytes Length: $($attestationBytes.Length)" -ForegroundColor Green
-        
-        # Show first few bytes (CBOR data typically starts with specific patterns)
-        $hexBytes = ($attestationBytes[0..([Math]::Min(20, $attestationBytes.Length-1))] | ForEach-Object { $_.ToString("X2") }) -join " "
-        Write-Host "First 20 bytes (hex): $hexBytes" -ForegroundColor Cyan
-        
-        # Try to identify CBOR structure patterns
-        if ($attestationBytes.Length -gt 0) {
-            $firstByte = $attestationBytes[0]
-            Write-Host "First Byte: 0x$($firstByte.ToString('X2')) ($firstByte)" -ForegroundColor Cyan
-            
-            # CBOR map detection (major type 5)
-            if (($firstByte -band 0xE0) -eq 0xA0) {
-                $mapSize = $firstByte -band 0x1F
-                Write-Host "  -> CBOR Map detected with $mapSize items" -ForegroundColor Green
-            }
-            # CBOR text string (major type 3)
-            elseif (($firstByte -band 0xE0) -eq 0x60) {
-                Write-Host "  -> CBOR Text String detected" -ForegroundColor Green
-            }
-            # CBOR byte string (major type 2)
-            elseif (($firstByte -band 0xE0) -eq 0x40) {
-                Write-Host "  -> CBOR Byte String detected" -ForegroundColor Green
-            }
-            else {
-                Write-Host "  -> CBOR type: Major type $(($firstByte -shr 5) -band 0x07)" -ForegroundColor White
-            }
-        }
-        
-        # Try to find readable strings in the data (for debugging)
-        $attestationString = [System.Text.Encoding]::UTF8.GetString($attestationBytes)
-        $readableChars = ($attestationString.ToCharArray() | Where-Object { $_ -ge 32 -and $_ -le 126 }) -join ""
-        if ($readableChars.Length -gt 10) {
-            Write-Host "Readable strings found: $($readableChars.Substring(0, [Math]::Min(100, $readableChars.Length)))..." -ForegroundColor Magenta
-        }
-        
-        Write-Host "=========================================" -ForegroundColor Yellow
-    }
-    catch {
-        Write-Host "Error decoding attestation object: $($_.Exception.Message)" -ForegroundColor Red
     }
 }
 
@@ -795,24 +664,18 @@ function Get-KeeperAuthenticationOptions {
         
         # Add device token if available
         if ($authSync.DeviceToken) {
-            Write-Verbose "Adding device token to authentication request"
             $request.EncryptedDeviceToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$authSync.DeviceToken)
         }
         
-        # Execute the REST API call
-        # Serialize the request object to bytes using protobuf extension method
         $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
         $apiRequest = [Authentication.ApiRequestPayload]::new()
         $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
         $responseBytes = $authSync.Endpoint.ExecuteRest("authentication/passkey/generate_authentication", $apiRequest).GetAwaiter().GetResult()
         
-        # Parse the response using protobuf parser
         $response = [Authentication.PasskeyAuthenticationResponse]::Parser.ParseFrom($responseBytes)
         
-        # Parse the request options JSON
         $requestOptions = $response.PkRequestOptions | ConvertFrom-Json
         
-        # Return structured result
         $result = @{
             challenge_token = $response.ChallengeToken
             request_options = $requestOptions
@@ -820,19 +683,12 @@ function Get-KeeperAuthenticationOptions {
             purpose = $Purpose
             username = $request.Username
             success = $true
-            
-            # Add convenience properties for PowerShell usage
             challenge = $requestOptions.challenge
             allowCredentials = $requestOptions.allowCredentials
             timeout = $requestOptions.timeout
             userVerification = $requestOptions.userVerification
             rpId = $requestOptions.rpId
-            
-            # Note: Actual structure for rpId extraction is:
-            # $result.request_options.publicKeyCredentialRequestOptions.rpId
-        }
-        
-        Write-Verbose "Successfully generated authentication options for user: $($request.Username)"
+            }
         return $result
     }
     catch {
@@ -903,29 +759,18 @@ function Invoke-WindowsHelloAssertion {
     }
     
     try {
-        Write-Verbose "Starting Windows Hello assertion for RP: $RpId"
-        
-        # Handle challenge input - can be byte array, Base64Url string, or ByteString
         $challengeBytes = $null
-        Write-Verbose "Challenge type: $($Challenge.GetType().FullName)"
-        Write-Verbose "Challenge value: $Challenge"
         
         if ($Challenge -is [byte[]]) {
-            Write-Verbose "Challenge is byte array"
             $challengeBytes = $Challenge
         }
         elseif ($Challenge -is [string]) {
-            Write-Verbose "Challenge is string, converting from Base64Url"
-            # Convert from Base64Url to bytes
             $challengeBytes = [System.Convert]::FromBase64String($Challenge.Replace('-', '+').Replace('_', '/').PadRight(($Challenge.Length + 3) -band -4, '='))
         }
         elseif ($Challenge.GetType().Name -eq "ByteString" -or $Challenge.GetType().FullName -like "*ByteString*") {
-            Write-Verbose "Challenge is ByteString, converting to byte array"
-            # Handle Google.Protobuf.ByteString
             $challengeBytes = $Challenge.ToByteArray()
         }
         elseif ($Challenge -and $Challenge.GetType().GetMethod("ToByteArray")) {
-            Write-Verbose "Challenge has ToByteArray method, attempting conversion"
             $challengeBytes = $Challenge.ToByteArray()
         }
         else {
@@ -952,9 +797,6 @@ function Invoke-WindowsHelloAssertion {
                 $options.AllowedCredentialIds = $credentialIds
             }
         }
-        
-        Write-Verbose "Performing Windows Hello authentication..."
-        Write-Host "Please complete biometric authentication..." -ForegroundColor Yellow
         
         # Call the Windows Hello authentication
         $result = [PowerShellWindowsHello.WindowsHelloApi]::AuthenticateAsync($options).GetAwaiter().GetResult()
@@ -1235,7 +1077,6 @@ function Invoke-KeeperWindowsHelloAuthentication {
     )
     
     try {
-        # Step 1: Get authentication options from Keeper API
         Write-Debug "`nStep 1: Getting authentication options from Keeper..."
         $authOptions = Get-KeeperAuthenticationOptions -Username $Username -Purpose $Purpose -AuthSyncObject $AuthSyncObject
         
@@ -1386,24 +1227,12 @@ function Register-KeeperCredential {
         }
         
         $auth = $vault.Auth
-        Write-Host "Registering WebAuthn credential with Keeper API"
-        
-        # Debug the incoming challenge token
-        Write-Host "=== DEBUGGING REGISTER-KEEPERCREDENTIAL INPUTS ===" -ForegroundColor Yellow
-        Write-Host "ChallengeToken Type: $($ChallengeToken.GetType().FullName)" -ForegroundColor Cyan
-        Write-Host "ChallengeToken Value (first 100 chars): $($ChallengeToken.ToString().Substring(0, [Math]::Min(100, $ChallengeToken.ToString().Length)))" -ForegroundColor Cyan
-        Write-Host "ChallengeToken Length: $($ChallengeToken.Length)" -ForegroundColor Cyan
         
         # Create the registration completion request
         $request = [Authentication.PasskeyRegistrationFinalization]::new()
         
-        Write-Host "Converting challenge token to ByteString..." -ForegroundColor Yellow
         $request.ChallengeToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$ChallengeToken)
-
-        write-host "AttestationObject: $AttestationObject"        
-        write-host "ClientDataJSON: $ClientDataJSON"
         
-        # Reconstruct rawId from CredentialId (Base64Url -> raw bytes -> Base64Url)
         # This ensures rawId represents the actual raw credential ID bytes
         $base64 = $CredentialId.Replace('-', '+').Replace('_', '/')
         while ($base64.Length % 4 -ne 0) { $base64 += '=' }
@@ -1424,28 +1253,11 @@ function Register-KeeperCredential {
 }
 "@
         
-        Write-Host "Authenticator Response JSON: $authenticatorResponseJson" -ForegroundColor Cyan
-        
         $request.authenticatorResponse = $authenticatorResponseJson
         $request.FriendlyName = $friendly_name
         
-        write-host "Request: $request"
-        Write-Host "=== REQUEST OBJECT CONTENT ===" -ForegroundColor Yellow
-        $request | Format-List * | Out-String | Write-Host -ForegroundColor Green
-        Write-Host "=============================" -ForegroundColor Yellow
-        # Serialize the request object to bytes using protobuf extension method
-        $requestBytes = [Google.Protobuf.MessageExtensions]::ToByteArray($request)
-        $apiRequest = [Authentication.ApiRequestPayload]::new()
-        $apiRequest.Payload = [Google.Protobuf.ByteString]::CopyFrom($requestBytes)
-        $responseBytes = $auth.ExecuteAuthRest("authentication/passkey/verify_registration", $apiRequest).GetAwaiter().GetResult()
+        $response = $auth.ExecuteAuthRest("authentication/passkey/verify_registration", $request).GetAwaiter().GetResult()
         
-        # Parse the response using protobuf parser
-        $response = [Authentication.PasskeyValidationResponse]::Parser.ParseFrom($responseBytes)
-        
-        $responseJson = $response | ConvertTo-Json -Depth 10
-
-        write-host $responseJson
-
         return @{
             Success = $true
             CredentialId = $CredentialId
@@ -1625,333 +1437,6 @@ function Invoke-KeeperCredentialCreation {
     }
 }
 
-#endregion
-
-#region Main PowerCommander Interface
-
-function Invoke-WindowsHelloOperation {
-    <#
-    .SYNOPSIS
-    Unified interface for all Windows Hello operations from PowerCommander
-    
-    .DESCRIPTION
-    This function provides a single entry point for all Windows Hello functionality
-    that PowerCommander can use. It supports testing capabilities, authentication,
-    and information retrieval through different operation modes.
-    
-    .PARAMETER Operation
-    The operation to perform:
-    - "Test" : Test Windows Hello availability and capabilities
-    - "Authenticate" : Perform Windows Hello authentication
-    - "Info" : Get detailed Windows Hello information
-    - "Status" : Get simple availability status
-    - "CreateCredential" : Create a new Windows Hello credential
-    - "Register" : Complete Keeper registration flow (get options + create credential)
-    
-    .PARAMETER Challenge
-    Authentication challenge (required for Authenticate operation)
-    Registration challenge (required for CreateCredential operation)
-    
-    .PARAMETER RpId
-    Relying party identifier (default: "keepersecurity.com")
-    
-    .PARAMETER RpName
-    Relying party display name (optional, used for CreateCredential operation)
-    
-    .PARAMETER UserId
-    User identifier as byte array (required for CreateCredential operation)
-    
-    .PARAMETER Username
-    Username for context (optional, used for logging/display)
-    For CreateCredential: used as the WebAuthn user name
-    
-    .PARAMETER UserDisplayName
-    User display name (optional, used for CreateCredential operation)
-    
-    .PARAMETER TimeoutMs
-    Authentication/Registration timeout in milliseconds (default: 60000)
-    
-    .PARAMETER AllowedCredentials
-    Array of allowed credential IDs (base64 encoded, for Authenticate operation)
-    
-    .PARAMETER Vault
-    Keeper vault instance (optional, used for Register operation)
-    
-    .PARAMETER Quiet
-    Suppress console output for Test operation
-    
-    .EXAMPLE
-    # Test if Windows Hello is available
-    $result = Invoke-WindowsHelloOperation -Operation "Test"
-    if ($result.Success) {
-        Write-Host "Windows Hello is available"
-    }
-    
-    .EXAMPLE
-    # Perform authentication
-    $challenge = [System.Text.Encoding]::UTF8.GetBytes("test-challenge")
-    $result = Invoke-WindowsHelloOperation -Operation "Authenticate" -Challenge $challenge -Username "user@example.com"
-    if ($result.Success) {
-        # Use $result.Data.Signature, $result.Data.CredentialId, etc.
-    }
-    
-    .EXAMPLE
-    # Get detailed information
-    $result = Invoke-WindowsHelloOperation -Operation "Info"
-    $info = $result.Data
-    Write-Host "API Version: $($info.ApiVersion)"
-    
-    .EXAMPLE
-    # PowerCommander integration pattern
-    function Connect-KeeperWithWindowsHello {
-        param([string]$Username, [byte[]]$Challenge)
-        
-        # Single call to handle Windows Hello
-        $result = Invoke-WindowsHelloOperation -Operation "Authenticate" -Challenge $Challenge -Username $Username -RpId "keepersecurity.com"
-        
-        if ($result.Success) {
-            return $result.Data  # Contains Signature, CredentialId, etc.
-        } else {
-            throw $result.ErrorMessage
-        }
-    }
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory=$true)]
-        [ValidateSet("Test", "Authenticate", "Info", "Status", "CreateCredential", "Register")]
-        [string]$Operation,
-        
-        [Parameter()]
-        [byte[]]$Challenge,
-        
-        [Parameter()]
-        [string]$RpId = "keepersecurity.com",
-        
-        [Parameter()]
-        [string]$RpName,
-        
-        [Parameter()]
-        [byte[]]$UserId,
-        
-        [Parameter()]
-        [string]$Username,
-        
-        [Parameter()]
-        [string]$UserDisplayName,
-        
-        [Parameter()]
-        [int]$TimeoutMs = 60000,
-        
-        [Parameter()]
-        [AllowEmptyCollection()]
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'AllowedCredentials', Justification='Credential IDs are public identifiers, not sensitive data')]
-        [string[]]$AllowedCredentials,
-        
-        [Parameter()]
-        [object]$Vault,
-        
-        [Parameter()]
-        [switch]$Quiet
-    )
-    
-    # Check if assembly is available
-    if (-not $PowerShellWindowsHelloAvailable) {
-        return @{
-            Success = $false
-            Operation = $Operation
-            ErrorMessage = "PowerShellWindowsHello assembly not available. Please build the project first."
-            ErrorType = "AssemblyNotFound"
-            Data = $null
-            Timestamp = [DateTime]::UtcNow
-        }
-    }
-    
-    try {
-        switch ($Operation) {
-            "Test" {
-                $capabilities = Test-WindowsHelloCapabilities -PassThru -Quiet:$Quiet
-                return @{
-                    Success = $capabilities.WindowsHello.Available
-                    Operation = "Test"
-                    Data = @{
-                        IsAvailable = $capabilities.WindowsHello.Available
-                        ApiVersion = $capabilities.WindowsHello.ApiVersion
-                        Platform = $capabilities.WindowsHello.Platform
-                        SupportedMethods = $capabilities.WindowsHello.Methods
-                        CanCreateCredentials = $capabilities.PowerShellIntegration.CanCreateCredentials
-                        CanAuthenticate = $capabilities.PowerShellIntegration.CanAuthenticate
-                        ProductionReady = $capabilities.SystemInfo.ProductionReady
-                        RecommendedCommand = $capabilities.PowerShellIntegration.RecommendedCommand
-                    }
-                    ErrorMessage = $capabilities.WindowsHello.Error
-                    ErrorType = $null
-                    Timestamp = [DateTime]::UtcNow
-                }
-            }
-            
-            "Authenticate" {
-                if (-not $Challenge) {
-                    throw "Challenge parameter is required for Authenticate operation"
-                }
-                
-                if (-not $Quiet -and $Username) {
-                    Write-Host " Windows Hello Authentication for: $Username" -ForegroundColor Green
-                }
-                
-                $authResult = Invoke-WindowsHelloAuthentication -Challenge $Challenge -RpId $RpId -AllowedCredentials $AllowedCredentials -TimeoutMs $TimeoutMs
-                
-                return @{
-                    Success = $authResult.Success
-                    Operation = "Authenticate"
-                    Data = if ($authResult.Success) { 
-                        @{
-                            CredentialId = $authResult.CredentialId
-                            Signature = $authResult.Signature
-                            AuthenticatorData = $authResult.AuthenticatorData
-                            ClientDataJSON = $authResult.ClientDataJSON
-                            UserHandle = $authResult.UserHandle
-                            Method = $authResult.Method
-                        }
-                    } else { $null }
-                    ErrorMessage = $authResult.ErrorMessage
-                    ErrorType = $authResult.ErrorType
-                    Timestamp = $authResult.Timestamp
-                }
-            }
-            
-            "Info" {
-                $info = Get-WindowsHelloInfo
-                return @{
-                    Success = $info.IsAvailable
-                    Operation = "Info"
-                    Data = $info
-                    ErrorMessage = $info.ErrorMessage
-                    ErrorType = if ($info.ErrorMessage) { "InfoRetrievalError" } else { $null }
-                    Timestamp = $info.LastChecked
-                }
-            }
-            
-            "Status" {
-                $info = Get-WindowsHelloInfo
-                return @{
-                    Success = $info.IsAvailable
-                    Operation = "Status"
-                    Data = @{
-                        IsAvailable = $info.IsAvailable
-                        CanAuthenticate = $info.CanPerformAuthentication
-                        Status = if ($info.IsAvailable) { "Ready" } else { "NotAvailable" }
-                    }
-                    ErrorMessage = $info.ErrorMessage
-                    ErrorType = $null
-                    Timestamp = [DateTime]::UtcNow
-                }
-            }
-            
-            "CreateCredential" {
-                if (-not $Challenge) {
-                    throw "Challenge parameter is required for CreateCredential operation"
-                }
-                if (-not $UserId) {
-                    throw "UserId parameter is required for CreateCredential operation"
-                }
-                if (-not $Username) {
-                    throw "Username parameter is required for CreateCredential operation"
-                }
-                
-                if (-not $Quiet) {
-                    Write-Host " Windows Hello Credential Creation for: $Username" -ForegroundColor Green
-                }
-                
-                $credResult = Invoke-WindowsHelloCredentialCreation `
-                    -Challenge $Challenge `
-                    -RpId $RpId `
-                    -RpName $RpName `
-                    -UserId $UserId `
-                    -UserName $Username `
-                    -UserDisplayName $UserDisplayName `
-                    -TimeoutMs $TimeoutMs
-                
-                return @{
-                    Success = $credResult.Success
-                    Operation = "CreateCredential"
-                    Data = if ($credResult.Success) { 
-                        @{
-                            CredentialId = $credResult.CredentialId
-                            AttestationObject = $credResult.AttestationObject
-                            ClientDataJSON = $credResult.ClientDataJSON
-                            PublicKey = $credResult.PublicKey
-                            Method = $credResult.Method
-                            SignatureCount = $credResult.SignatureCount
-                        }
-                    } else { $null }
-                    ErrorMessage = $credResult.ErrorMessage
-                    ErrorType = $credResult.ErrorType
-                    Timestamp = $credResult.Timestamp
-                }
-            }
-            
-            "Register" {
-                if (-not $Quiet) {
-                    Write-Host " Windows Hello Registration for Keeper" -ForegroundColor Green
-                    if ($Username) {
-                        Write-Host "User: $Username" -ForegroundColor Cyan
-                    }
-                }
-                
-                $regResult = Invoke-KeeperCredentialCreation -Vault $Vault
-                
-                return @{
-                    Success = $regResult.Success
-                    Operation = "Register"
-                    Data = if ($regResult.Success) { 
-                        @{
-                            ChallengeToken = $regResult.ChallengeToken
-                            CredentialId = $regResult.CredentialId
-                            AttestationObject = $regResult.AttestationObject
-                            ClientDataJSON = $regResult.ClientDataJSON
-                            PublicKey = $regResult.PublicKey
-                            Method = $regResult.Method
-                            RegistrationComplete = $true
-                        }
-                    } else { $null }
-                    ErrorMessage = $regResult.Error
-                    ErrorType = $regResult.ErrorType
-                    Timestamp = $regResult.Timestamp
-                }
-            }
-        }
-    }
-    catch {
-        return @{
-            Success = $false
-            Operation = $Operation
-            Data = $null
-            ErrorMessage = $_.Exception.Message
-            ErrorType = $_.Exception.GetType().Name
-            Timestamp = [DateTime]::UtcNow
-        }
-    }
-}
-
-#endregion
-
-#region Aliases and Exports
-
-# Create convenient aliases
-New-Alias -Name 'Test-WHello' -Value 'Test-WindowsHelloCapabilities' -Description 'Test Windows Hello capabilities' -Force
-New-Alias -Name 'Get-WHello' -Value 'Get-WindowsHelloInfo' -Description 'Get Windows Hello info' -Force
-New-Alias -Name 'Invoke-WHAuth' -Value 'Invoke-WindowsHelloAuthentication' -Description 'Windows Hello authentication' -Force
-New-Alias -Name 'Invoke-WHOp' -Value 'Invoke-WindowsHelloOperation' -Description 'Unified Windows Hello interface for PowerCommander' -Force
-New-Alias -Name 'New-WHCredential' -Value 'Invoke-WindowsHelloCredentialCreation' -Description 'Create Windows Hello credential' -Force
-New-Alias -Name 'Get-KeeperRegOpts' -Value 'Get-KeeperRegistrationOptions' -Description 'Get Keeper registration options' -Force
-New-Alias -Name 'Get-KeeperAuthOpts' -Value 'Get-KeeperAuthenticationOptions' -Description 'Get Keeper authentication options' -Force
-New-Alias -Name 'Invoke-WHAssertion' -Value 'Invoke-WindowsHelloAssertion' -Description 'Windows Hello assertion' -Force
-New-Alias -Name 'Invoke-KeeperWHAuth' -Value 'Invoke-KeeperWindowsHelloAuthentication' -Description 'Keeper Windows Hello authentication flow' -Force
-New-Alias -Name 'Register-KeeperCred' -Value 'Register-KeeperCredential' -Description 'Register credential with Keeper' -Force
-New-Alias -Name 'Invoke-KeeperCredReg' -Value 'Invoke-KeeperCredentialCreation' -Description 'Keeper credential registration' -Force
-
-# Registry-based credential management functions (Pure PowerShell implementation)
 # These functions are only available on Windows platforms
 if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
     # Define registry path for Windows Hello credentials
@@ -2121,23 +1606,18 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
                 
                 if ($credentialId -and $credentialId.$Username) {
                     $id = $credentialId.$Username
-                    Write-Verbose "Retrieved credential ID for user: $Username"
                     return $id
                 } else {
-                    Write-Verbose "No credential ID found for user: $Username"
                     return $null
                 }
             } else {
-                Write-Verbose "Registry path does not exist: $script:WindowsHelloRegistryPath"
                 return $null
             }
         }
         catch [System.Management.Automation.ItemNotFoundException] {
-            Write-Verbose "No credential ID found for user: $Username"
             return $null
         }
         catch {
-            Write-Warning "Failed to retrieve credential ID for $Username`: $($_.Exception.Message)"
             return $null
         }
     }
@@ -2161,11 +1641,8 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
             if ($CredentialId) {
                 # Store the credential ID for the username
                 Set-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -Value $CredentialId -Type String
-                Write-Verbose "Stored credential ID for user: $Username"
             } else {
-                # Remove the credential key
                 Remove-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
-                Write-Verbose "Removed credential ID for user: $Username"
             }
             return $true
         }
@@ -2188,49 +1665,27 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
                 $credentialExists = Get-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
                 
                 if ($credentialExists) {
-                    Write-Verbose "Biometric credential previously used for user: $Username"
                     return $true
                 } else {
-                    Write-Verbose "No biometric credential found for user: $Username"
                     return $false
                 }
             } else {
-                Write-Verbose "Registry path does not exist: $script:WindowsHelloRegistryPath"
                 return $false
             }
         }
         catch [System.Management.Automation.ItemNotFoundException] {
-            Write-Verbose "No biometric credential found for user: $Username"
             return $false
         }
         catch {
-            Write-Warning "Failed to check biometric credential for $Username`: $($_.Exception.Message)"
             return $false
         }
     }
 } # End of Windows conditional compilation
 
-# Export functions and aliases - Primary interface function is Invoke-WindowsHelloOperation
 $exportFunctions = @(
-    "Invoke-WindowsHelloOperation", "Test-WindowsHelloCapabilities", "Invoke-WindowsHelloAuthentication", 
-    "Get-WindowsHelloInfo", "Import-PowerShellWindowsHello", "Invoke-WindowsHelloCredentialCreation", 
-    "Get-KeeperRegistrationOptions", "Get-KeeperAuthenticationOptions", "Invoke-WindowsHelloAssertion", 
-    "Invoke-KeeperWindowsHelloAuthentication", "Register-KeeperCredential", 
-    "Invoke-KeeperCredentialCreation", "ConvertFrom-Base64Url", "ConvertTo-ByteString", 
-    "Utf8BytesToString", "Find-WindowsHelloCredentials", "Test-KeeperCredentialExists"
+    "Test-WindowsHelloCapabilities","Invoke-KeeperWindowsHelloAuthentication","Invoke-KeeperCredentialCreation"
 )
 
-# Add Windows-specific registry functions if on Windows
-if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
-    $exportFunctions += @(
-        "Register-WindowsHelloCredential", "Unregister-WindowsHelloCredential", 
-        "Get-WindowsHelloRegisteredCredentials", 
-        "Clear-AllWindowsHelloCredentials",
-        "Get-WindowsHelloCredentialId", "Set-WindowsHelloCredentialId"
-    )
-}
-
 Export-ModuleMember -Function $exportFunctions
-Export-ModuleMember -Alias Invoke-WHOp, Test-WHello, Get-WHello, Invoke-WHAuth, New-WHCredential, Get-KeeperRegOpts, Get-KeeperAuthOpts, Invoke-WHAssertion, Complete-KeeperAuth, Invoke-KeeperWHAuth, Register-KeeperCred, Invoke-KeeperCredReg, Find-WHCreds
 
 #endregion
