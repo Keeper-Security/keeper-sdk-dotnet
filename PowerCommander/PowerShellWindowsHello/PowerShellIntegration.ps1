@@ -740,6 +740,7 @@ function Invoke-WindowsHelloAssertion {
         [string]$RpId,
         
         [Parameter()]
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'AllowedCredentials', Justification='Credential IDs are public identifiers, not sensitive data')]
         [array]$AllowedCredentials = @(),
         
         [Parameter()]
@@ -1277,6 +1278,208 @@ function Register-KeeperCredential {
         }
     }
 }
+function Get-KeeperAvailableBiometricCredentials {
+    <#
+    .SYNOPSIS
+    Get list of available biometric credentials from Keeper
+    
+    .DESCRIPTION
+    This function retrieves a list of all registered biometric credentials (passkeys) 
+    associated with the current Keeper account. It returns information about each credential
+    including user ID, friendly name, creation date, last used date, and credential ID.
+    
+    .PARAMETER Vault
+    Keeper vault instance (optional - will use global vault if not provided)
+    
+    .PARAMETER IncludeDisabled
+    Include disabled credentials in the results (default: false)
+    
+    .EXAMPLE
+    $credentials = Get-KeeperAvailableBiometricCredentials
+    $credentials | Format-Table
+    
+    .EXAMPLE
+    $allCredentials = Get-KeeperAvailableBiometricCredentials -IncludeDisabled
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)]
+        [object]$Vault,
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$IncludeDisabled
+    )
+    
+    try {
+        # Get vault instance
+        if (-not $Vault) {
+            if (Get-Command getVault -ErrorAction SilentlyContinue) {
+                $vault = getVault
+            } elseif ($Script:Context.Vault) {
+                $vault = $Script:Context.Vault
+            } else {
+                throw "No vault instance available. Please connect to Keeper first or provide a vault parameter."
+            }
+        } else {
+            $vault = $Vault
+        }
+        
+        $auth = $vault.Auth
+        
+        # Create the passkey list request
+        $request = [Authentication.PasskeyListRequest]::new()
+        $request.IncludeDisabled = $IncludeDisabled.IsPresent
+        
+        # Execute the API call
+        $response = $auth.ExecuteAuthRest("authentication/passkey/get_available_keys", $request, [Authentication.PasskeyListResponse]).GetAwaiter().GetResult()
+        
+        # Convert the response to PowerShell objects
+        $credentials = @()
+        foreach ($passkey in $response.PasskeyInfo) {
+            $credential = [PSCustomObject]@{
+                Id = $passkey.UserId
+                Name = $passkey.FriendlyName
+                Created = if ($passkey.CreatedAtMillis -gt 0) { [DateTimeOffset]::FromUnixTimeMilliseconds($passkey.CreatedAtMillis).DateTime } else { $null }
+                LastUsed = if ($passkey.LastUsedMillis -gt 0) { [DateTimeOffset]::FromUnixTimeMilliseconds($passkey.LastUsedMillis).DateTime } else { $null }
+                CredentialId = $passkey.CredentialId
+                AAGUID = if ($passkey.AAGUID) { $passkey.AAGUID.Replace('-', '') } else { $null }
+                Disabled = if ($passkey.DisabledAtMillis -gt 0) { [DateTimeOffset]::FromUnixTimeMilliseconds($passkey.DisabledAtMillis).DateTime } else { $null }
+            }
+            $credentials += $credential
+        }
+        
+        return $credentials
+    }
+    catch {
+        Write-Error "Failed to get available biometric credentials: $($_.Exception.Message)"
+        throw "Error getting available biometric credentials: $($_.Exception.Message)"
+    }
+}
+
+# AAGUID to Provider Name mapping based on community-sourced data
+# Source: https://github.com/passkeydeveloper/passkey-authenticator-aaguids
+$script:AAGUID_PROVIDER_MAPPING = @{
+    'ea9b8d664d011d213ce4b6b48cb575d4' = 'Google Password Manager'
+    'adce000235bcc60a648b0b25f1f05503' = 'Chrome on Mac'
+    'fbfc3007154e4ecc8c0b6e020557d7bd' = 'iCloud Keychain'
+    'dd4ec289e01d41c9bb8970fa845d4bf2' = 'iCloud Keychain (Managed)'
+    '08987058cadc4b81b6e130de50dcbe96' = 'Windows Hello'
+    '9ddd1817af5a4672a2b93e3dd95000a9' = 'Windows Hello'
+    '6028b017b1d44c02b4b3afcdafc96bb2' = 'Windows Hello'
+    '00000000000000000000000000000000' = 'Platform Authenticator'
+}
+
+function Get-ProviderNameFromAAGUID {
+    <#
+    .SYNOPSIS
+    Get friendly provider name from AAGUID
+    
+    .DESCRIPTION
+    Maps an AAGUID to a friendly provider name using the community-sourced mapping.
+    
+    .PARAMETER AAGUID
+    The AAGUID to look up
+    
+    .EXAMPLE
+    Get-ProviderNameFromAAGUID -AAGUID "9ddd1817-af5a-4672-a2b9-3e3dd95000a9"
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$AAGUID
+    )
+    
+    if ($script:AAGUID_PROVIDER_MAPPING.ContainsKey($AAGUID)) {
+        return $script:AAGUID_PROVIDER_MAPPING[$AAGUID]
+    } else {
+        return "Unknown Provider ($AAGUID)"
+    }
+}
+
+function Show-KeeperBiometricCredentials {
+    <#
+    .SYNOPSIS
+    Display biometric credentials in a formatted table
+    
+    .DESCRIPTION
+    This function retrieves and displays all registered biometric credentials (passkeys) 
+    in a formatted table, similar to the Python _display_credentials function.
+    It shows credential name, creation date, and last used date.
+    
+    .PARAMETER Vault
+    Keeper vault instance (optional - will use global vault if not provided)
+    
+    .PARAMETER IncludeDisabled
+    Include disabled credentials in the results (default: false)
+    
+    .EXAMPLE
+    Show-KeeperBiometricCredentials
+    
+    .EXAMPLE
+    Show-KeeperBiometricCredentials -IncludeDisabled
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)]
+        [object]$Vault,
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$IncludeDisabled
+    )
+    
+    try {
+        # Get the credentials
+        $credentials = Get-KeeperAvailableBiometricCredentials -Vault $Vault -IncludeDisabled:$IncludeDisabled
+        
+        if (-not $credentials -or $credentials.Count -eq 0) {
+            Write-Host "No biometric authentication methods found." -ForegroundColor Yellow
+            return
+        }
+        
+        Write-Host "`nRegistered Biometric Authentication Methods:" -ForegroundColor Green
+        Write-Host ("-" * 70) -ForegroundColor Gray
+        
+        foreach ($credential in $credentials) {
+            # Format timestamps
+            $createdDate = if ($credential.Created) { 
+                $credential.Created.ToString("yyyy-MM-dd HH:mm:ss") 
+            } else { 
+                "Never" 
+            }
+            
+            $lastUsedDate = if ($credential.LastUsed) { 
+                $credential.LastUsed.ToString("yyyy-MM-dd HH:mm:ss") 
+            } else { 
+                "Never" 
+            }
+            
+            # Use friendly name, fallback to AAGUID mapping if name is empty
+            $displayName = $credential.Name
+            if ([string]::IsNullOrWhiteSpace($displayName)) {
+                $aaguid = $credential.AAGUID
+                if ($aaguid) {
+                    $displayName = Get-ProviderNameFromAAGUID -AAGUID $aaguid
+                } else {
+                    $displayName = "Unknown Provider"
+                }
+            }
+            
+            # Show disabled status if applicable
+            if ($credential.Disabled) {
+                $displayName += " (DISABLED)"
+            }
+            
+            Write-Host "Name: $displayName" -ForegroundColor White
+            Write-Host "Created: $createdDate" -ForegroundColor Cyan
+            Write-Host "Last Used: $lastUsedDate" -ForegroundColor Cyan
+            Write-Host ("-" * 70) -ForegroundColor Gray
+        }
+    }
+    catch {
+        Write-Error "Failed to display biometric credentials: $($_.Exception.Message)"
+        throw "Error displaying biometric credentials: $($_.Exception.Message)"
+    }
+}
 
 function Invoke-KeeperCredentialCreation {
     <#
@@ -1342,13 +1545,11 @@ function Invoke-KeeperCredentialCreation {
             $displayName = $regOptions.user_display_name
         }
 
-        $rpId = $regOptions.rp_id
         $username = $regOptions.user_name
         $excludeCredentials = $regOptions.creation_options.excludeCredentials
         if ($excludeCredentials -isnot [array]) {
             $excludeCredentials = @($excludeCredentials)
         } 
-        $excludeCredentialsJson = $excludeCredentials | ConvertTo-Json -Depth 10
         
         # Convert exclude credentials to the format expected by C# method
         $excludeCredentialObjects = @()
@@ -1404,7 +1605,6 @@ function Invoke-KeeperCredentialCreation {
             $registerResult = Register-KeeperCredential -ChallengeToken $regOptions.challenge_token -CredentialId $credResult.CredentialId -AttestationObject $credResult.AttestationObject -ClientDataJSON $credResult.ClientDataJSON -Vault $Vault
             if ($registerResult.Success) {
                 $credentialId = $credResult.CredentialId
-                $rpId = $regOptions.rp_id
                 $username = $regOptions.user_name
                 
                 # Store the credential ID for this user
@@ -1440,7 +1640,7 @@ function Invoke-KeeperCredentialCreation {
 # These functions are only available on Windows platforms
 if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
     # Define registry path for Windows Hello credentials
-    $script:WindowsHelloRegistryPath = "HKCU:\Software\Keeper Security\Commander\Biometric" # replace with  Computer\HKEY_CURRENT_USER\Software\Keeper Security\Commander\Biometric
+    $script:WindowsHelloRegistryPath = "HKCU:\Software\Keeper Security\Commander\Biometric"
     
     function Register-WindowsHelloCredential {
         [CmdletBinding()]
@@ -1683,7 +1883,7 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
 } # End of Windows conditional compilation
 
 $exportFunctions = @(
-    "Test-WindowsHelloCapabilities","Invoke-KeeperWindowsHelloAuthentication","Invoke-KeeperCredentialCreation"
+    "Test-WindowsHelloCapabilities","Invoke-KeeperWindowsHelloAuthentication","Invoke-KeeperCredentialCreation","Show-KeeperBiometricCredentials"
 )
 
 Export-ModuleMember -Function $exportFunctions
