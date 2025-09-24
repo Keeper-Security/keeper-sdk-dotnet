@@ -232,7 +232,6 @@ namespace Commander
 
                 case "register":
                 {
-                    Console.WriteLine(device);
                     if (!device.EncryptedDataKeyPresent)
                     {
                         await _auth.RegisterDataKeyForDevice(device);
