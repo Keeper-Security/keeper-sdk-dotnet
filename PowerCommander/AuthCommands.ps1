@@ -416,10 +416,10 @@ function Connect-Keeper {
         if ($windowsHelloAvailable) {
             $biometricPresent = Test-WindowsHelloBiometricPreviouslyUsed -Username $Username
             if (-not $biometricPresent) {
-                Write-Host "Windows Hello biometric authentication not available for this user" -InformationAction Continue
+                Write-Debug "Windows Hello biometric authentication not available for this user"
             }
         } else {
-            Write-Host "Windows Hello not available on this system"
+            Write-Debug "Windows Hello not available on this system"
         }
     }
     catch {
@@ -452,7 +452,7 @@ function Connect-Keeper {
         if ($biometricPresent) {
             try {
                 Write-Host "Attempting Keeper biometric authentication..." -InformationAction Continue
-                $biometricResult = Invoke-KeeperWindowsHelloAuthentication -AuthSyncObject $authFlow -Username $Username -PassThru
+                $biometricResult = Verify-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
                 if ($biometricResult.Success) {
                     $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
                     if ($authFlow.IsCompleted) {

@@ -75,7 +75,8 @@ Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBre
 Get-KeeperIgnoredBreachWatchRecords
 Export-ModuleMember -Alias kbw, kbwp
 
-Export-ModuleMember -Function Invoke-KeeperWindowsHelloAuthentication, Invoke-KeeperCredentialCreation
+Export-ModuleMember -Function Register-KeeperBiometricCredential, Verify-KeeperBiometricCredential, 
+Show-KeeperBiometricCredentials, Unregister-KeeperBiometricCredential
 
 # function Test-Keeper {
 #     [CmdletBinding()]

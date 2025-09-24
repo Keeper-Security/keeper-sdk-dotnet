@@ -422,7 +422,7 @@ function Get-KeeperRegistrationOptions {
     .EXAMPLE
     $regOptions = Get-KeeperRegistrationOptions
     if ($regOptions) {
-        # Use with Invoke-KeeperCredentialCreation
+        # Use with Register-KeeperBiometricCredential
     }
     #>
     [CmdletBinding()]
@@ -1091,7 +1091,7 @@ function Complete-KeeperAuthentication {
     }
 }
 
-function Invoke-KeeperWindowsHelloAuthentication {
+function Verify-KeeperBiometricCredential {
     <#
     .SYNOPSIS
     Complete Windows Hello authentication flow with Keeper
@@ -1120,17 +1120,17 @@ function Invoke-KeeperWindowsHelloAuthentication {
     Return the authentication result object. If not specified, function returns nothing.
     
     .EXAMPLE
-    Invoke-KeeperWindowsHelloAuthentication
+    Verify-KeeperBiometricCredential
     # Performs authentication without returning a result object
     
     .EXAMPLE
-    $result = Invoke-KeeperWindowsHelloAuthentication -PassThru
+    $result = Verify-KeeperBiometricCredential -PassThru
     if ($result.Success) {
         Write-Host "Authentication successful!"
     }
     
     .EXAMPLE
-    $result = Invoke-KeeperWindowsHelloAuthentication -Purpose "vault" -PassThru
+    $result = Verify-KeeperBiometricCredential -Purpose "vault" -PassThru
     #>
     [CmdletBinding()]
     param(
@@ -1525,23 +1525,24 @@ function Disable-KeeperPasskey {
     
     try {
         $auth = $vault.Auth
-        # Create the UpdatePasskeyRequest
         $request = [Authentication.UpdatePasskeyRequest]::new()
         $request.UserId = $UserId
-        # Convert credential ID to bytes if it's Base64Url encoded
         $credentialIdBytes = $null
-        if ($CredentialId -match '^[A-Za-z0-9_-]+$') {
-            # Base64Url decode
-            $base64 = $CredentialId.Replace('-', '+').Replace('_', '/')
+        if ($CredentialId -match '^[A-Za-z0-9+/=_-]+$') {
+            $base64 = $CredentialId
+            
+            if ($CredentialId.Contains('-') -or $CredentialId.Contains('_')) {
+                $base64 = $CredentialId.Replace('-', '+').Replace('_', '/')
+            }
+            
             while ($base64.Length % 4 -ne 0) { $base64 += '=' }
+            
             $credentialIdBytes = [Convert]::FromBase64String($base64)
         } else {
-            # Assume it's already bytes or convert from string
             $credentialIdBytes = [System.Text.Encoding]::UTF8.GetBytes($CredentialId)
         }
         
         $request.CredentialId = [Google.Protobuf.ByteString]::CopyFrom($credentialIdBytes)
-        # Execute the API call
         $response = $auth.ExecuteAuthRest("authentication/passkey/disable", $request).GetAwaiter().GetResult()
         return @{
             Success = $true
@@ -1574,7 +1575,7 @@ function Disable-KeeperPasskey {
     }
 }
 
-function Remove-KeeperBiometricCredentials {
+function Unregister-KeeperBiometricCredential {
     <#
     .SYNOPSIS
     Remove/disable biometric credentials from Keeper
@@ -1595,17 +1596,27 @@ function Remove-KeeperBiometricCredentials {
     .PARAMETER Vault
     Keeper vault instance (optional - will use global vault if not provided)
     
+    .PARAMETER PassThru
+    Return the result object. If not specified, function returns nothing.
+    
     .EXAMPLE
     # Disable all biometric authentication for current user
-    Remove-KeeperBiometricCredentials
+    Unregister-KeeperBiometricCredential
     
     .EXAMPLE
     # Remove specific credential
-    Remove-KeeperBiometricCredentials -CredentialId "abc123def456"
+    Unregister-KeeperBiometricCredential -CredentialId "abc123def456"
     
     .EXAMPLE
     # Disable for specific user without confirmation
-    Remove-KeeperBiometricCredentials -Username "user@company.com" -Confirm
+    Unregister-KeeperBiometricCredential -Username "user@company.com" -Confirm
+    
+    .EXAMPLE
+    # Get result object
+    $result = Unregister-KeeperBiometricCredential -PassThru
+    if ($result.Success) {
+        Write-Host "Unregistration successful!"
+    }
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -1616,7 +1627,10 @@ function Remove-KeeperBiometricCredentials {
         [string]$Username,
         
         [Parameter(Mandatory=$false)]
-        [object]$Vault
+        [object]$Vault,
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$PassThru
     )
     
     try {
@@ -1640,52 +1654,60 @@ function Remove-KeeperBiometricCredentials {
         
         $hasBiometric = Test-WindowsHelloBiometricPreviouslyUsed -Username $Username
         if (-not $hasBiometric) {
-            Write-Verbose "Biometric authentication is already disabled for user '$Username'." -ForegroundColor Yellow
-            return @{
+            $result = @{
                 Success = $true
                 Message = "Biometric authentication already disabled"
             }
+            if ($PassThru) {
+                return $result
+            }
+            return
         }
         
         # Confirmation prompt
         if (-not $PSCmdlet.ShouldProcess("Remove biometric credentials for user '$Username'", "Remove", "Are you sure you want to remove biometric authentication?")) {
-            return @{
+            $result = @{
                 Success = $false
                 Message = "Operation cancelled by user"
             }
+            if ($PassThru) {
+                return $result
+            }
+            return
         }
         
-        # Get RP ID from server (assuming keepersecurity.com)
         $rpId = "keepersecurity.com"
         
         # Disable server passkeys - following Python pattern
         Write-Host "Disabling server passkeys..." -ForegroundColor Yellow
-        $disableResult = $true
+        $disableResult = $false
         
         # Get stored credential ID from registry
         $storedCredentialId = Get-WindowsHelloCredentialId -Username $Username
+        
         if ($storedCredentialId) {
-            
             try {
                 # Get all available credentials (following Python pattern)
-                $availableCredentials = Get-KeeperAvailableBiometricCredentials -Vault $vault
-                
-                # Find the target passkey by credential ID
+                $availableCredentials = Get-KeeperAvailableBiometricCredentials -Vault $vault                
                 $targetPasskey = $null
+                $targetPasskeyBase64 = $null
                 foreach ($credential in $availableCredentials) {
                     $credentialId = $credential.CredentialId
-                    
-                    # Compare credential IDs (handle both string and byte array formats)
-                    if ($credentialId -eq $storedCredentialId) {
+                    $credentialBytes = $credentialId -split ' ' | ForEach-Object { [byte]$_ }
+
+                    $credentialIdBase64 = [Convert]::ToBase64String($credentialBytes)
+                    $credentialIdBase64Url = $credentialIdBase64.Replace('+', '-').Replace('/', '_').TrimEnd('=')
+                                                            
+                    if ($credentialIdBase64Url -eq $storedCredentialId) {
                         $targetPasskey = $credential
+                        $targetPasskeyBase64 = $credentialIdBase64
                         break
                     }
                 }
                 
                 if ($targetPasskey) {
-                    # Call server API to disable the passkey using the credential's user ID and credential ID
                     try {
-                        $disableResult = Disable-KeeperPasskey -Vault $vault -UserId $targetPasskey.Id -CredentialId $targetPasskey.CredentialId
+                        $disableResult = Disable-KeeperPasskey -Vault $vault -UserId $targetPasskey.Id -CredentialId $targetPasskeyBase64
                         if ($disableResult.Success) {
                             Write-Host "Successfully disabled passkey on server" -ForegroundColor Green
                         } else {
@@ -1704,39 +1726,47 @@ function Remove-KeeperBiometricCredentials {
                 $disableResult = $false
             }
         } else {
-            Write-Host "No stored credential ID found for user" -ForegroundColor Yellow
+            Write-Host "No stored credential ID found for user"
         }
 
-        $cleanupSuccess = $true
-        if ($CredentialId) {
-            $cleanupSuccess = Unregister-WindowsHelloCredential -Username $Username -RpId $rpId -CredentialId $CredentialId
+        $cleanupSuccess = $false
+        if ($storedCredentialId -and $disableResult) {
+            $cleanupSuccess = Unregister-WindowsHelloCredential -Username $Username -RpId $rpId -CredentialId $storedCredentialId
         }
         
         # Verify cleanup
         $verificationSuccess = -not (Test-WindowsHelloBiometricPreviouslyUsed -Username $Username)
         
-        if ($cleanupSuccess -and $verificationSuccess) {
-            return @{
+        $result = if ($cleanupSuccess -and $verificationSuccess) {
+            @{
                 Success = $true
                 Message = "Biometric credentials removed successfully"
                 Username = $Username
-                CredentialId = $CredentialId
+                CredentialId = $storedCredentialId
             }
         } else {
-            return @{
+            @{
                 Success = $false
                 Message = "Biometric credential removal may have failed"
                 Username = $Username
-                CredentialId = $CredentialId
+                CredentialId = $storedCredentialId
             }
+        }
+        
+        if ($PassThru) {
+            return $result
         }
     }
     catch {
         Write-Error "Failed to remove biometric credentials: $($_.Exception.Message)"
-        return @{
+        $errorResult = @{
             Success = $false
             ErrorMessage = $_.Exception.Message
             ErrorType = $_.Exception.GetType().Name
+        }
+        
+        if ($PassThru) {
+            return $errorResult
         }
     }
 }
@@ -1828,7 +1858,7 @@ function Show-KeeperBiometricCredentials {
     }
 }
 
-function Invoke-KeeperCredentialCreation {
+function Register-KeeperBiometricCredential {
     <#
     .SYNOPSIS
     Complete Windows Hello credential creation flow for Keeper with deduplication
@@ -1853,7 +1883,7 @@ function Invoke-KeeperCredentialCreation {
     Friendly name for the credential (optional)
     
     .EXAMPLE
-    $result = Invoke-KeeperCredentialCreation
+    $result = Register-KeeperBiometricCredential
     if ($result.Success) {
         # Credential ready for Keeper registration
         Write-Host "Credential ID: $($result.CredentialId)"
@@ -1861,11 +1891,11 @@ function Invoke-KeeperCredentialCreation {
     
     .EXAMPLE
     # Force creation of new credential even if duplicates exist
-    $result = Invoke-KeeperCredentialCreation -Force
+    $result = Register-KeeperBiometricCredential -Force
     
     .EXAMPLE
     # Create credential with custom friendly name
-    $result = Invoke-KeeperCredentialCreation -FriendlyName "My Work Laptop"
+    $result = Register-KeeperBiometricCredential -FriendlyName "My Work Laptop"
     #>
     [CmdletBinding()]
     param(
@@ -1880,7 +1910,7 @@ function Invoke-KeeperCredentialCreation {
     )
     
     try {
-        Write-Host "Windows Hello Credential Creation for Keeper" -ForegroundColor Yellow
+        Write-Host "Biometric Credential Creation for Keeper" -ForegroundColor Yellow
         
         $regOptions = Get-KeeperRegistrationOptions -Vault $Vault
         $displayName = $null
@@ -1934,7 +1964,7 @@ function Invoke-KeeperCredentialCreation {
         
         # Handle matched credential from registry vs excludeCredentials
         if ($matchedCredential) {
-            Write-Host "Found matching credential in registry that's also in excludeCredentials!" -ForegroundColor Yellow
+            Write-Host "Found matching credential which is also in registry!" -ForegroundColor Yellow
             Write-Host "Registration cancelled as a matching credential was found in registry use biometric verify instead to just use the existing credential and login with the existing credential." -ForegroundColor Red
             return $false
         } 
@@ -1948,7 +1978,6 @@ function Invoke-KeeperCredentialCreation {
             -ExcludeCredentials $excludeCredentialObjects
 
         if ($credResult.Success) {
-            Write-Host " Windows Hello credential creation completed!" -ForegroundColor Green
             $registerResult = Register-KeeperCredential -ChallengeToken $regOptions.challenge_token -CredentialId $credResult.CredentialId -AttestationObject $credResult.AttestationObject -ClientDataJSON $credResult.ClientDataJSON -Vault $Vault
             if ($registerResult.Success) {
                 $credentialId = $credResult.CredentialId
@@ -2127,7 +2156,7 @@ if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
 } # End of Windows conditional compilation
 
 $exportFunctions = @(
-    "Test-WindowsHelloCapabilities","Invoke-KeeperWindowsHelloAuthentication","Invoke-KeeperCredentialCreation","Show-KeeperBiometricCredentials","Remove-KeeperBiometricCredentials"
+    "Test-WindowsHelloCapabilities","Verify-KeeperBiometricCredential","Register-KeeperBiometricCredential","Show-KeeperBiometricCredentials","Unregister-KeeperBiometricCredential"
 )
 
 Export-ModuleMember -Function $exportFunctions
