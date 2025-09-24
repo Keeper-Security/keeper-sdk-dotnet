@@ -26,18 +26,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows10.0.17763.0'">
-    <DefineConstants>$(DefineConstants);WINDOWS_HELLO_AVAILABLE;FIDO2_AVAILABLE</DefineConstants>
-  </PropertyGroup>
-
-
-
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.28.3" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="Fido2" Version="3.0.1" Condition="'$(TargetFramework)' == 'net8.0-windows10.0.17763.0'" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
 
   <ItemGroup>
