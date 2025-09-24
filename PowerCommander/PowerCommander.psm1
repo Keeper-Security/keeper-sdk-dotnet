@@ -68,8 +68,12 @@ Revoke-KeeperSecretManagerFolderAccess, Add-KeeperSecretManagerClient, Remove-Ke
 Grant-KeeperAppAccess, Revoke-KeeperAppAccess
 Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, ksm-addclient, ksm-rmclient
 
-Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord
-Export-ModuleMember -Alias kda
+Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord, Remove-KeeperFileAttachment
+Export-ModuleMember -Alias kda, krfa
+
+Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch,Set-KeeperBreachWatchRecordIgnore,
+Get-KeeperIgnoredBreachWatchRecords
+Export-ModuleMember -Alias kbw, kbwp
 
 Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch,Set-KeeperBreachWatchRecordIgnore,
 Get-KeeperIgnoredBreachWatchRecords

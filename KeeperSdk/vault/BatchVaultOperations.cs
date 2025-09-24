@@ -1348,7 +1348,7 @@ public class BatchVaultOperations : IBatchVaultOperations
 
         if (_sharedFolderMembership.Count > 0)
         {
-            await _vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await _vault.SyncDown();
 
             var userEmails = new HashSet<string>();
             var teamUids = new HashSet<string>();
@@ -1653,7 +1653,7 @@ public class BatchVaultOperations : IBatchVaultOperations
             }
         }
 
-        await _vault.ScheduleSyncDown(TimeSpan.FromSeconds(0));
+        await _vault.SyncDown();
         Reset();
         return result;
     }

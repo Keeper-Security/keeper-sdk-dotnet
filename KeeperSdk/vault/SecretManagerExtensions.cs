@@ -131,7 +131,7 @@ namespace KeeperSecurity.Vault
                 ClientModifiedTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             };
             await Auth.ExecuteAuthRest("vault/application_add", rq);
-            await ScheduleSyncDown(TimeSpan.FromSeconds(0));
+            await SyncDown();
             if (TryGetKeeperRecord(appUid, out var r))
             {
                 return r as ApplicationRecord;

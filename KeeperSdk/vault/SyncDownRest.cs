@@ -20,23 +20,24 @@ namespace KeeperSecurity.Vault
         /// Incrementally downloads vault data.
         /// </summary>
         /// <param name="vault">Vault connected to Keeper.</param>
+        /// <param name="fullSync"></param>
         /// <param name="syncRecordTypes">Force record types reloading</param>
         /// <returns></returns>
-        internal static async Task RunSyncDownRest(this VaultOnline vault, bool syncRecordTypes = false)
+        internal static async Task RunSyncDownRest(this VaultOnline vault, bool fullSync = false)
         {
             var auth = vault.Auth;
             var storage = vault.Storage;
             var context = vault.Auth.AuthContext;
             var clientKey = vault.ClientKey;
 
-            if (syncRecordTypes)
+            if (fullSync)
             {
                 vault.RecordTypesLoaded = false;
             }
 
             var settings = storage.VaultSettings.Load();
             byte[] token = null;
-            if (settings?.SyncDownToken != null)
+            if (!fullSync && settings?.SyncDownToken != null)
             {
                 token = settings.SyncDownToken;
             }
@@ -516,15 +517,31 @@ namespace KeeperSecurity.Vault
                     result.AddRecords(sfrs.Select(x => x.RecordUid));
                 }
 
-                // TODO use Account UID
                 // shared folder users
                 if (rs.RemovedSharedFolderUsers.Count > 0)
                 {
                     var rsfu = rs.RemovedSharedFolderUsers
-                        .Select(x => UidLink.Create(x.SharedFolderUid.ToByteArray().Base64UrlEncode(),
-                            string.IsNullOrEmpty(x.Username) ? auth.Username : x.Username))
+                        .Select(x =>
+                        {
+                            string accountUid = null;
+                            if (string.IsNullOrEmpty(x.Username))
+                            {
+                                accountUid = auth.AuthContext.AccountUid.Base64UrlEncode();
+                            }
+                            else
+                            {
+                                accountUid = storage.UserEmails.GetLinksForObject(x.Username)
+                                    .Select(y => y.AccountUid)
+                                    .FirstOrDefault();
+                            }
+
+                            if (string.IsNullOrEmpty(accountUid)) return null;
+                            return UidLink.Create(x.SharedFolderUid.ToByteArray().Base64UrlEncode(), accountUid);
+                        })
+                        .Where(x => x != null)
                         .ToArray();
                     storage.SharedFolderPermissions.DeleteLinks(rsfu);
+                    result.AddSharedFolders(rsfu.Select(x => x.SubjectUid));
                 }
 
                 if (rs.SharedFolderUsers.Count > 0)
@@ -540,6 +557,7 @@ namespace KeeperSecurity.Vault
                         Expiration = x.Expiration,
                     }).ToArray();
                     storage.SharedFolderPermissions.PutLinks(sfus);
+                    result.AddSharedFolders(sfus.Select(x => x.SharedFolderUid));
                 }
 
                 // shared folder teams
@@ -566,6 +584,7 @@ namespace KeeperSecurity.Vault
                         Expiration = x.Expiration,
                     }).ToArray();
                     storage.SharedFolderPermissions.PutLinks(sfts);
+                    result.AddSharedFolders(sfts.Select(x => x.SharedFolderUid));
                 }
 
                 // folders

@@ -57,7 +57,6 @@ namespace Commander
             {
                 Endpoint = { DeviceName = "Commander C#", ClientVersion = "c17.0.0" }
             };
-
             Commands.Add("proxy", new ParseableCommand<ProxyOptions>
             {
                 Order = 9,

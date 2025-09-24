@@ -108,9 +108,8 @@ namespace Commander
                     {
                         if (!Vault.TryGetFolder(subFolder, out var subNode)) return false;
 
-                        if (string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0)
+                        if ((string.Compare(folder, subNode.Name, StringComparison.CurrentCultureIgnoreCase) != 0) && (string.Compare(folder, subNode.FolderUid, StringComparison.CurrentCultureIgnoreCase) != 0))
                             continue;
-
                         found = true;
                         node = subNode;
                         break;
@@ -168,13 +167,7 @@ namespace Commander
                     Action = context.TreeCommand
                 });
 
-            cli.Commands.Add("get",
-                new SimpleCommand
-                {
-                    Order = 14,
-                    Description = "Display specified Keeper record/folder/team",
-                    Action = context.GetCommand
-                });
+
             cli.Commands.Add("record-history",
                 new SimpleCommand
                 {
@@ -345,17 +338,10 @@ namespace Commander
                     Description = "Download & decrypt data",
                     Action = async (options) =>
                     {
-                        if (options.Reset)
-                        {
-                            Console.WriteLine("Resetting offline storage.");
-                            context.Vault.Storage.Clear();
-                            context.Vault.RecordTypesLoaded = false;
-                        }
-
                         var s = context.Vault.Storage.VaultSettings.Load();
-                        var fullSync = s == null;
+                        var fullSync = options.Reset || s == null;
                         Console.WriteLine("Syncing...");
-                        await context.Vault.ScheduleSyncDown(TimeSpan.FromMilliseconds(0));
+                        await context.Vault.SyncDown(fullSync: fullSync);
                         if (fullSync)
                         {
                             Console.WriteLine($"Decrypted {context.Vault.RecordCount} record(s)");
@@ -715,311 +701,273 @@ namespace Commander
             tab.Dump();
         }
 
-        private static async Task GetCommand(this VaultContext context, string uid)
+        private static Task GetPasswordReport(this VaultContext context, PasswordReportOptions options)
         {
-            var tab = new Tabulate(3);
-            if (context.Vault.TryGetKeeperRecord(uid, out var record))
+            var policyString = "12,2,2,2,0";
+            var filterToFailingOnly = false;
+
+            if (!string.IsNullOrEmpty(options.PolicyFlag))
             {
-                var totps = new List<string>();
-
-                tab.AddRow("Record UID:", record.Uid);
-                tab.AddRow("Type:", record.KeeperRecordType());
-                tab.AddRow("Title:", record.Title);
-                if (record is PasswordRecord legacy)
-                {
-                    tab.AddRow("Notes:", legacy.Notes);
-                    tab.AddRow("$login:", legacy.Login);
-                    tab.AddRow("$password:", legacy.Password);
-                    tab.AddRow("$url:", legacy.Link);
-                    if (!string.IsNullOrEmpty(legacy.Totp))
-                    {
-                        totps.Add(legacy.Totp);
-                        tab.AddRow("$oneTimeCode:", legacy.Totp);
-                    }
-
-                    if (legacy.Custom != null && legacy.Custom.Count > 0)
-                    {
-                        foreach (var c in legacy.Custom)
-                        {
-                            tab.AddRow(c.Name + ":", c.Value);
-                        }
-                    }
-                }
-                else if (record is TypedRecord typed)
-                {
-                    tab.AddRow("Notes:", typed.Notes);
-                    foreach (var f in typed.Fields.Concat(typed.Custom))
-                    {
-                        if (f.FieldName == "oneTimeCode")
-                        {
-                            if (f is TypedField<string> sf && sf.Count > 0)
-                            {
-                                totps.AddRange(sf.Values.Where(x => !string.IsNullOrEmpty(x)));
-                            }
-                        }
-                        else
-                        {
-                            var label = f.GetTypedFieldName();
-                            var values = f.GetTypedFieldValues().ToArray();
-                            for (var i = 0; i < Math.Max(values.Length, 1); i++)
-                            {
-                                var v = i < values.Length ? values[i] : "";
-                                if (v.Length > 80)
-                                {
-                                    var lines = v.Split('\n').Select(x => x.TrimEnd('\r')).ToArray();
-                                    for (var j = 0; j < lines.Length; j++)
-                                    {
-                                        var l = lines[j];
-                                        if (l.Length > 80)
-                                        {
-                                            l = l.Substring(0, 77) + "...";
-                                        }
-
-                                        tab.AddRow(i == 0 && j == 0 ? $"{label}:" : "", l);
-                                    }
-                                }
-                                else
-                                {
-                                    tab.AddRow(i == 0 ? $"{label}:" : "", v);
-                                }
-                            }
-                        }
-                    }
-                }
-                else if (record is FileRecord file)
-                {
-                    tab.AddRow("Name:", file.Name);
-                    tab.AddRow("MIME Type:", file.MimeType ?? "");
-                    tab.AddRow("Size:", file.FileSize.ToString("N0"));
-                    if (file.ThumbnailSize > 0)
-                    {
-                        tab.AddRow("Thumbnail Size:", file.ThumbnailSize.ToString("N0"));
-                    }
-                }
-
-                foreach (var url in totps)
-                {
-                    tab.AddRow("$oneTimeCode:", url);
-                    try
-                    {
-                        var tup = CryptoUtils.GetTotpCode(url);
-                        if (tup != null)
-                        {
-                            tab.AddRow($"{tup.Item1}:", $"expires in {tup.Item3 - tup.Item2} sec.");
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                }
-
-                tab.AddRow("Last Modified:", record.ClientModified.LocalDateTime.ToString("F"));
-                var shareInfo = (await context.Vault.GetSharesForRecords(new[] { record.Uid }))
-                    .FirstOrDefault(x => x.RecordUid == record.Uid);
-                if (shareInfo != null)
-                {
-                    if (shareInfo.UserPermissions.Length > 0)
-                    {
-                        tab.AddRow("", "");
-                        tab.AddRow("User Shares:", "");
-                        foreach (var rs in shareInfo.UserPermissions)
-                        {
-                            string status;
-
-                            if (rs.Owner)
-                            {
-                                status = "Owner";
-                            }
-                            else
-                            {
-                                if (rs.AwaitingApproval)
-                                {
-                                    status = "Awaiting Approval";
-                                }
-                                else
-                                {
-                                    if (!rs.CanEdit && !rs.CanShare)
-                                    {
-                                        status = "Read Only";
-                                    }
-                                    else if (rs.CanEdit && rs.CanShare)
-                                    {
-                                        status = "Can Edit & Share";
-                                    }
-                                    else if (rs.CanEdit)
-                                    {
-                                        status = "Can Edit";
-                                    }
-                                    else
-                                    {
-                                        status = "Can Share";
-                                    }
-                                }
-                            }
-
-                            if (rs.Expiration.HasValue)
-                            {
-                                status += $" (Expires: {rs.Expiration.Value.LocalDateTime:g})";
-                            }
-
-                            tab.AddRow(rs.Username, status);
-                        }
-                    }
-
-                    if (shareInfo.SharedFolderPermissions != null)
-                    {
-                        tab.AddRow("", "");
-                        tab.AddRow("Shared Folders:", "");
-                        foreach (var sfs in shareInfo.SharedFolderPermissions)
-                        {
-                            string status;
-                            if (!sfs.CanEdit && !sfs.CanShare)
-                            {
-                                status = "Read Only";
-                            }
-                            else if (sfs.CanEdit && sfs.CanShare)
-                            {
-                                status = "Can Edit & Share";
-                            }
-                            else if (sfs.CanEdit)
-                            {
-                                status = "Can Edit";
-                            }
-                            else
-                            {
-                                status = "Can Share";
-                            }
-
-                            var name = sfs.SharedFolderUid;
-                            if (context.Vault.TryGetSharedFolder(sfs.SharedFolderUid, out var sf))
-                            {
-                                name = sf.Name;
-                            }
-
-                            tab.AddRow(name, status);
-                        }
-                    }
-
-                    context.Vault.AuditLogRecordOpen(record.Uid);
-                }
+                policyString = options.PolicyFlag;
+                filterToFailingOnly = true;
             }
-            else if (context.Vault.TryGetSharedFolder(uid, out var sf))
+            else if (options.Length > 0 || options.Lower > 0 || options.Upper > 0 || options.Digits > 0 || options.Special > 0)
             {
-                tab.AddRow("Shared Folder UID:", sf.Uid);
-                tab.AddRow("Name:", sf.Name);
-                tab.AddRow("Default Manage Records:", sf.DefaultManageRecords.ToString());
-                tab.AddRow("Default Manage Users:", sf.DefaultManageUsers.ToString());
-                tab.AddRow("Default Can Edit:", sf.DefaultCanEdit.ToString());
-                tab.AddRow("Default Can Share:", sf.DefaultCanShare.ToString());
-                if (sf.RecordPermissions.Count > 0)
-                {
-                    tab.AddRow("");
-                    tab.AddRow("Record Permissions:");
-                    foreach (var r in sf.RecordPermissions)
-                    {
-                        string permission;
-                        if (r.CanEdit && r.CanShare)
-                        {
-                            permission = "Can Edit & Share";
-                        }
-                        else if (r.CanEdit)
-                        {
-                            permission = "Can Edit";
-                        }
-                        else if (r.CanShare)
-                        {
-                            permission = "Can Share";
-                        }
-                        else
-                        {
-                            permission = "View Only";
-                        }
-
-                        tab.AddRow(r.RecordUid + ":", permission);
-                    }
-                }
-
-                string GetUsername(string userId, UserType userType)
-                {
-                    switch (userType)
-                    {
-                        case UserType.User:
-                            if (context.Vault.TryGetUsername(userId, out var email))
-                            {
-                                return email;
-                            }
-
-                            break;
-                        case UserType.Team:
-                            if (context.Vault.TryGetTeam(userId, out var team))
-                            {
-                                return team.Name;
-                            }
-
-                            break;
-                    }
-
-                    return userId;
-                }
-
-                if (sf.UsersPermissions.Count > 0)
-                {
-                    tab.AddRow("");
-                    tab.AddRow("User/Team Permissions:");
-                    var sortedList = sf.UsersPermissions.ToList();
-                    sortedList.Sort((x, y) =>
-                    {
-                        var res = x.UserType.CompareTo(y.UserType);
-                        if (res == 0)
-                        {
-                            var xName = GetUsername(x.Uid, x.UserType);
-                            var yName = GetUsername(y.Uid, y.UserType);
-                            res = string.Compare(xName, yName, StringComparison.OrdinalIgnoreCase);
-                        }
-
-                        return res;
-                    });
-                    foreach (var u in sortedList)
-                    {
-                        string permissions;
-                        if (u.ManageRecords || u.ManageUsers)
-                        {
-                            permissions = "Can Manage " +
-                                          string.Join(" & ",
-                                              new[] { u.ManageUsers ? "Users" : "", u.ManageRecords ? "Records" : "" }
-                                                  .Where(x => !string.IsNullOrEmpty(x)));
-                        }
-                        else
-                        {
-                            permissions = "No User Permissions";
-                        }
-
-                        var subjectName = GetUsername(u.Uid, u.UserType);
-                        tab.AddRow($"{u.UserType} {subjectName}:", permissions);
-                    }
-                }
+                var length = options.Length > 0 ? options.Length : 12;
+                policyString = $"{length},{options.Lower},{options.Upper},{options.Digits},{options.Special}";
+                filterToFailingOnly = true;
             }
-            else if (context.Vault.TryGetFolder(uid, out var f))
+            else if (!string.IsNullOrEmpty(options.Policy))
             {
-                tab.AddRow("Folder UID:", f.FolderUid);
-                if (!string.IsNullOrEmpty(f.ParentUid))
-                {
-                    tab.AddRow("Parent Folder UID:", f.ParentUid);
-                }
+                policyString = options.Policy;
+                filterToFailingOnly = false;
+            }
 
-                tab.AddRow("Folder Type:", f.FolderType.ToString());
-                tab.AddRow("Name:", f.Name);
+            var strength = passwordStrength(policyString);
+
+            Console.WriteLine($"     Password Length: {strength.Length}");
+            Console.WriteLine($"Lowercase characters: {strength.Lower}");
+            Console.WriteLine($"Uppercase characters: {strength.Upper}");
+            Console.WriteLine($"              Digits: {strength.Digits}");
+            if (strength.Symbols > 0)
+            {
+                Console.WriteLine($"    Special characters: {strength.Symbols}");
+            }
+            Console.WriteLine();
+
+            var records = new List<KeeperRecord>();
+
+            if (!string.IsNullOrEmpty(options.Folder))
+            {
+                if (context.TryResolvePath(options.Folder, out var folder))
+                {
+                    foreach (var recordId in folder.Records)
+                    {
+                        if (context.Vault.TryGetKeeperRecord(recordId, out var rec))
+                        {
+                            records.Add(rec);
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid folder: {options.Folder}");
+                    return Task.CompletedTask;
+                }
             }
             else
             {
-                Console.WriteLine($"UID {uid} is not a valid Keeper object");
+                records.AddRange(context.Vault.KeeperRecords.Where(r => r.Version == 2 || r.Version == 3));
             }
 
-            Console.WriteLine();
-            tab.SetColumnRightAlign(0, true);
-            tab.LeftPadding = 4;
+            var recordsWithPasswords = new List<(KeeperRecord record, string password)>();
+            foreach (var rec in records)
+            {
+                try
+                {
+                    var password = ExtractPassword(rec);
+                    if (!string.IsNullOrWhiteSpace(password) && password.Trim().Length > 0)
+                    {
+                        recordsWithPasswords.Add((rec, password.Trim()));
+                    }
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+            }
+
+            if (recordsWithPasswords.Count == 0)
+            {
+                Console.WriteLine("No records with passwords found.");
+                return Task.CompletedTask;
+            }
+
+            var tab = new Tabulate(8)
+            {
+                DumpRowNo = true
+            };
+            tab.AddHeader("Record UID", "Title", "Description", "Length", "Lower", "Upper", "Digits", "Special");
+
+            foreach (var (rec, password) in recordsWithPasswords)
+            {
+                try
+                {
+                    //skip empties
+                    if (string.IsNullOrWhiteSpace(password))
+                    {
+                        continue;
+                    }
+
+                    var description = rec.KeeperRecordPublicInformation();
+                    var length = password.Length;
+                    var lower = password.Count(char.IsLower);
+                    var upper = password.Count(char.IsUpper);
+                    var digits = password.Count(char.IsDigit);
+                    var special = password.Count(c => "!@#$%()+;<>=?[]{}^.,".Contains(c));
+
+                    if (filterToFailingOnly)
+                    {
+                        var meetsPolicy = length >= strength.Length &&
+                                         lower >= strength.Lower &&
+                                         upper >= strength.Upper &&
+                                         digits >= strength.Digits &&
+                                         special >= strength.Symbols;
+
+                        if (meetsPolicy)
+                        {
+                            continue;
+                        }
+                    }
+
+                    tab.AddRow(rec.Uid, rec.Title, description, length.ToString(), lower.ToString(),
+                              upper.ToString(), digits.ToString(), special.ToString());
+                }
+                catch (Exception ex)
+                {
+                    if (options.Verbose)
+                    {
+                        Console.WriteLine($"Skipping record {rec.Uid} due to error: {ex.Message}");
+                    }
+                }
+            }
+
             tab.Dump();
+
+            return Task.CompletedTask;
+        }
+
+        private static string ExtractPassword(KeeperRecord record)
+        {
+            switch (record)
+            {
+                case PasswordRecord passwordRecord:
+                    return passwordRecord.Password;
+                case TypedRecord typed:
+                    var passwordField = typed.Fields.FirstOrDefault(x => x.FieldName == "password");
+                    if (passwordField is TypedField<string> stringField && stringField.Count > 0)
+                    {
+                        return stringField.Values.FirstOrDefault();
+                    }
+                    break;
+                case FileRecord:
+                    // File records don't have passwords
+                    return null;
+            }
+            return null;
+        }
+
+        public class PasswordStrength
+        {
+            public int Length { get; set; }
+            public int Lower { get; set; }
+            public int Upper { get; set; }
+            public int Digits { get; set; }
+            public int Symbols { get; set; }
+
+            private const int DEFAULT_PASSWORD_LENGTH = 20;
+            private static readonly List<char> PW_SPECIAL_CHARACTERS = "!@#$%()+;<>=?[]{}^.,".ToCharArray().ToList();
+
+            public override string ToString()
+            {
+                return $"Length: {Length}, Lower: {Lower}, Upper: {Upper}, Digits: {Digits}, Symbols: {Symbols}";
+            }
+
+            public PasswordStrength(string policy)
+            {
+                if (string.IsNullOrWhiteSpace(policy))
+                {
+                    throw new ArgumentException("Policy string cannot be null or empty.");
+                }
+
+                var parts = policy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 5)
+                {
+                    throw new ArgumentException("Policy must contain at least 5 comma-separated integers.");
+                }
+
+                if (!int.TryParse(parts[0].Trim(), out int length) ||
+                    !int.TryParse(parts[1].Trim(), out int lower) ||
+                    !int.TryParse(parts[2].Trim(), out int upper) ||
+                    !int.TryParse(parts[3].Trim(), out int digits) ||
+                    !int.TryParse(parts[4].Trim(), out int symbols))
+                {
+                    throw new ArgumentException("Policy string contains non-integer values.");
+                }
+
+                Length = length;
+                Lower = lower;
+                Upper = upper;
+                Digits = digits;
+                Symbols = symbols;
+            }
+
+            public bool MeetsPolicy(PasswordStrength desiredPolicy)
+            {
+                var properties = typeof(PasswordStrength)
+                        .GetProperties()
+                        .Where(p => p.PropertyType == typeof(int)); // Only consider int-based fields
+
+                foreach (var prop in properties)
+                {
+                    int currentValue = (int) (prop.GetValue(this) ?? 0);
+                    int requiredValue = (int) (prop.GetValue(desiredPolicy) ?? 0);
+
+                    if (currentValue < requiredValue)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public bool ValidateCurrentPassword(string password)
+            {
+                if (string.IsNullOrEmpty(password))
+                {
+                    return false;
+                }
+
+                if (password.Length < Length)
+                {
+                    return false;
+                }
+
+                int lowerCount = password.Count(char.IsLower);
+                int upperCount = password.Count(char.IsUpper);
+                int digitCount = password.Count(char.IsDigit);
+                int symbolCount = password.Count(c => PW_SPECIAL_CHARACTERS.Contains(c));
+                int length = password.Length;
+
+                var currentPolicy = new PasswordStrength($"{length},{lowerCount},{upperCount},{digitCount},{symbolCount}");
+                return currentPolicy.MeetsPolicy(this);
+            }
+
+        }
+
+        public static PasswordStrength passwordStrength(string policy)
+        {
+            var policyList = new List<int>();
+
+            foreach (var item in policy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(item.Trim(), out int value))
+                {
+                    policyList.Add(value);
+                }
+                else
+                {
+                    throw new ArgumentException($"Invalid policy value: {item}, only comma seperated numbers as a string is supported for policy");
+                }
+            }
+
+            if (policyList.Count < 5)
+            {
+                throw new ArgumentException("Policy must contain at least 5 comma-separated integers.");
+            }
+
+            return new PasswordStrength($"{policyList[0]},{policyList[1]},{policyList[2]},{policyList[3]},{policyList[4]}");
         }
 
         private static Task GetPasswordReport(this VaultContext context, PasswordReportOptions options)

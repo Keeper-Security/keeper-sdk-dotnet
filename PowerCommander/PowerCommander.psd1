@@ -11,7 +11,7 @@
     RootModule           = 'PowerCommander.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '1.0.2'
+    ModuleVersion        = '1.0.6'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop')
@@ -108,7 +108,7 @@
         'ked', 'keu', 'ken', 'ket', 'ker', 'keta', 'ketu', 'keru', 'kert', 'kerap', 'kmc', 'kamc', 'krmc', 'kemc', 'kena', 'msp-license', 
         'switch-to-mc', 'switch-to-msp', 'invite-user', 'lock-user', 'unlock-user', 'transfer-user', 'delete-user', 
         'kshrsh', 'kshr', 'kushr', 'kshf', 'kushf', 'kat', 'ktr', 'kotsr', 'kotsg', 'kotsn', 'kwhoami', 'this-device',
-        'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'kcb')
+        'ksm', 'ksm-create', 'ksm-delete', 'ksm-share', 'ksm-unshare', 'ksm-addclient', 'ksm-rmclient', 'kda', 'kbw', 'krfa')
 
     # List of all modules packaged with this module
     # ModuleList = @()
@@ -123,15 +123,7 @@
             LicenseUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/Keeper-Security/keeper-sdk-dotnet'
             IconUri      = 'https://keeper-email-images.s3.amazonaws.com/common/powershell.png'
-            ReleaseNotes = @('Add-KeeperEnterpriseTeamMember and Remove-KeeperEnterpriseTeamMember commands are now supported.',
-                            'Grant-KeeperAppAccess and Revoke-KeeperAppAccess commands are now supported.',
-                            'Remove-KeeperSecretsManagerApp command added.',
-                            'Get-KeeperSecretManagerApp now correctly displays applications.',
-                            'New-KeeperOneTimeShare now supports both -ExpireAt and -ExpireIn parameters.',
-                            'Grant-KeeperRecordAccess now supports both -ExpireAt and -ExpireIn parameters.',
-                            'Sync-Keeper now supports the -SyncRecordTypes switch.',
-                            'New-KeeperRecordType, Edit-KeeperRecordType, and Remove-KeeperRecordType commands are now supported.',
-                            'Import-KeeperRecordTypes and Export-KeeperRecordTypes commands are now available.')
+            ReleaseNotes = @('Breachwatch, Get-KeeperPasswordReport, Remove-KeeperFileAttachment cmdlets added')
         }
     }
 

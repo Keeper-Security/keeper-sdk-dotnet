@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommandLine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -57,6 +58,12 @@ namespace Cli
 
     public static class CommandExtensions
     {
+        public static Parser DefaultParser = new Parser(with =>
+        {
+            with.EnableDashDash = true;
+            with.HelpWriter = Console.Error;
+        });
+
         public static bool IsWhiteSpace(char ch)
         {
             return char.IsWhiteSpace(ch);

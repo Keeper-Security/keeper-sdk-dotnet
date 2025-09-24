@@ -14,7 +14,7 @@ namespace Cli
 
         protected T ParseArguments(string args)
         {
-            var res = Parser.Default.ParseArguments<T>(args.TokenizeArguments());
+            var res = CommandExtensions.DefaultParser.ParseArguments<T>(args.TokenizeArguments());
             T options = null;
             res.WithParsed(o => { options = o; });
             return options;
@@ -45,7 +45,7 @@ namespace Cli
         }
         public Task ExecuteCommand(string args)
         {
-            var result = Parser.Default.ParseArguments(args.TokenizeArguments(), _verbs.Select(x => x.Item1).ToArray());
+            var result = CommandExtensions.DefaultParser.ParseArguments(args.TokenizeArguments(), _verbs.Select(x => x.Item1).ToArray());
             Tuple<Type, Func<object, Task>> verb = null;
             object options = null;
             result.WithParsed(o =>

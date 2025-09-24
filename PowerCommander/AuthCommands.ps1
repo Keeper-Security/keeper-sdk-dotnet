@@ -381,7 +381,8 @@ function Connect-Keeper {
 
     $authFlow = New-Object KeeperSecurity.Authentication.Sync.AuthSync($storage, $endpoint)
 
-    $authFlow.ResumeSession = $true
+    $authFlow.ResumeSession = -not ($NewLogin.IsPresent -or $Password)
+    Write-Information -MessageData "Resume Session: $($authFlow.ResumeSession)"
     $authFlow.AlternatePassword = $SsoPassword.IsPresent
 
     if (-not $NewLogin.IsPresent -and -not $SsoProvider.IsPresent) {
