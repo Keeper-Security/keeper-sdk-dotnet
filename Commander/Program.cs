@@ -40,6 +40,7 @@ namespace Commander
             });
 
             CommanderStorage = StorageUtils.SetupCommanderStorage(configFile);
+            MainLoop.StateContext = new NotConnectedCliContext(true);
 
             _ = MainLoop.Run(GetInputManager());
             InputManager.Run();
