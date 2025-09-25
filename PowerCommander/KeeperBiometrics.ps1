@@ -4,7 +4,6 @@
 # This module provides enhanced Windows Hello functionality using native WebAuthn APIs
 # with no external dependencies beyond the Windows webauthn.dll
 
-# Check if the assembly is available
 try {
     $null = [KeeperBiometric.WindowsHelloApi]
     $KeeperBiometricAvailable = $true
@@ -14,8 +13,275 @@ catch {
     $KeeperBiometricAvailable = $false
 }
 
+$script:DefaultRpId = "keepersecurity.com"
 
-#region Enhanced Windows Hello Functions
+function Test-AssemblyAvailable {
+    <#
+    .SYNOPSIS
+    Tests if the KeeperBiometric assembly is available
+    
+    .DESCRIPTION
+    Common function to check assembly availability and provide consistent error handling
+    across all functions that depend on the KeeperBiometric assembly.
+    
+    .PARAMETER Quiet
+    Suppress warning messages if assembly is not available
+    
+    .OUTPUTS
+    [bool] True if assembly is available, false otherwise
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [switch]$Quiet
+    )
+    
+    if (-not $KeeperBiometricAvailable) {
+        if (-not $Quiet) {
+            Write-Warning "KeeperBiometric assembly not available. Please build the project first."
+        }
+        return $false
+    }
+    return $true
+}
+
+function Write-ErrorWithContext {
+    <#
+    .SYNOPSIS
+    Writes error messages with consistent formatting and context
+    
+    .DESCRIPTION
+    Common function for error handling that provides consistent error message formatting
+    across all functions in the module.
+    
+    .PARAMETER Message
+    The error message to display
+    
+    .PARAMETER FunctionName
+    The name of the function where the error occurred
+    
+    .PARAMETER Exception
+    The exception object (optional)
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Message,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$FunctionName,
+        
+        [Parameter()]
+        [Exception]$Exception
+    )
+    
+    $errorMessage = "$FunctionName`: $Message"
+    if ($Exception) {
+        $errorMessage += " - $($Exception.Message)"
+    }
+    Write-Error $errorMessage
+}
+
+function Test-ExistingCredentialMatch {
+    <#
+    .SYNOPSIS
+    Tests if an existing credential matches the exclude credentials list
+    
+    .DESCRIPTION
+    Checks if a stored credential ID matches any of the exclude credentials
+    to prevent duplicate credential creation.
+    
+    .PARAMETER Username
+    The username to check for existing credentials
+    
+    .PARAMETER ExcludeCredentials
+    Array of exclude credentials from registration options
+    
+    .PARAMETER Force
+    Skip the check if Force is specified
+    
+    .OUTPUTS
+    [hashtable] Object containing match information or null if no match
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Username,
+        
+        [Parameter(Mandatory=$true)]
+        [AllowEmptyCollection()]
+        [array]$ExcludeCredentials,
+        
+        [Parameter()]
+        [switch]$Force
+    )
+    
+    if ($Force -or $null -eq $ExcludeCredentials -or $ExcludeCredentials.Count -eq 0) {
+        return $null
+    }
+    
+    $existingCredentialId = Get-WindowsHelloCredentialId -Username $Username
+    if (-not $existingCredentialId) {
+        return $null
+    }
+    
+    foreach ($excludeCred in $ExcludeCredentials) {
+        $excludeCredId = $excludeCred.id
+        if ($existingCredentialId -eq $excludeCredId) {
+            return @{
+                Username = $Username
+                CredentialId = $existingCredentialId
+            }
+        }
+    }
+    
+    return $null
+}
+
+function New-ExcludeCredentialObjects {
+    <#
+    .SYNOPSIS
+    Converts exclude credentials array to KeeperBiometric.ExcludeCredential objects
+    
+    .DESCRIPTION
+    Converts the exclude credentials from registration options into the proper
+    object format expected by the Windows Hello API.
+    
+    .PARAMETER ExcludeCredentials
+    Array of exclude credentials from registration options
+    
+    .OUTPUTS
+    [array] Array of KeeperBiometric.ExcludeCredential objects
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [AllowEmptyCollection()]
+        [array]$ExcludeCredentials
+    )
+    
+    if ($null -eq $ExcludeCredentials -or $ExcludeCredentials.Count -eq 0) {
+        return @()
+    }
+    
+    # Ensure it's an array
+    if ($ExcludeCredentials -isnot [array]) {
+        $ExcludeCredentials = @($ExcludeCredentials)
+    }
+    
+    $excludeCredentialObjects = @()
+    for ($i = 0; $i -lt $ExcludeCredentials.Count; $i++) {
+        $excludeCred = $ExcludeCredentials[$i]
+        
+        try {
+            $credObj = New-Object KeeperBiometric.ExcludeCredential
+            $credObj.Type = $excludeCred.type
+            $credObj.Id = $excludeCred.id
+            $credObj.Transports = $excludeCred.transports
+            $excludeCredentialObjects += $credObj
+        }
+        catch {
+            Write-Warning "Failed to create ExcludeCredential object: $($_.Exception.Message)"
+            # Continue with next credential
+        }
+    }
+    
+    return $excludeCredentialObjects
+}
+
+function Invoke-CredentialCreationFlow {
+    <#
+    .SYNOPSIS
+    Performs the Windows Hello credential creation and registration flow
+    
+    .DESCRIPTION
+    Handles the actual credential creation using Windows Hello and registration
+    with Keeper's servers.
+    
+    .PARAMETER RegOptions
+    Registration options from Keeper API
+    
+    .PARAMETER DisplayName
+    Display name for the credential
+    
+    .PARAMETER ExcludeCredentialObjects
+    Array of exclude credential objects
+    
+    .PARAMETER Vault
+    Keeper vault instance
+    
+    .OUTPUTS
+    [hashtable] Result object with Success, CredentialId, and other properties
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [hashtable]$RegOptions,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$DisplayName,
+        
+        [Parameter()]
+        [AllowEmptyCollection()]
+        [array]$ExcludeCredentialObjects = @(),
+        
+        [Parameter()]
+        [object]$Vault
+    )
+    
+    $credResult = Invoke-WindowsHelloCredentialCreation `
+        -Challenge $RegOptions.challenge `
+        -RpId $RegOptions.rp_id `
+        -RpName $RegOptions.rp_name `
+        -UserId $RegOptions.user_id `
+        -UserName $RegOptions.user_name `
+        -UserDisplayName $DisplayName `
+        -ExcludeCredentials $ExcludeCredentialObjects
+
+    if (-not $credResult.Success) {
+        return @{
+            Success = $false
+            Error = $credResult.ErrorMessage
+            ErrorType = $credResult.ErrorType
+            Timestamp = $credResult.Timestamp
+        }
+    }
+
+    $registerResult = Register-KeeperCredential `
+        -ChallengeToken $RegOptions.challenge_token `
+        -CredentialId $credResult.CredentialId `
+        -AttestationObject $credResult.AttestationObject `
+        -ClientDataJSON $credResult.ClientDataJSON `
+        -Vault $Vault
+
+    if (-not $registerResult.Success) {
+        return @{
+            Success = $false
+            Error = "Windows Hello credential creation failed: $($credResult.ErrorMessage)"
+            ErrorType = "RegistrationFailed"
+            Timestamp = [DateTime]::UtcNow
+        }
+    }
+
+    $credentialId = $credResult.CredentialId
+    $username = $RegOptions.user_name
+    
+    $storeResult = Set-WindowsHelloCredentialId -Username $username -CredentialId $credentialId
+    if ($storeResult) {
+        Write-Host "Credential ID stored for user: $username" -ForegroundColor Green
+    } else {
+        Write-Warning "Failed to store credential ID for user: $username"
+    }
+
+    return @{
+        Success = $true
+        CredentialId = $credentialId
+        Username = $username
+        DisplayName = $DisplayName
+        Timestamp = [DateTime]::UtcNow
+    }
+}
+
 
 function Test-WindowsHelloCapabilities {
     <#
@@ -45,17 +311,12 @@ function Test-WindowsHelloCapabilities {
         [switch]$Quiet
     )
     
-    if (-not $KeeperBiometricAvailable) {
-        if (-not $Quiet) {
-            Write-Warning "PowerShellWindowsHello assembly not available. Please build the project first."
-        }
+    if (-not (Test-AssemblyAvailable -Quiet:$Quiet)) {
         return $false
     }
     
     try {
-        # Get comprehensive capabilities
         $capabilities = [KeeperBiometric.WindowsHelloApi]::GetFormattedInfo()
-        
         if ($PassThru) {
             return $capabilities
         }
@@ -84,7 +345,7 @@ function Invoke-WindowsHelloAuthentication {
     The authentication challenge (as byte array)
     
     .PARAMETER RpId
-    The relying party identifier (default: "keepersecurity.com")
+    The relying party identifier (default: uses module constant)
     
     .PARAMETER AllowedCredentials
     Array of allowed credential IDs (base64 encoded)
@@ -108,7 +369,7 @@ function Invoke-WindowsHelloAuthentication {
         [byte[]]$Challenge,
         
         [Parameter()]
-        [string]$RpId = "keepersecurity.com",
+        [string]$RpId = $script:DefaultRpId,
         
         [Parameter()]
         [AllowEmptyCollection()]
@@ -123,12 +384,11 @@ function Invoke-WindowsHelloAuthentication {
         [string]$UserVerification = "required"
     )
     
-    if (-not $KeeperBiometricAvailable) {
+    if (-not (Test-AssemblyAvailable)) {
         throw "PowerShellWindowsHello assembly not available. Please build the project first."
     }
     
     try {
-        # Create authentication options
         $authOptions = New-Object KeeperBiometric.AuthenticationOptions
         $authOptions.Challenge = $Challenge
         $authOptions.RpId = $RpId
@@ -138,7 +398,6 @@ function Invoke-WindowsHelloAuthentication {
         
         Write-Debug "Please complete Windows Hello verification when prompted..."
         
-        # Perform authentication
         $task = [KeeperBiometric.WindowsHelloApi]::AuthenticateAsync($authOptions)
         $result = $task.GetAwaiter().GetResult()
         
@@ -155,61 +414,6 @@ function Invoke-WindowsHelloAuthentication {
     }
 }
 
-function Get-WindowsHelloInfo {
-    <#
-    .SYNOPSIS
-    Gets Windows Hello information in a simple format
-    
-    .DESCRIPTION
-    This function returns basic Windows Hello availability and capability information
-    in a format that's easy to consume programmatically.
-    
-    .EXAMPLE
-    $info = Get-WindowsHelloInfo
-    if ($info.IsAvailable) {
-        Write-Host "Windows Hello is ready"
-    }
-    #>
-    [CmdletBinding()]
-    param()
-    
-    if (-not $KeeperBiometricAvailable) {
-        return @{
-            IsAvailable = $false
-            ErrorMessage = "PowerShellWindowsHello assembly not available"
-            WebAuthnDllAvailable = $false
-        }
-    }
-    
-    try {
-        $capabilities = [KeeperBiometric.WindowsHelloApi]::GetCapabilities()
-        return @{
-            IsAvailable = $capabilities.IsAvailable
-            ApiVersion = $capabilities.ApiVersion
-            Platform = $capabilities.Platform
-            SupportedMethods = $capabilities.SupportedMethods
-            CanCreateCredentials = $capabilities.CanCreateCredentials
-            CanPerformAuthentication = $capabilities.CanPerformAuthentication
-            WebAuthnDllAvailable = $capabilities.WebAuthnDllAvailable
-            RecommendedIntegration = $capabilities.RecommendedIntegration
-            ErrorMessage = $capabilities.ErrorMessage
-            LastChecked = $capabilities.LastChecked
-        }
-    }
-    catch {
-        return @{
-            IsAvailable = $false
-            ErrorMessage = $_.Exception.Message
-            WebAuthnDllAvailable = $false
-            LastChecked = [DateTime]::UtcNow
-        }
-    }
-}
-
-#endregion
-
-#region Windows Hello Registration Functions
-
 function Invoke-WindowsHelloCredentialCreation {
     <#
     .SYNOPSIS
@@ -223,7 +427,7 @@ function Invoke-WindowsHelloCredentialCreation {
     The registration challenge (as byte array)
     
     .PARAMETER RpId
-    The relying party identifier (default: "keepersecurity.com")
+    The relying party identifier (default: uses module constant)
     
     .PARAMETER RpName
     The relying party display name (default: same as RpId)
@@ -266,7 +470,7 @@ function Invoke-WindowsHelloCredentialCreation {
         [byte[]]$Challenge,
         
         [Parameter()]
-        [string]$RpId = "keepersecurity.com",
+        [string]$RpId = $script:DefaultRpId,
         
         [Parameter()]
         [string]$RpName,
@@ -304,12 +508,12 @@ function Invoke-WindowsHelloCredentialCreation {
         [KeeperBiometric.ExcludeCredential[]]$ExcludeCredentials
     )
     
-    if (-not $KeeperBiometricAvailable) {
+    if (-not (Test-AssemblyAvailable)) {
         throw "PowerShellWindowsHello assembly not available. Please build the project first."
     }
     
     try {
-        # Create registration options
+
         $regOptions = New-Object KeeperBiometric.RegistrationOptions
         $regOptions.Challenge = $Challenge
         $regOptions.RpId = $RpId
@@ -325,7 +529,6 @@ function Invoke-WindowsHelloCredentialCreation {
         
         Write-Host "Please complete Windows Hello verification to create the credential..." -ForegroundColor Yellow
         
-        # Create credential
         $task = [KeeperBiometric.WindowsHelloApi]::CreateCredentialAsync($regOptions,$excludeCredentials)
         $result = $task.GetAwaiter().GetResult()
         
@@ -350,8 +553,6 @@ function Get-KeeperRegistrationOptions {
     .DESCRIPTION
     This function retrieves registration options from the Keeper API,
     including challenge and creation options needed for Windows Hello credential creation.
-    This is equivalent to the WindowsHelloAuth.ps1 Get-KeeperPasskeyRegistrationOptions function
-    but designed to work with the PowerShellWindowsHello project.
     
     .PARAMETER Vault
     Keeper vault instance (optional - will use global vault if not provided)
@@ -369,7 +570,6 @@ function Get-KeeperRegistrationOptions {
     )
     
     try {
-        # Get vault instance
         if (-not $Vault) {
             if (Get-Command getVault -ErrorAction SilentlyContinue) {
                 $vault = getVault
@@ -391,7 +591,6 @@ function Get-KeeperRegistrationOptions {
         
         $creationOptions = $response.PkCreationOptions | ConvertFrom-Json
         
-        # Try to get the actual byte array from the ByteString
         $challengeTokenBytes = $null
         if ($response.ChallengeToken -is [Google.Protobuf.ByteString]) {
             $challengeTokenBytes = $response.ChallengeToken.ToByteArray()
@@ -420,17 +619,33 @@ function Get-KeeperRegistrationOptions {
 }
 
 function ConvertFrom-Base64Url {
-    param([string]$Base64UrlString)
+    <#
+    .SYNOPSIS
+    Converts a Base64Url string to a byte array
+    
+    .DESCRIPTION
+    Converts a Base64Url encoded string to a byte array, handling the URL-safe
+    Base64 encoding format used by WebAuthn.
+    
+    .PARAMETER Base64UrlString
+    The Base64Url encoded string to convert
+    
+    .OUTPUTS
+    [byte[]] The decoded byte array, or null if input is invalid
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Base64UrlString
+    )
     
     if ([string]::IsNullOrEmpty($Base64UrlString)) {
         return $null
     }
     
     try {
-        # Convert base64url to standard base64
         $base64 = $Base64UrlString.Replace('-', '+').Replace('_', '/')
         
-        # Add padding if needed
         switch ($base64.Length % 4) {
             2 { $base64 += '==' }
             3 { $base64 += '=' }
@@ -440,7 +655,6 @@ function ConvertFrom-Base64Url {
     }
     catch {
         Write-Verbose "Base64Url decode failed for: $Base64UrlString, error: $($_.Exception.Message)"
-        # Fallback: try direct base64 decode
         try {
             return [Convert]::FromBase64String($Base64UrlString)
         }
@@ -452,13 +666,30 @@ function ConvertFrom-Base64Url {
 }
 
 function ConvertTo-ByteString {
-    param($InputData)
+    <#
+    .SYNOPSIS
+    Converts various input types to a byte array
+    
+    .DESCRIPTION
+    Converts string, byte array, or other input types to a byte array
+    for use with WebAuthn operations.
+    
+    .PARAMETER InputData
+    The input data to convert (string, byte array, etc.)
+    
+    .OUTPUTS
+    [byte[]] The converted byte array, or null if input is invalid
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        $InputData
+    )
     
     if ($null -eq $InputData) {
         return $null
     }
     
-    # Handle different input types
     if ($InputData -is [Google.Protobuf.ByteString]) {
         return $InputData
     }
@@ -467,7 +698,6 @@ function ConvertTo-ByteString {
     }
     elseif ($InputData -is [string]) {
         try {
-            # Try to parse string like "1 2 3 4" into byte array
             $bytes = $InputData -split '\s+' | ForEach-Object { [byte]$_ }
             return [Google.Protobuf.ByteString]::CopyFrom([byte[]]$bytes)
         }
@@ -486,7 +716,24 @@ function ConvertTo-ByteString {
 }
 
 function Utf8BytesToString {
-    param($InputData)
+    <#
+    .SYNOPSIS
+    Converts byte array or ByteString to UTF-8 string
+    
+    .DESCRIPTION
+    Converts a byte array or Google.Protobuf.ByteString to a UTF-8 encoded string.
+    
+    .PARAMETER InputData
+    The input data to convert (byte array or ByteString)
+    
+    .OUTPUTS
+    [string] The UTF-8 decoded string, or null if input is invalid
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        $InputData
+    )
     
     if ($null -eq $InputData) {
         return $null
@@ -505,7 +752,6 @@ function Utf8BytesToString {
         }
         elseif ($InputData -is [string]) {
             try {
-                # Try to parse string like "1 2 3 4" into byte array, then to UTF-8 string
                 $bytes = $InputData -split '\s+' | ForEach-Object { [byte]$_ }
                 $result = [System.Text.Encoding]::UTF8.GetString([byte[]]$bytes)
                 return $result
@@ -532,7 +778,6 @@ function Get-KeeperAuthenticationOptions {
     This function retrieves authentication options from the Keeper API,
     including challenge and assertion options needed for Windows Hello authentication.
     It works with both Vault and AuthSync objects, automatically detecting which one is provided.
-    Based on the Python generate_authentication_options function.
     
     .PARAMETER Username
     The username to authenticate (optional - will use current auth username if not provided)
@@ -677,14 +922,13 @@ function Invoke-WindowsHelloAssertion {
     
     .DESCRIPTION
     This function performs WebAuthn GetAssertion operation using Windows Hello,
-    similar to the Python biometric client implementation.
     Uses existing Windows Hello credentials to authenticate with a challenge.
     
     .PARAMETER Challenge
     The authentication challenge (byte array, Base64Url string, or ByteString)
     
     .PARAMETER RpId
-    The relying party identifier (e.g., "keepersecurity.com")
+    The relying party identifier
     
     .PARAMETER AllowedCredentials
     Array of allowed credential descriptors with id and type
@@ -719,8 +963,7 @@ function Invoke-WindowsHelloAssertion {
         [int]$TimeoutMs = 60000
     )
     
-    if (-not $KeeperBiometricAvailable) {
-        Write-Warning "PowerShellWindowsHello assembly not available. Please build the project first."
+    if (-not (Test-AssemblyAvailable)) {
         return @{
             Success = $false
             ErrorMessage = "PowerShellWindowsHello assembly not available"
@@ -747,7 +990,6 @@ function Invoke-WindowsHelloAssertion {
             throw "Challenge must be either a byte array, Base64Url encoded string, or ByteString. Received type: $($Challenge.GetType().FullName)"
         }
         
-        # Create authentication options object
         $options = [KeeperBiometric.AuthenticationOptions]@{
             RpId = $RpId
             Challenge = $challengeBytes
@@ -755,7 +997,6 @@ function Invoke-WindowsHelloAssertion {
             UserVerification = $UserVerification
         }
         
-        # Convert allowed credentials if provided
         if ($AllowedCredentials -and $AllowedCredentials.Count -gt 0) {
             $credentialIds = @()
             foreach ($cred in $AllowedCredentials) {
@@ -768,7 +1009,6 @@ function Invoke-WindowsHelloAssertion {
             }
         }
         
-        # Call the Windows Hello authentication
         $result = [KeeperBiometric.WindowsHelloApi]::AuthenticateAsync($options).GetAwaiter().GetResult()
         
         if (-not $result.Success) {
@@ -781,7 +1021,6 @@ function Invoke-WindowsHelloAssertion {
             }
         }
                 
-        # Return the assertion result
         return @{
             Success = $true
             CredentialId = $result.CredentialId
@@ -810,7 +1049,7 @@ function Complete-KeeperAuthentication {
     
     .DESCRIPTION
     This function sends the Windows Hello assertion result to Keeper to complete
-    the authentication process, similar to the Python biometric client implementation.
+    the authentication process.
     
     .PARAMETER ChallengeToken
     The challenge token received from Get-KeeperAuthenticationOptions
@@ -894,7 +1133,6 @@ function Complete-KeeperAuthentication {
         $auth = $null
         $isVault = $false
         
-        # Determine which object to use - prioritize Vault if both are provided
         if ($Vault) {
             $auth = $Vault.Auth
             $isVault = $true
@@ -902,7 +1140,6 @@ function Complete-KeeperAuthentication {
             $auth = $AuthSyncObject
             $isVault = $false
         } else {
-            # Try to get from global context - prioritize Vault
             if (Get-Command getVault -ErrorAction SilentlyContinue) {
                 $vault = getVault
                 $auth = $vault.Auth
@@ -936,7 +1173,6 @@ function Complete-KeeperAuthentication {
             $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$LoginToken)
         }
                 
-        # Convert all assertion data from bytes to Base64Url (matching Python implementation)
         $clientDataBase64Url = ""
         $authenticatorDataBase64Url = ""
         $signatureBase64Url = ""
@@ -972,7 +1208,6 @@ function Complete-KeeperAuthentication {
             $signatureBase64Url = $Signature
         }
         
-        # Create the assertion response (matching Python format exactly)
         $assertionResponse = @{
             id = $CredentialId
             rawId = $CredentialId
@@ -990,10 +1225,8 @@ function Complete-KeeperAuthentication {
             $assertionResponse.response.userHandle = $UserHandle
         }
         
-        # Convert to JSON (matching Python json.dumps() behavior)
         $assertionResponseJson = $assertionResponse | ConvertTo-Json -Depth 10 -Compress
         
-        # Convert JSON string to UTF-8 bytes for the protobuf property (matching Python: json.dumps().encode('utf-8'))
         $assertionResponseBytes = [System.Text.Encoding]::UTF8.GetBytes($assertionResponseJson)
         $request.AssertionResponse = [Google.Protobuf.ByteString]::CopyFrom($assertionResponseBytes)
  
@@ -1038,9 +1271,7 @@ function Verify-KeeperBiometricCredential {
     1. Gets authentication options from Keeper API
     2. Performs Windows Hello assertion
     3. Completes authentication with Keeper
-    
-    Based on the Keeper Commander Python biometric client implementation.
-    
+        
     .PARAMETER Username
     The username to authenticate (optional - will use current auth username if not provided)
     
@@ -1201,8 +1432,7 @@ function Register-KeeperCredential {
     
     .DESCRIPTION
     This function registers a created Windows Hello credential with Keeper's API,
-    completing the credential registration flow. This is equivalent to the 
-    register_credential function in Keeper's Python implementation.
+    completing the credential registration flow.
     
     .PARAMETER ChallengeToken
     The challenge token received from Get-KeeperRegistrationOptions
@@ -1270,7 +1500,6 @@ function Register-KeeperCredential {
         $rawCredBytes = [Convert]::FromBase64String($base64)
         $rawIdBase64Url = [Convert]::ToBase64String($rawCredBytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
         
-        # Create the proper WebAuthn authenticator response as stringified JSON (like Python implementation)
         $authenticatorResponseJson = @"
 {
   "id": "$CredentialId",
@@ -1434,7 +1663,6 @@ function Disable-KeeperPasskey {
     
     .DESCRIPTION
     This function disables a specific passkey on the Keeper server using the UpdatePasskeyRequest API.
-    Based on the Python disable_passkey function.
     
     .PARAMETER Vault
     Keeper vault instance
@@ -1571,7 +1799,6 @@ function Unregister-KeeperBiometricCredential {
     )
     
     try {
-        # Get vault instance
         if (-not $Vault) {
             if (Get-Command getVault -ErrorAction SilentlyContinue) {
                 $vault = getVault
@@ -1601,7 +1828,6 @@ function Unregister-KeeperBiometricCredential {
             return
         }
         
-        # Confirmation prompt
         if (-not $PSCmdlet.ShouldProcess("Remove biometric credentials for user '$Username'", "Remove", "Are you sure you want to remove biometric authentication?")) {
             $result = @{
                 Success = $false
@@ -1613,18 +1839,15 @@ function Unregister-KeeperBiometricCredential {
             return
         }
         
-        $rpId = "keepersecurity.com"
+        $rpId = $script:DefaultRpId
         
-        # Disable server passkeys - following Python pattern
         Write-Host "Disabling server passkeys..." -ForegroundColor Yellow
         $disableResult = $false
         
-        # Get stored credential ID from registry
         $storedCredentialId = Get-WindowsHelloCredentialId -Username $Username
         
         if ($storedCredentialId) {
             try {
-                # Get all available credentials (following Python pattern)
                 $availableCredentials = Get-KeeperAvailableBiometricCredentials -Vault $vault                
                 $targetPasskey = $null
                 $targetPasskeyBase64 = $null
@@ -1671,7 +1894,6 @@ function Unregister-KeeperBiometricCredential {
             $cleanupSuccess = Unregister-WindowsHelloCredential -Username $Username -RpId $rpId -CredentialId $storedCredentialId
         }
         
-        # Verify cleanup
         $verificationSuccess = -not (Test-WindowsHelloBiometricPreviouslyUsed -Username $Username)
         
         $result = if ($cleanupSuccess -and $verificationSuccess) {
@@ -1715,7 +1937,6 @@ function Show-KeeperBiometricCredentials {
     
     .DESCRIPTION
     This function retrieves and displays all registered biometric credentials (passkeys) 
-    in a formatted table, similar to the Python _display_credentials function.
     It shows credential name, creation date, and last used date.
     
     .PARAMETER Vault
@@ -1740,7 +1961,6 @@ function Show-KeeperBiometricCredentials {
     )
     
     try {
-        # Get the credentials
         $credentials = Get-KeeperAvailableBiometricCredentials -Vault $Vault -IncludeDisabled:$IncludeDisabled
         
         if (-not $credentials -or $credentials.Count -eq 0) {
@@ -1752,7 +1972,6 @@ function Show-KeeperBiometricCredentials {
         Write-Host ("-" * 70) -ForegroundColor Gray
         
         foreach ($credential in $credentials) {
-            # Format timestamps
             $createdDate = if ($credential.Created) { 
                 $credential.Created.ToString("yyyy-MM-dd HH:mm:ss") 
             } else { 
@@ -1765,7 +1984,6 @@ function Show-KeeperBiometricCredentials {
                 "Never" 
             }
             
-            # Use friendly name, fallback to AAGUID mapping if name is empty
             $displayName = $credential.Name
             if ([string]::IsNullOrWhiteSpace($displayName)) {
                 $aaguid = $credential.AAGUID
@@ -1776,11 +1994,9 @@ function Show-KeeperBiometricCredentials {
                 }
             }
             
-            # Show disabled status if applicable
             if ($credential.Disabled) {
                 $displayName += " (DISABLED)"
             }
-            # Convert ByteString to readable format for display
             $credentialIdDisplay = [System.Convert]::ToBase64String($credential.CredentialId)
             Write-Host "Id: $credentialIdDisplay" -ForegroundColor Cyan
             Write-Host "Name: $displayName" -ForegroundColor White
@@ -1849,98 +2065,53 @@ function Register-KeeperBiometricCredential {
     try {
         Write-Host "Biometric Credential Creation for Keeper" -ForegroundColor Yellow
         
+        # Get registration options from Keeper API
         $regOptions = Get-KeeperRegistrationOptions -Vault $Vault
-        $displayName = $null
-        if ($FriendlyName) {
-            $displayName = $FriendlyName
-        } elseif ($friendly_name) {
-            $displayName = $friendly_name
-        } else {
-            $displayName = $regOptions.user_display_name
+        
+        # Determine display name
+        $displayName = if ($FriendlyName) { 
+            $FriendlyName 
+        } elseif ($friendly_name) { 
+            $friendly_name 
+        } else { 
+            $regOptions.user_display_name 
         }
 
-        $username = $regOptions.user_name
+        # Get exclude credentials and convert to objects
         $excludeCredentials = $regOptions.creation_options.excludeCredentials
-        if ($excludeCredentials -isnot [array]) {
-            $excludeCredentials = @($excludeCredentials)
-        } 
-        
-        # Convert exclude credentials to the format expected by C# method
-        $excludeCredentialObjects = @()
-        if ($excludeCredentials -and $excludeCredentials.Count -gt 0) {
-            for ($i = 0; $i -lt $excludeCredentials.Count; $i++) {
-                $excludeCred = $excludeCredentials[$i]
-                
-                $credObj = New-Object KeeperBiometric.ExcludeCredential
-                $credObj.Type = $excludeCred.type
-                $credObj.Id = $excludeCred.id
-                $credObj.Transports = $excludeCred.transports
-                $excludeCredentialObjects += $credObj
-            }
+        if ($null -eq $excludeCredentials) {
+            $excludeCredentials = @()
         }
+        $excludeCredentialObjects = New-ExcludeCredentialObjects -ExcludeCredentials $excludeCredentials
         
-        # Check if user already has a credential ID stored
-        $existingCredentialId = Get-WindowsHelloCredentialId -Username $username
-        
-        # Check for matches between stored credential ID and excludeCredentials
-        $matchedCredential = $null
-        if ($existingCredentialId -and $excludeCredentials.Count -gt 0 -and -not $Force) {
-            foreach ($excludeCred in $excludeCredentials) {
-                $excludeCredId = $excludeCred.id
-                
-                # Compare the full credential IDs
-                if ($existingCredentialId -eq $excludeCredId) {
-                    $matchedCredential = @{
-                        Username = $username
-                        CredentialId = $existingCredentialId
-                    }
-                    break
-                }
-            }
+        # Ensure we always have a valid array
+        if ($null -eq $excludeCredentialObjects) {
+            Write-Verbose "ExcludeCredentialObjects was null, setting to empty array"
+            $excludeCredentialObjects = @()
         }
+        Write-Verbose "ExcludeCredentialObjects count: $($excludeCredentialObjects.Count)"
         
-        # Handle matched credential from registry vs excludeCredentials
+        # Check for existing credential matches
+        $matchedCredential = Test-ExistingCredentialMatch `
+            -Username $regOptions.user_name `
+            -ExcludeCredentials $excludeCredentials `
+            -Force:$Force
+        
         if ($matchedCredential) {
             Write-Host "Found matching credential which is also in registry!" -ForegroundColor Yellow
             Write-Host "Registration cancelled as a matching credential was found in registry use biometric verify instead to just use the existing credential and login with the existing credential." -ForegroundColor Red
             return $false
-        } 
-        $credResult = Invoke-WindowsHelloCredentialCreation `
-            -Challenge $regOptions.challenge `
-            -RpId $regOptions.rp_id `
-            -RpName $regOptions.rp_name `
-            -UserId $regOptions.user_id `
-            -UserName $regOptions.user_name `
-            -UserDisplayName $displayName `
-            -ExcludeCredentials $excludeCredentialObjects
-
-        if ($credResult.Success) {
-            $registerResult = Register-KeeperCredential -ChallengeToken $regOptions.challenge_token -CredentialId $credResult.CredentialId -AttestationObject $credResult.AttestationObject -ClientDataJSON $credResult.ClientDataJSON -Vault $Vault
-            if ($registerResult.Success) {
-                $credentialId = $credResult.CredentialId
-                $username = $regOptions.user_name
-                
-                # Store the credential ID for this user
-                $storeResult = Set-WindowsHelloCredentialId -Username $username -CredentialId $credentialId
-                if ($storeResult) {
-                    Write-Host "Credential ID stored for user: $username" -ForegroundColor Green
-                } else {
-                    Write-Warning "Failed to store credential ID for user: $username"
-                }
-            } else {
-                Write-Host " Windows Hello credential creation failed: $($credResult.ErrorMessage)" -ForegroundColor Red
-            }
-        } else {
-            return @{
-                Success = $false
-                Error = $credResult.ErrorMessage
-                ErrorType = $credResult.ErrorType
-                Timestamp = $credResult.Timestamp
-            }
         }
+        
+        # Perform credential creation and registration
+        return Invoke-CredentialCreationFlow `
+            -RegOptions $regOptions `
+            -DisplayName $displayName `
+            -ExcludeCredentialObjects $excludeCredentialObjects `
+            -Vault $Vault
     }
     catch {
-        Write-Error "Keeper credential creation failed: $($_.Exception.Message)"
+        Write-ErrorWithContext -Message "Keeper credential creation failed" -FunctionName "Register-KeeperBiometricCredential" -Exception $_.Exception
         return @{
             Success = $false
             Error = $_.Exception.Message
@@ -1950,152 +2121,247 @@ function Register-KeeperBiometricCredential {
     }
 }
 
-# These functions are only available on Windows platforms
 if ($IsWindows -or $PSVersionTable.PSVersion.Major -lt 6) {
-    # Define registry path for Windows Hello credentials
     $script:WindowsHelloRegistryPath = "HKCU:\Software\Keeper Security\Commander\Biometric"
+} else {
+    $script:WindowsHelloRegistryPath = $null
+}
+
+function Unregister-WindowsHelloCredential {
+    <#
+    .SYNOPSIS
+    Unregisters a Windows Hello credential from the local registry
     
-    function Unregister-WindowsHelloCredential {
-        [CmdletBinding()]
-        param(
-            [Parameter(Mandatory=$true)]
-            [string]$Username,
-            
-            [Parameter(Mandatory=$true)]
-            [string]$RpId,
-            
-            [Parameter(Mandatory=$true)]
-            [string]$CredentialId
-        )
+    .DESCRIPTION
+    Removes a Windows Hello credential ID from the local registry for a specific user.
+    This function is only functional on Windows platforms.
+    
+    .PARAMETER Username
+    The username to unregister
+    
+    .PARAMETER RpId
+    The relying party identifier
+    
+    .PARAMETER CredentialId
+    The credential ID to unregister
+    
+    .OUTPUTS
+    [bool] True if successful, false otherwise
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Username,
         
-        try {
-            $keyName = $Username
-            
-            if (Test-Path $script:WindowsHelloRegistryPath) {
-                Remove-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $keyName -Force -ErrorAction SilentlyContinue
-                Write-Host "Successfully unregistered credential for $Username@$RpId" -ForegroundColor Green
-            }
-            return $true
-        }
-        catch {
-            Write-Error "Failed to unregister credential: $($_.Exception.Message)"
-            return $false
-        }
+        [Parameter(Mandatory=$true)]
+        [string]$RpId,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$CredentialId
+    )
+    
+    if (-not $script:WindowsHelloRegistryPath) {
+        Write-Warning "Windows Hello registry functions are only available on Windows platforms"
+        return $false
     }
     
-    function Clear-AllWindowsHelloCredentials {
-        [CmdletBinding()]
-        param()
+    try {
+        $keyName = $Username
         
-        try {
-            if (Test-Path $script:WindowsHelloRegistryPath) {
-                Remove-Item -Path $script:WindowsHelloRegistryPath -Recurse -Force
-                Write-Host "Successfully cleared all registered credentials" -ForegroundColor Green
-            } else {
-                Write-Host "No credentials found to clear" -ForegroundColor Yellow
-            }
-            return $true
+        if (Test-Path $script:WindowsHelloRegistryPath) {
+            Remove-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $keyName -Force -ErrorAction SilentlyContinue
+            Write-Host "Successfully unregistered credential for $Username@$RpId" -ForegroundColor Green
         }
-        catch {
-            Write-Error "Failed to clear registered credentials: $($_.Exception.Message)"
-            return $false
-        }
+        return $true
+    }
+    catch {
+        Write-Error "Failed to unregister credential: $($_.Exception.Message)"
+        return $false
+    }
+}
+
+function Clear-AllWindowsHelloCredentials {
+    <#
+    .SYNOPSIS
+    Clears all Windows Hello credentials from the local registry
+    
+    .DESCRIPTION
+    Removes all Windows Hello credential IDs from the local registry.
+    This function is only functional on Windows platforms.
+    
+    .OUTPUTS
+    [bool] True if successful, false otherwise
+    #>
+    [CmdletBinding()]
+    param()
+    
+    if (-not $script:WindowsHelloRegistryPath) {
+        Write-Warning "Windows Hello registry functions are only available on Windows platforms"
+        return $false
     }
     
-    function Get-WindowsHelloCredentialId {
-        [CmdletBinding()]
-        param(
-            [Parameter(Mandatory = $true)]
-            [string]$Username
-        )
-        
-        try {
-            if (Test-Path $script:WindowsHelloRegistryPath) {
-                # Get the credential ID value for the username key
-                $credentialId = Get-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
-                
-                if ($credentialId -and $credentialId.$Username) {
-                    $id = $credentialId.$Username
-                    return $id
-                } else {
-                    return $null
-                }
+    try {
+        if (Test-Path $script:WindowsHelloRegistryPath) {
+            Remove-Item -Path $script:WindowsHelloRegistryPath -Recurse -Force
+            Write-Host "Successfully cleared all registered credentials" -ForegroundColor Green
+        } else {
+            Write-Host "No credentials found to clear" -ForegroundColor Yellow
+        }
+        return $true
+    }
+    catch {
+        Write-Error "Failed to clear registered credentials: $($_.Exception.Message)"
+        return $false
+    }
+}
+
+function Get-WindowsHelloCredentialId {
+    <#
+    .SYNOPSIS
+    Gets a Windows Hello credential ID from the local registry
+    
+    .DESCRIPTION
+    Retrieves a stored Windows Hello credential ID for a specific user from the local registry.
+    This function is only functional on Windows platforms.
+    
+    .PARAMETER Username
+    The username to get the credential ID for
+    
+    .OUTPUTS
+    [string] The credential ID if found, null otherwise
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Username
+    )
+    
+    if (-not $script:WindowsHelloRegistryPath) {
+        return $null
+    }
+    
+    try {
+        if (Test-Path $script:WindowsHelloRegistryPath) {
+            $credentialId = Get-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
+            
+            if ($credentialId -and $credentialId.$Username) {
+                $id = $credentialId.$Username
+                return $id
             } else {
                 return $null
             }
-        }
-        catch [System.Management.Automation.ItemNotFoundException] {
-            return $null
-        }
-        catch {
+        } else {
             return $null
         }
     }
+    catch [System.Management.Automation.ItemNotFoundException] {
+        return $null
+    }
+    catch {
+        return $null
+    }
+}
+
+function Set-WindowsHelloCredentialId {
+    <#
+    .SYNOPSIS
+    Sets a Windows Hello credential ID in the local registry
     
-    function Set-WindowsHelloCredentialId {
-        [CmdletBinding()]
-        param(
-            [Parameter(Mandatory = $true)]
-            [string]$Username,
-            
-            [Parameter(Mandatory = $false)]
-            [string]$CredentialId
-        )
+    .DESCRIPTION
+    Stores a Windows Hello credential ID for a specific user in the local registry.
+    This function is only functional on Windows platforms.
+    
+    .PARAMETER Username
+    The username to set the credential ID for
+    
+    .PARAMETER CredentialId
+    The credential ID to store (optional - if not provided, removes the credential)
+    
+    .OUTPUTS
+    [bool] True if successful, false otherwise
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Username,
         
-        try {
-            # Ensure registry path exists
-            if (!(Test-Path $script:WindowsHelloRegistryPath)) {
-                New-Item -Path $script:WindowsHelloRegistryPath -Force | Out-Null
-            }
-            
-            if ($CredentialId) {
-                # Store the credential ID for the username
-                Set-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -Value $CredentialId -Type String
-            } else {
-                Remove-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
-            }
-            return $true
-        }
-        catch {
-            Write-Warning "Failed to set credential ID for $Username`: $($_.Exception.Message)"
-            return $false
-        }
+        [Parameter(Mandatory = $false)]
+        [string]$CredentialId
+    )
+    
+    if (-not $script:WindowsHelloRegistryPath) {
+        Write-Warning "Windows Hello registry functions are only available on Windows platforms"
+        return $false
     }
     
-    function Test-WindowsHelloBiometricPreviouslyUsed {
-        [CmdletBinding()]
-        param(
-            [Parameter(Mandatory = $true)]
-            [string]$Username
-        )
+    try {
+        if (!(Test-Path $script:WindowsHelloRegistryPath)) {
+            New-Item -Path $script:WindowsHelloRegistryPath -Force | Out-Null
+        }
         
-        try {
-            if (Test-Path $script:WindowsHelloRegistryPath) {
-                # Check if the credential key exists for the username
-                $credentialExists = Get-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
-                
-                if ($credentialExists) {
-                    return $true
-                } else {
-                    return $false
-                }
+        if ($CredentialId) {
+            # Store the credential ID for the username
+            Set-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -Value $CredentialId -Type String
+        } else {
+            # Remove the credential ID for the username
+            Remove-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
+        }
+        return $true
+    }
+    catch {
+        Write-Warning "Failed to set credential ID for $Username`: $($_.Exception.Message)"
+        return $false
+    }
+}
+
+function Test-WindowsHelloBiometricPreviouslyUsed {
+    <#
+    .SYNOPSIS
+    Tests if a Windows Hello biometric credential was previously used for a user
+    
+    .DESCRIPTION
+    Checks if a Windows Hello credential ID exists in the local registry for a specific user.
+    This function is only functional on Windows platforms.
+    
+    .PARAMETER Username
+    The username to check
+    
+    .OUTPUTS
+    [bool] True if credential was previously used, false otherwise
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Username
+    )
+    
+    if (-not $script:WindowsHelloRegistryPath) {
+        return $false
+    }
+    
+    try {
+        if (Test-Path $script:WindowsHelloRegistryPath) {
+            $credentialExists = Get-ItemProperty -Path $script:WindowsHelloRegistryPath -Name $Username -ErrorAction SilentlyContinue
+            
+            if ($credentialExists) {
+                return $true
             } else {
                 return $false
             }
-        }
-        catch [System.Management.Automation.ItemNotFoundException] {
-            return $false
-        }
-        catch {
+        } else {
             return $false
         }
     }
-} # End of Windows conditional compilation
+    catch [System.Management.Automation.ItemNotFoundException] {
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
 
 $exportFunctions = @(
     "Test-WindowsHelloCapabilities","Verify-KeeperBiometricCredential","Register-KeeperBiometricCredential","Show-KeeperBiometricCredentials","Unregister-KeeperBiometricCredential"
 )
 
 Export-ModuleMember -Function $exportFunctions
-
-#endregion
