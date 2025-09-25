@@ -1261,7 +1261,7 @@ function Complete-KeeperAuthentication {
     }
 }
 
-function Verify-KeeperBiometricCredential {
+function Assert-KeeperBiometricCredential {
     <#
     .SYNOPSIS
     Complete Windows Hello authentication flow with Keeper
@@ -1288,17 +1288,17 @@ function Verify-KeeperBiometricCredential {
     Return the authentication result object. If not specified, function returns nothing.
     
     .EXAMPLE
-    Verify-KeeperBiometricCredential
+    Assert-KeeperBiometricCredential
     # Performs authentication without returning a result object
     
     .EXAMPLE
-    $result = Verify-KeeperBiometricCredential -PassThru
+    $result = Assert-KeeperBiometricCredential -PassThru
     if ($result.Success) {
         Write-Host "Authentication successful!"
     }
     
     .EXAMPLE
-    $result = Verify-KeeperBiometricCredential -Purpose "vault" -PassThru
+    $result = Assert-KeeperBiometricCredential -Purpose "vault" -PassThru
     #>
     [CmdletBinding()]
     param(
@@ -2361,7 +2361,7 @@ function Test-WindowsHelloBiometricPreviouslyUsed {
 }
 
 $exportFunctions = @(
-    "Test-WindowsHelloCapabilities","Verify-KeeperBiometricCredential","Register-KeeperBiometricCredential","Show-KeeperBiometricCredentials","Unregister-KeeperBiometricCredential"
+    "Test-WindowsHelloCapabilities","Assert-KeeperBiometricCredential","Register-KeeperBiometricCredential","Show-KeeperBiometricCredentials","Unregister-KeeperBiometricCredential"
 )
 
 Export-ModuleMember -Function $exportFunctions

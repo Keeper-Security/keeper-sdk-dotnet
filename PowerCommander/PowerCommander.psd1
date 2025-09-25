@@ -53,7 +53,7 @@
     # RequiredModules = @()
 
     # Assemblies that must be loaded prior to importing this module
-    RequiredAssemblies   = @('KeeperSdk.dll', 'KeeperBiometric.dll')
+    RequiredAssemblies   = @('KeeperSdk.dll', 'KeeperBiometric.dll', 'CBOR.dll')
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # ScriptsToProcess = @()
@@ -93,7 +93,7 @@
         'Remove-KeeperOneTimeShare', 'Copy-KeeperFileAttachment', 'Copy-KeeperFileAttachmentToStream','Remove-KeeperFileAttachment',
         'Copy-FileToKeeperRecord','Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword',
         'Test-PasswordAgainstBreachWatch','Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperPasswordReport',
-        'Verify-KeeperBiometricCredential','Register-KeeperBiometricCredential', 'Show-KeeperBiometricCredentials', 'Unregister-KeeperBiometricCredential'
+        'Assert-KeeperBiometricCredential','Register-KeeperBiometricCredential', 'Show-KeeperBiometricCredentials', 'Unregister-KeeperBiometricCredential'
     )
 
     # Cmdlets to export from this module

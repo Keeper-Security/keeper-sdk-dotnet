@@ -453,11 +453,11 @@ function Connect-Keeper {
         if ($biometricPresent) {
             try {
                 Write-Host "Attempting Keeper biometric authentication..." -InformationAction Continue
-                $biometricResult = Verify-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
+                $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
                 if ($biometricResult.Success) {
                     $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
                     if ($authFlow.IsCompleted) {
-                        Write-Host "Authentication completed successfully!" -InformationAction Continue
+                        Write-Debug "Authentication completed successfully!" -InformationAction Continue
                         break
                     }
                 } else {
