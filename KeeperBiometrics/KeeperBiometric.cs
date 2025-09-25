@@ -345,7 +345,6 @@ namespace KeeperBiometric
                         },
                         dwAuthenticatorAttachment = NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_ATTACHMENT_PLATFORM,
                         dwUserVerificationRequirement = options.UserVerification == "required" ? 1u : 0u,
-                        // Use flags to improve dialog behavior - try to center dialog
                         dwFlags = 0,
                         pwszU2fAppId = IntPtr.Zero,
                         pbU2fAppId = IntPtr.Zero,
@@ -375,28 +374,24 @@ namespace KeeperBiometric
                         var assertion = (NativeWebAuthn.WEBAUTHN_ASSERTION)Marshal.PtrToStructure(
                             assertionPtr, typeof(NativeWebAuthn.WEBAUTHN_ASSERTION));
 
-                        // Extract credential ID
                         byte[] credentialId = new byte[assertion.Credential.cbId];
                         if (assertion.Credential.pbId != IntPtr.Zero)
                         {
                             Marshal.Copy(assertion.Credential.pbId, credentialId, 0, assertion.Credential.cbId);
                         }
 
-                        // Extract authenticator data
                         byte[] authenticatorData = new byte[assertion.cbAuthenticatorData];
                         if (assertion.pbAuthenticatorData != IntPtr.Zero)
                         {
                             Marshal.Copy(assertion.pbAuthenticatorData, authenticatorData, 0, assertion.cbAuthenticatorData);
                         }
 
-                        // Extract signature
                         byte[] signatureData = new byte[assertion.cbSignature];
                         if (assertion.pbSignature != IntPtr.Zero)
                         {
                             Marshal.Copy(assertion.pbSignature, signatureData, 0, assertion.cbSignature);
                         }
 
-                        // Extract user ID (if present)
                         byte[] userId = null;
                         if (assertion.cbUserId > 0 && assertion.pbUserId != IntPtr.Zero)
                         {
@@ -447,7 +442,6 @@ namespace KeeperBiometric
             {
                 try
                 {
-                    // Create client data with Base64Url encoding (WebAuthn standard)
                     var clientData = new SecurityKeyClientData
                     {
                         dataType = "webauthn.create",
@@ -469,7 +463,6 @@ namespace KeeperBiometric
                         pwszHashAlgId = NativeWebAuthn.WEBAUTHN_HASH_ALGORITHM_SHA_256
                     };
 
-                    // Create RP information
                     var rpInfo = new NativeWebAuthn.WEBAUTHN_RP_ENTITY_INFORMATION
                     {
                         dwVersion = NativeWebAuthn.WEBAUTHN_CREDENTIAL_CURRENT_VERSION,
@@ -478,8 +471,7 @@ namespace KeeperBiometric
                         pwszIcon = null
                     };
 
-                    // Create user information
-                    var userIdPtr = Marshal.AllocHGlobal(options.UserId.Length);
+=                    var userIdPtr = Marshal.AllocHGlobal(options.UserId.Length);
                     Marshal.Copy(options.UserId, 0, userIdPtr, options.UserId.Length);
                     ptrList.Add(userIdPtr);
 
@@ -493,7 +485,6 @@ namespace KeeperBiometric
                         pwszIcon = null
                     };
 
-                    // Create credential parameters (ES256 algorithm)
                     var credParam = new NativeWebAuthn.WEBAUTHN_COSE_CREDENTIAL_PARAMETER
                     {
                         dwVersion = NativeWebAuthn.WEBAUTHN_CREDENTIAL_CURRENT_VERSION,
@@ -544,6 +535,7 @@ namespace KeeperBiometric
                         }
                         
                     }
+
                     // Create make credential options
                     var makeCredOptions = new NativeWebAuthn.WEBAUTHN_AUTHENTICATOR_MAKE_CREDENTIAL_OPTIONS
                     {
@@ -582,6 +574,7 @@ namespace KeeperBiometric
                         ppwszCredentialHints = IntPtr.Zero,
                         bThirdPartyPayment = false
                     };
+
                     // Call native WebAuthn MakeCredential API
                     var hr = NativeWebAuthn.WebAuthNAuthenticatorMakeCredential(
                         hWnd,
@@ -596,7 +589,6 @@ namespace KeeperBiometric
                     {
                         var credentialAttestation = Marshal.PtrToStructure<NativeWebAuthn.WEBAUTHN_CREDENTIAL_ATTESTATION>(credentialAttestationPtr);
 
-                        // Extract credential data
                         var credentialId = new byte[credentialAttestation.cbCredentialId];
                         Marshal.Copy(credentialAttestation.pbCredentialId, credentialId, 0, credentialAttestation.cbCredentialId);
                         
@@ -607,7 +599,6 @@ namespace KeeperBiometric
                         var authenticatorData = new byte[credentialAttestation.cbAuthenticatorData];
                         Marshal.Copy(credentialAttestation.pbAuthenticatorData, authenticatorData, 0, credentialAttestation.cbAuthenticatorData);
 
-                        // Free the credential attestation
                         NativeWebAuthn.WebAuthNFreeCredentialAttestation(credentialAttestationPtr);
 
                         taskSource.TrySetResult(new InternalCredentialCreationResult
@@ -615,8 +606,8 @@ namespace KeeperBiometric
                             CredentialId = credentialId,
                             AttestationObject = attestationObject,
                             ClientDataJSON = clientDataBytes,
-                            PublicKey = authenticatorData, // Contains public key data
-                            SignatureCount = 0 // Initial signature count
+                            PublicKey = authenticatorData,
+                            SignatureCount = 0
                         });
                     }
                     else
@@ -626,7 +617,6 @@ namespace KeeperBiometric
                         taskSource.SetException(new Exception($"WebAuthn MakeCredential error: {error} (HRESULT: 0x{hr:X8})"));
                     }
 
-                    // Free the public key type string after the API call is complete
                     if (pubKeyPtr != IntPtr.Zero)
                     {
                         Marshal.FreeHGlobal(pubKeyPtr);
@@ -655,14 +645,14 @@ namespace KeeperBiometric
         }
 
         /// <summary>
-        /// Converts byte array to Base64Url string (WebAuthn standard)
+        /// Converts byte array to Base64Url string
         /// </summary>
         private static string ToBase64Url(byte[] bytes)
         {
             return Convert.ToBase64String(bytes)
-                .TrimEnd('=')           // Remove padding
-                .Replace('+', '-')      // Replace + with -
-                .Replace('/', '_');     // Replace / with _
+                .TrimEnd('=')          
+                .Replace('+', '-')  
+                .Replace('/', '_');     
         }
 
          /// <summary>
@@ -752,62 +742,50 @@ namespace KeeperBiometric
          /// </summary>
          private static (byte[] XCoord, byte[] YCoord) ExtractPublicKeyFromAuthenticatorData(byte[] authenticatorData)
          {
-             try
-             {
-                 
-                 if (authenticatorData.Length < 37)
-                 {
-                     throw new Exception("Authenticator data too short");
-                 }
+            try
+            {
+                
+                if (authenticatorData.Length < 37)
+                {
+                    throw new Exception("Authenticator data too short");
+                }
 
-                 // Check if attested credential data is present (AT flag = 0x40)
-                 var flags = authenticatorData[32];
-                 if ((flags & 0x40) == 0)
-                 {
-                     throw new Exception("No attested credential data present");
-                 }
+                
+                var flags = authenticatorData[32];
+                if ((flags & 0x40) == 0)
+                {
+                    throw new Exception("No attested credential data present");
+                }
 
-                 // Skip to attested credential data (after RP ID hash + flags + sign count)
-                 var offset = 37;
-                 
-                 // Skip AAGUID (16 bytes)
-                 offset += 16;
-                 
-                 // Get credential ID length (2 bytes, big-endian)
-                 if (authenticatorData.Length < offset + 2)
-                     throw new Exception("Invalid authenticator data structure");
-                     
-                 var credIdLen = (authenticatorData[offset] << 8) | authenticatorData[offset + 1];
-                 offset += 2;
-                 
-                 // Skip credential ID
-                 offset += credIdLen;
-                 
-                 // Parse COSE key (remaining bytes)
-                 if (authenticatorData.Length <= offset)
-                     throw new Exception("No COSE key data found");
-                     
-                 var coseKeyBytes = new byte[authenticatorData.Length - offset];
-                 Array.Copy(authenticatorData, offset, coseKeyBytes, 0, coseKeyBytes.Length);
-                 
-                 var coseKey = CBORObject.DecodeFromBytes(coseKeyBytes);
-                 
-                 // Extract x and y coordinates (COSE key format)
-                 var xCoord = coseKey[-2].GetByteString(); // x coordinate
-                 var yCoord = coseKey[-3].GetByteString(); // y coordinate
-                 
-                 return (xCoord, yCoord);
-             }
-             catch
-             {
-                 // Fallback: return dummy coordinates
-                 var dummyCoord = new byte[32];
-                 using (var rng = RandomNumberGenerator.Create())
-                 {
-                     rng.GetBytes(dummyCoord);
-                 }
-                 return (dummyCoord, dummyCoord);
-             }
+                var offset = 37;
+                
+                offset += 16;
+                
+                if (authenticatorData.Length < offset + 2)
+                    throw new Exception("Invalid authenticator data structure");
+                    
+                var credIdLen = (authenticatorData[offset] << 8) | authenticatorData[offset + 1];
+                offset += 2;
+                
+                offset += credIdLen;
+                
+                if (authenticatorData.Length <= offset)
+                    throw new Exception("No COSE key data found");
+                    
+                var coseKeyBytes = new byte[authenticatorData.Length - offset];
+                Array.Copy(authenticatorData, offset, coseKeyBytes, 0, coseKeyBytes.Length);
+                
+                var coseKey = CBORObject.DecodeFromBytes(coseKeyBytes);
+                
+                var xCoord = coseKey[-2].GetByteString(); // x coordinate
+                var yCoord = coseKey[-3].GetByteString(); // y coordinate
+                
+                return (xCoord, yCoord);
+            }
+            catch
+            {
+            throw new Exception("Failed to extract public key from authenticator data");
+            }
          }
 
         /// <summary>
@@ -1131,10 +1109,10 @@ namespace KeeperBiometric
     public class DiscoveredCredential
     {
         public string CredentialId { get; set; }
-        public string Source { get; set; } // Where it was found (WebAuthn API, etc.)
+        public string Source { get; set; } 
         public bool IsAvailable { get; set; }
         public string UserHandle { get; set; }
-        public string RpId { get; set; } // The RP ID this credential belongs to
+        public string RpId { get; set; }
     }
 
      /// <summary>
@@ -1198,7 +1176,7 @@ namespace KeeperBiometric
 
         [DllImport("webauthn.dll", CallingConvention = CallingConvention.Winapi)]
         internal static extern int WebAuthNGetPlatformCredentialList(
-            IntPtr pGetCredentialsOptions, // pass IntPtr.Zero for defaults
+            IntPtr pGetCredentialsOptions, 
             out IntPtr ppCredentialDetailsList);
 
         [DllImport("webauthn.dll", CallingConvention = CallingConvention.Winapi)]
@@ -1300,8 +1278,6 @@ namespace KeeperBiometric
             public int cbUserId;
             public IntPtr pbUserId;
         }
-
-        // Structures for MakeCredential API
         
         [StructLayout(LayoutKind.Sequential)]
         internal struct WEBAUTHN_RP_ENTITY_INFORMATION
@@ -1360,7 +1336,7 @@ namespace KeeperBiometric
             public uint dwFlags;
             [MarshalAs(UnmanagedType.LPWStr)]
             public string pwszCancellationId;
-            public IntPtr pExcludeCredentialList;  // PWEBAUTHN_CREDENTIAL_LIST
+            public IntPtr pExcludeCredentialList;  
             public uint dwEnterpriseAttestation;
             [MarshalAs(UnmanagedType.Bool)]
             public bool bPreferResidentKey;
@@ -1369,12 +1345,12 @@ namespace KeeperBiometric
             public bool bPreferPlatformAttachment;
             public bool bBrowserInPrivateMode;
             public bool bEnablePrf;
-            public IntPtr pLinkedDevice;  // PCTAPCBOR_HYBRID_STORAGE_LINKED_DATA
+            public IntPtr pLinkedDevice;  
             public uint cbJsonExt;
-            public IntPtr pbJsonExt;  // PBYTE
+            public IntPtr pbJsonExt;  
             public IntPtr pPRFGlobalEval;  // PWEBAUTHN_HMAC_SECRET_SALT
             public uint cCredentialHints;
-            public IntPtr ppwszCredentialHints;  // LPCWSTR*
+            public IntPtr ppwszCredentialHints;  
             public bool bThirdPartyPayment;
         }
 
@@ -1408,39 +1384,38 @@ namespace KeeperBiometric
         internal struct WEBAUTHN_CREDENTIAL_DETAILS
         {
             public uint dwVersion;
-            public uint cbCredentialID;                // size of pbCredentialID
-            public IntPtr pbCredentialID;              // PBYTE
-            public IntPtr pRpInformation;              // PWEBAUTHN_RP_ENTITY_INFORMATION
-            public IntPtr pUserInformation;            // PWEBAUTHN_USER_ENTITY_INFORMATION
-            public IntPtr pCredBlob;                   // PBYTE (Windows 11+)
-            public uint cbCredBlob;                    // size of pCredBlob (Windows 11+)
-            public IntPtr pHmacSecretSalt;             // PBYTE (Windows 11+)
-            public uint dwCredProtect;                 // credential protection policy (Windows 11+)
+            public uint cbCredentialID;                
+            public IntPtr pbCredentialID;              
+            public IntPtr pRpInformation;              
+            public IntPtr pUserInformation;            
+            public IntPtr pCredBlob;                   
+            public uint cbCredBlob;                   
+            public IntPtr pHmacSecretSalt;            
+            public uint dwCredProtect;          
             [MarshalAs(UnmanagedType.Bool)]
             public bool bRemovable;
             [MarshalAs(UnmanagedType.Bool)]
             public bool bBackedUp;
             [MarshalAs(UnmanagedType.Bool)]
-            public bool bHasLargeBlob;                 // Windows 11+
+            public bool bHasLargeBlob;                 
             [MarshalAs(UnmanagedType.Bool)]
-            public bool bHasCredBlob;                  // Windows 11+
+            public bool bHasCredBlob;                  
             [MarshalAs(UnmanagedType.Bool)]
-            public bool bHasHmacSecret;                // Windows 11+
+            public bool bHasHmacSecret;                
         }
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct WEBAUTHN_CREDENTIAL_DETAILS_LIST
         {
-            public uint cCredentialDetails;            // DWORD
-            public IntPtr ppCredentialDetails;         // PWEBAUTHN_CREDENTIAL_DETAILS *
+            public uint cCredentialDetails;            
+            public IntPtr ppCredentialDetails;         
         }
 
-        // Structs for reading from native structures (with IntPtr fields)
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         internal struct WEBAUTHN_RP_ENTITY_INFORMATION_READ
         {
             public uint dwVersion;
-            public IntPtr pwszId;      // PCWSTR
+            public IntPtr pwszId;      
             public IntPtr pwszName;
             public IntPtr pwszIcon;
         }
@@ -1449,9 +1424,9 @@ namespace KeeperBiometric
         internal struct WEBAUTHN_USER_ENTITY_INFORMATION_READ
         {
             public uint dwVersion;
-            public uint cbId;          // size of pbId
-            public IntPtr pbId;        // PBYTE user handle
-            public IntPtr pwszName;    // PCWSTR username (e.g. john@example.com)
+            public uint cbId;          
+            public IntPtr pbId;        
+            public IntPtr pwszName;    
             public IntPtr pwszIcon;
             public IntPtr pwszDisplayName;
         }

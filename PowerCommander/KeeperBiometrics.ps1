@@ -594,8 +594,6 @@ function Get-KeeperRegistrationOptions {
         $challengeTokenBytes = $null
         if ($response.ChallengeToken -is [Google.Protobuf.ByteString]) {
             $challengeTokenBytes = $response.ChallengeToken.ToByteArray()
-        } elseif ($response.ChallengeToken -is [byte[]]) {
-            $challengeTokenBytes = $response.ChallengeToken
         } else {
             $challengeTokenBytes = $response.ChallengeToken
         }
@@ -1097,7 +1095,7 @@ function Complete-KeeperAuthentication {
         [Parameter(Mandatory=$true)]
         [byte[]]$ChallengeToken,
         
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [byte[]]$LoginToken,
         
         [Parameter(Mandatory=$true)]
@@ -1159,25 +1157,22 @@ function Complete-KeeperAuthentication {
             }
         }
         
-        # Create the authentication completion request
         $request = [Authentication.PasskeyValidationRequest]::new()
         
         $request.ChallengeToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$ChallengeToken)
     
-        # Handle login token - decode using URL-safe Base64 decoding
         if ($LoginToken -is [string]) {
             $loginTokenBase64 = $LoginToken.Replace('-', '+').Replace('_', '/').PadRight(($LoginToken.Length + 3) -band -4, '=')
             $loginTokenBytes = [System.Convert]::FromBase64String($loginTokenBase64)
             $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom($loginTokenBytes)
         } else {
-            $request.EncryptedLoginToken = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$LoginToken)
+            $loginTokenBytes = [Google.Protobuf.ByteString]::CopyFrom([byte[]]$LoginToken)
+            if ($loginTokenBytes.Length -gt 0) {
+                $request.EncryptedLoginToken = $loginTokenBytes
+            }
         }
-                
-        $clientDataBase64Url = ""
-        $authenticatorDataBase64Url = ""
         $signatureBase64Url = ""
-        
-        # Helper function to convert byte array to Base64Url
+
         function ConvertTo-Base64Url {
             param([byte[]]$Bytes)
             if ($Bytes -is [byte[]]) {
@@ -1186,6 +1181,8 @@ function Complete-KeeperAuthentication {
             }
             return $Bytes
         }
+
+        $request.passkeyPurpose = if ($Purpose -eq 'vault') { [Authentication.PasskeyPurpose]::PkReauth } else { [Authentication.PasskeyPurpose]::PkLogin }
         
         # Convert ClientDataJSON
         if ($ClientDataJSON -is [byte[]]) {
@@ -1392,8 +1389,8 @@ function Assert-KeeperBiometricCredential {
             if ($PassThru) {
                 return @{
                     Success = $false
-                    ErrorMessage = "Failed to complete Keeper authentication: $($completion.ErrorMessage)"
-                    ErrorType = "KeeperAuthenticationError"
+                    ErrorMessage = $_.Exception.Message
+                    ErrorType = $_.Exception.GetType().Name
                 }
             }
             return
@@ -1828,7 +1825,14 @@ function Unregister-KeeperBiometricCredential {
             return
         }
         
-        if (-not $PSCmdlet.ShouldProcess("Remove biometric credentials for user '$Username'", "Remove", "Are you sure you want to remove biometric authentication?")) {
+        $confirmationMessage = if ($CredentialId) {
+            "Are you sure you want to permanently remove the biometric credential '$CredentialId' for user '$Username'? (y/N): "
+        } else {
+            "Are you sure you want to permanently remove ALL biometric authentication for user '$Username'? (y/N): "
+        }
+        
+        $response = Read-Host $confirmationMessage
+        if ($response -ne 'y' -and $response -ne 'Y') {
             $result = @{
                 Success = $false
                 Message = "Operation cancelled by user"
@@ -1841,7 +1845,7 @@ function Unregister-KeeperBiometricCredential {
         
         $rpId = $script:DefaultRpId
         
-        Write-Host "Disabling server passkeys..." -ForegroundColor Yellow
+        Write-Debug "Disabling server passkeys..."
         $disableResult = $false
         
         $storedCredentialId = Get-WindowsHelloCredentialId -Username $Username
@@ -2035,6 +2039,9 @@ function Register-KeeperBiometricCredential {
     .PARAMETER FriendlyName
     Friendly name for the credential (optional)
     
+    .PARAMETER PassThru
+    Return the registration result object. If not specified, function returns nothing on success or false on failure.
+    
     .EXAMPLE
     $result = Register-KeeperBiometricCredential
     if ($result.Success) {
@@ -2049,6 +2056,16 @@ function Register-KeeperBiometricCredential {
     .EXAMPLE
     # Create credential with custom friendly name
     $result = Register-KeeperBiometricCredential -FriendlyName "My Work Laptop"
+    
+    .EXAMPLE
+    # Get detailed result information
+    $result = Register-KeeperBiometricCredential -PassThru
+    if ($result.Success) {
+        Write-Host "Registration successful for user: $($result.Username)"
+        Write-Host "Credential ID: $($result.CredentialId)"
+    } else {
+        Write-Host "Registration failed: $($result.Error)"
+    }
     #>
     [CmdletBinding()]
     param(
@@ -2059,7 +2076,10 @@ function Register-KeeperBiometricCredential {
         [switch]$Force,
         
         [Parameter(Mandatory=$false)]
-        [string]$FriendlyName
+        [string]$FriendlyName,
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$PassThru
     )
     
     try {
@@ -2100,24 +2120,40 @@ function Register-KeeperBiometricCredential {
         if ($matchedCredential) {
             Write-Host "Found matching credential which is also in registry!" -ForegroundColor Yellow
             Write-Host "Registration cancelled as a matching credential was found in registry use biometric verify instead to just use the existing credential and login with the existing credential." -ForegroundColor Red
+            if ($PassThru) {
+                return @{
+                    Success = $false
+                    Error = "Matching credential found in registry"
+                    ErrorType = "DuplicateCredential"
+                    Timestamp = [DateTime]::UtcNow
+                }
+            }
             return $false
         }
         
         # Perform credential creation and registration
-        return Invoke-CredentialCreationFlow `
+        $result = Invoke-CredentialCreationFlow `
             -RegOptions $regOptions `
             -DisplayName $displayName `
             -ExcludeCredentialObjects $excludeCredentialObjects `
             -Vault $Vault
+        
+        if ($PassThru) {
+            return $result
+        } 
+        Write-Host "Credential created successfully" -ForegroundColor Green
+        Write-Host "Success! Biometric authentication `"$displayName`" has been registered." -ForegroundColor Green
+        Write-Host "Please register your device using the `"Set-KeeperDeviceSettings -Register`" command to set biometric authentication as your default login method." -ForegroundColor Yellow
     }
     catch {
         Write-ErrorWithContext -Message "Keeper credential creation failed" -FunctionName "Register-KeeperBiometricCredential" -Exception $_.Exception
-        return @{
+        $errorResult = @{
             Success = $false
             Error = $_.Exception.Message
             ErrorType = $_.Exception.GetType().Name
             Timestamp = [DateTime]::UtcNow
         }
+        return $errorResult
     }
 }
 
