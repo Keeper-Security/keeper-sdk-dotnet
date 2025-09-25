@@ -1817,7 +1817,7 @@ function Unregister-KeeperBiometricCredential {
         if (-not $hasBiometric) {
             $result = @{
                 Success = $true
-                Message = "Biometric authentication already disabled"
+                Message = "Biometric authentication is not yet registered"
             }
             if ($PassThru) {
                 return $result
