@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net8.0</TargetFrameworks>
-    <AssemblyTitle>PowerShell Windows Hello Integration</AssemblyTitle>
-    <AssemblyDescription>Lightweight Windows Hello WebAuthn implementation for PowerShell</AssemblyDescription>
+    <TargetFramework>net472</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AssemblyName>KeeperBiometric</AssemblyName>
+    <AssemblyTitle>Keeper Biometric Integration</AssemblyTitle>
+    <AssemblyDescription>Lightweight biometric WebAuthn implementation for Keeper PowerShell</AssemblyDescription>
     <AssemblyCompany>Keeper Security</AssemblyCompany>
     <AssemblyProduct>Keeper Commander PowerShell</AssemblyProduct>
     <AssemblyCopyright>Copyright © Keeper Security 2025</AssemblyCopyright>
@@ -14,13 +16,7 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <IncludeSymbols>false</IncludeSymbols>
     <DebugType>portable</DebugType>
-    
-    <!-- Windows-only project -->
-    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net472'">win-x64</RuntimeIdentifier>
-    <SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net8.0'">10.0.18362.0</SupportedOSPlatformVersion>
   </PropertyGroup>
-
-  <!-- No conditional compilation needed - code works on both frameworks -->
 
   <!-- Package dependencies for CBOR encoding -->
   <ItemGroup>

@@ -4,79 +4,16 @@
 # This module provides enhanced Windows Hello functionality using native WebAuthn APIs
 # with no external dependencies beyond the Windows webauthn.dll
 
-#region Module Setup and Loading
-
-# Get the directory where this script is located
-$ModuleRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-function Import-PowerShellWindowsHello {
-    <#
-    .SYNOPSIS
-    Loads the PowerShell Windows Hello assembly
-    
-    .DESCRIPTION
-    This function loads the PowerShellWindowsHello.dll assembly, trying different
-    framework versions and build configurations automatically.
-    #>
-    [CmdletBinding()]
-    param()
-    
-    $assemblyLoaded = $false
-    $assemblyPaths = @(
-        
-        # Try .NET Framework first for Windows PowerShell compatibility
-        "$ModuleRoot\bin\Release\net472\win-x64\PowerShellWindowsHello.dll",
-        "$ModuleRoot\bin\Release\net472\PowerShellWindowsHello.dll",
-        # Try .NET 8.0 as fallback (for PowerShell Core)
-        "$ModuleRoot\bin\Release\net8.0\PowerShellWindowsHello.dll",
-        # Then try Debug builds as fallback
-        "$ModuleRoot\bin\Debug\net472\win-x64\PowerShellWindowsHello.dll",
-        "$ModuleRoot\bin\Debug\net472\PowerShellWindowsHello.dll",
-        "$ModuleRoot\bin\Debug\net8.0\PowerShellWindowsHello.dll"
-    )
-    
-    foreach ($path in $assemblyPaths) {
-        if (Test-Path $path) {
-            try {
-                Add-Type -Path $path -ErrorAction Stop
-                Write-Verbose "Loaded PowerShellWindowsHello assembly from: $path"
-                $assemblyLoaded = $true
-                break
-            }
-            catch {
-                Write-Verbose "Failed to load assembly from $path : $($_.Exception.Message)"
-                continue
-            }
-        }
-    }
-    
-    if (-not $assemblyLoaded) {
-        throw @"
-PowerShellWindowsHello assembly not found or could not be loaded.
-
-Please build the project first:
-  cd $ModuleRoot
-  dotnet build
-
-Tried the following locations:
-$($assemblyPaths | ForEach-Object { "  - $_" } | Out-String)
-"@
-    }
-    
-    return $assemblyLoaded
-}
-
-# Try to load the assembly when this module is imported
+# Check if the assembly is available
 try {
-    Import-PowerShellWindowsHello -Verbose:$VerbosePreference
-    $PowerShellWindowsHelloAvailable = $true
+    $null = [KeeperBiometric.WindowsHelloApi]
+    $KeeperBiometricAvailable = $true
 }
 catch {
-    Write-Warning "PowerShellWindowsHello not available: $($_.Exception.Message)"
-    $PowerShellWindowsHelloAvailable = $false
+    Write-Warning "KeeperBiometric assembly not available: $($_.Exception.Message)"
+    $KeeperBiometricAvailable = $false
 }
 
-#endregion
 
 #region Enhanced Windows Hello Functions
 
@@ -108,7 +45,7 @@ function Test-WindowsHelloCapabilities {
         [switch]$Quiet
     )
     
-    if (-not $PowerShellWindowsHelloAvailable) {
+    if (-not $KeeperBiometricAvailable) {
         if (-not $Quiet) {
             Write-Warning "PowerShellWindowsHello assembly not available. Please build the project first."
         }
@@ -117,7 +54,7 @@ function Test-WindowsHelloCapabilities {
     
     try {
         # Get comprehensive capabilities
-        $capabilities = [PowerShellWindowsHello.WindowsHelloApi]::GetFormattedInfo()
+        $capabilities = [KeeperBiometric.WindowsHelloApi]::GetFormattedInfo()
         
         if ($PassThru) {
             return $capabilities
@@ -186,13 +123,13 @@ function Invoke-WindowsHelloAuthentication {
         [string]$UserVerification = "required"
     )
     
-    if (-not $PowerShellWindowsHelloAvailable) {
+    if (-not $KeeperBiometricAvailable) {
         throw "PowerShellWindowsHello assembly not available. Please build the project first."
     }
     
     try {
         # Create authentication options
-        $authOptions = New-Object PowerShellWindowsHello.AuthenticationOptions
+        $authOptions = New-Object KeeperBiometric.AuthenticationOptions
         $authOptions.Challenge = $Challenge
         $authOptions.RpId = $RpId
         $authOptions.AllowedCredentialIds = $AllowedCredentials
@@ -202,7 +139,7 @@ function Invoke-WindowsHelloAuthentication {
         Write-Debug "Please complete Windows Hello verification when prompted..."
         
         # Perform authentication
-        $task = [PowerShellWindowsHello.WindowsHelloApi]::AuthenticateAsync($authOptions)
+        $task = [KeeperBiometric.WindowsHelloApi]::AuthenticateAsync($authOptions)
         $result = $task.GetAwaiter().GetResult()
         
         return $result
@@ -236,7 +173,7 @@ function Get-WindowsHelloInfo {
     [CmdletBinding()]
     param()
     
-    if (-not $PowerShellWindowsHelloAvailable) {
+    if (-not $KeeperBiometricAvailable) {
         return @{
             IsAvailable = $false
             ErrorMessage = "PowerShellWindowsHello assembly not available"
@@ -245,7 +182,7 @@ function Get-WindowsHelloInfo {
     }
     
     try {
-        $capabilities = [PowerShellWindowsHello.WindowsHelloApi]::GetCapabilities()
+        $capabilities = [KeeperBiometric.WindowsHelloApi]::GetCapabilities()
         return @{
             IsAvailable = $capabilities.IsAvailable
             ApiVersion = $capabilities.ApiVersion
@@ -364,16 +301,16 @@ function Invoke-WindowsHelloCredentialCreation {
 
         [Parameter()]
         [AllowEmptyCollection()]
-        [PowerShellWindowsHello.ExcludeCredential[]]$ExcludeCredentials
+        [KeeperBiometric.ExcludeCredential[]]$ExcludeCredentials
     )
     
-    if (-not $PowerShellWindowsHelloAvailable) {
+    if (-not $KeeperBiometricAvailable) {
         throw "PowerShellWindowsHello assembly not available. Please build the project first."
     }
     
     try {
         # Create registration options
-        $regOptions = New-Object PowerShellWindowsHello.RegistrationOptions
+        $regOptions = New-Object KeeperBiometric.RegistrationOptions
         $regOptions.Challenge = $Challenge
         $regOptions.RpId = $RpId
         $regOptions.RpName = if ($RpName) { $RpName } else { $RpId }
@@ -389,7 +326,7 @@ function Invoke-WindowsHelloCredentialCreation {
         Write-Host "Please complete Windows Hello verification to create the credential..." -ForegroundColor Yellow
         
         # Create credential
-        $task = [PowerShellWindowsHello.WindowsHelloApi]::CreateCredentialAsync($regOptions,$excludeCredentials)
+        $task = [KeeperBiometric.WindowsHelloApi]::CreateCredentialAsync($regOptions,$excludeCredentials)
         $result = $task.GetAwaiter().GetResult()
         
         return $result
@@ -782,7 +719,7 @@ function Invoke-WindowsHelloAssertion {
         [int]$TimeoutMs = 60000
     )
     
-    if (-not $PowerShellWindowsHelloAvailable) {
+    if (-not $KeeperBiometricAvailable) {
         Write-Warning "PowerShellWindowsHello assembly not available. Please build the project first."
         return @{
             Success = $false
@@ -811,7 +748,7 @@ function Invoke-WindowsHelloAssertion {
         }
         
         # Create authentication options object
-        $options = [PowerShellWindowsHello.AuthenticationOptions]@{
+        $options = [KeeperBiometric.AuthenticationOptions]@{
             RpId = $RpId
             Challenge = $challengeBytes
             TimeoutMs = $TimeoutMs
@@ -832,7 +769,7 @@ function Invoke-WindowsHelloAssertion {
         }
         
         # Call the Windows Hello authentication
-        $result = [PowerShellWindowsHello.WindowsHelloApi]::AuthenticateAsync($options).GetAwaiter().GetResult()
+        $result = [KeeperBiometric.WindowsHelloApi]::AuthenticateAsync($options).GetAwaiter().GetResult()
         
         if (-not $result.Success) {
             Write-Warning "Windows Hello Assertion failed: $($result.ErrorMessage)"
@@ -1934,7 +1871,7 @@ function Register-KeeperBiometricCredential {
             for ($i = 0; $i -lt $excludeCredentials.Count; $i++) {
                 $excludeCred = $excludeCredentials[$i]
                 
-                $credObj = New-Object PowerShellWindowsHello.ExcludeCredential
+                $credObj = New-Object KeeperBiometric.ExcludeCredential
                 $credObj.Type = $excludeCred.type
                 $credObj.Id = $excludeCred.id
                 $credObj.Transports = $excludeCred.transports
