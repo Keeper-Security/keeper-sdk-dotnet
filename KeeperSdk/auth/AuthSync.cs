@@ -606,7 +606,7 @@ namespace KeeperSecurity.Authentication.Sync
         }
 
         /// <summary>
-        /// Resume login with an encrypted login token from recieved from biometric authentication
+        /// Resume login with an encrypted login token recieved from biometric authentication
         /// </summary>
         /// <param name="encryptedLoginToken">The encrypted login token from biometric authentication</param>
         /// <returns>Task representing the async operation</returns>

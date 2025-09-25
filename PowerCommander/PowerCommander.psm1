@@ -20,8 +20,6 @@ class KeeperContext {
 
 New-Variable -Name Context -Option Constant -Scope 'Script' -Value (New-Object KeeperContext)
 
-# Windows Hello biometric authentication is loaded as a nested module via PowerCommander.psd1
-
 Export-ModuleMember -Function  Connect-Keeper, Sync-Keeper, Disconnect-Keeper, Get-KeeperInformation, 
 Get-KeeperDeviceSettings, Set-KeeperDeviceSettings
 Export-ModuleMember -Alias kc, ks, kq, kwhoami, this-device
@@ -70,10 +68,6 @@ Export-ModuleMember -Alias ksm, ksm-create, ksm-delete, ksm-share, ksm-unshare, 
 
 Export-ModuleMember -Function Copy-KeeperFileAttachment, Copy-KeeperFileAttachmentToStream, Copy-FileToKeeperRecord, Remove-KeeperFileAttachment
 Export-ModuleMember -Alias kda, krfa
-
-Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch,Set-KeeperBreachWatchRecordIgnore,
-Get-KeeperIgnoredBreachWatchRecords
-Export-ModuleMember -Alias kbw, kbwp
 
 Export-ModuleMember -Function Get-KeeperBreachWatchList, Test-PasswordAgainstBreachWatch,Set-KeeperBreachWatchRecordIgnore,
 Get-KeeperIgnoredBreachWatchRecords
