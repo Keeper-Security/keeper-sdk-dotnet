@@ -471,7 +471,7 @@ namespace KeeperBiometric
                         pwszIcon = null
                     };
 
-=                    var userIdPtr = Marshal.AllocHGlobal(options.UserId.Length);
+                    var userIdPtr = Marshal.AllocHGlobal(options.UserId.Length);
                     Marshal.Copy(options.UserId, 0, userIdPtr, options.UserId.Length);
                     ptrList.Add(userIdPtr);
 

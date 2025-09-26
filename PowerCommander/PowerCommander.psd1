@@ -53,7 +53,7 @@
     # RequiredModules = @()
 
     # Assemblies that must be loaded prior to importing this module
-    RequiredAssemblies   = @('KeeperSdk.dll', 'KeeperBiometric.dll', 'CBOR.dll')
+    RequiredAssemblies   = @('KeeperSdk.dll', 'KeeperBiometric.dll', 'CBOR.dll', 'Numbers.dll')
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # ScriptsToProcess = @()
