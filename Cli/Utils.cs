@@ -109,6 +109,16 @@ namespace Cli
                 }
             }
 
+#if NET472_OR_GREATER
+            auth.UiCallback = new WindowsAuthSyncCallback(() =>
+            {
+            });
+#else
+            auth.UiCallback = new AuthSyncCallback(() =>
+            {
+            });
+#endif
+
             await auth.Login(email, passwds.ToArray());
             if (!auth.IsCompleted) 
             {
