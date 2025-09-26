@@ -1708,7 +1708,7 @@ function Disable-KeeperPasskey {
         $response = $auth.ExecuteAuthRest("authentication/passkey/disable", $request).GetAwaiter().GetResult()
         return @{
             Success = $true
-            Message = "Passkey disabled successfully"
+            Message = "Passkey unregistered successfully"
             UserId = $UserId
             CredentialId = $CredentialId
         }
@@ -1740,17 +1740,17 @@ function Disable-KeeperPasskey {
 function Unregister-KeeperBiometricCredential {
     <#
     .SYNOPSIS
-    Remove/disable biometric credentials from Keeper
+    Remove/unregister biometric credentials from Keeper
     
     .DESCRIPTION
-    This function removes or disables biometric credentials (passkeys) from the Keeper account.
-    It can remove specific credentials by ID or disable all biometric authentication for the user.
+    This function removes or unregisters biometric credentials (passkeys) from the Keeper account.
+    It can remove specific credentials by ID or unregister all biometric authentication for the user.
     
     .PARAMETER CredentialId
-    Specific credential ID to remove (optional - if not provided, disables all biometric auth)
+    Specific credential ID to remove (optional - if not provided, unregisters all biometric auth)
     
     .PARAMETER Username
-    Username to disable biometric auth for (optional - uses current user if not provided)
+    Username to unregister biometric auth for (optional - uses current user if not provided)
     
     .PARAMETER Confirm
     Skip confirmation prompt (default: false)
@@ -1762,15 +1762,15 @@ function Unregister-KeeperBiometricCredential {
     Return the result object. If not specified, function returns nothing.
     
     .EXAMPLE
-    # Disable all biometric authentication for current user
+    # Unregister all biometric authentication for current user
     Unregister-KeeperBiometricCredential
     
     .EXAMPLE
-    # Remove specific credential
+    # Unregister specific credential
     Unregister-KeeperBiometricCredential -CredentialId "abc123def456"
     
     .EXAMPLE
-    # Disable for specific user without confirmation
+    # Unregister for specific user without confirmation
     Unregister-KeeperBiometricCredential -Username "user@company.com" -Confirm
     
     .EXAMPLE
@@ -1845,7 +1845,7 @@ function Unregister-KeeperBiometricCredential {
         
         $rpId = $script:DefaultRpId
         
-        Write-Debug "Disabling server passkeys..."
+        Write-Debug "Unregistering server passkeys..."
         $disableResult = $false
         
         $storedCredentialId = Get-WindowsHelloCredentialId -Username $Username
@@ -1873,17 +1873,17 @@ function Unregister-KeeperBiometricCredential {
                     try {
                         $disableResult = Disable-KeeperPasskey -Vault $vault -UserId $targetPasskey.Id -CredentialId $targetPasskeyBase64
                         if ($disableResult.Success) {
-                            Write-Host "Successfully disabled passkey on server" -ForegroundColor Green
+                            Write-Host "Successfully unregistered passkey on server" -ForegroundColor Green
                         } else {
-                            Write-Warning "Failed to disable passkey on server: $($disableResult.ErrorMessage)"
+                            Write-Warning "Failed to unregister passkey on server: $($disableResult.ErrorMessage)"
                             $disableResult = $false
                         }
                     } catch {
-                        Write-Warning "Error calling server API to disable passkey: $($_.Exception.Message)"
+                        Write-Warning "Error calling server API to unregister passkey: $($_.Exception.Message)"
                         $disableResult = $false
                     }
                 } else {
-                    Write-Host "Stored credential ID not found in available credentials - may already be disabled" -ForegroundColor Yellow
+                    Write-Host "Stored credential ID not found in available credentials - may already be unregistered" -ForegroundColor Yellow
                 }
             } catch {
                 Write-Warning "Failed to get available credentials: $($_.Exception.Message)"
@@ -1903,14 +1903,14 @@ function Unregister-KeeperBiometricCredential {
         $result = if ($cleanupSuccess -and $verificationSuccess) {
             @{
                 Success = $true
-                Message = "Biometric credentials removed successfully"
+                Message = "Biometric credentials unregistered successfully"
                 Username = $Username
                 CredentialId = $storedCredentialId
             }
         } else {
             @{
                 Success = $false
-                Message = "Biometric credential removal may have failed"
+                Message = "Biometric credential unregistration may have failed"
                 Username = $Username
                 CredentialId = $storedCredentialId
             }
@@ -1921,7 +1921,7 @@ function Unregister-KeeperBiometricCredential {
         }
     }
     catch {
-        Write-Error "Failed to remove biometric credentials: $($_.Exception.Message)"
+        Write-Error "Failed to unregister biometric credentials: $($_.Exception.Message)"
         $errorResult = @{
             Success = $false
             ErrorMessage = $_.Exception.Message
@@ -2018,7 +2018,7 @@ function Show-KeeperBiometricCredentials {
 function Register-KeeperBiometricCredential {
     <#
     .SYNOPSIS
-    Complete Windows Hello credential creation flow for Keeper with deduplication
+    Complete Windows Hello credential creation flow for Keeper
     
     .DESCRIPTION
     This function performs the complete Windows Hello credential creation flow:
@@ -2138,12 +2138,12 @@ function Register-KeeperBiometricCredential {
             -ExcludeCredentialObjects $excludeCredentialObjects `
             -Vault $Vault
         
-        if ($PassThru) {
-            return $result
-        } 
         Write-Host "Credential created successfully" -ForegroundColor Green
         Write-Host "Success! Biometric authentication `"$displayName`" has been registered." -ForegroundColor Green
         Write-Host "Please register your device using the `"Set-KeeperDeviceSettings -Register`" command to set biometric authentication as your default login method." -ForegroundColor Yellow
+        if ($PassThru) {
+            return $result
+        } 
     }
     catch {
         Write-ErrorWithContext -Message "Keeper credential creation failed" -FunctionName "Register-KeeperBiometricCredential" -Exception $_.Exception
@@ -2216,40 +2216,6 @@ function Unregister-WindowsHelloCredential {
     }
 }
 
-function Clear-AllWindowsHelloCredentials {
-    <#
-    .SYNOPSIS
-    Clears all Windows Hello credentials from the local registry
-    
-    .DESCRIPTION
-    Removes all Windows Hello credential IDs from the local registry.
-    This function is only functional on Windows platforms.
-    
-    .OUTPUTS
-    [bool] True if successful, false otherwise
-    #>
-    [CmdletBinding()]
-    param()
-    
-    if (-not $script:WindowsHelloRegistryPath) {
-        Write-Warning "Windows Hello registry functions are only available on Windows platforms"
-        return $false
-    }
-    
-    try {
-        if (Test-Path $script:WindowsHelloRegistryPath) {
-            Remove-Item -Path $script:WindowsHelloRegistryPath -Recurse -Force
-            Write-Host "Successfully cleared all registered credentials" -ForegroundColor Green
-        } else {
-            Write-Host "No credentials found to clear" -ForegroundColor Yellow
-        }
-        return $true
-    }
-    catch {
-        Write-Error "Failed to clear registered credentials: $($_.Exception.Message)"
-        return $false
-    }
-}
 
 function Get-WindowsHelloCredentialId {
     <#
