@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AssemblyName>KeeperBiometric</AssemblyName>
+    <AssemblyTitle>Keeper Biometric Integration</AssemblyTitle>
+    <AssemblyDescription>Lightweight biometric WebAuthn implementation for Keeper PowerShell</AssemblyDescription>
+    <AssemblyCompany>Keeper Security</AssemblyCompany>
+    <AssemblyProduct>Keeper Commander PowerShell</AssemblyProduct>
+    <AssemblyCopyright>Copyright © Keeper Security 2025</AssemblyCopyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    
+    <!-- PowerShell-specific optimizations -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IncludeSymbols>false</IncludeSymbols>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <!-- Package dependencies for CBOR encoding -->
+  <ItemGroup>
+    <PackageReference Include="PeterO.Cbor" Version="4.5.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="PowerShellIntegration.ps1" />
+  </ItemGroup>
+
+</Project>

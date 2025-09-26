@@ -604,5 +604,15 @@ namespace KeeperSecurity.Authentication.Sync
             };
             return dataKeyStep;
         }
+
+        /// <summary>
+        /// Resume login with an encrypted login token recieved from biometric authentication
+        /// </summary>
+        /// <param name="encryptedLoginToken">The encrypted login token from biometric authentication</param>
+        /// <returns>Task representing the async operation</returns>
+        public async Task ResumeLoginWithToken(ByteString encryptedLoginToken)
+        {
+            Step = await this.ResumeLogin(_loginContext, StartLoginSync, encryptedLoginToken);
+        }
     }
 }
