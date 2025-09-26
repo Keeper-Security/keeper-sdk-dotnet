@@ -42,6 +42,16 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Remove-KeeperRecordType                |             | Removes the custom record type
 | Get-KeeperPasswordReport               |             | Retrieves password report based on policy and strengths
 
+### Biometric Cmdlets
+| Cmdlet name                            | Alias       | Description
+|----------------------------------------|-------------|----------------------------
+| Assert-KeeperBiometricCredential       |             | Checks if a biometric credential exists for the current user
+| Register-KeeperBiometricCredential     |             | Registers a new biometric credential (Windows Hello/WebAuthn)
+| Show-KeeperBiometricCredentials        |             | Lists all biometric credentials registered for the current user
+| Unregister-KeeperBiometricCredential   |             | Removes a biometric credential from the current user 
+[Biometric Login Command Reference](https://app.gitbook.com/o/-LO5CAzoigGmCWBUbw9z/s/-MJXOXEifAmpyvNVL1to/~/changes/1716/commander-sdk/keeper-commander-sdks/command-reference/login-commands/biometric-login)
+
+
 ### Sharing Cmdlets
 | Cmdlet name                            | Alias       | Description
 |----------------------------------------|-------------|----------------------------

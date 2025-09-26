@@ -410,6 +410,23 @@ function Connect-Keeper {
         Write-Error "Non-interactive session detected" -ErrorAction Stop 
     }
 
+    $biometricPresent = $false
+    try {
+        # Check Windows Hello capabilities first
+        $windowsHelloAvailable = Test-WindowsHelloCapabilities
+        if ($windowsHelloAvailable) {
+            $biometricPresent = Test-WindowsHelloBiometricPreviouslyUsed -Username $Username
+            if (-not $biometricPresent) {
+                Write-Debug "Windows Hello biometric authentication not available for this user"
+            }
+        } else {
+            Write-Debug "Windows Hello not available on this system"
+        }
+    }
+    catch {
+        Write-Debug "Failed to check Windows Hello capabilities or biometric credential status: $($_.Exception.Message)"
+    }
+
     if ($SsoProvider.IsPresent) {
         $authFlow.LoginSso($Username).GetAwaiter().GetResult() | Out-Null
     }
@@ -425,13 +442,35 @@ function Connect-Keeper {
         }
         $authFlow.Login($Username, $passwords).GetAwaiter().GetResult() | Out-Null
     }
-    Write-Output ""
+
     while (-not $authFlow.IsCompleted) {
         if ($lastStep -ne $authFlow.Step.State) {
-            printStepHelp $authFlow
+            if (-not $biometricPresent) {
+                printStepHelp $authFlow
+            }
             $lastStep = $authFlow.Step.State
         }
-
+        if ($biometricPresent) {
+            try {
+                Write-Host "Attempting Keeper biometric authentication..." -InformationAction Continue
+                $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
+                if ($biometricResult.Success) {
+                    $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
+                    if ($authFlow.IsCompleted) {
+                        Write-Debug "Authentication completed successfully!" -InformationAction Continue
+                        break
+                    }
+                } else {
+                    Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
+                    Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
+                    $biometricPresent = $false 
+                }
+            }
+            catch {
+                Write-Host "Biometric authentication error: $($_.Exception.Message), falling back to password input"
+                $biometricPresent = $false 
+            }
+        }
         $prompt = getStepPrompt $authFlow
 
         if ($authFlow.Step -is [KeeperSecurity.Authentication.Sync.PasswordStep]) {
@@ -857,6 +896,7 @@ function Set-KeeperDeviceSettings {
             $persistentLoginRestricted = $plp.Value
         }
     }
+
     if ($Register.IsPresent) {
         if ($persistentLoginRestricted -eq $true) {
             Write-Error "Persistent Login feature is restricted by Enterprise Administrator" -ErrorAction Stop
