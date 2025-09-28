@@ -84,7 +84,7 @@
         'Get-KeeperManagedCompany', 'New-KeeperManagedCompany', 'Remove-KeeperManagedCompany', 'Edit-KeeperManagedCompany', 'Get-MspBillingReport',
         'Switch-KeeperMC', 'Switch-KeeperMSP', 'Get-KeeperEnterpriseTeamUser', 'Get-KeeperInformation', 'Get-KeeperDeviceSettings',
         'Set-KeeperDeviceSettings', 'New-KeeperRecordType', 'Edit-KeeperRecordType', 'Remove-KeeperRecordType', 'Import-KeeperRecordTypes',
-        'Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember',
+        'Export-KeeperRecordTypes','Add-KeeperEnterpriseTeamMember', 'Remove-KeeperEnterpriseTeamMember',
         #'Test-Keeper',
         'Show-KeeperRecordShare', 'Grant-KeeperRecordAccess', 'Revoke-KeeperRecordAccess', 'Grant-KeeperSharedFolderAccess',
         'Revoke-KeeperSharedFolderAccess', 'Get-KeeperAvailableTeam', 'Move-KeeperRecordOwnership', 'Get-KeeperSecretManagerApp',
