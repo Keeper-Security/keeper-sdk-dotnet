@@ -1178,7 +1178,7 @@ namespace Commander
 
     class ThisDeviceOptions
     {
-        [Value(0, Required = false, HelpText = "this-device command: \"register\", \"rename\", \"timeout\", \"bio\"")]
+        [Value(0, Required = false, HelpText = "this-device command: \"register\", \"rename\", \"timeout\", \"bio\", \"ip_disable_auto_approve\", \"persistent_login\"")]
         public string Command { get; set; }
 
         [Value(1, Required = false, HelpText = "sub-command parameter")]
