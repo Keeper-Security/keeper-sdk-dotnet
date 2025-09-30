@@ -1,4 +1,4 @@
-name: Publish PowerCommander 
+name: Build Keeper Biometrics
 
 on: [workflow_dispatch]
 
@@ -8,7 +8,7 @@ jobs:
     environment: prod
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up certificate
         shell: bash
@@ -39,17 +39,17 @@ jobs:
           smctl healthcheck
           smctl windows certsync --keypair-alias=%KEYPAIR_ALIAS%
 
-      - name: Sign PowerShell scripts
-        working-directory: ./PowerCommander
+      - name: Sign Keeper Biometrics
+        working-directory: ./KeeperBiometrics
         run: |
+          dotnet build --configuration=Release
           $cert = Get-ChildItem -Path Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} -CodeSigningCert
-          Set-AuthenticodeSignature -FilePath *.ps1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
-          Set-AuthenticodeSignature -FilePath *.ps1xml -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
-          Set-AuthenticodeSignature -FilePath PowerCommander.psd1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
-          Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          Set-AuthenticodeSignature -FilePath bin\Release\net472\KeeperBiometric.dll -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
         shell: powershell      
 
-      - name: Publish to PowerShell Gallery
-        run: |
-          Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
-        shell: powershell      
+      - name: Store Commander artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeeperBiometrics
+          path: KeeperBiometrics/bin/Release/net472/KeeperBiometric.dll
+          retention-days: 1

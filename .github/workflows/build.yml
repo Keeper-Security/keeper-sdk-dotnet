@@ -106,7 +106,7 @@ jobs:
           dotnet build --configuration=Release --no-dependencies
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net472\Commander.exe"
           & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /debug /v /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d ".NET Keeper SDK" "bin\Release\net8.0\Commander.dll"
-        shell: powershell      
+        shell: powershell 
 
       - name: Zip .Net Framework Commander
         working-directory: "./Commander/bin/Release/net472"
