@@ -1,0 +1,55 @@
+name: Publish PowerCommander 
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    environment: prod
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up certificate
+        shell: bash
+        run: |
+          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
+
+      - name: Set variables
+        shell: bash
+        id: variables
+        run: |
+           echo "::set-output name=version::${GITHUB_REF#refs/tags/v}" 
+           echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV" 
+           echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV" 
+           echo "SM_CLIENT_CERT_FILE=D:/Certificate_pkcs12.p12" >> "$GITHUB_ENV" 
+           echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV" 
+           echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH 
+           echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH 
+           echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
+
+      - name: Setup DigiCert SSM Tools
+        uses: digicert/ssm-code-signing@b300bb7e8c2ab85257d660fe5b6c6374131ca2ef
+
+      - name: Sync Certificates
+        shell: cmd
+        env:
+          KEYPAIR_ALIAS: ${{ secrets.KEYPAIR_ALIAS }}
+        run: |
+          smctl healthcheck
+          smctl windows certsync --keypair-alias=%KEYPAIR_ALIAS%
+
+      - name: Sign PowerShell scripts
+        working-directory: ./PowerCommander
+        run: |
+          $cert = Get-ChildItem -Path Cert:\CurrentUser\My\${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} -CodeSigningCert
+          Set-AuthenticodeSignature -FilePath *.ps1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          Set-AuthenticodeSignature -FilePath *.ps1xml -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          Set-AuthenticodeSignature -FilePath PowerCommander.psd1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+          Set-AuthenticodeSignature -FilePath PowerCommander.psm1 -Certificate $cert -HashAlgorithm SHA256 -TimestampServer "http://timestamp.digicert.com"
+        shell: powershell      
+
+      - name: Publish to PowerShell Gallery
+        run: |
+          Publish-Module -Path .\PowerCommander\ -NuGetApiKey "${{ secrets.POWERSHELL_PUBLISH_KEY }}"
+        shell: powershell      
