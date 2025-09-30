@@ -942,7 +942,7 @@ namespace Commander
                 var serializedRecordTypes = JsonUtils.DumpJson(downloadRecordTypeData);
                 try
                 {
-                    await File.WriteAllBytesAsync(fileName, serializedRecordTypes);
+                    File.WriteAllBytes(fileName, serializedRecordTypes);
                     Console.WriteLine($"Downloaded {downloadRecordTypeData.RecordTypes.Count} record types to \"{Path.GetFullPath(fileName)}\"");
                 }
                 catch (Exception ex)
