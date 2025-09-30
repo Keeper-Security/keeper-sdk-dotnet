@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>KeeperBiometric</AssemblyName>
     <AssemblyTitle>Keeper Biometric Integration</AssemblyTitle>
     <AssemblyDescription>Lightweight biometric WebAuthn implementation for Keeper PowerShell</AssemblyDescription>
