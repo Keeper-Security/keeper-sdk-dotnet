@@ -78,10 +78,7 @@ namespace KeeperSecurity.Authentication.Sync
         /// <summary>
         /// Gets a value that indicates whether login to Keeper has completed.
         /// </summary>
-        public bool IsCompleted => 
-            Step.State == AuthState.Connected || 
-            Step.State == AuthState.Error || 
-            Step.State == AuthState.Restricted;
+        public bool IsCompleted => Step.State is AuthState.Connected or AuthState.Error or AuthState.Restricted;
 
         private AuthStep _step;
 
@@ -338,7 +335,7 @@ namespace KeeperSecurity.Authentication.Sync
             {
                 await PostLogin();
                 return authContext.SessionTokenRestriction == 0
-                    ? (AuthStep) new ConnectedStep()
+                    ? new ConnectedStep()
                     : new RestrictedConnectionStep();
             }
             catch (KeeperApiException kae)
