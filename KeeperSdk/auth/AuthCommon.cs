@@ -238,6 +238,16 @@ namespace KeeperSecurity.Authentication
         /// <returns>Awaitable Task</returns>
         Task Logout();
 
+        /// <summary>
+        /// Gets or Sets automatic keep session alive flag 
+        /// </summary>
+        bool AutoKeepAlive { get; set; }
+
+        /// <summary>
+        /// Gets logout timeout 
+        /// </summary>
+        TimeSpan LogoutTimeout { get; }
+
         /// <exclude/>
         Task AuditEventLogging(string eventType, AuditEventInput input = null);
 
@@ -323,7 +333,6 @@ namespace KeeperSecurity.Authentication
 
         /// <exclude />
         bool ForbidKeyType2 { get; }
-
     }
 
     [Flags]
@@ -396,7 +405,6 @@ namespace KeeperSecurity.Authentication
     public abstract partial class AuthCommon : IAuthentication, IDisposable
     {
         /// <inheritdoc/>
-
         public IKeeperEndpoint Endpoint { get; protected set; }
 
         /// <inheritdoc/>
@@ -410,54 +418,62 @@ namespace KeeperSecurity.Authentication
         /// <inheritdoc/>
         public IAuthContext AuthContext => authContext;
 
+        private bool _autoKeepAlive = true; 
+        /// <inheritdoc/>
+        public bool AutoKeepAlive
+        {
+            get => _autoKeepAlive;
+            set
+            {
+                _autoKeepAlive = value;
+                SetKeepAliveTimer();
+            }
+        }
+
         /// <exclude/>
         public IFanOut<NotificationEvent> PushNotifications { get; private set; }
 
         /// <exclude/>
         public abstract object AuthCallback { get; }
 
+        public TimeSpan LogoutTimeout { get; internal set; } = TimeSpan.FromHours(1);
+
         private void ResetKeepAliveTimer()
         {
-            _lastRequestTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
+            LastRequestTime = DateTimeOffset.UtcNow;
         }
 
         private Timer _timer;
-        private long _lastRequestTime;
+        public DateTimeOffset LastRequestTime { get; private set; }
 
-        private void SetKeepAliveTimer(int timeoutInMinutes, IAuthentication auth)
+        private void SetKeepAliveTimer()
         {
             _timer?.Dispose();
             _timer = null;
-            if (auth == null) return;
-
-            ResetKeepAliveTimer();
-            var timeout = TimeSpan.FromMinutes(timeoutInMinutes - (timeoutInMinutes > 1 ? 1 : 0));
-
+            
+            if (!_autoKeepAlive) return; 
+            if (LogoutTimeout < TimeSpan.FromMinutes(10)) return;
+            if (LogoutTimeout > TimeSpan.FromHours(12)) return;
+            
             _timer = new Timer(Callback,
                 null,
-                (long) timeout.TotalMilliseconds / 2,
-                (long) timeout.TotalMilliseconds / 2);
+                (long) LogoutTimeout.TotalMilliseconds / 3,
+                (long) LogoutTimeout.TotalMilliseconds / 3);
             return;
 
-            async void Callback(object _)
+            void Callback(object _)
             {
-                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
-                if (_lastRequestTime + timeout.TotalSeconds / 2 > now) return;
-                try
-                {
-                    await auth.ExecuteAuthRest("keep_alive", null);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                    if (_timer != null)
-                    {
-                        _timer.Dispose();
-                        _timer = null;
-                    }
-                }
+                var now = DateTimeOffset.UtcNow;
+                var interval = TimeSpan.FromTicks(LogoutTimeout.Ticks / 2);
+                if (LastRequestTime + interval > now) return;
 
-                _lastRequestTime = now;
+                ExecuteAuthRest("keep_alive", null).ContinueWith(t =>
+                {
+                    LastRequestTime = now;
+                    if (!t.IsFaulted) return;
+                    _timer?.Dispose();
+                    _timer = null;
+                });
             }
         }
 
@@ -505,7 +521,7 @@ namespace KeeperSecurity.Authentication
             }
 
             var rsBytes = await Endpoint.ExecuteRest(endpoint, rq);
-            this.ResetKeepAliveTimer();
+            ResetKeepAliveTimer();
             if (responseType == null) return null;
 
             var responseParser = responseType.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public);
@@ -597,10 +613,16 @@ namespace KeeperSecurity.Authentication
         /// <exclude/>
         public bool SupportRestrictedSession { get; set; }
 
-        protected async Task PostLogin()
+        /// <exclude/>
+        public async Task<AccountSummaryElements> LoadAccountSummary()
         {
+            var rq = new AccountSummaryRequest
+            {
+                SummaryVersion = 1
+            };
+            var accountSummaryResponse = await this.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
+            
             string clientKey = null;
-            var accountSummaryResponse = await this.LoadAccountSummary();
             var license = AccountLicense.LoadFromProtobuf(accountSummaryResponse.License);
             var settings = AccountSettings.LoadFromProtobuf(accountSummaryResponse.Settings);
             var keys = AccountKeys.LoadFromProtobuf(accountSummaryResponse.KeysInfo);
@@ -689,6 +711,44 @@ namespace KeeperSecurity.Authentication
             authContext.Enforcements = enforcements;
             authContext.IsEnterpriseAdmin = isEnterpriseAdmin;
             authContext.ForbidKeyType2 = accountSummaryResponse.ForbidKeyType2;
+         
+            if (authContext.Settings.LogoutTimerInSec.HasValue)
+            {
+                LogoutTimeout = TimeSpan.FromSeconds(authContext.Settings.LogoutTimerInSec.Value);
+            }
+
+            if (authContext.Enforcements != null)
+            {
+                if (authContext.Enforcements.TryGetValue("logout_timer_desktop", out var lt))
+                {
+                    if (lt is IConvertible convertible)
+                    {
+                        try
+                        {
+                            var minutes = convertible.ToInt32(null);
+                            if (minutes > 0)
+                            {
+                                var timeout = TimeSpan.FromMinutes(minutes);
+                                if (timeout < LogoutTimeout)
+                                {
+                                    LogoutTimeout = timeout;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
+                    }
+                }
+            }
+
+            return accountSummaryResponse;
+        }
+
+        protected async Task PostLogin()
+        {
+            await LoadAccountSummary();
 
             if (authContext.SessionTokenRestriction != 0)
             {
@@ -730,7 +790,7 @@ namespace KeeperSecurity.Authentication
                                 "\nDo you accept Account Transfer policy?";
                             if (await postUi.Confirmation(accountTransferDescription))
                             {
-                                await this.ShareAccount(settings?.ShareAccountTo);
+                                await this.ShareAccount(authContext.Settings?.ShareAccountTo);
                                 authContext.SessionTokenRestriction &= ~SessionTokenRestriction.ShareAccount;
                             }
                         }
@@ -770,16 +830,6 @@ namespace KeeperSecurity.Authentication
             }
             else
             {
-                if (authContext.Settings.LogoutTimerInSec.HasValue)
-                {
-                    if (authContext.Settings.LogoutTimerInSec > TimeSpan.FromMinutes(10).TotalSeconds &&
-                        authContext.Settings.LogoutTimerInSec < TimeSpan.FromHours(12).TotalSeconds)
-                    {
-                        SetKeepAliveTimer(
-                            (int) TimeSpan.FromSeconds(authContext.Settings.LogoutTimerInSec.Value).TotalMinutes, this);
-                    }
-                }
-
                 if (authContext.License.AccountType == 2)
                 {
                     try
@@ -795,6 +845,7 @@ namespace KeeperSecurity.Authentication
                         Debug.WriteLine(e.Message);
                     }
                 }
+                SetKeepAliveTimer();
             }
         }
 

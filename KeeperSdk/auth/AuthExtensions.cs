@@ -191,16 +191,6 @@ namespace KeeperSecurity.Authentication
         }
 
         /// <exclude/>
-        public static async Task<AccountSummaryElements> LoadAccountSummary(this IAuthentication auth)
-        {
-            var rq = new AccountSummaryRequest
-            {
-                SummaryVersion = 1
-            };
-            return await auth.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
-        }
-
-        /// <exclude/>
         public static string GetBiUrl(this IAuthentication auth, string endpoint)
         {
             var builder = new UriBuilder(auth.Endpoint.Server)

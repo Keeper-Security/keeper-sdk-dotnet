@@ -174,38 +174,38 @@ namespace Commander
                 {
                     Console.WriteLine();
                     Console.WriteLine("{0, 20}: {1}", "Device Name", device.DeviceName);
-                    Console.WriteLine("{0, 20}: {1}", "Client Version", device.ClientVersion);
                     Console.WriteLine("{0, 20}: {1}", "Data Key Present", device.EncryptedDataKeyPresent);
                     Console.WriteLine("{0, 20}: {1}", "IP Auto Approve",
                         !_accountSummary.Settings.IpDisableAutoApprove);
                     Console.WriteLine("{0, 20}: {1}", "Persistent Login",
                         !persistentLoginDisabled && _accountSummary.Settings.PersistentLogin);
-                    if (_accountSummary.Settings.LogoutTimer > 0)
+
+                    var deviceTimeout = TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer);
+                    if (deviceTimeout > TimeSpan.Zero)
                     {
-                        if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromDays(1).TotalMilliseconds)
+                        Console.WriteLine("{0, 20}: {1}", "Device Timeout", deviceTimeout.ToNaturalString());
+                    }
+                    if (_auth.AuthContext.Enforcements.TryGetValue("logout_timer_desktop", out var lt))
+                    {
+                        if (lt is IConvertible convertible)
                         {
-                            Console.WriteLine("{0, 20}: {1} day(s)", "Logout Timeout",
-                                TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalDays);
-                        }
-                        else if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromHours(1).TotalMilliseconds)
-                        {
-                            Console.WriteLine("{0, 20}: {1} hour(s)", "Logout Timeout",
-                                TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalHours);
-                        }
-                        else if (_accountSummary.Settings.LogoutTimer >= TimeSpan.FromSeconds(1).TotalMilliseconds)
-                        {
-                            Console.WriteLine("{0, 20}: {1} minute(s)", "Logout Timeout",
-                                TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalMinutes);
-                        }
-                        else
-                        {
-                            Console.WriteLine("{0, 20}: {1} second(s)", "Logout Timeout",
-                                TimeSpan.FromMilliseconds(_accountSummary.Settings.LogoutTimer).TotalSeconds);
+                            try
+                            {
+                                var minutes = convertible.ToInt32(null);
+                                if (minutes > 0)
+                                {
+                                    var enterpriseTimeout = TimeSpan.FromMinutes(minutes);
+                                    Console.WriteLine("{0, 20}: {1}", "Company Timeout", enterpriseTimeout.ToNaturalString());
+                                }
+                            }
+                            catch
+                            {
+                                // ignored
+                            }
                         }
                     }
-
+                    Console.WriteLine("{0, 20}: {1}", "Effective Timeout", _auth.LogoutTimeout.ToNaturalString());
                     Console.WriteLine("{0, 20}: {1}", "Biometric Login", hasBio);
-
                     Console.WriteLine();
                     Console.WriteLine($"Available sub-commands: {string.Join(", ", availableVerbs)}");
                 }
