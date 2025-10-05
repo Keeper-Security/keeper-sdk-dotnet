@@ -39,7 +39,7 @@ jobs:
         with:
          dotnet-version: '8.0.x'
 
-  - name: Setup Code Sign Cert
+      - name: Setup Code Sign Cert
         shell: bash
         run: |
           echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
