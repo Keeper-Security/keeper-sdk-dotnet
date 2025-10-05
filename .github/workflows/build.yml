@@ -63,8 +63,8 @@ jobs:
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           dotnet build /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:AssemblyVersion=${Env:BUILD_VERSION} /P:FileVersion=${Env:BUILD_VERSION}
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net452\KeeperSdk.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\KeeperSdk.dll"
           dotnet pack --no-build --no-restore --no-dependencies /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell      
 
@@ -73,7 +73,7 @@ jobs:
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           dotnet build --configuration=Release --no-dependencies
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK Offline SQLite Storage" "bin\Release\\netstandard2.0\OfflineStorageSqlite.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK Offline SQLite Storage" "bin\Release\\netstandard2.0\OfflineStorageSqlite.dll"
           dotnet pack --no-build --no-restore --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
@@ -82,8 +82,8 @@ jobs:
         run: |
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           dotnet build --configuration=Release --no-dependencies
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net472\Cli.dll"
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\Cli.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\net472\Cli.dll"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\netstandard2.0\Cli.dll"
           dotnet pack --no-build --no-restore --no-dependencies --configuration=Release /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell
 
@@ -93,7 +93,7 @@ jobs:
           if (Test-Path bin) { Remove-Item -Force -Recurse bin }
           msbuild /T:Restore /P:Configuration=Release
           msbuild /T:Build /P:Configuration=Release /p:BuildProjectReferences=false
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
+          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
         shell: powershell      
 
       - name: Zip Commander
