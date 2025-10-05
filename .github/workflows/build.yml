@@ -78,25 +78,6 @@ jobs:
           dotnet pack --no-build --no-restore --no-dependencies /P:Configuration=Release /P:Version=${Env:PACKAGE_VERSION} /P:IncludeSymbols=true /P:SymbolPackageFormat=snupkg
         shell: powershell      
 
-      - name: Build .Net Commander
-        working-directory: ./Commander
-        run: |
-          if (Test-Path bin) { Remove-Item -Force -Recurse bin }
-          msbuild /T:Restore /P:Configuration=Release
-          msbuild /T:Build /P:Configuration=Release /p:BuildProjectReferences=false
-          & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe' sign /f ..\certificate.pfx /t "http://timestamp.digicert.com" /v /p "${{ secrets.PFX_PASS }}" /d ".NET Keeper SDK" "bin\Release\Commander.exe"
-        shell: powershell      
-
-      - name: Zip Commander
-        run: |
-          $params = @{
-            Path = "Commander/bin/Release/*.exe", "Commander/bin/Release/Commander.exe.config", "Commander/bin/Release/*.dll", "OfflineStorageSqlite/bin/Release/netstandard2.0/OfflineStorageSqlite.dll"
-            CompressionLevel = "Fastest"
-            DestinationPath = "Commander-${Env:PACKAGE_VERSION}.zip"
-          }
-          Compress-Archive @params
-        shell: powershell
-
       - name: Store SDK Nuget artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -104,11 +85,4 @@ jobs:
           path: |
             KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg
             KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.snupkg
-          retention-days: 1
-
-      - name: Store Commander artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Commander-${{ env.PACKAGE_VERSION }}
-          path: Commander-${{ env.PACKAGE_VERSION }}.zip
           retention-days: 1
