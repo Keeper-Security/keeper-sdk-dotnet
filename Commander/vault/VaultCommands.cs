@@ -339,6 +339,15 @@ namespace Commander
                     Action = context.OneTimeShareCommand
                 });
 
+            var trashCmd = new ParsebleVerbCommand
+            {
+                Order = 42,
+                Description = "Manage deleted records in trash",
+            };
+            trashCmd.AddVerb<TrashListOptions>(context.TrashListCommand);
+
+            cli.Commands.Add("trash", trashCmd);
+
             cli.Commands.Add("sync-down",
                 new ParseableCommand<SyncDownOptions>
                 {
