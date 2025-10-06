@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,8 +18,8 @@ namespace KeeperSecurity.Vault
         private static readonly int AES_V2_KEY_LENGTH = 60;
         private static readonly int RECORD_VERSION_THRESHOLD = 3;
 
-        private static Dictionary<string, DeletedRecord> DeletedRecordCache = new Dictionary<string, DeletedRecord>();
-        private static Dictionary<string, DeletedRecord> OrphanedRecordCache = new Dictionary<string, DeletedRecord>();
+        private static readonly ConcurrentDictionary<string, DeletedRecord> DeletedRecordCache = new();
+        private static readonly ConcurrentDictionary<string, DeletedRecord> OrphanedRecordCache = new();
         public class DeletedSharedFolderCacheData
         {
             public Dictionary<string, DeletedSharedFolder> Folders { get; set; } = new();
@@ -44,11 +45,16 @@ namespace KeeperSecurity.Vault
 
         private static Dictionary<string, (byte[], string)> BuildFolderKeys(VaultOnline vault)
         {
+            if (vault?.SharedFolders == null)
+            {
+                return new Dictionary<string, (byte[], string)>();
+            }
+
             var folderKeys = new Dictionary<string, (byte[], string)>();
 
             foreach (var sharedFolder in vault.SharedFolders)
             {
-                if (sharedFolder.SharedFolderKey != null)
+                if (sharedFolder?.SharedFolderKey != null && !string.IsNullOrEmpty(sharedFolder.Uid))
                 {
                     folderKeys[sharedFolder.Uid] = (sharedFolder.SharedFolderKey, sharedFolder.Uid);
                 }
@@ -89,6 +95,11 @@ namespace KeeperSecurity.Vault
 
         private static Task<byte[]> DecryptWithRootKey(Folder.DeletedSharedFolder sf, Dictionary<string, (byte[], string)> folderKeys)
         {
+            if (sf?.SharedFolderUid == null || folderKeys == null)
+            {
+                return Task.FromResult<byte[]>(null);
+            }
+
             var SharedFolderUid = sf.SharedFolderUid.ToByteArray().Base64UrlEncode();
 
             if (!folderKeys.TryGetValue(SharedFolderUid, out var folderKey))
@@ -109,19 +120,24 @@ namespace KeeperSecurity.Vault
         private static DeletedSharedFolder CreateSharedFolderNode(Folder.DeletedSharedFolder sf,
         string SharedFolderUid, string FolderUid, Byte[] folderKey, Byte[] DecryptedData)
         {
+            if (sf == null)
+            {
+                return null;
+            }
+
             var customSf = new DeletedSharedFolder
             {
-                SharedFolderUid = sf.SharedFolderUid.ToByteArray(),
-                FolderUid = sf.FolderUid.ToByteArray(),
-                ParentUid = sf.ParentUid.ToByteArray(),
-                SharedFolderKey = sf.SharedFolderKey.ToByteArray(),
+                SharedFolderUid = sf.SharedFolderUid?.ToByteArray(),
+                FolderUid = sf.FolderUid?.ToByteArray(),
+                ParentUid = sf.ParentUid?.ToByteArray(),
+                SharedFolderKey = sf.SharedFolderKey?.ToByteArray(),
                 FolderKeyType = (int)sf.FolderKeyType,
-                Data = sf.Data.ToByteArray(),
+                Data = sf.Data?.ToByteArray(),
                 DateDeleted = sf.DateDeleted,
                 Revision = sf.Revision,
                 SharedFolderUidString = SharedFolderUid,
                 FolderUidString = FolderUid,
-                DataString = sf.Data.ToByteArray().Base64UrlEncode(),
+                DataString = sf.Data?.ToByteArray().Base64UrlEncode(),
                 DataUnEncrypted = DecryptedData,
                 FolderKeyUnEncrypted = folderKey
             };
@@ -414,7 +430,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Process deleted records response for a specific record type.
         /// </summary>
-        private static void ProcessDeletedRecordsResponse(GetDeletedRecordsResponse response, string recordType, Dictionary<string, DeletedRecord> cache, VaultOnline vault)
+        private static void ProcessDeletedRecordsResponse(GetDeletedRecordsResponse response, string recordType, ConcurrentDictionary<string, DeletedRecord> cache, VaultOnline vault)
         {
             DeletedRecord[] records = recordType switch
             {
@@ -452,12 +468,12 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Remove records from cache that are no longer in the deleted list.
         /// </summary>
-        private static void CleanupRemovedRecords(Dictionary<string, DeletedRecord> cache, HashSet<string> currentUids)
+        private static void CleanupRemovedRecords(ConcurrentDictionary<string, DeletedRecord> cache, HashSet<string> currentUids)
         {
             var recordsToRemove = cache.Keys.Where(recordUid => !currentUids.Contains(recordUid)).ToList();
             foreach (var recordUid in recordsToRemove)
             {
-                cache.Remove(recordUid);
+                cache.TryRemove(recordUid, out _);
             }
         }
 
@@ -485,6 +501,11 @@ namespace KeeperSecurity.Vault
         /// <param name="vault">The vault instance to load deleted records from</param>
         public static async Task EnsureDeletedRecordsLoaded(VaultOnline vault)
         {
+            if (vault?.Auth?.AuthContext == null)
+            {
+                return;
+            }
+
             var folderResponse = await FetchDeletedSharedFoldersAndRecords(vault);
             if (folderResponse == null)
             {
@@ -493,6 +514,11 @@ namespace KeeperSecurity.Vault
 
             var users = ExtractUsers(folderResponse);
             var folderKeys = BuildFolderKeys(vault);
+            if (folderKeys == null)
+            {
+                return;
+            }
+
             var folders = await ProcessSharedFolders(folderResponse, vault, folderKeys);
             var recordKeys = await ProcessSharedFolderRecords(folderResponse, folderKeys);
             var records = ProcessDeletedRecordData(folderResponse, recordKeys, users);
@@ -505,7 +531,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Get all deleted records from cache.
         /// </summary>
-        public static Dictionary<string, DeletedRecord> GetDeletedRecords()
+        public static IReadOnlyDictionary<string, DeletedRecord> GetDeletedRecords()
         {
             return DeletedRecordCache;
         }
@@ -513,7 +539,7 @@ namespace KeeperSecurity.Vault
         /// <summary>
         /// Get all orphaned records from cache.
         /// </summary>
-        public static Dictionary<string, DeletedRecord> GetOrphanedRecords()
+        public static IReadOnlyDictionary<string, DeletedRecord> GetOrphanedRecords()
         {
             return OrphanedRecordCache;
         }

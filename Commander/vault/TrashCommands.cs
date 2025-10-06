@@ -39,8 +39,19 @@ namespace Commander
             var recordTable = BuildRecordTable(deletedRecords, orphanedRecords, pattern, titlePattern);
             var folderTable = BuildFolderTable(sharedFolders, options.Verbose);
 
+            recordTable.Sort((x, y) => {
+                var dateComparison = CompareDeletedDates(x[4], y[4]);
+                if (dateComparison != 0) return dateComparison;
+                return string.Compare(x[2]?.ToString(), y[2]?.ToString(), StringComparison.OrdinalIgnoreCase);
+            });
+            
+            folderTable.Sort((x, y) => {
+                var dateComparison = CompareDeletedDates(x[4], y[4]);
+                if (dateComparison != 0) return dateComparison;
+                return string.Compare(x[2]?.ToString(), y[2]?.ToString(), StringComparison.OrdinalIgnoreCase);
+            });
+
             var allRecords = recordTable.Concat(folderTable).ToList();
-            allRecords.Sort((x, y) => string.Compare(x[2]?.ToString(), y[2]?.ToString(), StringComparison.OrdinalIgnoreCase));
 
             foreach (var row in allRecords)
             {
@@ -52,24 +63,30 @@ namespace Commander
 
         private static string NormalizeSearchPattern(string pattern)
         {
-            if (pattern == "*")
+            const int PATTERN_LENGTH_LIMIT = 100;
+            if (string.IsNullOrEmpty(pattern) || pattern == "*")
             {
                 return null;
+            }
+            if (pattern.Length >PATTERN_LENGTH_LIMIT)
+            {
+                Console.WriteLine("Warning: Pattern too long, truncated");
+                pattern = pattern.Substring(0, PATTERN_LENGTH_LIMIT);
             }
             return pattern?.ToLower();
         }
 
         private static Regex CreateTitlePattern(string pattern)
         {
-            const int STRING_LENGTH_LIMIT = 100;
+            const int PATTERN_LENGTH_LIMIT = 100;
             
             if (string.IsNullOrEmpty(pattern))
                 return null;
                 
-            if (pattern.Length > STRING_LENGTH_LIMIT)
+            if (pattern.Length > PATTERN_LENGTH_LIMIT)
             {
                 Console.WriteLine("Warning: Pattern too long, truncated");
-                pattern = pattern.Substring(0, STRING_LENGTH_LIMIT);
+                pattern = pattern.Substring(0, PATTERN_LENGTH_LIMIT);
             }
 
             try
@@ -87,8 +104,8 @@ namespace Commander
             }
         }
 
-        private static List<object[]> BuildRecordTable(Dictionary<string, DeletedRecord> deletedRecords, 
-            Dictionary<string, DeletedRecord> orphanedRecords, string pattern, Regex titlePattern)
+        private static List<object[]> BuildRecordTable(IReadOnlyDictionary<string, DeletedRecord> deletedRecords, 
+            IReadOnlyDictionary<string, DeletedRecord> orphanedRecords, string pattern, Regex titlePattern)
         {
             var recordTable = new List<object[]>();
             AddRecordsToTable(deletedRecords, false, pattern, titlePattern, recordTable);            
@@ -96,7 +113,7 @@ namespace Commander
             return recordTable;
         }
 
-        private static void AddRecordsToTable(Dictionary<string, DeletedRecord> records, bool isShared, 
+        private static void AddRecordsToTable(IReadOnlyDictionary<string, DeletedRecord> records, bool isShared, 
             string pattern, Regex titlePattern, List<object[]> recordTable)
         {
             foreach (var record in records.Values)
@@ -117,50 +134,17 @@ namespace Commander
             if (pattern == record.RecordUid)
                 return true;
                 
-            if (titlePattern != null && record.DataUnencrypted != null)
+            if (titlePattern != null)
             {
-                try
-                {
-                    var recordTypeData = JsonUtils.ParseJson<KeeperRecord>(record.DataUnencrypted);
-                    var recordTitle = recordTypeData.Title ?? "";
-                    return titlePattern.IsMatch(recordTitle);
-                }
-                catch (Exception)
-                {
-                    
-                    return false;
-                }
+                var (recordTitle, _) = ParseRecordData(record.DataUnencrypted);
+                return titlePattern.IsMatch(recordTitle);
             }
             return false;
         }
 
         private static object[] CreateRecordRow(DeletedRecord record, bool isShared)
         {
-            var recordTitle = "";
-            var recordType = "";
-            
-            if (record.DataUnencrypted != null)
-            {
-                try
-                {
-                    var recordTypeData = JsonUtils.ParseJson<KeeperRecord>(record.DataUnencrypted);
-                    recordTitle = recordTypeData?.Title ?? "";
-                    recordType = recordTypeData.KeeperRecordType();
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        var recordData = JsonUtils.ParseJson<RecordData>(record.DataUnencrypted);
-                        recordTitle = recordData?.Title ?? "";
-                    }
-                    catch (Exception)
-                    {
-                        recordTitle = "Parse Error";
-                        recordType = "Unknown";
-                    }
-                }
-            }
+            var (recordTitle, recordType) = ParseRecordData(record.DataUnencrypted);
 
             var status = isShared ? "Share" : "Record";
             var dateDeleted = isShared ? null : GetDeletedDate(record.DateDeleted);
@@ -179,50 +163,16 @@ namespace Commander
         }
 
         private static List<object[]> BuildVerboseFolderTable(Dictionary<string, DeletedSharedFolder> folders, 
-            Dictionary<string, DeletedRecord> records)
+            IReadOnlyDictionary<string, DeletedRecord> records)
         {
             var folderTable = new List<object[]>();
             
             foreach (var record in records.Values)
             {
-                var recordTitle = "";
-                var recordType = "";
+                var (recordTitle, recordType) = ParseRecordData(record.DataUnencrypted);
                 
-                if (record.DataUnencrypted != null)
-                {
-                    try
-                    {
-                        var recordTypeData = JsonUtils.ParseJson<KeeperRecord>(record.DataUnencrypted);
-                        if (recordTypeData != null)
-                        {
-                            recordTitle = recordTypeData.Title ?? "";
-                            recordType = recordTypeData.KeeperRecordType();
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        try
-                        {
-                            var recordData = JsonUtils.ParseJson<RecordData>(record.DataUnencrypted);
-                            if (recordData != null)
-                            {
-                                recordTitle = recordData.Title ?? "";
-                            }
-                            else
-                            {
-                                continue;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            continue;
-                        }
-                    }
-                }
+                if (recordTitle == "Parse Error" && recordType == "Unknown")
+                    continue;
                 
                 var dateDeleted = GetDeletedDate(record.DateDeleted);
                 
@@ -237,7 +187,7 @@ namespace Commander
         }
 
         private static List<object[]> BuildSummaryFolderTable(Dictionary<string, DeletedSharedFolder> folders, 
-            Dictionary<string, DeletedRecord> records)
+            IReadOnlyDictionary<string, DeletedRecord> records)
         {
             var folderTable = new List<object[]>();
             var recordCounts = CountRecordsPerFolder(records);
@@ -245,7 +195,7 @@ namespace Commander
             foreach (var folder in folders.Values)
             {
                 var dateDeleted = GetDeletedDate(folder.DateDeleted);
-                if (recordCounts.TryGetValue(folder.FolderUidString, out var recordCount))
+                if (!recordCounts.TryGetValue(folder.FolderUidString, out var recordCount))
                 {
                     recordCount = 0;
                 }
@@ -263,7 +213,7 @@ namespace Commander
             return folderTable;
         }
 
-        private static Dictionary<string, int> CountRecordsPerFolder(Dictionary<string, DeletedRecord> records)
+        private static Dictionary<string, int> CountRecordsPerFolder(IReadOnlyDictionary<string, DeletedRecord> records)
         {
             var recordCounts = new Dictionary<string, int>();
             foreach (var record in records.Values)
@@ -283,12 +233,15 @@ namespace Commander
 
         private static DateTime? GetDeletedDate(long dateDeletedTimestamp)
         {
-            if (dateDeletedTimestamp <= 0)
+            const long MAX_TIMESTAMP = 4102444800; 
+            const long MIN_TIMESTAMP = 0;
+            
+            if (dateDeletedTimestamp <= MIN_TIMESTAMP)
                 return null;
             try
             {
                 var timestampSeconds = dateDeletedTimestamp / 1000;
-                if (timestampSeconds < 0 || timestampSeconds > 4102444800)
+                if (timestampSeconds < MIN_TIMESTAMP || timestampSeconds > MAX_TIMESTAMP)
                     return null;
                 return DateTimeOffset.FromUnixTimeSeconds(timestampSeconds).DateTime;
             }
@@ -296,6 +249,39 @@ namespace Commander
             {
                 return null;
             }
+        }
+
+        private static (string title, string type) ParseRecordData(byte[] dataUnencrypted)
+        {
+            if (dataUnencrypted == null)
+                return ("", "");
+
+            try
+            {
+                var recordTypeData = JsonUtils.ParseJson<KeeperRecord>(dataUnencrypted);
+                if (recordTypeData != null)
+                {
+                    return (recordTypeData.Title ?? "", recordTypeData.KeeperRecordType());
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing KeeperRecord: {ex.Message}");
+                try
+                {
+                    var recordData = JsonUtils.ParseJson<RecordData>(dataUnencrypted);
+                    if (recordData != null)
+                    {
+                        return (recordData.Title ?? "", "Unknown");
+                    }
+                }
+                catch (Exception ex2)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error parsing RecordData: {ex2.Message}");
+                }
+            }
+            
+            return ("Parse Error", "Unknown");
         }
 
         private static string GetFolderName(DeletedSharedFolder folder, string folderUid)
@@ -309,10 +295,27 @@ namespace Commander
                 }
                 return folderUid;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error parsing folder data: {ex.Message}");
                 return folderUid;
             }
+        }
+
+        private static int CompareDeletedDates(object date1, object date2)
+        {
+            if (date1 == null && date2 == null) return 0;
+            if (date1 == null) return 1;
+            if (date2 == null) return -1; 
+
+            DateTime? dt1 = date1 as DateTime?;
+            DateTime? dt2 = date2 as DateTime?;
+
+            if (dt1 == null && dt2 == null) return 0;
+            if (dt1 == null) return 1;
+            if (dt2 == null) return -1;
+
+            return dt2.Value.CompareTo(dt1.Value);
         }
 
         
