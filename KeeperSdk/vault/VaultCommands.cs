@@ -648,4 +648,27 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "to_email")]
         public string ToEmail;
     }
+
+    [DataContract]
+    public class GetDeletedRecordsCommand : AuthenticatedCommand
+    {
+        public GetDeletedRecordsCommand() : base("get_deleted_records")
+        {
+            ClientTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+
+        [DataMember(Name = "client_time")]
+        public long ClientTime;
+    }
+
+    [DataContract]
+    public class GetDeletedRecordsResponse : KeeperApiResponse
+    {
+        [DataMember(Name = "records")]
+        public DeletedRecord[] Records;
+        [DataMember(Name = "non_access_records")]
+        public DeletedRecord[] NonAccessRecords;
+        [DataMember(Name = "shared_folder_records")]
+        public DeletedSharedFolderRecord[] SharedFolderRecords;
+    }
 }
