@@ -363,4 +363,82 @@ function Get-DeletedDate {
 }
 
 
+function Restore-KeeperTrashRecords {
+    <#
+    .SYNOPSIS
+    Restores deleted records from trash
+
+    .DESCRIPTION
+    Restores deleted records, orphaned records, and shared folders from the trash.
+    Supports restoring by record UID or pattern matching.
+
+    .PARAMETER Records
+    Array of record UIDs or patterns to restore. Supports wildcards (* and ?).
+
+    .PARAMETER Force
+    Skip confirmation prompts and restore immediately.
+
+    .EXAMPLE
+    Restore-KeeperTrashRecords -Records "NyTgDxKnMRhcgpR_BGkFkw"
+    Restores a specific record by UID
+
+    .EXAMPLE
+    Restore-KeeperTrashRecords -Records "test*", "MyRecord"
+    Restores records matching "test*" pattern and a specific record
+
+    .EXAMPLE
+    Restore-KeeperTrashRecords -Records "test*" -Force
+    Restores records matching "test*" pattern without confirmation
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [ValidateCount(1, 10000)]
+        [ValidateLength(1, 100)]
+        [string[]]$Records,
+        
+        [Parameter()]
+        [switch]$Force
+    )
+
+    Write-Verbose "Starting trash restore operation with $($Records.Count) record(s)"
+    
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    if (-not $vault) {
+        Write-Error "Failed to get vault instance"
+        return
+    }
+
+    $validatedRecords = @()
+    for ($i = 0; $i -lt $Records.Count; $i++) {
+        $record = $Records[$i]
+        if (-not $record -or $record.Trim().Length -eq 0) {
+            Write-Warning "Record $($i + 1) is empty, skipping"
+            continue
+        }
+        
+        if ($record.Length -gt $script:STRING_LENGTH_LIMIT) {
+            Write-Warning "Record $($i + 1) exceeds maximum length ($script:STRING_LENGTH_LIMIT), skipping"
+            continue
+        }
+        
+        $validatedRecords += $record.Trim()
+    }
+
+    if ($validatedRecords.Count -eq 0) {
+        Write-Host "No valid records specified"
+        return
+    }
+
+    try {
+        [KeeperSecurity.Vault.TrashManagement]::RestoreTrashRecords($vault, $validatedRecords).GetAwaiter().GetResult() | Out-Null
+        Write-Host "Successfully initiated restoration of $($validatedRecords.Count) record(s)"
+        Write-Host "Use 'Get-KeeperTrashList' to verify the restoration"
+    }
+    catch {
+        Write-Error "Failed to restore records: $($_.Exception.Message)"
+    }
+}
+
 Set-Alias -Name ktrash -Value Get-KeeperTrashList
+Set-Alias -Name ktrash-restore -Value Restore-KeeperTrashRecords
