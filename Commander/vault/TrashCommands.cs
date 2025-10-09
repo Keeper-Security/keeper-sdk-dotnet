@@ -15,6 +15,8 @@ namespace Commander
     {
         private const int STRING_LENGTH_LIMIT = 100;
         private const int MAX_RECORDS_LIMIT = 10000;
+        private const long MAX_TIMESTAMP = 4102444800;
+        private const long MIN_TIMESTAMP = 0;
         public static async Task TrashListCommand(this VaultContext context, TrashListOptions options)
         {
             await TrashManagement.EnsureDeletedRecordsLoaded(context.Vault);
@@ -75,7 +77,15 @@ namespace Commander
                 return;
             }
 
-            await TrashManagement.RestoreTrashRecords(context.Vault, records);
+            try
+            {
+                await TrashManagement.RestoreTrashRecords(context.Vault, records);
+                Console.WriteLine($"Successfully initiated restoration of {records.Count} record(s)");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to restore records: {ex.Message}");
+            }
         }
 
         private static List<string> ValidateRecordsParameter(List<string> records)
@@ -105,15 +115,15 @@ namespace Commander
 
         private static bool IsValidRecord(string record, int index)
         {
-            if (string.IsNullOrEmpty(record))
+            if (string.IsNullOrWhiteSpace(record))
             {
-                Console.WriteLine($"Record {index} must not be empty");
+                Console.WriteLine($"Record {index} must not be empty or whitespace");
                 return false;
             }
 
             if (record.Length > STRING_LENGTH_LIMIT)
             {
-                Console.WriteLine($"Record {index} has invalid length (max: {STRING_LENGTH_LIMIT})");
+                Console.WriteLine($"Record {index} exceeds maximum length ({STRING_LENGTH_LIMIT} characters)");
                 return false;
             }
 
@@ -122,17 +132,15 @@ namespace Commander
 
         private static string NormalizeSearchPattern(string pattern)
         {
-            const int PATTERN_LENGTH_LIMIT = 100;
-
             if (string.IsNullOrEmpty(pattern) || pattern == "*")
             {
                 return null;
             }
 
-            if (pattern.Length > PATTERN_LENGTH_LIMIT)
+            if (pattern.Length > STRING_LENGTH_LIMIT)
             {
                 Console.WriteLine("Warning: Pattern too long, truncated");
-                pattern = pattern.Substring(0, PATTERN_LENGTH_LIMIT);
+                pattern = pattern.Substring(0, STRING_LENGTH_LIMIT);
             }
 
             return pattern?.ToLower();
@@ -140,15 +148,13 @@ namespace Commander
 
         private static Regex CreateTitlePattern(string pattern)
         {
-            const int PATTERN_LENGTH_LIMIT = 100;
-            
             if (string.IsNullOrEmpty(pattern))
                 return null;
             
-            if (pattern.Length > PATTERN_LENGTH_LIMIT)
+            if (pattern.Length > STRING_LENGTH_LIMIT)
             {
                 Console.WriteLine("Warning: Pattern too long, truncated");
-                pattern = pattern.Substring(0, PATTERN_LENGTH_LIMIT);
+                pattern = pattern.Substring(0, STRING_LENGTH_LIMIT);
             }
 
             try
@@ -294,9 +300,6 @@ namespace Commander
 
         private static DateTime? GetDeletedDate(long dateDeletedTimestamp)
         {
-            const long MAX_TIMESTAMP = 4102444800; 
-            const long MIN_TIMESTAMP = 0;
-            
             if (dateDeletedTimestamp <= MIN_TIMESTAMP)
                 return null;
             try
