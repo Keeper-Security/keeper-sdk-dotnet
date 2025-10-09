@@ -477,12 +477,12 @@ function Test-RecordParameters {
         $record = $Records[$i]
         
         if ([string]::IsNullOrWhiteSpace($record)) {
-            $errors += "Record $($i + 1) must not be empty or whitespace"
+            $errors += "Record $($record) at index $($i + 1) must not be empty or whitespace"
             continue
         }
         
         if ($record.Length -gt $script:STRING_LENGTH_LIMIT) {
-            $errors += "Record $($i + 1) exceeds maximum length ($script:STRING_LENGTH_LIMIT characters)"
+            $errors += "Record $($record) at index $($i + 1) exceeds maximum length ($script:STRING_LENGTH_LIMIT characters)"
             continue
         }
         

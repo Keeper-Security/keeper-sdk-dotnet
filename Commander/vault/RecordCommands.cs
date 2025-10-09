@@ -1194,7 +1194,7 @@ namespace Commander
                 }
                 else
                 {
-                    var ownedRecords = vault.Storage.Records.GetAll().Where(r => !r.Shared);
+                    var ownedRecords = vault.KeeperRecords.Where(r => r.Owner);
                     foreach (var record in ownedRecords)
                     {
                         if (await ScanSingleRecord(vault, record.Uid))

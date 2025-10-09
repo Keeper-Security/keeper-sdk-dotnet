@@ -14,7 +14,7 @@ namespace Commander
     internal static class TrashCommandExtensions
     {
         private const int STRING_LENGTH_LIMIT = 100;
-        private const int MAX_RECORDS_LIMIT = 10000;
+        private const int MAX_RECORDS_LIMIT = 990;
         private const long MAX_TIMESTAMP = 4102444800;
         private const long MIN_TIMESTAMP = 0;
         public static async Task TrashListCommand(this VaultContext context, TrashListOptions options)
@@ -90,11 +90,6 @@ namespace Commander
 
         private static List<string> ValidateRecordsParameter(List<string> records)
         {
-            if (records == null || records.Count == 0)
-            {
-                return null;
-            }
-
             if (records.Count > MAX_RECORDS_LIMIT)
             {
                 Console.WriteLine($"Too many records specified (max: {MAX_RECORDS_LIMIT})");
@@ -117,13 +112,13 @@ namespace Commander
         {
             if (string.IsNullOrWhiteSpace(record))
             {
-                Console.WriteLine($"Record {index} must not be empty or whitespace");
+                Console.WriteLine($"Record {record} at index {index} must not be empty or whitespace");
                 return false;
             }
 
             if (record.Length > STRING_LENGTH_LIMIT)
             {
-                Console.WriteLine($"Record {index} exceeds maximum length ({STRING_LENGTH_LIMIT} characters)");
+                Console.WriteLine($"Record {record} at index {index} exceeds maximum length ({STRING_LENGTH_LIMIT} characters)");
                 return false;
             }
 
