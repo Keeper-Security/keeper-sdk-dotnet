@@ -76,7 +76,7 @@ Export-ModuleMember -Alias kbw, kbwp
 Export-ModuleMember -Function Register-KeeperBiometricCredential, Assert-KeeperBiometricCredential, 
 Show-KeeperBiometricCredentials, Unregister-KeeperBiometricCredential
 
-Export-ModuleMember -Function Get-KeeperTrashList
+Export-ModuleMember -Function Get-KeeperTrashList, Restore-KeeperTrashRecords
 
 # function Test-Keeper {
 #     [CmdletBinding()]
