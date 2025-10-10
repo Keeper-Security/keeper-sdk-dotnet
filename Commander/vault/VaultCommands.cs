@@ -345,6 +345,7 @@ namespace Commander
                 Description = "Manage deleted records in trash",
             };
             trashCmd.AddVerb<TrashListOptions>(context.TrashListCommand);
+            trashCmd.AddVerb<TrashRestoreOptions>(context.TrashRestoreCommand);
 
             cli.Commands.Add("trash", trashCmd);
 

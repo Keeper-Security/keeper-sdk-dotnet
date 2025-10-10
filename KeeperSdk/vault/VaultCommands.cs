@@ -671,4 +671,18 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "shared_folder_records")]
         public DeletedSharedFolderRecord[] SharedFolderRecords;
     }
+
+    [DataContract]
+    public class UndeleteRecordCommand : AuthenticatedCommand
+    {
+        public UndeleteRecordCommand() : base("undelete_record")
+        {
+        }
+
+        [DataMember(Name = "record_uid")]
+        public string RecordUid;
+
+        [DataMember(Name = "revision")]
+        public long Revision;
+    }
 }
