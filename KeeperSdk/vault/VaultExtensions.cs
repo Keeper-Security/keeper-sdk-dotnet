@@ -759,72 +759,6 @@ namespace KeeperSecurity.Vault
             return t;
         }
 
-        /// <summary>
-        /// Scans and stores BreachWatch status for vault records.
-        /// </summary>
-        /// <param name="vault">The vault to scan records from.</param>
-        /// <param name="recordUids">Record UIDs to scan. If null or empty, scans all owned records with passwords.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>Number of records scanned and updated.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when vault is null.</exception>
-        /// <exception cref="BreachWatchException">Thrown when BreachWatch operations fail.</exception>
-        public static async Task<int> ScanAndStoreRecordStatusAsync(
-            this VaultOnline vault,
-            IEnumerable<string> recordUids = null,
-            CancellationToken cancellationToken = default)
-        {
-            ValidateParameters(vault);
-            
-            try
-            {
-                await EnsureBreachWatchInitializedAsync(vault);
-                
-                var targetRecords = GetTargetRecords(vault, recordUids);
-                if (targetRecords.Count == 0)
-                {
-                    return 0;
-                }
-
-                var passwordData = ExtractPasswordData(targetRecords);
-                if (passwordData.Entries.Count == 0)
-                {
-                    return 0;
-                }
-
-                var scanResults = await BreachWatch.BreachWatch.ScanPasswordsAsync(passwordData.Entries, cancellationToken);
-                var updateRequest = CreateUpdateRequest(vault, scanResults, passwordData.RecordPasswordMap);
-
-                return await SendUpdateRequestAsync(vault, updateRequest);
-            }
-            catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-            {
-                throw new BreachWatchException("Request timeout during record scan", ex);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (System.Net.Http.HttpRequestException ex)
-            {
-                throw new BreachWatchException("Network error during record scan", ex);
-            }
-            catch (BreachWatchException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new BreachWatchException($"Unexpected error during record scan: {ex.Message}", ex);
-            }
-        }
-
-        private static void ValidateParameters(VaultOnline vault)
-        {
-            if (vault == null)
-            {
-                throw new ArgumentNullException(nameof(vault));
-            }
-        }
 
         private static async Task EnsureBreachWatchInitializedAsync(VaultOnline vault)
         {
@@ -840,136 +774,122 @@ namespace KeeperSecurity.Vault
             }
         }
 
-        private static List<KeeperRecord> GetTargetRecords(VaultOnline vault, IEnumerable<string> recordUids)
-        {
-            return recordUids?.Any() == true 
-                ? GetSpecificRecords(vault, recordUids)
-                : GetAllCandidateRecords(vault);
-        }
 
-        private static List<KeeperRecord> GetSpecificRecords(VaultOnline vault, IEnumerable<string> recordUids)
+        /// <summary>
+        /// Scans and stores breach watch status for a single record with specific password.
+        /// This method is similar to the Python scan_and_store_record_status function.
+        /// </summary>
+        /// <param name="vault">The vault instance</param>
+        /// <param name="recordUid">The record UID to scan</param>
+        /// <param name="recordKey">The record key for encryption/decryption</param>
+        /// <param name="password">The password to scan</param>
+        /// <returns>The breach watch password object, or null if scanning failed</returns>
+        public static async Task<BWPassword> ScanAndStoreRecordStatusAsync(
+            this VaultOnline vault,
+            string recordUid,
+            byte[] recordKey,
+            string password)
         {
-            var targetRecords = new List<KeeperRecord>();
-            
-            foreach (var uid in recordUids)
+            if (string.IsNullOrEmpty(password))
             {
-                if (vault.TryLoadKeeperRecord(uid, out var record) && record != null)
+                return null;
+            }
+
+            try
+            {
+                await EnsureBreachWatchInitializedAsync(vault);
+
+                var existingBwRecord = vault.Storage.BreachWatchRecords.GetEntity(recordUid);
+
+                byte[] euid = null;
+                if (recordKey != null && existingBwRecord != null)
                 {
-                    targetRecords.Add(record);
+                    try
+                    {
+                        var decryptedData = CryptoUtils.DecryptAesV2(existingBwRecord.Data.Base64UrlDecode(), recordKey);
+                        var existingBreachWatchData = BreachWatchData.Parser.ParseFrom(decryptedData);
+
+                        if (existingBreachWatchData.Passwords.Count > 0)
+                        {
+                            var existingPassword = existingBreachWatchData.Passwords
+                                .FirstOrDefault(x => x.Value == password);
+
+                            if (existingPassword != null)
+                            {
+                                return null;
+                            }
+
+                            var euidData = existingBreachWatchData.Passwords
+                                .FirstOrDefault(x => x.Euid != null && x.Euid.Length > 0);
+                            if (euidData != null)
+                            {
+                                euid = euidData.Euid.ToByteArray();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceError($"BreachWatch data record \"{recordUid}\" decrypt error: {ex.Message}");
+                    }
                 }
-            }
-            
-            return targetRecords;
-        }
 
-        private static List<KeeperRecord> GetAllCandidateRecords(VaultOnline vault)
-        {
-            var scannedRecordUids = new HashSet<string>(vault.BreachWatchRecords()
-                .Select(x => x.RecordUid));
+                var scanResults = await BreachWatch.BreachWatch.ScanPasswordsAsync(
+                    new List<(string Password, byte[] Euid)> { (password, euid) });
 
-            var candidateRecords = vault.KeeperRecords
-                .Where(x => x.Owner && 
-                           !scannedRecordUids.Contains(x.Uid) && 
-                           x.GetType() != typeof(ApplicationRecord))
-                .ToList();
-
-            var targetRecords = new List<KeeperRecord>();
-            
-            foreach (var record in candidateRecords)
-            {
-                if (vault.TryLoadKeeperRecord(record.Uid, out var loadedRecord) && 
-                    loadedRecord != null && 
-                    HasValidPassword(loadedRecord))
+                if (scanResults.Count == 0)
                 {
-                    targetRecords.Add(loadedRecord);
+                    return null;
                 }
-            }
-            
-            return targetRecords;
-        }
 
-        private static bool HasValidPassword(KeeperRecord record)
-        {
-            var password = record.ExtractPassword();
-            return !string.IsNullOrEmpty(password);
-        }
+                var (_, hashStatus) = scanResults[0];
 
-        private static (List<(string Password, byte[] Euid)> Entries, Dictionary<string, string> RecordPasswordMap) 
-            ExtractPasswordData(List<KeeperRecord> targetRecords)
-        {
-            var passwordEntries = new List<(string Password, byte[] Euid)>();
-            var recordPasswordMap = new Dictionary<string, string>();
-
-            foreach (var record in targetRecords)
-            {
-                var password = record.ExtractPassword();
-                if (!string.IsNullOrEmpty(password))
+                var bwPassword = new BWPassword
                 {
-                    passwordEntries.Add((password, null));
-                    recordPasswordMap[password] = record.Uid;
-                }
-            }
+                    Value = password,
+                    Status = hashStatus.BreachDetected ? BWStatus.Breached : BWStatus.Good,
+                    Euid = hashStatus.Euid ?? ByteString.Empty
+                };
 
-            return (passwordEntries, recordPasswordMap);
-        }
+                var breachWatchData = new BreachWatchData();
+                breachWatchData.Passwords.Add(bwPassword);
 
-        private static BreachWatchUpdateRequest CreateUpdateRequest(
-            VaultOnline vault,
-            List<(string Password, global::BreachWatch.HashStatus Status)> scanResults,
-            Dictionary<string, string> recordPasswordMap)
-        {
-            var updateRequest = new BreachWatchUpdateRequest();
+                var dataBytes = breachWatchData.ToByteArray();
+                var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, recordKey);
 
-            foreach (var (password, status) in scanResults)
-            {
-                if (recordPasswordMap.TryGetValue(password, out var recordUid) &&
-                    vault.TryLoadKeeperRecord(recordUid, out var record) && 
-                    record != null)
+                var recordRequest = new BreachWatchRecordRequest
                 {
-                    var recordRequest = CreateBreachWatchRecordRequest(recordUid, password, status, record);
-                    updateRequest.BreachWatchRecordRequest.Add(recordRequest);
+                    RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
+                    EncryptedData = ByteString.CopyFrom(encryptedData),
+                    BreachWatchInfoType = BreachWatchInfoType.Record,
+                    UpdateUserWhoScanned = true
+                };
+
+                var updateRequest = new BreachWatchUpdateRequest();
+                updateRequest.BreachWatchRecordRequest.Add(recordRequest);
+
+                var response = await vault.Auth.ExecuteAuthRest(
+                    "breachwatch/update_record_data",
+                    updateRequest,
+                    typeof(global::BreachWatch.BreachWatchUpdateResponse));
+
+                if (response is global::BreachWatch.BreachWatchUpdateResponse bwResponse && 
+                    bwResponse.BreachWatchRecordStatus.Count > 0)
+                {
+                    var status = bwResponse.BreachWatchRecordStatus[0];
+                    if (!string.IsNullOrEmpty(status.Reason))
+                    {
+                        throw new Exception(status.Reason);
+                    }
                 }
+
+                return bwPassword;
             }
-
-            return updateRequest;
-        }
-
-        private static BreachWatchRecordRequest CreateBreachWatchRecordRequest(
-            string recordUid, 
-            string password, 
-            global::BreachWatch.HashStatus status, 
-            KeeperRecord record)
-        {
-            var breachWatchData = new BreachWatchData();
-            var passwordInfo = new BWPassword
+            catch (Exception ex)
             {
-                Value = password,
-                Status = status.BreachDetected ? BWStatus.Breached : BWStatus.Good,
-                Resolved = 0
-            };
-            breachWatchData.Passwords.Add(passwordInfo);
-
-            var dataBytes = breachWatchData.ToByteArray();
-            var encryptedData = CryptoUtils.EncryptAesV2(dataBytes, record.RecordKey);
-
-            return new BreachWatchRecordRequest
-            {
-                RecordUid = ByteString.CopyFrom(recordUid.Base64UrlDecode()),
-                EncryptedData = ByteString.CopyFrom(encryptedData),
-                BreachWatchInfoType = BreachWatchInfoType.Record,
-                UpdateUserWhoScanned = true
-            };
-        }
-
-        private static async Task<int> SendUpdateRequestAsync(VaultOnline vault, BreachWatchUpdateRequest updateRequest)
-        {
-            if (updateRequest.BreachWatchRecordRequest.Count == 0)
-            {
-                return 0;
+                Trace.TraceWarning($"BreachWatch: {ex.Message}");
+                return null;
             }
-
-            await vault.Auth.ExecuteAuthRest("breachwatch/update", updateRequest);
-            return updateRequest.BreachWatchRecordRequest.Count;
         }
+
     }
 }

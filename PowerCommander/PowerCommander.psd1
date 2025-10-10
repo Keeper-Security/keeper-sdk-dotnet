@@ -94,7 +94,7 @@
         'Copy-FileToKeeperRecord','Grant-KeeperAppAccess', 'Revoke-KeeperAppAccess', 'Get-KeeperBreachWatchList', 'Get-KeeperRecordPassword',
         'Test-PasswordAgainstBreachWatch','Set-KeeperBreachWatchRecordIgnore', 'Get-KeeperIgnoredBreachWatchRecords', 'Get-KeeperPasswordReport',
         'Assert-KeeperBiometricCredential','Register-KeeperBiometricCredential', 'Show-KeeperBiometricCredentials', 'Unregister-KeeperBiometricCredential',
-        'Get-KeeperTrashList'
+        'Get-KeeperTrashList', 'Restore-KeeperTrashRecords'
     )
 
     # Cmdlets to export from this module
