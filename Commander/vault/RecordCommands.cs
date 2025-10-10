@@ -1179,8 +1179,30 @@ namespace Commander
 
             try
             {
-                var recordUids = options.Arguments?.Any() == true ? options.Arguments : null;
-                var scannedCount = await vault.ScanAndStoreRecordStatusAsync(recordUids);
+                var recordUids = options.Arguments?.Any() == true ? options.Arguments : new List<string>();
+                var scannedCount = 0;
+
+                if (recordUids.Any())
+                {
+                    foreach (var recordUid in recordUids)
+                    {
+                        if (await ScanSingleRecord(vault, recordUid))
+                        {
+                            scannedCount++;
+                        }
+                    }
+                }
+                else
+                {
+                    var ownedRecords = vault.KeeperRecords.Where(r => r.Owner);
+                    foreach (var record in ownedRecords)
+                    {
+                        if (await ScanSingleRecord(vault, record.Uid))
+                        {
+                            scannedCount++;
+                        }
+                    }
+                }
 
                 if (scannedCount > 0)
                 {
@@ -1200,6 +1222,62 @@ namespace Commander
             {
                 Console.WriteLine($"Error scanning records: {ex.Message}");
             }
+        }
+
+        private static async Task<bool> ScanSingleRecord(VaultOnline vault, string recordUid)
+        {
+            try
+            {
+                if (!vault.TryGetKeeperRecord(recordUid, out var record))
+                {
+                    return false;
+                }
+
+                var password = ExtractPasswordFromRecord(record);
+                if (string.IsNullOrEmpty(password))
+                {
+                    return false;
+                }
+
+                var recordKey = record.RecordKey;
+                if (recordKey == null)
+                {
+                    return false;
+                }
+
+                var result = await vault.ScanAndStoreRecordStatusAsync(recordUid, recordKey, password);
+                if (result != null)
+                {
+                    Console.WriteLine($"Scanned record {recordUid}: {result.Status}");
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error scanning record {recordUid}: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static string ExtractPasswordFromRecord(KeeperRecord record)
+        {
+            switch (record)
+            {
+                case PasswordRecord passwordRecord:
+                    return passwordRecord.Password;
+                case TypedRecord typed:
+                    var passwordField = typed.Fields.FirstOrDefault(x => x.FieldName == "password");
+                    if (passwordField is TypedField<string> stringField && stringField.Count > 0)
+                    {
+                        return stringField.Values.FirstOrDefault();
+                    }
+                    break;
+                case FileRecord:
+                    return null;
+            }
+            return null;
         }
 
         private static async Task BreachWatchIgnoreCommand(this VaultContext context, BreachWatchOptions options)

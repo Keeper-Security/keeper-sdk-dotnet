@@ -2,6 +2,7 @@
 
 $script:MAX_TIMESTAMP = 4102444800  
 $script:STRING_LENGTH_LIMIT = 100
+$script:MAX_RECORDS_LIMIT = 10000
 
 function Get-KeeperTrashList {
     <#
@@ -45,7 +46,17 @@ function Get-KeeperTrashList {
         return
     }
 
-    [KeeperSecurity.Vault.TrashManagement]::EnsureDeletedRecordsLoaded($vault).GetAwaiter().GetResult() | Out-Null
+    try {
+        $loadTask = [KeeperSecurity.Vault.TrashManagement]::EnsureDeletedRecordsLoaded($vault)
+        $loadTask.Wait()
+        if ($loadTask.Exception) {
+            throw $loadTask.Exception
+        }
+    }
+    catch {
+        Write-Error "Failed to load deleted records: $($_.Exception.Message)"
+        return
+    }
 
     $deletedRecords = [KeeperSecurity.Vault.TrashManagement]::GetDeletedRecords()
     $orphanedRecords = [KeeperSecurity.Vault.TrashManagement]::GetOrphanedRecords()
@@ -363,4 +374,127 @@ function Get-DeletedDate {
 }
 
 
+function Restore-KeeperTrashRecords {
+    <#
+    .SYNOPSIS
+    Restores deleted records from trash
+
+    .DESCRIPTION
+    Restores deleted records, orphaned records, and shared folders from the trash.
+    Supports restoring by record UID or pattern matching.
+
+    .PARAMETER Records
+    Array of record UIDs or patterns to restore. Supports wildcards (* and ?).
+
+    .PARAMETER Force
+    Skip confirmation prompts and restore immediately.
+
+    .EXAMPLE
+    Restore-KeeperTrashRecords -Records "NyTgDxKnMRhcgpR_BGkFkw"
+    Restores a specific record by UID
+
+    .EXAMPLE
+    Restore-KeeperTrashRecords -Records "test*", "MyRecord"
+    Restores records matching "test*" pattern and a specific record
+
+    .EXAMPLE
+    Restore-KeeperTrashRecords -Records "test*" -Force
+    Restores records matching "test*" pattern without confirmation
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [ValidateCount(1, 10000)]
+        [ValidateLength(1, 100)]
+        [string[]]$Records,
+        
+        [Parameter()]
+        [switch]$Force
+    )
+
+    Write-Verbose "Starting trash restore operation with $($Records.Count) record(s)"
+    
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+    if (-not $vault) {
+        Write-Error "Failed to get vault instance"
+        return
+    }
+
+    $validationResult = Test-RecordParameters -Records $Records
+    if (-not $validationResult.IsValid) {
+        Write-Error $validationResult.ErrorMessage
+        return
+    }
+
+    if ($validationResult.ValidRecords.Count -eq 0) {
+        Write-Host "No valid records specified for restoration"
+        return
+    }
+
+    try {
+        $restoreTask = [KeeperSecurity.Vault.TrashManagement]::RestoreTrashRecords($vault, $validationResult.ValidRecords)
+        $restoreTask.Wait()
+        if ($restoreTask.Exception) {
+            throw $restoreTask.Exception
+        }
+        Write-Host "Successfully initiated restoration of $($validationResult.ValidRecords.Count) record(s)"
+        Write-Host "Use 'Get-KeeperTrashList' to verify the restoration"
+    }
+    catch {
+        Write-Error "Failed to restore records: $($_.Exception.Message)"
+    }
+}
+
+function Test-RecordParameters {
+    <#
+    .SYNOPSIS
+    Validates record parameters for trash operations
+    
+    .PARAMETER Records
+    Array of record identifiers to validate
+    
+    .OUTPUTS
+    PSCustomObject with IsValid, ErrorMessage, and ValidRecords properties
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Records
+    )
+    
+    $validatedRecords = @()
+    $errors = @()
+    
+    if ($Records.Count -gt $script:MAX_RECORDS_LIMIT) {
+        return [PSCustomObject]@{
+            IsValid = $false
+            ErrorMessage = "Too many records specified (max: $script:MAX_RECORDS_LIMIT)"
+            ValidRecords = @()
+        }
+    }
+    
+    for ($i = 0; $i -lt $Records.Count; $i++) {
+        $record = $Records[$i]
+        
+        if ([string]::IsNullOrWhiteSpace($record)) {
+            $errors += "Record $($record) at index $($i + 1) must not be empty or whitespace"
+            continue
+        }
+        
+        if ($record.Length -gt $script:STRING_LENGTH_LIMIT) {
+            $errors += "Record $($record) at index $($i + 1) exceeds maximum length ($script:STRING_LENGTH_LIMIT characters)"
+            continue
+        }
+        
+        $validatedRecords += $record.Trim()
+    }
+    
+    return [PSCustomObject]@{
+        IsValid = $validatedRecords.Count -gt 0
+        ErrorMessage = if ($errors.Count -gt 0) { $errors -join "; " } else { $null }
+        ValidRecords = $validatedRecords
+    }
+}
+
 Set-Alias -Name ktrash -Value Get-KeeperTrashList
+Set-Alias -Name ktrash-restore -Value Restore-KeeperTrashRecords

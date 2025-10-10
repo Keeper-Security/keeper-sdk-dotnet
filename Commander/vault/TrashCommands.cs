@@ -13,6 +13,10 @@ namespace Commander
 {
     internal static class TrashCommandExtensions
     {
+        private const int STRING_LENGTH_LIMIT = 100;
+        private const int MAX_RECORDS_LIMIT = 990;
+        private const long MAX_TIMESTAMP = 4102444800;
+        private const long MIN_TIMESTAMP = 0;
         public static async Task TrashListCommand(this VaultContext context, TrashListOptions options)
         {
             await TrashManagement.EnsureDeletedRecordsLoaded(context.Vault);
@@ -39,13 +43,15 @@ namespace Commander
             var recordTable = BuildRecordTable(deletedRecords, orphanedRecords, pattern, titlePattern);
             var folderTable = BuildFolderTable(sharedFolders, options.Verbose);
 
-            recordTable.Sort((x, y) => {
+            recordTable.Sort((x, y) =>
+            {
                 var dateComparison = CompareDeletedDates(x[4], y[4]);
                 if (dateComparison != 0) return dateComparison;
                 return string.Compare(x[2]?.ToString(), y[2]?.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            
-            folderTable.Sort((x, y) => {
+
+            folderTable.Sort((x, y) =>
+            {
                 var dateComparison = CompareDeletedDates(x[4], y[4]);
                 if (dateComparison != 0) return dateComparison;
                 return string.Compare(x[2]?.ToString(), y[2]?.ToString(), StringComparison.OrdinalIgnoreCase);
@@ -61,32 +67,89 @@ namespace Commander
             tab.Dump();
         }
 
+        public static async Task TrashRestoreCommand(this VaultContext context, TrashRestoreOptions options)
+        {
+            var records = ValidateRecordsParameter(options.Records?.ToList());
+
+            if (records == null || records.Count == 0)
+            {
+                Console.WriteLine("Records parameter is empty or invalid.");
+                return;
+            }
+
+            try
+            {
+                await TrashManagement.RestoreTrashRecords(context.Vault, records);
+                Console.WriteLine($"Successfully initiated restoration of {records.Count} record(s)");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to restore records: {ex.Message}");
+            }
+        }
+
+        private static List<string> ValidateRecordsParameter(List<string> records)
+        {
+            if (records.Count > MAX_RECORDS_LIMIT)
+            {
+                Console.WriteLine($"Too many records specified (max: {MAX_RECORDS_LIMIT})");
+                return null;
+            }
+
+            var validatedRecords = new List<string>();
+            for (int i = 0; i < records.Count; i++)
+            {
+                if (IsValidRecord(records[i], i + 1))
+                {
+                    validatedRecords.Add(records[i]);
+                }
+            }
+
+            return validatedRecords.Count > 0 ? validatedRecords : null;
+        }
+
+        private static bool IsValidRecord(string record, int index)
+        {
+            if (string.IsNullOrWhiteSpace(record))
+            {
+                Console.WriteLine($"Record {record} at index {index} must not be empty or whitespace");
+                return false;
+            }
+
+            if (record.Length > STRING_LENGTH_LIMIT)
+            {
+                Console.WriteLine($"Record {record} at index {index} exceeds maximum length ({STRING_LENGTH_LIMIT} characters)");
+                return false;
+            }
+
+            return true;
+        }
+
         private static string NormalizeSearchPattern(string pattern)
         {
-            const int PATTERN_LENGTH_LIMIT = 100;
             if (string.IsNullOrEmpty(pattern) || pattern == "*")
             {
                 return null;
             }
-            if (pattern.Length >PATTERN_LENGTH_LIMIT)
+
+            if (pattern.Length > STRING_LENGTH_LIMIT)
             {
                 Console.WriteLine("Warning: Pattern too long, truncated");
-                pattern = pattern.Substring(0, PATTERN_LENGTH_LIMIT);
+                pattern = pattern.Substring(0, STRING_LENGTH_LIMIT);
             }
+
             return pattern?.ToLower();
         }
 
         private static Regex CreateTitlePattern(string pattern)
         {
-            const int PATTERN_LENGTH_LIMIT = 100;
-            
             if (string.IsNullOrEmpty(pattern))
                 return null;
-                
-            if (pattern.Length > PATTERN_LENGTH_LIMIT)
+            
+            if (pattern.Length > STRING_LENGTH_LIMIT)
             {
                 Console.WriteLine("Warning: Pattern too long, truncated");
-                pattern = pattern.Substring(0, PATTERN_LENGTH_LIMIT);
+                pattern = pattern.Substring(0, STRING_LENGTH_LIMIT);
             }
 
             try
@@ -94,7 +157,6 @@ namespace Commander
                 var regexPattern = "^" + Regex.Escape(pattern)
                     .Replace(@"\*", ".*")
                     .Replace(@"\?", ".") + "$";
-                    
                 return new Regex(regexPattern, RegexOptions.IgnoreCase);
             }
             catch (ArgumentException ex)
@@ -233,9 +295,6 @@ namespace Commander
 
         private static DateTime? GetDeletedDate(long dateDeletedTimestamp)
         {
-            const long MAX_TIMESTAMP = 4102444800; 
-            const long MIN_TIMESTAMP = 0;
-            
             if (dateDeletedTimestamp <= MIN_TIMESTAMP)
                 return null;
             try
@@ -329,5 +388,15 @@ namespace Commander
 
         [Option("pattern", Required = false, HelpText = "Filter by pattern")]
         public string Pattern { get; set; }
+    }
+
+    [Verb("restore", HelpText = "Restore deleted records from trash")]
+    public class TrashRestoreOptions
+    {
+        [Option('f', "force", Required = false, HelpText = "Do not prompt for confirmation")]
+        public bool Force { get; set; }
+
+        [Value(0, MetaName = "records", Required = true, HelpText = "Record UID or search pattern")]
+        public IEnumerable<string> Records { get; set; }
     }
 }
