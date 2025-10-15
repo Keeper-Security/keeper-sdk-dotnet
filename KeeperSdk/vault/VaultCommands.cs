@@ -685,4 +685,12 @@ namespace KeeperSecurity.Commands
         [DataMember(Name = "revision")]
         public long Revision;
     }
+
+    [DataContract]
+    public class PurgeDeletedRecordsCommand : AuthenticatedCommand
+    {
+        public PurgeDeletedRecordsCommand() : base("purge_deleted_records")
+        {
+        }
+    }
 }
