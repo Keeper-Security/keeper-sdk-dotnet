@@ -346,6 +346,9 @@ namespace Commander
             };
             trashCmd.AddVerb<TrashListOptions>(context.TrashListCommand);
             trashCmd.AddVerb<TrashRestoreOptions>(context.TrashRestoreCommand);
+            trashCmd.AddVerb<TrashUnshareOptions>(context.TrashUnshareCommand);
+            trashCmd.AddVerb<TrashGetOptions>(context.TrashGetCommand);
+            trashCmd.AddVerb<TrashPurgeOptions>(context.TrashPurgeCommand);
 
             cli.Commands.Add("trash", trashCmd);
 
