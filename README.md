@@ -1,59 +1,270 @@
-<img src="https://github.com/Keeper-Security/Commander/blob/master/images/commander-black.png" alt="Keeper Commander" height="167"/>
+<div align="center">
+  <img src="https://github.com/Keeper-Security/Commander/blob/master/images/commander-black.png" alt="Keeper Commander" height="167"/>
+  
+  # Keeper .NET SDK & PowerCommander
+  
+  ### Enterprise Password Management SDK for .NET and PowerShell
+  
+  [![NuGet](https://img.shields.io/nuget/v/KeeperSdk.svg)](https://www.nuget.org/packages/KeeperSdk/)
+  [![License](https://img.shields.io/github/license/Keeper-Security/keeper-sdk-dotnet)](LICENSE)
+  [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
+  [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/PowerCommander.svg)](https://www.powershellgallery.com/packages/PowerCommander)
+  
+  [Documentation](https://docs.keeper.io/) • [API Reference](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm) • [Support](#support)
+</div>
 
-### .Net and PowerShell SDK for Keeper Password Manager
+---
 
-The Keeper .Net and PowerShell module ("PowerCommander") provides vault and administrative level automation. The current features of the .Net and PowerShell library include the following:
+## Table of Contents
 
-* Authenticate to Keeper
-* Access the Keeper vault (records, folders, shared folders)
-* Manage records (CRUD operations for Records, Attachments, Folders, Shared Folders)
-* Administrative functions (Team Management)
-* Customize integration into your backend systems
-* Update/Rotate passwords in the vault
+- [Overview](#overview)
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+- [Components](#components)
+- [Usage Examples](#usage-examples)
+- [Documentation](#documentation)
+- [Platform Support](#platform-support)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
 
-Additional development tools in Python and other languages is available at our [Secrets Manager](https://docs.keeper.io/secrets-manager/) portal.
+##  Overview
 
-## Components
+The Keeper .NET SDK and PowerCommander module provide comprehensive vault and administrative level automation for [Keeper Password Manager](https://keepersecurity.com). This SDK enables seamless integration of enterprise-grade password management into your .NET applications and PowerShell workflows.
 
-### .Net SDK
-For source integration into your .Net code, please utilize the [KeeperSDK Library source code](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
+##  Features
+
+-  **Authentication** - Secure authentication to Keeper vault
+-  **Vault Access** - Complete access to records, folders, and shared folders
+-  **CRUD Operations** - Full create, read, update, delete operations for:
+  - Records and custom fields
+  - File attachments
+  - Folders and shared folders
+-  **Team Management** - Administrative functions for enterprise users
+-  **Password Rotation** - Automated password updates and rotation
+-  **Backend Integration** - Customizable integration with your systems
+-  **BreachWatch** - Monitor compromised passwords
+-  **Secrets Manager** - Enterprise secrets management capabilities
+
+##  Getting Started
+
+### Prerequisites
+
+#### For .NET SDK
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download) or later
+- .NET Standard 2.0 compatible runtime
+- Visual Studio 2022 or VS Code (recommended)
+
+#### For PowerCommander
+- PowerShell 5.1 or PowerShell Core 7.0+
+- Windows, macOS, or Linux
+
+### Installation
+
+#### .NET SDK via NuGet
+
+```bash
+dotnet add package KeeperSdk
+```
+
+Or via Package Manager Console:
+```powershell
+Install-Package KeeperSdk
+```
+
+#### PowerCommander via PowerShell Gallery
+
+```powershell
+Install-Module -Name PowerCommander -Scope CurrentUser
+```
+
+### Quick Start
+
+#### .NET SDK Example
+
+```csharp
+using KeeperSecurity.Authentication;
+using KeeperSecurity.Vault;
+
+// Connect to Keeper
+var auth = new AuthImpl();
+await auth.Login("your-email@company.com");
+
+// Sync vault
+var vault = new VaultOnline(auth);
+await vault.SyncDown();
+
+// Access records
+foreach (var record in vault.KeeperRecords)
+{
+    Console.WriteLine($"Title: {record.Title}");
+}
+```
+
+#### PowerShell Example
+
+```powershell
+# Import module
+Import-Module PowerCommander
+
+# Connect to vault
+Connect-Keeper -Username "your-email@company.com"
+
+# Sync and list records
+Sync-Keeper
+Get-KeeperRecords | Select-Object Title, RecordType
+```
+
+##  Components
+
+### .NET SDK
+
+The core SDK for integrating Keeper into your .NET applications.
 
 **Resources:**
-* [User Guide](https://docs.keeper.io/en/v/secrets-manager/commander-cli/commander-installation-setup/net-developer-sdk)
-* [API Documentation](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
+-  [User Guide](https://docs.keeper.io/en/v/secrets-manager/commander-cli/commander-installation-setup/net-developer-sdk)
+-  [API Documentation](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
+- 💻 [Source Code](KeeperSdk/)
 
-**Developer Requirements:**
-* .Net Core 8.0
-* .Net Standard 2.0
+**Target Frameworks:**
+- .NET 8.0
+- .NET Standard 2.0
 
 ### Commander CLI
-A command-line application built using the .Net SDK for vault management and automation.
 
-* [Commander CLI Documentation](Commander/README.md) - Complete command reference and usage guide
-* Features include login, vault sync, record management, shared folders, enterprise commands, and more
+Command-line interface for vault management and automation.
 
-### PowerShell Module (PowerCommander)
-PowerShell module for Keeper vault and administrative automation.
+```bash
+# Example commands
+keeper login your-email@company.com
+keeper sync-down
+keeper list
+keeper get-record <uid>
+```
 
-* [PowerCommander Documentation](PowerCommander/README.md) - Full cmdlet reference and examples
-* Install from PowerShell Gallery: `Install-Module -Name PowerCommander`
-* Includes cmdlets for vault operations, enterprise management, BreachWatch, and Secret Manager
+ [Full CLI Documentation](Commander/README.md)
+
+### PowerCommander Module
+
+PowerShell module for administrative automation and scripting.
+
+```powershell
+# Core cmdlets
+Connect-Keeper
+Sync-Keeper
+Get-KeeperRecords
+Add-KeeperRecord
+Update-KeeperRecord
+Remove-KeeperRecord
+```
+
+ [Complete Cmdlet Reference](PowerCommander/README.md)
 
 ### Sample Applications
-Code examples demonstrating SDK integration:
 
-* **[Sample Applications](Sample/README.md)** - Working code examples:
-  - [BasicAuthExample.cs](Sample/BasicAuthExample.cs) - Simple authentication and vault sync
-  - [Program.cs](Sample/Program.cs) - Comprehensive example with record management, attachments, sharing, and enterprise features
-* **[Commander CLI](Commander/README.md)** - Full-featured command-line application for vault management
-* **[WPFSample](WPFSample)** - Windows Presentation Foundation (WPF) GUI example
+Working examples to help you get started:
 
-### About Keeper Security
-Keeper is the leading cybersecurity platform for preventing password-related data breaches and cyberthreats.
+| Sample | Description |
+|--------|-------------|
+| [BasicAuthExample.cs](Sample/BasicAuthExample.cs) | Simple authentication and vault sync |
+| [Program.cs](Sample/Program.cs) | Comprehensive SDK features demo |
+| [WPFSample](WPFSample/) | Windows desktop application example |
 
-Learn More at:
-[https://keepersecurity.com](https://keepersecurity.com)
+ [Sample Documentation](Sample/README.md)
 
-### Contact Us
-If you need any assistance or require specific functionality not supported in Commander yet, please contact us at commander@keepersecurity.com.
+##  Usage Examples
+
+### Creating a Record
+
+```csharp
+var record = new PasswordRecord
+{
+    Title = "My Application",
+    Login = "admin",
+    Password = "secure-password",
+    Link = "https://myapp.com"
+};
+
+await vault.CreateRecord(record);
+```
+
+### Rotating a Password
+
+```csharp
+var record = vault.GetRecord("record-uid");
+record.Password = GenerateSecurePassword();
+await vault.UpdateRecord(record);
+```
+
+### Managing Shared Folders
+
+```csharp
+var sharedFolder = vault.GetSharedFolder("folder-uid");
+await sharedFolder.AddUser("user@company.com", 
+    SharePermissions.CanEdit | SharePermissions.CanShare);
+```
+
+##  Documentation
+
+### Official Documentation
+- [Keeper Security Documentation](https://docs.keeper.io/)
+- [.NET SDK User Guide](https://docs.keeper.io/en/v/secrets-manager/commander-cli/commander-installation-setup/net-developer-sdk)
+- [API Reference](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
+- [Secrets Manager Portal](https://docs.keeper.io/secrets-manager/)
+
+### Component Documentation
+- [Commander CLI Guide](Commander/README.md)
+- [PowerCommander Guide](PowerCommander/README.md)
+- [Sample Applications](Sample/README.md)
+
+##  Platform Support
+
+| Platform | .NET SDK | PowerCommander | Commander CLI |
+|----------|----------|----------------|---------------|
+| Windows  | ✅       | ✅             | ✅            |
+| macOS    | ✅       | ✅             | ✅            |
+| Linux    | ✅       | ✅             | ✅            |
+
+**Tested Environments:**
+- Windows 10/11, Windows Server 2019+
+- macOS 11.0+
+- Ubuntu 20.04+, RHEL 8+
+
+##  Contributing
+
+We welcome contributions! Please see our contributing guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+##  License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+##  Support
+
+### Community & Help
+-  **Email:** commander@keepersecurity.com
+-  **Documentation:** [docs.keeper.io](https://docs.keeper.io/)
+-  **Website:** [keepersecurity.com](https://keepersecurity.com)
+
+### Reporting Issues
+If you encounter bugs or have feature requests, please [open an issue](https://github.com/Keeper-Security/keeper-sdk-dotnet/issues).
+
+### Enterprise Support
+For enterprise support and custom integrations, contact our team at commander@keepersecurity.com.
+
+---
+
+##  About Keeper Security
+
+Keeper Security is the leading cybersecurity platform for preventing password-related data breaches and cyberthreats. Trusted by millions of individuals and thousands of organizations worldwide.
+
+**Learn more:** [keepersecurity.com](https://keepersecurity.com)
 
