@@ -1,6 +1,100 @@
-This folder is a sample Commander CLI application using the .NET SDK.  Below is a code sample that connects to Keeper and loads a vault.
+# Commander CLI
 
-### Sample Commander application reference 
+This folder contains a sample Commander CLI application using the .NET SDK. Commander provides a command-line interface for managing your Keeper vault, including record management, folder operations, sharing, and enterprise administration.
+
+## Getting Started
+
+### Prerequisites
+
+* .NET Core 8.0 SDK or later
+* .NET Framework 4.7.2 (for Windows)
+* A Keeper Security account
+
+### Building the Application
+
+1. **Clone the repository** (if you haven't already):
+   ```bash
+   git clone https://github.com/Keeper-Security/keeper-sdk-dotnet.git
+   cd keeper-sdk-dotnet
+   ```
+
+2. **Build the solution**:
+   ```bash
+   dotnet build Commander/Commander.csproj
+   ```
+
+   Or build the entire solution:
+   ```bash
+   dotnet build KeeperSdk.sln
+   ```
+
+3. **Build output** will be located in:
+   * `Commander/bin/Debug/net8.0/` (for .NET 8.0)
+   * `Commander/bin/Debug/net472/` (for .NET Framework 4.7.2)
+
+### Running the Application
+
+Navigate to the build output directory and run:
+
+```bash
+cd Commander/bin/Debug/net8.0
+dotnet Commander.dll
+```
+
+Or on Windows with .NET Framework:
+```bash
+cd Commander\bin\Debug\net472
+Commander.exe
+```
+
+Alternatively, run directly from the project directory:
+```bash
+dotnet run --project Commander/Commander.csproj
+```
+
+### First-Time Setup
+
+1. **Launch Commander** and you'll see the prompt:
+   ```
+   My Vault>
+   ```
+
+2. **Login to your Keeper account**:
+   ```
+   My Vault> login
+   ```
+   
+3. **Enter your credentials** when prompted:
+   * Email address
+   * Master password
+   * Two-factor authentication code (if enabled)
+   * Approve device if required
+
+4. **Sync your vault**:
+   ```
+   My Vault> sync-down
+   ```
+   or simply:
+   ```
+   My Vault> d
+   ```
+
+5. **List your records**:
+   ```
+   My Vault> list
+   ```
+   or:
+   ```
+   My Vault> ls -l
+   ```
+
+### Configuration Storage
+
+Commander stores configuration data (last login, device token, etc.) in same location no matter which SDK is used. This allows you to avoid re-entering credentials on subsequent launches.
+
+## Command Reference
+
+### Basic Commands
 
 * ```login``` Login to Keeper
 
@@ -24,7 +118,7 @@ This folder is a sample Commander CLI application using the .NET SDK.  Below is 
 
 * ```rm``` Remove record
 
-** Shared Folder Commands **
+### Shared Folder Commands
 
 * ```sf-list``` Display all shared folders
 
@@ -32,19 +126,19 @@ This folder is a sample Commander CLI application using the .NET SDK.  Below is 
 
 * ```sf-record``` Change record permissions. Use `mv` or `rm` commands to add/remove record to/from shared folder
 
-** Device Management Commands **
+### Device Management Commands
 
 * ```devices``` Manage device approval queue
 
 * ```this-device``` Display or modify current device settings
 
-** Record Management Commands **
+### Record Management Commands
 
 * ```add-record``` Add a record to the vault
 
 * ```update-record``` Update a record contents such as the password
 
-** Enterprise Commands **
+### Enterprise Commands
 
 * ```enterprise-get-data``` Retrieve enterprise data structure
 
@@ -58,153 +152,23 @@ This folder is a sample Commander CLI application using the .NET SDK.  Below is 
 
 * ```enterprise-device``` Manage admin approval queue. Cloud SSO only.
 
-### Sample C# .Net Core application
+## SDK Integration Examples
 
-```csharp
-using System;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using KeeperSecurity.Authentication;
+For integrating the Keeper SDK into your own applications, see the [Sample folder](../Sample) which contains working examples:
 
-namespace SimpleSdkConsoleApp
-{
-    class AuthUi : IAuthUI
-    {
-        public Task<string> GetMasterPassword(string username)
-        {
-            string password = null;
-            if (string.IsNullOrEmpty(password))
-            {
-                Console.Write("\nEnter Master Password: ");
-                password = HelperUtils.ReadLineMasked();
-            }
+* **[BasicAuthExample.cs](../Sample/BasicAuthExample.cs)** - Simple authentication example showing:
+  - Master password authentication
+  - Two-factor authentication (2FA)
+  - Device approval flow
+  - Basic vault synchronization
+  - Using `AuthSync` and `SimpleInputManager` for console applications
 
-            return Task.FromResult(password);
-        }
+* **[Program.cs](../Sample/Program.cs)** - Comprehensive SDK example demonstrating:
+  - Advanced authentication flows
+  - Creating and updating typed records
+  - File attachment operations (upload/download/delete)
+  - Shared folder management
+  - Enterprise features (teams, users, roles)
+  - Non-shared data storage
 
-        public Task<TwoFactorCode> GetTwoFactorCode(TwoFactorChannel channel, ITwoFactorChannelInfo[] channels, CancellationToken token)
-        {
-            Console.Write("\nEnter 2FA Code: ");
-            var code = Console.ReadLine();
-            return Task.FromResult(new TwoFactorCode(channel, code, TwoFactorDuration.Forever));
-        }
-
-        public Task<bool> WaitForDeviceApproval(IDeviceApprovalChannelInfo[] channels, CancellationToken token)
-        {
-            var tokenSource = new TaskCompletionSource<bool>();
-            _ = Task.Run(async () => {
-                var emailChannel = channels.FirstOrDefault(x => x.Channel == DeviceApprovalChannel.Email);
-                if (emailChannel is IDeviceApprovalPushInfo pi)
-                {
-                    await pi.InvokeDeviceApprovalPushAction.Invoke(TwoFactorDuration.EveryLogin);
-                }
-                Console.WriteLine("\nDevice Approval\n\nCheck your email, approve your device by clicking verification link\n<Esc> to cancel");
-
-                var complete = false;
-                void onApprove()
-                {
-                    complete = true;
-                }
-                using (var reg = token.Register(onApprove))
-                {
-                    while (!complete)
-                    {
-                        while (Console.KeyAvailable)
-                        {
-                            var ch = Console.ReadKey(true);
-                            if (ch.Key == ConsoleKey.Escape) {
-                                complete = true;
-                                tokenSource.TrySetResult(false);
-                                break;
-                            }
-                        }
-                        if (!complete) {
-                            await Task.Delay(200);
-                        }
-                        var answer = Console.ReadLine();
-                    }
-                }
-            });
-            return tokenSource.Task;
-        }
-    }
-
-    internal class Program
-    {
-        private static async Task Main()
-        {
-            // Keeper SDK needs a storage to save some parameters 
-            // such as: last login name, device information, etc
-            // 
-            //
-            IConfigurationStorage configuration = new JsonConfigurationStorage();
-            var auth = new Auth(new AuthUi(), configuration);
-
-            var prompt = "Enter Email Address: ";
-            if (!string.IsNullOrEmpty(configuration.LastLogin))
-            {
-                Console.WriteLine($"Default Email Address: {configuration.LastLogin}");
-            }
-
-            Console.Write(prompt);
-            var username = Console.ReadLine();
-            if (string.IsNullOrEmpty(username))
-            {
-                if (string.IsNullOrEmpty(configuration.LastLogin))
-                {
-                    Console.WriteLine("Bye.");
-                    return;
-                }
-
-                username = configuration.LastLogin;
-            }
-
-
-            Console.WriteLine();
-
-            // Login to Keeper
-            Console.WriteLine("Logging in...");
-            await auth.Login(username);
-
-            var vault = new Vault(auth);
-            Console.WriteLine("Retrieving records...");
-            await vault.SyncDown();
-
-            Console.WriteLine($"Hello {username}!");
-            Console.WriteLine($"Vault has {vault.RecordCount} records.");
-        }
-    }
-    public static class HelperUtils
-    {
-        public static string ReadLineMasked(char mask = '*')
-        {
-            var sb = new StringBuilder();
-            ConsoleKeyInfo keyInfo;
-            while ((keyInfo = Console.ReadKey(true)).Key != ConsoleKey.Enter)
-            {
-                if (!char.IsControl(keyInfo.KeyChar))
-                {
-                    sb.Append(keyInfo.KeyChar);
-                    Console.Write(mask);
-                }
-                else if (keyInfo.Key == ConsoleKey.Backspace && sb.Length > 0)
-                {
-                    sb.Remove(sb.Length - 1, 1);
-
-                    if (Console.CursorLeft == 0)
-                    {
-                        Console.SetCursorPosition(Console.BufferWidth - 1, Console.CursorTop - 1);
-                        Console.Write(' ');
-                        Console.SetCursorPosition(Console.BufferWidth - 1, Console.CursorTop - 1);
-                    }
-                    else Console.Write("\b \b");
-                }
-            }
-
-            Console.WriteLine();
-            return sb.ToString();
-        }
-    }
-}```
+For complete documentation and usage instructions, see the [Sample README](../Sample/README.md).

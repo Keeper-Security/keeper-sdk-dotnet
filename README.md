@@ -40,9 +40,13 @@ PowerShell module for Keeper vault and administrative automation.
 * Includes cmdlets for vault operations, enterprise management, BreachWatch, and Secret Manager
 
 ### Sample Applications
-For help with implementation of SDK features, please see:
-* [Sample App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Sample) - Basic sample application demonstrating SDK usage
-* [Commander CLI App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Commander) - Full-featured application with login, authentication, vault operations, and password management
+Code examples demonstrating SDK integration:
+
+* **[Sample Applications](Sample/README.md)** - Working code examples:
+  - [BasicAuthExample.cs](Sample/BasicAuthExample.cs) - Simple authentication and vault sync
+  - [Program.cs](Sample/Program.cs) - Comprehensive example with record management, attachments, sharing, and enterprise features
+* **[Commander CLI](Commander/README.md)** - Full-featured command-line application for vault management
+* **[WPFSample](WPFSample)** - Windows Presentation Foundation (WPF) GUI example
 
 ### About Keeper Security
 Keeper is the leading cybersecurity platform for preventing password-related data breaches and cyberthreats.
