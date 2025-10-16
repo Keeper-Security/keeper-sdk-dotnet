@@ -83,7 +83,7 @@ jobs:
       - name: Store SDK Nuget artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: KeeperSdk-${{ env.PACKAGE_VERSION }}-Nuget-Package
+          name: KeeperSdk-Nuget-Package
           path: |
             KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg
             KeeperSdk/bin/Release/Keeper.Sdk.${{ env.PACKAGE_VERSION }}.snupkg
@@ -153,3 +153,20 @@ jobs:
             Cli/bin/Release/Keeper.Cli.*.nupkg
             Cli/bin/Release/Keeper.Cli.*.snupkg
           retention-days: 1
+
+  publish:
+    runs-on: windows-latest
+    environment: prod
+    
+    steps:
+      - name: Download Nuget package
+        uses: actions/download-artifact@v4
+        with:
+          name: KeeperSdk-Nuget-Package
+          path: nuget
+          
+      - name: Publish to Nuget repo
+        working-directory: nuget
+        run: |
+          dotnet nuget push Keeper.Sdk.${{ env.PACKAGE_VERSION }}.nupkg -k "${{ secrets.NUGET_PUBLISH_KEY }}" -s https://api.nuget.org/v3/index.json 
+        shell: powershell   
