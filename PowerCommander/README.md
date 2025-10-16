@@ -13,7 +13,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 |----------------------------------------|-------------|----------------------------
 | Connect-Keeper                         | kc          | Login to Keeper server
 | Sync-Keeper                            | ks          | Sync with Keeper server 
-| Disconnect-Keeper                      |             | Logout and clear the data
+| Disconnect-Keeper                      | kq          | Logout and clear the data
 | Get-KeeperLocation                     | kpwd        | Print current Keeper folder
 | Set-KeeperLocation                     | kcd         | Change Keeper folder
 | Get-KeeperChildItem                    | kdir        | Display subfolder and record names in the current Keeper folder
@@ -31,6 +31,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
 | Add-KeeperFolder                       | kmkdir      | Create Keeper folder
+| Edit-KeeperFolder                      |             | Edit Keeper folder
 | Remove-KeeperFolder                    | krmdir      | Remove Keeper folder
 | Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard
 | Show-TwoFactorCode                     | 2fa         | Display Two Factor Code 
@@ -40,11 +41,18 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Copy-FileToKeeperRecord                |             | Upload file attachment to a record
 | Get-KeeperInformation                  | kwhoami     | Print account license information
 | Get-KeeperDeviceSettings               |             | Print the current device settings
-| Set-KeeperDeviceSettings               | this-device | Modifies the current device settings=
-| New-KeeperRecordType                   |             | Creates a new custom record type
-| Edit-KeeperRecordType                  |             | Modifies the existing custom record type
-| Remove-KeeperRecordType                |             | Removes the custom record type
+| Set-KeeperDeviceSettings               | this-device | Modifies the current device settings
+| Get-KeeperPasswordVisible              |             | Show/hide secret fields setting
+| Set-KeeperPasswordVisible              |             | Sets whether password fields should be visible or not
 | Get-KeeperPasswordReport               |             | Retrieves password report based on policy and strengths
+
+### Trash Management Cmdlets
+| Cmdlet name                            | Alias          | Description
+|----------------------------------------|----------------|----------------------------
+| Get-KeeperTrashList                    | ktrash         | List deleted records in trash
+| Get-KeeperTrashedRecordDetails         | ktrash-get     | Get details of a deleted record
+| Restore-KeeperTrashRecords             | ktrash-restore | Restore deleted records from trash
+| Remove-TrashedKeeperRecordShares       | ktrash-unshare | Remove shares from deleted records
 
 ### Biometric Cmdlets
 | Cmdlet name                            | Alias       | Description
@@ -53,7 +61,6 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Register-KeeperBiometricCredential     |             | Registers a new biometric credential (Windows Hello/WebAuthn)
 | Show-KeeperBiometricCredentials        |             | Lists all biometric credentials registered for the current user
 | Unregister-KeeperBiometricCredential   |             | Removes a biometric credential from the current user 
-[Biometric Login Command Reference](https://app.gitbook.com/o/-LO5CAzoigGmCWBUbw9z/s/-MJXOXEifAmpyvNVL1to/~/changes/1716/commander-sdk/keeper-commander-sdks/command-reference/login-commands/biometric-login)
 
 
 ### Sharing Cmdlets
@@ -82,7 +89,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Remove-KeeperEnterpriseTeamMember      |             | Remove a list of enterprise users from a team
 | New-KeeperEnterpriseNode               | kena        | Create Node
 | Add-KeeperEnterpriseUser               | invite-user | Invite User to Enterprise
-| New-KeeperEnterpriseTeam               | keta        | Create Team <sup style="color:red">(new)</sup>
+| New-KeeperEnterpriseTeam               | keta        | Create Team
 | Lock-KeeperEnterpriseUser              | lock-user   | Lock Enterprise User
 | Unlock-KeeperEnterpriseUser            | unlock-user | Unlock Enterprise User
 | Move-KeeperEnterpriseUser              |transfer-user| Transfer user account to another user
@@ -99,13 +106,16 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Remove-KeeperManagedCompany            | krmc        | Remove Managed Company
 | Edit-KeeperManagedCompany              | kemc        | Edit Managed Company
 | Get-MspBillingReport                   |             | Run MSP Billing Report
+| Get-KeeperNodeName                     |             | Return Name of current Enterprise Node
+| Get-KeeperRoleName                     |             | Get Display Name of Enterprise Role
 
 ### BreachWatch Cmdlets
 | Cmdlet name                            | Alias       | Description
 |----------------------------------------|-------------|----------------------------
 | Get-KeeperBreachWatchList              | kbw         | List passwords which are breached based on breachwatch
 | Test-PasswordAgainstBreachWatch        | kbwp        | check a given password against breachwatch passwords
- Set-KeeperBreachWatchRecordIgnore       | kbwi        | Ignore a given record from breachwatch alerts
+| Set-KeeperBreachWatchRecordIgnore      | kbwi        | Ignore a given record from breachwatch alerts
+| Get-KeeperIgnoredBreachWatchRecords    | kbwig       | List ignored breachwatch records
 
 ### Secret Manager Cmdlets
 | Cmdlet name                            | Alias       | Description
@@ -218,4 +228,44 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 10. Switch to a new Managed Company
     ```
     PS> switch-to-mc "Company Name"
+    ```
+
+11. List deleted records in trash
+    ```
+    PS > Get-KeeperTrashList
+    ```
+    or using the alias
+    ```
+    PS > ktrash
+    ```
+    Filter by pattern:
+    ```
+    PS > ktrash -Pattern "test*"
+    ```
+
+12. Get details of a deleted record
+    ```
+    PS > Get-KeeperTrashedRecordDetails -RecordUid "QGMaKCr9ksOOkhIMSvIWtg"
+    ```
+    or using the alias
+    ```
+    PS > ktrash-get "QGMaKCr9ksOOkhIMSvIWtg"
+    ```
+
+13. Restore deleted records from trash
+    ```
+    PS > Restore-KeeperTrashRecords -Records "QGMaKCr9ksOOkhIMSvIWtg"
+    ```
+    or using patterns and alias
+    ```
+    PS > ktrash-restore -Records "test*", "MyRecord" -Force
+    ```
+
+14. Remove shares from deleted records
+    ```
+    PS > Remove-TrashedKeeperRecordShares -Records "QGMaKCr9ksOOkhIMSvIWtg"
+    ```
+    or remove shares from all orphaned records
+    ```
+    PS > ktrash-unshare -Records "*" -Force
     ```
