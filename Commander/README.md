@@ -92,65 +92,104 @@ dotnet run --project Commander/Commander.csproj
 
 Commander stores configuration data (last login, device token, etc.) in same location no matter which SDK is used. This allows you to avoid re-entering credentials on subsequent launches.
 
-## Command Reference
 
-### Basic Commands
+### Commander CLI Commands Reference
 
-* ```login``` Login to Keeper
+#### Authentication Commands
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `sync-down` | `d` | Download & decrypt data |
+| `logout` | | Logout |
+| `whoami` | | Display information about the currently logged in user |
 
-* ```logout``` Logout from Keeper
+#### Vault Navigation & Search
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `search` | `list` | Search the vault. Can use a regular expression |
+| `ls` | | List folder content |
+| `cd` | | Change current folder |
+| `tree` | | Display folder structure |
 
-* ```sync-down``` or ```d``` Download, sync and decrypt vault
+#### Record Management
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `get` | | Get information about any Keeper object (record, folder, team, etc.) |
+| `add-record` | `add` | Add record |
+| `update-record` | `edit` | Update record |
+| `rm` | | Remove record(s) |
+| `mv` | | Move record or folder |
+| `record-history` | | Display record history |
+| `record-type-info` | `rti` | Get record type info |
+| `share-record` | | Change the sharing permissions of an individual record |
 
-* ```list``` or ```ls``` List all records (try ```ls -l``` as well)
+#### Attachment Management
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `download-attachment` | | Download Attachment(s) |
+| `upload-attachment` | | Upload file attachment |
+| `delete-attachment` | | Delete attachment |
 
-* ```tree``` Display entire folder structure as a tree
+#### Folder Management
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `mkdir` | | Make folder |
+| `rmdir` | | Remove folder |
+| `update-dir` | | Update folder |
 
-* ```cd``` Change current folder
+#### Shared Folder Commands
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `sf-list` | | List shared folders |
+| `sf-user` | | Change shared folder user permissions |
+| `sf-record` | | Change shared folder record permissions |
 
-* ```get``` Retrieve and display specified Keeper Record/Folder/Team in printable or JSON format
+#### Trash Management
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `trash` | | Manage deleted records in trash |
 
-* ```mkdir``` Create a regular or shared folder in the vault
+#### Device Management
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `devices` | | Devices (other than current) commands |
+| `this-device` | | Current device command |
 
-* ```rmdir``` Delete folder and its content
+#### Enterprise Commands
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `enterprise-get-data` | `eget` | Retrieve enterprise data |
+| `enterprise-node` | `en` | Manage Enterprise Nodes |
+| `enterprise-user` | `eu` | Manage Enterprise Users |
+| `enterprise-team` | `et` | Manage Enterprise Teams |
+| `enterprise-role` | `er` | Manage Enterprise Roles |
+| `enterprise-device` | `ed` | Manage User Devices |
+| `transfer-user` | | Transfer User Account |
+| `extend-account-share-expiration` | | Extend Account Share Expiration |
+| `audit-report` | | Run an audit trail report |
 
-* ```mv``` Move record or folder to another location
+#### Record Type Management
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `record-type-add` | | Add a new Record Type |
+| `record-type-update` | | Updates a Record Type of given ID |
+| `record-type-delete` | | Deletes a Record Type of given ID |
+| `load-record-types` | | Loads Record Types to keeper from given file |
+| `download-record-types` | | Downloads Record Types from keeper to given file |
 
-* ```rm``` Remove record
+#### Security & Reporting
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `password-report` | | Generate comprehensive password security report |
+| `breachwatch` | | BreachWatch commands |
 
-### Shared Folder Commands
-
-* ```sf-list``` Display all shared folders
-
-* ```sf-user``` Manage user or team access for shared folder
-
-* ```sf-record``` Change record permissions. Use `mv` or `rm` commands to add/remove record to/from shared folder
-
-### Device Management Commands
-
-* ```devices``` Manage device approval queue
-
-* ```this-device``` Display or modify current device settings
-
-### Record Management Commands
-
-* ```add-record``` Add a record to the vault
-
-* ```update-record``` Update a record contents such as the password
-
-### Enterprise Commands
-
-* ```enterprise-get-data``` Retrieve enterprise data structure
-
-* ```enterprise-node``` Display enterprise node tree
-
-* ```enterprise-user``` Display a list of enterprise users
-
-* ```enterprise-team``` Display a list of enterprise users, manage team's users
-
-* ```enterprise-role``` Display a list of enterprise roles, manage role's users and teams
-
-* ```enterprise-device``` Manage admin approval queue. Cloud SSO only.
+#### Other Commands
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `ksm` | | Keeper Secret Manager commands |
+| `one-time-share` | | Manage One Time Shares |
+| `import` | | Imports records from JSON file |
+| `clear` | `c` | Clears the screen |
+| `quit` | `q` | Quit |
 
 ## SDK Integration Examples
 
