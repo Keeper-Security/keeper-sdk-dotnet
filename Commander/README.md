@@ -309,7 +309,7 @@ export KEEPER_DEBUG=true
 
 ## Examples
 
-### Password Rotation Script
+### Password Change Script
 
 ```bash
 # Login and sync

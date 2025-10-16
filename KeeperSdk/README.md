@@ -160,7 +160,7 @@ Console.WriteLine($"Record created with UID: {createdRecord.Uid}");
 
 ##  Code Examples
 
-### Password Rotation
+### Password Change
 
 ```csharp
 using System;
