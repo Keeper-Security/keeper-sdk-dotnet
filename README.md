@@ -13,25 +13,36 @@ The Keeper .Net and PowerShell module ("PowerCommander") provides vault and admi
 
 Additional development tools in Python and other languages is available at our [Secrets Manager](https://docs.keeper.io/secrets-manager/) portal.
 
+## Components
+
 ### .Net SDK
 For source integration into your .Net code, please utilize the [KeeperSDK Library source code](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/KeeperSdk).
 
-[User Guide](https://docs.keeper.io/en/v/secrets-manager/commander-cli/commander-installation-setup/net-developer-sdk)
+**Resources:**
+* [User Guide](https://docs.keeper.io/en/v/secrets-manager/commander-cli/commander-installation-setup/net-developer-sdk)
+* [API Documentation](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
 
-[API documentation](https://keeper-security.github.io/gitbook-keeper-sdk/CSharp/html/R_Project_Documentation.htm)
-
-### Sample App
-For help with implementation of SDK features, please see the 
-* [Sample App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Sample). Sample application.
-* [Commander CLI App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Commander).  This application contains several basic operations such as logging in, authentication with two-factor, loading and decrypting the vault and updating passwords.
-
-### Developer Requirements for KeeperSDK Library
-
+**Developer Requirements:**
 * .Net Core 8.0
 * .Net Standard 2.0
 
-### PowerShell Module
-To use the PowerShell modules, see the [PowerCommander library](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/PowerCommander).
+### Commander CLI
+A command-line application built using the .Net SDK for vault management and automation.
+
+* [Commander CLI Documentation](Commander/README.md) - Complete command reference and usage guide
+* Features include login, vault sync, record management, shared folders, enterprise commands, and more
+
+### PowerShell Module (PowerCommander)
+PowerShell module for Keeper vault and administrative automation.
+
+* [PowerCommander Documentation](PowerCommander/README.md) - Full cmdlet reference and examples
+* Install from PowerShell Gallery: `Install-Module -Name PowerCommander`
+* Includes cmdlets for vault operations, enterprise management, BreachWatch, and Secret Manager
+
+### Sample Applications
+For help with implementation of SDK features, please see:
+* [Sample App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Sample) - Basic sample application demonstrating SDK usage
+* [Commander CLI App](https://github.com/Keeper-Security/keeper-sdk-dotnet/tree/master/Commander) - Full-featured application with login, authentication, vault operations, and password management
 
 ### About Keeper Security
 Keeper is the leading cybersecurity platform for preventing password-related data breaches and cyberthreats.
