@@ -28,7 +28,7 @@ namespace Sample
     internal static class Program
     {
         private static async Task Main()
-        {
+        {   
             Console.CancelKeyPress += (s, e) => { Environment.Exit(-1); };
 
             // Keeper SDK needs a storage to save configuration
@@ -98,12 +98,12 @@ namespace Sample
                 search = await vault.CreateRecord(search);
             }
 
-            var nsd3 = vault.LoadNonSharedData<NonSharedData3>(search.Uid);
+            var nsd3 = vault.LoadNonSharedData<NonSharedData3>(search.Uid) ?? new NonSharedData3();
             nsd3.Data1 = "1";
             nsd3.Data3 = "3";
             await vault.StoreNonSharedData(search.Uid, nsd3);
 
-            var nsd2 = vault.LoadNonSharedData<NonSharedData2>(search.Uid);
+            var nsd2 = vault.LoadNonSharedData<NonSharedData2>(search.Uid) ?? new NonSharedData2();
             nsd2.Data2 = "2";
             await vault.StoreNonSharedData(search.Uid, nsd2);
 
@@ -163,41 +163,55 @@ namespace Sample
             // Find shared folder with name "Google".
             var sharedFolder = vault.SharedFolders
                 .FirstOrDefault(x => string.Compare(x.Name, "Google", StringComparison.InvariantCultureIgnoreCase) == 0);
-            if (sharedFolder == null)
-            {
-                // Create shared folder.
-                var folder = await vault.CreateFolder("Google",
-                    null,
-                    new SharedFolderOptions
-                    {
-                        ManageRecords = true,
-                        ManageUsers = false,
-                        CanEdit = false,
-                        CanShare = false,
-                    });
-                vault.TryGetSharedFolder(folder.FolderUid, out sharedFolder);
-            }
-
-            // Add user to shared folder.
+            
             try
             {
-                await vault.PutUserToSharedFolder(sharedFolder.Uid,
-                    "user@google.com",
-                    UserType.User,
-                    new SharedFolderUserOptions
+                if (sharedFolder == null)
+                {
+                    // Create shared folder.
+                    var folder = await vault.CreateFolder("Google",
+                        null,
+                        new SharedFolderOptions
+                        {
+                            ManageRecords = true,
+                            ManageUsers = false,
+                            CanEdit = false,
+                            CanShare = false,
+                        });
+                    vault.TryGetSharedFolder(folder.FolderUid, out sharedFolder);
+                }
+
+                if (sharedFolder != null)
+                {
+                    // Add user to shared folder.
+                    try
                     {
-                        ManageRecords = false,
-                        ManageUsers = false,
-                    });
+                        await vault.PutUserToSharedFolder(sharedFolder.Uid,
+                            "user@google.com",
+                            UserType.User,
+                            new SharedFolderUserOptions
+                            {
+                                ManageRecords = false,
+                                ManageUsers = false,
+                            });
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Add user to Shared Folder error: {e.Message}");
+                    }
+
+                    // Add record to shared folder.
+                    await vault.MoveRecords(new[] {new RecordPath {RecordUid = search.Uid}}, sharedFolder.Uid, true);
+                }
+                else
+                {
+                    Console.WriteLine("Shared folder could not be created or accessed.");
+                }
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Add user to Shared Folder error: {e.Message}");
+                Console.WriteLine($"Shared folder operations error: {e.Message}");
             }
-
-
-            // Add record to shared folder.
-            await vault.MoveRecords(new[] {new RecordPath {RecordUid = search.Uid}}, sharedFolder.Uid, true);
 
             if (auth.AuthContext.IsEnterpriseAdmin)
             {
