@@ -1,4 +1,4 @@
-﻿#if NET8_0_OR_GREATER
+﻿#if NET8_0_OR_GREATER && !__ANDROID__
 global using RsaPrivateKey = System.Security.Cryptography.RSA;
 global using RsaPublicKey = System.Security.Cryptography.RSA;
 global using EcPrivateKey = System.Security.Cryptography.ECDiffieHellman;
