@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net8.0;net8.0-android</TargetFrameworks>
     <LangVersion>10</LangVersion>
     <Version>1.1.1-beta05</Version>
     <Authors>Keeper Security Inc.</Authors>
@@ -28,9 +28,15 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.28.3" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
-
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'net8.0-android'">
+    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'net8.0-android'">
+    <DefineConstants>$(DefineConstants);HAS_BOUNCYCASTLE</DefineConstants>
+  </PropertyGroup>
+  
   <ItemGroup>
     <Compile Include="..\GlobalUsings.cs">
       <Link>GlobalUsings.cs</Link>

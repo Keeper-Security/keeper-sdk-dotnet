@@ -20,8 +20,7 @@ namespace KeeperSecurity.Vault
         /// Incrementally downloads vault data.
         /// </summary>
         /// <param name="vault">Vault connected to Keeper.</param>
-        /// <param name="fullSync"></param>
-        /// <param name="syncRecordTypes">Force record types reloading</param>
+        /// <param name="fullSync">Force full synchronization</param>
         /// <returns></returns>
         internal static async Task RunSyncDownRest(this VaultOnline vault, bool fullSync = false)
         {
