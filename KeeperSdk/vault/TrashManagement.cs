@@ -583,7 +583,6 @@ namespace KeeperSecurity.Vault
         /// </summary>
         /// <param name="vault">The vault instance</param>
         /// <param name="records">List of record UIDs or patterns to restore</param>
-        /// <param name="confirm">Optional confirmation function</param>
         public static async Task RestoreTrashRecords(VaultOnline vault, List<string> records)
         {
             var trashData = await LoadTrashData(vault);
