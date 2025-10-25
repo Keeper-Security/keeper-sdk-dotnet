@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using AuthProto = Authentication;
 using EnterpriseProto = Enterprise;
 
-#if NETSTANDARD2_0_OR_GREATER || __ANDROID__
+#if HAS_BOUNCYCASTLE
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
@@ -414,7 +414,7 @@ namespace KeeperSecurity.Vault
 
         private EcPrivateKey LoadKsmPrivateKey(byte[] data)
         {
-#if NET8_0_OR_GREATER && !__ANDROID__
+#if !HAS_BOUNCYCASTLE
             var ecKey = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
             ecKey.ImportPkcs8PrivateKey(data, out _);
             return ecKey;
@@ -428,7 +428,7 @@ namespace KeeperSecurity.Vault
 
         private byte[] UnloadKsmPrivateKey(EcPrivateKey privateKey)
         {
-#if NET8_0_OR_GREATER && !__ANDROID__
+#if !HAS_BOUNCYCASTLE
             return privateKey.ExportPkcs8PrivateKey();
 #elif NETSTANDARD2_0_OR_GREATER || __ANDROID__
             var publicKey = CryptoUtils.GetEcPublicKey(privateKey);
@@ -485,7 +485,7 @@ namespace KeeperSecurity.Vault
                 attempt++;
                 var encTransmissionKey = Auth.Endpoint.EncryptWithKeeperKey(transmissionKey, keyId);
                 byte[] signature;
-#if NET8_0_OR_GREATER && !__ANDROID__
+#if !HAS_BOUNCYCASTLE
                 byte[] hash;
                 using (var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
                 {
