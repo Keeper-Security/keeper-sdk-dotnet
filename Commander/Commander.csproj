@@ -10,6 +10,7 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
     <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
+    <DefineConstants>$(DefineConstants);HAS_BOUNCYCASTLE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cli\Cli.csproj" />
