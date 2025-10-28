@@ -697,10 +697,7 @@ namespace KeeperBiometric
         /// </summary>
         private static string ToBase64Url(byte[] bytes)
         {
-            return Convert.ToBase64String(bytes)
-                .TrimEnd('=')          
-                .Replace('+', '-')  
-                .Replace('/', '_');     
+            return PasskeyManager.ToBase64Url(bytes);
         }
 
          /// <summary>
@@ -708,27 +705,19 @@ namespace KeeperBiometric
          /// </summary>
         private static byte[] FromBase64Url(string base64Url)
         {
+            if (string.IsNullOrEmpty(base64Url))
+            {
+                throw new ArgumentException("Base64Url string cannot be null or empty");
+            }
+            
             try
             {
-                if (string.IsNullOrEmpty(base64Url))
-                {
-                    throw new ArgumentException("Base64Url string cannot be null or empty");
-                }
-
-                string base64 = base64Url.Replace('-', '+').Replace('_', '/');
-                
-                switch (base64.Length % 4)
-                {
-                    case 2: base64 += "=="; break;
-                    case 3: base64 += "="; break;
-                }
-                
-                return Convert.FromBase64String(base64);
+                return PasskeyManager.FromBase64Url(base64Url);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error decoding Base64Url: '{base64Url}' (Length: {base64Url?.Length ?? 0})");
-                Console.WriteLine($"Exception: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error decoding Base64Url: '{base64Url}' (Length: {base64Url.Length})");
+                System.Diagnostics.Debug.WriteLine($"Exception: {ex.Message}");
                 throw new ArgumentException($"Invalid Base64Url format: {ex.Message}", ex);
             }
          }

@@ -22,6 +22,15 @@ namespace KeeperBiometric
         private const string DefaultRpId = "keepersecurity.com";
         
         /// <summary>
+        /// Passkey purpose constants for authentication
+        /// </summary>
+        public static class Purpose
+        {
+            public const string Login = "login";
+            public const string Vault = "vault";
+        }
+        
+        /// <summary>
         /// Checks if Windows Hello is available on this system
         /// </summary>
         public static bool IsAvailable()
@@ -186,6 +195,33 @@ namespace KeeperBiometric
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    return new PasskeyAuthenticationResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Username cannot be null or empty"
+                    };
+                }
+                
+                if (string.IsNullOrWhiteSpace(purpose))
+                {
+                    return new PasskeyAuthenticationResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Purpose cannot be null or empty"
+                    };
+                }
+                
+                if (purpose != Purpose.Login && purpose != Purpose.Vault)
+                {
+                    return new PasskeyAuthenticationResult
+                    {
+                        Success = false,
+                        ErrorMessage = $"Invalid purpose '{purpose}'. Must be '{Purpose.Login}' or '{Purpose.Vault}'"
+                    };
+                }
+                
                 if (!IsAvailable())
                 {
                     return new PasskeyAuthenticationResult
@@ -210,7 +246,7 @@ namespace KeeperBiometric
                     AuthenticatorAttachment = AuthenticatorAttachment.Platform,
                     ClientVersion = auth.Endpoint.ClientVersion,
                     Username = username,
-                    PasskeyPurpose = purpose == "vault" ? PasskeyPurpose.PkReauth : PasskeyPurpose.PkLogin
+                    PasskeyPurpose = purpose == Purpose.Vault ? PasskeyPurpose.PkReauth : PasskeyPurpose.PkLogin
                 };
                 
                 if (auth.DeviceToken != null)
@@ -417,8 +453,9 @@ namespace KeeperBiometric
                     };
                 }).ToList();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Failed to list passkeys: {ex.Message}");
                 return new List<PasskeyInfo>();
             }
         }
@@ -433,6 +470,13 @@ namespace KeeperBiometric
         {
             try
             {
+                // Input validation
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    System.Diagnostics.Debug.WriteLine("Remove passkey failed: username cannot be null or empty");
+                    return false;
+                }
+                
                 var credentialId = CredentialStorage.GetCredentialId(username);
                 if (string.IsNullOrEmpty(credentialId))
                 {
@@ -457,8 +501,9 @@ namespace KeeperBiometric
                 
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Failed to remove passkey: {ex.Message}");
                 return false;
             }
         }
@@ -466,7 +511,12 @@ namespace KeeperBiometric
         
         #region Helper Methods
         
-        private static byte[] FromBase64Url(string base64Url)
+        /// <summary>
+        /// Converts Base64Url encoded string to byte array (WebAuthn standard encoding)
+        /// </summary>
+        /// <param name="base64Url">Base64Url encoded string</param>
+        /// <returns>Decoded byte array</returns>
+        public static byte[] FromBase64Url(string base64Url)
         {
             if (string.IsNullOrEmpty(base64Url))
             {
@@ -483,7 +533,12 @@ namespace KeeperBiometric
             return Convert.FromBase64String(base64);
         }
         
-        private static string ToBase64Url(byte[] bytes)
+        /// <summary>
+        /// Converts byte array to Base64Url encoded string (WebAuthn standard encoding)
+        /// </summary>
+        /// <param name="bytes">Byte array to encode</param>
+        /// <returns>Base64Url encoded string</returns>
+        public static string ToBase64Url(byte[] bytes)
         {
             if (bytes == null || bytes.Length == 0)
             {

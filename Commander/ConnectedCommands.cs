@@ -1176,7 +1176,7 @@ namespace Commander
 
             switch (options.Action?.ToLower())
             {
-                case "register":
+                case BiometricActions.Register:
                     Console.WriteLine("Registering Windows Hello biometric credential...");
                     try
                     {
@@ -1188,21 +1188,17 @@ namespace Commander
                         if (regResult.Success)
                         {
                             Console.WriteLine($"{regResult.Message}");
-                            Debug.WriteLine($"  Credential ID: {regResult.CredentialId}");
-                            Debug.WriteLine($"  Username: {regResult.Username}");
+                            // Debug information (not displayed to user for security reasons)
+                            Debug.WriteLine($"Biometric registration successful for user");
                             if (!string.IsNullOrEmpty(regResult.Provider))
                             {
-                                Debug.WriteLine($"  Provider: {regResult.Provider}");
-                            }
-                            if (!string.IsNullOrEmpty(regResult.AAGUID))
-                            {
-                                Debug.WriteLine($"  AAGUID: {regResult.AAGUID}");
+                                Console.WriteLine($"Provider: {regResult.Provider}");
                             }
                             Console.WriteLine("\nYou can now use Windows Hello to log in to Keeper.");
                         }
                         else
                         {
-                            Console.WriteLine($" Registration failed: {regResult.ErrorMessage}");
+                            Console.WriteLine($"Registration failed: {regResult.ErrorMessage}");
                         }
                     }
                     catch (Exception ex)
@@ -1211,7 +1207,7 @@ namespace Commander
                     }
                     break;
 
-                case "list":
+                case BiometricActions.List:
                     Console.WriteLine("Listing Windows Hello biometric credentials...\n");
                     try
                     {
@@ -1260,7 +1256,7 @@ namespace Commander
                     }
                     break;
 
-                case "remove":
+                case BiometricActions.Remove:
                     var removeUsername = _auth.Username;
 
                     if (string.IsNullOrEmpty(removeUsername))
@@ -1297,7 +1293,7 @@ namespace Commander
                     }
                     break;
 
-                case "verify":
+                case BiometricActions.Verify:
                     var verifyUsername = _auth.Username;
                     
                     if (string.IsNullOrEmpty(verifyUsername))
@@ -1306,10 +1302,10 @@ namespace Commander
                         return;
                     }
 
-                    var purpose = options.Purpose?.ToLower() ?? "vault";
-                    if (purpose != "login" && purpose != "vault")
+                    var purpose = options.Purpose?.ToLower() ?? PasskeyPurposes.Vault;
+                    if (purpose != PasskeyPurposes.Login && purpose != PasskeyPurposes.Vault)
                     {
-                        Console.WriteLine($"Invalid purpose: {options.Purpose}. Must be 'login' or 'vault'.");
+                        Console.WriteLine($"Invalid purpose: {options.Purpose}. Must be '{PasskeyPurposes.Login}' or '{PasskeyPurposes.Vault}'.");
                         return;
                     }
                     
@@ -1323,11 +1319,11 @@ namespace Commander
                         
                         if (authResult.Success && authResult.IsValid)
                         {
-                            Console.WriteLine("Windows Hello verification successful!");
+                            Console.WriteLine("Windows Hello verification successful.");
                         }
                         else
                         {
-                            Console.WriteLine($"Verification failed: {authResult.ErrorMessage}");
+                            Console.WriteLine($"Verification failed: {authResult.ErrorMessage ?? "Unknown error"}");
                         }
                     }
                     catch (Exception ex)
@@ -1426,6 +1422,18 @@ namespace Commander
         [Option("purpose", Required = false, Default = "vault", HelpText = "Authentication purpose: 'login' or 'vault' (for verify command)")]
         public string Purpose { get; set; }
     }
-
+    public static class BiometricActions
+        {
+            public const string Register = "register";
+            public const string List = "list";
+            public const string Remove = "remove";
+            public const string Verify = "verify";
+        }
+        
+    public static class PasskeyPurposes
+        {
+            public const string Login = "login";
+            public const string Vault = "vault";
+        }
 }
 }

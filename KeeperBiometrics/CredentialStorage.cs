@@ -20,8 +20,15 @@ namespace KeeperBiometric
         /// <returns>True if successful, false otherwise</returns>
         public static bool SetCredentialId(string username, string credentialId)
         {
-            if (string.IsNullOrEmpty(username))
+            if (string.IsNullOrWhiteSpace(username))
             {
+                System.Diagnostics.Debug.WriteLine("SetCredentialId failed: username cannot be null or empty");
+                return false;
+            }
+            
+            if (username.IndexOfAny(new[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' }) >= 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"SetCredentialId failed: username contains invalid characters: {username}");
                 return false;
             }
             
@@ -59,8 +66,9 @@ namespace KeeperBiometric
         /// <returns>The credential ID if found, null otherwise</returns>
         public static string GetCredentialId(string username)
         {
-            if (string.IsNullOrEmpty(username))
+            if (string.IsNullOrWhiteSpace(username))
             {
+                System.Diagnostics.Debug.WriteLine("GetCredentialId failed: username cannot be null or empty");
                 return null;
             }
             
