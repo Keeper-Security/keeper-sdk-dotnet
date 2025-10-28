@@ -383,6 +383,52 @@ namespace Cli
                         break;
 
                     case PasswordStep ps:
+#if NET472_OR_GREATER
+                        if (KeeperBiometric.PasskeyManager.IsAvailable() && 
+                            KeeperBiometric.CredentialStorage.HasCredential(auth.Username))
+                        {
+                            try
+                            {
+                                Console.WriteLine("\nWindows Hello credential found. Attempting biometric authentication...");
+                                Console.WriteLine("(Press Ctrl+C to skip and use password instead)");
+                                
+                                var bioResult = await KeeperBiometric.PasskeyManager.AuthenticatePasskeyAsync(
+                                    auth, auth.Username, "login");
+                                
+                                if (bioResult.Success && bioResult.IsValid)
+                                {
+                                    Console.WriteLine("Biometric authentication successful!");
+                                    
+                                    if (bioResult.EncryptedLoginToken != null && bioResult.EncryptedLoginToken.Length > 0)
+                                    {
+                                        await auth.ResumeLoginWithToken(Google.Protobuf.ByteString.CopyFrom(bioResult.EncryptedLoginToken));
+                                        
+                                        if (auth.IsCompleted)
+                                        {
+                                            Console.WriteLine("Authentication completed successfully!");
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("No login token received from biometric authentication");
+                                        Console.WriteLine("Falling back to password authentication...");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Biometric authentication failed: {bioResult.ErrorMessage}");
+                                    Console.WriteLine("Falling back to password authentication...");
+                                }
+                            }
+                            catch (Exception bioEx)
+                            {
+                                Console.WriteLine($"Biometric authentication error: {bioEx.Message}");
+                                Console.WriteLine("Falling back to password authentication...");
+                            }
+                        }
+#endif
+                        
                         while (true)
                         {
                             readTask = null;

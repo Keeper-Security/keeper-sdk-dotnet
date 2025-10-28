@@ -221,6 +221,8 @@ namespace KeeperBiometric
                     PublicKey = result.PublicKey != null ? ToBase64Url(result.PublicKey) : null,
                     Method = "Native WebAuthn MakeCredential",
                     SignatureCount = result.SignatureCount,
+                    AAGUID = result.AAGUID,
+                    Provider = GetProviderNameFromAaguid(result.AAGUID),
                     Timestamp = DateTime.UtcNow
                 };
             }
@@ -260,6 +262,43 @@ namespace KeeperBiometric
             // - Face recognition cameras (Windows.Devices.Enumeration)
             // - Security keys (additional WebAuthn calls)
             return methods.ToArray();
+        }
+
+        /// <summary>
+        /// AAGUID to provider name mapping
+        /// Based on community-sourced data from https://github.com/passkeydeveloper/passkey-authenticator-aaguids
+        /// </summary>
+        internal static readonly Dictionary<string, string> AaguidProviderMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "ea9b8d66-4d01-1d21-3ce4-b6b48cb575d4", "Google Password Manager" },
+            { "adce0002-35bc-c60a-648b-0b25f1f05503", "Chrome on Mac" },
+            { "fbfc3007-154e-4ecc-8c0b-6e020557d7bd", "iCloud Keychain" },
+            { "dd4ec289-e01d-41c9-bb89-70fa845d4bf2", "iCloud Keychain (Managed)" },
+            { "08987058-cadc-4b81-b6e1-30de50dcbe96", "Windows Hello" },
+            { "9ddd1817-af5a-4672-a2b9-3e3dd95000a9", "Windows Hello" },
+            { "6028b017-b1d4-4c02-b4b3-afcdafc96bb2", "Windows Hello" },
+            { "00000000-0000-0000-0000-000000000000", "Platform Authenticator" }
+        };
+
+        /// <summary>
+        /// Get friendly provider name from AAGUID
+        /// </summary>
+        /// <param name="aaguid">AAGUID string (with or without dashes)</param>
+        /// <returns>Provider name or null if not found</returns>
+        internal static string GetProviderNameFromAaguid(string aaguid)
+        {
+            if (string.IsNullOrEmpty(aaguid))
+            {
+                return null;
+            }
+            
+            var normalized = aaguid.ToLower().Replace("-", "");
+            if (normalized.Length == 32)
+            {
+                normalized = $"{normalized.Substring(0, 8)}-{normalized.Substring(8, 4)}-{normalized.Substring(12, 4)}-{normalized.Substring(16, 4)}-{normalized.Substring(20)}";
+            }
+            
+            return AaguidProviderMapping.TryGetValue(normalized, out var provider) ? provider : null;
         }
 
         private static async Task<InternalAuthenticationResult> GetAssertionAsync(IntPtr hWnd, AuthenticationOptions options)
@@ -599,6 +638,14 @@ namespace KeeperBiometric
                         var authenticatorData = new byte[credentialAttestation.cbAuthenticatorData];
                         Marshal.Copy(credentialAttestation.pbAuthenticatorData, authenticatorData, 0, credentialAttestation.cbAuthenticatorData);
 
+                        string aaguid = null;
+                        if (authenticatorData.Length >= 53)
+                        {
+                            var aaguidBytes = new byte[16];
+                            Array.Copy(authenticatorData, 37, aaguidBytes, 0, 16);
+                            aaguid = FormatAaguidAsGuid(aaguidBytes);
+                        }
+
                         NativeWebAuthn.WebAuthNFreeCredentialAttestation(credentialAttestationPtr);
 
                         taskSource.TrySetResult(new InternalCredentialCreationResult
@@ -607,7 +654,8 @@ namespace KeeperBiometric
                             AttestationObject = attestationObject,
                             ClientDataJSON = clientDataBytes,
                             PublicKey = authenticatorData,
-                            SignatureCount = 0
+                            SignatureCount = 0,
+                            AAGUID = aaguid
                         });
                     }
                     else
@@ -734,6 +782,23 @@ namespace KeeperBiometric
          {
              return (value & 0x000000FFU) << 24 | (value & 0x0000FF00U) << 8 |
                     (value & 0x00FF0000U) >> 8 | (value & 0xFF000000U) >> 24;
+         }
+
+         /// <summary>
+         /// Format AAGUID bytes as a GUID string (with dashes)
+         /// </summary>
+         private static string FormatAaguidAsGuid(byte[] aaguidBytes)
+         {
+             if (aaguidBytes == null || aaguidBytes.Length != 16)
+             {
+                 return null;
+             }
+             
+             return $"{BitConverter.ToString(aaguidBytes, 0, 4).Replace("-", "").ToLower()}-" +
+                    $"{BitConverter.ToString(aaguidBytes, 4, 2).Replace("-", "").ToLower()}-" +
+                    $"{BitConverter.ToString(aaguidBytes, 6, 2).Replace("-", "").ToLower()}-" +
+                    $"{BitConverter.ToString(aaguidBytes, 8, 2).Replace("-", "").ToLower()}-" +
+                    $"{BitConverter.ToString(aaguidBytes, 10, 6).Replace("-", "").ToLower()}";
          }
 
 
@@ -1068,6 +1133,8 @@ namespace KeeperBiometric
         public string PublicKey { get; set; }
         public string Method { get; set; }
         public uint SignatureCount { get; set; }
+        public string AAGUID { get; set; }
+        public string Provider { get; set; }
         public DateTime Timestamp { get; set; }
         public string ErrorMessage { get; set; }
         public string ErrorType { get; set; }
@@ -1083,6 +1150,7 @@ namespace KeeperBiometric
         public byte[] ClientDataJSON { get; set; }
         public byte[] PublicKey { get; set; }
         public uint SignatureCount { get; set; }
+        public string AAGUID { get; set; }
     }
 
     /// <summary>

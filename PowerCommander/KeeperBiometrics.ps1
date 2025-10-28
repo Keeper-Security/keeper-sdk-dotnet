@@ -278,6 +278,8 @@ function Invoke-CredentialCreationFlow {
         CredentialId = $credentialId
         Username = $username
         DisplayName = $DisplayName
+        AAGUID = $credResult.AAGUID
+        Provider = $credResult.Provider
         Timestamp = [DateTime]::UtcNow
     }
 }
