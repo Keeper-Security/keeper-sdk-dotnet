@@ -1188,7 +1188,6 @@ namespace Commander
                         if (regResult.Success)
                         {
                             Console.WriteLine($"{regResult.Message}");
-                            // Debug information (not displayed to user for security reasons)
                             Debug.WriteLine($"Biometric registration successful for user");
                             if (!string.IsNullOrEmpty(regResult.Provider))
                             {
@@ -1336,16 +1335,16 @@ namespace Commander
                     Console.WriteLine("Windows Hello Biometric Authentication Management");
                     Console.WriteLine("=================================================\n");
                     Console.WriteLine("Available commands:");
-                    Console.WriteLine("  biometric register [--friendly-name <name>] [--force]");
+                    Console.WriteLine("  biometric register");
                     Console.WriteLine("    Register a new Windows Hello credential");
                     Console.WriteLine();
-                    Console.WriteLine("  biometric list [--include-disabled]");
+                    Console.WriteLine("  biometric list");
                     Console.WriteLine("    List all registered biometric credentials");
                     Console.WriteLine();
-                    Console.WriteLine("  biometric remove [--username <username>]");
+                    Console.WriteLine("  biometric remove");
                     Console.WriteLine("    Remove a biometric credential (uses logged-in username by default)");
                     Console.WriteLine();
-                    Console.WriteLine("  biometric verify [--username <username>] [--purpose <login|vault>]");
+                    Console.WriteLine("  biometric verify [--purpose <login|vault>]");
                     Console.WriteLine("    Test Windows Hello authentication (defaults to 'vault' purpose)");
                     break;
             }
@@ -1412,9 +1411,6 @@ namespace Commander
 
         [Option("force", Required = false, Default = false, HelpText = "Force registration even if credential exists")]
         public bool Force { get; set; }
-
-        [Option("username", Required = false, HelpText = "Username for biometric operations (defaults to logged-in username)")]
-        public string Username { get; set; }
 
         [Option("include-disabled", Required = false, Default = false, HelpText = "Include disabled biometric credentials in list")]
         public bool IncludeDisabled { get; set; }

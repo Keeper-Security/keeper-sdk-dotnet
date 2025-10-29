@@ -194,12 +194,10 @@ namespace Cli
                             auth, auth.Username, KeeperBiometric.PasskeyManager.Purpose.Login);
                         
                         if (bioResult.Success && bioResult.IsValid)
-                        {
-                            Console.WriteLine("Biometric authentication successful.");
-                            
+                        {                            
                             if (bioResult.EncryptedLoginToken != null && bioResult.EncryptedLoginToken.Length > 0)
                             {
-                                await auth.ResumeLoginWithToken(Google.Protobuf.ByteString.CopyFrom(bioResult.EncryptedLoginToken));
+                                await auth.ResumeLoginWithToken(bioResult.EncryptedLoginToken);
                                 
                                 if (auth.IsCompleted)
                                 {

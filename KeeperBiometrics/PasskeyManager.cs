@@ -392,7 +392,7 @@ namespace KeeperBiometric
                 {
                     Success = true,
                     IsValid = validationResponse.IsValid,
-                    EncryptedLoginToken = validationResponse.EncryptedLoginToken?.ToByteArray(),
+                    EncryptedLoginToken = validationResponse.EncryptedLoginToken,
                     Username = username,
                     Message = "Authentication successful"
                 };
@@ -630,7 +630,7 @@ namespace KeeperBiometric
     {
         public bool Success { get; set; }
         public bool IsValid { get; set; }
-        public byte[] EncryptedLoginToken { get; set; }
+        public Google.Protobuf.ByteString EncryptedLoginToken { get; set; }
         public string Username { get; set; }
         public string Message { get; set; }
         public string ErrorMessage { get; set; }
