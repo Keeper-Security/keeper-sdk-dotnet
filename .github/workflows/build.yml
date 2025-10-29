@@ -12,8 +12,12 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    outputs:
+      package-version: ${{ steps.vars.outputs.package_version }}
+      
     steps:
       - name: Setup product versions
+        id: vars
         run: |
           $ErrorView = 'NormalView'
           $branch = ($Env:GITHUB_REF -split '/')[2] 
@@ -29,7 +33,8 @@ jobs:
           echo "SDK_VERSION=${sdkVersion}" >> $Env:GITHUB_ENV
           echo "PACKAGE_VERSION=${packageVersion}" >> $Env:GITHUB_ENV
           echo "BUILD_VERSION=${buildVersion}" >> $Env:GITHUB_ENV
-        shell: powershell      
+          echo "package_version=${packageVersion}" >> $Env:GITHUB_OUTPUT
+        shell: powershell
 
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -156,7 +161,10 @@ jobs:
 
   publish:
     runs-on: windows-latest
+    needs: build
     environment: prod
+    env:
+      PACKAGE_VERSION: ${{ needs.build.outputs.package-version }}
     
     steps:
       - name: Download Nuget package
