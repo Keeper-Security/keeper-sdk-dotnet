@@ -13,8 +13,8 @@
     <RepositoryType>Github</RepositoryType>
     <PackageProjectUrl>https://github.com/Keeper-Security/keeper-sdk-dotnet</PackageProjectUrl>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <AssemblyVersion>1.1.1.55</AssemblyVersion>
-    <FileVersion>1.1.1.55</FileVersion>
+    <AssemblyVersion>1.1.2.60</AssemblyVersion>
+    <FileVersion>1.1.2.60</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <IncludeSymbols>true</IncludeSymbols>
