@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -53,6 +54,14 @@ namespace Commander
                         Order = 51,
                         Description = "Current device command",
                         Action = ThisDeviceCommand,
+                    });
+
+                Commands.Add("biometric",
+                    new ParseableCommand<BiometricOptions>
+                    {
+                        Order = 52,
+                        Description = "Manage Windows Hello biometric authentication",
+                        Action = BiometricCommand,
                     });
 
                 if (_auth.AuthContext.Settings?.ShareDatakeyWithEnterprise == true)
@@ -1155,6 +1164,195 @@ namespace Commander
             return string.Empty;
         }
 
+        private async Task BiometricCommand(BiometricOptions options)
+        {
+#if NET472_OR_GREATER
+            if (!KeeperBiometric.PasskeyManager.IsAvailable())
+            {
+                Console.WriteLine("Windows Hello is not available on this system.");
+                Console.WriteLine("Please ensure Windows Hello is set up in Windows Settings.");
+                return;
+            }
+
+            switch (options.Action?.ToLower())
+            {
+                case BiometricActions.Register:
+                    Console.WriteLine("Registering Windows Hello biometric credential...");
+                    try
+                    {
+                        var regResult = await KeeperBiometric.PasskeyManager.RegisterPasskeyAsync(
+                            _auth, 
+                            options.FriendlyName, 
+                            options.Force);
+                        
+                        if (regResult.Success)
+                        {
+                            Console.WriteLine($"{regResult.Message}");
+                            Debug.WriteLine($"Biometric registration successful for user");
+                            if (!string.IsNullOrEmpty(regResult.Provider))
+                            {
+                                Console.WriteLine($"Provider: {regResult.Provider}");
+                            }
+                            Console.WriteLine("\nYou can now use Windows Hello to log in to Keeper.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Registration failed: {regResult.ErrorMessage}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error during registration: {ex.Message}");
+                    }
+                    break;
+
+                case BiometricActions.List:
+                    Console.WriteLine("Listing Windows Hello biometric credentials...\n");
+                    try
+                    {
+                        var credentials = await KeeperBiometric.PasskeyManager.ListPasskeysAsync(_auth, options.IncludeDisabled);
+                        
+                        if (credentials.Count == 0)
+                        {
+                            Console.WriteLine("No biometric credentials found.");
+                        }
+                        else
+                        {
+                            var tab = new Tabulate(5)
+                            {
+                                DumpRowNo = true,
+                                LeftPadding = 2
+                            };
+                            tab.AddHeader("Friendly Name", "Provider", "Created", "Last Used", "Status");
+                            
+                            foreach (var cred in credentials)
+                            {
+                                var created = cred.CreatedAt != DateTime.MinValue 
+                                    ? cred.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm") 
+                                    : "Unknown";
+                                var lastUsed = cred.LastUsed != DateTime.MinValue 
+                                    ? cred.LastUsed.ToLocalTime().ToString("yyyy-MM-dd HH:mm") 
+                                    : "Never";
+                                var status = cred.IsDisabled ? "Disabled" : "Active";
+                                var provider = cred.Provider ?? "Unknown";
+                                
+                                tab.AddRow(
+                                    cred.FriendlyName ?? "Windows Hello",
+                                    provider,
+                                    created,
+                                    lastUsed,
+                                    status
+                                );
+                            }
+                            
+                            Console.WriteLine();
+                            tab.Dump();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error listing biometric credentials: {ex.Message}");
+                    }
+                    break;
+
+                case BiometricActions.Remove:
+                    var removeUsername = _auth.Username;
+
+                    if (string.IsNullOrEmpty(removeUsername))
+                    {
+                        Console.WriteLine("Note: Uses logged-in username by default.");
+                        return;
+                    }
+                    
+                    Console.Write($"Are you sure you want to remove Windows Hello biometric credential for '{removeUsername}'? (y/N): ");
+                    var confirmation = await Program.GetInputManager().ReadLine();
+                    
+                    if (confirmation?.ToLower() != "y")
+                    {
+                        Console.WriteLine("Cancelled.");
+                        return;
+                    }
+                    
+                    try
+                    {
+                        var removed = await KeeperBiometric.PasskeyManager.RemovePasskeyAsync(_auth, removeUsername);
+                        
+                        if (removed)
+                        {
+                            Console.WriteLine($"Biometric credential removed for user: {removeUsername}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Failed to remove biometric credential or none found for: {removeUsername}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error removing biometric credential: {ex.Message}");
+                    }
+                    break;
+
+                case BiometricActions.Verify:
+                    var verifyUsername = _auth.Username;
+                    
+                    if (string.IsNullOrEmpty(verifyUsername))
+                    {
+                        Console.WriteLine("Note: Uses logged-in username by default.");
+                        return;
+                    }
+
+                    var purpose = options.Purpose?.ToLower() ?? PasskeyPurposes.Vault;
+                    if (purpose != PasskeyPurposes.Login && purpose != PasskeyPurposes.Vault)
+                    {
+                        Console.WriteLine($"Invalid purpose: {options.Purpose}. Must be '{PasskeyPurposes.Login}' or '{PasskeyPurposes.Vault}'.");
+                        return;
+                    }
+                    
+                    Console.WriteLine($"Verifying Windows Hello authentication for '{verifyUsername}' (purpose: {purpose})...");
+                    try
+                    {
+                        var authResult = await KeeperBiometric.PasskeyManager.AuthenticatePasskeyAsync(
+                            _auth, 
+                            verifyUsername, 
+                            purpose);
+                        
+                        if (authResult.Success && authResult.IsValid)
+                        {
+                            Console.WriteLine("Windows Hello verification successful.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Verification failed: {authResult.ErrorMessage ?? "Unknown error"}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error during verification: {ex.Message}");
+                    }
+                    break;
+
+                default:
+                    Console.WriteLine("Windows Hello Biometric Authentication Management");
+                    Console.WriteLine("=================================================\n");
+                    Console.WriteLine("Available commands:");
+                    Console.WriteLine("  biometric register");
+                    Console.WriteLine("    Register a new Windows Hello credential");
+                    Console.WriteLine();
+                    Console.WriteLine("  biometric list");
+                    Console.WriteLine("    List all registered biometric credentials");
+                    Console.WriteLine();
+                    Console.WriteLine("  biometric remove");
+                    Console.WriteLine("    Remove a biometric credential (uses logged-in username by default)");
+                    Console.WriteLine();
+                    Console.WriteLine("  biometric verify [--purpose <login|vault>]");
+                    Console.WriteLine("    Test Windows Hello authentication (defaults to 'vault' purpose)");
+                    break;
+            }
+#else
+            Console.WriteLine("Windows Hello biometric support is only available on Windows with .NET Framework 4.7.2+");
+#endif
+        }
+
     class LogoutOptions
     {
         [Option("resume", Required = false, HelpText = "resume last login")]
@@ -1203,5 +1401,35 @@ namespace Commander
         public bool IsTeam { get; set; }
     }
 
+    class BiometricOptions
+    {
+        [Value(0, Required = false, HelpText = "Biometric command: \"register\", \"list\", \"remove\", \"verify\"")]
+        public string Action { get; set; }
+
+        [Option("friendly-name", Required = false, HelpText = "Friendly name for the biometric credential (for register)")]
+        public string FriendlyName { get; set; }
+
+        [Option("force", Required = false, Default = false, HelpText = "Force registration even if credential exists")]
+        public bool Force { get; set; }
+
+        [Option("include-disabled", Required = false, Default = false, HelpText = "Include disabled biometric credentials in list")]
+        public bool IncludeDisabled { get; set; }
+
+        [Option("purpose", Required = false, Default = "vault", HelpText = "Authentication purpose: 'login' or 'vault' (for verify command)")]
+        public string Purpose { get; set; }
+    }
+    public static class BiometricActions
+        {
+            public const string Register = "register";
+            public const string List = "list";
+            public const string Remove = "remove";
+            public const string Verify = "verify";
+        }
+        
+    public static class PasskeyPurposes
+        {
+            public const string Login = "login";
+            public const string Vault = "vault";
+        }
 }
 }

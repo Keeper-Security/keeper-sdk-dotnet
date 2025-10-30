@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.IO;
+using Google.Protobuf;
 
 
 #if NET472_OR_GREATER
@@ -176,8 +177,60 @@ namespace Cli
             });
 #endif
 
+            var biometricAttempted = false;
+            
             while (!auth.IsCompleted)
             {
+#if NET472_OR_GREATER
+                if (!biometricAttempted && 
+                    KeeperBiometric.PasskeyManager.IsAvailable() && 
+                    !string.IsNullOrEmpty(auth.Username) &&
+                    KeeperBiometric.CredentialStorage.HasCredential(auth.Username))
+                {
+                    biometricAttempted = true;
+                    try
+                    {                        
+                        var bioResult = await KeeperBiometric.PasskeyManager.AuthenticatePasskeyAsync(
+                            auth, auth.Username, KeeperBiometric.PasskeyManager.Purpose.Login);
+                        
+                        if (bioResult.Success && bioResult.IsValid)
+                        {                            
+                            if (bioResult.EncryptedLoginToken != null && bioResult.EncryptedLoginToken.Length > 0)
+                            {
+                                await auth.ResumeLoginWithToken(bioResult.EncryptedLoginToken);
+                                
+                                if (auth.IsCompleted)
+                                {
+                                    Console.WriteLine("Authentication completed successfully.");
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Biometric authentication succeeded, but additional authentication steps required.");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("No login token received from biometric authentication.");
+                                Console.WriteLine("Falling back to standard authentication.");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Biometric authentication failed: {bioResult.ErrorMessage ?? "Unknown error"}");
+                            Console.WriteLine("Falling back to standard authentication.");
+                        }
+                    }
+                    catch (Exception bioEx)
+                    {
+                        Console.WriteLine($"Biometric authentication error: {bioEx.Message}");
+                        Console.WriteLine("Falling back to standard authentication.");
+                    }
+                    
+                    Console.WriteLine();
+                }
+#endif
+                
                 switch (auth.Step)
                 {
                     case DeviceApprovalStep das:

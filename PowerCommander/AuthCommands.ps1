@@ -453,17 +453,30 @@ function Connect-Keeper {
         if ($biometricPresent) {
             try {
                 Write-Host "Attempting Keeper biometric authentication..." -InformationAction Continue
-                $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
-                if ($biometricResult.Success) {
-                    $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
-                    if ($authFlow.IsCompleted) {
-                        Write-Debug "Authentication completed successfully!" -InformationAction Continue
-                        break
+                
+                # Check if device has data key registered
+                $deviceSettings = Get-KeeperDeviceSettings
+                if (-not $deviceSettings.DataKeyPresent) {
+                    Write-Debug "Data key not present on device, skipping biometric authentication"
+                    Write-Host "Device is not registered for biometric login. Please run 'Set-KeeperDeviceSettings -Register' first."
+                    $biometricPresent = $false
+                }
+                else {
+                    $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
+                    if ($biometricResult.Success) {
+                        $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
+                        if ($authFlow.IsCompleted) {
+                            Write-Debug "Authentication completed successfully!" -InformationAction Continue
+                            break
+                        }
+                        # If not completed, disable biometric for subsequent steps (e.g., 2FA)
+                        Write-Debug "Biometric authentication succeeded, but additional authentication steps required"
+                        $biometricPresent = $false
+                    } else {
+                        Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
+                        Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
+                        $biometricPresent = $false 
                     }
-                } else {
-                    Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
-                    Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
-                    $biometricPresent = $false 
                 }
             }
             catch {
@@ -898,10 +911,6 @@ function Set-KeeperDeviceSettings {
     }
 
     if ($Register.IsPresent) {
-        if ($persistentLoginRestricted -eq $true) {
-            Write-Error "Persistent Login feature is restricted by Enterprise Administrator" -ErrorAction Stop
-        }
-
         $registered = [KeeperSecurity.Authentication.AuthExtensions]::RegisterDataKeyForDevice($auth, $device).GetAwaiter().GetResult()
         if ($registered) {
             Write-Information "Device is registered for Persistent Login"
