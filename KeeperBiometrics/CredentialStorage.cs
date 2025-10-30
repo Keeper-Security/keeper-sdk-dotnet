@@ -6,7 +6,6 @@ namespace KeeperBiometric
 {
     /// <summary>
     /// Manages credential storage in Windows Registry for persistent credential ID tracking
-    /// Mirrors the PowerShell implementation's registry-based storage
     /// </summary>
     public static class CredentialStorage
     {

@@ -439,7 +439,7 @@ namespace KeeperBiometric
                     return new PasskeyInfo
                     {
                         UserId = pk.UserId,
-                        FriendlyName = string.IsNullOrEmpty(pk.FriendlyName) ? "Windows Hello" : pk.FriendlyName,
+                        FriendlyName = string.IsNullOrEmpty(pk.FriendlyName) ? "" : pk.FriendlyName,
                         CredentialId = ToBase64Url(pk.CredentialId.ToByteArray()),
                         AAGUID = aaguid,
                         Provider = provider,
