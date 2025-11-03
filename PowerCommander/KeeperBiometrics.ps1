@@ -1,9 +1,3 @@
-# PowerShell Windows Hello Integration
-# Lightweight, standalone Windows Hello implementation for PowerCommander
-# 
-# This module provides enhanced Windows Hello functionality using native WebAuthn APIs
-# with no external dependencies beyond the Windows webauthn.dll
-
 try {
     $null = [KeeperBiometric.PasskeyManager]
     $KeeperBiometricAvailable = $true
@@ -179,7 +173,6 @@ function Assert-KeeperBiometricCredential {
             $Username = $auth.Username
         }
         
-        # Call PasskeyManager.AuthenticatePasskeyAsync
         $task = [KeeperBiometric.PasskeyManager]::AuthenticatePasskeyAsync($auth, $Username, $Purpose)
         $result = $task.GetAwaiter().GetResult()
         
@@ -243,7 +236,6 @@ function Get-KeeperAvailableBiometricCredentials {
     }
     
     try {
-        # Get vault instance
         if (-not $Vault) {
             if (Get-Command getVault -ErrorAction SilentlyContinue) {
                 $vault = getVault
@@ -258,11 +250,9 @@ function Get-KeeperAvailableBiometricCredentials {
         
         $auth = $vault.Auth
         
-        # Call PasskeyManager.ListPasskeysAsync
         $task = [KeeperBiometric.PasskeyManager]::ListPasskeysAsync($auth, $IncludeDisabled.IsPresent)
         $passkeyList = $task.GetAwaiter().GetResult()
         
-        # Convert to PowerShell objects
         $credentials = @()
         foreach ($passkey in $passkeyList) {
             $credential = [PSCustomObject]@{
@@ -285,8 +275,6 @@ function Get-KeeperAvailableBiometricCredentials {
     }
 }
 
-# AAGUID to Provider Name mapping based on community-sourced data
-# Source: https://github.com/passkeydeveloper/passkey-authenticator-aaguids
 $script:AAGUID_PROVIDER_MAPPING = @{
     'ea9b8d664d011d213ce4b6b48cb575d4' = 'Google Password Manager'
     'adce000235bcc60a648b0b25f1f05503' = 'Chrome on Mac'
@@ -406,7 +394,6 @@ function Unregister-KeeperBiometricCredential {
             $Username = $auth.Username
         }
         
-        # Check if credential exists
         $credentialId = [KeeperBiometric.CredentialStorage]::GetCredentialId($Username)
         if (-not $credentialId) {
             $result = @{
@@ -420,7 +407,6 @@ function Unregister-KeeperBiometricCredential {
             return
         }
         
-        # Confirm action using ShouldProcess
         if (-not $PSCmdlet.ShouldProcess($Username, "Remove biometric authentication")) {
             $result = @{
                 Success = $false
@@ -432,7 +418,6 @@ function Unregister-KeeperBiometricCredential {
             return
         }
         
-        # Call PasskeyManager.RemovePasskeyAsync
         $task = [KeeperBiometric.PasskeyManager]::RemovePasskeyAsync($auth, $Username)
         $success = $task.GetAwaiter().GetResult()
         
@@ -506,10 +491,7 @@ function Show-KeeperBiometricCredentials {
             Write-Host "No biometric authentication methods found." -ForegroundColor Yellow
             return
         }
-        
-        Write-Host "`nRegistered Biometric Authentication Methods:" -ForegroundColor Green
-        Write-Host ("-" * 70) -ForegroundColor Gray
-        
+    
         foreach ($credential in $credentials) {
             $createdDate = if ($credential.Created) { 
                 $credential.Created.ToString("yyyy-MM-dd HH:mm:ss") 
@@ -537,7 +519,6 @@ function Show-KeeperBiometricCredentials {
             $status = if ($credential.Disabled) { "DISABLED" } else { "ACTIVE" }
             $statusColor = if ($credential.Disabled) { "Red" } else { "Green" }
             
-            # CredentialId is already a Base64URL-encoded string from C#
             $credentialIdDisplay = $credential.CredentialId
             Write-Host "Id: $credentialIdDisplay" -ForegroundColor Cyan
             Write-Host "Name: $displayName" -ForegroundColor White
@@ -617,7 +598,6 @@ function Register-KeeperBiometricCredential {
     try {
         Write-Host "Biometric Credential Creation for Keeper" -ForegroundColor Yellow
         
-        # Get vault instance
         if (-not $Vault) {
             if (Get-Command getVault -ErrorAction SilentlyContinue) {
                 $vault = getVault
@@ -632,7 +612,6 @@ function Register-KeeperBiometricCredential {
         
         $auth = $vault.Auth
         
-        # Call PasskeyManager.RegisterPasskeyAsync
         $task = [KeeperBiometric.PasskeyManager]::RegisterPasskeyAsync($auth, $FriendlyName, $Force.IsPresent)
         $result = $task.GetAwaiter().GetResult()
         
@@ -669,9 +648,6 @@ function Register-KeeperBiometricCredential {
         return $false
     }
 }
-
-# Helper functions that wrap CredentialStorage methods
-# These are kept for backward compatibility with any scripts using them
 
 function Get-WindowsHelloCredentialId {
     [CmdletBinding()]
