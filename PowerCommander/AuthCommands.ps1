@@ -454,33 +454,24 @@ function Connect-Keeper {
             try {
                 Write-Host "Attempting Keeper biometric authentication..." -InformationAction Continue
                 
-                # Check if device has data key registered
-                $deviceSettings = Get-KeeperDeviceSettings
-                if (-not $deviceSettings.DataKeyPresent) {
-                    Write-Debug "Data key not present on device, skipping biometric authentication"
-                    Write-Host "Device is not registered for biometric login. Please run 'Set-KeeperDeviceSettings -Register' first."
-                    $biometricPresent = $false
-                }
-                else {
-                    $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
-                    if ($biometricResult.Success) {
-                        $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
-                        if ($authFlow.IsCompleted) {
-                            Write-Debug "Authentication completed successfully!" -InformationAction Continue
-                            break
-                        }
-                        # If not completed, disable biometric for subsequent steps (e.g., 2FA)
-                        Write-Debug "Biometric authentication succeeded, but additional authentication steps required"
-                        $biometricPresent = $false
-                    } else {
-                        Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
-                        Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
-                        $biometricPresent = $false 
+                $biometricResult = Assert-KeeperBiometricCredential -AuthSyncObject $authFlow -Username $Username -PassThru
+                if ($biometricResult.Success -and $biometricResult.IsValid) {
+                    $authFlow.ResumeLoginWithToken($biometricResult.EncryptedLoginToken).GetAwaiter().GetResult() | Out-Null 
+                    if ($authFlow.IsCompleted) {
+                        Write-Debug "Authentication completed successfully!" -InformationAction Continue
+                        break
                     }
+                    Write-Debug "Biometric authentication succeeded, but additional authentication steps required"
+                    $biometricPresent = $false
+                } else {
+                    Write-Host "Biometric authentication failed, falling back to default login method. Device might not be registered"
+                    Write-Host "Please try running 'Set-KeeperDeviceSettings -Register' to register the device"
+                    $biometricPresent = $false 
                 }
             }
             catch {
-                Write-Host "Biometric authentication error: $($_.Exception.Message), falling back to password input"
+                Write-Host "Error logging in with biometric authentication, did you register the device using 'Set-KeeperDeviceSettings -Register'?"
+                Write-Host "Biometric authentication error: $($_.Exception.Message), falling back to default input"
                 $biometricPresent = $false 
             }
         }
@@ -790,10 +781,22 @@ function Get-KeeperDeviceSettings {
     <#
     .SYNOPSIS
     Display settings of the current device
+    
+    .PARAMETER Auth
+    Optional authentication object. If not provided, uses the current vault's auth.
     #>
+    [CmdletBinding()]
+    Param (
+        [Parameter()][object] $Auth
+    )
 
-    $vault = getVault
-    $auth = $vault.Auth
+    if (-not $Auth) {
+        $vault = getVault
+        $auth = $vault.Auth
+    }
+    else {
+        $auth = $Auth
+    }
 
     $accountSummary = [KeeperSecurity.Authentication.AuthExtensions]::LoadAccountSummary($auth).GetAwaiter().GetResult()
     $device = $accountSummary.Devices | Where-Object { compareArrays $_.EncryptedDeviceToken $auth.DeviceToken } | Select-Object -First 1
