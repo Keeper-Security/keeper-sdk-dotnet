@@ -842,7 +842,7 @@ namespace KeeperSecurity.Authentication
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine(e.Message);
+                        Trace.TraceError($"Load enterprise private key: {e.Message}");
                     }
                 }
                 SetKeepAliveTimer();

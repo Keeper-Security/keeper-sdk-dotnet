@@ -91,19 +91,56 @@ namespace KeeperSecurity.Configuration
             {
                 FilePath = Path.GetFullPath(fileName);
             }
+            else if (Path.IsPathRooted(fileName))
+            {
+                // Check if rooted path is a directory
+                if (Directory.Exists(fileName) || fileName.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                {
+                    FilePath = Path.Combine(fileName, "config.json");
+                }
+                else
+                {
+                    FilePath = fileName;
+                }
+            }
             else
             {
-                var personalFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-                    ".keeper");
-                if (!Directory.Exists(personalFolder))
+                var filename = Path.GetFileName(fileName);
+                if (string.IsNullOrEmpty(filename)) 
                 {
-                    Directory.CreateDirectory(personalFolder);
+                    fileName = Path.Combine(fileName, "config.json");
                 }
 
-                FilePath = Path.Combine(personalFolder, fileName);
+                var directory = Path.GetDirectoryName(fileName);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    if (Directory.Exists(directory))
+                    {
+                        fileName = Path.GetFullPath(fileName);
+                    }
+                    else 
+                    { 
+                        fileName = Path.GetFileName(fileName);
+                    }
+                }
+
+                if (Path.IsPathRooted(fileName))
+                {
+                    FilePath = fileName;
+                }
+                else 
+                {
+                    var personalFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".keeper");
+                    if (!Directory.Exists(personalFolder))
+                    {
+                        Directory.CreateDirectory(personalFolder);
+                    }
+
+                    FilePath = Path.GetFullPath(Path.Combine(personalFolder, fileName));
+                }
             }
 
-            Debug.WriteLine($"JSON config path: \"{FilePath}\"");
+            Trace.TraceInformation($"JSON config path: \"{FilePath}\"");
         }
 
         /// <summary>
@@ -203,7 +240,7 @@ namespace KeeperSecurity.Configuration
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine($"Load JSON configuration error: {e.Message}");
+                    Trace.TraceError($"Load JSON configuration : {e.Message}");
                 }
             }
 
