@@ -204,8 +204,8 @@ namespace KeeperSecurity.Authentication
             }
             catch (KeeperInvalidDeviceToken idt)
             {
-                Debug.WriteLine(idt.Message);
-                if (idt.AdditionalInfo != "public key already exists")
+                Trace.TraceError($"Device register error: {idt.Message}");
+                if (idt.Message != "public key already exists")
                 {
                     throw;
                 }

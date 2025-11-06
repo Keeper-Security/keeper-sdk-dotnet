@@ -458,7 +458,7 @@ namespace KeeperSecurity.Authentication.Sync
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine(e.Message);
+                    Debug.WriteLine($"{e.GetType().Name}: {e.Message}");
                 }
             }
 
