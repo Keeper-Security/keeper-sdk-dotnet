@@ -72,11 +72,8 @@ namespace KeeperSecurity.Authentication
     /// <exclude />
     public class KeeperInvalidDeviceToken : Exception
     {
-        public string AdditionalInfo { get; }
-
-        public KeeperInvalidDeviceToken(string additionalInfo)
+        public KeeperInvalidDeviceToken(string additionalInfo) : base(additionalInfo)
         {
-            AdditionalInfo = additionalInfo;
         }
     }
 

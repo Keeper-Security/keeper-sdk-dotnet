@@ -439,7 +439,7 @@ namespace KeeperSecurity.Utils
                         }
                         catch (Exception e)
                         {
-                            Debug.WriteLine(e.Message);
+                            Trace.TraceError($"Execute DDL statement error: {e.Message}");
                             ddlStatements.Add(stmt);
                         }
                     }
