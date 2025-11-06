@@ -340,7 +340,11 @@ namespace Cli
                         {
                             if (!await StateContext.ProcessException(e))
                             {
-                                Console.WriteLine("Error: " + e.Message);
+                                if (e is AggregateException ae)
+                                {
+                                    e = ae.InnerException;
+                                }
+                                Console.WriteLine($"Error \"{e.GetType().Name}\": {e.Message}");
                             }
                         }
                         finally
