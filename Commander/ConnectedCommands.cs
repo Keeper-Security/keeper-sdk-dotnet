@@ -1350,6 +1350,7 @@ namespace Commander
             }
 #else
             Console.WriteLine("Windows Hello biometric support is only available on Windows with .NET Framework 4.7.2+");
+            await Task.CompletedTask;
 #endif
         }
 

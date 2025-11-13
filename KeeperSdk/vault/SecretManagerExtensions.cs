@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using AuthProto = Authentication;
 using EnterpriseProto = Enterprise;
 
-#if HAS_BOUNCYCASTLE
+#if NETSTANDARD2_0_OR_GREATER
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
@@ -414,11 +414,11 @@ namespace KeeperSecurity.Vault
 
         private EcPrivateKey LoadKsmPrivateKey(byte[] data)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var ecKey = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
             ecKey.ImportPkcs8PrivateKey(data, out _);
             return ecKey;
-#elif NETSTANDARD2_0_OR_GREATER || __ANDROID__
+#elif NETSTANDARD2_0_OR_GREATER
             var privateKeyInfo = PrivateKeyInfo.GetInstance(data);
             var privateKeyStructure = ECPrivateKeyStructure.GetInstance(privateKeyInfo.ParsePrivateKey());
             var privateKeyValue = privateKeyStructure.GetKey();
@@ -428,9 +428,9 @@ namespace KeeperSecurity.Vault
 
         private byte[] UnloadKsmPrivateKey(EcPrivateKey privateKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             return privateKey.ExportPkcs8PrivateKey();
-#elif NETSTANDARD2_0_OR_GREATER || __ANDROID__
+#elif NETSTANDARD2_0_OR_GREATER
             var publicKey = CryptoUtils.GetEcPublicKey(privateKey);
             var publicKeyDer = new DerBitString(publicKey.Q.GetEncoded(false));
             var dp = privateKey.Parameters;
@@ -485,7 +485,7 @@ namespace KeeperSecurity.Vault
                 attempt++;
                 var encTransmissionKey = Auth.Endpoint.EncryptWithKeeperKey(transmissionKey, keyId);
                 byte[] signature;
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
                 byte[] hash;
                 using (var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
                 {
@@ -499,7 +499,7 @@ namespace KeeperSecurity.Vault
                 {
                     signature = signer.SignHash(hash, DSASignatureFormat.Rfc3279DerSequence);
                 }
-#elif NETSTANDARD2_0_OR_GREATER || __ANDROID__
+#elif NETSTANDARD2_0_OR_GREATER
                 var signatureBase = encTransmissionKey.Concat(encryptedPayload).ToArray();
                 var signer = SignerUtilities.GetSigner("SHA256withECDSA");
 

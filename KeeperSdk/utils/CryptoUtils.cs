@@ -9,9 +9,9 @@ using System.Web;
 using System.Buffers;
 
 
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
 using System.Formats.Asn1;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -39,9 +39,9 @@ namespace KeeperSecurity.Utils
         private const int AesGcmNonceSize = 12;
         private const int AesGcmTagSize = 16;
 
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
         private static readonly RandomNumberGenerator SecureRandom = RandomNumberGenerator.Create();
-#else
+#elif NETSTANDARD2_0_OR_GREATER
         private static readonly SecureRandom SecureRandom = new();
         internal static readonly ECDomainParameters EcParameters;
         static CryptoUtils()
@@ -59,9 +59,9 @@ namespace KeeperSecurity.Utils
         public static byte[] GetRandomBytes(int length)
         {
             var bytes = new byte[length];
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             SecureRandom.GetBytes(bytes);
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             SecureRandom.NextBytes(bytes);
 #endif
             return bytes;
@@ -135,7 +135,7 @@ namespace KeeperSecurity.Utils
         /// <returns>RSA Public Key DER encoded</returns>
         public static byte[] UnloadRsaPublicKey(RsaPublicKey publicKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var parameters = publicKey.ExportParameters(false);
             var writer = new AsnWriter(AsnEncodingRules.DER);
             writer.PushSequence();
@@ -143,7 +143,7 @@ namespace KeeperSecurity.Utils
             writer.WriteInteger(parameters.Exponent);
             writer.PopSequence();
             return writer.Encode();
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var publicKeyInfo = new RsaPublicKeyStructure(publicKey.Modulus, publicKey.Exponent);
             return publicKeyInfo.GetDerEncoded();
 #endif 
@@ -156,7 +156,7 @@ namespace KeeperSecurity.Utils
         /// <returns>RSA Public Key</returns>
         public static RsaPublicKey LoadRsaPublicKey(byte[] key)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var reader = new AsnReader(key, AsnEncodingRules.DER);
             reader = reader.ReadSequence();
             var modulus = reader.ReadIntegerBytes().ToUnsignedBigInteger(256).ToArray();
@@ -168,7 +168,7 @@ namespace KeeperSecurity.Utils
                 Exponent = exponent
             });
             return rsa;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var algorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
             var publicKeyStructure = RsaPublicKeyStructure.GetInstance(Asn1Sequence.GetInstance(key));
             var publicKeyInfo = new SubjectPublicKeyInfo(algorithm, publicKeyStructure);
@@ -184,7 +184,7 @@ namespace KeeperSecurity.Utils
         /// <returns>RSA Private Key DER encoded</returns>
         public static byte[] UnloadRsaPrivateKey(RsaPrivateKey privateKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var data = privateKey.ExportPkcs8PrivateKey();
             var reader = new AsnReader(data, AsnEncodingRules.DER);
             reader = reader.ReadSequence();
@@ -192,7 +192,7 @@ namespace KeeperSecurity.Utils
             _ = reader.ReadSequence();
             var pk = reader.ReadOctetString();
             return pk;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
             return privateKeyInfo.ParsePrivateKey().GetDerEncoded();
 #endif
@@ -224,7 +224,7 @@ namespace KeeperSecurity.Utils
         /// <returns>RSA Private Key</returns>
         public static RsaPrivateKey LoadRsaPrivateKey(byte[] key)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var reader = new AsnReader(key, AsnEncodingRules.DER);
             reader = reader.ReadSequence();
             _ = reader.ReadInteger();
@@ -251,7 +251,7 @@ namespace KeeperSecurity.Utils
                 InverseQ = coefficient,
             });
             return rsa;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var algorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
             var privateKeyStructure = RsaPrivateKeyStructure.GetInstance(Asn1Sequence.GetInstance(key));
             var privateKeyInfo = new PrivateKeyInfo(algorithm, privateKeyStructure);
@@ -310,7 +310,7 @@ namespace KeeperSecurity.Utils
         /// <exclude/>
         public static byte[] EncryptAesV2(byte[] data, byte[] key, byte[] nonce)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             using var aes = new AesGcm(key, AesGcmTagSize);
 
             var encryptedData = new byte[AesGcmNonceSize + data.Length + AesGcmTagSize];
@@ -329,7 +329,7 @@ namespace KeeperSecurity.Utils
 
             aes.Encrypt(nonceSpan, plain, encrypted, tag);
             return encryptedData;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var parameters = new AeadParameters(new KeyParameter(key), 16 * 8, nonce);
 
             var cipher = new GcmBlockCipher(new AesEngine());
@@ -366,7 +366,7 @@ namespace KeeperSecurity.Utils
         /// <exception cref="Exception">Cannot be decrypted.</exception>
         public static byte[] DecryptAesV2(byte[] data, byte[] key, int nonceLength = AesGcmNonceSize)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             using var aes = new AesGcm(key, AesGcmTagSize);
             var buffer = new byte[data.Length - (AesGcmNonceSize + AesGcmTagSize)];
             var nonce = data.Take(AesGcmNonceSize).ToArray();
@@ -374,7 +374,7 @@ namespace KeeperSecurity.Utils
             var tag = data.Skip(AesGcmNonceSize + buffer.Length).Take(AesGcmTagSize).ToArray();
             aes.Decrypt(nonce, encrypted, tag, buffer);
             return buffer;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var nonce = data.Take(nonceLength).ToArray();
             var parameters = new AeadParameters(new KeyParameter(key), 16 * 8, nonce);
 
@@ -398,9 +398,9 @@ namespace KeeperSecurity.Utils
         /// <remarks>Uses PKCS1 padding.</remarks>
         public static byte[] EncryptRsa(byte[] data, RsaPublicKey publicKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             return publicKey.Encrypt(data, RSAEncryptionPadding.Pkcs1);
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var encryptEngine = new Pkcs1Encoding(new RsaEngine());
             encryptEngine.Init(true, publicKey);
             return encryptEngine.ProcessBlock(data, 0, data.Length);
@@ -415,9 +415,9 @@ namespace KeeperSecurity.Utils
         /// <returns>Plain data.</returns>
         public static byte[] DecryptRsa(byte[] data, RsaPrivateKey privateKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             return privateKey.Decrypt(data, RSAEncryptionPadding.Pkcs1);
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var encryptEngine = new Pkcs1Encoding(new RsaEngine());
             encryptEngine.Init(false, privateKey);
             return encryptEngine.ProcessBlock(data, 0, data.Length);
@@ -433,10 +433,10 @@ namespace KeeperSecurity.Utils
         /// <returns>Encryption key.</returns>
         public static byte[] DeriveKeyV1(string password, byte[] salt, int iterations)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             using var pdb = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
             return pdb.GetBytes(256 / 8);
-#else
+#elif NETSTANDARD2_0_OR_GREATER
                 var pdb = new Pkcs5S2ParametersGenerator(new Sha256Digest());
                 pdb.Init(PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password.ToCharArray()), salt, iterations);
                 return ((KeyParameter) pdb.GenerateDerivedMacParameters(32 * 8)).GetKey();
@@ -535,13 +535,13 @@ namespace KeeperSecurity.Utils
         /// <param name="publicKey"><c>out</c>Rsa Public Key</param>
         public static void GenerateRsaKey(out RsaPrivateKey privateKey, out RsaPublicKey publicKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var rsa = RSA.Create();
             var rsaPublicKey = RSA.Create();
             rsaPublicKey.ImportParameters(rsa.ExportParameters(false));
             privateKey = rsa;
             publicKey = rsaPublicKey;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var r = new RsaKeyPairGenerator();
             r.Init(new KeyGenerationParameters(SecureRandom, 2048));
             var keyPair = r.GenerateKeyPair();
@@ -561,12 +561,12 @@ namespace KeeperSecurity.Utils
         /// <returns>Encryption key.</returns>
         public static byte[] DeriveKeyV2(string domain, string password, byte[] salt, int iterations)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             using var pdb = new Rfc2898DeriveBytes(domain + password, salt, iterations, HashAlgorithmName.SHA512);
             var key = pdb.GetBytes(512 / 8);
             using var hmac = new HMACSHA256(key);
             return hmac.ComputeHash(Encoding.UTF8.GetBytes(domain));
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var passwordBytes = Encoding.UTF8.GetBytes(domain + password);
             var pdb = new Pkcs5S2ParametersGenerator(new Sha512Digest());
             pdb.Init(passwordBytes, salt, iterations);
@@ -594,10 +594,10 @@ namespace KeeperSecurity.Utils
         /// <param name="publicKey"><c>out</c> Public Key.</param>
         public static void GenerateEcKey(out EcPrivateKey privateKey, out EcPublicKey publicKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             privateKey = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
             publicKey = privateKey.PublicKey;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var keyGeneratorParams = new ECKeyGenerationParameters(EcParameters, SecureRandom);
             var keyGenerator = new ECKeyPairGenerator("ECDH");
             keyGenerator.Init(keyGeneratorParams);
@@ -615,10 +615,10 @@ namespace KeeperSecurity.Utils
         /// <remarks>32 bytes</remarks>
         public static byte[] UnloadEcPrivateKey(EcPrivateKey key)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var parameters = key.ExportParameters(true);
             return parameters.D;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var privateKey = key.D.ToByteArrayUnsigned();
             var len = privateKey.Length;
             if (len >= 32) return privateKey;
@@ -637,14 +637,14 @@ namespace KeeperSecurity.Utils
         /// <remarks>Uncompressed. 65 bytes.</remarks>
         public static byte[] UnloadEcPublicKey(EcPublicKey publicKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var key = new byte[65];
             key[0] = 0x04;
             var parameters = publicKey.ExportParameters();
             Array.Copy(parameters.Q.X!, 0, key, 1, 32);
             Array.Copy(parameters.Q.Y!, 0, key, 33, 32);
             return key;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             return publicKey.Q.GetEncoded();
 #endif
         }
@@ -657,7 +657,7 @@ namespace KeeperSecurity.Utils
         /// <exception cref="Exception">invalid key bytes</exception>
         public static EcPrivateKey LoadEcPrivateKey(byte[] privateKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             if (privateKey.Length < 32)
             {
                 throw new ArgumentException("Invalid EC private key data");
@@ -669,7 +669,7 @@ namespace KeeperSecurity.Utils
                 D = privateKey
             });
             return ecKey;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             return new ECPrivateKeyParameters(new BigInteger(1, privateKey), EcParameters);
 #endif
         }
@@ -682,7 +682,7 @@ namespace KeeperSecurity.Utils
         /// <exception cref="Exception">invalid key bytes</exception>
         public static EcPublicKey LoadEcPublicKey(byte[] publicKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             if (publicKey.Length < 65)
             {
                 throw new ArgumentException("Invalid EC public key data");
@@ -705,7 +705,7 @@ namespace KeeperSecurity.Utils
                 }
             });
             return pk.PublicKey;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var point = new X9ECPoint(EcParameters.Curve, new DerOctetString(publicKey)).Point;
             return new ECPublicKeyParameters(point, EcParameters);
 #endif
@@ -714,9 +714,9 @@ namespace KeeperSecurity.Utils
         /// <exclude />
         public static EcPublicKey GetEcPublicKey(EcPrivateKey privateKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             return privateKey.PublicKey;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             return new ECPublicKeyParameters(privateKey.Parameters.G.Multiply(privateKey.D), privateKey.Parameters);
 #endif
         }
@@ -731,7 +731,7 @@ namespace KeeperSecurity.Utils
         public static byte[] EncryptEc(byte[] data, EcPublicKey publicKey)
         {
             GenerateEcKey(out var ePrivateKey, out var ePublicKey);
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var encryptionKey = ePrivateKey.DeriveKeyMaterial(publicKey);
             var pk = UnloadEcPublicKey(ePublicKey);
             var encryptedData = EncryptAesV2(data, encryptionKey);
@@ -739,7 +739,7 @@ namespace KeeperSecurity.Utils
             Array.Copy(pk, result, pk.Length);
             Array.Copy(encryptedData, 0, result, pk.Length, encryptedData.Length);
             return result;
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
             agreement.Init(ePrivateKey);
             var key = agreement.CalculateAgreement(publicKey).ToByteArrayUnsigned();
@@ -757,12 +757,12 @@ namespace KeeperSecurity.Utils
         /// <returns>Plain data.</returns>
         public static byte[] DecryptEc(byte[] data, EcPrivateKey privateKey)
         {
-#if !HAS_BOUNCYCASTLE
+#if NET8_0_OR_GREATER
             var ePublicKey = LoadEcPublicKey(data);
             var encryptionKey = privateKey.DeriveKeyMaterial(ePublicKey);
             var encryptedData = new ReadOnlySpan<byte>(data, 65, data.Length - 65).ToArray();
             return DecryptAesV2(encryptedData, encryptionKey);
-#else
+#elif NETSTANDARD2_0_OR_GREATER
             var ePublicKey = LoadEcPublicKey(data.Take(65).ToArray());
             var agreement = AgreementUtilities.GetBasicAgreement("ECDHC");
             agreement.Init(privateKey);
