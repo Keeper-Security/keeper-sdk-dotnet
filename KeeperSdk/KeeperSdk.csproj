@@ -30,7 +30,7 @@
     <PackageReference Include="Google.Protobuf" Version="3.28.3" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <Compile Include="..\GlobalUsings.cs">
       <Link>GlobalUsings.cs</Link>

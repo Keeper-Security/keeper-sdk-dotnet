@@ -59,7 +59,7 @@ namespace KeeperSecurity.Enterprise
         /// Removes a team from a role
         /// </summary>
         /// <param name="role">Enterprise role</param>
-        /// <param name="teamUid">Enterprise team</param>
+        /// <param name="team">Enterprise team</param>
         /// <returns>Task</returns>
         Task RemoveTeamFromRole(EnterpriseRole role, EnterpriseTeam team);
     }
