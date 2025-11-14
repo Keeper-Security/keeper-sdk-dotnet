@@ -201,5 +201,15 @@ namespace KeeperSecurity.Authentication
             };
             return new Uri(builder.Uri, endpoint).AbsoluteUri;
         }
+
+        // <exclude/>
+        public static async Task<AccountSummaryElements> LoadAccountSummary(this IAuthentication auth)
+        {
+            var rq = new AccountSummaryRequest
+            {
+                SummaryVersion = 1
+            };
+            return await auth.ExecuteAuthRest<AccountSummaryRequest, AccountSummaryElements>("login/account_summary", rq);
+        }
     }
 }

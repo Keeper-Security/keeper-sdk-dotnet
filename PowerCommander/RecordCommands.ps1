@@ -781,7 +781,7 @@ function Add-KeeperRecord {
         else {
             $folderUid = $Script:Context.CurrentFolder
             if ($Folder) {
-                $folderNode = resolveFolderNode $vault $Folder
+                $folderNode = resolveKeeperFolder -Identifier $Folder -Vault $vault -SupportPaths
                 $folderUid = $folderNode.FolderUid
             }
 
@@ -884,7 +884,7 @@ function Move-RecordToFolder {
 
     Begin {
         [KeeperSecurity.Vault.VaultOnline]$vault = getVault
-        $folderNode = resolveFolderNode $vault $Folder
+        $folderNode = resolveKeeperFolder -Identifier $Folder -Vault $vault -SupportPaths
         $sourceRecords = @()
     }
 
@@ -990,25 +990,6 @@ function Get-KeeperRecordType {
     }
 }
 New-Alias -Name krti -Value Get-KeeperRecordType
-
-function resolveFolderNode {
-    Param ([KeeperSecurity.Vault.VaultOnline]$vault, $path)
-
-    [KeeperSecurity.Vault.FolderNode]$folder = $null
-    if (-not $vault.TryGetFolder($path, [ref]$folder)) {
-        if (-not $vault.TryGetFolder($Script:Context.CurrentFolder, [ref]$folder)) {
-            $folder = $vault.RootFolder
-        }
-
-        $comps = splitKeeperPath $path
-        $folder, $rest = parseKeeperPath $comps $vault $folder
-        if ($rest) {
-            Write-Error "Folder $path not found" -ErrorAction Stop
-        }
-    }
-
-    $folder
-}
 
 function New-KeeperRecordType {
     <#

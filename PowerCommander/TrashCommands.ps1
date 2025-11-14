@@ -290,7 +290,8 @@ function Test-FolderMatchesPattern {
         [Parameter(Mandatory = $true)]
         [string]$FolderName,
         
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
+        [AllowNull()]
         $FolderRecords,
         
         [string]$Pattern,
@@ -305,10 +306,12 @@ function Test-FolderMatchesPattern {
         return $true
     }
     
-    foreach ($record in $FolderRecords) {
-        $metadata = Get-RecordMetadata -DataUnencrypted $record.DataUnencrypted
-        if ($metadata.Title -match $TitlePattern) {
-            return $true
+    if ($null -ne $FolderRecords) {
+        foreach ($record in $FolderRecords) {
+            $metadata = Get-RecordMetadata -DataUnencrypted $record.DataUnencrypted
+            if ($metadata.Title -match $TitlePattern) {
+                return $true
+            }
         }
     }
     
