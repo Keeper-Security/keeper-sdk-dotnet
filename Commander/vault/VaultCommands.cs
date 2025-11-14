@@ -491,7 +491,7 @@ namespace Commander
                 new ParseableCommand<DownloadMembershipCommandOptions>
                 {
                     Order = 35,
-                    Description = "Unload shared folder membership to a JSON file",
+                    Description = "Download shared folder membership to a JSON file",
                     Action = context.DownloadMembershipCommand
                 });
 

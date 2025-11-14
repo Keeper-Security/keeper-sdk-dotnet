@@ -42,10 +42,12 @@ namespace Commander
 
             Console.WriteLine("Exporting vault data...");
             
+            var excludeSharedFolders = options.ExcludeSharedFolders;
+            
             await context.Vault.ExportVaultToFile(
                 filename,
                 recordUids: null,
-                includeSharedFolders: !options.ExcludeSharedFolders,
+                includeSharedFolders: !excludeSharedFolders,
                 logger: Logger);
 
             var fileInfo = new FileInfo(filename);
@@ -56,10 +58,10 @@ namespace Commander
             table.SetColumnRightAlign(0, true);
             
             var recordCount = context.Vault.KeeperRecords.Count(r => r.Version == 2 || r.Version == 3);
-            var sharedFolderCount = options.ExcludeSharedFolders ? 0 : context.Vault.SharedFolders.Count();
+            var sharedFolderCount = excludeSharedFolders ? 0 : context.Vault.SharedFolders.Count();
             
             table.AddRow("Records Exported:", recordCount);
-            if (!options.ExcludeSharedFolders)
+            if (!excludeSharedFolders)
             {
                 table.AddRow("Shared Folders:", sharedFolderCount);
             }

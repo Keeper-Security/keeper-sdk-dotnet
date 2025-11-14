@@ -105,14 +105,15 @@ namespace KeeperSecurity.Vault
                 
                 if (!string.IsNullOrEmpty(options.SubFolderHandling))
                 {
+                    var pathDelimiter = BatchVaultOperations.PathDelimiter;
                     var handling = options.SubFolderHandling.ToLower();
-                    if (handling == "ignore" && path.Contains(BatchVaultOperations.PathDelimiter))
+                    if (handling == "ignore" && path.Contains(pathDelimiter))
                     {
                         continue;
                     }
-                    else if (handling == "flatten" && path.Contains(BatchVaultOperations.PathDelimiter))
+                    else if (handling == "flatten" && path.Contains(pathDelimiter))
                     {
-                        var parts = path.Split(BatchVaultOperations.PathDelimiter);
+                        var parts = path.Split(pathDelimiter);
                         if (parts.Length > 1)
                         {
                             path = parts[0] + " - " + string.Join(" - ", parts.Skip(1));

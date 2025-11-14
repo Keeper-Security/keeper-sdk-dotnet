@@ -132,7 +132,7 @@ namespace Commander
         public string FileName { get; set; }
 
         [Option('f', "force", Required = false, Default = false,
-            HelpText = "Overwrite existing file without merging")]
+            HelpText = "If file exists, force will overwrite it otherwise it will be merged")]
         public bool Force { get; set; }
 
         [Option("folders-only", Required = false, Default = false,
