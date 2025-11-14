@@ -24,11 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Use local project for development (default) -->
     <ProjectReference Include="..\KeeperSdk\KeeperSdk.csproj" Condition="'$(UseNuGetKeeperSdk)' != 'true'" />
-
-    <!-- Use NuGet package for release builds -->
     <PackageReference Include="Keeper.Sdk" Version="1.1.0" Condition="'$(UseNuGetKeeperSdk)' == 'true'" />
+    <ProjectReference Include="..\KeeperBiometrics\KeeperBiometrics.csproj" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
 
   <ItemGroup>

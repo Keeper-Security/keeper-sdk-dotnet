@@ -31,6 +31,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Remove-KeeperRecord                    | kdel        | Delete Keeper record
 | Move-RecordToFolder                    | kmv         | Move records to Keeper folder
 | Add-KeeperFolder                       | kmkdir      | Create Keeper folder
+| Get-KeeperFolder                       | kgetfolder  | Get detailed information about a Keeper folder
 | Edit-KeeperFolder                      |             | Edit Keeper folder
 | Remove-KeeperFolder                    | krmdir      | Remove Keeper folder
 | Copy-KeeperToClipboard                 | kcc         | Copy record password to clipboard
@@ -215,22 +216,37 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     ```
     copies all records in the current Keeper folder to the folder with name 'Shared Folder'
 
-8. List all enterprise users
+8. Get detailed information about a folder
+    ```
+    PS > Get-KeeperFolder 'Shared Folder'
+    ```
+    or using the alias
+    ```
+    PS > kgetfolder 'b3TMAYfOWJqNxeLjlA6v_g'
+    ```
+    where `b3TMAYfOWJqNxeLjlA6v_g` is the Folder UID
+    
+    You can also use a path:
+    ```
+    PS > Get-KeeperFolder '/Shared Folder/SubFolder'
+    ```
+
+9. List all enterprise users
     ```
     PS > Get-KeeperEnterpriseUser
     ```
 
-9. Create a new Managed Company
+10. Create a new Managed Company
     ```
     PS> New-KeeperManagedCompany -Name "Company Name" -PlanId enterprisePlus -Allocated 5
     ```
 
-10. Switch to a new Managed Company
+11. Switch to a new Managed Company
     ```
     PS> switch-to-mc "Company Name"
     ```
 
-11. List deleted records in trash
+12. List deleted records in trash
     ```
     PS > Get-KeeperTrashList
     ```
@@ -243,7 +259,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > ktrash -Pattern "test*"
     ```
 
-12. Get details of a deleted record
+13. Get details of a deleted record
     ```
     PS > Get-KeeperTrashedRecordDetails -RecordUid "QGMaKCr9ksOOkhIMSvIWtg"
     ```
@@ -252,7 +268,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > ktrash-get "QGMaKCr9ksOOkhIMSvIWtg"
     ```
 
-13. Restore deleted records from trash
+14. Restore deleted records from trash
     ```
     PS > Restore-KeeperTrashRecords -Records "QGMaKCr9ksOOkhIMSvIWtg"
     ```
@@ -261,7 +277,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
     PS > ktrash-restore -Records "test*", "MyRecord" -Force
     ```
 
-14. Remove shares from deleted records
+15. Remove shares from deleted records
     ```
     PS > Remove-TrashedKeeperRecordShares -Records "QGMaKCr9ksOOkhIMSvIWtg"
     ```
