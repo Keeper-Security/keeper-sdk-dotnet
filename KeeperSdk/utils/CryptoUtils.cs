@@ -38,6 +38,7 @@ namespace KeeperSecurity.Utils
         private const string CorruptedEncryptionParametersMessage = "Corrupted encryption parameters";
         private const int AesGcmNonceSize = 12;
         private const int AesGcmTagSize = 16;
+
 #if NET8_0_OR_GREATER
         private static readonly RandomNumberGenerator SecureRandom = RandomNumberGenerator.Create();
 #elif NETSTANDARD2_0_OR_GREATER
@@ -190,7 +191,6 @@ namespace KeeperSecurity.Utils
             _ = reader.ReadInteger();
             _ = reader.ReadSequence();
             var pk = reader.ReadOctetString();
-            // var er1 = LoadRsaPrivateKey(pk);
             return pk;
 #elif NETSTANDARD2_0_OR_GREATER
             var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);

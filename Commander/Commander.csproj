@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cli\Cli.csproj" />
     <ProjectReference Include="..\KeeperSdk\KeeperSdk.csproj" />
+    <ProjectReference Include="..\KeeperBiometrics\KeeperBiometrics.csproj" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
 
   <ItemGroup>
