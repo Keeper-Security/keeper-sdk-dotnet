@@ -177,7 +177,9 @@ namespace Cli
             });
 #endif
 
+#if NET472_OR_GREATER
             var biometricAttempted = false;
+#endif
             
             while (!auth.IsCompleted)
             {
