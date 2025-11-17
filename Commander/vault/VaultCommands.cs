@@ -479,6 +479,22 @@ namespace Commander
                     Action = context.ImportCommand
                 });
 
+            cli.Commands.Add("export",
+                new ParseableCommand<ExportCommandOptions>
+                {
+                    Order = 34,
+                    Description = "Export vault data from Keeper to a local file",
+                    Action = context.ExportCommand
+                });
+
+            cli.Commands.Add("download-membership",
+                new ParseableCommand<DownloadMembershipCommandOptions>
+                {
+                    Order = 35,
+                    Description = "Download shared folder membership to a JSON file",
+                    Action = context.DownloadMembershipCommand
+                });
+
             cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
             {
                 Order = 39,
