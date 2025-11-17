@@ -89,6 +89,7 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Add-KeeperEnterpriseTeamMember         |             | Add a list of enterprise users to a team
 | Remove-KeeperEnterpriseTeamMember      |             | Remove a list of enterprise users from a team
 | New-KeeperEnterpriseNode               | kena        | Create Node
+| Edit-KeeperEnterpriseNode              | kenu        | Update Node (rename, move, or enable node isolation)
 | Add-KeeperEnterpriseUser               | invite-user | Invite User to Enterprise
 | New-KeeperEnterpriseTeam               | keta        | Create Team
 | Lock-KeeperEnterpriseUser              | lock-user   | Lock Enterprise User
