@@ -616,7 +616,7 @@ function Edit-KeeperEnterpriseNode {
     Moves a node to a different parent
 
     .EXAMPLE
-    Edit-KeeperEnterpriseNode -Node "SecureNode" -RestrictVisibility
+    kenu "SecureNode" -RestrictVisibility
     Enables node isolation for a node
     #>
     [CmdletBinding()]
