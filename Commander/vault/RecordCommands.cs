@@ -793,6 +793,8 @@ namespace Commander
                     var formats = new[]
                     {
                         "yyyy-MM-dd HH:mm:ss",
+                        "yyyy-MM-dd hh:mm:ss tt",
+                        "yyyy-MM-dd h:mm:ss tt",
                         "yyyy-MM-dd",
                         "yyyy-MM-ddTHH:mm:ssZ",
                         "yyyy-MM-ddTHH:mm:sszzz"
