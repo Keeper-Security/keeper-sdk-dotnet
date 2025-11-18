@@ -309,7 +309,21 @@ namespace Commander
 
                         if (!string.IsNullOrEmpty(options.ExpireAt))
                         {
-                            shareOptions.Expiration = DateTimeOffset.ParseExact(options.ExpireAt, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
+                            var formats = new[]
+                            {
+                                "yyyy-MM-dd HH:mm:ss",
+                                "yyyy-MM-dd hh:mm:ss tt",
+                                "yyyy-MM-dd h:mm:ss tt",
+                                "yyyy-MM-dd",
+                                "yyyy-MM-ddTHH:mm:ssZ",
+                                "yyyy-MM-ddTHH:mm:sszzz"
+                            };
+                            shareOptions.Expiration = DateTimeOffset.ParseExact(
+                                options.ExpireAt,
+                                formats,
+                                CultureInfo.InvariantCulture,
+                                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal
+                            );
                         }
                         else if (!string.IsNullOrEmpty(options.ExpireIn))
                         {
@@ -431,7 +445,21 @@ namespace Commander
                 };
                 if (!string.IsNullOrEmpty(options.ExpireAt))
                 {
-                    shareOptions.Expiration = DateTimeOffset.ParseExact(options.ExpireAt, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
+                    var formats = new[]
+                    {
+                        "yyyy-MM-dd HH:mm:ss",
+                        "yyyy-MM-dd hh:mm:ss tt",
+                        "yyyy-MM-dd h:mm:ss tt",
+                        "yyyy-MM-dd",
+                        "yyyy-MM-ddTHH:mm:ssZ",
+                        "yyyy-MM-ddTHH:mm:sszzz"
+                    };
+                    shareOptions.Expiration = DateTimeOffset.ParseExact(
+                        options.ExpireAt,
+                        formats,
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal
+                    );
                 }
                 else if (!string.IsNullOrEmpty(options.ExpireIn))
                 {
