@@ -20,10 +20,46 @@ namespace Commander
                 throw new NotImplementedException("Enterprise scope is not yet implemented. Use --scope vault");
             }
 
-            Console.WriteLine("Searching for duplicate records...");
+            var compareFields = new List<string>();
+            if (options.Full)
+            {
+                compareFields.Add("All Fields");
+            }
+            else
+            {
+                if (options.Title || (!options.Login && !options.Password && !options.Url))
+                    compareFields.Add("Title");
+                if (options.Login || (!options.Title && !options.Password && !options.Url))
+                    compareFields.Add("Login");
+                if (options.Password || (!options.Title && !options.Login && !options.Url))
+                    compareFields.Add("Password");
+                if (options.Url)
+                    compareFields.Add("URL");
+            }
+            Console.WriteLine($"Find duplicated records by: {string.Join(", ", compareFields)}");
+            Console.WriteLine();
+
+            Dictionary<string, RecordSharePermissions> shareInfoMap = null;
+            var recordUids = context.Vault.KeeperRecords.Select(r => r.Uid).ToList();
+            try
+            {
+                var sharesList = await context.Vault.GetSharesForRecords(recordUids);
+                shareInfoMap = sharesList.ToDictionary(s => s.RecordUid, s => s);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Could not load share information: {ex.Message}");
+                shareInfoMap = new Dictionary<string, RecordSharePermissions>();
+            }
+
+            Dictionary<string, RecordSharePermissions> shareInfoForHash = null;
+            if (options.Full || options.Shares)
+            {
+                shareInfoForHash = shareInfoMap;
+            }
 
             // Build the duplicate hash map
-            var duplicateGroups = BuildDuplicateHashMap(context, options);
+            var duplicateGroups = BuildDuplicateHashMap(context, options, shareInfoForHash);
 
             if (duplicateGroups.Count == 0)
             {
@@ -31,9 +67,9 @@ namespace Commander
                 return;
             }
 
-            Console.WriteLine($"Found {duplicateGroups.Count} group(s) of duplicate records.");
+            Console.WriteLine("Duplicates Found:");
             Console.WriteLine();
-
+            
             if (options.Merge)
             {
                 if (options.DryRun)
@@ -42,21 +78,24 @@ namespace Commander
                     Console.WriteLine();
                 }
 
-                await HandleMergeOperation(context, duplicateGroups, options);
+                await HandleMergeOperation(context, duplicateGroups, options, shareInfoMap);
             }
             else
             {
-                DisplayDuplicateReport(context, duplicateGroups, options);
+                DisplayDuplicateReport(context, duplicateGroups, options, shareInfoMap);
             }
         }
 
-        private static Dictionary<string, List<string>> BuildDuplicateHashMap(VaultContext context, FindDuplicatesCommandOptions options)
+        private static Dictionary<string, List<string>> BuildDuplicateHashMap(
+            VaultContext context, 
+            FindDuplicatesCommandOptions options,
+            Dictionary<string, RecordSharePermissions> shareInfoMap)
         {
             var hashMap = new Dictionary<string, List<string>>();
 
             foreach (var record in context.Vault.KeeperRecords)
             {
-                var hash = CreateRecordHash(record, options);
+                var hash = CreateRecordHash(record, options, shareInfoMap);
                 if (string.IsNullOrEmpty(hash))
                     continue;
 
@@ -71,19 +110,23 @@ namespace Commander
             return hashMap.Where(kvp => kvp.Value.Count > 1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
-        private static string CreateRecordHash(KeeperRecord record, FindDuplicatesCommandOptions options)
+        private static string CreateRecordHash(
+            KeeperRecord record, 
+            FindDuplicatesCommandOptions options,
+            Dictionary<string, RecordSharePermissions> shareInfoMap)
         {
             var hashParts = new List<string>();
 
             if (options.Full)
             {
-                // Match by all fields
                 hashParts.Add(record.Title ?? "");
                 hashParts.Add(ExtractLogin(record));
                 hashParts.Add(ExtractPassword(record));
                 hashParts.Add(ExtractUrl(record));
                 hashParts.Add(ExtractNotes(record));
                 hashParts.Add(ExtractCustomFields(record));
+                hashParts.Add(ExtractAllTypedFields(record));
+                hashParts.Add(GetShareInfo(record, shareInfoMap));
             }
             else
             {
@@ -98,16 +141,16 @@ namespace Commander
                     hashParts.Add(ExtractUrl(record));
             }
 
-            // If no fields selected, default to title + login
             if (hashParts.Count == 0)
             {
                 hashParts.Add(record.Title ?? "");
                 hashParts.Add(ExtractLogin(record));
+                hashParts.Add(ExtractPassword(record));
             }
 
             if (options.Shares)
             {
-                hashParts.Add(GetShareInfo(record));
+                hashParts.Add(GetShareInfo(record, shareInfoMap));
             }
 
             var combined = string.Join("|", hashParts);
@@ -200,9 +243,46 @@ namespace Commander
         private static string ExtractTypedField(TypedRecord record, string fieldName)
         {
             var field = record.Fields?.FirstOrDefault(f =>
-                string.Equals(f.FieldName, fieldName, StringComparison.OrdinalIgnoreCase));
+                string.Equals(f.FieldName, fieldName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(f.FieldLabel, fieldName, StringComparison.OrdinalIgnoreCase));
 
-            return field != null ? GetFieldValueAsString(field) : "";
+            if (field != null)
+            {
+                return GetFieldValueAsString(field);
+            }
+
+            var customField = record.Custom?.FirstOrDefault(f =>
+                string.Equals(f.FieldName, fieldName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(f.FieldLabel, fieldName, StringComparison.OrdinalIgnoreCase));
+
+            return customField != null ? GetFieldValueAsString(customField) : "";
+        }
+
+        private static string ExtractAllTypedFields(KeeperRecord record)
+        {
+            if (record is not TypedRecord tr || tr.Fields == null)
+                return "";
+
+            var fields = new List<string>();
+            
+            var standardFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "login", "password", "url"
+            };
+
+            foreach (var field in tr.Fields.OrderBy(f => f.FieldName))
+            {
+                if (standardFields.Contains(field.FieldName))
+                    continue;
+
+                var value = GetFieldValueAsString(field);
+                if (!string.IsNullOrEmpty(value))
+                {
+                    fields.Add($"{field.FieldName}:{value}");
+                }
+            }
+
+            return string.Join(";", fields);
         }
 
         private static string GetFieldValueAsString(ITypedField field)
@@ -232,50 +312,147 @@ namespace Commander
             return value.ToString();
         }
 
-        private static string GetShareInfo(KeeperRecord record)
+        private static string GetShareInfo(KeeperRecord record, Dictionary<string, RecordSharePermissions> shareInfoMap)
         {
-            // For now, return empty string - full share info implementation would require additional vault context
-            return "";
+            if (shareInfoMap == null || !shareInfoMap.TryGetValue(record.Uid, out var shareInfo))
+            {
+                return "";
+            }
+
+            var shareParts = new List<string>();
+
+            if (shareInfo.UserPermissions != null)
+            {
+                var users = shareInfo.UserPermissions
+                    .OrderBy(u => u.Username)
+                    .Select(u => $"user:{u.Username}:owner={u.Owner}:edit={u.CanEdit}:share={u.CanShare}")
+                    .ToList();
+                shareParts.AddRange(users);
+            }
+
+            if (shareInfo.SharedFolderPermissions != null)
+            {
+                var folders = shareInfo.SharedFolderPermissions
+                    .OrderBy(sf => sf.SharedFolderUid)
+                    .Select(sf => $"sf:{sf.SharedFolderUid}:edit={sf.CanEdit}:share={sf.CanShare}")
+                    .ToList();
+                shareParts.AddRange(folders);
+            }
+
+            return string.Join(";", shareParts);
         }
 
-        private static void DisplayDuplicateReport(VaultContext context, Dictionary<string, List<string>> duplicateGroups, FindDuplicatesCommandOptions options)
+        private static void DisplayDuplicateReport(
+            VaultContext context, 
+            Dictionary<string, List<string>> duplicateGroups, 
+            FindDuplicatesCommandOptions options,
+            Dictionary<string, RecordSharePermissions> shareInfoMap)
         {
             var table = new Tabulate(options.Url ? 7 : 6)
             {
-                DumpRowNo = true
+                DumpRowNo = false
             };
 
             var headers = new[] { "Group", "Title", "Login" }
                 .Concat(options.Url ? new[] { "URL" } : Array.Empty<string>())
-                .Concat(new[] { "UID", "Owner", "Shared To" })
+                .Concat(new[] { "UID", "Record Owner", "Shared To" })
                 .ToArray();
 
             table.AddHeader(headers);
 
             var groupIndex = 1;
-            foreach (var group in duplicateGroups)
+            foreach (var group in duplicateGroups.OrderBy(g => g.Key))
             {
+                var isFirstInGroup = true;
                 foreach (var recordUid in group.Value)
                 {
                     if (context.Vault.TryGetKeeperRecord(recordUid, out var record))
                     {
                         var login = ExtractLogin(record);
                         var url = options.Url ? TruncateUrl(ExtractUrl(record)) : "";
+                        
+                        var owner = GetRecordOwner(recordUid, shareInfoMap);
+                        
+                        var sharedUsers = GetSharedUsersArray(context, recordUid, shareInfoMap, owner);
 
-                        var row = new object[] { groupIndex, record.Title, login }
+                        var groupCell = isFirstInGroup ? groupIndex.ToString() : "";
+                        
+                        var firstSharedUser = sharedUsers.Length > 0 ? sharedUsers[0] : "";
+                        var row = new object[] { groupCell, record.Title, login }
                             .Concat(options.Url ? new object[] { url } : Array.Empty<object>())
-                            .Concat(new object[] { recordUid, "", "" })  // Owner and SharedTo would need additional context
+                            .Concat(new object[] { recordUid, owner, firstSharedUser })
                             .ToArray();
 
                         table.AddRow(row);
+                        
+                        for (var i = 1; i < sharedUsers.Length; i++)
+                        {
+                            var continuationRow = new object[] { "", "", "" }
+                                .Concat(options.Url ? new object[] { "" } : Array.Empty<object>())
+                                .Concat(new object[] { "", "", sharedUsers[i] })
+                                .ToArray();
+                            table.AddRow(continuationRow);
+                        }
+                        
+                        isFirstInGroup = false;
                     }
                 }
                 groupIndex++;
             }
 
-            table.SetColumnRightAlign(0, true);
-            table.Sort(0);
             table.Dump();
+        }
+
+        private static string GetRecordOwner(string recordUid, Dictionary<string, RecordSharePermissions> shareInfoMap)
+        {
+            if (shareInfoMap != null && shareInfoMap.TryGetValue(recordUid, out var shareInfo))
+            {
+                var owner = shareInfo.UserPermissions?.FirstOrDefault(u => u.Owner);
+                if (owner != null)
+                {
+                    return owner.Username;
+                }
+            }
+            return "";
+        }
+
+        private static string[] GetSharedUsersArray(VaultContext context, string recordUid, Dictionary<string, RecordSharePermissions> shareInfoMap, string owner)
+        {
+            var allSharedUsers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            
+            if (shareInfoMap != null && shareInfoMap.TryGetValue(recordUid, out var shareInfo))
+            {
+                if (shareInfo.UserPermissions != null)
+                {
+                    foreach (var user in shareInfo.UserPermissions.Where(u => !u.Owner))
+                    {
+                        allSharedUsers.Add(user.Username);
+                    }
+                }
+
+                if (shareInfo.SharedFolderPermissions != null)
+                {
+                    foreach (var sfPerm in shareInfo.SharedFolderPermissions)
+                    {
+                        if (context.Vault.TryGetSharedFolder(sfPerm.SharedFolderUid, out var sharedFolder))
+                        {
+                            if (sharedFolder.UsersPermissions != null)
+                            {
+                                foreach (var userPerm in sharedFolder.UsersPermissions)
+                                {
+                                    if (userPerm.UserType == UserType.User && 
+                                        !string.Equals(userPerm.Name, owner, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        allSharedUsers.Add(userPerm.Name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return allSharedUsers.OrderBy(u => u).ToArray();
         }
 
         private static string TruncateUrl(string url)
@@ -297,7 +474,11 @@ namespace Commander
             }
         }
 
-        private static async Task HandleMergeOperation(VaultContext context, Dictionary<string, List<string>> duplicateGroups, FindDuplicatesCommandOptions options)
+        private static async Task HandleMergeOperation(
+            VaultContext context, 
+            Dictionary<string, List<string>> duplicateGroups, 
+            FindDuplicatesCommandOptions options,
+            Dictionary<string, RecordSharePermissions> shareInfoMap)
         {
             var recordsToRemove = new List<string>();
 

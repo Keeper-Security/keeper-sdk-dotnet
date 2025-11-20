@@ -50,33 +50,35 @@ namespace Commander
             }
 
             // Extract the requested data
+            int discriminator = options.CopyUid ? 4 :
+                                options.Login ? 1 :
+                                options.Totp ? 2 :
+                                !string.IsNullOrEmpty(options.Field) ? 3 : 0;
+
             string itemName;
             string value;
-
-            if (options.CopyUid)
+            switch (discriminator)
             {
-                itemName = "UID";
-                value = recordUid;
-            }
-            else if (options.Login)
-            {
-                itemName = "Login";
-                value = ExtractLogin(record);
-            }
-            else if (options.Totp)
-            {
-                itemName = "TOTP";
-                value = ExtractTotp(record);
-            }
-            else if (!string.IsNullOrEmpty(options.Field))
-            {
-                itemName = options.Field;
-                value = ExtractField(record, options.Field);
-            }
-            else
-            {
-                itemName = "Password";
-                value = ExtractPassword(record);
+                case 1:
+                    itemName = "Login";
+                    value = ExtractLogin(record);
+                    break;
+                case 2:
+                    itemName = "TOTP";
+                    value = ExtractTotp(record);
+                    break;
+                case 3:
+                    itemName = options.Field;
+                    value = ExtractField(record, options.Field);
+                    break;
+                case 4:
+                    itemName = "UID";
+                    value = recordUid;
+                    break;
+                default:
+                    itemName = "Password";
+                    value = ExtractPassword(record);
+                    break;
             }
 
             if (string.IsNullOrEmpty(value))
