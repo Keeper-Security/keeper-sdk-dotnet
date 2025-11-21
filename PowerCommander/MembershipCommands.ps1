@@ -15,10 +15,16 @@ function Export-KeeperMembership {
 	Download shared folders only, skip teams
 
 	.Parameter ForceManageUsers
-	Force manage users permission for all users
+	Force enable 'manage users' permission for all users in shared folders
 
 	.Parameter ForceManageRecords
-	Force manage records permission for all users
+	Force enable 'manage records' permission for all users in shared folders
+
+	.Parameter RestrictManageUsers
+	Force disable 'manage users' permission for all users in shared folders
+
+	.Parameter RestrictManageRecords
+	Force disable 'manage records' permission for all users in shared folders
 
 	.Parameter SubFolderHandling
 	Shared sub-folder handling: 'ignore' or 'flatten'
@@ -29,6 +35,9 @@ function Export-KeeperMembership {
 	
 	If the output file exists and -Force is not specified, the new data will be 
 	merged with the existing file content.
+	
+	Use ForceManageUsers/ForceManageRecords to grant permissions to all users.
+	Use RestrictManageUsers/RestrictManageRecords to revoke permissions from all users.
 
 	.Example
 	Export-KeeperMembership
@@ -44,7 +53,11 @@ function Export-KeeperMembership {
 
 	.Example
 	Export-KeeperMembership -FileName "membership.json" -ForceManageUsers -ForceManageRecords
-	Downloads membership with forced permissions for all users
+	Downloads membership with 'manage users' and 'manage records' permissions enabled for all users
+
+	.Example
+	Export-KeeperMembership -FileName "restricted.json" -RestrictManageUsers
+	Downloads membership with 'manage users' permission disabled for all users
 #>
 
     [CmdletBinding()]
@@ -65,6 +78,12 @@ function Export-KeeperMembership {
         [switch] $ForceManageRecords,
 
         [Parameter(Mandatory = $false)]
+        [switch] $RestrictManageUsers,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $RestrictManageRecords,
+
+        [Parameter(Mandatory = $false)]
         [ValidateSet('ignore', 'flatten')]
         [string] $SubFolderHandling
     )
@@ -76,7 +95,6 @@ function Export-KeeperMembership {
         $FileName += ".json"
     }
 
-    # Check if file exists
     $fileExists = Test-Path $FileName
     if ($fileExists -and $Force) {
         Write-Host "File `"$FileName`" will be overwritten (--force flag is set)."
@@ -84,18 +102,6 @@ function Export-KeeperMembership {
 
     Write-Host "Downloading shared folder membership from Keeper..."
 
-    # Create logger function
-    $logger = [Action[KeeperSecurity.Vault.Severity, string]] {
-        param($severity, $message)
-        
-        if ($severity -eq [KeeperSecurity.Vault.Severity]::Warning -or 
-            $severity -eq [KeeperSecurity.Vault.Severity]::Error) {
-            Write-Host $message
-        }
-        Write-Debug $message
-    }
-
-    # Create download options
     $downloadOptions = New-Object KeeperSecurity.Vault.DownloadMembershipOptions
     $downloadOptions.FoldersOnly = $FoldersOnly.IsPresent
 
@@ -107,54 +113,108 @@ function Export-KeeperMembership {
         $downloadOptions.ForceManageRecords = $true
     }
 
+    if ($RestrictManageUsers.IsPresent) {
+        $downloadOptions.ForceManageUsers = $false
+    }
+
+    if ($RestrictManageRecords.IsPresent) {
+        $downloadOptions.ForceManageRecords = $false
+    }
+
     if ($SubFolderHandling) {
         $downloadOptions.SubFolderHandling = $SubFolderHandling
     }
 
-    # Download membership
     try {
-        $exportFile = $null
+        $downloadTask = [KeeperSecurity.Vault.KeeperMembershipDownload]::DownloadMembership(
+            $vault,
+            $downloadOptions,
+            $null
+        )
+        $downloadTask.Wait()
+        $exportFile = $downloadTask.Result
+
+        $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
         
-        if ($fileExists -and -not $Force) {
-            # Merge with existing file
-            $mergeTask = [KeeperSecurity.Vault.KeeperMembershipDownload]::MergeMembershipToFile(
-                $vault,
-                $FileName,
-                $downloadOptions,
-                $logger
-            )
-            $mergeTask.Wait()
-            
-            # Get the result for statistics
-            $downloadTask = [KeeperSecurity.Vault.KeeperMembershipDownload]::DownloadMembership(
-                $vault,
-                $downloadOptions,
-                $logger
-            )
-            $downloadTask.Wait()
-            $exportFile = $downloadTask.Result
-        }
-        else {
-            # Overwrite file
-            $task = [KeeperSecurity.Vault.KeeperMembershipDownload]::DownloadMembershipToFile(
-                $vault,
-                $FileName,
-                $downloadOptions,
-                $logger
-            )
-            $task.Wait()
-            
-            # Get the result for statistics
-            $downloadTask = [KeeperSecurity.Vault.KeeperMembershipDownload]::DownloadMembership(
-                $vault,
-                $downloadOptions,
-                $logger
-            )
-            $downloadTask.Wait()
-            $exportFile = $downloadTask.Result
+        $directory = [System.IO.Path]::GetDirectoryName($fullPath)
+        if (-not [string]::IsNullOrEmpty($directory) -and -not (Test-Path $directory)) {
+            New-Item -ItemType Directory -Path $directory -Force | Out-Null
         }
 
-        # Display summary
+        if ($fileExists -and -not $Force) {
+            Write-Host "Merging with existing file..."
+            
+            if (Test-Path $fullPath) {
+                $existingJson = [System.IO.File]::ReadAllText($fullPath)
+                $jOptions = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializerSettings
+                $jOptions.UseSimpleDictionaryFormat = $true
+                $jOptions.EmitTypeInformation = [System.Runtime.Serialization.EmitTypeInformation]::Never
+                
+                $serializer = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer(
+                    [KeeperSecurity.Commands.ExportFile], $jOptions)
+                
+                $ms = New-Object System.IO.MemoryStream(,[System.Text.Encoding]::UTF8.GetBytes($existingJson))
+                try {
+                    $existingExportFile = $serializer.ReadObject($ms)
+                    
+                    $mergedSharedFolders = New-Object 'System.Collections.Generic.List[KeeperSecurity.Commands.ExportSharedFolder]'
+                    $newUids = New-Object 'System.Collections.Generic.HashSet[string]'
+                    
+                    if ($exportFile.SharedFolders) {
+                        foreach ($sf in $exportFile.SharedFolders) {
+                            $mergedSharedFolders.Add($sf)
+                            $newUids.Add($sf.Uid) | Out-Null
+                        }
+                    }
+                    
+                    if ($existingExportFile.SharedFolders) {
+                        foreach ($sf in $existingExportFile.SharedFolders) {
+                            if (-not $newUids.Contains($sf.Uid)) {
+                                $mergedSharedFolders.Add($sf)
+                            }
+                        }
+                    }
+                    
+                    $mergedTeams = New-Object 'System.Collections.Generic.List[KeeperSecurity.Commands.ExportTeam]'
+                    $newTeamUids = New-Object 'System.Collections.Generic.HashSet[string]'
+                    
+                    if ($exportFile.Teams) {
+                        foreach ($team in $exportFile.Teams) {
+                            $mergedTeams.Add($team)
+                            $newTeamUids.Add($team.Uid) | Out-Null
+                        }
+                    }
+                    
+                    if ($existingExportFile.Teams) {
+                        foreach ($team in $existingExportFile.Teams) {
+                            if (-not $newTeamUids.Contains($team.Uid)) {
+                                $mergedTeams.Add($team)
+                            }
+                        }
+                    }
+                    
+                    $mergedExportFile = New-Object KeeperSecurity.Commands.ExportFile
+                    if ($mergedSharedFolders.Count -gt 0) {
+                        $mergedExportFile.SharedFolders = $mergedSharedFolders.ToArray()
+                    }
+                    if ($mergedTeams.Count -gt 0) {
+                        $mergedExportFile.Teams = $mergedTeams.ToArray()
+                    }
+                    
+                    $exportFile = $mergedExportFile
+                }
+                finally {
+                    $ms.Dispose()
+                }
+            }
+        }
+
+        $jsonBytes = [KeeperSecurity.Utils.JsonUtils]::DumpJson($exportFile, $true)
+        $jsonContent = [System.Text.Encoding]::UTF8.GetString($jsonBytes)
+        [System.IO.File]::WriteAllText($fullPath, $jsonContent)
+        
+        Write-Debug "Downloaded membership to $fullPath"
+
         $sharedFolderCount = if ($exportFile.SharedFolders) { $exportFile.SharedFolders.Length } else { 0 }
         $teamCount = if ($exportFile.Teams) { $exportFile.Teams.Length } else { 0 }
 
@@ -164,7 +224,7 @@ function Export-KeeperMembership {
         if (-not $FoldersOnly) {
             Write-Host "    Teams: $teamCount"
         }
-        Write-Host "    Output File: $FileName"
+        Write-Host "    Output File: $fullPath"
         Write-Host ""
         Write-Host "Download membership completed successfully." -ForegroundColor Green
     }

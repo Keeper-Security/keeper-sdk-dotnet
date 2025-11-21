@@ -624,12 +624,10 @@ function Export-KeeperVault {
 
     [KeeperSecurity.Vault.VaultOnline]$vault = getVault
 
-    # Ensure .json extension
     if (-not $FileName.EndsWith(".json", [StringComparison]::OrdinalIgnoreCase)) {
         $FileName += ".json"
     }
 
-    # Check if file exists and prompt for overwrite unless -Force is specified
     if ((Test-Path $FileName) -and -not $Force) {
         $response = Read-Host "File `"$FileName`" already exists. Overwrite? (y/n)"
         if ($response -notmatch '^y(es)?$') {
@@ -640,7 +638,6 @@ function Export-KeeperVault {
 
     Write-Host "Exporting vault data..."
 
-    # Create logger function
     $logger = [Action[KeeperSecurity.Vault.Severity, string]] {
         param($severity, $message)
         
@@ -651,7 +648,6 @@ function Export-KeeperVault {
         Write-Debug $message
     }
 
-    # Export vault to JSON string
     $includeSharedFolders = -not $ExcludeSharedFolders.IsPresent
     $jsonContent = [KeeperSecurity.Vault.KeeperExport]::ExportVaultToJson(
         $vault,
@@ -660,28 +656,22 @@ function Export-KeeperVault {
         $logger
     )
 
-    # Ensure the file is created and write the JSON content
     $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
     
-    # Create the directory if it doesn't exist
     $directory = [System.IO.Path]::GetDirectoryName($fullPath)
     if (-not [string]::IsNullOrEmpty($directory) -and -not (Test-Path $directory)) {
         New-Item -ItemType Directory -Path $directory -Force | Out-Null
     }
     
-    # Write the JSON content to file
     [System.IO.File]::WriteAllText($fullPath, $jsonContent)
     
     Write-Debug "Exported to $fullPath"
 
-    # Get file info for summary
     $fileInfo = Get-Item $fullPath
 
-    # Count records (version 2 and 3 only)
     $recordCount = ($vault.KeeperRecords | Where-Object { $_.Version -eq 2 -or $_.Version -eq 3 }).Count
     $sharedFolderCount = if ($ExcludeSharedFolders) { 0 } else { $vault.SharedFolders.Count }
 
-    # Display summary
     Write-Host ""
     Write-Host "Export Summary:"
     Write-Host "    Records Exported: $recordCount"
