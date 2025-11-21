@@ -577,3 +577,108 @@ function traverseFolderToRoot ([KeeperSecurity.Vault.VaultOnline]$vault, [string
         }
     }
 }
+
+
+function Export-KeeperVault {
+    <#
+	.Synopsis
+	Export vault data to a JSON file
+
+	.Parameter FileName
+	JSON export filename (will automatically add .json extension if not present)
+
+	.Parameter Force
+	Overwrite existing file without prompting
+
+	.Parameter ExcludeSharedFolders
+	Exclude shared folders from export
+
+	.Description
+	Exports all vault records and optionally shared folders to a JSON file.
+	The JSON format is compatible with Keeper's import functionality.
+
+	.Example
+	Export-KeeperVault -FileName "vault_backup"
+	Exports vault to "vault_backup.json" and prompts if file exists
+
+	.Example
+	Export-KeeperVault -FileName "vault.json" -Force
+	Exports vault and overwrites existing file without prompting
+
+	.Example
+	Export-KeeperVault -FileName "records_only.json" -ExcludeSharedFolders
+	Exports only records, excluding shared folders
+#>
+
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string] $FileName,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $ExcludeSharedFolders
+    )
+
+    [KeeperSecurity.Vault.VaultOnline]$vault = getVault
+
+    # Ensure .json extension
+    if (-not $FileName.EndsWith(".json", [StringComparison]::OrdinalIgnoreCase)) {
+        $FileName += ".json"
+    }
+
+    # Check if file exists and prompt for overwrite unless -Force is specified
+    if ((Test-Path $FileName) -and -not $Force) {
+        $response = Read-Host "File `"$FileName`" already exists. Overwrite? (y/n)"
+        if ($response -notmatch '^y(es)?$') {
+            Write-Host "Export cancelled."
+            return
+        }
+    }
+
+    Write-Host "Exporting vault data..."
+
+    # Create logger function
+    $logger = [Action[KeeperSecurity.Vault.Severity, string]] {
+        param($severity, $message)
+        
+        if ($severity -eq [KeeperSecurity.Vault.Severity]::Warning -or 
+            $severity -eq [KeeperSecurity.Vault.Severity]::Error) {
+            Write-Host $message
+        }
+        Write-Debug $message
+    }
+
+    # Export vault
+    $includeSharedFolders = -not $ExcludeSharedFolders.IsPresent
+    $task = [KeeperSecurity.Vault.VaultExtensions]::ExportVaultToFile(
+        $vault,
+        $FileName,
+        $null,
+        $includeSharedFolders,
+        $logger
+    )
+    $task.Wait()
+
+    # Get file info for summary
+    $fileInfo = Get-Item $FileName
+
+    # Count records (version 2 and 3 only)
+    $recordCount = ($vault.KeeperRecords | Where-Object { $_.Version -eq 2 -or $_.Version -eq 3 }).Count
+    $sharedFolderCount = if ($ExcludeSharedFolders) { 0 } else { $vault.SharedFolders.Count }
+
+    # Display summary
+    Write-Host ""
+    Write-Host "Export Summary:"
+    Write-Host "    Records Exported: $recordCount"
+    if (-not $ExcludeSharedFolders) {
+        Write-Host "    Shared Folders: $sharedFolderCount"
+    }
+    Write-Host "    File Size: $($fileInfo.Length) bytes"
+    Write-Host "    Output File: $FileName"
+    Write-Host ""
+    Write-Host "Export completed successfully." -ForegroundColor Green
+}
+New-Alias -Name kexport -Value Export-KeeperVault
