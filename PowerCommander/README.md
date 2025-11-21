@@ -55,6 +55,12 @@ To run the PowerCommander module from the source copy PowerCommander\ directory 
 | Restore-KeeperTrashRecords             | ktrash-restore | Restore deleted records from trash
 | Remove-TrashedKeeperRecordShares       | ktrash-unshare | Remove shares from deleted records
 
+### Import/Export Cmdlets
+| Cmdlet name                            | Alias          | Description
+|----------------------------------------|----------------|----------------------------
+| Export-KeeperVault                     | kexport        | Export vault records and shared folders to JSON file
+| Export-KeeperMembership                | kdwnmbs        | Download shared folder and team membership data to JSON file
+
 ### Biometric Cmdlets
 | Cmdlet name                            | Alias       | Description
 |----------------------------------------|-------------|----------------------------

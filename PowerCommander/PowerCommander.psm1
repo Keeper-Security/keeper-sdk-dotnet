@@ -81,6 +81,9 @@ Export-ModuleMember -Function Get-KeeperTrashList, Restore-KeeperTrashRecords, R
 Clear-KeeperTrash
 Export-ModuleMember -Alias ktrash-list, ktrash-restore, ktrash-unshare, ktrash-get
 
+Export-ModuleMember -Function Export-KeeperVault, Export-KeeperMembership
+Export-ModuleMember -Alias kexport, kdwnmbs
+
 # function Test-Keeper {
 #     [CmdletBinding()]
 #     Param (

@@ -651,19 +651,31 @@ function Export-KeeperVault {
         Write-Debug $message
     }
 
-    # Export vault
+    # Export vault to JSON string
     $includeSharedFolders = -not $ExcludeSharedFolders.IsPresent
-    $task = [KeeperSecurity.Vault.VaultExtensions]::ExportVaultToFile(
+    $jsonContent = [KeeperSecurity.Vault.KeeperExport]::ExportVaultToJson(
         $vault,
-        $FileName,
         $null,
         $includeSharedFolders,
         $logger
     )
-    $task.Wait()
+
+    # Ensure the file is created and write the JSON content
+    $fullPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FileName)
+    
+    # Create the directory if it doesn't exist
+    $directory = [System.IO.Path]::GetDirectoryName($fullPath)
+    if (-not [string]::IsNullOrEmpty($directory) -and -not (Test-Path $directory)) {
+        New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    }
+    
+    # Write the JSON content to file
+    [System.IO.File]::WriteAllText($fullPath, $jsonContent)
+    
+    Write-Debug "Exported to $fullPath"
 
     # Get file info for summary
-    $fileInfo = Get-Item $FileName
+    $fileInfo = Get-Item $fullPath
 
     # Count records (version 2 and 3 only)
     $recordCount = ($vault.KeeperRecords | Where-Object { $_.Version -eq 2 -or $_.Version -eq 3 }).Count
@@ -676,8 +688,8 @@ function Export-KeeperVault {
     if (-not $ExcludeSharedFolders) {
         Write-Host "    Shared Folders: $sharedFolderCount"
     }
-    Write-Host "    File Size: $($fileInfo.Length) bytes"
-    Write-Host "    Output File: $FileName"
+    Write-Host "    File Size: $($fileInfo.Length.ToString('N0')) bytes"
+    Write-Host "    Output File: $fullPath"
     Write-Host ""
     Write-Host "Export completed successfully." -ForegroundColor Green
 }
