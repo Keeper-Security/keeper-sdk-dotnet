@@ -58,7 +58,6 @@ namespace Commander
                 shareInfoForHash = shareInfoMap;
             }
 
-            // Build the duplicate hash map
             var duplicateGroups = BuildDuplicateHashMap(context, options, shareInfoForHash);
 
             if (duplicateGroups.Count == 0)
@@ -106,7 +105,6 @@ namespace Commander
                 hashMap[hash].Add(record.Uid);
             }
 
-            // Filter to only groups with duplicates
             return hashMap.Where(kvp => kvp.Value.Count > 1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -130,7 +128,6 @@ namespace Commander
             }
             else
             {
-                // Match by selected fields
                 if (options.Title)
                     hashParts.Add(record.Title ?? "");
                 if (options.Login)
@@ -484,7 +481,6 @@ namespace Commander
 
             foreach (var group in duplicateGroups.Values)
             {
-                // Keep first, remove rest
                 recordsToRemove.AddRange(group.Skip(1));
             }
 

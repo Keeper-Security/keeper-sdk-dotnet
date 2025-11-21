@@ -20,7 +20,6 @@ namespace Commander
                 return;
             }
 
-            // Find the record
             var recordUid = FindRecordUid(context, options.Record, options.Username);
             if (string.IsNullOrEmpty(recordUid))
             {
@@ -28,7 +27,6 @@ namespace Commander
                 return;
             }
 
-            // Load record with optional revision
             KeeperRecord record;
             if (options.Revision.HasValue && options.Revision.Value > 0)
             {
@@ -49,7 +47,6 @@ namespace Commander
                 }
             }
 
-            // Extract the requested data
             int discriminator = options.CopyUid ? 4 :
                                 options.Login ? 1 :
                                 options.Totp ? 2 :
@@ -87,7 +84,6 @@ namespace Commander
                 return;
             }
 
-            // Output to destination
             switch (options.Output.ToLower())
             {
                 case "clipboard":
@@ -111,7 +107,6 @@ namespace Commander
                     break;
             }
 
-            // Audit log for password copies
             if (itemName == "Password" && !string.IsNullOrEmpty(value))
             {
                 try
@@ -128,18 +123,15 @@ namespace Commander
 
         private static string FindRecordUid(VaultContext context, string recordName, string username)
         {
-            // Check if it's already a UID
             if (context.Vault.TryGetKeeperRecord(recordName, out _))
             {
                 return recordName;
             }
 
-            // Find by title
             var matches = context.Vault.KeeperRecords
                 .Where(r => string.Equals(r.Title, recordName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            // Filter by username if provided
             if (!string.IsNullOrEmpty(username))
             {
                 matches = matches.Where(r =>
@@ -160,7 +152,6 @@ namespace Commander
                 return null;
             }
 
-            // Try partial match
             matches = context.Vault.KeeperRecords
                 .Where(r => r.Title.IndexOf(recordName, StringComparison.OrdinalIgnoreCase) >= 0)
                 .ToList();
@@ -218,7 +209,6 @@ namespace Commander
 
         private static string ExtractField(KeeperRecord record, string fieldName)
         {
-            // Handle special fields
             if (fieldName.Equals("notes", StringComparison.OrdinalIgnoreCase))
             {
                 return record switch
@@ -229,7 +219,6 @@ namespace Commander
                 };
             }
 
-            // Handle custom fields
             switch (record)
             {
                 case PasswordRecord pr:
@@ -247,7 +236,6 @@ namespace Commander
 
         private static string ExtractTypedField(TypedRecord record, string fieldName)
         {
-            // Try to find in standard fields
             var field = record.Fields?.FirstOrDefault(f =>
                 string.Equals(f.FieldName, fieldName, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(f.FieldLabel, fieldName, StringComparison.OrdinalIgnoreCase));
@@ -257,7 +245,6 @@ namespace Commander
                 return GetFieldValueAsString(field);
             }
 
-            // Try custom fields
             var customField = record.Custom?.FirstOrDefault(f =>
                 string.Equals(f.FieldName, fieldName, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(f.FieldLabel, fieldName, StringComparison.OrdinalIgnoreCase));
