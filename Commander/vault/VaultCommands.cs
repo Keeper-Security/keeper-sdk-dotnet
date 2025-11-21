@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using KeeperSecurity.Utils;
 using CommandLine;
 using KeeperSecurity.BreachWatch;
+using System.Diagnostics;
+using System.IO;
+
 
 namespace Commander
 {
@@ -312,6 +315,23 @@ namespace Commander
                     Action = context.SearchCommand
                 });
 
+            cli.Commands.Add("clipboard-copy",
+                new ParseableCommand<ClipboardCopyCommandOptions>
+                {
+                    Order = 10,
+                    Description = "Copy record data to clipboard or output",
+                    Action = context.ClipboardCopyCommand
+                });
+            cli.Aliases.Add("cc", "clipboard-copy");
+
+            cli.Commands.Add("find-password",
+                new ParseableCommand<ClipboardCopyCommandOptions>
+                {
+                    Order = 10,
+                    Description = "Retrieve password for a specific record",
+                    Action = context.ClipboardCopyCommand
+                });
+
             cli.Commands.Add("ls",
                 new ParseableCommand<ListCommandOptions>
                 {
@@ -386,7 +406,7 @@ namespace Commander
                     Description = "Upload file attachment",
                     Action = context.UploadAttachmentCommand
                 });
-            
+
             cli.Commands.Add("delete-attachment",
                 new ParseableCommand<DeleteAttachmentOptions>
                 {
@@ -493,6 +513,14 @@ namespace Commander
                     Order = 35,
                     Description = "Download shared folder membership to a JSON file",
                     Action = context.DownloadMembershipCommand
+                });
+
+            cli.Commands.Add("find-duplicates",
+                new ParseableCommand<FindDuplicatesCommandOptions>
+                {
+                    Order = 34,
+                    Description = "Find duplicate records in vault",
+                    Action = context.FindDuplicatesCommand
                 });
 
             cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
@@ -826,7 +854,7 @@ namespace Commander
         private static Task TreeCommand(this VaultContext context, TreeCommandOptions options)
         {
             FolderNode startFolder = context.Vault.RootFolder;
-            
+
             if (!string.IsNullOrEmpty(options.Folder))
             {
                 if (context.TryResolvePath(options.Folder, out var targetFolder))
@@ -1211,7 +1239,228 @@ namespace Commander
             return new PasswordStrength($"{policyList[0]},{policyList[1]},{policyList[2]},{policyList[3]},{policyList[4]}");
         }
     }
-        
+
+    internal static class ExportCommandExtensions
+    {
+        public static async Task ExportCommand(this VaultContext context, ExportCommandOptions options)
+        {
+            void Logger(Severity severity, string message)
+            {
+                if (severity == Severity.Warning || severity == Severity.Error)
+                {
+                    Console.WriteLine(message);
+                }
+                Debug.WriteLine(message);
+            }
+
+            var filename = options.FileName;
+
+            if (!filename.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                filename += ".json";
+            }
+
+            if (File.Exists(filename) && !options.Force)
+            {
+                Console.Write($"File \"{filename}\" already exists. Overwrite? (y/n): ");
+                var response = Console.ReadLine()?.Trim().ToLower();
+                if (response != "y" && response != "yes")
+                {
+                    Console.WriteLine("Export cancelled.");
+                    return;
+                }
+            }
+
+            Console.WriteLine("Exporting vault data...");
+
+            var excludeSharedFolders = options.ExcludeSharedFolders;
+
+            await context.Vault.ExportVaultToFile(
+                filename,
+                recordUids: null,
+                includeSharedFolders: !excludeSharedFolders,
+                logger: Logger);
+
+            var fileInfo = new FileInfo(filename);
+            var table = new Tabulate(2)
+            {
+                LeftPadding = 4
+            };
+            table.SetColumnRightAlign(0, true);
+
+            var recordCount = context.Vault.KeeperRecords.Count(r => r.Version == 2 || r.Version == 3);
+            var sharedFolderCount = excludeSharedFolders ? 0 : context.Vault.SharedFolders.Count();
+
+            table.AddRow("Records Exported:", recordCount);
+            if (!excludeSharedFolders)
+            {
+                table.AddRow("Shared Folders:", sharedFolderCount);
+            }
+            table.AddRow("File Size:", $"{fileInfo.Length:N0} bytes");
+            table.AddRow("Output File:", filename);
+
+            table.Dump();
+
+            Console.WriteLine();
+            Console.WriteLine("Export completed successfully.");
+        }
+    }
+    
+    internal static class DownloadMembershipCommandExtensions
+    {
+        public static async Task DownloadMembershipCommand(this VaultContext context, DownloadMembershipCommandOptions options)
+        {
+            static void Logger(Severity severity, string message)
+            {
+                if (severity == Severity.Warning || severity == Severity.Error)
+                {
+                    Console.WriteLine(message);
+                }
+                Debug.WriteLine(message);
+            }
+
+            if (string.IsNullOrEmpty(options.Source))
+            {
+                options.Source = "keeper";
+            }
+            
+            var source = options.Source.ToLower();
+            if (source != "keeper" && source != "lastpass" && source != "thycotic")
+            {
+                throw new Exception($"Invalid source '{options.Source}'. Valid values: keeper, lastpass, thycotic");
+            }
+            
+            if (source != "keeper")
+            {
+                throw new NotImplementedException($"Membership download source '{source}' is not supported");
+            }
+
+            var filename = string.IsNullOrEmpty(options.FileName) 
+                ? "shared_folder_membership.json" 
+                : options.FileName;
+            
+            if (!filename.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                filename += ".json";
+            }
+
+            if (File.Exists(filename) && options.Force)
+            {
+                Console.WriteLine($"File \"{filename}\" will be overwritten (--force flag is set).");
+            }
+
+            Console.WriteLine($"Downloading shared folder membership from {source}...");
+            
+            var downloadOptions = new DownloadMembershipOptions
+            {
+                FoldersOnly = options.FoldersOnly,
+                SubFolderHandling = options.SubFolder
+            };
+
+            if (!string.IsNullOrEmpty(options.Permissions))
+            {
+                var perms = options.Permissions.ToLower();
+                if (perms.Contains("u"))
+                {
+                    downloadOptions.ForceManageUsers = true;
+                }
+                if (perms.Contains("r"))
+                {
+                    downloadOptions.ForceManageRecords = true;
+                }
+            }
+            
+            if (!string.IsNullOrEmpty(options.Restrictions))
+            {
+                var restrictions = options.Restrictions.ToLower();
+                if (restrictions.Contains("u"))
+                {
+                    downloadOptions.ForceManageUsers = false;
+                }
+                if (restrictions.Contains("r"))
+                {
+                    downloadOptions.ForceManageRecords = false;
+                }
+            }
+
+            KeeperSecurity.Commands.ExportFile exportFile;
+            if (File.Exists(filename) && !options.Force)
+            {
+                await context.Vault.MergeMembershipToFile(filename, downloadOptions, Logger);
+                exportFile = await context.Vault.DownloadMembership(downloadOptions, Logger);
+            }
+            else
+            {
+                await context.Vault.DownloadMembershipToFile(filename, downloadOptions, Logger);
+                exportFile = await context.Vault.DownloadMembership(downloadOptions, Logger);
+            }
+
+            var table = new Tabulate(2)
+            {
+                LeftPadding = 4
+            };
+            table.SetColumnRightAlign(0, true);
+            
+            var sharedFolderCount = exportFile.SharedFolders?.Length ?? 0;
+            var teamCount = exportFile.Teams?.Length ?? 0;
+            
+            table.AddRow("Shared Folders:", sharedFolderCount);
+            if (!options.FoldersOnly)
+            {
+                table.AddRow("Teams:", teamCount);
+            }
+            table.AddRow("Output File:", filename);
+            
+            table.Dump();
+            
+            Console.WriteLine();
+            Console.WriteLine("Download membership completed successfully.");
+        }
+    }
+    
+    class DownloadMembershipCommandOptions
+    {
+        [Option("source", Required = false, Default = "keeper",
+            HelpText = "Shared folder membership source: keeper, lastpass, thycotic. Currently only keeper is supported.")]
+        public string Source { get; set; }
+
+        [Value(0, Required = false, HelpText = "Output JSON filename (default: shared_folder_membership.json)")]
+        public string FileName { get; set; }
+
+        [Option('f', "force", Required = false, Default = false,
+            HelpText = "If file exists, force will overwrite it otherwise it will be merged")]
+        public bool Force { get; set; }
+
+        [Option("folders-only", Required = false, Default = false,
+            HelpText = "Download shared folders only, skip teams")]
+        public bool FoldersOnly { get; set; }
+
+        [Option('p', "permissions", Required = false,
+            HelpText = "Force shared folder permissions: manage (U)sers, manage (R)ecords")]
+        public string Permissions { get; set; }
+
+        [Option('r', "restrictions", Required = false,
+            HelpText = "Force shared folder restrictions: manage (U)sers, manage (R)ecords")]
+        public string Restrictions { get; set; }
+
+        [Option("sub-folder", Required = false,
+            HelpText = "Shared sub-folder handling: 'ignore' or 'flatten'")]
+        public string SubFolder { get; set; }
+    }
+    
+    class ExportCommandOptions
+    {
+        [Value(0, Required = true, HelpText = "JSON export filename")]
+        public string FileName { get; set; }
+
+        [Option('f', "force", Required = false, Default = false, 
+            HelpText = "Overwrite existing file without prompting")]
+        public bool Force { get; set; }
+
+        [Option('x', "exclude-shared-folders", Required = false, Default = false,
+            HelpText = "Exclude shared folders from export")]
+        public bool ExcludeSharedFolders { get; set; }
+    }
 
     class SearchCommandOptions
     {
