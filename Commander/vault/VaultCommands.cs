@@ -312,6 +312,23 @@ namespace Commander
                     Action = context.SearchCommand
                 });
 
+            cli.Commands.Add("clipboard-copy",
+                new ParseableCommand<ClipboardCopyCommandOptions>
+                {
+                    Order = 10,
+                    Description = "Copy record data to clipboard or output",
+                    Action = context.ClipboardCopyCommand
+                });
+            cli.Aliases.Add("cc", "clipboard-copy");
+
+            cli.Commands.Add("find-password",
+                new ParseableCommand<ClipboardCopyCommandOptions>
+                {
+                    Order = 10,
+                    Description = "Retrieve password for a specific record",
+                    Action = context.ClipboardCopyCommand
+                });
+
             cli.Commands.Add("ls",
                 new ParseableCommand<ListCommandOptions>
                 {
@@ -493,6 +510,14 @@ namespace Commander
                     Order = 35,
                     Description = "Download shared folder membership to a JSON file",
                     Action = context.DownloadMembershipCommand
+                });
+
+            cli.Commands.Add("find-duplicates",
+                new ParseableCommand<FindDuplicatesCommandOptions>
+                {
+                    Order = 34,
+                    Description = "Find duplicate records in vault",
+                    Action = context.FindDuplicatesCommand
                 });
 
             cli.Commands.Add("password-report", new ParseableCommand<PasswordReportOptions>
